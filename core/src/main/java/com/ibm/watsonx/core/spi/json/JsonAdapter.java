@@ -1,0 +1,29 @@
+package com.ibm.watsonx.core.spi.json;
+
+/**
+ * Service Provider Interface (SPI) for JSON serialization and deserialization.
+ */
+public interface JsonAdapter {
+
+    /**
+     * Deserializes a JSON string into an instance of the specified class.
+     *
+     * @param json the JSON content.
+     * @param type the target class.
+     * @param <T> the result type.
+     * @return the deserialized object.
+     * @throws RuntimeException if deserialization fails.
+     */
+    <T> T fromJson(String json, Class<T> clazz);
+
+    /**
+     * Serializes an object to its JSON representation.
+     *
+     * @param object the object to serialize.
+     * @return the JSON string.
+     * @throws RuntimeException if serialization fails.
+     */
+    String toJson(Object object);
+
+    String prettyPrint(Object object);
+}
