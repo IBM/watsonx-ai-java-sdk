@@ -1,5 +1,6 @@
 package com.ibm.watsonx.core.spi.json.jackson;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,7 @@ public class JacksonAdapter implements JsonAdapter {
     public JacksonAdapter() {
         this.objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .setSerializationInclusion(Include.NON_NULL)
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
     }
 

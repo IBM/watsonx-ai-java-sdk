@@ -5,14 +5,11 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.joining;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -21,10 +18,11 @@ import java.util.concurrent.Flow.Subscription;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ibm.watsonx.core.HttpUtils;
 import com.ibm.watsonx.core.Json;
+import com.ibm.watsonx.core.exeception.WatsonxException;
 import com.ibm.watsonx.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.core.http.SyncHttpInterceptor;
 
@@ -47,6 +45,17 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
     public LoggerInterceptor() {
         this.logRequest = true;
         this.logResponse = true;
+    }
+
+    /**
+     * Constructs a LoggerInterceptor with custom logging behavior.
+     *
+     * @param logRequest {@code true} to enable logging of outgoing requests, {@code false} to disable
+     * @param logResponse {@code true} to enable logging of incoming responses, {@code false} to disable
+     */
+    public LoggerInterceptor(boolean logRequest, boolean logResponse) {
+        this.logRequest = logRequest;
+        this.logResponse = logResponse;
     }
 
     /**
@@ -87,7 +96,7 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
 
     @Override
     public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
-        throws IOException, InterruptedException {
+        throws WatsonxException, IOException, InterruptedException {
         logRequest(request);
         var response = chain.proceed(request, bodyHandler);
         logResponse(request, response);
@@ -124,37 +133,15 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
         if (!logResponse)
             return;
 
-        String headers = null;
-        String body = null;
-        T genericBody = response.body();
-
         try {
 
-            if (genericBody instanceof String str) {
-                body = str;
-            } else if (genericBody instanceof byte[] bytes) {
-                body = new String(bytes);
-            } else if (genericBody instanceof InputStream inputStream) {
-                body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            } else if (genericBody instanceof Stream<?> stream) {
-                body = ((Stream<?>) stream)
-                    .map(Object::toString)
-                    .collect(Collectors.joining("\n"));
-            } else if (genericBody instanceof Path path) {
-                body = Files.readString(path, StandardCharsets.UTF_8);
-            }
-
-
+            String headers = null;
             boolean prettyPrint = false;
+            String body = HttpUtils.extractBodyAsString(response).orElse(null);
 
-            if (nonNull(response.headers())) {
+            if (nonNull(response.headers()))
                 headers = inOneLine(response.headers().map());
-                var accept = response.headers().firstValue("Accept");
-                if (accept.isPresent() && accept.get().contains("application/json")) {
-                    prettyPrint = true;
-                }
-            }
-
+            
             if (!prettyPrint && nonNull(request.headers())) {
                 headers = inOneLine(request.headers().map());
                 var accept = request.headers().firstValue("Accept");

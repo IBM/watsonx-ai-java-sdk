@@ -1,6 +1,7 @@
 package com.ibm.watsonx.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -18,6 +19,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import com.ibm.watsonx.core.exeception.WatsonxException;
 import com.ibm.watsonx.core.http.SyncHttpClient;
 import com.ibm.watsonx.core.http.SyncHttpInterceptor;
 
@@ -27,6 +29,9 @@ public class SyncHttpClientTest {
 
     @Mock
     HttpClient httpClient;
+
+    @Mock
+    HttpResponse<String> httpResponse;
 
     @Mock
     SyncHttpInterceptor interceptor1;
@@ -46,7 +51,6 @@ public class SyncHttpClientTest {
 
         HttpRequest request = mock(HttpRequest.class);
         BodyHandler<String> handler = mock(BodyHandler.class);
-        HttpResponse<String> expectedResponse = mock(HttpResponse.class);
         SyncHttpClient client = SyncHttpClient.builder()
             .httpClient(httpClient)
             .interceptor(interceptor1)
@@ -59,11 +63,14 @@ public class SyncHttpClientTest {
         when(interceptor2.intercept(eq(request), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(httpClient.send(request, handler)).thenReturn(expectedResponse);
+        when(httpResponse.statusCode())
+            .thenReturn(200);
+
+        when(httpClient.send(request, handler)).thenReturn(httpResponse);
 
         var response = client.send(request, handler);
 
-        assertEquals(expectedResponse, response);
+        assertEquals(httpResponse, response);
 
         InOrder inOrder = inOrder(interceptor1, interceptor2);
         inOrder.verify(interceptor1).intercept(eq(request), eq(handler), anyInt(), any());
@@ -75,7 +82,6 @@ public class SyncHttpClientTest {
 
         HttpRequest request = mock(HttpRequest.class);
         BodyHandler<String> handler = mock(BodyHandler.class);
-        HttpResponse<String> expectedResponse = mock(HttpResponse.class);
         SyncHttpClient client = SyncHttpClient.builder()
             .httpClient(httpClient)
             .interceptors(List.of(interceptor1, interceptor2))
@@ -87,11 +93,14 @@ public class SyncHttpClientTest {
         when(interceptor2.intercept(eq(request), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(httpClient.send(request, handler)).thenReturn(expectedResponse);
+        when(httpResponse.statusCode())
+            .thenReturn(200);
+
+        when(httpClient.send(request, handler)).thenReturn(httpResponse);
 
         var response = client.send(request, handler);
 
-        assertEquals(expectedResponse, response);
+        assertEquals(httpResponse, response);
 
         InOrder inOrder = inOrder(interceptor1, interceptor2);
         inOrder.verify(interceptor1).intercept(eq(request), eq(handler), anyInt(), any());
@@ -103,14 +112,63 @@ public class SyncHttpClientTest {
 
         HttpRequest request = mock(HttpRequest.class);
         BodyHandler<String> handler = mock(BodyHandler.class);
-        HttpResponse<String> expectedResponse = mock(HttpResponse.class);
         SyncHttpClient client = SyncHttpClient.builder()
             .httpClient(httpClient)
             .build();
 
-        when(httpClient.send(request, handler)).thenReturn(expectedResponse);
+        when(httpResponse.statusCode())
+            .thenReturn(200);
+
+        when(httpClient.send(request, handler)).thenReturn(httpResponse);
 
         var response = client.send(request, handler);
-        assertEquals(expectedResponse, response);
+        assertEquals(httpResponse, response);
+    }
+
+    @Test
+    void test_send_request_with_401() throws Exception {
+
+        HttpRequest request = mock(HttpRequest.class);
+        BodyHandler<String> handler = mock(BodyHandler.class);
+        SyncHttpClient client = SyncHttpClient.builder()
+            .httpClient(httpClient)
+            .build();
+
+        when(httpResponse.statusCode())
+            .thenReturn(401);
+
+        when(httpResponse.body())
+            .thenReturn(
+                """
+                    {
+                        "errors": [
+                            {
+                                "code": "authentication_token_not_valid",
+                                "message": "Failed to authenticate the request due to invalid token: Failed to parse and verify token",
+                                "more_info": "https://cloud.ibm.com/apidocs/watsonx-ai#text-chat"
+                            }
+                        ],
+                        "trace": "23e11747002c4d2919987401b745f6a7",
+                        "status_code": 401
+                    }""");
+
+        when(httpClient.send(request, handler)).thenReturn(httpResponse);
+        assertThrows(WatsonxException.class, () -> client.send(request, handler));
+    }
+
+    @Test
+    void test_send_request_with_no_exception_body() throws Exception {
+
+        HttpRequest request = mock(HttpRequest.class);
+        BodyHandler<String> handler = mock(BodyHandler.class);
+        SyncHttpClient client = SyncHttpClient.builder()
+            .httpClient(httpClient)
+            .build();
+
+        when(httpResponse.statusCode())
+            .thenReturn(401);
+
+        when(httpClient.send(request, handler)).thenReturn(httpResponse);
+        assertThrows(WatsonxException.class, () -> client.send(request, handler));
     }
 }

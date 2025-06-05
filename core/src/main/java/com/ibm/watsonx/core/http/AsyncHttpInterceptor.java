@@ -5,6 +5,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.concurrent.CompletableFuture;
+import com.ibm.watsonx.core.exeception.WatsonxException;
 import com.ibm.watsonx.core.http.interceptors.LoggerInterceptor;
 
 /**
@@ -23,10 +24,12 @@ public interface AsyncHttpInterceptor {
      * @param index the current index in the interceptor chain
      * @param <T> the type of the response body
      * @return the {@link CompletableFuture} of the HTTP response
+     * @throws WatsonxException if an error occurs during the request api
      * @throws IOException if an I/O error occurs during interception or execution
      * @throws InterruptedException if the operation is interrupted
      */
-    <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain);
+    <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
+        AsyncChain chain);
 
     /**
      * Chain interface for proceeding with the asynchronous HTTP request.
@@ -40,6 +43,7 @@ public interface AsyncHttpInterceptor {
          * @param bodyHandler the body handler for processing the response
          * @param <T> the type of the response body
          * @return the {@link CompletableFuture} of the HTTP response
+         * @throws WatsonxException if an error occurs during the request api
          * @throws IOException if an I/O error occurs during execution
          * @throws InterruptedException if the operation is interrupted
          */

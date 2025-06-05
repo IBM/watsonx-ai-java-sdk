@@ -14,6 +14,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import com.ibm.watsonx.core.exeception.WatsonxException;
+import com.ibm.watsonx.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.core.http.SyncHttpInterceptor;
 
@@ -22,7 +25,23 @@ import com.ibm.watsonx.core.http.SyncHttpInterceptor;
  */
 public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
-    private record RetryOn(Class<? extends Throwable> clazz, Optional<Function<Throwable, Boolean>> predicate) {}
+    /**
+     * Checks whether a {@link WatsonxException} is retryable due to an expired authentication token.
+     * <p>
+     * This condition is met if the HTTP status code is 401 and at least one error in the exception's details has the code
+     * {@code AUTHENTICATION_TOKEN_EXPIRED}.
+     */
+    public static final RetryInterceptor.RetryOn RETRY_ON_TOKEN_EXPIRED =
+        new RetryInterceptor.RetryOn(
+            WatsonxException.class,
+            Optional.of(ex -> {
+                var e = (WatsonxException) ex;
+                return e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
+                    .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
+            })
+        );
+
+    private record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
 
     private final Duration retryInterval;
     private final List<RetryOn> retryOn;
@@ -50,7 +69,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
 
     @Override
     public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
-        throws IOException, InterruptedException {
+        throws WatsonxException, IOException, InterruptedException {
 
         Throwable exception = null;
 
@@ -70,7 +89,9 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                     retryOn.stream().anyMatch(retryOn -> {
                         if (!retryOn.clazz().equals(e.getClass()))
                             return false;
-                        return retryOn.predicate().map(p -> p.apply(e)).orElse(true);
+                        return retryOn.predicate()
+                            .map(p -> p.test(e))
+                            .orElse(true);
                     });
 
                 if (shouldRetry) {
@@ -109,7 +130,9 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                     retryOn.stream().anyMatch(retryOn -> {
                         if (!retryOn.clazz().equals(cause.getClass()))
                             return false;
-                        return retryOn.predicate().map(p -> p.apply(cause)).orElse(true);
+                        return retryOn.predicate()
+                            .map(p -> p.test(cause))
+                            .orElse(true);
                     });
 
                 if (!shouldRetry || attempt >= maxRetries - 1) {
@@ -158,6 +181,18 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
         }
 
         /**
+         * Adds a custom {@link RetryOn} condition.
+         *
+         * @param retryOn the retry condition to add
+         */
+        public Builder retryOn(RetryOn retryOn) {
+            requireNonNull(retryOn);
+            this.retryOn = requireNonNullElse(this.retryOn, new ArrayList<>());
+            this.retryOn.add(retryOn);
+            return this;
+        }
+
+        /**
          * Adds a retry condition based on exception class.
          *
          * @param clazz the exception type to retry on
@@ -173,7 +208,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
          * @param clazz the exception type to retry on
          * @param predicate optional predicate to evaluate retry eligibility
          */
-        public Builder retryOn(Class<? extends Throwable> clazz, Function<Throwable, Boolean> predicate) {
+        public Builder retryOn(Class<? extends Throwable> clazz, Predicate<Throwable> predicate) {
             requireNonNull(clazz);
             retryOn = requireNonNullElse(retryOn, new ArrayList<>());
             retryOn.add(new RetryOn(clazz, Optional.ofNullable(predicate)));

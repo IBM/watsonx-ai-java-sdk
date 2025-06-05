@@ -1,5 +1,6 @@
 package com.ibm.watsonx.core.http;
 
+import static com.ibm.watsonx.core.Json.fromJson;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
@@ -9,6 +10,9 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.ArrayList;
 import java.util.List;
+import com.ibm.watsonx.core.HttpUtils;
+import com.ibm.watsonx.core.exeception.WatsonxException;
+import com.ibm.watsonx.core.exeception.model.WatsonxError;
 
 /**
  * Synchronous HTTP client.
@@ -49,7 +53,7 @@ public final class SyncHttpClient extends BaseHttpClient {
      * @return a HTTP response
      */
     public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> bodyHandler)
-        throws IOException, InterruptedException {
+        throws WatsonxException, IOException, InterruptedException {
         return new InterceptorChain(delegate, interceptors).proceed(request, bodyHandler);
     }
 
@@ -78,14 +82,29 @@ public final class SyncHttpClient extends BaseHttpClient {
 
         @Override
         public <T> HttpResponse<T> proceed(HttpRequest request, BodyHandler<T> bodyHandler)
-            throws IOException, InterruptedException {
+            throws WatsonxException, IOException, InterruptedException {
             if (index < interceptors.size()) {
                 var interceptorIndex = index++;
-                var response = interceptors.get(interceptorIndex).intercept(request, bodyHandler, interceptorIndex, this);
-                return response;
+                return interceptors.get(interceptorIndex)
+                    .intercept(request, bodyHandler, interceptorIndex, this);
+            } else {
+                var httpResponse = client.send(request, bodyHandler);
+                int statusCode = httpResponse.statusCode();
+
+                if (statusCode >= 200 && statusCode < 300) {
+                    return httpResponse;
+                }
+
+                var bodyOpt = HttpUtils.extractBodyAsString(httpResponse);
+
+                if (bodyOpt.isPresent()) {
+                    String body = bodyOpt.get();
+                    var details = fromJson(body, WatsonxError.class);
+                    throw new WatsonxException(body, statusCode, details);
+                }
+
+                throw new WatsonxException(statusCode);
             }
-            else
-                return client.send(request, bodyHandler);
         }
 
         @Override

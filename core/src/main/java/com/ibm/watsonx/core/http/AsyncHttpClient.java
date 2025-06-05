@@ -1,5 +1,6 @@
 package com.ibm.watsonx.core.http;
 
+import static com.ibm.watsonx.core.Json.fromJson;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.http.HttpClient;
@@ -9,6 +10,10 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import com.ibm.watsonx.core.HttpUtils;
+import com.ibm.watsonx.core.exeception.WatsonxException;
+import com.ibm.watsonx.core.exeception.model.WatsonxError;
 
 /**
  * Asynchronous HTTP client.
@@ -80,8 +85,30 @@ public class AsyncHttpClient extends BaseHttpClient {
             if (index < interceptors.size()) {
                 var interceptorIndex = index++;
                 return interceptors.get(interceptorIndex).intercept(request, handler, interceptorIndex, this);
-            } else
-                return httpClient.sendAsync(request, handler);
+            } else {
+                return httpClient.sendAsync(request, handler)
+                    .handleAsync((response, exception) -> {
+                        if (exception != null)
+                            throw new CompletionException(exception);
+                        
+
+                        int statusCode = response.statusCode();
+                        if (statusCode >= 200 && statusCode < 300) {
+                            return response;
+                        }
+
+                        var bodyOpt = HttpUtils.extractBodyAsString(response);
+
+                        if (bodyOpt.isEmpty()) 
+                            throw new CompletionException(new WatsonxException(statusCode));
+                        
+                        String body = bodyOpt.get();
+                        WatsonxError details;
+                        
+                        details = fromJson(body, WatsonxError.class);
+                        throw new CompletionException(new WatsonxException(body, statusCode, details));
+                    });
+            }
         }
 
         @Override

@@ -133,6 +133,6 @@ public class BearerInterceptorTest {
 
         var ex =
             assertThrows(CompletionException.class, () -> client.send(fakeRequest, BodyHandlers.ofString()).join());
-        assertEquals(Utils.WRONG_RESPONSE, ex.getMessage());
+        assertEquals(Utils.WRONG_RESPONSE, ex.getCause().getMessage());
     }
 }

@@ -81,7 +81,7 @@ public class IAMAuthenticatorAsyncTest {
             .build();
 
         var ex = assertThrows(RuntimeException.class, () -> authenticator.getTokenAsync().join());
-        assertEquals(ex.getMessage(), Utils.WRONG_RESPONSE);
+        assertEquals(Utils.WRONG_RESPONSE, ex.getCause().getMessage());
     }
 
     @Test

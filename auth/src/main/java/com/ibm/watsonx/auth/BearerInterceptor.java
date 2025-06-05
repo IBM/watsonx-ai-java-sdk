@@ -6,6 +6,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.core.exeception.WatsonxException;
 import com.ibm.watsonx.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.core.http.SyncHttpInterceptor;
 
@@ -33,7 +34,7 @@ public class BearerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
     }
 
     @Override
-    public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain) throws IOException, InterruptedException {
+    public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain) throws WatsonxException, IOException, InterruptedException {
         var token = authenticator.getToken();
         return chain.proceed(requestWithBearer(request, token), bodyHandler);
     }

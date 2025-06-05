@@ -1,10 +1,12 @@
 package com.ibm.watsonx.core;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -180,8 +182,58 @@ public class RetryInterceptorTest {
             when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
+            when(httpResponse.statusCode())
+                .thenReturn(200);
+
             when(httpClient.send(httpRequest, bodyHandler))
                 .thenThrow(new NullPointerException())
+                .thenReturn(httpResponse);
+
+            var result = client.send(httpRequest, bodyHandler);
+            assertEquals(httpResponse, result);
+            verify(httpClient, times(2)).send(httpRequest, bodyHandler);
+            verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+        }
+
+        @Test
+        @SuppressWarnings("unchecked")
+        void retry_with_watsonx_exception() throws Exception {
+
+            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryOn(RetryInterceptor.RETRY_ON_TOKEN_EXPIRED)
+                .build();
+
+            SyncHttpClient client = SyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
+                .thenAnswer(CHAIN_MOCK);
+
+            var tokenExpiredResponse = mock(HttpResponse.class);
+            when(tokenExpiredResponse.statusCode()).thenReturn(401);
+            when(tokenExpiredResponse.body()).thenReturn(
+                """
+                    {
+                        "errors": [
+                            {
+                                "code": "authentication_token_expired",
+                                "message": "Failed to authenticate the request due to invalid token: Failed to parse and verify token",
+                                "more_info": "https://cloud.ibm.com/apidocs/watsonx-ai#text-chat"
+                            }
+                        ],
+                        "trace": "23e11747002c4d2919987401b745f6a7",
+                        "status_code": 401
+                    }""");
+
+            when(httpResponse.statusCode())
+                .thenReturn(200);
+
+            when(httpClient.send(httpRequest, bodyHandler))
+                .thenReturn(tokenExpiredResponse)
                 .thenReturn(httpResponse);
 
             var result = client.send(httpRequest, bodyHandler);
@@ -302,6 +354,9 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
+            when(httpResponse.statusCode())
+                .thenReturn(200);
+
             when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
@@ -310,6 +365,53 @@ public class RetryInterceptorTest {
                 .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
             var result = client.send(httpRequest, bodyHandler).join();
+            assertEquals(httpResponse, result);
+            verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
+            verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+        }
+
+        @Test
+        @SuppressWarnings("unchecked")
+        void retry_with_watsonx_exception() throws Exception {
+
+            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryOn(RetryInterceptor.RETRY_ON_TOKEN_EXPIRED)
+                .build();
+
+            AsyncHttpClient client = AsyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
+                .thenAnswer(CHAIN_MOCK);
+
+            var tokenExpiredResponse = mock(HttpResponse.class);
+            when(tokenExpiredResponse.statusCode()).thenReturn(401);
+            when(tokenExpiredResponse.body()).thenReturn(
+                """
+                    {
+                        "errors": [
+                            {
+                                "code": "authentication_token_expired",
+                                "message": "Failed to authenticate the request due to invalid token: Failed to parse and verify token",
+                                "more_info": "https://cloud.ibm.com/apidocs/watsonx-ai#text-chat"
+                            }
+                        ],
+                        "trace": "23e11747002c4d2919987401b745f6a7",
+                        "status_code": 401
+                    }""");
+
+            when(httpResponse.statusCode())
+                .thenReturn(200);
+
+            when(httpClient.sendAsync(httpRequest, bodyHandler))
+                .thenReturn(completedFuture(tokenExpiredResponse))
+                .thenReturn(completedFuture(httpResponse));
+
+            var result = client.send(httpRequest, bodyHandler).get();
             assertEquals(httpResponse, result);
             verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
             verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
