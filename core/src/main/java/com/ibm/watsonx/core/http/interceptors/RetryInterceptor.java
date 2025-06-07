@@ -46,6 +46,8 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
     private final Duration retryInterval;
     private final List<RetryOn> retryOn;
     private Integer maxRetries;
+    private boolean exponentialBackoff = false;
+    private Duration timeout;
 
     /**
      * Creates a new {@code RetryInterceptor} using the provided builder.
@@ -55,8 +57,10 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
     public RetryInterceptor(Builder builder) {
         requireNonNull(builder);
         this.retryInterval = requireNonNullElse(builder.retryInterval, Duration.ofMillis(0));
+        this.timeout = this.retryInterval;
         this.maxRetries = requireNonNullElse(builder.maxRetries, 1);
         this.retryOn = builder.retryOn;
+        this.exponentialBackoff = builder.exponentialBackoff;
         if (isNull(retryOn) || retryOn.isEmpty())
             throw new RuntimeException("At least one exception must be specified");
     }
@@ -78,9 +82,11 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
             try {
 
                 if (attempt > 0)
-                    Thread.sleep(retryInterval.toMillis());
+                    Thread.sleep(timeout.toMillis());
 
-                return chain.proceed(request, bodyHandler);
+                var res = chain.proceed(request, bodyHandler);
+                this.timeout = this.retryInterval;
+                return res;
 
             } catch (Exception e) {
                 exception = e;
@@ -95,15 +101,28 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                     });
 
                 if (shouldRetry) {
+                    if(exponentialBackoff && attempt > 0) {
+                        timeout = timeout.multipliedBy(2);
+                    }
                     chain.resetToIndex(index + 1);
                     continue;
                 }
 
+                this.timeout = this.retryInterval;
                 throw e;
             }
         }
-
+        
+        this.timeout = this.retryInterval;
         throw new RuntimeException("Max retries reached", isNull(exception) ? new Exception() : exception);
+    }
+
+    /**
+     * @return The current timeout interval. It is equals to `retryInterval` if `exponentialBackoff`
+     *         is disabled, or `retryInterval * Math.pow(2, retries)` when enabled
+     */
+    public Duration getTimeout() {
+        return timeout;
     }
 
     /**
@@ -117,10 +136,11 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
 
     private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler,
         int index, int attempt, AsyncChain chain) {
-
+        
         return chain.proceed(request, bodyHandler)
             .handleAsync((response, throwable) -> {
                 if (throwable == null) {
+                    this.timeout = this.retryInterval;
                     return CompletableFuture.completedFuture(response);
                 }
 
@@ -138,7 +158,12 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                 if (!shouldRetry || attempt >= maxRetries - 1) {
                     CompletableFuture<HttpResponse<T>> failed = new CompletableFuture<>();
                     failed.completeExceptionally(new RuntimeException("Max retries reached", cause));
+                    this.timeout = this.retryInterval;
                     return failed;
+                }
+
+                if (attempt > 0) {
+                    timeout = timeout.multipliedBy(2);
                 }
 
                 return CompletableFuture.supplyAsync(
@@ -146,7 +171,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                         chain.resetToIndex(index + 1);
                         return executeWithRetry(request, bodyHandler, index, attempt + 1, chain);
                     },
-                    CompletableFuture.delayedExecutor(retryInterval.toMillis(), TimeUnit.MILLISECONDS)
+                    CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS)
                 ).thenCompose(Function.identity());
 
             }).thenCompose(Function.identity());
@@ -159,6 +184,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
         private Duration retryInterval;
         private Integer maxRetries;
         private List<RetryOn> retryOn;
+        private boolean exponentialBackoff = false;
 
         /**
          * Sets the delay between retry attempts.
@@ -212,6 +238,16 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
             requireNonNull(clazz);
             retryOn = requireNonNullElse(retryOn, new ArrayList<>());
             retryOn.add(new RetryOn(clazz, Optional.ofNullable(predicate)));
+            return this;
+        }
+
+        /**
+         * Wether to use exponential backoff in retries or not
+         *
+         * @param enable wether to enable exponential backoff
+         */
+        public Builder exponentialBackoff(boolean enable) {
+            exponentialBackoff = enable;
             return this;
         }
 
