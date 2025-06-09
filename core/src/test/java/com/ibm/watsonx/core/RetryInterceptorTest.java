@@ -11,7 +11,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -25,7 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-
 import com.ibm.watsonx.core.exeception.WatsonxException;
 import com.ibm.watsonx.core.http.AsyncHttpClient;
 import com.ibm.watsonx.core.http.AsyncHttpInterceptor;
@@ -261,10 +259,12 @@ public class RetryInterceptorTest {
                 int numCalled = 0;
 
                 @Override
-                public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
+                public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
+                    Chain chain)
                     throws WatsonxException, IOException, InterruptedException {
-                    if (this.numCalled > 0) // We are retrying
-                        assertEquals((long)(timeout.toMillis() * Math.pow(2, this.numCalled - 1)), retryInterceptor.getTimeout().toMillis()); 
+                    if (this.numCalled > 0)
+                        assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
+                            retryInterceptor.getTimeout().toMillis());
                     this.numCalled++;
                     return chain.proceed(request, bodyHandler);
                 }
@@ -282,9 +282,6 @@ public class RetryInterceptorTest {
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler));
             assertEquals(NullPointerException.class, ex.getCause().getClass());
             verify(httpClient, times(3)).send(httpRequest, bodyHandler);
-
-            // At the end, the timeout should be reset to be equal to the retryOn interval,
-            // wether the retries succeed or not
             assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
         }
 
@@ -302,10 +299,12 @@ public class RetryInterceptorTest {
                 int numCalled = 0;
 
                 @Override
-                public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
+                public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
+                    Chain chain)
                     throws WatsonxException, IOException, InterruptedException {
-                    if (this.numCalled > 0) // We are retrying
-                        assertEquals((long)(timeout.toMillis() * Math.pow(2, this.numCalled - 1)), retryInterceptor.getTimeout().toMillis()); 
+                    if (this.numCalled > 0)
+                        assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
+                            retryInterceptor.getTimeout().toMillis());
                     this.numCalled++;
                     return chain.proceed(request, bodyHandler);
                 }
@@ -326,9 +325,6 @@ public class RetryInterceptorTest {
 
             client.send(httpRequest, bodyHandler);
             verify(httpClient, times(2)).send(httpRequest, bodyHandler);
-
-            // At the end, the timeout should be reset to be equal to the retryOn interval,
-            // wether the retries succeed or not
             assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
         }
     }
@@ -521,10 +517,12 @@ public class RetryInterceptorTest {
                 int numCalled = 0;
 
                 @Override
-                public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
-                            AsyncChain chain) {
-                    if (this.numCalled > 0) // We are retrying
-                        assertEquals((long)(timeout.toMillis() * Math.pow(2, this.numCalled - 1)), retryInterceptor.getTimeout().toMillis()); 
+                public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+                    int index,
+                    AsyncChain chain) {
+                    if (this.numCalled > 0)
+                        assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
+                            retryInterceptor.getTimeout().toMillis());
                     this.numCalled++;
                     return chain.proceed(request, bodyHandler);
                 }
@@ -542,9 +540,6 @@ public class RetryInterceptorTest {
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
             assertEquals(NullPointerException.class, ex.getCause().getCause().getClass());
             verify(httpClient, times(3)).sendAsync(httpRequest, bodyHandler);
-
-            // At the end, the timeout should be reset to be equal to the retryOn interval,
-            // wether the retries succeed or not
             assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
         }
 
@@ -562,10 +557,12 @@ public class RetryInterceptorTest {
                 int numCalled = 0;
 
                 @Override
-                public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
-                            AsyncChain chain) {
-                    if (this.numCalled > 0) // We are retrying
-                        assertEquals((long)(timeout.toMillis() * Math.pow(2, this.numCalled - 1)), retryInterceptor.getTimeout().toMillis()); 
+                public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+                    int index,
+                    AsyncChain chain) {
+                    if (this.numCalled > 0)
+                        assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
+                            retryInterceptor.getTimeout().toMillis());
                     this.numCalled++;
                     return chain.proceed(request, bodyHandler);
                 }
@@ -580,15 +577,11 @@ public class RetryInterceptorTest {
             when(httpClient.sendAsync(httpRequest, bodyHandler))
                 .thenReturn(failedFuture(new NullPointerException()))
                 .thenReturn(completedFuture(httpResponse));
-            
-            when(httpResponse.statusCode()).
-                thenReturn(200);
+
+            when(httpResponse.statusCode()).thenReturn(200);
 
             client.send(httpRequest, bodyHandler).join();
             verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
-
-            // At the end, the timeout should be reset to be equal to the retryOn interval,
-            // wether the retries succeed or not
             assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
 
         }

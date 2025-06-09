@@ -45,8 +45,8 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
 
     private final Duration retryInterval;
     private final List<RetryOn> retryOn;
+    private final boolean exponentialBackoff;
     private Integer maxRetries;
-    private boolean exponentialBackoff = false;
     private Duration timeout;
 
     /**
@@ -118,8 +118,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
     }
 
     /**
-     * @return The current timeout interval. It is equals to `retryInterval` if `exponentialBackoff`
-     *         is disabled, or `retryInterval * Math.pow(2, retries)` when enabled
+     * The current timeout interval.
      */
     public Duration getTimeout() {
         return timeout;
