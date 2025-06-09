@@ -203,10 +203,8 @@ public class RetryInterceptorTest {
         @SuppressWarnings("unchecked")
         void retry_with_watsonx_exception() throws Exception {
 
-            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
-                .maxRetries(3)
-                .retryOn(RetryInterceptor.RETRY_ON_TOKEN_EXPIRED)
-                .build();
+            RetryInterceptor retryInterceptor = RetryInterceptor.onTokenExpired(3);
+
 
             SyncHttpClient client = SyncHttpClient.builder()
                 .httpClient(httpClient)
@@ -462,10 +460,7 @@ public class RetryInterceptorTest {
         @SuppressWarnings("unchecked")
         void retry_with_watsonx_exception() throws Exception {
 
-            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
-                .maxRetries(3)
-                .retryOn(RetryInterceptor.RETRY_ON_TOKEN_EXPIRED)
-                .build();
+            RetryInterceptor retryInterceptor = RetryInterceptor.onTokenExpired(3);
 
             AsyncHttpClient client = AsyncHttpClient.builder()
                 .httpClient(httpClient)

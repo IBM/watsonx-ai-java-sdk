@@ -1,8 +1,18 @@
 package com.ibm.watsonx.runtime.chat;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.ibm.watsonx.runtime.utils.Utils.bodyPublisherToString;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.net.http.HttpClient;
@@ -14,12 +24,18 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.ibm.watsonx.core.Json;
 import com.ibm.watsonx.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.core.chat.JsonSchema;
@@ -32,9 +48,11 @@ import com.ibm.watsonx.runtime.chat.model.ChatMessage;
 import com.ibm.watsonx.runtime.chat.model.ChatParameters;
 import com.ibm.watsonx.runtime.chat.model.ChatParameters.ResponseFormat;
 import com.ibm.watsonx.runtime.chat.model.ChatParameters.ToolChoice;
-import com.ibm.watsonx.runtime.chat.model.ChatRequest;
 import com.ibm.watsonx.runtime.chat.model.ControlMessage;
+import com.ibm.watsonx.runtime.chat.model.Image;
+import com.ibm.watsonx.runtime.chat.model.Image.Detail;
 import com.ibm.watsonx.runtime.chat.model.ImageContent;
+import com.ibm.watsonx.runtime.chat.model.PartialChatResponse;
 import com.ibm.watsonx.runtime.chat.model.SystemMessage;
 import com.ibm.watsonx.runtime.chat.model.TextContent;
 import com.ibm.watsonx.runtime.chat.model.Tool;
@@ -135,22 +153,22 @@ public class ChatServiceTest {
     when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
     var chatResponse = chatService.chat(messages, chatParameters);
-    assertEquals("chatcmpl-43962cc06e5346ccbd653a04a48e4b5b", chatResponse.id());
-    assertEquals("my-super-model", chatResponse.modelId());
-    assertEquals("my-super-model-model", chatResponse.model());
-    assertNotNull(chatResponse.choices());
-    assertEquals(1, chatResponse.choices().size());
-    assertEquals(0, chatResponse.choices().get(0).index());
-    assertEquals(0, chatResponse.choices().get(0).index());
-    assertEquals("assistant", chatResponse.choices().get(0).message().role());
-    assertEquals("Hello!!!", chatResponse.choices().get(0).message().content());
-    assertEquals("stop", chatResponse.choices().get(0).finishReason());
-    assertEquals(1749288614, chatResponse.created());
-    assertEquals("2025-06-07T09:30:15.122Z", chatResponse.createdAt());
-    assertNotNull(chatResponse.usage());
-    assertEquals(37, chatResponse.usage().getCompletionTokens());
-    assertEquals(66, chatResponse.usage().getPromptTokens());
-    assertEquals(103, chatResponse.usage().getTotalTokens());
+    assertEquals("chatcmpl-43962cc06e5346ccbd653a04a48e4b5b", chatResponse.getId());
+    assertEquals("my-super-model", chatResponse.getModelId());
+    assertEquals("my-super-model-model", chatResponse.getModel());
+    assertNotNull(chatResponse.getChoices());
+    assertEquals(1, chatResponse.getChoices().size());
+    assertEquals(0, chatResponse.getChoices().get(0).index());
+    assertEquals(0, chatResponse.getChoices().get(0).index());
+    assertEquals("assistant", chatResponse.getChoices().get(0).message().role());
+    assertEquals("Hello!!!", chatResponse.getChoices().get(0).message().content());
+    assertEquals("stop", chatResponse.getChoices().get(0).finishReason());
+    assertEquals(1749288614, chatResponse.getCreated());
+    assertEquals("2025-06-07T09:30:15.122Z", chatResponse.getCreatedAt());
+    assertNotNull(chatResponse.getUsage());
+    assertEquals(37, chatResponse.getUsage().getCompletionTokens());
+    assertEquals(66, chatResponse.getUsage().getPromptTokens());
+    assertEquals(103, chatResponse.getUsage().getTotalTokens());
 
     HttpRequest actualRequest = captor.getValue();
     assertEquals("http://my-cloud-instance.com/ml/v1/text/chat?version=1988-03-23", actualRequest.uri().toString());
@@ -444,8 +462,9 @@ public class ChatServiceTest {
     var chatResponse = chatService.chat(messages, tools, parameters);
     JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
     JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
-    System.out.println(chatResponse.usage());
-    assertEquals("ChatUsage [completionTokens=18, promptTokens=19, totalTokens=37]", chatResponse.usage().toString());
+    System.out.println(chatResponse.getUsage());
+    assertEquals("ChatUsage [completionTokens=18, promptTokens=19, totalTokens=37]",
+      chatResponse.getUsage().toString());
   }
 
   @Test
@@ -613,7 +632,8 @@ public class ChatServiceTest {
         .required(List.of("first_number", "second_number"))
         .build());
 
-    var chatResponse = chatService.chat(messages, tools);
+    var chatResponse = chatService.chat(messages, List.of(tools));
+
     JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
     JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
   }
@@ -1016,5 +1036,776 @@ public class ChatServiceTest {
     var chatResponse = chatService.chat(messages);
     JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
     JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+  }
+
+  @Test
+  void chat_streaming_test() throws Exception {
+
+    final String VERSION = "2020-03-15";
+
+    WireMockServer wireMock = new WireMockServer();
+    configureFor("localhost", 8080);
+
+    wireMock.start();
+
+    wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(VERSION))
+      .withHeader("Authorization", equalTo("Bearer my-super-token"))
+      .withRequestBody(equalToJson("""
+        {
+            "model_id": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
+            "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an expert translator and you give the translation of single words"
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Translate \\"Hello\\" in Italian"
+                        }
+                    ]
+                }
+            ],
+            "max_completion_tokens": 0,
+            "time_limit": 10000,
+            "temperature": 0
+        }"""))
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withChunkedDribbleDelay(5, 200)
+        .withBody(
+          """
+            id: 1
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
+
+            id: 2
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
+
+            id: 3
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+
+            id: 4
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.563Z"}
+
+            id: 5
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.564Z","usage":{"completion_tokens":3,"prompt_tokens":38,"total_tokens":41}}
+            """)));
+
+
+    when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
+      .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+      .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .url("http://localhost:8080")
+      .version(VERSION)
+      .build();
+
+    var messages = List.<ChatMessage>of(
+      SystemMessage.of("You are an expert translator and you give the translation of single words"),
+      UserMessage.text("Translate \"Hello\" in Italian")
+    );
+
+    var chatParameters = ChatParameters.builder()
+      .maxCompletionTokens(0)
+      .temperature(0.0)
+      .build();
+
+    CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+    chatService.chatStreaming(messages, chatParameters, new ChatHandler() {
+
+      @Override
+      public void onPartialResponse(PartialChatResponse partialResponse) {
+        assertNotNull(partialResponse.choices());
+        assertEquals(1, partialResponse.choices().size());
+        var chunk = partialResponse.choices().get(0).delta().content();
+        assertTrue(chunk.equals("C") || chunk.equals("iao"));
+      }
+
+      @Override
+      public void onCompleteResponse(ChatResponse completeResponse) {
+        result.complete(completeResponse);
+      }
+
+      @Override
+      public void onError(Throwable error) {
+        result.completeExceptionally(error);
+      }
+    });
+
+    ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+    assertNotNull(response);
+    assertNotNull(response.getChoices());
+    assertEquals(1, response.getChoices().size());
+    assertEquals("stop", response.getChoices().get(0).finishReason());
+    assertEquals(0, response.getChoices().get(0).index());
+    assertEquals("Ciao", response.getChoices().get(0).message().content());
+    assertNotNull(response.getCreated());
+    assertNotNull(response.getCreatedAt());
+    assertNotNull(response.getId());
+    assertNotNull(response.getModel());
+    assertNotNull(response.getModelId());
+    assertNotNull(response.getModelVersion());
+    assertNotNull(response.getObject());
+    assertNotNull(response.getUsage());
+    assertNotNull(response.getUsage().getCompletionTokens());
+    assertNotNull(response.getUsage().getPromptTokens());
+    assertNotNull(response.getUsage().getTotalTokens());
+    wireMock.stop();
+  }
+
+  @Test
+  void chat_streaming_tool_test() throws Exception {
+
+    WireMockServer wireMock = new WireMockServer();
+    configureFor("localhost", 8080);
+
+    wireMock.start();
+
+    wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+      .withHeader("Authorization", equalTo("Bearer my-super-token"))
+      .withRequestBody(equalToJson("""
+        {
+          "model_id" : "ibm/granite-3-3-8b-instruct",
+          "project_id" : "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+          "messages" : [ {
+            "role" : "user",
+            "content" : [ {
+              "type" : "text",
+              "text" : "Tell me the result of (2 + 2) - 2"
+            } ]
+          } ],
+          "tools" : [ {
+            "type" : "function",
+            "function" : {
+              "name" : "sum",
+              "description" : "execute the sum of two number",
+              "parameters" : {
+                "type" : "object",
+                "properties" : {
+                  "firstNumber" : {
+                    "type" : "integer"
+                  },
+                  "secondNumber" : {
+                    "type" : "integer"
+                  }
+                }
+              }
+            }
+          }, {
+            "type" : "function",
+            "function" : {
+              "name" : "subtraction",
+              "description" : "execute the subtraction of two number",
+              "parameters" : {
+                "type" : "object",
+                "properties" : {
+                  "firstNumber" : {
+                    "type" : "integer"
+                  },
+                  "secondNumber" : {
+                    "type" : "integer"
+                  }
+                }
+              }
+            }
+          } ],
+          "time_limit" : 10000
+        }"""))
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withChunkedDribbleDelay(7, 200)
+        .withBody(
+          """
+            id: 1
+            event: message
+            data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.150Z","system":{"warnings":[{"message":"The value of 'max_completion_tokens' for this model was set to value 1024","id":"unspecified_max_completion_tokens","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_completion_tokens","value":0}}]}}
+
+            id: 2
+            event: message
+            data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":""}}],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.151Z"}
+
+            id: 3
+            event: message
+            data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"chatcmpl-tool-af37032523934f019aa7258469580a7a","type":"function","function":{"name":"sum","arguments":""}}]}}],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.348Z"}
+
+            id: 4
+            event: message
+            data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\"firstNumber\\": 2, \\"secondNumber\\": 2}"}}]}}],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.357Z"}
+
+            id: 5
+            event: message
+            data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"id":"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b","type":"function","function":{"name":"subtraction","arguments":""}}]}}],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.555Z"}
+
+            id: 6
+            event: message
+            data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\"firstNumber\\": 2, \\"secondNumber\\": 2}"}}]}}],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.564Z"}
+
+            id: 7
+            event: message
+            data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.565Z","usage":{"completion_tokens":49,"prompt_tokens":319,"total_tokens":368}}
+            """)));
+
+
+    when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
+      .modelId("ibm/granite-3-3-8b-instruct")
+      .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .url("http://localhost:8080")
+      .build();
+
+
+    var messages = List.<ChatMessage>of(
+      UserMessage.text("Tell me the result of (2 + 2) - 2")
+    );
+
+    var tools = List.of(
+      Tool.of(
+        "sum",
+        "execute the sum of two number",
+        JsonSchema.builder()
+          .addProperty("firstNumber", IntegerSchema.of())
+          .addProperty("secondNumber", IntegerSchema.of())
+          .build()
+      ),
+      Tool.of(
+        "subtraction",
+        "execute the subtraction of two number",
+        JsonSchema.builder()
+          .addProperty("firstNumber", IntegerSchema.of())
+          .addProperty("secondNumber", IntegerSchema.of())
+          .build()
+      )
+    );
+
+    CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+    chatService.chatStreaming(messages, tools, new ChatHandler() {
+
+      @Override
+      public void onPartialResponse(PartialChatResponse partialResponse) {}
+
+      @Override
+      public void onCompleteResponse(ChatResponse completeResponse) {
+        result.complete(completeResponse);
+      }
+
+      @Override
+      public void onError(Throwable error) {
+        result.completeExceptionally(error);
+      }
+    });
+
+    ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+    assertNotNull(response);
+    assertEquals(1749764735, response.getCreated());
+    assertEquals("2025-06-12T21:45:35.150Z", response.getCreatedAt());
+    assertEquals("chatcmpl-cc34b5ea3120fa9e07b18c5125d66602", response.getId());
+    assertEquals("ibm/granite-3-3-8b-instruct", response.getModel());
+    assertEquals("ibm/granite-3-3-8b-instruct", response.getModelId());
+    assertEquals("3.3.0", response.getModelVersion());
+    assertEquals("chat.completion.chunk", response.getObject());
+    assertNotNull(response.getUsage());
+    assertEquals(49, response.getUsage().getCompletionTokens());
+    assertEquals(319, response.getUsage().getPromptTokens());
+    assertEquals(368, response.getUsage().getTotalTokens());
+    assertNotNull(response.getChoices());
+    assertEquals(1, response.getChoices().size());
+    assertEquals(0, response.getChoices().get(0).index());
+    assertEquals("tool_calls", response.getChoices().get(0).finishReason());
+    assertNotNull(response.getChoices().get(0).message());
+    assertNull(response.getChoices().get(0).message().content());
+    assertNull(response.getChoices().get(0).message().refusal());
+    assertEquals("assistant", response.getChoices().get(0).message().role());
+    assertEquals(2, response.getChoices().get(0).message().toolCalls().size());
+    assertEquals("chatcmpl-tool-af37032523934f019aa7258469580a7a",
+      response.getChoices().get(0).message().toolCalls().get(0).id());
+    assertEquals(0, response.getChoices().get(0).message().toolCalls().get(0).index());
+    assertEquals("function", response.getChoices().get(0).message().toolCalls().get(0).type());
+    assertEquals("sum", response.getChoices().get(0).message().toolCalls().get(0).function().name());
+    assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
+      response.getChoices().get(0).message().toolCalls().get(0).function().arguments());
+    assertEquals("chatcmpl-tool-f762db03c60f441dba57bab09552bb7b",
+      response.getChoices().get(0).message().toolCalls().get(1).id());
+    assertEquals(1, response.getChoices().get(0).message().toolCalls().get(1).index());
+    assertEquals("function", response.getChoices().get(0).message().toolCalls().get(1).type());
+    assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
+    assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
+      response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+    wireMock.stop();
+  }
+
+  @Test
+  void chat_streaming_tool_choice_required_test() throws Exception {
+
+    WireMockServer wireMock = new WireMockServer();
+    configureFor("localhost", 8080);
+
+    wireMock.start();
+
+    wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+      .withHeader("Authorization", equalTo("Bearer my-super-token"))
+      .withRequestBody(equalToJson("""
+          {
+            "model_id": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
+            "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Tell me the result of (2 + 2) - 2"
+                        }
+                    ]
+                }
+            ],
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "sum",
+                        "description": "execute the sum of two number",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "firstNumber": {
+                                    "type": "integer"
+                                },
+                                "secondNumber": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "subtraction",
+                        "description": "execute the subtraction of two number",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "firstNumber": {
+                                    "type": "integer"
+                                },
+                                "secondNumber": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "tool_choice_option": "required",
+            "time_limit": 10000
+        }"""))
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withChunkedDribbleDelay(30, 200)
+        .withBody(
+          """
+            id: 1
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.126Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_completion_tokens' for this model was set to value 1024","id":"unspecified_max_completion_tokens","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_completion_tokens","value":0}}]}}
+
+            id: 2
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"sum","arguments":"{\\""}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.227Z"}
+
+            id: 3
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"first"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.237Z"}
+
+            id: 4
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"Number"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.249Z"}
+
+            id: 5
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"\\":"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.259Z"}
+
+            id: 6
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":" "}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.270Z"}
+
+            id: 7
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"2"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.282Z"}
+
+            id: 8
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":","}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.293Z"}
+
+            id: 9
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":" \\""}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.304Z"}
+
+            id: 10
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"second"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.315Z"}
+
+            id: 11
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"Number"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.326Z"}
+
+            id: 12
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"\\":"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.337Z"}
+
+            id: 13
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":" "}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.349Z"}
+
+            id: 14
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"2"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.360Z"}
+
+            id: 15
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"name":"","arguments":"}"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.371Z"}
+
+            id: 16
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"subtraction","arguments":"{\\""}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.494Z"}
+
+            id: 17
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"first"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.505Z"}
+
+            id: 18
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"Number"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.516Z"}
+
+            id: 19
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"\\":"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.527Z"}
+
+            id: 20
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":" "}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.538Z"}
+
+            id: 21
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"4"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.549Z"}
+
+            id: 22
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":","}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.560Z"}
+
+            id: 23
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":" \\""}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.572Z"}
+
+            id: 24
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"second"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.583Z"}
+
+            id: 25
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"Number"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.594Z"}
+
+            id: 26
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"\\":"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.605Z"}
+
+            id: 27
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":" "}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.616Z"}
+
+            id: 28
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"2"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.627Z"}
+
+            id: 29
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"}"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.638Z"}
+
+            id: 30
+            event: message
+            data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.661Z","usage":{"completion_tokens":49,"prompt_tokens":374,"total_tokens":423}}
+            """)));
+
+
+    when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
+      .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+      .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .url("http://localhost:8080")
+      .build();
+
+
+    var messages = List.<ChatMessage>of(
+      UserMessage.text("Tell me the result of (2 + 2) - 2")
+    );
+
+    var tools = List.of(
+      Tool.of(
+        "sum",
+        "execute the sum of two number",
+        JsonSchema.builder()
+          .addProperty("firstNumber", IntegerSchema.of())
+          .addProperty("secondNumber", IntegerSchema.of())
+          .build()
+      ),
+      Tool.of(
+        "subtraction",
+        "execute the subtraction of two number",
+        JsonSchema.builder()
+          .addProperty("firstNumber", IntegerSchema.of())
+          .addProperty("secondNumber", IntegerSchema.of())
+          .build()
+      )
+    );
+
+    var chatParameters = ChatParameters.builder().toolChoiceOption(ToolChoice.REQUIRED).build();
+
+    CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+    chatService.chatStreaming(messages, tools, chatParameters, new ChatHandler() {
+
+      @Override
+      public void onPartialResponse(PartialChatResponse partialResponse) {}
+
+      @Override
+      public void onCompleteResponse(ChatResponse completeResponse) {
+        result.complete(completeResponse);
+      }
+
+      @Override
+      public void onError(Throwable error) {
+        result.completeExceptionally(error);
+      }
+    });
+
+    ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+    assertNotNull(response);
+    assertEquals(1749766697, response.getCreated());
+    assertEquals("2025-06-12T22:18:18.126Z", response.getCreatedAt());
+    assertEquals("chatcmpl-75021362a9edcdacca7976b97cc20f0d", response.getId());
+    assertEquals("meta-llama/llama-4-maverick-17b-128e-instruct-fp8", response.getModel());
+    assertEquals("meta-llama/llama-4-maverick-17b-128e-instruct-fp8", response.getModelId());
+    assertEquals("4.0.0", response.getModelVersion());
+    assertEquals("chat.completion.chunk", response.getObject());
+    assertNotNull(response.getUsage());
+    assertEquals(49, response.getUsage().getCompletionTokens());
+    assertEquals(374, response.getUsage().getPromptTokens());
+    assertEquals(423, response.getUsage().getTotalTokens());
+    assertNotNull(response.getChoices());
+    assertEquals(1, response.getChoices().size());
+    assertEquals(0, response.getChoices().get(0).index());
+    assertEquals("tool_calls", response.getChoices().get(0).finishReason());
+    assertNotNull(response.getChoices().get(0).message());
+    assertNull(response.getChoices().get(0).message().content());
+    assertNull(response.getChoices().get(0).message().refusal());
+    assertEquals("assistant", response.getChoices().get(0).message().role());
+    assertEquals(2, response.getChoices().get(0).message().toolCalls().size());
+    // If tool_choice_option is "required" watsonx doesn't return the id, so it will be autogenerated.
+    assertNotNull(response.getChoices().get(0).message().toolCalls().get(0).id());
+    assertEquals(0, response.getChoices().get(0).message().toolCalls().get(0).index());
+    assertEquals("function", response.getChoices().get(0).message().toolCalls().get(0).type());
+    assertEquals("sum", response.getChoices().get(0).message().toolCalls().get(0).function().name());
+    assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
+      response.getChoices().get(0).message().toolCalls().get(0).function().arguments());
+    // If tool_choice_option is "required" watsonx doesn't return the id, so it will be autogenerated.
+    assertNotNull(response.getChoices().get(0).message().toolCalls().get(1).id());
+    assertEquals(1, response.getChoices().get(0).message().toolCalls().get(1).index());
+    assertEquals("function", response.getChoices().get(0).message().toolCalls().get(1).type());
+    assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
+    assertEquals("{\"firstNumber\": 4, \"secondNumber\": 2}",
+      response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+
+    wireMock.stop();
+  }
+
+  @Test
+  void chat_streaming_on_error() throws Exception {
+
+    WireMockServer wireMock = new WireMockServer();
+    configureFor("localhost", 8080);
+
+    wireMock.start();
+
+    wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withChunkedDribbleDelay(4, 200)
+        .withBody(
+          """
+            id: 1
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
+
+            id: 2
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
+
+            id: 3
+            event: message
+            data: {"id"}
+
+            id: 4
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+            """)));
+
+    when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+      .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .url("http://localhost:8080")
+      .build();
+
+    AtomicInteger counter = new AtomicInteger();
+    CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+    chatService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
+
+      @Override
+      public void onPartialResponse(PartialChatResponse partialResponse) {
+        counter.incrementAndGet();
+      }
+
+      @Override
+      public void onCompleteResponse(ChatResponse completeResponse) {
+        result.complete(completeResponse);
+      }
+
+      @Override
+      public void onError(Throwable error) {
+        result.completeExceptionally(error);
+      }
+    });
+
+    assertThrows(ExecutionException.class, () -> result.get(3, TimeUnit.SECONDS));
+    assertEquals(1, counter.get());
+
+    wireMock.stop();
+  }
+
+  @Test
+  void chat_streaming_on_complete_exception() throws Exception {
+
+    WireMockServer wireMock = new WireMockServer();
+    configureFor("localhost", 8080);
+
+    wireMock.start();
+
+    wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withBody(
+          """
+            id: 1
+            event: message
+            data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
+            """)));
+
+    when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+      .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .url("http://localhost:8080")
+      .build();
+
+
+    CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+    chatService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
+
+      @Override
+      public void onPartialResponse(PartialChatResponse partialResponse) {}
+
+      @Override
+      public void onCompleteResponse(ChatResponse completeResponse) {
+        throw new RuntimeException("Error in onComplete handler");
+      }
+
+      @Override
+      public void onError(Throwable error) {
+        result.completeExceptionally(error);
+      }
+    });
+
+    var ex = assertThrows(ExecutionException.class, () -> result.get(3, TimeUnit.SECONDS));
+    assertEquals("Error in onComplete handler", ex.getCause().getMessage());
+
+    wireMock.stop();
+  }
+
+  @Test
+  void parameters_test() {
+
+    var chatHandler = new ChatHandler() {
+      @Override
+      public void onPartialResponse(PartialChatResponse partialResponse) {}
+
+      @Override
+      public void onCompleteResponse(ChatResponse completeResponse) {}
+
+      @Override
+      public void onError(Throwable error) {}
+
+    };
+
+    var messages = List.<ChatMessage>of(UserMessage.text("test"));
+
+    var ex = assertThrows(NullPointerException.class, () -> AssistantMessage.text(null));
+    assertEquals("Either content or toolCalls must be specified", ex.getMessage());
+
+    var image = Image.of("jpeg", "mock");
+    assertEquals("auto", image.detail());
+    assertNotNull(image.url());
+
+    image = Image.of("jpeg", "mock", Detail.HIGH);
+    assertEquals("high", image.detail());
+    assertNotNull(image.url());
+
+    var imageContent = ImageContent.of("jpeg", "mock", Detail.LOW);
+    assertEquals("image_url", imageContent.type());
+    assertEquals("low", imageContent.imageUrl().detail());
+    assertEquals("data:jpeg;base64,mock", imageContent.imageUrl().url());
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .url("http://localhost:8080")
+      .build();
+
+    ex = assertThrows(NullPointerException.class, () -> chatService.chat(messages));
+    assertEquals("The modelId must be provided", ex.getMessage());
+    ex = assertThrows(NullPointerException.class, () -> chatService.chatStreaming(messages, chatHandler));
+    assertEquals("The modelId must be provided", ex.getMessage());
+
+    var chatParameters = ChatParameters.builder()
+      .modelId("test")
+      .build();
+
+    ex = assertThrows(NullPointerException.class, () -> chatService.chat(messages, chatParameters));
+    assertEquals("Either projectId or spaceId must be provided", ex.getMessage());
+    ex = assertThrows(NullPointerException.class, () -> chatService.chatStreaming(messages, chatParameters, chatHandler));
+    assertEquals("Either projectId or spaceId must be provided", ex.getMessage());
+
+    var ex2 = assertThrows(IllegalArgumentException.class, () -> chatService.chat(null, chatParameters));
+    assertEquals("The list of messages can not be null or empty", ex2.getMessage());
+    ex2 = assertThrows(IllegalArgumentException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
+    assertEquals("The list of messages can not be null or empty", ex2.getMessage());
   }
 }

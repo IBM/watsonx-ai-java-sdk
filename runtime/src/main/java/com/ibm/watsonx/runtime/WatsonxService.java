@@ -1,6 +1,5 @@
 package com.ibm.watsonx.runtime;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
@@ -37,16 +36,13 @@ public abstract class WatsonxService {
     protected final AsyncHttpClient asyncHttpClient;
 
     public WatsonxService(Builder<?> builder) {
-        url = URI.create(requireNonNull(builder.url));
+        url = URI.create(requireNonNull(builder.url, "The url must be provided"));
         version = requireNonNullElse(builder.version, "2025-04-23");
         projectId = builder.projectId;
         spaceId = builder.spaceId;
         modelId = builder.modelId;
         timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
         authenticationProvider = requireNonNull(builder.authenticationProvider);
-
-        if (isNull(projectId) && isNull(spaceId))
-            throw new IllegalArgumentException("Either projectId or spaceId must be provided");
 
         boolean logRequests = requireNonNullElse(builder.logRequests, false);
         boolean logResponses = requireNonNullElse(builder.logResponses, false);

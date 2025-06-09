@@ -320,7 +320,9 @@ public class AsyncHttpClientTest {
                 .withFixedDelay(50))
         );
 
-        var client = AsyncHttpClient.builder().build();
+        var client = AsyncHttpClient.builder()
+            .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
+            .build();
 
         var response_1 = client.send(
             HttpRequest.newBuilder()

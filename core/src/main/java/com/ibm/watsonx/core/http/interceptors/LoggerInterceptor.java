@@ -36,7 +36,7 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
     private static final Pattern BEARER_PATTERN =
         Pattern.compile("(Bearer\\s*)(\\w{4})(\\w+)(\\w{4})");
     private static final Pattern BASE64_IMAGE_PATTERN =
-        Pattern.compile("(data:.+;base64,)(.{15})(.+)(.{15})([\\s\\S]*)");
+        Pattern.compile("(data:.+;base64,)(.{15})([^\"]+)([\\s\\S]*)");
     private final boolean logRequest;
     private final boolean logResponse;
 
@@ -141,7 +141,7 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
 
             if (nonNull(response.headers()))
                 headers = inOneLine(response.headers().map());
-            
+
             if (!prettyPrint && nonNull(request.headers())) {
                 headers = inOneLine(request.headers().map());
                 var accept = request.headers().firstValue("Accept");
@@ -217,7 +217,7 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
         StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
             matcher.appendReplacement(sb,
-                matcher.group(1) + matcher.group(2) + "..." + matcher.group(4) + matcher.group(5));
+                matcher.group(1) + matcher.group(2) + "..." + matcher.group(4));
         }
 
         return sb.isEmpty() ? body : sb.toString();

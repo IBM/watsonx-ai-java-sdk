@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.ibm.watsonx.core.chat.JsonSchema.EnumSchema;
 import com.ibm.watsonx.core.spi.json.JsonAdapter;
 
 /**
@@ -19,6 +20,7 @@ public class JacksonAdapter implements JsonAdapter {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setSerializationInclusion(Include.NON_NULL)
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        objectMapper.addMixIn(EnumSchema.class, EnumSchemaMixin.class);
     }
 
     @Override
