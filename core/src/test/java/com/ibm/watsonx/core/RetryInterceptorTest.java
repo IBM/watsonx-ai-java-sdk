@@ -1,6 +1,7 @@
 package com.ibm.watsonx.core;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import com.ibm.watsonx.core.exeception.WatsonxException;
 import com.ibm.watsonx.core.http.AsyncHttpClient;
 import com.ibm.watsonx.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.core.http.SyncHttpClient;
@@ -241,6 +244,89 @@ public class RetryInterceptorTest {
             verify(httpClient, times(2)).send(httpRequest, bodyHandler);
             verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
         }
+
+        @Test
+        void retry_with_exponential_backoff_fail_retries() throws Exception {
+            Duration timeout = Duration.ofMillis(10);
+            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryInterval(timeout)
+                .exponentialBackoff(true)
+                .retryOn(NullPointerException.class)
+                .build();
+
+            SyncHttpInterceptor mockInterceptor = new SyncHttpInterceptor() {
+                int numCalled = 0;
+
+                @Override
+                public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
+                    Chain chain)
+                    throws WatsonxException, IOException, InterruptedException {
+                    if (this.numCalled > 0)
+                        assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
+                            retryInterceptor.getTimeout().toMillis());
+                    this.numCalled++;
+                    return chain.proceed(request, bodyHandler);
+                }
+            };
+
+            SyncHttpClient client = SyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(httpClient.send(httpRequest, bodyHandler))
+                .thenThrow(NullPointerException.class);
+
+            var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler));
+            assertEquals(NullPointerException.class, ex.getCause().getClass());
+            verify(httpClient, times(3)).send(httpRequest, bodyHandler);
+            assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
+        }
+
+        @Test
+        void retry_with_exponential_backoff_succeed_after_retry() throws Exception {
+            Duration timeout = Duration.ofMillis(10);
+            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryInterval(timeout)
+                .exponentialBackoff(true)
+                .retryOn(NullPointerException.class)
+                .build();
+
+            SyncHttpInterceptor mockInterceptor = new SyncHttpInterceptor() {
+                int numCalled = 0;
+
+                @Override
+                public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
+                    Chain chain)
+                    throws WatsonxException, IOException, InterruptedException {
+                    if (this.numCalled > 0)
+                        assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
+                            retryInterceptor.getTimeout().toMillis());
+                    this.numCalled++;
+                    return chain.proceed(request, bodyHandler);
+                }
+            };
+
+            SyncHttpClient client = SyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(httpClient.send(httpRequest, bodyHandler))
+                .thenThrow(NullPointerException.class)
+                .thenReturn(httpResponse);
+
+            when(httpResponse.statusCode())
+                .thenReturn(200);
+
+            client.send(httpRequest, bodyHandler);
+            verify(httpClient, times(2)).send(httpRequest, bodyHandler);
+            assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
+        }
     }
 
     @Nested
@@ -415,6 +501,89 @@ public class RetryInterceptorTest {
             assertEquals(httpResponse, result);
             verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
             verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+        }
+
+        @Test
+        void retry_with_exponential_backoff_fail_retries() throws Exception {
+            Duration timeout = Duration.ofMillis(10);
+            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryInterval(timeout)
+                .exponentialBackoff(true)
+                .retryOn(NullPointerException.class)
+                .build();
+
+            AsyncHttpInterceptor mockInterceptor = new AsyncHttpInterceptor() {
+                int numCalled = 0;
+
+                @Override
+                public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+                    int index,
+                    AsyncChain chain) {
+                    if (this.numCalled > 0)
+                        assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
+                            retryInterceptor.getTimeout().toMillis());
+                    this.numCalled++;
+                    return chain.proceed(request, bodyHandler);
+                }
+            };
+
+            AsyncHttpClient client = AsyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(httpClient.sendAsync(httpRequest, bodyHandler))
+                .thenReturn(CompletableFuture.failedFuture(new NullPointerException()));
+
+            var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
+            assertEquals(NullPointerException.class, ex.getCause().getCause().getClass());
+            verify(httpClient, times(3)).sendAsync(httpRequest, bodyHandler);
+            assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
+        }
+
+        @Test
+        void retry_with_exponential_backoff_succeed_after_retry() throws Exception {
+            Duration timeout = Duration.ofMillis(10);
+            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryInterval(timeout)
+                .exponentialBackoff(true)
+                .retryOn(NullPointerException.class)
+                .build();
+
+            AsyncHttpInterceptor mockInterceptor = new AsyncHttpInterceptor() {
+                int numCalled = 0;
+
+                @Override
+                public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+                    int index,
+                    AsyncChain chain) {
+                    if (this.numCalled > 0)
+                        assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
+                            retryInterceptor.getTimeout().toMillis());
+                    this.numCalled++;
+                    return chain.proceed(request, bodyHandler);
+                }
+            };
+
+            AsyncHttpClient client = AsyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(httpClient.sendAsync(httpRequest, bodyHandler))
+                .thenReturn(failedFuture(new NullPointerException()))
+                .thenReturn(completedFuture(httpResponse));
+
+            when(httpResponse.statusCode()).thenReturn(200);
+
+            client.send(httpRequest, bodyHandler).join();
+            verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
+            assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
+
         }
     }
 }
