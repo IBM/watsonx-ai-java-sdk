@@ -102,7 +102,6 @@ public class AsyncHttpClient extends BaseHttpClient {
                 var interceptorIndex = index++;
                 return interceptors.get(interceptorIndex).intercept(request, handler, executor, interceptorIndex, this);
             } else {
-
                 return httpClient.sendAsync(request, handler)
                     .handleAsync((response, exception) -> {
                         if (exception != null)

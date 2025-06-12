@@ -16,6 +16,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.core.exeception.WatsonxException;
 import com.ibm.watsonx.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.core.http.AsyncHttpInterceptor;
@@ -26,21 +28,26 @@ import com.ibm.watsonx.core.http.SyncHttpInterceptor;
  */
 public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
+    private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
+
     /**
      * Checks whether a {@link WatsonxException} is retryable due to an expired authentication token.
      * <p>
      * This condition is met if the HTTP status code is 401 and at least one error in the exception's details has the code
      * {@code AUTHENTICATION_TOKEN_EXPIRED}.
      */
-    public static final RetryInterceptor.RetryOn RETRY_ON_TOKEN_EXPIRED =
-        new RetryInterceptor.RetryOn(
-            WatsonxException.class,
-            Optional.of(ex -> {
-                var e = (WatsonxException) ex;
-                return e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
-                    .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
-            })
-        );
+    public static RetryInterceptor onTokenExpired(int maxRetries) {
+        return RetryInterceptor.builder()
+            .maxRetries(maxRetries)
+            .retryOn(
+                WatsonxException.class,
+                ex -> {
+                    var e = (WatsonxException) ex;
+                    return e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
+                        .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
+                }
+            ).build();
+    }
 
     private record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
 
@@ -76,6 +83,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
 
             try {
 
+
                 if (attempt > 0)
                     Thread.sleep(timeout.toMillis());
 
@@ -99,6 +107,8 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                     if (exponentialBackoff && attempt > 0) {
                         timeout = timeout.multipliedBy(2);
                     }
+                    logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries,
+                        exception.getMessage());
                     chain.resetToIndex(index + 1);
                     continue;
                 }
@@ -109,6 +119,8 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
         }
 
         this.timeout = this.retryInterval;
+        logger.debug("Max retries reached");
+        
         throw new RuntimeException("Max retries reached", isNull(exception) ? new Exception() : exception);
     }
 
@@ -157,6 +169,8 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
 
                 if (!shouldRetry || attempt >= maxRetries - 1) {
                     CompletableFuture<HttpResponse<T>> failed = new CompletableFuture<>();
+                    logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries, cause.getMessage());
+                    logger.debug("Max retries reached");
                     failed.completeExceptionally(new RuntimeException("Max retries reached", cause));
                     this.timeout = this.retryInterval;
                     return failed;
@@ -165,6 +179,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                 if (attempt > 0) {
                     timeout = timeout.multipliedBy(2);
                 }
+                logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries, cause.getMessage());
 
                 return CompletableFuture.supplyAsync(
                     () -> {
@@ -203,18 +218,6 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
          */
         public Builder maxRetries(Integer maxRetries) {
             this.maxRetries = maxRetries;
-            return this;
-        }
-
-        /**
-         * Adds a custom {@link RetryOn} condition.
-         *
-         * @param retryOn the retry condition to add
-         */
-        public Builder retryOn(RetryOn retryOn) {
-            requireNonNull(retryOn);
-            this.retryOn = requireNonNullElse(this.retryOn, new ArrayList<>());
-            this.retryOn.add(retryOn);
             return this;
         }
 

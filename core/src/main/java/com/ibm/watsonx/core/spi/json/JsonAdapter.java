@@ -25,5 +25,10 @@ public interface JsonAdapter {
      */
     String toJson(Object object);
 
+    /**
+     * Pretty-prints the given object into a JSON string.
+     *
+     * @param object the object to pretty-print
+     */
     String prettyPrint(Object object);
 }
