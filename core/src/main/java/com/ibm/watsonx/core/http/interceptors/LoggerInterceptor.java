@@ -1,6 +1,6 @@
 package com.ibm.watsonx.core.http.interceptors;
 
-import static java.util.Objects.isNull;
+import static  java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.joining;
@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 import java.util.regex.Matcher;
@@ -83,15 +84,14 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
     }
 
     @Override
-    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-        int index, AsyncChain chain) {
+    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, Executor executor, int index, AsyncChain chain) {
         return CompletableFuture
-            .runAsync(() -> logRequest(request))
-            .thenCompose(v -> chain.proceed(request, bodyHandler))
+            .runAsync(() -> logRequest(request), executor)
+            .thenCompose(v -> chain.proceed(request, bodyHandler, executor))
             .whenCompleteAsync((respose, exception) -> {
                 if (isNull(exception))
                     logResponse(request, respose);
-            });
+            }, executor);
     }
 
     @Override

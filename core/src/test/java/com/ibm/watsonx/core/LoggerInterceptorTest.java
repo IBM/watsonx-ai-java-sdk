@@ -4,6 +4,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -302,10 +304,10 @@ public class LoggerInterceptorTest {
             when(response.body()).thenReturn("response");
             when(response.statusCode()).thenReturn(200);
             when(response.headers()).thenReturn(null);
-            when(chain.proceed(request, BodyHandlers.ofString())).thenReturn(completedFuture(response));
+            when(chain.proceed(eq(request), eq(BodyHandlers.ofString()), any())).thenReturn(completedFuture(response));
 
-            assertDoesNotThrow(() -> interceptor.intercept(request, HttpResponse.BodyHandlers.ofString(), 0, chain).get());
-            verify(chain).proceed(any(), any());
+            assertDoesNotThrow(() -> interceptor.intercept(request, HttpResponse.BodyHandlers.ofString(), ForkJoinPool.commonPool(), 0, chain).get());
+            verify(chain).proceed(any(), any(), any());
         }
     }
 

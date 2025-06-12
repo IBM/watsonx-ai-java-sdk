@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import com.ibm.watsonx.core.HttpUtils;
 import com.ibm.watsonx.core.exeception.WatsonxException;
 import com.ibm.watsonx.core.exeception.model.WatsonxError;
@@ -54,7 +56,21 @@ public class AsyncHttpClient extends BaseHttpClient {
      * @return a {@link CompletableFuture} of the HTTP response
      */
     public <T> CompletableFuture<HttpResponse<T>> send(HttpRequest request, BodyHandler<T> handler) {
-        return new InterceptorChain(delegate, interceptors).proceed(request, handler);
+        return send(request, handler, executor());
+    }
+
+    /**
+     * Sends an asynchronous HTTP request.
+     *
+     * @param request the HTTP request to send
+     * @param handler the body handler for the response
+     * @param executor the executor that is used for executing asynchronous and dependent tasks.
+     * @param <T> the type of the response body
+     * @return a {@link CompletableFuture} of the HTTP response
+     */
+    public <T> CompletableFuture<HttpResponse<T>> send(HttpRequest request, BodyHandler<T> handler, Executor executor) {
+        return new InterceptorChain(delegate, interceptors).proceed(request, handler,
+            requireNonNullElse(executor, executor()));
     }
 
     /**
@@ -81,16 +97,17 @@ public class AsyncHttpClient extends BaseHttpClient {
         }
 
         @Override
-        public <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler) {
+        public <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler, Executor executor) {
             if (index < interceptors.size()) {
                 var interceptorIndex = index++;
-                return interceptors.get(interceptorIndex).intercept(request, handler, interceptorIndex, this);
+                return interceptors.get(interceptorIndex).intercept(request, handler, executor, interceptorIndex, this);
             } else {
+
                 return httpClient.sendAsync(request, handler)
                     .handleAsync((response, exception) -> {
                         if (exception != null)
                             throw new CompletionException(exception);
-                        
+
 
                         int statusCode = response.statusCode();
                         if (statusCode >= 200 && statusCode < 300) {
@@ -99,15 +116,15 @@ public class AsyncHttpClient extends BaseHttpClient {
 
                         var bodyOpt = HttpUtils.extractBodyAsString(response);
 
-                        if (bodyOpt.isEmpty()) 
+                        if (bodyOpt.isEmpty())
                             throw new CompletionException(new WatsonxException(statusCode));
-                        
+
                         String body = bodyOpt.get();
                         WatsonxError details;
-                        
+
                         details = fromJson(body, WatsonxError.class);
                         throw new CompletionException(new WatsonxException(body, statusCode, details));
-                    });
+                    }, requireNonNullElse(executor, httpClient.executor().orElse(ForkJoinPool.commonPool())));
             }
         }
 

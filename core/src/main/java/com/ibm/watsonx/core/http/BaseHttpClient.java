@@ -1,9 +1,11 @@
 package com.ibm.watsonx.core.http;
 
 import java.net.http.HttpClient;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 /**
- * The abstract base class for all HTTP clients used in the application.
+ * The abstract base class for all HTTP client
  *
  * @see SyncHttpClient
  * @see AsyncHttpClient
@@ -19,5 +21,13 @@ public abstract class BaseHttpClient {
     */
    public BaseHttpClient(HttpClient httpClient) {
       this.delegate = httpClient;
+   }
+
+   /**
+    * Returns the {@code Executor} of the HttpClient.
+    * @return {@link Executor}
+    */
+   public Executor executor() {
+      return delegate.executor().orElse(ForkJoinPool.commonPool());
    }
 }
