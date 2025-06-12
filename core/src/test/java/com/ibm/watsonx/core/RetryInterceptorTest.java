@@ -18,6 +18,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -341,8 +342,9 @@ public class RetryInterceptorTest {
         Answer<CompletableFuture<HttpResponse<String>>> CHAIN_MOCK = invocation -> {
             HttpRequest req = invocation.getArgument(0);
             BodyHandler<String> bh = invocation.getArgument(1);
-            AsyncHttpInterceptor.AsyncChain chain = invocation.getArgument(3);
-            return chain.proceed(req, bh);
+            Executor executor = invocation.getArgument(2);
+            AsyncHttpInterceptor.AsyncChain chain = invocation.getArgument(4);
+            return chain.proceed(req, bh, executor);
         };
 
         @Test
@@ -360,7 +362,7 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
-            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
+            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
             when(httpClient.sendAsync(httpRequest, bodyHandler))
@@ -370,7 +372,7 @@ public class RetryInterceptorTest {
             assertEquals("Max retries reached", ex.getCause().getMessage());
             assertEquals(NullPointerException.class, ex.getCause().getCause().getClass());
             verify(httpClient, times(3)).sendAsync(httpRequest, bodyHandler);
-            verify(mockInterceptor, times(3)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+            verify(mockInterceptor, times(3)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
@@ -387,7 +389,7 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
-            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
+            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
             when(httpClient.sendAsync(httpRequest, bodyHandler))
@@ -397,7 +399,7 @@ public class RetryInterceptorTest {
             assertEquals(NullPointerException.class, ex.getCause().getCause().getClass());
             assertEquals("Super null pointer exception", ex.getCause().getCause().getMessage());
             verify(httpClient, times(3)).sendAsync(httpRequest, bodyHandler);
-            verify(mockInterceptor, times(3)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+            verify(mockInterceptor, times(3)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
@@ -414,7 +416,7 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
-            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
+            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
             when(httpClient.sendAsync(httpRequest, bodyHandler))
@@ -423,7 +425,7 @@ public class RetryInterceptorTest {
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
             assertEquals(RuntimeException.class, ex.getCause().getClass());
             verify(httpClient, times(1)).sendAsync(httpRequest, bodyHandler);
-            verify(mockInterceptor, times(1)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+            verify(mockInterceptor, times(1)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
@@ -443,7 +445,7 @@ public class RetryInterceptorTest {
             when(httpResponse.statusCode())
                 .thenReturn(200);
 
-            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
+            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
             when(httpClient.sendAsync(httpRequest, bodyHandler))
@@ -453,7 +455,7 @@ public class RetryInterceptorTest {
             var result = client.send(httpRequest, bodyHandler).join();
             assertEquals(httpResponse, result);
             verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
-            verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+            verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
@@ -471,7 +473,7 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
-            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
+            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
             var tokenExpiredResponse = mock(HttpResponse.class);
@@ -500,7 +502,7 @@ public class RetryInterceptorTest {
             var result = client.send(httpRequest, bodyHandler).get();
             assertEquals(httpResponse, result);
             verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
-            verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+            verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
@@ -518,13 +520,12 @@ public class RetryInterceptorTest {
 
                 @Override
                 public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-                    int index,
-                    AsyncChain chain) {
+                    Executor executor, int index, AsyncChain chain) {
                     if (this.numCalled > 0)
                         assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
                             retryInterceptor.getTimeout().toMillis());
                     this.numCalled++;
-                    return chain.proceed(request, bodyHandler);
+                    return chain.proceed(request, bodyHandler, executor);
                 }
             };
 
@@ -558,13 +559,12 @@ public class RetryInterceptorTest {
 
                 @Override
                 public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-                    int index,
-                    AsyncChain chain) {
+                    Executor executor, int index, AsyncChain chain) {
                     if (this.numCalled > 0)
                         assertEquals((long) (timeout.toMillis() * Math.pow(2, this.numCalled - 1)),
                             retryInterceptor.getTimeout().toMillis());
                     this.numCalled++;
-                    return chain.proceed(request, bodyHandler);
+                    return chain.proceed(request, bodyHandler, executor);
                 }
             };
 

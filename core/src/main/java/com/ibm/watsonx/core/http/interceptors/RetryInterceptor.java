@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -66,12 +67,6 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
     }
 
     @Override
-    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-        int index, AsyncChain chain) {
-        return executeWithRetry(request, bodyHandler, index, 0, chain);
-    }
-
-    @Override
     public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
         throws WatsonxException, IOException, InterruptedException {
 
@@ -101,7 +96,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                     });
 
                 if (shouldRetry) {
-                    if(exponentialBackoff && attempt > 0) {
+                    if (exponentialBackoff && attempt > 0) {
                         timeout = timeout.multipliedBy(2);
                     }
                     chain.resetToIndex(index + 1);
@@ -112,9 +107,15 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                 throw e;
             }
         }
-        
+
         this.timeout = this.retryInterval;
         throw new RuntimeException("Max retries reached", isNull(exception) ? new Exception() : exception);
+    }
+
+    @Override
+    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+        Executor executor, int index, AsyncChain chain) {
+        return executeWithRetry(request, bodyHandler, executor, index, 0, chain);
     }
 
     /**
@@ -134,9 +135,9 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
     }
 
     private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler,
-        int index, int attempt, AsyncChain chain) {
-        
-        return chain.proceed(request, bodyHandler)
+        Executor executor, int index, int attempt, AsyncChain chain) {
+
+        return chain.proceed(request, bodyHandler, executor)
             .handleAsync((response, throwable) -> {
                 if (throwable == null) {
                     this.timeout = this.retryInterval;
@@ -168,12 +169,12 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
                 return CompletableFuture.supplyAsync(
                     () -> {
                         chain.resetToIndex(index + 1);
-                        return executeWithRetry(request, bodyHandler, index, attempt + 1, chain);
+                        return executeWithRetry(request, bodyHandler, executor, index, attempt + 1, chain);
                     },
-                    CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS)
+                    CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS, executor)
                 ).thenCompose(Function.identity());
 
-            }).thenCompose(Function.identity());
+            }, executor).thenCompose(Function.identity());
     }
 
     /**

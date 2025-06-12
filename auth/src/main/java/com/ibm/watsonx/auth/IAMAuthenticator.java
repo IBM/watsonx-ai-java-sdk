@@ -17,8 +17,9 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.core.http.AsyncHttpClient;
 import com.ibm.watsonx.core.http.SyncHttpClient;
@@ -63,14 +64,13 @@ import com.ibm.watsonx.core.http.SyncHttpClient;
  */
 public final class IAMAuthenticator implements AuthenticationProvider {
 
-    private final Semaphore lock;
     private final URI url;
     private final String apiKey;
     private final String grantType;
     private final Duration timeout;
     private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
-    private IdentityTokenResponse token;
+    private final AtomicReference<IdentityTokenResponse> token;
 
     /**
      * Constructs an IAMAuthenticator instance using the provided builder.
@@ -78,12 +78,11 @@ public final class IAMAuthenticator implements AuthenticationProvider {
      * @param builder the builder instance
      */
     public IAMAuthenticator(Builder builder) {
+        this.token = new AtomicReference<>();
         this.apiKey = encode(requireNonNull(builder.apiKey));
-        this.lock = new Semaphore(1);
         this.url = requireNonNullElse(builder.url, URI.create("https://iam.cloud.ibm.com/identity/token"));
         this.grantType = encode(requireNonNullElse(builder.grantType, "urn:ibm:params:oauth:grant-type:apikey"));
         this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-        
         var httpClient = requireNonNullElse(builder.httpClient, HttpClient.newBuilder().build());
         this.syncHttpClient = SyncHttpClient.builder().httpClient(httpClient).build();
         this.asyncHttpClient = AsyncHttpClient.builder().httpClient(httpClient).build();
@@ -94,18 +93,18 @@ public final class IAMAuthenticator implements AuthenticationProvider {
 
         try {
 
-            lock.acquire();
+            IdentityTokenResponse currentToken = token.get();
 
-            if (!isExpired(token))
-                return token.accessToken();
+            if (!isExpired(currentToken))
+                return currentToken.accessToken();
 
             var request = createHttpRequest();
             var response = syncHttpClient.send(request, BodyHandlers.ofString());
             var statusCode = response.statusCode();
 
             if (statusCode >= 200 && statusCode < 300) {
-                token = fromJson(response.body(), IdentityTokenResponse.class);
-                return token.accessToken();
+                token.getAndSet(fromJson(response.body(), IdentityTokenResponse.class));
+                return token.get().accessToken();
             }
 
             // The status code is not 2xx.
@@ -113,42 +112,33 @@ public final class IAMAuthenticator implements AuthenticationProvider {
 
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
-        } finally {
-            lock.release();
         }
     }
 
     @Override
-    public CompletableFuture<String> getTokenAsync() {
+    public CompletableFuture<String> getTokenAsync(Executor executor) {
 
-        try {
+        IdentityTokenResponse currentToken = token.get();
+        executor = requireNonNullElse(executor, asyncHttpClient.executor());
 
-            lock.acquire();
-            var request = createHttpRequest();
+        var request = createHttpRequest();
 
-            if (!isExpired(token)) {
-                lock.release();
-                return completedFuture(token.accessToken());
+        if (!isExpired(currentToken)) {
+            return completedFuture(token.get().accessToken());
+        }
+
+        return asyncHttpClient.send(request, BodyHandlers.ofString()).thenApply(response -> {
+
+            var statusCode = response.statusCode();
+
+            if (statusCode >= 200 && statusCode < 300) {
+                token.getAndSet(fromJson(response.body(), IdentityTokenResponse.class));
+                return token.get().accessToken();
             }
 
-            return asyncHttpClient.send(request, BodyHandlers.ofString()).thenApply(response -> {
-
-                var statusCode = response.statusCode();
-                
-                if (statusCode >= 200 && statusCode < 300) {
-                    token = fromJson(response.body(), IdentityTokenResponse.class);
-                    return token.accessToken();
-                }
-
-                // The status code is not 2xx.
-                throw new CompletionException(response.body(), new RuntimeException());
-
-            }).whenCompleteAsync((response, exeception) -> lock.release());
-
-        } catch (InterruptedException e) {
-            lock.release();
-            throw new RuntimeException(e.getMessage());
-        }
+            // The status code is not 2xx.
+            throw new CompletionException(response.body(), new RuntimeException());
+        });
     }
 
     /**
@@ -244,7 +234,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
             return this;
         }
 
-         /**
+        /**
          * Sets the http client.
          *
          * @param httpClient {@link HttpClient} instance.
