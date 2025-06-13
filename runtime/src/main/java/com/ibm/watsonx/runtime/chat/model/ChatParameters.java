@@ -7,6 +7,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import com.ibm.watsonx.runtime.WatsonxParameters;
 
 /**
  * Represents a set of parameters used to control the behavior of a chat model during text generation.
@@ -16,7 +17,7 @@ import java.util.Map;
  * Example usage:
  * 
  * <pre>{@code
- * ChatParameters params = new ChatParameters.Builder()
+ * ChatParameters params = ChatParameters.builder()
  *     .temperature(0.7)
  *     .maxTokens(100)
  *     .toolChoiceOption(ToolChoice.AUTO)
@@ -27,11 +28,8 @@ import java.util.Map;
  * The parameters encapsulated in this class control aspects such as output randomness, token limits, tool invocation, stopping criteria, and
  * reproducibility.
  */
-public final class ChatParameters {
+public final class ChatParameters extends WatsonxParameters {
 
-    private final String projectId;
-    private final String spaceId;
-    private final String modelId;
     private final String toolChoiceOption;
     private final Map<String, Object> toolChoice;
     private final Double frequencyPenalty;
@@ -49,9 +47,7 @@ public final class ChatParameters {
     private final String responseFormat;
 
     public ChatParameters(Builder builder) {
-        this.projectId = builder.projectId;
-        this.spaceId = builder.spaceId;
-        this.modelId = builder.modelId;
+        super(builder);
         this.toolChoiceOption = nonNull(builder.toolChoiceOption) ? builder.toolChoiceOption.type() : null;
         this.frequencyPenalty = builder.frequencyPenalty;
         this.logitBias = builder.logitBias;
@@ -67,92 +63,78 @@ public final class ChatParameters {
         this.stop = builder.stop;
         this.responseFormat = nonNull(builder.responseFormat) ? builder.responseFormat.type() : null;
         this.toolChoice =
-            nonNull(builder.toolChoice) ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice)) : null;
+            nonNull(builder.toolChoice) ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
+                : null;
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public String projectId() {
-        return projectId;
-    }
-
-    public String spaceId() {
-        return spaceId;
-    }
-
-    public String modelId() {
-        return modelId;
-    }
-
-    public String toolChoiceOption() {
+    public String getToolChoiceOption() {
         return toolChoiceOption;
     }
 
-    public Map<String, Object> toolChoice() {
+    public Map<String, Object> getToolChoice() {
         return toolChoice;
     }
 
-    public Map<String, Integer> logitBias() {
+    public Map<String, Integer> getLogitBias() {
         return logitBias;
     }
 
-    public Double frequencyPenalty() {
+    public Double getFrequencyPenalty() {
         return frequencyPenalty;
     }
 
-    public Boolean logprobs() {
+    public Boolean getLogprobs() {
         return logprobs;
     }
 
-    public Integer topLogprobs() {
+    public Integer getTopLogprobs() {
         return topLogprobs;
     }
 
-    public Integer maxCompletionTokens() {
+    public Integer getMaxCompletionTokens() {
         return maxCompletionTokens;
     }
 
-    public Integer n() {
+    public Integer getN() {
         return n;
     }
 
-    public Double presencePenalty() {
+    public Double getPresencePenalty() {
         return presencePenalty;
     }
 
-    public Double temperature() {
+    public Double getTemperature() {
         return temperature;
     }
 
-    public Double topP() {
+    public Double getTopP() {
         return topP;
     }
 
-    public Long timeLimit() {
+    public Long getTimeLimit() {
         return timeLimit;
     }
 
-    public Integer seed() {
+    public Integer getSeed() {
         return seed;
     }
 
-    public List<String> stop() {
+    public List<String> getStop() {
         return stop;
     }
 
-    public String responseFormat() {
+    public String getResponseFormat() {
         return responseFormat;
     }
 
     /**
      * Builder class for constructing {@link ChatParameters} instances with configurable parameters.
      */
-    public static class Builder {
-        private String projectId;
-        private String spaceId;
-        private String modelId;
+    public static class Builder extends WatsonxParameters.Builder<Builder> {
         private ToolChoice toolChoiceOption;
         private String toolChoice;
         private Double frequencyPenalty;
@@ -170,49 +152,11 @@ public final class ChatParameters {
         private Long timeLimit;
 
         /**
-         * The project that contains the resource. Either space_id or project_id has to be given.
+         * Specifies the tool selection strategy.
          * <p>
-         * Possible values: length = 36, Value must match regular expression ^[a-zA-Z0-9-]*$
+         * When set to {@code ToolChoice.AUTO}, the model decides whether to invoke tools.
          * <p>
-         * Example: 12ac4cf1-252f-424b-b52d-5cdd9814987f
-         * 
-         * @param projectId Project id value
-         */
-        public Builder projectId(String projectId) {
-            this.projectId = projectId;
-            return this;
-        }
-
-        /**
-         * The space that contains the resource. Either space_id or project_id has to be given.
-         * <p>
-         * Possible values: length = 36, Value must match regular expression ^[a-zA-Z0-9-]*$
-         * <p>
-         * Example: 3fc54cf1-252f-424b-b52d-5cdd9814987f
-         * 
-         * @param spaceId Space id value
-         */
-        public Builder spaceId(String spaceId) {
-            this.spaceId = spaceId;
-            return this;
-        }
-
-        /**
-         * The model to use for the chat completion.
-         * <p>
-         * For a full list of available model ids, see the
-         * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx">link</a>.
-         * 
-         * @param modelId Model id value
-         */
-        public Builder modelId(String modelId) {
-            this.modelId = modelId;
-            return this;
-        }
-
-        /**
-         * Specifies the tool selection strategy. When set to {@code ToolChoice.AUTO}, the model decides whether to invoke tools. If set to
-         * {@code ToolChoice.REQUIRED}, the model is forced to invoke a specific tool.
+         * If set to {@code ToolChoice.REQUIRED}, the model is forced to invoke a specific tool.
          *
          * @param toolChoiceOption a {@link ToolChoice} enum indicating the tool selection strategy
          */
@@ -332,8 +276,7 @@ public final class ChatParameters {
         }
 
         /**
-         * Sets a maximum time limit for the completion generation. If this time is exceeded, the generation halts and returns what's
-         * generated so far.
+         * Sets a maximum time limit for the completion generation. If this time is exceeded, the generation halts and returns what's generated so far.
          *
          * @param timeLimit {@link Duration} time limit.
          */

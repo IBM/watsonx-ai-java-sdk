@@ -194,21 +194,21 @@ public final class ChatRequest {
         }
 
         public Builder parameters(ChatParameters parameters) {
-            this.toolChoiceOption = parameters.toolChoiceOption();
-            this.toolChoice = parameters.toolChoice();
-            this.frequencyPenalty = parameters.frequencyPenalty();
-            this.logitBias = parameters.logitBias();
-            this.logprobs = parameters.logprobs();
-            this.topLogprobs = parameters.topLogprobs();
-            this.maxCompletionTokens = parameters.maxCompletionTokens();
-            this.n = parameters.n();
-            this.presencePenalty = parameters.presencePenalty();
-            this.seed = parameters.seed();
-            this.stop = parameters.stop();
-            this.temperature = parameters.temperature();
-            this.topP = parameters.topP();
-            this.timeLimit = parameters.timeLimit();
-            this.responseFormat = parameters.responseFormat();
+            this.toolChoiceOption = parameters.getToolChoiceOption();
+            this.toolChoice = parameters.getToolChoice();
+            this.frequencyPenalty = parameters.getFrequencyPenalty();
+            this.logitBias = parameters.getLogitBias();
+            this.logprobs = parameters.getLogprobs();
+            this.topLogprobs = parameters.getTopLogprobs();
+            this.maxCompletionTokens = parameters.getMaxCompletionTokens();
+            this.n = parameters.getN();
+            this.presencePenalty = parameters.getPresencePenalty();
+            this.seed = parameters.getSeed();
+            this.stop = parameters.getStop();
+            this.temperature = parameters.getTemperature();
+            this.topP = parameters.getTopP();
+            this.timeLimit = parameters.getTimeLimit();
+            this.responseFormat = parameters.getResponseFormat();
             return this;
         }
 

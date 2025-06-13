@@ -32,7 +32,7 @@ import com.ibm.watsonx.runtime.chat.model.Tool;
  * <b>Example usage:</b>
  * 
  * <pre>{@code
- * ChatService chatService = new ChatService.Builder()
+ * ChatService chatService = ChatService.builder()
  *     .url("https://...") // or use CloudRegion
  *     .authenticationProvider(authProvider)
  *     .modelId("ibm/granite-3-8b-instruct")
@@ -131,12 +131,12 @@ public final class ChatService extends WatsonxService {
 
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
-        if (isNull(parameters.modelId()) && isNull(this.modelId))
+        if (isNull(parameters.getModelId()) && isNull(this.modelId))
             throw new NullPointerException("The modelId must be provided");
 
-        var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
-        var projectId = nonNull(parameters.projectId()) ? parameters.projectId() : this.projectId;
-        var spaceId = nonNull(parameters.spaceId()) ? parameters.spaceId() : this.spaceId;
+        var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
+        var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
+        var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
 
         if (isNull(projectId) && isNull(spaceId))
             throw new NullPointerException("Either projectId or spaceId must be provided");
@@ -148,11 +148,11 @@ public final class ChatService extends WatsonxService {
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .timeLimit(isNull(parameters.timeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.timeLimit())
+            .timeLimit(isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit())
             .build();
 
         var httpRequest =
-            HttpRequest.newBuilder(URI.create(url.toString() + "/ml/v1/text/chat?version=%s".formatted(version)))
+            HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat?version=%s".formatted(ML_API_PATH, version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(chatRequest)))
@@ -226,12 +226,12 @@ public final class ChatService extends WatsonxService {
 
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
-        if (isNull(parameters.modelId()) && isNull(this.modelId))
+        if (isNull(parameters.getModelId()) && isNull(this.modelId))
             throw new NullPointerException("The modelId must be provided");
 
-        var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
-        var projectId = nonNull(parameters.projectId()) ? parameters.projectId() : this.projectId;
-        var spaceId = nonNull(parameters.spaceId()) ? parameters.spaceId() : this.spaceId;
+        var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
+        var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
+        var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
 
         if (isNull(projectId) && isNull(spaceId))
             throw new NullPointerException("Either projectId or spaceId must be provided");
@@ -243,7 +243,7 @@ public final class ChatService extends WatsonxService {
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .timeLimit(isNull(parameters.timeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.timeLimit())
+            .timeLimit(isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit())
             .build();
 
         var httpRequest =
