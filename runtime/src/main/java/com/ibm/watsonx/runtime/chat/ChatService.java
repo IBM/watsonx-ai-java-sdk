@@ -360,9 +360,8 @@ public final class ChatService extends WatsonxService {
                             return;
 
                         stringBuilder.append(token);
+                        handler.onPartialResponse(token, chunk);
                     }
-
-                    handler.onPartialResponse(chunk);
 
                 } catch (RuntimeException e) {
                     handler.onError(e);

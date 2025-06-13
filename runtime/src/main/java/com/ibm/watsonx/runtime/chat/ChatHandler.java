@@ -13,8 +13,9 @@ public interface ChatHandler {
      * of a single chat request.
      *
      * @param partialResponse the partial chunk of the response received
+     * @param partialChatResponse the partial chat response
      */
-    void onPartialResponse(PartialChatResponse partialResponse);
+    void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse);
 
     /**
      * Called once the full chat response has been received and the stream is complete.
