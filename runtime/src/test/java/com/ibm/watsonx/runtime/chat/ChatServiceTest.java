@@ -1125,10 +1125,11 @@ public class ChatServiceTest {
     chatService.chatStreaming(messages, chatParameters, new ChatHandler() {
 
       @Override
-      public void onPartialResponse(PartialChatResponse partialResponse) {
-        assertNotNull(partialResponse.choices());
-        assertEquals(1, partialResponse.choices().size());
-        var chunk = partialResponse.choices().get(0).delta().content();
+      public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+        assertNotNull(partialChatResponse.choices());
+        assertEquals(1, partialChatResponse.choices().size());
+        var chunk = partialChatResponse.choices().get(0).delta().content();
+        assertTrue(chunk.equals(partialResponse));
         assertTrue(chunk.equals("C") || chunk.equals("iao"));
       }
 
@@ -1150,6 +1151,7 @@ public class ChatServiceTest {
     assertEquals("stop", response.getChoices().get(0).finishReason());
     assertEquals(0, response.getChoices().get(0).index());
     assertEquals("Ciao", response.getChoices().get(0).message().content());
+    assertEquals("Ciao", response.textResponse().orElse(null));
     assertNotNull(response.getCreated());
     assertNotNull(response.getCreatedAt());
     assertNotNull(response.getId());
@@ -1296,7 +1298,7 @@ public class ChatServiceTest {
     chatService.chatStreaming(messages, tools, new ChatHandler() {
 
       @Override
-      public void onPartialResponse(PartialChatResponse partialResponse) {}
+      public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
 
       @Override
       public void onCompleteResponse(ChatResponse completeResponse) {
@@ -1345,6 +1347,7 @@ public class ChatServiceTest {
     assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
     assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
       response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+    
     wireMock.stop();
   }
 
@@ -1581,7 +1584,7 @@ public class ChatServiceTest {
     chatService.chatStreaming(messages, tools, chatParameters, new ChatHandler() {
 
       @Override
-      public void onPartialResponse(PartialChatResponse partialResponse) {}
+      public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
 
       @Override
       public void onCompleteResponse(ChatResponse completeResponse) {
@@ -1679,7 +1682,8 @@ public class ChatServiceTest {
     chatService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
 
       @Override
-      public void onPartialResponse(PartialChatResponse partialResponse) {
+      public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+        assertNotNull(partialResponse);
         counter.incrementAndGet();
       }
 
@@ -1732,7 +1736,7 @@ public class ChatServiceTest {
     chatService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
 
       @Override
-      public void onPartialResponse(PartialChatResponse partialResponse) {}
+      public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
 
       @Override
       public void onCompleteResponse(ChatResponse completeResponse) {
@@ -1756,14 +1760,13 @@ public class ChatServiceTest {
 
     var chatHandler = new ChatHandler() {
       @Override
-      public void onPartialResponse(PartialChatResponse partialResponse) {}
+      public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
 
       @Override
       public void onCompleteResponse(ChatResponse completeResponse) {}
 
       @Override
       public void onError(Throwable error) {}
-
     };
 
     var messages = List.<ChatMessage>of(UserMessage.text("test"));
