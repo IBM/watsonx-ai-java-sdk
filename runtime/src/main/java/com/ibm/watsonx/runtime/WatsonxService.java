@@ -25,6 +25,9 @@ import com.ibm.watsonx.runtime.chat.model.ChatParameters;
  */
 public abstract class WatsonxService {
 
+    protected static final String ML_API_PATH = "/ml/v1/text";
+    protected static final String API_VERSION = "2025-04-23";
+
     protected final URI url;
     protected final String version;
     protected final String projectId;
@@ -37,7 +40,7 @@ public abstract class WatsonxService {
 
     public WatsonxService(Builder<?> builder) {
         url = URI.create(requireNonNull(builder.url, "The url must be provided"));
-        version = requireNonNullElse(builder.version, "2025-04-23");
+        version = requireNonNullElse(builder.version, API_VERSION);
         projectId = builder.projectId;
         spaceId = builder.spaceId;
         modelId = builder.modelId;
