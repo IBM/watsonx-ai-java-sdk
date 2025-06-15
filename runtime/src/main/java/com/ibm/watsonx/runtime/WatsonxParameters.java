@@ -2,6 +2,7 @@ package com.ibm.watsonx.runtime;
 
 import com.ibm.watsonx.runtime.chat.model.ChatParameters;
 import com.ibm.watsonx.runtime.embedding.EmbeddingParameters;
+import com.ibm.watsonx.runtime.rerank.RerankParameters;
 
 /**
  * This is an abstract class that contains the shared parameters for various Builder configurations.
@@ -10,6 +11,7 @@ import com.ibm.watsonx.runtime.embedding.EmbeddingParameters;
  *
  * @see ChatParameters
  * @see EmbeddingParameters
+ * @see RerankParameters
  */
 public abstract class WatsonxParameters {
     protected final String projectId;
@@ -41,9 +43,7 @@ public abstract class WatsonxParameters {
         private String modelId;
 
         /**
-         * Sets the default project id to be used for chat completions.
-         * <p>
-         * If you want to override this value, use the {@link ChatParameters}.
+         * Sets the project id.
          * 
          * @param spaceId Project id value
          */
@@ -53,9 +53,7 @@ public abstract class WatsonxParameters {
         }
 
         /**
-         * Sets the default space id to be used for chat completions.
-         * <p>
-         * If you want to override this value, use the {@link ChatParameters}.
+         * Sets the space id.
          * 
          * @param spaceId Space id value
          */
@@ -65,15 +63,9 @@ public abstract class WatsonxParameters {
         }
 
         /**
-         * Sets the default model to be used for chat completions.
-         * <p>
-         * If you want to override this value, use the {@link ChatParameters}.
-         * <p>
-         * For a full list of available model ids, see the
-         * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx">link</a>.
+         * Sets the model id.
          *
          * @param modelId the model identifier to use
-         * @return the builder instance
          */
         public T modelId(String modelId) {
             this.modelId = modelId;

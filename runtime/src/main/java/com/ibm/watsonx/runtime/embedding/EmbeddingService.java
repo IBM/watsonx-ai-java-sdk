@@ -2,7 +2,6 @@ package com.ibm.watsonx.runtime.embedding;
 
 import static com.ibm.watsonx.core.Json.fromJson;
 import static com.ibm.watsonx.core.Json.toJson;
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
@@ -17,7 +16,7 @@ import com.ibm.watsonx.runtime.WatsonxService;
 import com.ibm.watsonx.runtime.embedding.EmbeddingRequest.Parameters;
 
 /**
- * Service client for performing embedding requests.
+ * Service class for performing embedding requests.
  * <p>
  * <b>Example usage:</b>
  * 
@@ -73,35 +72,17 @@ public final class EmbeddingService extends WatsonxService {
 
         requireNonNull(inputs, "Inputs cannot be null");
 
-        if (inputs.isEmpty())
-            throw new IllegalArgumentException("Inputs cannot be empty");
-
-        String modelId;
-        String projectId;
-        String spaceId;
+        String modelId = this.modelId;
+        String projectId = this.projectId;
+        String spaceId = this.spaceId;
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
-
-            if (isNull(parameters.getModelId()) && isNull(this.modelId))
-                throw new NullPointerException("The modelId must be provided");
-
             modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
             projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
             spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-
-            if(nonNull(parameters.getTruncateInputTokens()))
-                requestParameters = new Parameters(parameters.getTruncateInputTokens());
-
-        } else {
-
-            modelId = requireNonNull(this.modelId, "The modelId must be provided");
-            projectId = this.projectId;
-            spaceId = this.spaceId;
+            requestParameters = parameters.toEmbeddingRequestParameters();
         }
-
-        if (isNull(projectId) && isNull(spaceId))
-            throw new NullPointerException("Either projectId or spaceId must be provided");
 
         int inputTokenCount = 0;
         String createdAt = null;
@@ -114,6 +95,7 @@ public final class EmbeddingService extends WatsonxService {
 
             var embeddingRequest =
                 new EmbeddingRequest(modelId, spaceId, projectId, subList, requestParameters);
+
             var httpRequest = HttpRequest
                 .newBuilder(URI.create(url.toString() + "%s/embeddings?version=%s".formatted(ML_API_PATH, version)))
                 .header("Content-Type", "application/json")

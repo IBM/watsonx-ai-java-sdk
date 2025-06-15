@@ -1,4 +1,4 @@
-package com.ibm.watsonx.runtime.chat;
+package com.ibm.watsonx.runtime;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
@@ -42,7 +42,10 @@ import com.ibm.watsonx.core.chat.JsonSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.EnumSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.IntegerSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.StringSchema;
-import com.ibm.watsonx.runtime.CloudRegion;
+import com.ibm.watsonx.runtime.chat.ChatHandler;
+import com.ibm.watsonx.runtime.chat.ChatRequest;
+import com.ibm.watsonx.runtime.chat.ChatResponse;
+import com.ibm.watsonx.runtime.chat.ChatService;
 import com.ibm.watsonx.runtime.chat.model.AssistantMessage;
 import com.ibm.watsonx.runtime.chat.model.ChatMessage;
 import com.ibm.watsonx.runtime.chat.model.ChatParameters;
@@ -1347,7 +1350,7 @@ public class ChatServiceTest {
     assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
     assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
       response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
-    
+
     wireMock.stop();
   }
 
@@ -1769,8 +1772,6 @@ public class ChatServiceTest {
       public void onError(Throwable error) {}
     };
 
-    var messages = List.<ChatMessage>of(UserMessage.text("test"));
-
     var ex = assertThrows(NullPointerException.class, () -> AssistantMessage.text(null));
     assertEquals("Either content or toolCalls must be specified", ex.getMessage());
 
@@ -1787,28 +1788,33 @@ public class ChatServiceTest {
     assertEquals("low", imageContent.imageUrl().detail());
     assertEquals("data:jpeg;base64,mock", imageContent.imageUrl().url());
 
-    var chatService = ChatService.builder()
+    ex = assertThrows(NullPointerException.class, () -> ChatService.builder()
       .authenticationProvider(mockAuthenticationProvider)
       .url("http://localhost:8080")
-      .build();
-
-    ex = assertThrows(NullPointerException.class, () -> chatService.chat(messages));
-    assertEquals("The modelId must be provided", ex.getMessage());
-    ex = assertThrows(NullPointerException.class, () -> chatService.chatStreaming(messages, chatHandler));
+      .build());
     assertEquals("The modelId must be provided", ex.getMessage());
 
-    var chatParameters = ChatParameters.builder()
+
+    ex = assertThrows(NullPointerException.class, () -> ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
       .modelId("test")
+      .url("http://localhost:8080")
+      .build());
+    assertEquals("Either projectId or spaceId must be provided", ex.getMessage());
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .modelId("model-id")
+      .projectId("project-id")
+      .url(CloudRegion.DALLAS)
       .build();
 
-    ex = assertThrows(NullPointerException.class, () -> chatService.chat(messages, chatParameters));
-    assertEquals("Either projectId or spaceId must be provided", ex.getMessage());
-    ex = assertThrows(NullPointerException.class, () -> chatService.chatStreaming(messages, chatParameters, chatHandler));
-    assertEquals("Either projectId or spaceId must be provided", ex.getMessage());
+    var chatParameters = ChatParameters.builder().build();
 
     var ex2 = assertThrows(IllegalArgumentException.class, () -> chatService.chat(null, chatParameters));
     assertEquals("The list of messages can not be null or empty", ex2.getMessage());
-    ex2 = assertThrows(IllegalArgumentException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
+    ex2 =
+      assertThrows(IllegalArgumentException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
     assertEquals("The list of messages can not be null or empty", ex2.getMessage());
   }
 }

@@ -1,5 +1,6 @@
 package com.ibm.watsonx.runtime;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
@@ -12,7 +13,8 @@ import com.ibm.watsonx.core.http.SyncHttpClient;
 import com.ibm.watsonx.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.core.http.interceptors.RetryInterceptor;
 import com.ibm.watsonx.runtime.chat.ChatService;
-import com.ibm.watsonx.runtime.chat.model.ChatParameters;
+import com.ibm.watsonx.runtime.embedding.EmbeddingService;
+import com.ibm.watsonx.runtime.rerank.RerankService;
 
 /**
  * Abstract base class for all watsonx.ai service classes.
@@ -22,6 +24,8 @@ import com.ibm.watsonx.runtime.chat.model.ChatParameters;
  * service metadata such as project or model identifiers.
  *
  * @see ChatService
+ * @see EmbeddingService
+ * @see RerankService
  */
 public abstract class WatsonxService {
 
@@ -43,9 +47,15 @@ public abstract class WatsonxService {
         version = requireNonNullElse(builder.version, API_VERSION);
         projectId = builder.projectId;
         spaceId = builder.spaceId;
-        modelId = builder.modelId;
+
+        modelId = requireNonNull(builder.modelId, "The modelId must be provided");
+
+        if (isNull(projectId) && isNull(spaceId))
+            throw new NullPointerException("Either projectId or spaceId must be provided");
+
         timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-        authenticationProvider = requireNonNull(builder.authenticationProvider);
+        authenticationProvider =
+            requireNonNull(builder.authenticationProvider, "The authentication provider is mandatory");
 
         boolean logRequests = requireNonNullElse(builder.logRequests, false);
         boolean logResponses = requireNonNullElse(builder.logResponses, false);
@@ -117,9 +127,9 @@ public abstract class WatsonxService {
         }
 
         /**
-         * Sets the default project id to be used for chat completions.
+         * Sets the default project id.
          * <p>
-         * If you want to override this value, use the {@link ChatParameters}.
+         * If you want to override this value, use the {@link WatsonxParameters}.
          * 
          * @param spaceId Project id value
          */
@@ -129,9 +139,9 @@ public abstract class WatsonxService {
         }
 
         /**
-         * Sets the default space id to be used for chat completions.
+         * Sets the default space id.
          * <p>
-         * If you want to override this value, use the {@link ChatParameters}.
+         * If you want to override this value, use the {@link WatsonxParameters}.
          * 
          * @param spaceId Space id value
          */
@@ -141,15 +151,11 @@ public abstract class WatsonxService {
         }
 
         /**
-         * Sets the default model to be used for chat completions.
+         * Sets the default model.
          * <p>
-         * If you want to override this value, use the {@link ChatParameters}.
-         * <p>
-         * For a full list of available model ids, see the
-         * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx">link</a>.
+         * If you want to override this value, use the {@link WatsonxParameters}.
          *
          * @param modelId the model identifier to use
-         * @return the builder instance
          */
         public T modelId(String modelId) {
             this.modelId = modelId;
