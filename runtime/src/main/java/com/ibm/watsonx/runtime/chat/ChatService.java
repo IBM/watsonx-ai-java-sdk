@@ -6,6 +6,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -148,7 +149,8 @@ public final class ChatService extends WatsonxService {
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .timeLimit(isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit())
+            .timeLimit(
+                isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit())
             .build();
 
         var httpRequest =
@@ -163,7 +165,7 @@ public final class ChatService extends WatsonxService {
             var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
             return fromJson(httpReponse.body(), ChatResponse.class);
 
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
@@ -243,7 +245,8 @@ public final class ChatService extends WatsonxService {
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .timeLimit(isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit())
+            .timeLimit(
+                isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit())
             .build();
 
         var httpRequest =

@@ -222,6 +222,6 @@ public class EmbeddingServiceTest {
             .build();
 
         var ex = assertThrows(RuntimeException.class, () -> embeddingService.embedding("Hello"));
-        JSONAssert.assertEquals(json, ex.getCause().getMessage(), true);
+        JSONAssert.assertEquals(json, ex.getMessage(), true);
     }
 }
