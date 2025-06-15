@@ -5,6 +5,7 @@ import static com.ibm.watsonx.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -92,7 +93,7 @@ public final class RerankService extends WatsonxService {
             var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
             return fromJson(httpReponse.body(), RerankResponse.class);
 
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }

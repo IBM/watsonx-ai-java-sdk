@@ -5,6 +5,7 @@ import static com.ibm.watsonx.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -111,7 +112,7 @@ public final class EmbeddingService extends WatsonxService {
                 inputTokenCount += response.inputTokenCount();
                 createdAt = response.createdAt();
 
-            } catch (Exception e) {
+            } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }

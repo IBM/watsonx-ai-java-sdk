@@ -6,7 +6,7 @@ import com.ibm.watsonx.core.exeception.model.WatsonxError;
 /**
  * Exception thrown when a watsonx api request results in an error response.
  */
-public class WatsonxException extends Exception {
+public class WatsonxException extends RuntimeException {
 
     private final Integer statusCode;
     private final WatsonxError details;
