@@ -55,6 +55,14 @@ public final class RerankService extends WatsonxService {
         return rerank(query, inputs, null);
     }
 
+    /**
+     * Performs a reranking operation using the specified query and input texts.
+     *
+     * @param query The query to rank the input texts against.
+     * @param inputs The list of input texts to be reranked.
+     * @param parameters Set of parameters used to control the behavior of a rerank operation
+     * @return The {@link RerankResponse} containing the reranked results.
+     */
     public RerankResponse rerank(String query, List<String> inputs, RerankParameters parameters) {
 
         requireNonNull(query, "Query cannot be null");
