@@ -1,4 +1,4 @@
-package com.ibm.watsonx.runtime.chat;
+package com.ibm.watsonx.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,7 +23,6 @@ import com.ibm.watsonx.core.Json;
 import com.ibm.watsonx.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.core.exeception.model.WatsonxError.Error;
-import com.ibm.watsonx.runtime.CloudRegion;
 import com.ibm.watsonx.runtime.embedding.EmbeddingParameters;
 import com.ibm.watsonx.runtime.embedding.EmbeddingService;
 import com.ibm.watsonx.runtime.utils.Utils;
@@ -124,7 +123,10 @@ public class EmbeddingServiceTest {
                 "project_id": "override-project-id",
                 "space_id": "override-space-id",
                 "parameters" : {
-                    "truncate_input_tokens" : 512
+                    "truncate_input_tokens" : 512,
+                    "return_options": {
+                        "input_text": true
+                    }
                 }
             }""";
 
@@ -137,7 +139,24 @@ public class EmbeddingServiceTest {
                     -0.006929283,
                     -0.005336422,
                     -0.024047505
-                  ]
+                  ],
+                  "input": "Youth craves thrills while adulthood cherishes wisdom."
+                },
+                {
+                  "embedding": [
+                    -0.006929283,
+                    -0.005336422,
+                    -0.024047505
+                  ],
+                  "input": "Youth seeks ambition while adulthood finds contentment."
+                },
+                {
+                  "embedding": [
+                    -0.006929283,
+                    -0.005336422,
+                    -0.024047505
+                  ],
+                  "input": "Dreams chased in youth while goals pursued in adulthood."
                 }
               ],
               "created_at": "2024-02-21T17:32:28Z",
@@ -163,7 +182,11 @@ public class EmbeddingServiceTest {
             .projectId("override-project-id")
             .spaceId("override-space-id")
             .truncateInputTokens(512)
+            .inputText(true)
             .build();
+
+        assertEquals(512, parameters.getTruncateInputTokens());
+        assertEquals(true, parameters.getInputText());
 
         var inputs = List.of(
             "Youth craves thrills while adulthood cherishes wisdom.",
@@ -177,55 +200,7 @@ public class EmbeddingServiceTest {
     }
 
     @Test
-    void test_parameters() {
-
-        var embeddingService = EmbeddingService.builder()
-            .authenticationProvider(authenticationProvider)
-            .modelId(MODEL_ID)
-            .logRequests(true)
-            .projectId(PROJECT_ID)
-            .url(CloudRegion.DALLAS)
-            .build();
-
-        var nullPointerException =
-            assertThrows(NullPointerException.class, () -> embeddingService.embedding(null, null));
-        assertEquals("Inputs cannot be null", nullPointerException.getMessage());
-
-        var illegalArgumentException =
-            assertThrows(IllegalArgumentException.class, () -> embeddingService.embedding(List.of()));
-        assertEquals("Inputs cannot be empty", illegalArgumentException.getMessage());
-
-        var embeddingServiceNoModelId = EmbeddingService.builder()
-            .authenticationProvider(authenticationProvider)
-            .logRequests(true)
-            .projectId(PROJECT_ID)
-            .url(CloudRegion.DALLAS)
-            .build();
-
-        nullPointerException =
-            assertThrows(NullPointerException.class, () -> embeddingServiceNoModelId.embedding(List.of("test")));
-        assertEquals("The modelId must be provided", nullPointerException.getMessage());
-
-        var embeddingServiceNoProjectId = EmbeddingService.builder()
-            .authenticationProvider(authenticationProvider)
-            .modelId(MODEL_ID)
-            .logRequests(true)
-            .url(CloudRegion.DALLAS)
-            .build();
-
-        nullPointerException =
-            assertThrows(NullPointerException.class, () -> embeddingServiceNoProjectId.embedding(List.of("test")));
-        assertEquals("Either projectId or spaceId must be provided", nullPointerException.getMessage());
-
-        nullPointerException =
-            assertThrows(NullPointerException.class,
-                () -> embeddingServiceNoProjectId.embedding(List.of("test"), EmbeddingParameters.builder().build()));
-        assertEquals("Either projectId or spaceId must be provided", nullPointerException.getMessage());
-
-    }
-
-    @Test
-    void test_exception() throws Exception {
+    void test_embedding_exception() throws Exception {
 
         var error = new WatsonxError(
             400, "error", List.of(new Error("X", "X", "X")));

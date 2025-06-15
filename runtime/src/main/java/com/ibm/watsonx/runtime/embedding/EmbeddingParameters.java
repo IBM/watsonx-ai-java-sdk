@@ -1,6 +1,9 @@
 package com.ibm.watsonx.runtime.embedding;
 
+import static java.util.Objects.nonNull;
 import com.ibm.watsonx.runtime.WatsonxParameters;
+import com.ibm.watsonx.runtime.embedding.EmbeddingRequest.Parameters;
+import com.ibm.watsonx.runtime.embedding.EmbeddingRequest.ReturnOptions;
 
 /**
  * Represents a set of parameters used to control the behavior of a embedding generation.
@@ -18,14 +21,33 @@ import com.ibm.watsonx.runtime.WatsonxParameters;
  */
 public final class EmbeddingParameters extends WatsonxParameters {
     private final Integer truncateInputTokens;
+    private final Boolean inputText;
 
     public EmbeddingParameters(Builder builder) {
         super(builder);
         truncateInputTokens = builder.truncateInputTokens;
+        inputText = builder.inputText;
     }
 
     public Integer getTruncateInputTokens() {
         return truncateInputTokens;
+    }
+
+    public Boolean getInputText() {
+        return inputText;
+    }
+
+    Parameters toEmbeddingRequestParameters() {
+        Parameters parameters = null;
+        ReturnOptions returnOptions = null;
+
+        if (nonNull(inputText))
+            returnOptions = new ReturnOptions(inputText);
+
+        if (nonNull(truncateInputTokens) || nonNull(returnOptions))
+            parameters = new Parameters(truncateInputTokens, returnOptions);
+
+        return parameters;
     }
 
     /**
@@ -42,6 +64,7 @@ public final class EmbeddingParameters extends WatsonxParameters {
      */
     public static final class Builder extends WatsonxParameters.Builder<Builder> {
         private Integer truncateInputTokens;
+        private Boolean inputText;
 
         /**
          * Represents the maximum number of tokens accepted per input.
@@ -56,6 +79,16 @@ public final class EmbeddingParameters extends WatsonxParameters {
          */
         public Builder truncateInputTokens(Integer truncateInputTokens) {
             this.truncateInputTokens = truncateInputTokens;
+            return this;
+        }
+
+        /**
+         * Include the input text in each of the results documents.
+         * 
+         * @param inputText Boolean value
+         */
+        public Builder inputText(Boolean inputText) {
+            this.inputText = inputText;
             return this;
         }
 
