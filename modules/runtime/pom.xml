@@ -7,25 +7,20 @@
   <name>runtime</name>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-runtime</artifactId>
-  <version>${project-version}</version>
+  <version>999-SNAPSHOT</version>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>watsonx-ai-parent</artifactId>
-    <version>${project-version}</version>
+    <version>999-SNAPSHOT</version>
     <relativePath>../..</relativePath>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
-      <artifactId>watsonx-ai-core</artifactId>
-      <version>${project-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai-auth</artifactId>
-      <version>${project-version}</version>
+      <version>999-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

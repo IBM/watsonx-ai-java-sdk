@@ -38,7 +38,7 @@ jobs:
         run: sed -E -i "s|(<version>)[^<]*(</version>)|\1${{env.CURRENT_VERSION}}\2|" README.md
 
       - name: Update pom.xml to release version
-        run: sed -E -i "s|(<project-version>)[^<]*(</project-version>)|\1${{env.CURRENT_VERSION}}\2|" pom.xml
+        run: ./mvnw versions:set -DnewVersion=${{env.CURRENT_VERSION}}
 
       - name: Commit and push release updates
         uses: actions-js/push@master
