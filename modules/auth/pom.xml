@@ -7,13 +7,13 @@
   <name>auth</name>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-auth</artifactId>
-  <version>${project-version}</version>
+  <version>999-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>watsonx-ai-parent</artifactId>
-    <version>${project-version}</version>
+    <version>999-SNAPSHOT</version>
     <relativePath>../..</relativePath>
   </parent>
 
@@ -21,7 +21,7 @@
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai-core</artifactId>
-      <version>${project-version}</version>
+      <version>999-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

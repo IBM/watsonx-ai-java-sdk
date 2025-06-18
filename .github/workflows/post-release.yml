@@ -28,7 +28,7 @@ jobs:
           echo "NEXT_VERSION=$next" >> $GITHUB_ENV
 
       - name: Revert pom.xml to 999-SNAPSHOT
-        run: sed -E -i "s|(<project-version>)[^<]*(</project-version>)|\1${{env.NEXT_VERSION}}\2|" pom.xml
+        run: ./mvnw versions:set -DnewVersion=${{env.NEXT_VERSION}}
 
       - name: Commit revert
         uses: actions-js/push@master
