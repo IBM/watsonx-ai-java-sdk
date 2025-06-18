@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import com.ibm.watsonx.core.chat.JsonSchema;
+import com.ibm.watsonx.core.chat.JsonSchema.ObjectSchema;
 import com.ibm.watsonx.runtime.WatsonxParameters;
 
 /**
@@ -337,12 +338,20 @@ public final class ChatParameters extends WatsonxParameters {
 
     /**
     * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+    *
+    * @param schema the JSON Schema describing the expected output structure
+    */
+    public Builder withJsonSchemaResponse(ObjectSchema.Builder schema) {
+      return withJsonSchemaResponse(schema.build());
+    }
+
+    /**
+    * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+    *
     * @param schema the JSON Schema describing the expected output structure
     */
     public Builder withJsonSchemaResponse(JsonSchema schema) {
-      this.responseFormat = ResponseFormat.JSON_SCHEMA;
-      this.jsonSchema = new JsonSchemaObject(UUID.randomUUID().toString(), schema, true);
-      return this;
+      return withJsonSchemaResponse(UUID.randomUUID().toString(), schema, true);
     }
 
     /**
