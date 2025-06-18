@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.runtime.chat.model.ChatMessage;
 import com.ibm.watsonx.runtime.chat.model.ChatParameters;
+import com.ibm.watsonx.runtime.chat.model.ChatParameters.JsonSchemaObject;
+import com.ibm.watsonx.runtime.chat.model.ChatParameters.ResponseFormat;
 import com.ibm.watsonx.runtime.chat.model.Tool;
 
 /**
@@ -35,7 +37,7 @@ public final class ChatRequest {
   private final Double temperature;
   private final Double topP;
   private final Long timeLimit;
-  private final Map<String, String> responseFormat;
+  private final Map<String, Object> responseFormat;
 
   public ChatRequest(Builder builder) {
     this.modelId = builder.modelId;
@@ -57,7 +59,16 @@ public final class ChatRequest {
     this.temperature = builder.temperature;
     this.topP = builder.topP;
     this.timeLimit = builder.timeLimit;
-    this.responseFormat = nonNull(builder.responseFormat) ? Map.of("type", builder.responseFormat) : null;
+
+    if (nonNull(builder.responseFormat)) {
+      if (builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.type())) {
+        this.responseFormat = Map.of("type", builder.responseFormat, "json_schema", builder.jsonSchema);
+      } else {
+        this.responseFormat = Map.of("type", builder.responseFormat);
+      }
+    } else {
+      this.responseFormat = null;
+    }
   }
 
   public String getModelId() {
@@ -136,7 +147,7 @@ public final class ChatRequest {
     return timeLimit;
   }
 
-  public Map<String, String> getResponseFormat() {
+  public Map<String, Object> getResponseFormat() {
     return responseFormat;
   }
 
@@ -165,6 +176,7 @@ public final class ChatRequest {
     private Double topP;
     private Long timeLimit;
     private String responseFormat;
+    private JsonSchemaObject jsonSchema;
 
     public Builder modelId(String modelId) {
       this.modelId = modelId;
@@ -213,6 +225,7 @@ public final class ChatRequest {
       this.topP = parameters.getTopP();
       this.timeLimit = parameters.getTimeLimit();
       this.responseFormat = parameters.getResponseFormat();
+      this.jsonSchema = parameters.getJsonSchema();
       return this;
     }
 

@@ -5,8 +5,9 @@
 package com.ibm.watsonx.runtime.chat;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
 import java.util.List;
-import java.util.Optional;
+import com.ibm.watsonx.core.Json;
 import com.ibm.watsonx.runtime.chat.model.ChatUsage;
 import com.ibm.watsonx.runtime.chat.model.ResultMessage;
 
@@ -118,19 +119,37 @@ public final class ChatResponse {
    * <li>The finish reason is not {@code "tool_calls"}</li>
    * <li>The message contains a non-null content</li>
    * </ul>
-   * If any of these conditions are not met, an empty {@link Optional} is returned.
+   * A RuntimeException will be thrown if any of these conditions are not met.
    *
-   * @return an {@code Optional} containing the message content, or empty if not applicable
+   * @return The message content
    */
-  public Optional<String> textResponse() {
+  public String toText() {
     if (isNull(choices) || choices.isEmpty())
-      return Optional.empty();
+      throw new RuntimeException("The \"choices\" field cat not be null or empty");
 
     var choice = choices.get(0);
     if (choice.finishReason().equals("tool_calls") || isNull(choice.message()))
-      return Optional.empty();
+      throw new RuntimeException("The response is of the type \"tool_calls\" and contains no text");
 
-    return Optional.of(choice.message().content());
+    return choice.message().content();
+  }
+
+  /**
+  * Deserializes the textual content of the chat response into a Java object.
+  * <p>
+  * This method relies on {@link #toText()} to retrieve the textual content of the response
+  * and attempts to convert it into an instance of the specified class.
+  * <p>
+  * Note: This method assumes the content is a valid JSON string matching the structure of the given class.
+  * If the content is not valid JSON or does not match the structure of {@code clazz}, a parsing exception may be thrown.
+  *
+  * @param <T>   the type of the object to return
+  * @param clazz the target class for deserialization
+  * @return an instance of {@code clazz} parsed from the response content
+  */
+  public <T> T toText(Class<T> clazz) {
+    requireNonNull(clazz);
+    return Json.fromJson(toText(), clazz);
   }
 
   void setId(String id) {

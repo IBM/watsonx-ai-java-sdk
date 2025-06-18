@@ -44,8 +44,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.core.Json;
 import com.ibm.watsonx.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.core.chat.JsonSchema;
+import com.ibm.watsonx.core.chat.JsonSchema.ArraySchema;
 import com.ibm.watsonx.core.chat.JsonSchema.EnumSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.IntegerSchema;
+import com.ibm.watsonx.core.chat.JsonSchema.NumberSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.StringSchema;
 import com.ibm.watsonx.runtime.chat.ChatHandler;
 import com.ibm.watsonx.runtime.chat.ChatRequest;
@@ -54,7 +56,6 @@ import com.ibm.watsonx.runtime.chat.ChatService;
 import com.ibm.watsonx.runtime.chat.model.AssistantMessage;
 import com.ibm.watsonx.runtime.chat.model.ChatMessage;
 import com.ibm.watsonx.runtime.chat.model.ChatParameters;
-import com.ibm.watsonx.runtime.chat.model.ChatParameters.ResponseFormat;
 import com.ibm.watsonx.runtime.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.runtime.chat.model.ControlMessage;
 import com.ibm.watsonx.runtime.chat.model.Image;
@@ -100,7 +101,7 @@ public class ChatServiceTest {
       .n(10)
       .presencePenalty(1.0)
       .projectId("project-id")
-      .responseFormat(ResponseFormat.JSON)
+      .withJsonResponse()
       .seed(10)
       .spaceId("space-id")
       .stop(List.of("stop"))
@@ -481,6 +482,80 @@ public class ChatServiceTest {
   }
 
   @Test
+  void text_mode() throws Exception {
+
+    final String REQUEST = """
+      {
+        "model_id": "meta-llama/llama-3-8b-instruct",
+        "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+        "response_format": {
+          "type": "text"
+        },
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant designed to output JSON."
+          },
+          {
+            "role": "user",
+            "content": [{
+              "type": "text",
+              "text": "Who won the world series in 2020?"
+            }]
+          }
+        ]
+      }""";
+
+    final String RESPONSE =
+      """
+        {
+          "id": "cmpl-09945b25c805491fb49e15439b8e5d84",
+          "model_id": "meta-llama/llama-3-8b-instruct",
+          "created": 1689958352,
+          "created_at": "2023-07-21T16:52:32.190Z",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "[\\"The Los Angeles Dodgers won the World Series in 2020. They defeated the Tampa Bay Rays in six games.\\"]"
+              },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "completion_tokens": 35,
+            "prompt_tokens": 20,
+            "total_tokens": 55
+          }
+        }""";
+
+    when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+    when(mockHttpResponse.statusCode()).thenReturn(200);
+    when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .httpClient(mockHttpClient)
+      .modelId("meta-llama/llama-3-8b-instruct")
+      .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .url(CloudRegion.DALLAS)
+      .build();
+
+    ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
+    when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+    var messages = List.<ChatMessage>of(
+      SystemMessage.of("You are a helpful assistant designed to output JSON."),
+      UserMessage.text("Who won the world series in 2020?"));
+
+    var parameters = ChatParameters.builder().withTextResponse().build();
+    var chatResponse = chatService.chat(messages, parameters);
+    JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
+    JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+  }
+
+  @Test
   void json_mode() throws Exception {
 
     final String REQUEST = """
@@ -548,10 +623,162 @@ public class ChatServiceTest {
       SystemMessage.of("You are a helpful assistant designed to output JSON."),
       UserMessage.text("Who won the world series in 2020?"));
 
-    var parameters = ChatParameters.builder().responseFormat(ResponseFormat.JSON).build();
+    var parameters = ChatParameters.builder().withJsonResponse().build();
     var chatResponse = chatService.chat(messages, parameters);
     JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
     JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+  }
+
+  record LLMResponse(String name, List<Province> provinces) {
+  }
+  record Province(String name, Population population) {
+  }
+  record Population(int value, String density) {
+  }
+
+  @Test
+  void json_schema() throws Exception {
+
+    final String REQUEST = """
+        {
+          "model_id": "meta-llama/llama-3-8b-instruct",
+          "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+          "response_format": {
+              "type": "json_schema",
+              "json_schema": {
+                  "name": "test",
+                  "schema": {
+                      "type": "object",
+                      "properties": {
+                          "name": {
+                              "type": "string"
+                          },
+                          "provinces": {
+                              "type": "array",
+                              "items": {
+                                  "type": "object",
+                                  "properties": {
+                                      "name": {
+                                          "type": "string"
+                                      },
+                                      "population": {
+                                          "type": "object",
+                                          "properties": {
+                                              "value": {
+                                                  "type": "number"
+                                              },
+                                              "density": {
+                                                  "enum": [
+                                                      "LOW",
+                                                      "MEDIUM",
+                                                      "HIGH"
+                                                  ]
+                                              }
+                                          },
+                                          "required": [
+                                              "value",
+                                              "density"
+                                          ]
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  },
+                  "strict": true
+              }
+          },
+          "messages": [
+              {
+                  "role": "system",
+                  "content": "Given a region return the information"
+              },
+              {
+                  "role": "user",
+                  "content": [
+                      {
+                          "type": "text",
+                          "text": "Campania"
+                      }
+                  ]
+              }
+          ]
+      }""";
+
+    final String RESPONSE =
+      """
+        {
+          "id": "cmpl-09945b25c805491fb49e15439b8e5d84",
+          "model_id": "meta-llama/llama-3-8b-instruct",
+          "created": 1689958352,
+          "created_at": "2023-07-21T16:52:32.190Z",
+          "choices": [
+              {
+                  "index": 0,
+                  "message": {
+                      "role": "assistant",
+                      "content": "{\\"name\\": \\"Campania\\", \\n\\"provinces\\": [\\n{\\n\\"name\\": \\"Caserta\\",\\n\\"population\\":  \\t{\\n\\"density\\":  \\t    \\t\\"LOW\\",\\n\\"value\\": 924414\\n}\\n},\\n{\\n\\"name\\": \\"Benevento\\",\\n\\"population\\":  {\\n\\"density\\":  \\"LOW\\",\\n\\"value\\": 283393\\n}\\n},\\n{\\n\\"name\\": \\"Napoli\\",\\n\\"population\\":  {\\n\\"density\\":  \\"HIGH\\",\\n\\"value\\": 3116402\\n}\\n},\\n{\\n\\"name\\": \\"Avellino\\",\\n\\"population\\":  {\\n\\"density\\":  \\"LOW\\",\\n\\"value\\": 423536\\n}\\n},\\n{\\n\\"name\\": \\"Salerno\\",\\n\\"population\\":  {\\n\\"density\\":  \\"MEDIUM\\",\\n\\"value\\": 1108369\\n}\\n}\\n]\\n}"
+                  },
+                  "finish_reason": "stop"
+              }
+          ],
+          "usage": {
+            "completion_tokens": 35,
+            "prompt_tokens": 20,
+            "total_tokens": 55
+          }
+        }""";
+
+    when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+    when(mockHttpResponse.statusCode()).thenReturn(200);
+    when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .httpClient(mockHttpClient)
+      .logRequests(true)
+      .modelId("meta-llama/llama-3-8b-instruct")
+      .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .url(CloudRegion.DALLAS)
+      .build();
+
+    ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
+    when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+    var messages = List.<ChatMessage>of(
+      SystemMessage.of("Given a region return the information"),
+      UserMessage.text("Campania"));
+
+    var jsonSchema = JsonSchema.builder()
+      .addProperty("name", StringSchema.of())
+      .addProperty("provinces", ArraySchema.of(
+        JsonSchema.of()
+          .addProperty("name", StringSchema.of())
+          .addProperty("population",
+            JsonSchema.of()
+              .addProperty("value", NumberSchema.of())
+              .addProperty("density", EnumSchema.of("LOW", "MEDIUM", "HIGH"))
+              .required("value", "density"))
+      ))
+      .build();
+
+    var parameters = ChatParameters.builder()
+      .withJsonSchemaResponse("test", jsonSchema, true)
+      .build();
+
+    var chatResponse = chatService.chat(messages, parameters);
+
+    JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
+    JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
+
+    var response = chatResponse.toText(LLMResponse.class);
+    assertEquals("Campania", response.name());
+    assertEquals(5, response.provinces.size());
+    assertEquals(new Province("Caserta", new Population(924414, "LOW")), response.provinces.get(0));
+    assertEquals(new Province("Benevento", new Population(283393, "LOW")), response.provinces.get(1));
+    assertEquals(new Province("Napoli", new Population(3116402, "HIGH")), response.provinces.get(2));
+    assertEquals(new Province("Avellino", new Population(423536, "LOW")), response.provinces.get(3));
+    assertEquals(new Province("Salerno", new Population(1108369, "MEDIUM")), response.provinces.get(4));
   }
 
   @Test
@@ -1160,7 +1387,7 @@ public class ChatServiceTest {
     assertEquals("stop", response.getChoices().get(0).finishReason());
     assertEquals(0, response.getChoices().get(0).index());
     assertEquals("Ciao", response.getChoices().get(0).message().content());
-    assertEquals("Ciao", response.textResponse().orElse(null));
+    assertEquals("Ciao", response.toText());
     assertNotNull(response.getCreated());
     assertNotNull(response.getCreatedAt());
     assertNotNull(response.getId());
