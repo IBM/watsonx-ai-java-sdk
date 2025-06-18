@@ -42,7 +42,11 @@ public sealed interface JsonSchema
   permits ObjectSchema, StringSchema, NumberSchema, IntegerSchema, BooleanSchema, ArraySchema, EnumSchema {
 
   public static ObjectSchema.Builder builder() {
-    return new ObjectSchema.Builder();
+    return of();
+  }
+
+  public static ObjectSchema.Builder of() {
+    return ObjectSchema.of();
   }
 
   /**
@@ -59,6 +63,10 @@ public sealed interface JsonSchema
       return "object";
     }
 
+    public static ObjectSchema.Builder of() {
+      return new ObjectSchema.Builder();
+    }
+
     public static class Builder {
       private Map<String, JsonSchema> properties = new LinkedHashMap<>();
       private List<String> required;
@@ -66,6 +74,10 @@ public sealed interface JsonSchema
       public Builder addProperty(String name, JsonSchema schema) {
         properties.put(name, schema);
         return this;
+      }
+
+      public Builder addProperty(String name, ObjectSchema.Builder schema) {
+        return addProperty(name, schema.build());
       }
 
       public Builder required(List<String> required) {
@@ -247,6 +259,10 @@ public sealed interface JsonSchema
 
     public static ArraySchema of(JsonSchema schema) {
       return new ArraySchema("array", schema);
+    }
+
+    public static ArraySchema of(ObjectSchema.Builder schema) {
+      return new ArraySchema("array", schema.build());
     }
   }
 

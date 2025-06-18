@@ -5,12 +5,15 @@
 package com.ibm.watsonx.runtime.chat.model;
 
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import com.ibm.watsonx.core.chat.JsonSchema;
 import com.ibm.watsonx.runtime.WatsonxParameters;
 
 /**
@@ -25,7 +28,7 @@ import com.ibm.watsonx.runtime.WatsonxParameters;
  *   .temperature(0.7)
  *   .maxTokens(100)
  *   .toolChoiceOption(ToolChoice.AUTO)
- *   .responseFormat(ResponseFormat.JSON)
+ *   .withJsonResponse()
  *   .build();
  * }</pre>
  *
@@ -33,6 +36,9 @@ import com.ibm.watsonx.runtime.WatsonxParameters;
  * reproducibility.
  */
 public final class ChatParameters extends WatsonxParameters {
+
+  public record JsonSchemaObject(String name, JsonSchema schema, boolean strict) {
+  };
 
   private final String toolChoiceOption;
   private final Map<String, Object> toolChoice;
@@ -49,6 +55,7 @@ public final class ChatParameters extends WatsonxParameters {
   private final Double topP;
   private final Long timeLimit;
   private final String responseFormat;
+  private final JsonSchemaObject jsonSchema;
 
   public ChatParameters(Builder builder) {
     super(builder);
@@ -65,7 +72,21 @@ public final class ChatParameters extends WatsonxParameters {
     this.timeLimit = builder.timeLimit;
     this.seed = builder.seed;
     this.stop = builder.stop;
-    this.responseFormat = nonNull(builder.responseFormat) ? builder.responseFormat.type() : null;
+
+    if (nonNull(builder.responseFormat)) {
+
+      if (builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA) && isNull(builder.jsonSchema))
+        throw new IllegalArgumentException("JSON schema must be provided when using JSON_SCHEMA response format");
+
+      this.responseFormat = builder.responseFormat.type();
+      this.jsonSchema = builder.jsonSchema;
+
+    } else {
+
+      this.responseFormat = null;
+      this.jsonSchema = null;
+    }
+
     this.toolChoice =
       nonNull(builder.toolChoice) ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
         : null;
@@ -135,6 +156,10 @@ public final class ChatParameters extends WatsonxParameters {
     return responseFormat;
   }
 
+  public JsonSchemaObject getJsonSchema() {
+    return jsonSchema;
+  }
+
   /**
    * Builder class for constructing {@link ChatParameters} instances with configurable parameters.
    */
@@ -154,6 +179,7 @@ public final class ChatParameters extends WatsonxParameters {
     private Double temperature;
     private Double topP;
     private Long timeLimit;
+    private JsonSchemaObject jsonSchema;
 
     /**
      * Specifies the tool selection strategy.
@@ -290,12 +316,51 @@ public final class ChatParameters extends WatsonxParameters {
     }
 
     /**
-     * Sets the response format. Currently supports JSON format.
-     *
-     * @param responseFormat the desired response format
+     * Sets the response format to {@code TEXT}, indicating that the model output will be free-form text.
+     * <p>
+     * No JSON structure will be enforced, and the response will be treated as plain text.
      */
-    public Builder responseFormat(ResponseFormat responseFormat) {
-      this.responseFormat = requireNonNull(responseFormat);
+    public Builder withTextResponse() {
+      this.responseFormat = ResponseFormat.TEXT;
+      return this;
+    }
+
+    /**
+    * Sets the response format to {@code JSON}, indicating that the model output should be a JSON object.
+    * <p>
+    * The output will be in JSON format, but no schema will be enforced or validated.
+    */
+    public Builder withJsonResponse() {
+      this.responseFormat = ResponseFormat.JSON;
+      return this;
+    }
+
+    /**
+    * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+    * @param schema the JSON Schema describing the expected output structure
+    */
+    public Builder withJsonSchemaResponse(JsonSchema schema) {
+      this.responseFormat = ResponseFormat.JSON_SCHEMA;
+      this.jsonSchema = new JsonSchemaObject(UUID.randomUUID().toString(), schema, true);
+      return this;
+    }
+
+    /**
+    * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+    * <p>
+    * Allows specifying a custom schema name and whether strict schema validation should be applied.
+    * <ul>
+    *   <li>If {@code strict} is {@code true}, the model's output must exactly match the schema.</li>
+    *   <li>If {@code strict} is {@code false}, additional fields not defined in the schema are allowed.</li>
+    * </ul>
+    *
+    * @param name the identifier name for the schema
+    * @param schema the JSON Schema describing the expected output structure
+    * @param strict whether to enforce strict schema validation
+    */
+    public Builder withJsonSchemaResponse(String name, JsonSchema schema, boolean strict) {
+      this.responseFormat = ResponseFormat.JSON_SCHEMA;
+      this.jsonSchema = new JsonSchemaObject(name, schema, strict);
       return this;
     }
 
@@ -334,7 +399,9 @@ public final class ChatParameters extends WatsonxParameters {
    * Specifies the format in which the model should return the response.
    */
   public static enum ResponseFormat {
-    JSON("json_object");
+    TEXT("text"),
+    JSON("json_object"),
+    JSON_SCHEMA("json_schema");
 
     private final String type;
 

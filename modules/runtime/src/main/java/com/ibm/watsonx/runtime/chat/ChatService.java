@@ -136,12 +136,11 @@ public final class ChatService extends WatsonxService {
 
     parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
-    if (isNull(parameters.getModelId()) && isNull(this.modelId))
-      throw new NullPointerException("The modelId must be provided");
-
     var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
     var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
     var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+    var timeLimit =
+      isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit();
 
     if (isNull(projectId) && isNull(spaceId))
       throw new NullPointerException("Either projectId or spaceId must be provided");
@@ -153,8 +152,7 @@ public final class ChatService extends WatsonxService {
       .messages(messages)
       .tools(tools)
       .parameters(parameters)
-      .timeLimit(
-        isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit())
+      .timeLimit(timeLimit)
       .build();
 
     var httpRequest =
