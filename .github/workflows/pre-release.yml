@@ -1,0 +1,58 @@
+name: Prepare release
+
+on:
+  pull_request:
+    types: [ closed ]
+    paths:
+      - '.github/project.yml'
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  pre-release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: main
+
+      - name: Set up yq
+        uses: mikefarah/yq@v4.45.4
+
+      - name: Extract versions from project.yml
+        id: versions
+        run: |
+          current=$(yq '.release.current-version' .github/project.yml)
+          next=$(yq '.release.next-version' .github/project.yml)
+          echo "CURRENT_VERSION=$current" >> $GITHUB_ENV
+          echo "NEXT_VERSION=$next" >> $GITHUB_ENV
+
+      - name: Update README.md
+        run: sed -E -i "s|(<version>)[^<]*(</version>)|\1${{env.CURRENT_VERSION}}\2|" README.md
+
+      - name: Update pom.xml to release version
+        run: sed -E -i "s|(<project-version>)[^<]*(</project-version>)|\1${{env.CURRENT_VERSION}}\2|" pom.xml
+
+      - name: Commit and push release updates
+        uses: actions-js/push@master
+        with:
+          message: "Prepare release ${{env.CURRENT_VERSION}}"
+          github_token: ${{ secrets.GH_BOT_TOKEN }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "${{env.CURRENT_VERSION}}"
+          name: "Release ${{env.CURRENT_VERSION}}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GH_BOT_TOKEN}}
