@@ -4,17 +4,29 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
-  <artifactId>watsonx-ai-sdk</artifactId>
-  <version>999-SNAPSHOT</version>
+  <artifactId>watsonx-ai-parent</artifactId>
+  <version>${project-version}</version>
   <packaging>pom</packaging>
 
   <modules>
-    <module>core</module>
-    <module>auth</module>
-    <module>runtime</module>
+    <module>modules/core</module>
+    <module>modules/auth</module>
+    <module>modules/runtime</module>
   </modules>
 
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>IBM Corporation</name>
+  </organization>
+
   <properties>
+    <project-version>999-SNAPSHOT</project-version>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <maven.compiler.release>17</maven.compiler.release>
@@ -22,6 +34,10 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven-source-plugin-version>3.3.1</maven-source-plugin-version>
     <maven-compiler-plugin-version>3.14.0</maven-compiler-plugin-version>
+    <build-helper-maven-plugin-version>3.3.0</build-helper-maven-plugin-version>
+    <license-maven-plugin-version>5.0.0</license-maven-plugin-version>
+    <formatter-maven-plugin-version>2.26.0</formatter-maven-plugin-version>
+    <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
   </properties>
 
   <dependencies>
@@ -66,13 +82,6 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.wiremock</groupId>
-      <artifactId>wiremock</artifactId>
-      <version>3.13.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -129,6 +138,81 @@
 
   <build>
     <plugins>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build-helper-maven-plugin-version}</version>
+        <executions>
+          <execution>
+            <id>timestamp-property</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>timestamp-property</goal>
+            </goals>
+            <configuration>
+              <name>currentYear</name>
+              <pattern>yyyy</pattern>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>${license-maven-plugin-version}</version>
+        <configuration>
+          <properties>
+            <inceptionYear>2025</inceptionYear>
+            <currentYear>${currentYear}</currentYear>
+          </properties>
+          <licenseSets>
+            <licenseSet>
+              <header>config/license-header</header>
+              <includes>
+                <include>**/*.java</include>
+              </includes>
+            </licenseSet>
+          </licenseSets>
+        </configuration>
+        <executions>
+          <execution>
+            <id>license-format</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>net.revelc.code.formatter</groupId>
+        <artifactId>formatter-maven-plugin</artifactId>
+        <version>${formatter-maven-plugin-version}</version>
+        <executions>
+          <execution>
+            <id>formatter-format</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <configFile>${project.basedir}/../../config/eclipse-formatter.xml</configFile>
+          <lineEnding>LF</lineEnding>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin-version}</version>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

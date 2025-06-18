@@ -1,0 +1,46 @@
+name: Release to the Maven repository
+run-name: Release ${{ github.ref_name }}
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: main
+
+      - name: Update README.md version
+        run: sed -E -i 's|(<version>)[^<]*(</version>)|\1${{github.ref_name}}\2|' README.md
+
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          message: "Update README to ${{github.ref_name}}"
+          github_token: ${{ secrets.GH_BOT_TOKEN }}
+
+      - name: Bump pom.xml version to tag
+        run: find . -name "pom.xml" -exec sed -i "s/999-SNAPSHOT/${{github.ref_name}}/g" {} +
+
+      - name: Commit release version
+        uses: actions-js/push@master
+        with:
+          message: "Prepare release ${{github.ref_name}}"
+          github_token: ${{ secrets.GH_BOT_TOKEN }}
+
+      # - name:  Build and deploy to Maven repository
+      #   uses: actions/setup-java@v4
+      #   with:
+      #     distribution: temurin
+      #     java-version: 17
+      #     server-id: central
+      #     server-username: username
+      #     server-password: password
+      #     gpg-private-key: gpg-key

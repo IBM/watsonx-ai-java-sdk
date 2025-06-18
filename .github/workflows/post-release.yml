@@ -1,0 +1,37 @@
+name: Revert to snapshot after release
+on:
+  workflow_run:
+    workflows: ["Release to the Maven repository"]
+    types:
+      - completed
+
+jobs:
+  revert:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: main
+
+      - name: Set up yq
+        uses: mikefarah/yq@v4.45.4
+
+      - name: Extract versions from project.yml
+        id: versions
+        run: |
+          next=$(yq '.release.next-version' .github/project.yml)
+          echo "NEXT_VERSION=$next" >> $GITHUB_ENV
+
+      - name: Revert pom.xml to 999-SNAPSHOT
+        run: sed -E -i "s|(<project-version>)[^<]*(</project-version>)|\1${{env.NEXT_VERSION}}\2|" pom.xml
+
+      - name: Commit revert
+        uses: actions-js/push@master
+        with:
+          message: "Prepare for next development iteration"
+          github_token: ${{secrets.GH_BOT_TOKEN}}
