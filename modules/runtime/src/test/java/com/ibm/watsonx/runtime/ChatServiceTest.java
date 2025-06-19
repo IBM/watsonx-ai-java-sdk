@@ -44,10 +44,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.core.Json;
 import com.ibm.watsonx.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.core.chat.JsonSchema;
-import com.ibm.watsonx.core.chat.JsonSchema.ArraySchema;
 import com.ibm.watsonx.core.chat.JsonSchema.EnumSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.IntegerSchema;
-import com.ibm.watsonx.core.chat.JsonSchema.NumberSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.StringSchema;
 import com.ibm.watsonx.runtime.chat.ChatHandler;
 import com.ibm.watsonx.runtime.chat.ChatRequest;
@@ -750,17 +748,16 @@ public class ChatServiceTest {
       UserMessage.text("Campania"));
 
     var jsonSchema = JsonSchema.builder()
-      .addProperty("name", StringSchema.of())
-      .addProperty("provinces", ArraySchema.of(
-        JsonSchema.of()
-          .addProperty("name", StringSchema.of())
-          .addProperty("population",
-            JsonSchema.of()
-              .addProperty("value", NumberSchema.of())
-              .addProperty("density", EnumSchema.of("LOW", "MEDIUM", "HIGH"))
+      .addStringProperty("name")
+      .addArrayProperty("provinces",
+        JsonSchema.builder()
+          .addStringProperty("name")
+          .addObjectProperty("population",
+            JsonSchema.builder()
+              .addNumberProperty("value")
+              .addEnumProperty("density", "LOW", "MEDIUM", "HIGH")
               .required("value", "density"))
-      ))
-      .build();
+      ).build();
 
     var parameters = ChatParameters.builder()
       .withJsonSchemaResponse("test", jsonSchema, true)

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.core.chat;
 
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -24,8 +25,8 @@ import com.ibm.watsonx.core.chat.JsonSchema.StringSchema;
  *
  * <pre>{@code
  * JsonSchema userSchema = JsonSchema.builder()
- *   .addProperty("name", StringSchema.of("The user's full name"))
- *   .addProperty("age", IntegerSchema.of("The user's age in years"))
+ *   .addStringProperty("name", "The user's full name")
+ *   .addIntegerProperty("age", "The user's age in years")
  *   .addRequired("name")
  *   .build();
  * }</pre>
@@ -42,10 +43,6 @@ public sealed interface JsonSchema
   permits ObjectSchema, StringSchema, NumberSchema, IntegerSchema, BooleanSchema, ArraySchema, EnumSchema {
 
   public static ObjectSchema.Builder builder() {
-    return of();
-  }
-
-  public static ObjectSchema.Builder of() {
     return ObjectSchema.of();
   }
 
@@ -71,12 +68,142 @@ public sealed interface JsonSchema
       private Map<String, JsonSchema> properties = new LinkedHashMap<>();
       private List<String> required;
 
+      public Builder addStringProperty(String name) {
+        return addStringProperty(name, null);
+      }
+
+      public Builder addNullableStringProperty(String name) {
+        return addNullableStringProperty(name, null);
+      }
+
+      public Builder addStringProperty(String name, String description) {
+        return addStringProperty(name, description, false);
+      }
+
+      public Builder addNullableStringProperty(String name, String description) {
+        return addStringProperty(name, description, true);
+      }
+
+      public Builder addStringProperty(String name, String description, boolean nullable) {
+
+        if (nonNull(description)) {
+          var schema = nullable ? StringSchema.ofNullable(description) : StringSchema.ofNullable();
+          return addProperty(name, schema);
+        }
+
+        return addProperty(name, nullable ? StringSchema.ofNullable() : StringSchema.of());
+      }
+
+      public Builder addIntegerProperty(String name) {
+        return addIntegerProperty(name, null);
+      }
+
+      public Builder addNullableIntegerProperty(String name) {
+        return addNullableIntegerProperty(name, null);
+      }
+
+      public Builder addIntegerProperty(String name, String description) {
+        return addIntegerProperty(name, description, false);
+      }
+
+      public Builder addNullableIntegerProperty(String name, String description) {
+        return addIntegerProperty(name, description, true);
+      }
+
+      public Builder addIntegerProperty(String name, String description, boolean nullable) {
+
+        if (nonNull(description)) {
+          var schema = nullable ? IntegerSchema.ofNullable(description) : IntegerSchema.ofNullable();
+          return addProperty(name, schema);
+        }
+
+        return addProperty(name, nullable ? IntegerSchema.ofNullable() : IntegerSchema.of());
+      }
+
+
+      public Builder addNumberProperty(String name) {
+        return addNumberProperty(name, null);
+      }
+
+      public Builder addNullableNumberProperty(String name) {
+        return addNullableNumberProperty(name, null);
+      }
+
+      public Builder addNumberProperty(String name, String description) {
+        return addNumberProperty(name, description, false);
+      }
+
+      public Builder addNullableNumberProperty(String name, String description) {
+        return addNumberProperty(name, description, true);
+      }
+
+      public Builder addNumberProperty(String name, String description, boolean nullable) {
+
+        if (nonNull(description)) {
+          var schema = nullable ? NumberSchema.ofNullable(description) : NumberSchema.ofNullable();
+          return addProperty(name, schema);
+        }
+
+        return addProperty(name, nullable ? NumberSchema.ofNullable() : NumberSchema.of());
+      }
+
+      public Builder addBooleanProperty(String name) {
+        return addBooleanProperty(name, null);
+      }
+
+      public Builder addNullableBooleanProperty(String name) {
+        return addNullableBooleanProperty(name, null);
+      }
+
+      public Builder addBooleanProperty(String name, String description) {
+        return addBooleanProperty(name, description, false);
+      }
+
+      public Builder addNullableBooleanProperty(String name, String description) {
+        return addBooleanProperty(name, description, true);
+      }
+
+      public Builder addBooleanProperty(String name, String description, boolean nullable) {
+
+        if (nonNull(description)) {
+          var schema = nullable ? BooleanSchema.ofNullable(description) : BooleanSchema.ofNullable();
+          return addProperty(name, schema);
+        }
+
+        return addProperty(name, nullable ? BooleanSchema.ofNullable() : BooleanSchema.of());
+      }
+
+      public Builder addArrayProperty(String name, ObjectSchema.Builder schema) {
+        requireNonNull(schema);
+        return addProperty(name, ArraySchema.of(schema.build()));
+      }
+
+      public Builder addArrayProperty(String name, JsonSchema schema) {
+        return addProperty(name, ArraySchema.of(schema));
+      }
+
+      public Builder addEnumProperty(String name, Object... values) {
+        return addProperty(name, EnumSchema.of(values));
+      }
+
+      public Builder addObjectProperty(String name, ObjectSchema.Builder schema) {
+        requireNonNull(schema);
+        return addProperty(name, schema.build());
+      }
+
+      public Builder addObjectProperty(String name, JsonSchema schema) {
+        return addProperty(name, schema);
+      }
+
       public Builder addProperty(String name, JsonSchema schema) {
+        requireNonNull(name);
+        requireNonNull(schema);
         properties.put(name, schema);
         return this;
       }
 
       public Builder addProperty(String name, ObjectSchema.Builder schema) {
+        requireNonNull(schema);
         return addProperty(name, schema.build());
       }
 
@@ -281,13 +408,14 @@ public sealed interface JsonSchema
    *
    * @param enumValues The list of allowed values.
    */
-  public record EnumSchema(List<Object> enumValues) implements JsonSchema {
+  public record EnumSchema<T>(List<T> enumValues) implements JsonSchema {
     public EnumSchema {
       enumValues = requireNonNull(enumValues);
     }
 
-    public static EnumSchema of(Object... values) {
-      return new EnumSchema(Arrays.asList(values));
+    @SafeVarargs
+    public static <T> EnumSchema<T> of(T... values) {
+      return new EnumSchema<T>(Arrays.asList(values));
     }
   }
 }

@@ -327,46 +327,46 @@ public final class ChatParameters extends WatsonxParameters {
     }
 
     /**
-    * Sets the response format to {@code JSON}, indicating that the model output should be a JSON object.
-    * <p>
-    * The output will be in JSON format, but no schema will be enforced or validated.
-    */
+     * Sets the response format to {@code JSON}, indicating that the model output should be a JSON object.
+     * <p>
+     * The output will be in JSON format, but no schema will be enforced or validated.
+     */
     public Builder withJsonResponse() {
       this.responseFormat = ResponseFormat.JSON;
       return this;
     }
 
     /**
-    * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
-    *
-    * @param schema the JSON Schema describing the expected output structure
-    */
+     * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+     *
+     * @param schema the JSON Schema describing the expected output structure
+     */
     public Builder withJsonSchemaResponse(ObjectSchema.Builder schema) {
       return withJsonSchemaResponse(schema.build());
     }
 
     /**
-    * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
-    *
-    * @param schema the JSON Schema describing the expected output structure
-    */
+     * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+     *
+     * @param schema the JSON Schema describing the expected output structure
+     */
     public Builder withJsonSchemaResponse(JsonSchema schema) {
       return withJsonSchemaResponse(UUID.randomUUID().toString(), schema, true);
     }
 
     /**
-    * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
-    * <p>
-    * Allows specifying a custom schema name and whether strict schema validation should be applied.
-    * <ul>
-    *   <li>If {@code strict} is {@code true}, the model's output must exactly match the schema.</li>
-    *   <li>If {@code strict} is {@code false}, additional fields not defined in the schema are allowed.</li>
-    * </ul>
-    *
-    * @param name the identifier name for the schema
-    * @param schema the JSON Schema describing the expected output structure
-    * @param strict whether to enforce strict schema validation
-    */
+     * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+     * <p>
+     * Allows specifying a custom schema name and whether strict schema validation should be applied.
+     * <ul>
+     * <li>If {@code strict} is {@code true}, the model's output must exactly match the schema.</li>
+     * <li>If {@code strict} is {@code false}, additional fields not defined in the schema are allowed.</li>
+     * </ul>
+     *
+     * @param name the identifier name for the schema
+     * @param schema the JSON Schema describing the expected output structure
+     * @param strict whether to enforce strict schema validation
+     */
     public Builder withJsonSchemaResponse(String name, JsonSchema schema, boolean strict) {
       this.responseFormat = ResponseFormat.JSON_SCHEMA;
       this.jsonSchema = new JsonSchemaObject(name, schema, strict);
