@@ -18,6 +18,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import com.ibm.watsonx.core.Json;
@@ -181,8 +182,8 @@ public final class ChatService extends WatsonxService {
    * @param messages the list of chat messages forming the prompt history
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
    */
-  public void chatStreaming(List<ChatMessage> messages, ChatHandler handler) {
-    chatStreaming(messages, null, null, handler);
+  public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, ChatHandler handler) {
+    return chatStreaming(messages, null, null, handler);
   }
 
   /**
@@ -194,8 +195,8 @@ public final class ChatService extends WatsonxService {
    * @param tools the list of tools that the model may use
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
    */
-  public void chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
-    chatStreaming(messages, tools, null, handler);
+  public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
+    return chatStreaming(messages, tools, null, handler);
   }
 
   /**
@@ -207,8 +208,9 @@ public final class ChatService extends WatsonxService {
    * @param parameters additional optional parameters for the chat invocation
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
    */
-  public void chatStreaming(List<ChatMessage> messages, ChatParameters parameters, ChatHandler handler) {
-    chatStreaming(messages, null, parameters, handler);
+  public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, ChatParameters parameters,
+    ChatHandler handler) {
+    return chatStreaming(messages, null, parameters, handler);
   }
 
   /**
@@ -221,7 +223,7 @@ public final class ChatService extends WatsonxService {
    * @param parameters additional optional parameters for the chat invocation
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
    */
-  public void chatStreaming(List<ChatMessage> messages, List<Tool> tools,
+  public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, List<Tool> tools,
     ChatParameters parameters, ChatHandler handler) {
 
     requireNonNull(handler, "The chatHandler parameter can not be null");
@@ -259,7 +261,7 @@ public final class ChatService extends WatsonxService {
         .POST(BodyPublishers.ofString(toJson(chatRequest)))
         .build();
 
-    asyncHttpClient.send(httpRequest, BodyHandlers.fromLineSubscriber(new Flow.Subscriber<>() {
+    return asyncHttpClient.send(httpRequest, BodyHandlers.fromLineSubscriber(new Flow.Subscriber<>() {
       private Flow.Subscription subscription;
       private String finishReason;
       private String role;
@@ -402,7 +404,7 @@ public final class ChatService extends WatsonxService {
           handler.onError(e);
         }
       }
-    }));
+    })).thenApply(response -> null);
   }
 
   /**

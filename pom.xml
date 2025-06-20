@@ -217,8 +217,9 @@
   <profiles>
     <profile>
       <id>samples</id>
-       <modules>
+      <modules>
         <module>samples/chatbot</module>
+        <module>samples/chatbot-streaming</module>
       </modules>
     </profile>
   </profiles>

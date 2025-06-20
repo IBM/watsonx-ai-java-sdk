@@ -23,7 +23,6 @@ set WATSONX_API_KEY=your-api-key
 set WATSONX_URL=https://your-watsonx-url
 set WATSONX_PROJECT_ID=your-project-id
 ```
-
 ## How to Run
 Use Maven to run the application:
 
