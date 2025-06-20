@@ -29,6 +29,7 @@ import com.ibm.watsonx.runtime.embedding.EmbeddingRequest.Parameters;
  * EmbeddingService embeddingService = EmbeddingService.builder()
  *   .url("https://...") // or use CloudRegion
  *   .authenticationProvider(authProvider)
+ *   .projectId("my-project-id")
  *   .modelId("ibm/granite-embedding-278m-multilingual")
  *   .build();
  *
@@ -126,6 +127,22 @@ public final class EmbeddingService extends WatsonxService {
 
   /**
    * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
+   *
+   * <pre>{@code
+   * EmbeddingService embeddingService = EmbeddingService.builder()
+   *   .url("https://...") // or use CloudRegion
+   *   .authenticationProvider(authProvider)
+   *   .projectId("my-project-id")
+   *   .modelId("ibm/granite-embedding-278m-multilingual")
+   *   .build();
+   *
+   * EmbeddingResponse response = embeddingService.embedding(
+   *   "First input",
+   *   "Second input"
+   * );
+   * }</pre>
    *
    * @return {link Builder} instance.
    */

@@ -19,7 +19,7 @@ import com.ibm.watsonx.core.chat.JsonSchema.ObjectSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.StringSchema;
 
 /**
- * Represents a JSON Schema used to describe the structure of JSON data.
+ * Represents a JSON Schema used to describe the structure of JSON/Tool.
  * <p>
  * Example usage:
  *
@@ -42,6 +42,20 @@ import com.ibm.watsonx.core.chat.JsonSchema.StringSchema;
 public sealed interface JsonSchema
   permits ObjectSchema, StringSchema, NumberSchema, IntegerSchema, BooleanSchema, ArraySchema, EnumSchema {
 
+  /**
+   * Create a new instance of {@link Builder}. Represents a JSON Schema used to describe the structure of JSON/Tool.
+   * <p>
+   * Example usage:
+   *
+   * <pre>{@code
+   * JsonSchema.builder()
+   *   .addStringProperty("name", "The user's full name")
+   *   .addIntegerProperty("age", "The user's age in years")
+   *   .addRequired("name")
+   *   .build();
+   * }</pre>
+   *
+   */
   public static ObjectSchema.Builder builder() {
     return ObjectSchema.of();
   }

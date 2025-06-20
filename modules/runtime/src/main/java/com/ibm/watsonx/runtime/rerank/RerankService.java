@@ -29,6 +29,7 @@ import com.ibm.watsonx.runtime.rerank.RerankRequest.RerankInput;
  * RerankService rerankService = RerankService.builder()
  *   .url("https://...") // or use CloudRegion
  *   .authenticationProvider(authProvider)
+ *   .projectId("my-project-id")
  *   .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
  *   .build();
  *
@@ -112,6 +113,25 @@ public final class RerankService extends WatsonxService {
 
   /**
    * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
+   *
+   * <pre>{@code
+   * RerankService rerankService = RerankService.builder()
+   *   .url("https://...") // or use CloudRegion
+   *   .authenticationProvider(authProvider)
+   *   .projectId("my-project-id")
+   *   .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+   *   .build();
+   *
+   * RerankResponse response = rerankService.rerank(
+   *   "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+   *   List.of(
+   *     "In my younger years, I often reveled in the excitement...",
+   *     "As a young man, I frequently sought out exhilarating..."
+   *   )
+   * );
+   * }</pre>
    *
    * @return {link Builder} instance.
    */

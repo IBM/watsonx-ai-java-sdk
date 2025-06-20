@@ -26,6 +26,7 @@ import com.ibm.watsonx.runtime.tokenization.TokenizationRequest.Parameters;
  * TokenizationService rerankService = TokenizationService.builder()
  *   .url("https://...") // or use CloudRegion
  *   .authenticationProvider(authProvider)
+ *   .projectId("my-project-id")
  *   .modelId("ibm/granite-3-8b-instruct")
  *   .build();
  *
@@ -94,6 +95,19 @@ public class TokenizationService extends WatsonxService {
 
   /**
    * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
+   *
+   * <pre>{@code
+   * TokenizationService rerankService = TokenizationService.builder()
+   *   .url("https://...") // or use CloudRegion
+   *   .authenticationProvider(authProvider)
+   *   .projectId("my-project-id")
+   *   .modelId("ibm/granite-3-8b-instruct")
+   *   .build();
+   *
+   * TokenizationResponse response = TokenizationService.tokenize("Tell me a joke");
+   * }</pre>
    *
    * @return {link Builder} instance.
    */

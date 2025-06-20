@@ -42,6 +42,7 @@ import com.ibm.watsonx.runtime.chat.model.ToolCall;
  * ChatService chatService = ChatService.builder()
  *   .url("https://...") // or use CloudRegion
  *   .authenticationProvider(authProvider)
+ *   .projectId("my-project-id")
  *   .modelId("ibm/granite-3-8b-instruct")
  *   .build();
  *
@@ -409,6 +410,22 @@ public final class ChatService extends WatsonxService {
 
   /**
    * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
+   *
+   * <pre>{@code
+   * ChatService chatService = ChatService.builder()
+   *   .url("https://...") // or use CloudRegion
+   *   .authenticationProvider(authProvider)
+   *   .projectId("my-project-id")
+   *   .modelId("ibm/granite-3-8b-instruct")
+   *   .build();
+   *
+   * ChatResponse response = chatService.chat(
+   *   SystemMessage.of("You are a helpful assistant."),
+   *   UserMessage.text("Tell me a joke.")
+   * );
+   * }</pre>
    *
    * @return {link Builder} instance.
    */

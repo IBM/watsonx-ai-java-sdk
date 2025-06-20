@@ -93,6 +93,21 @@ public final class ChatParameters extends WatsonxParameters {
         : null;
   }
 
+  /**
+   * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
+   *
+   * <pre>{@code
+   * ChatParameters params = ChatParameters.builder()
+   *   .temperature(0.7)
+   *   .maxTokens(100)
+   *   .toolChoiceOption(ToolChoice.AUTO)
+   *   .withJsonResponse()
+   *   .build();
+   * }</pre>
+   *
+   */
   public static Builder builder() {
     return new Builder();
   }
