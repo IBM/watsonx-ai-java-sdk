@@ -135,18 +135,18 @@ public final class ChatResponse {
   }
 
   /**
-  * Deserializes the textual content of the chat response into a Java object.
-  * <p>
-  * This method relies on {@link #toText()} to retrieve the textual content of the response
-  * and attempts to convert it into an instance of the specified class.
-  * <p>
-  * Note: This method assumes the content is a valid JSON string matching the structure of the given class.
-  * If the content is not valid JSON or does not match the structure of {@code clazz}, a parsing exception may be thrown.
-  *
-  * @param <T>   the type of the object to return
-  * @param clazz the target class for deserialization
-  * @return an instance of {@code clazz} parsed from the response content
-  */
+   * Deserializes the textual content of the chat response into a Java object.
+   * <p>
+   * This method relies on {@link #toText()} to retrieve the textual content of the response and attempts to convert it into an instance of the
+   * specified class.
+   * <p>
+   * Note: This method assumes the content is a valid JSON string matching the structure of the given class. If the content is not valid JSON or does
+   * not match the structure of {@code clazz}, a parsing exception may be thrown.
+   *
+   * @param <T> the type of the object to return
+   * @param clazz the target class for deserialization
+   * @return an instance of {@code clazz} parsed from the response content
+   */
   public <T> T toText(Class<T> clazz) {
     requireNonNull(clazz);
     return Json.fromJson(toText(), clazz);
