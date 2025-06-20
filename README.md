@@ -41,8 +41,7 @@ To ensure a smooth contribution process, please follow these guidelines:
    * SPDX-License-Identifier: Apache-2.0
    */
   ```
-
-  This header is automatically applied to source files using the following command:
+  This header, along with code formatting, is automatically applied to source files using the following command:
 
   ```
   ./mvnw compile
