@@ -1,6 +1,7 @@
 # Watsonx Chatbot Example
 
-This is a simple chatbot project.
+This is a simple chatbot project that utilizes tools.
+Once the application is running, you can interact with the assistant in the terminal. If you ask the assistant to send an email, it will prompt you for the necessary information (email address, subject, and body) and simulate sending the email using the tool defined in the class `Tools.java`.
 
 ## Prerequisites
 

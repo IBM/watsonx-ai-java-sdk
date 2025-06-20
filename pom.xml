@@ -218,8 +218,7 @@
     <profile>
       <id>samples</id>
       <modules>
-        <module>samples/chatbot</module>
-        <module>samples/chatbot-streaming</module>
+        <module>samples</module>
       </modules>
     </profile>
   </profiles>

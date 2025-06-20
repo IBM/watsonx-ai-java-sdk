@@ -1,6 +1,6 @@
 # Watsonx Chatbot Example
 
-This is a simple chatbot using IBM watsonx.ai Java SDK.
+This is a simple chatbot project that uses streaming.
 
 ## Prerequisites
 

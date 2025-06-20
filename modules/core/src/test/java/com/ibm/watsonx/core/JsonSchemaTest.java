@@ -417,6 +417,52 @@ public class JsonSchemaTest {
   }
 
   @Test
+  void test__description_schema() {
+
+    final String EXPECTED = """
+      {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "description"
+            },
+            "age": {
+               "type": "integer",
+              "description": "description"
+            },
+            "score": {
+               "type": "number",
+              "description": "description"
+            },
+            "hasAgreedToTerms": {
+               "type": "boolean",
+              "description": "description"
+            }
+          }
+        }
+      """;
+
+    var schema = JsonSchema.builder()
+      .addProperty("name", StringSchema.of("description"))
+      .addProperty("age", IntegerSchema.of("description"))
+      .addProperty("score", NumberSchema.of("description"))
+      .addProperty("hasAgreedToTerms", BooleanSchema.of("description"))
+      .build();
+
+    JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
+
+    schema = JsonSchema.builder()
+      .addStringProperty("name", "description")
+      .addIntegerProperty("age", "description")
+      .addNumberProperty("score", "description")
+      .addBooleanProperty("hasAgreedToTerms", "description")
+      .build();
+
+    JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
+  }
+
+  @Test
   void test_nullable_schema() {
 
     final String EXPECTED = """

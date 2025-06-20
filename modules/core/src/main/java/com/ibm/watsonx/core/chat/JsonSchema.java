@@ -87,7 +87,7 @@ public sealed interface JsonSchema
       public Builder addStringProperty(String name, String description, boolean nullable) {
 
         if (nonNull(description)) {
-          var schema = nullable ? StringSchema.ofNullable(description) : StringSchema.ofNullable();
+          var schema = nullable ? StringSchema.ofNullable(description) : StringSchema.of(description);
           return addProperty(name, schema);
         }
 
@@ -113,7 +113,7 @@ public sealed interface JsonSchema
       public Builder addIntegerProperty(String name, String description, boolean nullable) {
 
         if (nonNull(description)) {
-          var schema = nullable ? IntegerSchema.ofNullable(description) : IntegerSchema.ofNullable();
+          var schema = nullable ? IntegerSchema.ofNullable(description) : IntegerSchema.of(description);
           return addProperty(name, schema);
         }
 
@@ -140,7 +140,7 @@ public sealed interface JsonSchema
       public Builder addNumberProperty(String name, String description, boolean nullable) {
 
         if (nonNull(description)) {
-          var schema = nullable ? NumberSchema.ofNullable(description) : NumberSchema.ofNullable();
+          var schema = nullable ? NumberSchema.ofNullable(description) : NumberSchema.of(description);
           return addProperty(name, schema);
         }
 
@@ -166,7 +166,7 @@ public sealed interface JsonSchema
       public Builder addBooleanProperty(String name, String description, boolean nullable) {
 
         if (nonNull(description)) {
-          var schema = nullable ? BooleanSchema.ofNullable(description) : BooleanSchema.ofNullable();
+          var schema = nullable ? BooleanSchema.ofNullable(description) : BooleanSchema.of(description);
           return addProperty(name, schema);
         }
 

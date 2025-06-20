@@ -12,6 +12,7 @@ import com.ibm.watsonx.auth.IAMAuthenticator;
 import com.ibm.watsonx.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.runtime.chat.ChatService;
 import com.ibm.watsonx.runtime.chat.model.AssistantMessage;
+import com.ibm.watsonx.runtime.chat.model.ChatParameters;
 import com.ibm.watsonx.runtime.chat.model.SystemMessage;
 import com.ibm.watsonx.runtime.chat.model.UserMessage;
 
@@ -45,7 +46,12 @@ public class AiService {
 
   public String chat(String message) {
     memory.addMessage(UserMessage.text(message));
-    var response = chatService.chat(memory.getMemory()).toText();
+
+    var parameters = ChatParameters.builder()
+      .maxCompletionTokens(0)
+      .build();
+      
+    var response = chatService.chat(memory.getMemory(), parameters).toText();
     memory.addMessage(AssistantMessage.text(response));
     return response;
   }

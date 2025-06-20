@@ -16,6 +16,7 @@ import com.ibm.watsonx.runtime.chat.ChatHandler;
 import com.ibm.watsonx.runtime.chat.ChatResponse;
 import com.ibm.watsonx.runtime.chat.ChatService;
 import com.ibm.watsonx.runtime.chat.model.AssistantMessage;
+import com.ibm.watsonx.runtime.chat.model.ChatParameters;
 import com.ibm.watsonx.runtime.chat.model.PartialChatResponse;
 import com.ibm.watsonx.runtime.chat.model.SystemMessage;
 import com.ibm.watsonx.runtime.chat.model.UserMessage;
@@ -49,8 +50,13 @@ public class AiService {
   }
 
   public CompletableFuture<Void> chat(String message, Consumer<String> handler) {
+
+    var parameters = ChatParameters.builder()
+      .maxCompletionTokens(0)
+      .build();
+
     memory.addMessage(UserMessage.text(message));
-    return chatService.chatStreaming(memory.getMemory(), new ChatHandler() {
+    return chatService.chatStreaming(memory.getMemory(), parameters, new ChatHandler() {
 
       @Override
       public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -59,7 +65,7 @@ public class AiService {
 
       @Override
       public void onCompleteResponse(ChatResponse completeResponse) {
-          memory.addMessage(AssistantMessage.text(completeResponse.toText()));
+        memory.addMessage(AssistantMessage.text(completeResponse.toText()));
       }
 
       @Override
