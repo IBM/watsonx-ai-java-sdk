@@ -107,6 +107,7 @@ public final class ChatParameters extends WatsonxParameters {
    *   .build();
    * }</pre>
    *
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();

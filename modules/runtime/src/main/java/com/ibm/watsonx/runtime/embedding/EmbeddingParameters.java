@@ -56,8 +56,16 @@ public final class EmbeddingParameters extends WatsonxParameters {
 
   /**
    * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
    *
-   * @return {link Builder} instance.
+   * <pre>{@code
+   * EmbeddingParameters.builder()
+   *   .truncateInputTokens(512)
+   *   .build();
+   * }</pre>
+   *
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();
