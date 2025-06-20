@@ -9,6 +9,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -114,7 +115,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
       // The status code is not 2xx.
       throw new RuntimeException(response.body());
 
-    } catch (Exception e) {
+    } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e.getMessage());
     }
   }

@@ -30,6 +30,7 @@ import com.ibm.watsonx.runtime.chat.model.PartialChatResponse;
 import com.ibm.watsonx.runtime.chat.model.ResultMessage;
 import com.ibm.watsonx.runtime.chat.model.StreamingToolFetcher;
 import com.ibm.watsonx.runtime.chat.model.Tool;
+import com.ibm.watsonx.runtime.chat.model.ToolCall;
 
 /**
  * Service client for performing chat-based inference.
@@ -382,22 +383,21 @@ public final class ChatService extends WatsonxService {
       @Override
       public void onComplete() {
         try {
-          if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
 
-            var toolCalls = tools.stream()
+          List<ToolCall> toolCalls = null;
+          String content = stringBuilder.toString();
+
+          if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
+            content = null;
+            toolCalls = tools.stream()
               .map(StreamingToolFetcher::build)
               .toList();
-
-            var resultMessage = new ResultMessage(role, null, refusal, toolCalls);
-            chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
-            handler.onCompleteResponse(chatResponse);
-
-          } else {
-
-            var resultMessage = new ResultMessage(role, stringBuilder.toString(), refusal, null);
-            chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
-            handler.onCompleteResponse(chatResponse);
           }
+
+          var resultMessage = new ResultMessage(role, content, refusal, toolCalls);
+          chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
+          handler.onCompleteResponse(chatResponse);
+
         } catch (RuntimeException e) {
           handler.onError(e);
         }

@@ -125,7 +125,7 @@ public final class ChatResponse {
    */
   public String toText() {
     if (isNull(choices) || choices.isEmpty())
-      throw new RuntimeException("The \"choices\" field cat not be null or empty");
+      throw new RuntimeException("The \"choices\" field is null or empty");
 
     var choice = choices.get(0);
     if (choice.finishReason().equals("tool_calls") || isNull(choice.message()))
