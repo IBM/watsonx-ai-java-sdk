@@ -28,13 +28,13 @@ public final record Video(String url) {
   /**
    * Create a {@code Video} instance from media type and base64-encoded video data.
    *
-   * @param mediaType the MIME type of the video (e.g., {@code video/mp4})
+   * @param mimeType the MIME type of the video (e.g., {@code video/mp4})
    * @param data the base64-encoded video data
    * @return a new {@link Video} instance
    */
-  public static Video of(String mediaType, String data) {
-    requireNonNull(mediaType);
-    return new Video("data:%s;base64,%s".formatted(mediaType, data));
+  public static Video of(String mimeType, String data) {
+    requireNonNull(mimeType);
+    return new Video("data:%s;base64,%s".formatted(mimeType, data));
   }
 }
 

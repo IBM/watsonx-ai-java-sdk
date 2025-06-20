@@ -12,6 +12,7 @@
     <module>chatbot</module>
     <module>chatbot-streaming</module>
     <module>chatbot-tools</module>
+    <module>image-analyzer</module>
   </modules>
 
   <licenses>
@@ -91,14 +92,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.1.0</version>
-        <configuration>
-          <mainClass>com.ibm.chatbot.App</mainClass>
-        </configuration>
       </plugin>
     </plugins>
   </build>
