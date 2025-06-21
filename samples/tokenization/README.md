@@ -1,6 +1,6 @@
-# Watsonx Image Analyzer Example
+# Watsonx Embedding Example
 
-This is a simple chatbot project that uses a large language model (LLM) to generate a description of an image.
+This is a simple example that demonstrates how to use IBM watsonx.ai to check the conversion of the provided input into tokens for a given model.
 
 ## Prerequisites
 
@@ -23,17 +23,8 @@ set WATSONX_API_KEY=your-api-key
 set WATSONX_URL=https://your-watsonx-url
 set WATSONX_PROJECT_ID=your-project-id
 ```
-
 ## How to Run
 Use Maven to run the application. 
 ```bash
 mvn package exec:java 
 ```
-
-You can optionally pass the path to an image file as a command-line argument:
-
-```bash
-mvn package exec:java -Dexec.args="/path/to/image.jpg"
-```
-
-If no image path is provided, a default image included in the project resources will be used automatically.

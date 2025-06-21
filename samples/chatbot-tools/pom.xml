@@ -3,10 +3,10 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.ibm.chatbot</groupId>
-  <artifactId>sample-tools-chatbot</artifactId>
+  <groupId>com.ibm.watsonx</groupId>
+  <artifactId>watsonx-ai-sample-tools-chatbot</artifactId>
   <version>999-SNAPSHOT</version>
-  <name>Chatbot with tools</name>
+  <name>Chatbot Tools Sample</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

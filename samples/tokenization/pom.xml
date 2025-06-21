@@ -4,9 +4,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
-  <artifactId>watsonx-ai-sample-rerank</artifactId>
+  <artifactId>watsonx-ai-sample-tokenization</artifactId>
   <version>999-SNAPSHOT</version>
-  <name>Rerank Sample</name>
+  <name>Tokenization Sample</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
@@ -22,7 +22,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.1.0</version>
         <configuration>
-          <mainClass>com.ibm.rerank.App</mainClass>
+          <mainClass>com.ibm.tokenization.App</mainClass>
         </configuration>
       </plugin>
     </plugins>

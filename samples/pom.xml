@@ -15,6 +15,7 @@
     <module>image-analyzer</module>
     <module>embedding-text</module>
     <module>rerank</module>
+    <module>tokenization</module>
   </modules>
 
   <licenses>

@@ -29,5 +29,5 @@ set WATSONX_PROJECT_ID=your-project-id
 Use Maven to run the application:
 
 ```bash
-mvn clean package exec:java
+mvn package exec:java
 ```
