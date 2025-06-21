@@ -6,8 +6,8 @@ package com.ibm.chatbot;
 
 import java.util.LinkedList;
 import java.util.List;
-import com.ibm.watsonx.runtime.chat.model.ChatMessage;
-import com.ibm.watsonx.runtime.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.ChatMessage;
+import com.ibm.watsonx.ai.chat.model.SystemMessage;
 
 public class ChatMemory {
 

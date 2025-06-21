@@ -9,10 +9,10 @@ import java.time.Duration;
 import java.util.List;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.auth.IAMAuthenticator;
-import com.ibm.watsonx.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.runtime.embedding.EmbeddingParameters;
-import com.ibm.watsonx.runtime.embedding.EmbeddingService;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.embedding.EmbeddingParameters;
+import com.ibm.watsonx.ai.embedding.EmbeddingService;
 
 public class App {
 

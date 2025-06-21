@@ -14,13 +14,13 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.auth.IAMAuthenticator;
-import com.ibm.watsonx.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.runtime.chat.ChatService;
-import com.ibm.watsonx.runtime.chat.model.ChatMessage;
-import com.ibm.watsonx.runtime.chat.model.ImageContent;
-import com.ibm.watsonx.runtime.chat.model.SystemMessage;
-import com.ibm.watsonx.runtime.chat.model.UserMessage;
+import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.chat.model.ChatMessage;
+import com.ibm.watsonx.ai.chat.model.ImageContent;
+import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 
 public class App {
 

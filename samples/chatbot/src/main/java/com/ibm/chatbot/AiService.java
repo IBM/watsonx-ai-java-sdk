@@ -8,13 +8,13 @@ import java.net.URI;
 import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.auth.IAMAuthenticator;
-import com.ibm.watsonx.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.runtime.chat.ChatService;
-import com.ibm.watsonx.runtime.chat.model.AssistantMessage;
-import com.ibm.watsonx.runtime.chat.model.ChatParameters;
-import com.ibm.watsonx.runtime.chat.model.SystemMessage;
-import com.ibm.watsonx.runtime.chat.model.UserMessage;
+import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 
 public class AiService {
 

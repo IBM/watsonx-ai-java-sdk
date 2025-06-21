@@ -22,7 +22,7 @@ To use the watsonx.ai Java SDK, add the following Maven dependency:
 ```xml
 <dependency>
     <groupId>com.ibm.watsonx</groupId>
-    <artifactId>watsonx-ai-sdk</artifactId>
+    <artifactId>watsonx-ai</artifactId>
     <version>PLACEHOLDER</version>
 </dependency>
 ```

@@ -8,10 +8,10 @@ import java.net.URI;
 import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.auth.IAMAuthenticator;
-import com.ibm.watsonx.core.Json;
-import com.ibm.watsonx.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.runtime.tokenization.TokenizationService;
+import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.tokenization.TokenizationService;
 
 public class App {
 

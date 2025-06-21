@@ -7,20 +7,23 @@
   <artifactId>watsonx-ai-parent</artifactId>
   <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
+  
   <modules>
-    <module>modules/core</module>
-    <module>modules/auth</module>
-    <module>modules/runtime</module>
+    <module>modules/watsonx-ai-core</module>
+    <module>modules/watsonx-ai</module>
   </modules>
+
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
       <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
+
   <organization>
     <name>IBM Corporation</name>
   </organization>
+
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
@@ -34,54 +37,64 @@
     <formatter-maven-plugin-version>2.26.0</formatter-maven-plugin-version>
     <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
+    
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.skyscreamer</groupId>
       <artifactId>jsonassert</artifactId>
       <version>2.0-rc1</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.wiremock</groupId>
       <artifactId>wiremock</artifactId>
       <version>3.13.0</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -91,6 +104,7 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-bom</artifactId>
@@ -98,6 +112,7 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-bom</artifactId>
@@ -105,6 +120,7 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-bom</artifactId>
@@ -112,6 +128,7 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
@@ -121,6 +138,7 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
   <build>
     <plugins>
       <plugin>
@@ -141,6 +159,7 @@
           </execution>
         </executions>
       </plugin>
+      
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
@@ -169,6 +188,7 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>
         <artifactId>formatter-maven-plugin</artifactId>
@@ -188,6 +208,7 @@
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -198,6 +219,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin-version}</version>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
