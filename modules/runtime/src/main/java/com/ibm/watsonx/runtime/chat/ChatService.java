@@ -4,8 +4,8 @@
  */
 package com.ibm.watsonx.runtime.chat;
 
-import static com.ibm.watsonx.core.Json.fromJson;
-import static com.ibm.watsonx.core.Json.toJson;
+import static com.ibm.watsonx.ai.core.Json.fromJson;
+import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
-import com.ibm.watsonx.core.Json;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.runtime.WatsonxService;
 import com.ibm.watsonx.runtime.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.runtime.chat.model.ChatMessage;

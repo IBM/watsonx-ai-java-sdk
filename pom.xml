@@ -8,8 +8,7 @@
   <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>modules/core</module>
-    <module>modules/auth</module>
+    <module>modules/watsonx-ai-core</module>
     <module>modules/runtime</module>
   </modules>
   <licenses>

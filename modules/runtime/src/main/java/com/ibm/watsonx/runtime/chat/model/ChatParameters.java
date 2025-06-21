@@ -13,8 +13,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import com.ibm.watsonx.core.chat.JsonSchema;
-import com.ibm.watsonx.core.chat.JsonSchema.ObjectSchema;
+import com.ibm.watsonx.ai.core.chat.JsonSchema;
+import com.ibm.watsonx.ai.core.chat.JsonSchema.ObjectSchema;
 import com.ibm.watsonx.runtime.WatsonxParameters;
 
 /**

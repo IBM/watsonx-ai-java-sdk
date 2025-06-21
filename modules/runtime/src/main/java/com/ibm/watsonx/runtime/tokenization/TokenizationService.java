@@ -4,8 +4,8 @@
  */
 package com.ibm.watsonx.runtime.tokenization;
 
-import static com.ibm.watsonx.core.Json.fromJson;
-import static com.ibm.watsonx.core.Json.toJson;
+import static com.ibm.watsonx.ai.core.Json.fromJson;
+import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;

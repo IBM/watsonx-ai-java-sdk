@@ -8,7 +8,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.util.List;
-import com.ibm.watsonx.core.Json;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.runtime.chat.model.AssistantMessage;
 import com.ibm.watsonx.runtime.chat.model.ChatUsage;
 import com.ibm.watsonx.runtime.chat.model.ResultMessage;
