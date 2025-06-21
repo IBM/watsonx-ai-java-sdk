@@ -12,19 +12,19 @@ import java.util.List;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.chatbot.Tools.SendEmailArguments;
+import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.ChatMessage;
+import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.ToolMessage;
+import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.core.chat.JsonSchema;
 import com.ibm.watsonx.ai.core.chat.JsonSchema.StringSchema;
-import com.ibm.watsonx.runtime.chat.ChatService;
-import com.ibm.watsonx.runtime.chat.model.AssistantMessage;
-import com.ibm.watsonx.runtime.chat.model.ChatMessage;
-import com.ibm.watsonx.runtime.chat.model.ChatParameters;
-import com.ibm.watsonx.runtime.chat.model.SystemMessage;
-import com.ibm.watsonx.runtime.chat.model.Tool;
-import com.ibm.watsonx.runtime.chat.model.ToolMessage;
-import com.ibm.watsonx.runtime.chat.model.UserMessage;
 
 public class AiService {
 

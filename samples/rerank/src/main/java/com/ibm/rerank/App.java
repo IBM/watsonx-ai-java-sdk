@@ -12,8 +12,8 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
-import com.ibm.watsonx.runtime.rerank.RerankParameters;
-import com.ibm.watsonx.runtime.rerank.RerankService;
+import com.ibm.watsonx.ai.rerank.RerankParameters;
+import com.ibm.watsonx.ai.rerank.RerankService;
 
 public class App {
 
