@@ -45,8 +45,16 @@ public class TokenizationParameters extends WatsonxParameters {
 
   /**
    * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
    *
-   * @return {link Builder} instance.
+   * <pre>{@code
+   * TokenizationParameters.builder()
+   *   .returnTokens(true)
+   *   .build();
+   * }</pre>
+   *
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();

@@ -19,7 +19,7 @@ import com.ibm.watsonx.core.chat.JsonSchema.ObjectSchema;
 import com.ibm.watsonx.core.chat.JsonSchema.StringSchema;
 
 /**
- * Represents a JSON Schema used to describe the structure of JSON data.
+ * Represents a JSON Schema used to describe the structure of JSON/Tool.
  * <p>
  * Example usage:
  *
@@ -42,6 +42,20 @@ import com.ibm.watsonx.core.chat.JsonSchema.StringSchema;
 public sealed interface JsonSchema
   permits ObjectSchema, StringSchema, NumberSchema, IntegerSchema, BooleanSchema, ArraySchema, EnumSchema {
 
+  /**
+   * Create a new instance of {@link Builder}. Represents a JSON Schema used to describe the structure of JSON/Tool.
+   * <p>
+   * Example usage:
+   *
+   * <pre>{@code
+   * JsonSchema.builder()
+   *   .addStringProperty("name", "The user's full name")
+   *   .addIntegerProperty("age", "The user's age in years")
+   *   .addRequired("name")
+   *   .build();
+   * }</pre>
+   *
+   */
   public static ObjectSchema.Builder builder() {
     return ObjectSchema.of();
   }
@@ -87,7 +101,7 @@ public sealed interface JsonSchema
       public Builder addStringProperty(String name, String description, boolean nullable) {
 
         if (nonNull(description)) {
-          var schema = nullable ? StringSchema.ofNullable(description) : StringSchema.ofNullable();
+          var schema = nullable ? StringSchema.ofNullable(description) : StringSchema.of(description);
           return addProperty(name, schema);
         }
 
@@ -113,7 +127,7 @@ public sealed interface JsonSchema
       public Builder addIntegerProperty(String name, String description, boolean nullable) {
 
         if (nonNull(description)) {
-          var schema = nullable ? IntegerSchema.ofNullable(description) : IntegerSchema.ofNullable();
+          var schema = nullable ? IntegerSchema.ofNullable(description) : IntegerSchema.of(description);
           return addProperty(name, schema);
         }
 
@@ -140,7 +154,7 @@ public sealed interface JsonSchema
       public Builder addNumberProperty(String name, String description, boolean nullable) {
 
         if (nonNull(description)) {
-          var schema = nullable ? NumberSchema.ofNullable(description) : NumberSchema.ofNullable();
+          var schema = nullable ? NumberSchema.ofNullable(description) : NumberSchema.of(description);
           return addProperty(name, schema);
         }
 
@@ -166,7 +180,7 @@ public sealed interface JsonSchema
       public Builder addBooleanProperty(String name, String description, boolean nullable) {
 
         if (nonNull(description)) {
-          var schema = nullable ? BooleanSchema.ofNullable(description) : BooleanSchema.ofNullable();
+          var schema = nullable ? BooleanSchema.ofNullable(description) : BooleanSchema.of(description);
           return addProperty(name, schema);
         }
 

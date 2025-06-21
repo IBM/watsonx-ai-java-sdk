@@ -30,11 +30,11 @@ public final record VideoContent(String type, Video videoUrl) implements UserCon
   /**
    * Create a new {@code VideoContent} instance from media type and base64-encoded video data.
    *
-   * @param mediaType the MIME type of the video (e.g., {@code video/mp4})
+   * @param mimeType the MIME type of the video (e.g., {@code video/mp4})
    * @param data the base64-encoded video data
    * @return a new {@link VideoContent} instance
    */
-  public static VideoContent of(String mediaType, String data) {
-    return new VideoContent(TYPE, Video.of(mediaType, data));
+  public static VideoContent of(String mimeType, String data) {
+    return new VideoContent(TYPE, Video.of(mimeType, data));
   }
 }

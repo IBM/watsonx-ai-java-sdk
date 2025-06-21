@@ -47,7 +47,7 @@ public abstract class WatsonxService {
   protected final AsyncHttpClient asyncHttpClient;
 
   public WatsonxService(Builder<?> builder) {
-    url = URI.create(requireNonNull(builder.url, "The url must be provided"));
+    url = requireNonNull(builder.url, "The url must be provided");
     version = requireNonNullElse(builder.version, API_VERSION);
     projectId = builder.projectId;
     spaceId = builder.spaceId;
@@ -90,7 +90,7 @@ public abstract class WatsonxService {
 
   @SuppressWarnings("unchecked")
   public static abstract class Builder<T extends Builder<T>> {
-    private String url;
+    private URI url;
     private String version;
     private String projectId;
     private String spaceId;
@@ -106,7 +106,7 @@ public abstract class WatsonxService {
      *
      * @param url the endpoint URL as a string
      */
-    public T url(String url) {
+    public T url(URI url) {
       this.url = url;
       return (T) this;
     }
@@ -117,7 +117,7 @@ public abstract class WatsonxService {
      * @param url the endpoint URL as a string
      */
     public T url(CloudRegion url) {
-      return url(url.endpoint());
+      return url(URI.create(url.endpoint()));
     }
 
     /**

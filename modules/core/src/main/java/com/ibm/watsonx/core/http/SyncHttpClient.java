@@ -87,11 +87,15 @@ public final class SyncHttpClient extends BaseHttpClient {
     @Override
     public <T> HttpResponse<T> proceed(HttpRequest request, BodyHandler<T> bodyHandler)
       throws WatsonxException, IOException, InterruptedException {
+
       if (index < interceptors.size()) {
+
         var interceptorIndex = index++;
         return interceptors.get(interceptorIndex)
           .intercept(request, bodyHandler, interceptorIndex, this);
+
       } else {
+
         var httpResponse = client.send(request, bodyHandler);
         int statusCode = httpResponse.statusCode();
 
@@ -103,7 +107,17 @@ public final class SyncHttpClient extends BaseHttpClient {
 
         if (bodyOpt.isPresent()) {
           String body = bodyOpt.get();
-          var details = fromJson(body, WatsonxError.class);
+          WatsonxError details;
+
+          try {
+
+            details = fromJson(body, WatsonxError.class);
+
+          } catch (RuntimeException e) {
+            // If something goes wrong during deserialization, return the raw response.
+            throw new RuntimeException(bodyOpt.get());
+          }
+
           throw new WatsonxException(body, statusCode, details);
         }
 

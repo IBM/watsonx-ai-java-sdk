@@ -9,6 +9,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -34,11 +35,8 @@ import com.ibm.watsonx.core.http.SyncHttpClient;
  * <p>
  * It manages token acquisition and caching, and handles automatic refresh if the token expires. This authenticator is suitable for use in services
  * that require secure access to IBM Cloud resources.
- * </p>
- *
  * <p>
  * <b>Example usage:</b>
- * </p>
  *
  * <pre>{@code
  * AuthenticationProvider authenticator = IAMAuthenticator.builder()
@@ -48,19 +46,6 @@ import com.ibm.watsonx.core.http.SyncHttpClient;
  *
  * <pre>{@code
  * String accessToken = authenticator.getToken();
- * }</pre>
- *
- * <p>
- * You can also configure the IAM endpoint, grant type, and request timeout using the builder:
- * </p>
- *
- * <pre>{@code
- * AuthenticationProvider authenticator = IAMAuthenticator.builder()
- *   .apiKey("your-api-key")
- *   .url(URI.create("https://iam.cloud.ibm.com/identity/token"))
- *   .grantType("urn:ibm:params:oauth:grant-type:apikey")
- *   .timeout(Duration.ofSeconds(15))
- *   .build();
  * }</pre>
  *
  * @see AuthenticationProvider
@@ -114,7 +99,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
       // The status code is not 2xx.
       throw new RuntimeException(response.body());
 
-    } catch (Exception e) {
+    } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e.getMessage());
     }
   }
@@ -146,7 +131,19 @@ public final class IAMAuthenticator implements AuthenticationProvider {
   }
 
   /**
-   * A builder class for constructing IAMAuthenticator instances.
+   * A builder class for constructing IAMAuthenticator instances. *
+   * <p>
+   * <b>Example usage:</b>
+   *
+   * <pre>{@code
+   * AuthenticationProvider authenticator = IAMAuthenticator.builder()
+   *   .apiKey("your-api-key")
+   *   .build();
+   * }</pre>
+   *
+   * <pre>{@code
+   * String accessToken = authenticator.getToken();
+   * }</pre>
    */
   public static Builder builder() {
     return new Builder();

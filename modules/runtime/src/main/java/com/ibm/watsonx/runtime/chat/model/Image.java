@@ -29,28 +29,28 @@ public final record Image(String url, String detail) {
   /**
    * Creates a new {@code Image} instance.
    *
-   * @param mediaType the MIME type of the image (e.g., {@code image/png})
+   * @param mimeType the MIME type of the image (e.g., {@code image/png})
    * @param data the base64-encoded image data
    * @return a new {@code Image} instance
    */
-  public static Image of(String mediaType, String data) {
-    return of(mediaType, data, null);
+  public static Image of(String mimeType, String data) {
+    return of(mimeType, data, null);
   }
 
   /**
    * Creates a new {@code Image} instance.
    *
-   * @param mediaType the MIME type of the image (e.g., {@code image/png})
+   * @param mimeType the MIME type of the image (e.g., {@code image/png})
    * @param data the base64-encoded image data
    * @param detail the level of detail to guide image processing
    * @return a new {@code Image} instance
    */
-  public static Image of(String mediaType, String data, Detail detail) {
-    requireNonNull(mediaType);
+  public static Image of(String mimeType, String data, Detail detail) {
+    requireNonNull(mimeType);
     requireNonNull(data);
     detail = requireNonNullElse(detail, Detail.AUTO);
     return new Image(
-      "data:%s;base64,%s".formatted(mediaType, data),
+      "data:%s;base64,%s".formatted(mimeType, data),
       detail.get()
     );
   }

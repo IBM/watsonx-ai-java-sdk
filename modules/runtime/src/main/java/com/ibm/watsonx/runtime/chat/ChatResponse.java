@@ -5,9 +5,11 @@
 package com.ibm.watsonx.runtime.chat;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.util.List;
 import com.ibm.watsonx.core.Json;
+import com.ibm.watsonx.runtime.chat.model.AssistantMessage;
 import com.ibm.watsonx.runtime.chat.model.ChatUsage;
 import com.ibm.watsonx.runtime.chat.model.ResultMessage;
 
@@ -124,14 +126,16 @@ public final class ChatResponse {
    * @return The message content
    */
   public String toText() {
-    if (isNull(choices) || choices.isEmpty())
-      throw new RuntimeException("The \"choices\" field cat not be null or empty");
 
-    var choice = choices.get(0);
-    if (choice.finishReason().equals("tool_calls") || isNull(choice.message()))
+
+    var assistantMessage = toAssistantMessage();
+    if (nonNull(assistantMessage.toolCalls()))
       throw new RuntimeException("The response is of the type \"tool_calls\" and contains no text");
 
-    return choice.message().content();
+    if (isNull(assistantMessage.content()))
+      throw new RuntimeException("The response doesn't contain text");
+
+    return assistantMessage.content();
   }
 
   /**
@@ -150,6 +154,20 @@ public final class ChatResponse {
   public <T> T toText(Class<T> clazz) {
     requireNonNull(clazz);
     return Json.fromJson(toText(), clazz);
+  }
+
+  /**
+   * Converts the content of the response into an {@link AssistantMessage}.
+   *
+   * @return an {@code AssistantMessage} representing the assistant's reply
+   */
+  public AssistantMessage toAssistantMessage() {
+    if (isNull(choices) || choices.isEmpty())
+      throw new RuntimeException("The \"choices\" field is null or empty");
+
+    var resultMessage = choices.get(0).message();
+    return new AssistantMessage(AssistantMessage.ROLE, resultMessage.content(), null, resultMessage.refusal(),
+      resultMessage.toolCalls());
   }
 
   void setId(String id) {

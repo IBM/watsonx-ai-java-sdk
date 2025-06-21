@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -122,7 +123,7 @@ public class ChatServiceTest {
       .spaceId("default-space-id")
       // ------------------------------------------------------
       .timeout(Duration.ofSeconds(60))
-      .url("http://my-cloud-instance.com")
+      .url(URI.create("http://my-cloud-instance.com"))
       .version(("1988-03-23"))
       .build();
 
@@ -474,7 +475,6 @@ public class ChatServiceTest {
     var chatResponse = chatService.chat(messages, tools, parameters);
     JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
     JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
-    System.out.println(chatResponse.getUsage());
     assertEquals("ChatUsage [completionTokens=18, promptTokens=19, totalTokens=37]",
       chatResponse.getUsage().toString());
   }
@@ -1340,7 +1340,7 @@ public class ChatServiceTest {
       .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
       .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
       .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-      .url("http://localhost:%s".formatted(httpPort))
+      .url(URI.create("http://localhost:%s".formatted(httpPort)))
       .version(VERSION)
       .build();
 
@@ -1496,7 +1496,7 @@ public class ChatServiceTest {
       .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
       .modelId("ibm/granite-3-3-8b-instruct")
       .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-      .url("http://localhost:%s".formatted(httpPort))
+      .url(URI.create("http://localhost:%s".formatted(httpPort)))
       .build();
 
 
@@ -1774,7 +1774,7 @@ public class ChatServiceTest {
       .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
       .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
       .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-      .url("http://localhost:%s".formatted(httpPort))
+      .url(URI.create("http://localhost:%s".formatted(httpPort)))
       .build();
 
 
@@ -1892,7 +1892,7 @@ public class ChatServiceTest {
       .authenticationProvider(mockAuthenticationProvider)
       .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
       .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-      .url("http://localhost:%s".formatted(httpPort))
+      .url(URI.create("http://localhost:%s".formatted(httpPort)))
       .build();
 
     AtomicInteger counter = new AtomicInteger();
@@ -1941,7 +1941,7 @@ public class ChatServiceTest {
       .authenticationProvider(mockAuthenticationProvider)
       .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
       .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-      .url("http://localhost:%s".formatted(httpPort))
+      .url(URI.create("http://localhost:%s".formatted(httpPort)))
       .build();
 
 
@@ -1998,7 +1998,7 @@ public class ChatServiceTest {
 
     ex = assertThrows(NullPointerException.class, () -> ChatService.builder()
       .authenticationProvider(mockAuthenticationProvider)
-      .url("http://localhost:8080")
+      .url(URI.create("http://localhost:8080"))
       .build());
     assertEquals("The modelId must be provided", ex.getMessage());
 
@@ -2006,7 +2006,7 @@ public class ChatServiceTest {
     ex = assertThrows(NullPointerException.class, () -> ChatService.builder()
       .authenticationProvider(mockAuthenticationProvider)
       .modelId("test")
-      .url("http://localhost:8080")
+      .url(URI.create("http://localhost:8080"))
       .build());
     assertEquals("Either projectId or spaceId must be provided", ex.getMessage());
 

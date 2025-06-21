@@ -41,23 +41,23 @@ public final record ImageContent(String type, Image imageUrl) implements UserCon
   /**
    * Creates an {@code ImageContent}.
    *
-   * @param mediaType the MIME type of the image (e.g., {@code image/png}, {@code image/jpeg})
+   * @param mimeType the MIME type of the image (e.g., {@code image/png}, {@code image/jpeg})
    * @param image the base64-encoded image data (without the data URI prefix)
    * @return a new {@code ImageContent}
    */
-  public static ImageContent of(String mediaType, String image) {
-    return of(Image.of(mediaType, image, null));
+  public static ImageContent of(String mimeType, String image) {
+    return of(Image.of(mimeType, image, null));
   }
 
   /**
    * Creates an {@code ImageContent}.
    *
-   * @param mediaType the MIME type of the image (e.g., {@code image/png}, {@code image/jpeg})
+   * @param mimeType the MIME type of the image (e.g., {@code image/png}, {@code image/jpeg})
    * @param image the base64-encoded image data (without the data URI prefix)
    * @param detail the level of detail for how the model should process the image
    * @return a new {@code ImageContent}
    */
-  public static ImageContent of(String mediaType, String image, Detail detail) {
-    return of(Image.of(mediaType, image, detail));
+  public static ImageContent of(String mimeType, String image, Detail detail) {
+    return of(Image.of(mimeType, image, detail));
   }
 }

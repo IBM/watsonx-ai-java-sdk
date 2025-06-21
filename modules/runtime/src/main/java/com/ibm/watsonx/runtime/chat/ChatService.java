@@ -18,6 +18,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import com.ibm.watsonx.core.Json;
@@ -30,6 +31,7 @@ import com.ibm.watsonx.runtime.chat.model.PartialChatResponse;
 import com.ibm.watsonx.runtime.chat.model.ResultMessage;
 import com.ibm.watsonx.runtime.chat.model.StreamingToolFetcher;
 import com.ibm.watsonx.runtime.chat.model.Tool;
+import com.ibm.watsonx.runtime.chat.model.ToolCall;
 
 /**
  * Service client for performing chat-based inference.
@@ -40,6 +42,7 @@ import com.ibm.watsonx.runtime.chat.model.Tool;
  * ChatService chatService = ChatService.builder()
  *   .url("https://...") // or use CloudRegion
  *   .authenticationProvider(authProvider)
+ *   .projectId("my-project-id")
  *   .modelId("ibm/granite-3-8b-instruct")
  *   .build();
  *
@@ -180,8 +183,8 @@ public final class ChatService extends WatsonxService {
    * @param messages the list of chat messages forming the prompt history
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
    */
-  public void chatStreaming(List<ChatMessage> messages, ChatHandler handler) {
-    chatStreaming(messages, null, null, handler);
+  public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, ChatHandler handler) {
+    return chatStreaming(messages, null, null, handler);
   }
 
   /**
@@ -193,8 +196,8 @@ public final class ChatService extends WatsonxService {
    * @param tools the list of tools that the model may use
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
    */
-  public void chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
-    chatStreaming(messages, tools, null, handler);
+  public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
+    return chatStreaming(messages, tools, null, handler);
   }
 
   /**
@@ -206,8 +209,9 @@ public final class ChatService extends WatsonxService {
    * @param parameters additional optional parameters for the chat invocation
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
    */
-  public void chatStreaming(List<ChatMessage> messages, ChatParameters parameters, ChatHandler handler) {
-    chatStreaming(messages, null, parameters, handler);
+  public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, ChatParameters parameters,
+    ChatHandler handler) {
+    return chatStreaming(messages, null, parameters, handler);
   }
 
   /**
@@ -220,7 +224,7 @@ public final class ChatService extends WatsonxService {
    * @param parameters additional optional parameters for the chat invocation
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
    */
-  public void chatStreaming(List<ChatMessage> messages, List<Tool> tools,
+  public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, List<Tool> tools,
     ChatParameters parameters, ChatHandler handler) {
 
     requireNonNull(handler, "The chatHandler parameter can not be null");
@@ -258,7 +262,7 @@ public final class ChatService extends WatsonxService {
         .POST(BodyPublishers.ofString(toJson(chatRequest)))
         .build();
 
-    asyncHttpClient.send(httpRequest, BodyHandlers.fromLineSubscriber(new Flow.Subscriber<>() {
+    return asyncHttpClient.send(httpRequest, BodyHandlers.fromLineSubscriber(new Flow.Subscriber<>() {
       private Flow.Subscription subscription;
       private String finishReason;
       private String role;
@@ -382,31 +386,46 @@ public final class ChatService extends WatsonxService {
       @Override
       public void onComplete() {
         try {
-          if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
 
-            var toolCalls = tools.stream()
+          List<ToolCall> toolCalls = null;
+          String content = stringBuilder.toString();
+
+          if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
+            content = null;
+            toolCalls = tools.stream()
               .map(StreamingToolFetcher::build)
               .toList();
-
-            var resultMessage = new ResultMessage(role, null, refusal, toolCalls);
-            chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
-            handler.onCompleteResponse(chatResponse);
-
-          } else {
-
-            var resultMessage = new ResultMessage(role, stringBuilder.toString(), refusal, null);
-            chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
-            handler.onCompleteResponse(chatResponse);
           }
+
+          var resultMessage = new ResultMessage(role, content, refusal, toolCalls);
+          chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
+          handler.onCompleteResponse(chatResponse);
+
         } catch (RuntimeException e) {
           handler.onError(e);
         }
       }
-    }));
+    })).thenApply(response -> null);
   }
 
   /**
    * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
+   *
+   * <pre>{@code
+   * ChatService chatService = ChatService.builder()
+   *   .url("https://...") // or use CloudRegion
+   *   .authenticationProvider(authProvider)
+   *   .projectId("my-project-id")
+   *   .modelId("ibm/granite-3-8b-instruct")
+   *   .build();
+   *
+   * ChatResponse response = chatService.chat(
+   *   SystemMessage.of("You are a helpful assistant."),
+   *   UserMessage.text("Tell me a joke.")
+   * );
+   * }</pre>
    *
    * @return {link Builder} instance.
    */
