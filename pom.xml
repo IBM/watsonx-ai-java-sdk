@@ -32,7 +32,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven-source-plugin-version>3.3.1</maven-source-plugin-version>
     <maven-compiler-plugin-version>3.14.0</maven-compiler-plugin-version>
-    <build-helper-maven-plugin-version>3.3.0</build-helper-maven-plugin-version>
+    <build-helper-maven-plugin-version>3.6.1</build-helper-maven-plugin-version>
     <license-maven-plugin-version>5.0.0</license-maven-plugin-version>
     <formatter-maven-plugin-version>2.26.0</formatter-maven-plugin-version>
     <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
