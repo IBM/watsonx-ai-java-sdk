@@ -1496,6 +1496,7 @@ public class ChatServiceTest {
       .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
       .modelId("ibm/granite-3-3-8b-instruct")
       .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .logResponses(true)
       .url(URI.create("http://localhost:%s".formatted(httpPort)))
       .build();
 

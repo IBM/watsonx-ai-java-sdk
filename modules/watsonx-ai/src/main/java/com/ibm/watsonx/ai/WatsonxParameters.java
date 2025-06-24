@@ -7,6 +7,8 @@ package com.ibm.watsonx.ai;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.embedding.EmbeddingParameters;
 import com.ibm.watsonx.ai.rerank.RerankParameters;
+import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
+import com.ibm.watsonx.ai.tokenization.TokenizationParameters;
 
 /**
  * This is an abstract class that contains the shared parameters for various Builder configurations.
@@ -14,8 +16,10 @@ import com.ibm.watsonx.ai.rerank.RerankParameters;
  * It serves as a base class for different types of parameters used in the {@code watsonx.ai} platform.
  *
  * @see ChatParameters
+ * @see TextGenerationParameters
  * @see EmbeddingParameters
  * @see RerankParameters
+ * @see TokenizationParameters
  */
 public abstract class WatsonxParameters {
   protected final String projectId;

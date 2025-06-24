@@ -19,17 +19,21 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.rerank.RerankService;
+import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.tokenization.TokenizationService;
 
 /**
  * Abstract base class for all watsonx.ai service classes.
  * <p>
  * This class provides common functionality and shared configuration used across various service-specific clients (e.g., {@code ChatService},
- * {@code TextInferenceService}, etc.). Subclasses should extend this class to inherit support for authentication, HTTP communication, logging, and
+ * {@code TextGenerationService}, etc.). Subclasses should extend this class to inherit support for authentication, HTTP communication, logging, and
  * service metadata such as project or model identifiers.
  *
  * @see ChatService
+ * @see TextGenerationService
  * @see EmbeddingService
  * @see RerankService
+ * @see TokenizationService
  */
 public abstract class WatsonxService {
 

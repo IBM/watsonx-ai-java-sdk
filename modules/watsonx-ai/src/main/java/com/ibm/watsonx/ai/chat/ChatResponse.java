@@ -127,7 +127,6 @@ public final class ChatResponse {
    */
   public String toText() {
 
-
     var assistantMessage = toAssistantMessage();
     if (nonNull(assistantMessage.toolCalls()))
       throw new RuntimeException("The response is of the type \"tool_calls\" and contains no text");
