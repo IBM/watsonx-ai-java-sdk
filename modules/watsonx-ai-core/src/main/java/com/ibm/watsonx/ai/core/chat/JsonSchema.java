@@ -67,9 +67,7 @@ public sealed interface JsonSchema
    * @param properties The map of property names to their JSON schemas.
    * @param required The list of required property names.
    */
-  public record ObjectSchema(Object type, Map<String, JsonSchema> properties, List<String> required)
-    implements
-      JsonSchema {
+  public record ObjectSchema(Object type, Map<String, JsonSchema> properties, List<String> required) implements JsonSchema {
     public Object type() {
       return "object";
     }

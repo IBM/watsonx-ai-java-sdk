@@ -38,7 +38,7 @@ import com.ibm.watsonx.ai.core.chat.JsonSchema.ObjectSchema;
  */
 public final class ChatParameters extends WatsonxParameters {
 
-  public record JsonSchemaObject(String name, JsonSchema schema, boolean strict) {
+  public record JsonSchemaObject(String name, Object schema, boolean strict) {
   };
 
   private final String toolChoiceOption;
@@ -269,8 +269,8 @@ public final class ChatParameters extends WatsonxParameters {
     }
 
     /**
-     * The maximum number of tokens that can be generated in the chat completion. The total length of input tokens and generated tokens is limited by the
-     * model's context length. Set to 0 for the model's configured max generated tokens.
+     * The maximum number of tokens that can be generated in the chat completion. The total length of input tokens and generated tokens is limited by
+     * the model's context length. Set to 0 for the model's configured max generated tokens.
      *
      * @param maxCompletionTokens the maximum number of tokens
      */
@@ -300,8 +300,8 @@ public final class ChatParameters extends WatsonxParameters {
     }
 
     /**
-     * What sampling temperature to use,. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused
-     * and deterministic. We generally recommend altering this or {@code top_p} but not both. Valid range: (0, 2).
+     * What sampling temperature to use,. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more
+     * focused and deterministic. We generally recommend altering this or {@code top_p} but not both. Valid range: (0, 2).
      *
      * @param temperature the sampling temperature
      */
@@ -311,8 +311,8 @@ public final class ChatParameters extends WatsonxParameters {
     }
 
     /**
-     * An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability
-     * mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or
+     * An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p
+     * probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or
      * {@code temperature} but not both. Valid range: (0, 1).
      *
      * @param topP the nucleus sampling threshold

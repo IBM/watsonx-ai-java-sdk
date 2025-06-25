@@ -21,7 +21,8 @@ public record EmbeddingResponse(
   Integer inputTokenCount) {
 
   /**
-   * Represents the embedding result for a given input text. Each embedding contains a list of floating point numbers representing the embedding values.
+   * Represents the embedding result for a given input text. Each embedding contains a list of floating point numbers representing the embedding
+   * values.
    *
    * @param embedding A list of float values representing the embedding of the input text.
    */

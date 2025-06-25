@@ -5,12 +5,17 @@
 package com.ibm.watsonx.ai.core;
 
 import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.joining;
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,6 +23,9 @@ import java.util.stream.Stream;
  * Utility class for working with Http objects.
  */
 public class HttpUtils {
+
+  private static final Pattern BEARER_PATTERN =
+    Pattern.compile("(Bearer\\s*)(\\w{4})(\\w+)(\\w{4})");
 
   /**
    * Converts the body of an {@link HttpResponse} to a {@link String}, handling various response body types.
@@ -63,5 +71,37 @@ public class HttpUtils {
     } catch (Exception e) {
       throw new RuntimeException("Failed to convert HTTP response body to string", e);
     }
+  }
+
+  /**
+   * Formats the given map of headers into a single string, where each header is represented as "[key: value]".
+   *
+   * @param headers a map containing HTTP headers, where keys are header names and values are lists of header values
+   * @return a string representation of the headers
+   */
+  public static String inOneLine(Map<String, List<String>> headers) {
+    return headers.entrySet().stream().map(header -> {
+      String headerKey = header.getKey();
+      String headerValues = header.getValue().stream().collect(Collectors.joining(" "));
+      if ("Authorization".equals(headerKey)) {
+        headerValues = maskAuthorizationHeaderValue(headerValues);
+      }
+      return String.format("[%s: %s]", headerKey, headerValues);
+    }).collect(joining(", "));
+  }
+
+  //
+  // Masks the sensitive part of a Bearer token in an authorization header.
+  //
+  private static String maskAuthorizationHeaderValue(String authorizationHeaderValue) {
+
+    Matcher matcher = BEARER_PATTERN.matcher(authorizationHeaderValue);
+
+    StringBuilder sb = new StringBuilder();
+    while (matcher.find()) {
+      matcher.appendReplacement(sb, matcher.group(1) + matcher.group(2) + "..." + matcher.group(4));
+    }
+
+    return sb.toString();
   }
 }

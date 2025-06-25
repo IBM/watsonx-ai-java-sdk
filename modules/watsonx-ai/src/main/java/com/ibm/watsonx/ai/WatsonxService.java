@@ -42,6 +42,7 @@ public abstract class WatsonxService {
   protected final String spaceId;
   protected final String modelId;
   protected final Duration timeout;
+  protected final boolean logResponses;
   protected final AuthenticationProvider authenticationProvider;
   protected final SyncHttpClient syncHttpClient;
   protected final AsyncHttpClient asyncHttpClient;
@@ -62,7 +63,7 @@ public abstract class WatsonxService {
       requireNonNull(builder.authenticationProvider, "The authentication provider is mandatory");
 
     boolean logRequests = requireNonNullElse(builder.logRequests, false);
-    boolean logResponses = requireNonNullElse(builder.logResponses, false);
+    logResponses = requireNonNullElse(builder.logResponses, false);
 
     var httpClient =
       requireNonNullElse(builder.httpClient, HttpClient.newBuilder().connectTimeout(timeout).build());
@@ -78,9 +79,8 @@ public abstract class WatsonxService {
     asyncHttpClientBuilder.interceptor(bearerInterceptor);
 
     if (logRequests || logResponses) {
-      var loggerInterceptor = new LoggerInterceptor(logRequests, logResponses);
-      syncHttpClientBuilder.interceptor(loggerInterceptor);
-      asyncHttpClientBuilder.interceptor(loggerInterceptor);
+      syncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
+      asyncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, false));
     }
 
     syncHttpClient = syncHttpClientBuilder.build();

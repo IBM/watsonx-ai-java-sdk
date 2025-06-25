@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpResponse.BodySubscribers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +33,7 @@ import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.SseEventLogger;
 
 /**
  * Service client for performing chat-based inference.
@@ -110,8 +112,8 @@ public final class ChatService extends WatsonxService {
   /**
    * Sends a chat request to the model using the provided messages, and parameters.
    * <p>
-   * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, and customize the
-   * generation behavior via {@link ChatParameters}.
+   * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, and customize
+   * the generation behavior via {@link ChatParameters}.
    *
    * @param messages the list of chat messages representing the conversation history
    * @param parameters parameters to customize the output generation
@@ -178,7 +180,8 @@ public final class ChatService extends WatsonxService {
   /**
    * Sends a streaming chat request using the provided messages.
    * <p>
-   * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided {@link ChatHandler}.
+   * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
+   * {@link ChatHandler}.
    *
    * @param messages the list of chat messages forming the prompt history
    * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
@@ -190,7 +193,8 @@ public final class ChatService extends WatsonxService {
   /**
    * Sends a streaming chat request using the provided messages.
    * <p>
-   * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided {@link ChatHandler}.
+   * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
+   * {@link ChatHandler}.
    *
    * @param messages the list of chat messages forming the prompt history
    * @param tools the list of tools that the model may use
@@ -203,7 +207,8 @@ public final class ChatService extends WatsonxService {
   /**
    * Sends a streaming chat request using the provided messages.
    * <p>
-   * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided {@link ChatHandler}.
+   * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
+   * {@link ChatHandler}.
    *
    * @param messages the list of chat messages forming the prompt history
    * @param parameters additional optional parameters for the chat invocation
@@ -217,7 +222,8 @@ public final class ChatService extends WatsonxService {
   /**
    * Sends a streaming chat request using the provided messages, tools, and parameters.
    * <p>
-   * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided {@link ChatHandler}.
+   * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
+   * {@link ChatHandler}.
    *
    * @param messages the list of chat messages forming the prompt history
    * @param tools the list of tools that the model may use
@@ -262,11 +268,12 @@ public final class ChatService extends WatsonxService {
         .POST(BodyPublishers.ofString(toJson(chatRequest)))
         .build();
 
-    return asyncHttpClient.send(httpRequest, BodyHandlers.fromLineSubscriber(new Flow.Subscriber<>() {
+    var subscriber = new Flow.Subscriber<String>() {
       private Flow.Subscription subscription;
       private String finishReason;
       private String role;
       private String refusal;
+      private boolean success = true;
       private final StringBuilder stringBuilder = new StringBuilder();
       private final List<StreamingToolFetcher> tools = new ArrayList<>();
       private final ChatResponse chatResponse = new ChatResponse();
@@ -279,12 +286,11 @@ public final class ChatService extends WatsonxService {
 
       @Override
       public void onNext(String partialMessage) {
-        subscription.request(1);
-
-        if (isNull(partialMessage) || partialMessage.isBlank() || !partialMessage.startsWith("data: "))
-          return;
 
         try {
+
+          if (isNull(partialMessage) || partialMessage.isBlank() || !partialMessage.startsWith("data: "))
+            return;
 
           var messageData = partialMessage.split("data: ")[1];
           var chunk = Json.fromJson(messageData, PartialChatResponse.class);
@@ -373,13 +379,19 @@ public final class ChatService extends WatsonxService {
           }
 
         } catch (RuntimeException e) {
+
+          success = false;
           onError(e);
+
+        } finally {
+
+          if (success)
+            subscription.request(1);
         }
       }
 
       @Override
       public void onError(Throwable throwable) {
-        subscription.request(0);
         handler.onError(throwable);
       }
 
@@ -405,7 +417,14 @@ public final class ChatService extends WatsonxService {
           handler.onError(e);
         }
       }
-    })).thenApply(response -> null);
+    };
+
+    return asyncHttpClient
+      .send(httpRequest,
+        responseInfo -> logResponses
+          ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+          : BodySubscribers.fromLineSubscriber(subscriber)
+      ).thenApply(response -> null);
   }
 
   /**
