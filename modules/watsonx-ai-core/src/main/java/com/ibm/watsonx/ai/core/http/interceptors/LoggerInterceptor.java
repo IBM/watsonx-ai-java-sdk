@@ -7,22 +7,18 @@ package com.ibm.watsonx.ai.core.http.interceptors;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
-import static java.util.stream.Collectors.joining;
 import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.core.HttpUtils;
@@ -37,8 +33,6 @@ import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
 public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
   private static final Logger logger = LoggerFactory.getLogger(LoggerInterceptor.class);
-  private static final Pattern BEARER_PATTERN =
-    Pattern.compile("(Bearer\\s*)(\\w{4})(\\w+)(\\w{4})");
   private static final Pattern BASE64_IMAGE_PATTERN =
     Pattern.compile("(data:.+;base64,)(.{15})([^\"]+)([\\s\\S]*)");
   private final boolean logRequest;
@@ -145,10 +139,10 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
       String body = HttpUtils.extractBodyAsString(response).orElse(null);
 
       if (nonNull(response.headers()))
-        headers = inOneLine(response.headers().map());
+        headers = HttpUtils.inOneLine(response.headers().map());
 
-      if (!prettyPrint && nonNull(request.headers())) {
-        headers = inOneLine(request.headers().map());
+      if (!prettyPrint && nonNull(response.headers())) {
+        headers = HttpUtils.inOneLine(response.headers().map());
         var accept = request.headers().firstValue("Accept");
         if (accept.isPresent() && accept.get().contains("application/json")) {
           prettyPrint = true;
@@ -174,7 +168,7 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
 
     if (nonNull(request.headers())) {
       body = formatBase64ImageForLogging(body);
-      headers = inOneLine(request.headers().map());
+      headers = HttpUtils.inOneLine(request.headers().map());
       var contentType = request.headers().firstValue("Content-Type");
       if (contentType.isPresent() && contentType.get().contains("application/json")) {
         body = Json.prettyPrint(body);
@@ -187,29 +181,6 @@ public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIntercep
       request.uri(),
       headers,
       body);
-  }
-
-  private String inOneLine(Map<String, List<String>> headers) {
-    return headers.entrySet().stream().map(header -> {
-      String headerKey = header.getKey();
-      String headerValues = header.getValue().stream().collect(Collectors.joining(" "));
-      if ("Authorization".equals(headerKey)) {
-        headerValues = maskAuthorizationHeaderValue(headerValues);
-      }
-      return String.format("[%s: %s]", headerKey, headerValues);
-    }).collect(joining(", "));
-  }
-
-  private String maskAuthorizationHeaderValue(String authorizationHeaderValue) {
-
-    Matcher matcher = BEARER_PATTERN.matcher(authorizationHeaderValue);
-
-    StringBuilder sb = new StringBuilder();
-    while (matcher.find()) {
-      matcher.appendReplacement(sb, matcher.group(1) + matcher.group(2) + "..." + matcher.group(4));
-    }
-
-    return sb.toString();
   }
 
   private String formatBase64ImageForLogging(String body) {

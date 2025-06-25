@@ -81,8 +81,8 @@ public final class EmbeddingParameters extends WatsonxParameters {
     /**
      * Represents the maximum number of tokens accepted per input.
      *
-     * This can be used to avoid requests failing due to input being longer than configured limits. If the text is truncated, then it truncates the end of
-     * the input (on the right), so the start of the input will remain the same.
+     * This can be used to avoid requests failing due to input being longer than configured limits. If the text is truncated, then it truncates the
+     * end of the input (on the right), so the start of the input will remain the same.
      *
      * If this value exceeds the maximum sequence length (refer to the documentation to find this value for the model) then the call will fail if the
      * total number of tokens exceeds the maximum sequence length.

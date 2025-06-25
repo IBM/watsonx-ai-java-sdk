@@ -12,7 +12,8 @@ import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 public interface ChatHandler {
 
   /**
-   * Called whenever a partial chat response chunk is received. This method may be invoked multiple times during the lifecycle of a single chat request.
+   * Called whenever a partial chat response chunk is received. This method may be invoked multiple times during the lifecycle of a single chat
+   * request.
    *
    * @param partialResponse the partial chunk of the response received
    * @param partialChatResponse the partial chat response
