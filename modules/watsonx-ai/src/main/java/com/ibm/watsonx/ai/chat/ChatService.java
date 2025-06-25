@@ -246,9 +246,7 @@ public final class ChatService extends WatsonxService {
     var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
     var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
     var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-
-    if (isNull(projectId) && isNull(spaceId))
-      throw new NullPointerException("Either projectId or spaceId must be provided");
+    var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
     var chatRequest = ChatRequest.builder()
       .modelId(modelId)
@@ -257,12 +255,11 @@ public final class ChatService extends WatsonxService {
       .messages(messages)
       .tools(tools)
       .parameters(parameters)
-      .timeLimit(
-        isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit())
+      .timeLimit(timeout)
       .build();
 
     var httpRequest =
-      HttpRequest.newBuilder(URI.create(url.toString() + "/ml/v1/text/chat_stream?version=%s".formatted(version)))
+      HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat_stream?version=%s".formatted(ML_API_PATH, version)))
         .header("Content-Type", "application/json")
         .header("Accept", "text/event-stream")
         .POST(BodyPublishers.ofString(toJson(chatRequest)))

@@ -403,7 +403,6 @@ public final class ChatParameters extends WatsonxParameters {
      * Defines stop sequences that end the generation when encountered. A maximum of 4 unique stop sequences is allowed.
      *
      * @param stop list of stop sequences
-     * @return the builder instance
      */
     public Builder stop(List<String> stop) {
       this.stop = stop;
