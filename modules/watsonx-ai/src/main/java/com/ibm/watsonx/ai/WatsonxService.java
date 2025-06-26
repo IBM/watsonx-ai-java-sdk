@@ -19,6 +19,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.rerank.RerankService;
+import com.ibm.watsonx.ai.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 
@@ -34,6 +35,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
  * @see EmbeddingService
  * @see RerankService
  * @see TokenizationService
+ * @see TextExtractionService
  */
 public abstract class WatsonxService {
 
