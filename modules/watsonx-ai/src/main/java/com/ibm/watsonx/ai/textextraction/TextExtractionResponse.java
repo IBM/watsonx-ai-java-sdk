@@ -17,12 +17,14 @@ public record TextExtractionResponse(Metadata metadata, Entity entity) {
   /**
    * Common metadata for a text extraction resource.
    *
-   * @param id The unique identifier of the resource. Always included.
-   * @param createdAt The ISO 8601 timestamp indicating when the resource was created. Always included.
+   * @param id The unique identifier of the resource.
+   * @param createdAt The ISO 8601 timestamp indicating when the resource was created.
+   * @param modifiedAt The ISO 8601 timestamp indicating when the resource was modified.
    * @param spaceId The id of the space containing the resource.
    * @param projectId The id of the project containing the resource.
    */
-  public record Metadata(String id, String createdAt, String spaceId, String projectId) {}
+  public record Metadata(String id, String createdAt, String modifiedAt, String spaceId, String projectId) {
+  }
 
   /**
    * Represents the full text extraction entity.
@@ -33,8 +35,9 @@ public record TextExtractionResponse(Metadata metadata, Entity entity) {
    * @param parameters Parameters used for this extraction process.
    * @param custom Optional custom fields for additional metadata.
    */
-  public record Entity(DataReference documentReference, DataReference resultsReference, ExtractionResult results, Parameters parameteres,
-    Map<String, Object> custom) {}
+  public record Entity(DataReference documentReference, DataReference resultsReference, ExtractionResult results, Parameters parameters,
+    Map<String, Object> custom) {
+  }
 
   /**
    * Represents the result and status of a text extraction process.
@@ -48,8 +51,9 @@ public record TextExtractionResponse(Metadata metadata, Entity entity) {
    * @param location The output file locations produced by the extraction.
    * @param error Optional error details in case of failure.
    */
-  public record ExtractionResult(String status, int numberPagesProcessed, String runningAt, String completedAt, int totalPages,
-    List<String> location, Error error) {}
+  public record ExtractionResult(String status, int numberPagesProcessed, String runningAt, String completedAt, Integer totalPages,
+    List<String> location, Error error) {
+  }
 
   /**
    * Represents an error that occurred during processing.
@@ -58,7 +62,8 @@ public record TextExtractionResponse(Metadata metadata, Entity entity) {
    * @param message A human-readable message describing the error.
    * @param moreInfo Optional URL pointing to more detailed information.
    */
-  public record Error(String code, String message, String moreInfo) {}
+  public record Error(String code, String message, String moreInfo) {
+  }
 
   /**
    * Enum representing the possible status of requested outputs for text extraction.

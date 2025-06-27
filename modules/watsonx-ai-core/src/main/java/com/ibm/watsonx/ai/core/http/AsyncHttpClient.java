@@ -80,7 +80,7 @@ public class AsyncHttpClient extends BaseHttpClient {
   /**
    * Returns a new {@link Builder} instance.
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();

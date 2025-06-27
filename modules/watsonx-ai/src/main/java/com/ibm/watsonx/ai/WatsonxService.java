@@ -59,7 +59,10 @@ public abstract class WatsonxService {
     projectId = builder.projectId;
     spaceId = builder.spaceId;
 
-    modelId = requireNonNull(builder.modelId, "The modelId must be provided");
+    if (!TextExtractionService.class.isInstance(this))
+      modelId = requireNonNull(builder.modelId, "The modelId must be provided");
+    else
+      modelId = null;
 
     if (isNull(projectId) && isNull(spaceId))
       throw new NullPointerException("Either projectId or spaceId must be provided");

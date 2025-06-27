@@ -13,19 +13,36 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.Optional;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
+import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
 
 /**
- * This class provides methods for extracting text from high-value business documents, making them more accessible to AI models or enabling the
- * identification of key information.
+ * Service client for extracting text from high-value business documents. *
+ * <p>
+ * <b>Example usage:</b>
+ *
+ * <pre>{@code
+ * TextExtractionService textExtractionService = TextExtractionService.builder()
+ *   .url("https://...") // or use CloudRegion
+ *   .authenticationProvider(authProvider)
+ *   .projectId("my-project-id")
+ *   .documentReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
+ *   .resultReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
+ *   .build();
+ *
+ * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
+ * }</pre>
  */
 public class TextExtractionService extends WatsonxService {
 
@@ -35,9 +52,25 @@ public class TextExtractionService extends WatsonxService {
 
   public TextExtractionService(Builder builder) {
     super(builder);
-    // TODO: RequireNonNull??
-    this.documentReference = builder.documentReference;
-    this.resultReference = builder.resultReference;
+    this.documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");
+    this.resultReference = requireNonNull(builder.resultReference, "resultReference value cannot be null");
+  }
+
+  /**
+   * Starts a new text extraction request for the specified document.
+   * <p>
+   * This operation initiates the extraction of text and metadata for a document located at the specified path.
+   * <p>
+   * Refer to the
+   * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx&audience=wdp">official
+   * documentation</a> for more details on the supported formats, features, and limitations of the text extraction service.
+   *
+   * @param path The location of the document to be processed.
+   * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
+   *
+   */
+  public TextExtractionResponse startExtraction(String path) {
+    return startExtraction(path, null);
   }
 
   /**
@@ -58,38 +91,49 @@ public class TextExtractionService extends WatsonxService {
   public TextExtractionResponse startExtraction(String path, TextExtractionParameters parameters) {
     requireNonNull(path);
 
-    var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-    var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-    var outputFileName = parameters.getOutputFileName();
+    String outputFileName = null;
+    String projectId = this.projectId;
+    String spaceId = this.spaceId;
+    List<String> requestedOutputs = List.of("plain_text");
+    CosReference documentReference = this.documentReference;
+    CosReference resultReference = this.resultReference;
+    Parameters params = null;
+    Map<String, Object> custom = null;
 
-    if (isNull(outputFileName) || outputFileName.isBlank()) {
+    if (nonNull(parameters)) {
+      outputFileName = parameters.getOutputFileName();
+      projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
+      spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+      requestedOutputs = requireNonNullElse(parameters.getRequestedOutputs(), requestedOutputs);
+      documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
+      resultReference = requireNonNullElse(parameters.getResultReference(), this.resultReference);
+      params = parameters.toParameters();
+      custom = parameters.getCustom();
+    }
+
+    if (isNull(outputFileName)) {
 
       var isMultiOutput =
-        parameters.getRequestedOutputs().size() > 1
-          || (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value()))
-            ? true
-            : false;
-
-      var isSingleOutput = parameters.getRequestedOutputs().size() == 1 ? true : false;
+        requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value()) ? true : false;
 
       if (isMultiOutput) {
 
         outputFileName = "/";
 
-      } else if (isSingleOutput) {
+      } else {
 
-        var type = Type.fromValue(parameters.getRequestedOutputs().get(0));
-        outputFileName = FileUtils.addExtension(outputFileName, type);
+        var type = Type.fromValue(requestedOutputs.get(0));
+        outputFileName = FileUtils.addExtension(path, type);
       }
     }
 
     var request = new TextExtractionRequest(
       projectId,
       spaceId,
-      requireNonNullElse(parameters.getDocumentReference(), documentReference).toDataReference(outputFileName),
-      requireNonNullElse(parameters.getResultReference(), resultReference).toDataReference(outputFileName),
-      parameters.toParameters(),
-      null // TODO: PASS THE CUSTOM PARAMETERS.
+      documentReference.toDataReference(path),
+      resultReference.toDataReference(outputFileName),
+      params,
+      custom
     );
 
     var httpRequest =
@@ -109,41 +153,18 @@ public class TextExtractionService extends WatsonxService {
     }
   }
 
+
   /**
-   * Retrieves a list of text extraction requests for the specified space or project.
+   * Retrieves the results of a text extraction request by its unique identifier.
    * <p>
-   * This method returns the currently available text extraction requests. Use the {@code start} and {@code limit} parameters for pagination.
+   * This operation fetches the details and results of a previously submitted text extraction request. Note that the retention period for extraction
+   * results is 2 days. If the request is older than 2 days, the results will no longer be available and this method will return {@code false}.
    *
-   * @param start Token required for token-based pagination. This token cannot be determined by end user. It is generated by the service and it is set
-   *          in the href available in the {@code next} field.
-   * @param limit The maximum number of requests to return.
-   * @param parameters Parameters to specify the project or space context in which the request was made.
-   * @return A {@link TextExtractionResources} object containing the list of extraction requests.
+   * @param id The unique identifier of the text extraction request.
+   * @return A {@link TextExtractionResponse} containing the results of the request.
    */
-  public TextExtractionResources fetchExtractionRequests(String start, int limit, TextExtractionFetchParameters parameters) {
-
-    var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-    var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-
-    var queryParameters = Optional.ofNullable(start)
-      .map(value -> getQueryParameters(projectId, spaceId).concat("&start=%s".formatted(value)))
-      .orElse(getQueryParameters(projectId, spaceId));
-
-    queryParameters.concat("&limit=%s".formatted(limit <= 0 ? 10 : limit));
-    var uri = URI.create(url.toString() + "%s/extractions?%s".formatted(ML_API_PATH, queryParameters));
-    var httpRequest = HttpRequest.newBuilder(uri)
-      .header("Accept", "application/json")
-      .GET()
-      .build();
-
-    try {
-
-      var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
-      return fromJson(httpReponse.body(), TextExtractionResources.class);
-
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+  public TextExtractionResponse fetchExtractionRequest(String id) {
+    return fetchExtractionRequest(id, TextExtractionFetchParameters.builder().build());
   }
 
   /**
@@ -179,6 +200,17 @@ public class TextExtractionService extends WatsonxService {
     }
   }
 
+
+  /**
+   * Deletes a text extraction request.
+   *
+   * @param id The unique identifier of the text extraction request to delete.
+   * @return {@code true} if the request was successfully deleted; {@code false} otherwise.
+   */
+  public boolean delete(String id) {
+    return delete(id, TextExtractionDeleteParameters.builder().build());
+  }
+
   /**
    * Deletes a text extraction request.
    * <p>
@@ -204,8 +236,8 @@ public class TextExtractionService extends WatsonxService {
 
     try {
 
-      var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
-      return httpReponse.statusCode() == 204 ? true : false;
+      syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+      return true;
 
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
@@ -221,11 +253,9 @@ public class TextExtractionService extends WatsonxService {
    */
   private String getQueryParameters(String projectId, String spaceId) {
     if (nonNull(projectId))
-      return "version=%s&project_id=%s".formatted(version, projectId);
-    else if (nonNull(spaceId))
-      return "version=%s&space_id=%s".formatted(version, spaceId);
+      return "version=%s&project_id=%s".formatted(version, URLEncoder.encode(projectId, Charset.defaultCharset()));
     else
-      throw new NullPointerException("Either projectId or spaceId must be provided");
+      return "version=%s&space_id=%s".formatted(version, URLEncoder.encode(spaceId, Charset.defaultCharset()));
   }
 
   /*
@@ -245,12 +275,12 @@ public class TextExtractionService extends WatsonxService {
       if (isNull(outputFileName) || outputFileName.isBlank()) {
 
           var isMultiOutput =
-              parameters.getRequestedOutputs().size() > 1
-                  || (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES))
+              requestedOutputs.size() > 1
+                  || (requestedOutputs.size() == 1 && requestedOutputs.get(0).equals(PAGE_IMAGES))
                       ? true
                       : false;
 
-          var isSingleOutput = parameters.getRequestedOutputs().size() == 1 ? true : false;
+          var isSingleOutput = requestedOutputs.size() == 1 ? true : false;
 
           if (isMultiOutput) {
 
@@ -258,7 +288,7 @@ public class TextExtractionService extends WatsonxService {
 
           } else if (isSingleOutput) {
 
-              var type = Type.fromValue(parameters.getRequestedOutputs().get(0));
+              var type = Type.fromValue(requestedOutputs.get(0));
               outputFileName = FileUtils.addExtension(outputFileName, type);
           }
       }
@@ -321,8 +351,22 @@ public class TextExtractionService extends WatsonxService {
 
   /**
    * Returns a new {@link Builder} instance.
+   * <p>
+   * <b>Example usage:</b>
    *
-   * @return {link Builder} instance.
+   * <pre>{@code
+   * TextExtractionService textExtractionService = TextExtractionService.builder()
+   *   .url("https://...") // or use CloudRegion
+   *   .authenticationProvider(authProvider)
+   *   .projectId("my-project-id")
+   *   .documentReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
+   *   .resultReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
+   *   .build();
+   *
+   * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
+   * }</pre>
+   *
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();

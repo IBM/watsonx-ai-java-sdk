@@ -283,7 +283,7 @@ public class TextGenerationService extends WatsonxService {
    * TextGenerationResponse response = textGenerationService.generate("Hello!");
    * }</pre>
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();

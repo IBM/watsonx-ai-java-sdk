@@ -440,7 +440,7 @@ public final class ChatService extends WatsonxService {
    * );
    * }</pre>
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();

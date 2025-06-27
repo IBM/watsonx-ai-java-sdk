@@ -5,8 +5,11 @@
 package com.ibm.watsonx.ai.textextraction;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import com.ibm.watsonx.ai.WatsonxParameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
@@ -44,6 +47,7 @@ public class TextExtractionParameters extends WatsonxParameters {
   private final String outputFileName;
   private final CosReference documentReference;
   private final CosReference resultReference;
+  private final Map<String, Object> custom;
 
   public TextExtractionParameters(Builder builder) {
     super(builder);
@@ -62,6 +66,7 @@ public class TextExtractionParameters extends WatsonxParameters {
     this.outputFileName = builder.outputFileName;
     this.documentReference = builder.documentReference;
     this.resultReference = builder.resultReference;
+    this.custom = builder.custom;
   }
 
   public List<String> getRequestedOutputs() {
@@ -124,6 +129,10 @@ public class TextExtractionParameters extends WatsonxParameters {
     return resultReference;
   }
 
+  public Map<String, Object> getCustom() {
+    return custom;
+  }
+
   /**
    * Converts the {@link TextExtractionParameters} into a new {@link Parameters} object.
    */
@@ -155,7 +164,7 @@ public class TextExtractionParameters extends WatsonxParameters {
    *   .outputFileName("extracted.json")
    *   .build();
    * }</pre>
-   * 
+   *
    * @return {@link Builder} instance.
    */
   public static Builder builder() {
@@ -181,6 +190,7 @@ public class TextExtractionParameters extends WatsonxParameters {
     private String outputFileName;
     private CosReference documentReference;
     private CosReference resultReference;
+    private Map<String, Object> custom;
 
     /**
      * Sets the list of requested output types.
@@ -188,7 +198,6 @@ public class TextExtractionParameters extends WatsonxParameters {
      * @param types the list of output types
      */
     public Builder requestedOutputs(List<Type> types) {
-      requireNonNull(types, "types cannot be null");
       requestedOutputs = types.stream().map(Type::value).toList();
       return this;
     }
@@ -199,7 +208,6 @@ public class TextExtractionParameters extends WatsonxParameters {
      * @param types the list of output types
      */
     public Builder requestedOutputs(Type... types) {
-      requireNonNull(types, "types cannot be null");
       return requestedOutputs(Arrays.asList(types));
     }
 
@@ -209,7 +217,6 @@ public class TextExtractionParameters extends WatsonxParameters {
      * @param mode the processing mode
      */
     public Builder mode(Mode mode) {
-      requireNonNull(mode, "mode cannot be null");
       this.mode = mode.value();
       return this;
     }
@@ -220,7 +227,6 @@ public class TextExtractionParameters extends WatsonxParameters {
      * @param ocrMode the OCR mode
      */
     public Builder ocrMode(OcrMode ocrMode) {
-      requireNonNull(ocrMode, "ocrMode cannot be null");
       this.ocrMode = switch(ocrMode) {
         case AUTO -> null;
         default -> ocrMode.value();
@@ -366,6 +372,21 @@ public class TextExtractionParameters extends WatsonxParameters {
      */
     public Builder resultReference(CosReference resultReference) {
       this.resultReference = resultReference;
+      return this;
+    }
+
+    /**
+     * Adds a custom property.
+     * <p>
+     * This method allows you to include arbitrary key-value pairs that can be used to pass additional, user-defined metadata or configuration to the
+     * extraction process.
+     *
+     * @param key the name of the custom property.
+     * @param value the value of the custom property.
+     */
+    public Builder addCustomProperty(String key, Object value) {
+      custom = requireNonNullElse(custom, new HashMap<String, Object>());
+      custom.put(key, value);
       return this;
     }
 

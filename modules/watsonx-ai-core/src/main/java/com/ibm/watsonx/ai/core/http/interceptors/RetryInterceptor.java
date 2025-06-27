@@ -145,7 +145,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
   /**
    * Returns a new {@link Builder} instance.
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();
