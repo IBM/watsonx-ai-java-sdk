@@ -16,6 +16,7 @@
     <module>embedding-text</module>
     <module>rerank</module>
     <module>tokenization</module>
+    <module>text-extraction</module>
   </modules>
 
   <licenses>

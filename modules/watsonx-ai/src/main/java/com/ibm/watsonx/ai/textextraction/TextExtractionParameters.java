@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.textextraction;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
  *
  */
 public class TextExtractionParameters extends WatsonxParameters {
+  private final String cosUrl;
   private final List<String> requestedOutputs;
   private final String mode;
   private final String ocrMode;
@@ -48,10 +50,12 @@ public class TextExtractionParameters extends WatsonxParameters {
   private final CosReference documentReference;
   private final CosReference resultReference;
   private final Map<String, Object> custom;
+  private final Duration timeout;
 
   public TextExtractionParameters(Builder builder) {
     super(builder);
-    this.requestedOutputs = builder.requestedOutputs;
+    this.cosUrl = builder.cosUrl;
+    this.requestedOutputs = requireNonNullElse(builder.requestedOutputs, List.of("plain_text"));
     this.mode = builder.mode;
     this.ocrMode = builder.ocrMode;
     this.languages = builder.languages;
@@ -67,6 +71,7 @@ public class TextExtractionParameters extends WatsonxParameters {
     this.documentReference = builder.documentReference;
     this.resultReference = builder.resultReference;
     this.custom = builder.custom;
+    this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(30));
   }
 
   public List<String> getRequestedOutputs() {
@@ -133,6 +138,14 @@ public class TextExtractionParameters extends WatsonxParameters {
     return custom;
   }
 
+  public Duration getTimeout() {
+    return timeout;
+  }
+
+  public String getCosUrl() {
+    return cosUrl;
+  }
+
   /**
    * Converts the {@link TextExtractionParameters} into a new {@link Parameters} object.
    */
@@ -175,6 +188,7 @@ public class TextExtractionParameters extends WatsonxParameters {
    * Builder class for constructing {@link TextExtractionParameters} instances with configurable parameters.
    */
   public static class Builder extends WatsonxParameters.Builder<Builder> {
+    private String cosUrl;
     private List<String> requestedOutputs;
     private String mode;
     private String ocrMode;
@@ -191,6 +205,17 @@ public class TextExtractionParameters extends WatsonxParameters {
     private CosReference documentReference;
     private CosReference resultReference;
     private Map<String, Object> custom;
+    private Duration timeout;
+
+    public Builder cosUrl(String cosUrl) {
+      this.cosUrl = cosUrl;
+      return this;
+    }
+
+    public Builder cosUrl(CosUrl cosUrl) {
+      requireNonNull(cosUrl, "cosUrl cannot be null");
+      return cosUrl(cosUrl.value());
+    }
 
     /**
      * Sets the list of requested output types.
@@ -390,6 +415,11 @@ public class TextExtractionParameters extends WatsonxParameters {
       return this;
     }
 
+    public Builder timeout(Duration timeout) {
+      this.timeout = timeout;
+      return this;
+    }
+
     /**
      * Builds a {@link TextExtractionParameters} instance using the configured parameters.
      *
@@ -506,6 +536,30 @@ public class TextExtractionParameters extends WatsonxParameters {
 
     public String value() {
       return value;
+    }
+  }
+
+  public static enum CosUrl {
+    US_SOUTH("https://s3.us-south.cloud-object-storage.appdomain.cloud"),
+    US_EAST("https://s3.us-east.cloud-object-storage.appdomain.cloud"),
+    EU_GB("https://s3.eu-gb.cloud-object-storage.appdomain.cloud"),
+    EU_DE("https://s3.eu-de.cloud-object-storage.appdomain.cloud"),
+    AU_SYD("https://s3.au-syd.cloud-object-storage.appdomain.cloud"),
+    JP_TOK("https://s3.jp-tok.cloud-object-storage.appdomain.cloud"),
+    JP_OSA("https://s3.jp-osa.cloud-object-storage.appdomain.cloud"),
+    CA_TOR("https://s3.ca-tor.cloud-object-storage.appdomain.cloud"),
+    BR_SAO("https://s3.br-sao.cloud-object-storage.appdomain.cloud"),
+    EU_ES("https://s3.eu-es.cloud-object-storage.appdomain.cloud"),
+    CA_MON("https://s3.ca-mon.cloud-object-storage.appdomain.cloud");
+
+    private final String url;
+
+    CosUrl(String url) {
+      this.url = url;
+    }
+
+    public String value() {
+      return url;
     }
   }
 }

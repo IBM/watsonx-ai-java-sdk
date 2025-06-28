@@ -11,21 +11,32 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
+import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
+import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Error;
+import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
 
 /**
  * Service client for extracting text from high-value business documents. *
@@ -37,6 +48,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
  *   .url("https://...") // or use CloudRegion
  *   .authenticationProvider(authProvider)
  *   .projectId("my-project-id")
+ *   .cosUrl("https://...") // or use CosUrl
  *   .documentReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
  *   .resultReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
  *   .build();
@@ -47,49 +59,55 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
 public class TextExtractionService extends WatsonxService {
 
   private static final Logger logger = LoggerFactory.getLogger(TextExtractionService.class);
+  private final String cosUrl;
   private final CosReference documentReference;
   private final CosReference resultReference;
 
   public TextExtractionService(Builder builder) {
     super(builder);
-    this.documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");
-    this.resultReference = requireNonNull(builder.resultReference, "resultReference value cannot be null");
+    var tmpUrl = requireNonNull(builder.cosUrl, "cosUrl value cannot be null");
+    cosUrl = tmpUrl.endsWith("/") ? tmpUrl.substring(0, tmpUrl.length() - 1) : tmpUrl;
+    documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");
+    resultReference = requireNonNull(builder.resultReference, "resultReference value cannot be null");
   }
 
   /**
-   * Starts a new text extraction request for the specified document.
-   * <p>
-   * This operation initiates the extraction of text and metadata for a document located at the specified path.
-   * <p>
+   * Starts the text extraction process for a document. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename
+   * but using the {@code .md} extension. To customize the output behavior, use the method with the {@link TextExtractionParameters} class.
+   *
+   * <pre>
+   * {@code
+   * String startExtraction(String absolutePath, TextExtractionParameters parameters)
+   * }
+   * </pre>
+   *
    * Refer to the
    * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx&audience=wdp">official
    * documentation</a> for more details on the supported formats, features, and limitations of the text extraction service.
+   * <p>
+   * <b>Note:</b> This method does not return the extracted value, use {@code extractAndFetch} to extract the text immediately.
    *
-   * @param path The location of the document to be processed.
+   * @param absolutePath The location of the document to be processed.
    * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
-   *
    */
-  public TextExtractionResponse startExtraction(String path) {
-    return startExtraction(path, null);
+  public TextExtractionResponse startExtraction(String absolutePath) throws TextExtractionException {
+    return startExtraction(absolutePath, null);
   }
 
   /**
-   * Starts a new text extraction request for the specified document.
-   * <p>
-   * This operation initiates the extraction of text and metadata for a document located at the specified path. The behavior and output of the
-   * extraction can be customized using the provided {@link TextExtractionParameters}.
-   * <p>
-   * Refer to the
+   * Starts the text extraction process for a document. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename
+   * but using the {@code .md} extension. Output behavior can be customized using the {@link TextExtractionParameters} parameter. Refer to the
    * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx&audience=wdp">official
    * documentation</a> for more details on the supported formats, features, and limitations of the text extraction service.
+   * <p>
+   * <b>Note:</b> This method does not return the extracted value, use {@code extractAndFetch} to extract the text immediately.
    *
-   * @param path The location of the document to be processed.
-   * @param parameters Configuration parameters for the text extraction request.
+   * @param absolutePath The location of the document to be processed.
+   * @param parameters The configuration parameters for text extraction.
    * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
-   *
    */
-  public TextExtractionResponse startExtraction(String path, TextExtractionParameters parameters) {
-    requireNonNull(path);
+  public TextExtractionResponse startExtraction(String absolutePath, TextExtractionParameters parameters) {
+    requireNonNull(absolutePath);
 
     String outputFileName = null;
     String projectId = this.projectId;
@@ -123,14 +141,14 @@ public class TextExtractionService extends WatsonxService {
       } else {
 
         var type = Type.fromValue(requestedOutputs.get(0));
-        outputFileName = FileUtils.addExtension(path, type);
+        outputFileName = FileUtils.addExtension(absolutePath, type);
       }
     }
 
     var request = new TextExtractionRequest(
       projectId,
       spaceId,
-      documentReference.toDataReference(path),
+      documentReference.toDataReference(absolutePath),
       resultReference.toDataReference(outputFileName),
       params,
       custom
@@ -153,6 +171,246 @@ public class TextExtractionService extends WatsonxService {
     }
   }
 
+  /**
+   * Uploads a local file and starts the text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original
+   * filename but using the {@code .md} extension by default. To customize the output behavior you can use the {@link TextExtractionParameters} class.
+   *
+   * <pre>
+   * {@code
+   * String uploadAndStartExtraction(File file, TextExtractionParameters parameters);
+   * }
+   * </pre>
+   *
+   * <b>Note:</b> This method does not return the extracted text. Use {@code uploadExtractAndFetch} to extract the text immediately.
+   *
+   * @param file The local file to be uploaded and processed.
+   * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
+   */
+  public TextExtractionResponse uploadAndStartExtraction(File file) throws TextExtractionException {
+    return uploadAndStartExtraction(file, null);
+  }
+
+  /**
+   * Uploads a local file and starts the text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original
+   * filename but using the {@code .md} extension by default. Output behavior can be customized using the {@link TextExtractionParameters} parameter.
+   * <p>
+   * <b>Note:</b> This method does not return the extracted text. Use {@code uploadExtractAndFetch} to extract the text immediately.
+   *
+   * @param file The local file to be uploaded and processed.
+   * @param parameters The configuration parameters for text extraction.
+   * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
+   */
+  public TextExtractionResponse uploadAndStartExtraction(File file, TextExtractionParameters parameters) throws TextExtractionException {
+    requireNonNull(file);
+
+    if (file.isDirectory())
+      throw new TextExtractionException("directory_not_allowed", "The file can not be a directory");
+
+    try {
+      upload(new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, false);
+      return startExtraction(file.getName(), parameters);
+    } catch (FileNotFoundException e) {
+      throw new TextExtractionException("file_not_found", e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Uploads an InputStream and starts the asynchronous text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving
+   * the original filename but using the {@code .md} extension by default. To customize the output behavior you can use the
+   * {@link TextExtractionParameters} class.
+   *
+   * <pre>
+   * {@code
+   * String uploadAndStartExtraction(InputStream is, String fileName, TextExtractionParameters parameters);
+   * }
+   * </pre>
+   *
+   * <b>Note:</b> This method does not return the extracted text. Use {@code uploadExtractAndFetch} to extract the text immediately.
+   *
+   * @param is The input stream of the file to be uploaded and processed.
+   * @param fileName The name of the file to be uploaded and processed.
+   * @return The unique identifier of the text extraction process.
+   */
+  public TextExtractionResponse uploadAndStartExtraction(InputStream is, String fileName) throws TextExtractionException {
+    return uploadAndStartExtraction(is, fileName, null);
+  }
+
+  /**
+   * Uploads an InputStream and starts the asynchronous text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving
+   * the original filename but using the {@code .md} extension by default. Output behavior can be customized using the
+   * {@link TextExtractionParameters} class.
+   * <p>
+   * <b>Note:</b> This method does not return the extracted text. Use {@code uploadExtractAndFetch} to extract the text immediately.
+   *
+   * @param is The input stream of the file to be uploaded and processed.
+   * @param fileName The name of the file to be uploaded and processed.
+   * @param parameters The configuration parameters for text extraction.
+   * @return The unique identifier of the text extraction process.
+   */
+  public TextExtractionResponse uploadAndStartExtraction(InputStream is, String fileName, TextExtractionParameters parameters)
+    throws TextExtractionException {
+    upload(is, fileName, parameters, false);
+    return startExtraction(fileName, parameters);
+  }
+
+  /**
+   * Starts the text extraction process for a file that is already present and returns the extracted text value. The extracted text is saved as a new
+   * <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by default. To customize the output behavior, use the
+   * method with the {@link TextExtractionParameters} parameter.
+   *
+   * <pre>
+   * {@code
+   * String extractAndFetch(String absolutePath, TextExtractionParameters parameters);
+   * }
+   * </pre>
+   *
+   * <b>Note:</b> The default timeout value is set to 60 seconds.
+   *
+   * @param absolutePath The absolute path of the file.
+   * @return The text extracted.
+   */
+  public String extractAndFetch(String absolutePath) throws TextExtractionException {
+    return extractAndFetch(absolutePath, null);
+  }
+
+  /**
+   * Starts the text extraction process for a file that is already present and returns the extracted text value. The extracted text is saved as a new
+   * <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by default. Output behavior can be customized using
+   * the {@link TextExtractionParameters} class.
+   * <p>
+   * <b>Note:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to 60
+   * seconds.
+   *
+   * @param absolutePath The path of the document to extract text from.
+   * @param parameters The configuration parameters for text extraction.
+   * @return The text extracted.
+   */
+  public String extractAndFetch(String absolutePath, TextExtractionParameters parameters) throws TextExtractionException {
+
+    if (nonNull(parameters)) {
+      if (parameters.getRequestedOutputs().size() > 1) {
+        throw new TextExtractionException("fetch_operation_not_allowed",
+          "The fetch operation cannot be executed if more than one file is to be generated");
+      }
+      if (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
+        throw new TextExtractionException("fetch_operation_not_allowed",
+          "The fetch operation cannot be executed for the type \"page_images\"");
+      }
+    }
+
+    var textExtractionResponse = startExtraction(absolutePath, parameters, true);
+    var is = getExtractedText(textExtractionResponse, parameters);
+
+    try {
+      return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new TextExtractionException("fetch_operation_failed", "Failed to fetch the extracted text", e);
+    }
+  }
+
+  /**
+   * Uploads a local file, starts text extraction process and returns the extracted text value. The extracted text is saved as a new <b>Markdown</b>
+   * file, preserving the original filename but using the {@code .md} extension by default. To customize the output behavior, use the method with the
+   * {@link Parameters} class.
+   *
+   * <pre>
+   * {@code
+   * String uploadExtractAndFetch(File file, TextExtractionParameters parameters);
+   * }
+   * </pre>
+   *
+   * <b>Note:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to 60
+   * seconds.
+   *
+   * @param file The local file to be uploaded and processed.
+   * @return The text extracted.
+   */
+  public String uploadExtractAndFetch(File file) throws TextExtractionException {
+    return uploadExtractAndFetch(file, null);
+  }
+
+  /**
+   * Uploads a local file and starts the text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original
+   * filename but using the {@code .md} extension by default. Output behavior can be customized using the {@link TextExtractionParameters} class.
+   * <p>
+   * <b>Notes:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to 60
+   * seconds.
+   *
+   * @param file The local file to be uploaded and processed.
+   * @param parameters The configuration parameters for text extraction.
+   * @return The text extracted.
+   */
+  public String uploadExtractAndFetch(File file, TextExtractionParameters parameters) throws TextExtractionException {
+
+    if (nonNull(parameters)) {
+      if (parameters.getRequestedOutputs().size() > 1) {
+        throw new TextExtractionException("fetch_operation_not_allowed",
+          "The fetch operation cannot be executed if more than one file is to be generated");
+      }
+      if (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
+        throw new TextExtractionException("fetch_operation_not_allowed",
+          "The fetch operation cannot be executed for the type \"page_images\"");
+      }
+    }
+
+    try {
+      upload(new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, true);
+    } catch (FileNotFoundException e) {
+      throw new TextExtractionException("file_not_found", e.getMessage(), e);
+    }
+    return extractAndFetch(file.getName(), parameters);
+  }
+
+  /**
+   * Uploads an InputStream, starts text extraction process and returns the extracted text value. The extracted text is saved as a new <b>Markdown</b>
+   * file, preserving the original filename but using the {@code .md} extension by default. To customize the output behavior, use the method with the
+   * {@link Parameters} class.
+   *
+   * <pre>
+   * {@code
+   * String uploadExtractAndFetch(InputStream is, String fileName, TextExtractionParameters parameters);
+   * }
+   * </pre>
+   *
+   * <li><b>Note:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to
+   * 60 seconds.
+   *
+   * @param is The input stream of the file to be uploaded and processed.
+   * @param fileName The name of the file to be uploaded and processed.
+   * @return The text extracted.
+   */
+  public String uploadExtractAndFetch(InputStream is, String fileName) throws TextExtractionException {
+    return uploadExtractAndFetch(is, fileName, null);
+  }
+
+  /**
+   * Uploads an InputStream and starts the text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original
+   * filename but using the {@code .md} extension by default. Output behavior can be customized using the {@link TextExtractionParameters} class.
+   * <p>
+   * <b>Note:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to 60
+   * seconds.
+   *
+   * @param is The input stream of the file to be uploaded and processed.
+   * @param fileName The name of the file to be uploaded and processed.
+   * @param parameters The configuration parameters for text extraction.
+   * @return The text extracted.
+   */
+  public String uploadExtractAndFetch(InputStream is, String fileName, TextExtractionParameters parameters) throws TextExtractionException {
+
+    if (nonNull(parameters)) {
+      if (parameters.getRequestedOutputs().size() > 1) {
+        throw new TextExtractionException("fetch_operation_not_allowed",
+          "The fetch operation cannot be executed if more than one file is to be generated");
+      }
+      if (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
+        throw new TextExtractionException("fetch_operation_not_allowed",
+          "The fetch operation cannot be executed for the type \"page_images\"");
+      }
+    }
+
+    upload(is, fileName, parameters, true);
+    return extractAndFetch(fileName, parameters);
+  }
 
   /**
    * Retrieves the results of a text extraction request by its unique identifier.
@@ -200,7 +458,6 @@ public class TextExtractionService extends WatsonxService {
     }
   }
 
-
   /**
    * Deletes a text extraction request.
    *
@@ -236,7 +493,7 @@ public class TextExtractionService extends WatsonxService {
 
     try {
 
-      syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+      syncHttpClient.send(httpRequest, BodyHandlers.discarding());
       return true;
 
     } catch (IOException | InterruptedException e) {
@@ -248,9 +505,9 @@ public class TextExtractionService extends WatsonxService {
     }
   }
 
-  /**
-   * Generates query parameters for API requests based on provided project_id or space_id.
-   */
+  //
+  // Generates query parameters for API requests based on provided project_id or space_id.
+  //
   private String getQueryParameters(String projectId, String spaceId) {
     if (nonNull(projectId))
       return "version=%s&project_id=%s".formatted(version, URLEncoder.encode(projectId, Charset.defaultCharset()));
@@ -258,96 +515,161 @@ public class TextExtractionService extends WatsonxService {
       return "version=%s&space_id=%s".formatted(version, URLEncoder.encode(spaceId, Charset.defaultCharset()));
   }
 
-  /*
-  private TextExtractionResponse startExtraction(String absolutePath, TextExtractionParameters parameters, boolean waitUntilJobIsDone)
-      throws TextExtractionException {
-      requireNonNull(absolutePath);
-      requireNonNull(parameters);
+  //
+  // Upload a stream to the Cloud Object Storage.
+  //
+  private void upload(InputStream is, String fileName, TextExtractionParameters parameters, boolean waitForExtraction) {
+    requireNonNull(is);
+    if (isNull(fileName) || fileName.isBlank())
+      throw new IllegalArgumentException("The file name can not be null or empty");
 
-      var removeOutputFile = parameters.isRemoveOutputFile();
-      var removeUploadedFile = parameters.isRemoveUploadedFile();
-      var outputFileName = parameters.getOutputFileName();
+    boolean removeOutputFile = false;
+    boolean removeUploadedFile = false;
+    CosReference documentReference = this.documentReference;
 
-      if (!waitUntilJobIsDone && (removeOutputFile || removeUploadedFile))
-          throw new IllegalArgumentException(
-              "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
+    if (nonNull(parameters)) {
+      removeOutputFile = parameters.isRemoveOutputFile();
+      removeUploadedFile = parameters.isRemoveUploadedFile();
+      documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
+    }
 
-      if (isNull(outputFileName) || outputFileName.isBlank()) {
+    if (!waitForExtraction && (removeOutputFile || removeUploadedFile))
+      throw new IllegalArgumentException(
+        "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
 
-          var isMultiOutput =
-              requestedOutputs.size() > 1
-                  || (requestedOutputs.size() == 1 && requestedOutputs.get(0).equals(PAGE_IMAGES))
-                      ? true
-                      : false;
+    URI uri = URI.create(cosUrl + "/%s/%s".formatted(documentReference.bucket(), fileName));
+    HttpRequest httpRequest = HttpRequest.newBuilder().uri(uri)
+      .PUT(BodyPublishers.ofInputStream(() -> is))
+      .build();
 
-          var isSingleOutput = requestedOutputs.size() == 1 ? true : false;
+    try {
+      syncHttpClient.send(httpRequest, BodyHandlers.discarding());
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-          if (isMultiOutput) {
+  private TextExtractionResponse startExtraction(String path, TextExtractionParameters parameters, boolean waitUntilJobIsDone)
+    throws TextExtractionException {
+    requireNonNull(path);
 
-              outputFileName = "/";
 
-          } else if (isSingleOutput) {
+    String projectId = this.projectId;
+    String spaceId = this.spaceId;
+    boolean removeOutputFile = false;
+    boolean removeUploadedFile = false;
+    Duration timeout = Duration.ofSeconds(60);
 
-              var type = Type.fromValue(requestedOutputs.get(0));
-              outputFileName = FileUtils.addExtension(outputFileName, type);
-          }
+    if (nonNull(parameters)) {
+      projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
+      spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+      removeOutputFile = parameters.isRemoveOutputFile();
+      removeUploadedFile = parameters.isRemoveUploadedFile();
+      timeout = requireNonNullElse(parameters.getTimeout(), Duration.ofSeconds(60));
+    }
+
+    if (!waitUntilJobIsDone && (removeOutputFile || removeUploadedFile))
+      throw new IllegalArgumentException(
+        "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
+
+    TextExtractionResponse response = startExtraction(path, parameters);
+
+    if (!waitUntilJobIsDone)
+      return response;
+
+    Status status;
+    long sleepTime = 100;
+    LocalTime endTime = LocalTime.now().plus(timeout);
+
+    do {
+
+      if (LocalTime.now().isAfter(endTime))
+        throw new TextExtractionException("timeout",
+          "Execution to extract %s file took longer than the timeout set by %s milliseconds"
+            .formatted(path, timeout.toMillis()));
+
+      try {
+
+        Thread.sleep(sleepTime);
+        sleepTime *= 2;
+        sleepTime = Math.min(sleepTime, 3000);
+
+      } catch (Exception e) {
+        throw new TextExtractionException("interrupted", e.getMessage());
       }
 
-      var request = new TextExtractionRequest(
-          projectId,
-          spaceId,
-          requireNonNullElse(parameters.getDocumentReference(), documentReference).toDataReference(outputFileName),
-          requireNonNullElse(parameters.getResultReference(), resultReference).toDataReference(outputFileName),
-          parameters.toParameters(),
-          null // TODO: PASS THE CUSTOM PARAMETERS.
-      );
+      var processId = response.metadata().id();
+      response = fetchExtractionRequest(processId, TextExtractionFetchParameters.builder()
+        .projectId(projectId)
+        .spaceId(spaceId)
+        .build());
 
+      status = Status.fromValue(response.entity().results().status());
 
-      TextExtractionResponse response = retryOn(new Callable<TextExtractionResponse>() {
-          @Override
-          public TextExtractionResponse call() throws Exception {
-              return watsonxClient.startTextExtractionJob(request, version);
-          }
-      });
+    } while (status != Status.FAILED && status != Status.COMPLETED);
 
-      if (!waitUntilJobIsDone)
-          return response;
+    return response;
+  }
 
-      Status status;
-      long sleepTime = 100;
-      LocalTime endTime = LocalTime.now().plus(parameters.timeout);
+  private InputStream getExtractedText(TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
+    throws TextExtractionException {
 
-      do {
+    String cosUrl = this.cosUrl;
+    String uploadedPath = textExtractionResponse.entity().documentReference().location().fileName();
+    String outputPath = textExtractionResponse.entity().resultsReference().location().fileName();
+    Status status = Status.fromValue(textExtractionResponse.entity().results().status());
+    boolean removeUploadedFile = false;
+    boolean removeOutputFile = false;
+    CosReference documentReference = this.documentReference;
+    CosReference resultsReference = this.resultReference;
 
-          if (LocalTime.now().isAfter(endTime))
-              throw new TextExtractionException("timeout",
-                  "Execution to extract %s file took longer than the timeout set by %s milliseconds"
-                      .formatted(absolutePath, parameters.timeout.toMillis()));
+    if (nonNull(parameters)) {
+      cosUrl = requireNonNullElse(this.cosUrl, parameters.getCosUrl());
+      removeUploadedFile = parameters.isRemoveUploadedFile();
+      removeOutputFile = parameters.isRemoveOutputFile();
+      documentReference = requireNonNullElse(this.documentReference, parameters.getDocumentReference());
+      resultsReference = requireNonNullElse(this.resultReference, parameters.getResultReference());
+    }
 
+    String documentBucketName = documentReference.bucket();
+    String resultsBucketName = resultsReference.bucket();
+
+    try {
+
+      InputStream extractedFile = switch(status) {
+        case COMPLETED -> {
+          var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, outputPath));
+          var httpRequest = HttpRequest.newBuilder().uri(uri).GET().build();
           try {
-
-              Thread.sleep(sleepTime);
-              sleepTime *= 2;
-              sleepTime = Math.min(sleepTime, 3000);
-
-          } catch (Exception e) {
-              throw new TextExtractionException("interrupted", e.getMessage());
+            yield syncHttpClient.send(httpRequest, BodyHandlers.ofInputStream()).body();
+          } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
           }
+        }
+        case FAILED -> {
+          Error error = textExtractionResponse.entity().results().error();
+          throw new TextExtractionException(error.code(), error.message());
+        }
+        default -> throw new TextExtractionException("generic_error",
+          "Status %s not managed".formatted(status));
+      };
 
-          var processId = response.metadata().id();
-          response = retryOn(new Callable<TextExtractionResponse>() {
-              @Override
-              public TextExtractionResponse call() throws Exception {
-                  return watsonxClient.getTextExtractionDetails(processId, spaceId, projectId, version);
-              }
-          });
+      if (removeOutputFile) {
+        var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, outputPath));
+        var httpRequest = HttpRequest.newBuilder(uri).DELETE().build();
+        asyncHttpClient.send(httpRequest, BodyHandlers.discarding());
+      }
 
-          status = response.entity().results().status();
+      return extractedFile;
 
-      } while (status != Status.FAILED && status != Status.COMPLETED);
-
-      return response;
-  }*/
+    } finally {
+      if (removeUploadedFile) {
+        var uri = URI.create(cosUrl + "/%s/%s".formatted(documentBucketName, uploadedPath));
+        var httpRequest = HttpRequest.newBuilder(uri).DELETE().build();
+        asyncHttpClient.send(httpRequest, BodyHandlers.discarding());
+      }
+    }
+  }
 
   /**
    * Returns a new {@link Builder} instance.
@@ -359,6 +681,7 @@ public class TextExtractionService extends WatsonxService {
    *   .url("https://...") // or use CloudRegion
    *   .authenticationProvider(authProvider)
    *   .projectId("my-project-id")
+   *   .cosUrl("https://...") // or use CosUrl
    *   .documentReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
    *   .resultReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
    *   .build();
@@ -376,8 +699,29 @@ public class TextExtractionService extends WatsonxService {
    * Builder class for constructing {@link TextExtractionService} instances with configurable parameters.
    */
   public static class Builder extends WatsonxService.Builder<Builder> {
+    private String cosUrl;
     private CosReference documentReference;
     private CosReference resultReference;
+
+    public Builder cosUrl(String cosUrl) {
+      this.cosUrl = cosUrl;
+      return this;
+    }
+
+    public Builder cosUrl(CosUrl cosUrl) {
+      requireNonNull(cosUrl, "cosUrl cannot be null");
+      return cosUrl(cosUrl.value());
+    }
+
+    /**
+     * Specifies the Cloud Object Storage connection and bucket where the input files are stored.
+     *
+     * @param documentReference Reference to the Cloud Object Storage.
+     */
+    public Builder documentReference(CosReference documentReference) {
+      this.documentReference = documentReference;
+      return this;
+    }
 
     /**
      * Specifies the Cloud Object Storage connection and bucket where the input files are stored.
@@ -386,7 +730,16 @@ public class TextExtractionService extends WatsonxService {
      * @param bucket The name of the bucket containing the input documents.
      */
     public Builder documentReference(String connectionId, String bucket) {
-      this.documentReference = new CosReference(connectionId, bucket);
+      return documentReference(CosReference.of(connectionId, bucket));
+    }
+
+    /**
+     * Specifies the Cloud Object Storage connection and bucket where the extracted results should be stored.
+     *
+     * @param resultReference Reference to the Cloud Object Storage.
+     */
+    public Builder resultReference(CosReference resultReference) {
+      this.resultReference = resultReference;
       return this;
     }
 
@@ -397,8 +750,7 @@ public class TextExtractionService extends WatsonxService {
      * @param bucket The name of the bucket where results will be written.
      */
     public Builder resultReference(String connectionId, String bucket) {
-      this.resultReference = new CosReference(connectionId, bucket);
-      return this;
+      return resultReference(CosReference.of(connectionId, bucket));
     }
 
     /**

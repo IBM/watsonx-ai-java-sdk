@@ -1894,6 +1894,7 @@ public class ChatServiceTest {
       .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
       .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
       .url(URI.create("http://localhost:%s".formatted(httpPort)))
+      .logResponses(true)
       .build();
 
     AtomicInteger counter = new AtomicInteger();
@@ -1943,8 +1944,8 @@ public class ChatServiceTest {
       .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
       .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
       .url(URI.create("http://localhost:%s".formatted(httpPort)))
+      .logResponses(true)
       .build();
-
 
     CompletableFuture<ChatResponse> result = new CompletableFuture<>();
     chatService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {

@@ -40,9 +40,11 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.ai.textextraction.CosReference;
+import com.ibm.watsonx.ai.textextraction.FileUtils;
 import com.ibm.watsonx.ai.textextraction.TextExtractionDeleteParameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionFetchParameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters;
+import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.EmbeddedImageMode;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.KvpMode;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Mode;
@@ -245,7 +247,7 @@ public class TextExtractionTest {
   }
 
   @Test
-  void test_start_extraction_without_parameters() {
+  void test_start_extraction_without_parameters() throws Exception {
 
     var EXPECTED = """
         {
@@ -335,6 +337,7 @@ public class TextExtractionTest {
       .authenticationProvider(mockAuthenticationProvider)
       .projectId("<project-id>")
       .url(URI.create("http://localhost:%s".formatted(httpPort)))
+      .cosUrl(CosUrl.AU_SYD)
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
       .build();
@@ -392,6 +395,7 @@ public class TextExtractionTest {
       .authenticationProvider(mockAuthenticationProvider)
       .projectId("<project-id>")
       .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+      .cosUrl(CosUrl.BR_SAO)
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
       .build();
@@ -452,6 +456,7 @@ public class TextExtractionTest {
     var textExtractionService = TextExtractionService.builder()
       .authenticationProvider(mockAuthenticationProvider)
       .projectId("<project-id>")
+      .cosUrl(CosUrl.CA_MON)
       .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
@@ -509,6 +514,7 @@ public class TextExtractionTest {
       .authenticationProvider(mockAuthenticationProvider)
       .projectId("<project-id>")
       .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+      .cosUrl(CosUrl.CA_TOR)
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
       .build();
@@ -595,6 +601,7 @@ public class TextExtractionTest {
       .authenticationProvider(mockAuthenticationProvider)
       .projectId("<project_id>")
       .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+      .cosUrl(CosUrl.EU_DE)
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
       .build();
@@ -624,6 +631,7 @@ public class TextExtractionTest {
       .authenticationProvider(mockAuthenticationProvider)
       .spaceId("<space_id>")
       .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+      .cosUrl(CosUrl.JP_OSA)
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
       .build();
@@ -660,6 +668,7 @@ public class TextExtractionTest {
       .authenticationProvider(mockAuthenticationProvider)
       .projectId("<project_id>")
       .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+      .cosUrl(CosUrl.EU_ES)
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
       .build();
@@ -706,6 +715,7 @@ public class TextExtractionTest {
       .authenticationProvider(mockAuthenticationProvider)
       .spaceId("<space_id>")
       .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+      .cosUrl(CosUrl.JP_TOK)
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
       .build();
@@ -735,6 +745,7 @@ public class TextExtractionTest {
       .httpClient(mockHttpClient)
       .projectId("<project_id>")
       .url(URI.create("http://localhost"))
+      .cosUrl(CosUrl.EU_GB)
       .documentReference("<connection_id>", "bucket")
       .resultReference("<connection_id>", "bucket")
       .build();
@@ -756,5 +767,13 @@ public class TextExtractionTest {
 
     var ex = assertThrows(WatsonxException.class, () -> textExtractionService.delete("id"));
     JSONAssert.assertEquals(json, ex.getMessage(), true);
+  }
+
+  @Test
+  void test_file_utils() {
+
+    assertEquals("file.json", FileUtils.addExtension("file.json", Type.JSON));
+    assertEquals("file.html", FileUtils.addExtension("file.json", Type.HTML));
+    assertEquals("/", FileUtils.addExtension("/", Type.PAGE_IMAGES));
   }
 }
