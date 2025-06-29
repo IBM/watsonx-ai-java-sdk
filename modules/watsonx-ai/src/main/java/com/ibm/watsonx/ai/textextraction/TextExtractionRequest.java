@@ -28,14 +28,6 @@ public record TextExtractionRequest(String projectId, String spaceId, DataRefere
     public DataReference {
       type = TYPE_CONNECTION_ASSET;
     }
-
-    public static DataReference of(String connectionId, String bucket, String fileName) {
-      return new DataReference(TYPE_CONNECTION_ASSET, new CosDataConnection(connectionId), new CosDataLocation(fileName, bucket));
-    }
-
-    public static DataReference from(CosReference reference, String fileName) {
-      return DataReference.of(reference.connection(), reference.bucket(), fileName);
-    }
   };
 
   /**

@@ -207,11 +207,21 @@ public class TextExtractionParameters extends WatsonxParameters {
     private Map<String, Object> custom;
     private Duration timeout;
 
+    /**
+     * Sets the Cloud Object Storage url.
+     *
+     * @param cosUrl the COS url
+     */
     public Builder cosUrl(String cosUrl) {
       this.cosUrl = cosUrl;
       return this;
     }
 
+    /**
+     * Sets the Cloud Object Storage url.
+     *
+     * @param cosUrl the COS url
+     */
     public Builder cosUrl(CosUrl cosUrl) {
       requireNonNull(cosUrl, "cosUrl cannot be null");
       return cosUrl(cosUrl.value());

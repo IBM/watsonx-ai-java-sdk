@@ -28,8 +28,6 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
@@ -46,11 +44,11 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
  * <pre>{@code
  * TextExtractionService textExtractionService = TextExtractionService.builder()
  *   .url("https://...") // or use CloudRegion
+ *   .cosUrl("https://...") // or use CosUrl
  *   .authenticationProvider(authProvider)
  *   .projectId("my-project-id")
- *   .cosUrl("https://...") // or use CosUrl
- *   .documentReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
- *   .resultReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
+ *   .documentReference("<connection_id>", "<bucket-name")
+ *   .resultReference("<connection_id>", "<bucket-name")
  *   .build();
  *
  * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
@@ -58,7 +56,6 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
  */
 public class TextExtractionService extends WatsonxService {
 
-  private static final Logger logger = LoggerFactory.getLogger(TextExtractionService.class);
   private final String cosUrl;
   private final CosReference documentReference;
   private final CosReference resultReference;
@@ -106,69 +103,8 @@ public class TextExtractionService extends WatsonxService {
    * @param parameters The configuration parameters for text extraction.
    * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
    */
-  public TextExtractionResponse startExtraction(String absolutePath, TextExtractionParameters parameters) {
-    requireNonNull(absolutePath);
-
-    String outputFileName = null;
-    String projectId = this.projectId;
-    String spaceId = this.spaceId;
-    List<String> requestedOutputs = List.of("plain_text");
-    CosReference documentReference = this.documentReference;
-    CosReference resultReference = this.resultReference;
-    Parameters params = null;
-    Map<String, Object> custom = null;
-
-    if (nonNull(parameters)) {
-      outputFileName = parameters.getOutputFileName();
-      projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-      spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-      requestedOutputs = requireNonNullElse(parameters.getRequestedOutputs(), requestedOutputs);
-      documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
-      resultReference = requireNonNullElse(parameters.getResultReference(), this.resultReference);
-      params = parameters.toParameters();
-      custom = parameters.getCustom();
-    }
-
-    if (isNull(outputFileName)) {
-
-      var isMultiOutput =
-        requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value()) ? true : false;
-
-      if (isMultiOutput) {
-
-        outputFileName = "/";
-
-      } else {
-
-        var type = Type.fromValue(requestedOutputs.get(0));
-        outputFileName = FileUtils.addExtension(absolutePath, type);
-      }
-    }
-
-    var request = new TextExtractionRequest(
-      projectId,
-      spaceId,
-      documentReference.toDataReference(absolutePath),
-      resultReference.toDataReference(outputFileName),
-      params,
-      custom
-    );
-
-    var httpRequest =
-      HttpRequest.newBuilder(URI.create(url.toString() + "%s/extractions?version=%s".formatted(ML_API_PATH, version)))
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .POST(BodyPublishers.ofString(toJson(request)))
-        .build();
-
-    try {
-
-      var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
-      return fromJson(httpReponse.body(), TextExtractionResponse.class);
-
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+  public TextExtractionResponse startExtraction(String absolutePath, TextExtractionParameters parameters) throws TextExtractionException {
+    return startExtraction(absolutePath, parameters, false);
   }
 
   /**
@@ -459,13 +395,31 @@ public class TextExtractionService extends WatsonxService {
   }
 
   /**
+   * Deletes a file from the specified bucket.
+   *
+   * @param bucketName The name of the bucket.
+   * @param fileName The name of the file to delete.
+   * @return true if the file was successfully deleted, false otherwise.
+   */
+  public boolean deleteFile(String bucketName, String fileName) {
+    var uri = URI.create(cosUrl + "/%s/%s".formatted(bucketName, fileName));
+    var httpRequest = HttpRequest.newBuilder(uri).DELETE().build();
+    try {
+      var response = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+      return response.statusCode() == 204;
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Deletes a text extraction request.
    *
    * @param id The unique identifier of the text extraction request to delete.
    * @return {@code true} if the request was successfully deleted; {@code false} otherwise.
    */
-  public boolean delete(String id) {
-    return delete(id, TextExtractionDeleteParameters.builder().build());
+  public boolean deleteRequest(String id) {
+    return deleteRequest(id, TextExtractionDeleteParameters.builder().build());
   }
 
   /**
@@ -478,7 +432,7 @@ public class TextExtractionService extends WatsonxService {
    * @param parameters Parameters specifying the space or project context, and whether to perform a hard delete.
    * @return {@code true} if the request was successfully deleted; {@code false} otherwise.
    */
-  public boolean delete(String id, TextExtractionDeleteParameters parameters) {
+  public boolean deleteRequest(String id, TextExtractionDeleteParameters parameters) {
     requireNonNull(id, "The id can not be null");
 
     var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
@@ -493,7 +447,7 @@ public class TextExtractionService extends WatsonxService {
 
     try {
 
-      syncHttpClient.send(httpRequest, BodyHandlers.discarding());
+      syncHttpClient.send(httpRequest, BodyHandlers.ofString());
       return true;
 
     } catch (IOException | InterruptedException e) {
@@ -516,12 +470,11 @@ public class TextExtractionService extends WatsonxService {
   }
 
   //
-  // Upload a stream to the Cloud Object Storage.
+  // Uploads an inputstream to the Cloud Object Storage.
   //
   private void upload(InputStream is, String fileName, TextExtractionParameters parameters, boolean waitForExtraction) {
-    requireNonNull(is);
-    if (isNull(fileName) || fileName.isBlank())
-      throw new IllegalArgumentException("The file name can not be null or empty");
+    requireNonNull(is, "is value cannot be null");
+    requireNonNull(fileName, "fileName value cannot be null");
 
     boolean removeOutputFile = false;
     boolean removeUploadedFile = false;
@@ -543,28 +496,42 @@ public class TextExtractionService extends WatsonxService {
       .build();
 
     try {
-      syncHttpClient.send(httpRequest, BodyHandlers.discarding());
+      syncHttpClient.send(httpRequest, BodyHandlers.ofString());
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
 
+  //
+  // Starts the text extraction process.
+  //
   private TextExtractionResponse startExtraction(String path, TextExtractionParameters parameters, boolean waitUntilJobIsDone)
     throws TextExtractionException {
     requireNonNull(path);
 
-
+    String outputFileName = null;
     String projectId = this.projectId;
     String spaceId = this.spaceId;
     boolean removeOutputFile = false;
     boolean removeUploadedFile = false;
+    List<String> requestedOutputs = List.of("plain_text");
+    CosReference documentReference = this.documentReference;
+    CosReference resultReference = this.resultReference;
+    Parameters params = null;
+    Map<String, Object> custom = null;
     Duration timeout = Duration.ofSeconds(60);
 
     if (nonNull(parameters)) {
-      projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-      spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
       removeOutputFile = parameters.isRemoveOutputFile();
       removeUploadedFile = parameters.isRemoveUploadedFile();
+      outputFileName = parameters.getOutputFileName();
+      projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
+      spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+      requestedOutputs = requireNonNullElse(parameters.getRequestedOutputs(), requestedOutputs);
+      documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
+      resultReference = requireNonNullElse(parameters.getResultReference(), this.resultReference);
+      params = parameters.toParameters();
+      custom = parameters.getCustom();
       timeout = requireNonNullElse(parameters.getTimeout(), Duration.ofSeconds(60));
     }
 
@@ -572,45 +539,88 @@ public class TextExtractionService extends WatsonxService {
       throw new IllegalArgumentException(
         "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
 
-    TextExtractionResponse response = startExtraction(path, parameters);
+    if (isNull(outputFileName)) {
 
-    if (!waitUntilJobIsDone)
+      var isMultiOutput =
+        requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value()) ? true : false;
+
+      if (isMultiOutput) {
+
+        outputFileName = "/";
+
+      } else {
+
+        var type = Type.fromValue(requestedOutputs.get(0));
+        outputFileName = FileUtils.addExtension(path, type);
+      }
+    }
+
+    var request = new TextExtractionRequest(
+      projectId,
+      spaceId,
+      documentReference.toDataReference(path),
+      resultReference.toDataReference(outputFileName),
+      params,
+      custom
+    );
+
+    var httpRequest =
+      HttpRequest.newBuilder(URI.create(url.toString() + "%s/extractions?version=%s".formatted(ML_API_PATH, version)))
+        .header("Content-Type", "application/json")
+        .header("Accept", "application/json")
+        .POST(BodyPublishers.ofString(toJson(request)))
+        .build();
+
+    try {
+
+      var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+      var response = fromJson(httpReponse.body(), TextExtractionResponse.class);
+
+      if (!waitUntilJobIsDone)
+        return response;
+
+      Status status;
+      long sleepTime = 100;
+      LocalTime endTime = LocalTime.now().plus(timeout);
+
+      do {
+
+        if (LocalTime.now().isAfter(endTime))
+          throw new TextExtractionException("timeout",
+            "Execution to extract %s file took longer than the timeout set by %s milliseconds"
+              .formatted(path, timeout.toMillis()));
+
+        try {
+
+          Thread.sleep(sleepTime);
+          sleepTime *= 2;
+          sleepTime = Math.min(sleepTime, 3000);
+
+        } catch (Exception e) {
+          throw new TextExtractionException("interrupted", e.getMessage());
+        }
+
+        var processId = response.metadata().id();
+        response = fetchExtractionRequest(processId, TextExtractionFetchParameters.builder()
+          .projectId(projectId)
+          .spaceId(spaceId)
+          .build());
+
+        status = Status.fromValue(response.entity().results().status());
+
+      } while (status != Status.FAILED && status != Status.COMPLETED);
+
       return response;
 
-    Status status;
-    long sleepTime = 100;
-    LocalTime endTime = LocalTime.now().plus(timeout);
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
 
-    do {
-
-      if (LocalTime.now().isAfter(endTime))
-        throw new TextExtractionException("timeout",
-          "Execution to extract %s file took longer than the timeout set by %s milliseconds"
-            .formatted(path, timeout.toMillis()));
-
-      try {
-
-        Thread.sleep(sleepTime);
-        sleepTime *= 2;
-        sleepTime = Math.min(sleepTime, 3000);
-
-      } catch (Exception e) {
-        throw new TextExtractionException("interrupted", e.getMessage());
-      }
-
-      var processId = response.metadata().id();
-      response = fetchExtractionRequest(processId, TextExtractionFetchParameters.builder()
-        .projectId(projectId)
-        .spaceId(spaceId)
-        .build());
-
-      status = Status.fromValue(response.entity().results().status());
-
-    } while (status != Status.FAILED && status != Status.COMPLETED);
-
-    return response;
   }
 
+  //
+  // Retrieves the extracted text from a specified Cloud Object Storage file.
+  //
   private InputStream getExtractedText(TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
     throws TextExtractionException {
 
@@ -627,8 +637,8 @@ public class TextExtractionService extends WatsonxService {
       cosUrl = requireNonNullElse(this.cosUrl, parameters.getCosUrl());
       removeUploadedFile = parameters.isRemoveUploadedFile();
       removeOutputFile = parameters.isRemoveOutputFile();
-      documentReference = requireNonNullElse(this.documentReference, parameters.getDocumentReference());
-      resultsReference = requireNonNullElse(this.resultReference, parameters.getResultReference());
+      documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
+      resultsReference = requireNonNullElse(parameters.getDocumentReference(), this.resultReference);
     }
 
     String documentBucketName = documentReference.bucket();
@@ -657,7 +667,7 @@ public class TextExtractionService extends WatsonxService {
       if (removeOutputFile) {
         var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, outputPath));
         var httpRequest = HttpRequest.newBuilder(uri).DELETE().build();
-        asyncHttpClient.send(httpRequest, BodyHandlers.discarding());
+        asyncHttpClient.send(httpRequest, BodyHandlers.ofString());
       }
 
       return extractedFile;
@@ -666,7 +676,7 @@ public class TextExtractionService extends WatsonxService {
       if (removeUploadedFile) {
         var uri = URI.create(cosUrl + "/%s/%s".formatted(documentBucketName, uploadedPath));
         var httpRequest = HttpRequest.newBuilder(uri).DELETE().build();
-        asyncHttpClient.send(httpRequest, BodyHandlers.discarding());
+        asyncHttpClient.send(httpRequest, BodyHandlers.ofString());
       }
     }
   }
@@ -679,11 +689,11 @@ public class TextExtractionService extends WatsonxService {
    * <pre>{@code
    * TextExtractionService textExtractionService = TextExtractionService.builder()
    *   .url("https://...") // or use CloudRegion
+   *   .cosUrl("https://...") // or use CosUrl
    *   .authenticationProvider(authProvider)
    *   .projectId("my-project-id")
-   *   .cosUrl("https://...") // or use CosUrl
-   *   .documentReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
-   *   .resultReference("3b33d2da-fb14-4776-ac57-294b1b11d7aa", "my-bucket")
+   *   .documentReference("<connection_id>", "<bucket-name")
+   *   .resultReference("<connection_id>", "<bucket-name")
    *   .build();
    *
    * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")

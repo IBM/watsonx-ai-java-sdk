@@ -125,6 +125,16 @@ public abstract class WatsonxService {
      *
      * @param url the endpoint URL as a string
      */
+    public T url(String url) {
+      this.url = URI.create(url);
+      return (T) this;
+    }
+
+    /**
+     * Sets the endpoint URL to which the chat request will be sent.
+     *
+     * @param url the endpoint URL as a string
+     */
     public T url(CloudRegion url) {
       return url(URI.create(url.endpoint()));
     }

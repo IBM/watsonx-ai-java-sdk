@@ -9,10 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -213,6 +215,7 @@ public class EmbeddingServiceTest {
 
     when(mockHttpResponse.statusCode()).thenReturn(400);
     when(mockHttpResponse.body()).thenReturn(json);
+    when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
     when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
       .thenReturn(mockHttpResponse);
 
