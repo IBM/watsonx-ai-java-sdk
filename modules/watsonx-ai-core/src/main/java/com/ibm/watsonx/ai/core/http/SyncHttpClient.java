@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.core.http;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
@@ -14,6 +13,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
@@ -64,7 +64,7 @@ public final class SyncHttpClient extends BaseHttpClient {
   /**
    * Returns a new {@link Builder} instance.
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();
@@ -89,40 +89,28 @@ public final class SyncHttpClient extends BaseHttpClient {
       throws WatsonxException, IOException, InterruptedException {
 
       if (index < interceptors.size()) {
+        int current = index++;
+        return interceptors.get(current).intercept(request, bodyHandler, current, this);
+      }
 
-        var interceptorIndex = index++;
-        return interceptors.get(interceptorIndex)
-          .intercept(request, bodyHandler, interceptorIndex, this);
+      HttpResponse<T> httpResponse = client.send(request, bodyHandler);
+      int statusCode = httpResponse.statusCode();
 
-      } else {
+      if (statusCode >= 200 && statusCode < 300) {
+        return httpResponse;
+      }
 
-        var httpResponse = client.send(request, bodyHandler);
-        int statusCode = httpResponse.statusCode();
-
-        if (statusCode >= 200 && statusCode < 300) {
-          return httpResponse;
-        }
-
-        var bodyOpt = HttpUtils.extractBodyAsString(httpResponse);
-
-        if (bodyOpt.isPresent()) {
-          String body = bodyOpt.get();
-          WatsonxError details;
-
-          try {
-
-            details = fromJson(body, WatsonxError.class);
-
-          } catch (RuntimeException e) {
-            // If something goes wrong during deserialization, return the raw response.
-            throw new RuntimeException(bodyOpt.get());
-          }
-
-          throw new WatsonxException(body, statusCode, details);
-        }
-
+      Optional<String> bodyOpt = HttpUtils.extractBodyAsString(httpResponse);
+      if (bodyOpt.isEmpty()) {
         throw new WatsonxException(statusCode);
       }
+
+      String body = bodyOpt.get();
+      String contentType = httpResponse.headers().firstValue("Content-Type")
+        .orElseThrow(() -> new WatsonxException(body, statusCode, null));
+
+      WatsonxError details = HttpUtils.parseErrorBody(body, contentType);
+      throw new WatsonxException(body, statusCode, details);
     }
 
     @Override

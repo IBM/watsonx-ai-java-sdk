@@ -47,8 +47,11 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
         WatsonxException.class,
         ex -> {
           var e = (WatsonxException) ex;
-          return e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
+          boolean watsonxTokenExpired = e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
             .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
+          boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(detail -> detail.errors().stream()
+            .anyMatch(err -> err.is(WatsonxError.Code.COS_ACCESS_DENIED))).orElse(false);
+          return watsonxTokenExpired || cosTokenExpired;
         }
       ).build();
   }
@@ -84,10 +87,9 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
 
     Throwable exception = null;
 
-    for (int attempt = 0; attempt < maxRetries; attempt++) {
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
 
       try {
-
 
         if (attempt > 0)
           Thread.sleep(timeout.toMillis());
@@ -112,8 +114,10 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
           if (exponentialBackoff && attempt > 0) {
             timeout = timeout.multipliedBy(2);
           }
-          logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries,
-            exception.getMessage());
+          if (attempt > 0) {
+            logger.debug("Retrying request ({}/{}) after failure: {}", attempt, maxRetries,
+              exception.getMessage());
+          }
           chain.resetToIndex(index + 1);
           continue;
         }
@@ -145,7 +149,7 @@ public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpIntercept
   /**
    * Returns a new {@link Builder} instance.
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();

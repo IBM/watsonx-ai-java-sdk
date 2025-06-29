@@ -48,7 +48,8 @@ public record WatsonxError(int statusCode, String trace, List<Error> errors) {
     INVALID_INPUT_ARGUMENT("invalid_input_argument"),
     TOKEN_QUOTA_REACHED("token_quota_reached"),
     AUTHENTICATION_TOKEN_EXPIRED("authentication_token_expired"),
-    TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST("text_extraction_event_does_not_exist");
+    TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST("text_extraction_event_does_not_exist"),
+    COS_ACCESS_DENIED("AccessDenied");
 
     private final String value;
 

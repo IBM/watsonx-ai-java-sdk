@@ -147,9 +147,6 @@ public final class ChatService extends WatsonxService {
     var timeLimit =
       isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit();
 
-    if (isNull(projectId) && isNull(spaceId))
-      throw new NullPointerException("Either projectId or spaceId must be provided");
-
     var chatRequest = ChatRequest.builder()
       .modelId(modelId)
       .projectId(projectId)
@@ -443,7 +440,7 @@ public final class ChatService extends WatsonxService {
    * );
    * }</pre>
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();
