@@ -634,7 +634,7 @@ public class TextExtractionService extends WatsonxService {
     CosReference resultsReference = this.resultReference;
 
     if (nonNull(parameters)) {
-      cosUrl = requireNonNullElse(this.cosUrl, parameters.getCosUrl());
+      cosUrl = requireNonNullElse(parameters.getCosUrl(), this.cosUrl);
       removeUploadedFile = parameters.isRemoveUploadedFile();
       removeOutputFile = parameters.isRemoveOutputFile();
       documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);

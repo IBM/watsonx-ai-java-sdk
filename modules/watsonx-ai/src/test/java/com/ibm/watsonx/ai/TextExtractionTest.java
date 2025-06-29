@@ -31,9 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -47,6 +49,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +58,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -1211,7 +1215,45 @@ public class TextExtractionTest {
   @Test
   void overrideParametersTest() throws Exception {
 
-    // TODO!!!!
+
+    when(mockHttpResponse.body())
+      .thenReturn(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, "test.txt", BUCKET_NAME, "submitted"))
+      .thenReturn(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, "test.txt", BUCKET_NAME, "completed"));
+
+    HttpResponse<InputStream> response2 = mock(HttpResponse.class);
+    when(response2.body()).thenReturn(new ByteArrayInputStream("Test".getBytes(StandardCharsets.UTF_8)));
+
+    when(mockHttpResponse.statusCode()).thenReturn(200);
+    when(response2.statusCode()).thenReturn(200);
+
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+      .thenReturn(mockHttpResponse)
+      .thenReturn(mockHttpResponse)
+      .thenReturn(response2);
+
+    var service = TextExtractionService.builder()
+      .url("http://localhost:%s".formatted(watsonxServer.getPort()))
+      .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+      .authenticationProvider(mockAuthenticationProvider)
+      .httpClient(mockHttpClient)
+      .projectId("projectid")
+      .documentReference("<connection_id>", BUCKET_NAME)
+      .resultReference("<connection_id>", BUCKET_NAME)
+      .build();
+
+    var parameters = new TextExtractionParameters.Builder()
+      .cosUrl("http://superurl.com")
+      .build();
+
+    service.extractAndFetch("test.pdf", parameters);
+
+    ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+    verify(mockHttpClient, times(3)).send(requestCaptor.capture(), any());
+
+    List<HttpRequest> allRequests = requestCaptor.getAllValues();
+    HttpRequest lastRequest = allRequests.get(2);
+
+    assertEquals("http://superurl.com/my-bucket/test.txt", lastRequest.uri().toString());
   }
 
 
