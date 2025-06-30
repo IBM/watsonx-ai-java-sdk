@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.core.http;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.http.HttpClient;
@@ -80,7 +79,7 @@ public class AsyncHttpClient extends BaseHttpClient {
   /**
    * Returns a new {@link Builder} instance.
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();
@@ -112,7 +111,6 @@ public class AsyncHttpClient extends BaseHttpClient {
             if (exception != null)
               throw new CompletionException(exception);
 
-
             int statusCode = response.statusCode();
             if (statusCode >= 200 && statusCode < 300) {
               return response;
@@ -124,10 +122,12 @@ public class AsyncHttpClient extends BaseHttpClient {
               throw new CompletionException(new WatsonxException(statusCode));
 
             String body = bodyOpt.get();
-            WatsonxError details;
+            String contentType = response.headers().firstValue("Content-Type")
+              .orElseThrow(() -> new WatsonxException(body, statusCode, null));
 
-            details = fromJson(body, WatsonxError.class);
+            WatsonxError details = HttpUtils.parseErrorBody(body, contentType);
             throw new CompletionException(new WatsonxException(body, statusCode, details));
+
           }, requireNonNullElse(executor, httpClient.executor().orElse(ForkJoinPool.commonPool())));
       }
     }

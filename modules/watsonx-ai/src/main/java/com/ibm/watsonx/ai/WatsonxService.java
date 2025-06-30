@@ -19,6 +19,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.rerank.RerankService;
+import com.ibm.watsonx.ai.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 
@@ -34,6 +35,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
  * @see EmbeddingService
  * @see RerankService
  * @see TokenizationService
+ * @see TextExtractionService
  */
 public abstract class WatsonxService {
 
@@ -57,7 +59,10 @@ public abstract class WatsonxService {
     projectId = builder.projectId;
     spaceId = builder.spaceId;
 
-    modelId = requireNonNull(builder.modelId, "The modelId must be provided");
+    if (!TextExtractionService.class.isInstance(this))
+      modelId = requireNonNull(builder.modelId, "The modelId must be provided");
+    else
+      modelId = null;
 
     if (isNull(projectId) && isNull(spaceId))
       throw new NullPointerException("Either projectId or spaceId must be provided");
@@ -112,6 +117,16 @@ public abstract class WatsonxService {
      */
     public T url(URI url) {
       this.url = url;
+      return (T) this;
+    }
+
+    /**
+     * Sets the endpoint URL to which the chat request will be sent.
+     *
+     * @param url the endpoint URL as a string
+     */
+    public T url(String url) {
+      this.url = URI.create(url);
       return (T) this;
     }
 

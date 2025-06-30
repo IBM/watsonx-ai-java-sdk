@@ -7,11 +7,14 @@ package com.ibm.watsonx.ai.core.utils;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.ByteArrayOutputStream;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Flow;
 import org.mockito.ArgumentCaptor;
 
@@ -97,6 +100,8 @@ public class Utils {
   public static HttpResponse<String> koResponse() {
     HttpResponse<String> response = mock(HttpResponse.class);
     when(response.body()).thenReturn(WRONG_RESPONSE);
+    when(response.headers())
+      .thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
     when(response.statusCode()).thenReturn(400);
     return response;
   }

@@ -109,7 +109,7 @@ public class TokenizationService extends WatsonxService {
    * TokenizationResponse response = TokenizationService.tokenize("Tell me a joke");
    * }</pre>
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();
