@@ -133,7 +133,7 @@ public final class RerankService extends WatsonxService {
    * );
    * }</pre>
    *
-   * @return {link Builder} instance.
+   * @return {@link Builder} instance.
    */
   public static Builder builder() {
     return new Builder();
