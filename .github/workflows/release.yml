@@ -34,13 +34,24 @@ jobs:
         with:
           message: "Prepare release ${{github.ref_name}}"
           github_token: ${{ secrets.GH_BOT_TOKEN }}
+          
+      - name: Build and deploy to Maven repository
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+          server-id: central
+          server-username: MAVEN_CENTRAL_USERNAME
+          server-password: MAVEN_CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE
+      
+      - name: Deploy with Maven
+        run: ./mvnw clean deploy -Psign
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
 
-      # - name:  Build and deploy to Maven repository
-      #   uses: actions/setup-java@v4
-      #   with:
-      #     distribution: temurin
-      #     java-version: 17
-      #     server-id: central
-      #     server-username: username
-      #     server-password: password
-      #     gpg-private-key: gpg-key
+

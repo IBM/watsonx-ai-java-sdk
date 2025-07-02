@@ -53,7 +53,7 @@ public abstract class WatsonxParameters {
     /**
      * Sets the project id.
      *
-     * @param spaceId Project id value
+     * @param projectId Project id value
      */
     public T projectId(String projectId) {
       this.projectId = projectId;

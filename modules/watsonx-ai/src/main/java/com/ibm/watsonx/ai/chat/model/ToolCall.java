@@ -15,7 +15,7 @@ package com.ibm.watsonx.ai.chat.model;
  *
  * @param id The unique identifier of the tool call
  * @param type the type of tool call, always {@code function}
- * @param Function The function call details
+ * @param function The function call details
  */
 public final record ToolCall(Integer index, String id, String type, FunctionCall function) {
 

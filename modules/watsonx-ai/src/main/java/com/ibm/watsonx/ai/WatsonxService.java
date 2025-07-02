@@ -154,7 +154,7 @@ public abstract class WatsonxService {
      * <p>
      * If you want to override this value, use the {@link WatsonxParameters}.
      *
-     * @param spaceId Project id value
+     * @param projectId Project id value
      */
     public T projectId(String projectId) {
       this.projectId = projectId;
