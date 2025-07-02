@@ -3,11 +3,14 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <name>IBM watsonx.ai Java SDK</name>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-parent</artifactId>
   <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
-  
+  <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
+  <description>Java client library and SDK for IBM watsonx.ai</description>
+
   <modules>
     <module>modules/watsonx-ai-core</module>
     <module>modules/watsonx-ai</module>
@@ -31,6 +34,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven-source-plugin-version>3.3.1</maven-source-plugin-version>
+    <maven-javadoc-plugin-version>3.11.2</maven-javadoc-plugin-version>
+    <maven-gpg-plugin-version>3.2.8</maven-gpg-plugin-version>
+    <central-publishing-maven-plugin-version>0.8.0</central-publishing-maven-plugin-version>
     <maven-compiler-plugin-version>3.14.0</maven-compiler-plugin-version>
     <build-helper-maven-plugin-version>3.6.1</build-helper-maven-plugin-version>
     <license-maven-plugin-version>5.0.0</license-maven-plugin-version>
@@ -49,7 +55,7 @@
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
@@ -159,7 +165,7 @@
           </execution>
         </executions>
       </plugin>
-      
+
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
@@ -233,16 +239,76 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven-javadoc-plugin-version}</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <failOnError>false</failOnError>
+              <additionalJOption>-Xdoclint:none</additionalJOption>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
   <profiles>
     <profile>
-      <id>samples</id>
-      <modules>
-        <module>samples</module>
-      </modules>
+      <id>sign</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven-gpg-plugin-version}</version>
+            <executions>
+              <execution>
+                <id>sign</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>${central-publishing-maven-plugin-version}</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
+
+  <developers>
+    <developer>
+      <name>Andrea Di Maio</name>
+      <email>andrea.dimaio@it.ibm.com</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com:IBM/watsonx-ai-java-sdk.git</connection>
+    <developerConnection>scm:git:ssh://github.com:IBM/watsonx-ai-java-sdk.git</developerConnection>
+    <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
+  </scm>
 
 </project>

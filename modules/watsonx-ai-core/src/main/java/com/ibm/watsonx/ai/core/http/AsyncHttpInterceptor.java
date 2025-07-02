@@ -46,7 +46,7 @@ public interface AsyncHttpInterceptor {
      * Proceeds with the execution of the async HTTP request.
      *
      * @param request the HTTP request to execute
-     * @param bodyHandler the body handler for processing the response
+     * @param handler the body handler for processing the response
      * @param executor the executor that is used for executing asynchronous tasks
      * @param <T> the type of the response body
      * @return the {@link CompletableFuture} of the HTTP response

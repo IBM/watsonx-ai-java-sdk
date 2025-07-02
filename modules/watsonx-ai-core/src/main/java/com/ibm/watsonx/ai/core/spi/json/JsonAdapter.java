@@ -13,7 +13,7 @@ public interface JsonAdapter {
    * Deserializes a JSON string into an instance of the specified class.
    *
    * @param json the JSON content.
-   * @param type the target class.
+   * @param clazz the target class.
    * @param <T> the result type.
    * @return the deserialized object.
    * @throws RuntimeException if deserialization fails.

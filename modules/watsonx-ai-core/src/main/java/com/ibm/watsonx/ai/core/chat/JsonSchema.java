@@ -16,6 +16,7 @@ import com.ibm.watsonx.ai.core.chat.JsonSchema.EnumSchema;
 import com.ibm.watsonx.ai.core.chat.JsonSchema.IntegerSchema;
 import com.ibm.watsonx.ai.core.chat.JsonSchema.NumberSchema;
 import com.ibm.watsonx.ai.core.chat.JsonSchema.ObjectSchema;
+import com.ibm.watsonx.ai.core.chat.JsonSchema.ObjectSchema.Builder;
 import com.ibm.watsonx.ai.core.chat.JsonSchema.StringSchema;
 
 /**

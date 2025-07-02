@@ -52,7 +52,7 @@ public final class SyncHttpClient extends BaseHttpClient {
    * Sends an synchronous HTTP request.
    *
    * @param request the HTTP request to send
-   * @param handler the body handler for the response
+   * @param bodyHandler the body handler for the response
    * @param <T> the type of the response body
    * @return a HTTP response
    */
