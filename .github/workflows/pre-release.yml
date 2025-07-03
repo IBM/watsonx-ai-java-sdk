@@ -24,7 +24,6 @@ jobs:
           ref: main
 
       - name: Extract versions from project.yml
-        id: versions
         run: |
           current=$(grep 'current-version:' .github/project.yml | awk '{print $2}' | tr -d '"')
           next=$(grep 'next-version:' .github/project.yml | awk '{print $2}' | tr -d '"')
@@ -35,7 +34,9 @@ jobs:
         run: sed -E -i "s|(<version>)[^<]*(</version>)|\1${{env.CURRENT_VERSION}}\2|" README.md
 
       - name: Update pom.xml to release version
-        run: ./mvnw versions:set -DnewVersion=${{env.CURRENT_VERSION}}
+        run: |
+          ./mvnw versions:set -DnewVersion=${{env.CURRENT_VERSION}}
+          ./mvnw versions:set -f samples/pom.xml -DnewVersion=${{env.CURRENT_VERSION}}
 
       - name: Commit and push release updates
         uses: ./.github/actions/commit-push

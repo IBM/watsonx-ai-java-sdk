@@ -20,13 +20,16 @@ jobs:
           ref: main
 
       - name: Extract version from project.yml
-        id: versions
         run: |
+          current=$(grep 'current-version:' .github/project.yml | awk '{print $2}' | tr -d '"')
           next=$(grep 'next-version:' .github/project.yml | awk '{print $2}' | tr -d '"')
+          echo "CURRENT_VERSION=$current" >> $GITHUB_ENV
           echo "NEXT_VERSION=$next" >> $GITHUB_ENV
 
       - name: Revert pom.xml to ${{env.NEXT_VERSION}}
-        run: ./mvnw versions:set -DnewVersion=${{env.NEXT_VERSION}}
+        run: |
+          ./mvnw versions:set -DnewVersion=${{env.NEXT_VERSION}}
+          ./mvnw -f samples/pom.xml versions:use-dep-version -Dincludes=com.ibm.watsonx:watsonx-ai -DdepVersion=${{env.CURRENT_VERSION}} -DforceVersion=true
 
       - name: Commit revert
         uses: ./.github/actions/commit-push
