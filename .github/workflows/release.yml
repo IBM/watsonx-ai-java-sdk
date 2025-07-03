@@ -16,26 +16,6 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
           ref: main
-
-      - name: Update README.md version
-        run: sed -E -i 's|(<version>)[^<]*(</version>)|\1${{github.ref_name}}\2|' README.md
-
-      - name: Commit & Push changes
-        uses: ./.github/actions/commit-push
-        with:
-          commit_message: "Update README to ${{github.ref_name}}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
-
-      - name: Bump pom.xml version to tag
-        run: find . -name "pom.xml" -exec sed -i "s/999-SNAPSHOT/${{github.ref_name}}/g" {} +
-
-      - name: Commit release version
-        uses: ./.github/actions/commit-push
-        with:
-          commit_message: "Prepare release ${{github.ref_name}}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
           
       - name: Build and deploy to Maven repository
         uses: actions/setup-java@v4
