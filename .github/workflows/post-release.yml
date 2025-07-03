@@ -18,20 +18,21 @@ jobs:
           fetch-depth: 0
           ref: main
 
-      - name: Set up yq
-        uses: mikefarah/yq@v4.45.4
-
-      - name: Extract versions from project.yml
+      - name: Extract version from project.yml
         id: versions
         run: |
-          next=$(yq '.release.next-version' .github/project.yml)
+          next=$(grep 'next-version:' .github/project.yml | awk '{print $2}' | tr -d '"')
           echo "NEXT_VERSION=$next" >> $GITHUB_ENV
 
       - name: Revert pom.xml to 999-SNAPSHOT
         run: ./mvnw versions:set -DnewVersion=${{env.NEXT_VERSION}}
 
       - name: Commit revert
-        uses: actions-js/push@master
-        with:
-          message: "Prepare for next development iteration"
-          github_token: ${{secrets.GH_BOT_TOKEN}}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add .
+          git commit -m "Prepare for next development iteration" || echo "Nothing to commit"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
