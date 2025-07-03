@@ -21,12 +21,9 @@ jobs:
         run: sed -E -i 's|(<version>)[^<]*(</version>)|\1${{github.ref_name}}\2|' README.md
 
       - name: Commit & Push changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add .
-          git commit -m "Update README to ${{github.ref_name}}" || echo "Nothing to commit"
-          git push origin main
+        uses: ./.github/actions/commit-push
+        with:
+          commit_message: "Update README to ${{github.ref_name}}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
 
@@ -34,12 +31,9 @@ jobs:
         run: find . -name "pom.xml" -exec sed -i "s/999-SNAPSHOT/${{github.ref_name}}/g" {} +
 
       - name: Commit release version
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add .
-          git commit -m "Prepare release ${{github.ref_name}}" || echo "Nothing to commit"
-          git push origin main
+        uses: ./.github/actions/commit-push
+        with:
+          commit_message: "Prepare release ${{github.ref_name}}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
           
