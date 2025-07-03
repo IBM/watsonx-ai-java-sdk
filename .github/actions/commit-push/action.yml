@@ -1,0 +1,18 @@
+name: Commit and Push
+description: "Commits local changes and pushes them to the main branch"
+inputs:
+  commit_message:
+    description: "Commit message"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Commit & push
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions@users.noreply.github.com"
+        git add .
+        git commit -m "${{ inputs.commit_message }}" || echo "Nothing to commit"
+        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+        git push origin main

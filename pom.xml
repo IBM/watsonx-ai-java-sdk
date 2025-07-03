@@ -296,6 +296,12 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>samples</id>
+      <modules>
+        <module>samples</module>
+      </modules>
+    </profile>
   </profiles>
 
   <developers>

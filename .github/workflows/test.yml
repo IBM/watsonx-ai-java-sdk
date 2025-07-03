@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
     paths-ignore:
         - '.gitignore'
         - 'CODEOWNERS'
@@ -14,7 +11,6 @@ on:
         - '*.md'
         - '*.txt'
         - '.all-contributorsrc'
-        - '**/*.yml'
       
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
