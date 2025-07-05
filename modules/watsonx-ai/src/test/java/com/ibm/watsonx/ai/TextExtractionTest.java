@@ -69,7 +69,6 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.ai.textextraction.CosReference;
-import com.ibm.watsonx.ai.textextraction.FileUtils;
 import com.ibm.watsonx.ai.textextraction.TextExtractionDeleteParameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionException;
 import com.ibm.watsonx.ai.textextraction.TextExtractionFetchParameters;
@@ -93,6 +92,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Error;
 import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.ExtractionResult;
 import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Metadata;
 import com.ibm.watsonx.ai.textextraction.TextExtractionService;
+import com.ibm.watsonx.ai.textextraction.TextExtractionUtils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -898,9 +898,9 @@ public class TextExtractionTest {
 
   @Test
   void test_file_utils() {
-    assertEquals("file.json", FileUtils.addExtension("file.json", Type.JSON));
-    assertEquals("file.html", FileUtils.addExtension("file.json", Type.HTML));
-    assertEquals("/", FileUtils.addExtension("/", Type.PAGE_IMAGES));
+    assertEquals("file.json", TextExtractionUtils.addExtension("file.json", Type.JSON));
+    assertEquals("file.html", TextExtractionUtils.addExtension("file.json", Type.HTML));
+    assertEquals("/", TextExtractionUtils.addExtension("/", Type.PAGE_IMAGES));
   }
 
   @Test

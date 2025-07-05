@@ -417,6 +417,23 @@ public class TextExtractionService extends WatsonxService {
     }
   }
 
+  /*
+   * Reads a file from the specified bucket.
+   *
+   * @param bucketName The name of the bucket.
+   * @param fileName The name of the file to read.
+   */
+  public String readFile(String bucketName, String fileName) {
+    try {
+      var encodedFileName = new URI(null, null, fileName, null).toASCIIString();
+      var uri = URI.create(cosUrl + "/%s/%s".formatted(bucketName, encodedFileName));
+      var httpRequest = HttpRequest.newBuilder(uri).GET().build();
+      return syncHttpClient.send(httpRequest, BodyHandlers.ofString()).body();
+    } catch (IOException | InterruptedException | URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /**
    * Deletes a text extraction request.
    *
@@ -556,7 +573,7 @@ public class TextExtractionService extends WatsonxService {
       } else {
 
         var type = Type.fromValue(requestedOutputs.get(0));
-        outputFileName = FileUtils.addExtension(path, type);
+        outputFileName = TextExtractionUtils.addExtension(path, type);
       }
     }
 

@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -465,8 +466,7 @@ public class ChatServiceTest {
         JsonSchema.builder()
           .addProperty("location", StringSchema.of("The city, e.g. San Francisco, CA"))
           .addProperty("unit", EnumSchema.of("celsius", "fahrenheit"))
-          .required("location")
-          .build()));
+          .required("location")));
 
     var parameters = ChatParameters.builder()
       .toolChoice("get_current_weather")
@@ -866,13 +866,15 @@ public class ChatServiceTest {
       JsonSchema.builder()
         .addProperty("first_number", IntegerSchema.of())
         .addProperty("second_number", IntegerSchema.of())
-        .required(List.of("first_number", "second_number"))
-        .build());
+        .required(List.of("first_number", "second_number")));
 
     var chatResponse = chatService.chat(messages, List.of(tools));
 
     JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
     JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+
+    var ex = assertThrows(RuntimeException.class, () -> chatResponse.toText());
+    assertEquals("The response is of the type \"tool_calls\" and contains no text", ex.getMessage());
   }
 
   @Test
@@ -1235,7 +1237,7 @@ public class ChatServiceTest {
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "<think>The problem is straightforward: calculate the sum of 1 and 1. \\n\\nThe arithmetic operation involved here is addition. When you add two 1s together, you simply count up to a total of 2. This is a basic arithmetic fact:\\n\\n\\\\[ 1 + 1 = 2 \\\\]\\n\\nThere are no additional complexities or conditions given, so the result should be clear and unambiguous.</think><response>### Calculation:\\n\\nTo find the result of \\\\( 1 + 1 \\\\), perform the basic addition:\\n\\n\\\\[ 1 + 1 = 2 \\\\]\\n\\n### Conclusion:\\n\\nThe result of \\\\( 1 + 1 \\\\) is \\\\( \\\\boxed{2} \\\\).</response>"
+                        "content": "<think>Think</think><response>Result</response>"
                     },
                     "finish_reason": "stop"
                 }
@@ -1273,6 +1275,11 @@ public class ChatServiceTest {
     var chatResponse = chatService.chat(messages);
     JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
     JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+
+    var parts = chatResponse.toTextByTags(Set.of("think", "response"));
+    assertEquals("Think", parts.get("think"));
+    assertEquals("Result", parts.get("response"));
+    assertEquals("Result", chatResponse.toTextByTag("response"));
   }
 
   @Test

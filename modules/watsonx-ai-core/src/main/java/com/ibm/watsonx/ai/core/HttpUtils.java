@@ -8,7 +8,6 @@ import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.joining;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,11 +19,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error;
 
@@ -127,27 +124,19 @@ public class HttpUtils {
    * @return An instance of WatsonxError parsed from the XML body.
    */
   public static WatsonxError parseXmlError(String body) {
+    Document doc = XmlUtils.parse(body);
 
-    try {
-      Document doc = DocumentBuilderFactory.newInstance()
-        .newDocumentBuilder()
-        .parse(new InputSource(new StringReader(body)));
+    doc.getDocumentElement().normalize();
+    Element root = doc.getDocumentElement();
 
-      doc.getDocumentElement().normalize();
-      Element root = doc.getDocumentElement();
+    String codeStr = getTextContent(root, "Code");
+    String message = getTextContent(root, "Message");
+    String resource = getTextContent(root, "Resource");
+    String requestId = getTextContent(root, "RequestId");
+    int httpStatusCode = Integer.parseInt(getTextContent(root, "httpStatusCode"));
 
-      String codeStr = getTextContent(root, "Code");
-      String message = getTextContent(root, "Message");
-      String resource = getTextContent(root, "Resource");
-      String requestId = getTextContent(root, "RequestId");
-      int httpStatusCode = Integer.parseInt(getTextContent(root, "httpStatusCode"));
-
-      Error error = new Error(codeStr, message, resource);
-      return new WatsonxError(httpStatusCode, requestId, List.of(error));
-
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    Error error = new Error(codeStr, message, resource);
+    return new WatsonxError(httpStatusCode, requestId, List.of(error));
   }
 
   //

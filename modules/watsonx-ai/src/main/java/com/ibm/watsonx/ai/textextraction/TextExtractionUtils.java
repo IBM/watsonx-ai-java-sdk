@@ -8,9 +8,9 @@ import static java.util.Objects.requireNonNull;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
 
 /**
- * Utility class for file-related operations.
+ * Utility class for text extraction operations.
  */
-public class FileUtils {
+public class TextExtractionUtils {
 
   /**
    * Adds a file extension to a given file name.
