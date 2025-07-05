@@ -70,7 +70,7 @@ public class AsyncHttpClientTest {
 
   @RegisterExtension
   WireMockExtension wireMock = WireMockExtension.newInstance()
-    .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
+    .options(wireMockConfig().dynamicPort().dynamicHttpsPort().http2PlainDisabled(true))
     .build();
 
   static final Answer<CompletableFuture<HttpResponse<String>>> CHAIN_MOCK = invocation -> {
@@ -304,7 +304,7 @@ public class AsyncHttpClientTest {
   }
 
   @Test
-  void test_complete_requests_in_response_order_not_call_order() throws Exception {
+  void test_async_responses_returned_in_order_of_completion_not_submission() throws Exception {
 
     var url = "http://localhost:%s/my-path".formatted(wireMock.getPort());
 
