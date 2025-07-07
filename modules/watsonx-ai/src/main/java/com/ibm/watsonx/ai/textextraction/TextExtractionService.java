@@ -40,7 +40,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Error;
 import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
 
 /**
- * Service client for extracting text from high-value business documents. *
+ * Service class to interact with IBM Watsonx Text Extraction APIs.
  * <p>
  * <b>Example usage:</b>
  *

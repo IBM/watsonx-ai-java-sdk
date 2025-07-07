@@ -7,6 +7,8 @@ package com.ibm.watsonx.ai.chat;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.jsonResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
@@ -20,11 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
@@ -43,7 +47,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.CloudRegion;
+import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -2030,5 +2036,172 @@ public class ChatServiceTest {
     ex2 =
       assertThrows(IllegalArgumentException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
     assertEquals("The list of messages can not be null or empty", ex2.getMessage());
+  }
+
+  @Test
+  void test_get_model_details() {
+
+    var EXPECTED =
+      """
+        {
+           "model_id":"meta-llama/llama-3-3-70b-instruct",
+           "label":"llama-3-3-70b-instruct",
+           "provider":"Meta",
+           "source":"Hugging Face",
+           "functions":[
+              {
+                 "id":"autoai_rag"
+              },
+              {
+                 "id":"multilingual"
+              },
+              {
+                 "id":"text_chat"
+              },
+              {
+                 "id":"text_generation"
+              }
+           ],
+           "short_description":"This version of Llama-3.3-70b-instruct is also the FP8 quantized version of the original FP16 weights.",
+           "long_description":"The Meta Llama 3.3 multilingual large language model (LLM) is a pretrained and instruction tuned generative model in 70B (text in/text out). The Llama 3.3 instruction tuned text only model is optimized for multilingual dialogue use cases and outperform many of the available open source and closed chat models on common industry benchmarks.",
+           "terms_url":"https://github.com/meta-llama/llama-models/blob/main/models/llama3_3/LICENSE",
+           "input_tier":"class_13",
+           "output_tier":"class_13",
+           "number_params":"70b",
+           "min_shot_size":1,
+           "task_ids":[
+              "question_answering",
+              "summarization",
+              "retrieval_augmented_generation",
+              "classification",
+              "generation",
+              "code",
+              "extraction",
+              "translation",
+              "function_calling"
+           ],
+           "tasks":[
+              {
+                 "id":"question_answering",
+                 "ratings":{
+                    "quality":4
+                 }
+              },
+              {
+                 "id":"summarization",
+                 "ratings":{
+                    "quality":3
+                 }
+              },
+              {
+                 "id":"retrieval_augmented_generation",
+                 "ratings":{
+                    "quality":4
+                 }
+              },
+              {
+                 "id":"classification",
+                 "ratings":{
+                    "quality":4
+                 }
+              },
+              {
+                 "id":"generation"
+              },
+              {
+                 "id":"code"
+              },
+              {
+                 "id":"extraction",
+                 "ratings":{
+                    "quality":4
+                 }
+              },
+              {
+                 "id":"translation"
+              },
+              {
+                 "id":"function_calling",
+                 "ratings":{
+                    "quality":4
+                 }
+              }
+           ],
+           "model_limits":{
+              "max_sequence_length":131072,
+              "max_output_tokens":8192
+           },
+           "lifecycle":[
+              {
+                 "id":"available",
+                 "start_date":"2024-12-06"
+              }
+           ],
+           "versions":[
+              {
+                 "version":"3.3.0",
+                 "available_date":"2024-12-06"
+              }
+           ],
+           "supported_languages":[
+              "en",
+              "de",
+              "fr",
+              "it",
+              "pt",
+              "hi",
+              "es",
+              "th"
+           ]
+        }""";
+
+    var RESPONSE =
+      """
+        {
+              "total_count": NUMBER,
+              "limit": 100,
+              "first": {
+                  "href": "https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_specs?version=2025-04-23&filters=modelid_meta-llama%2Fllama-3-3-70b-instruct"
+              },
+              "resources": [
+                  EXPECTED
+              ]
+        }""";
+
+    var queryParameters =
+      """
+        version=%s\
+        &tech_preview=true\
+        &filters=modelid_%s""".formatted(WatsonxService.API_VERSION, URLEncoder.encode("meta-llama/llama-3-3-70b-instruct", StandardCharsets.UTF_8));
+
+    wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(WatsonxService.ML_API_PATH, queryParameters))
+      .inScenario("foundationModel")
+      .whenScenarioStateIs(Scenario.STARTED)
+      .willSetStateTo("emptyResponse")
+      .withHeader("Accept", equalTo("application/json"))
+      .willReturn(jsonResponse(RESPONSE.replace("NUMBER", "1").replace("EXPECTED", EXPECTED), 200))
+    );
+
+    wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(WatsonxService.ML_API_PATH, queryParameters))
+      .inScenario("foundationModel")
+      .whenScenarioStateIs("emptyResponse")
+      .withHeader("Accept", equalTo("application/json"))
+      .willReturn(jsonResponse(RESPONSE.replace("NUMBER", "0").replace("EXPECTED", ""), 200))
+    );
+
+    var chatService = ChatService.builder()
+      .authenticationProvider(mockAuthenticationProvider)
+      .modelId("meta-llama/llama-3-3-70b-instruct")
+      .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+      .url("http://localhost:%d".formatted(wireMock.getPort()))
+      .build();
+
+    var result = chatService.getModelDetails();
+    JSONAssert.assertEquals(EXPECTED, Json.toJson(result), true);
+    assertEquals(result.maxOutputTokens(), 8192);
+    assertEquals(result.maxSequenceLength(), 131072);
+
+    var ex = assertThrows(RuntimeException.class, () -> chatService.getModelDetails());
+    assertEquals("The model with id \"meta-llama/llama-3-3-70b-instruct\" doesn't exist", ex.getMessage());
   }
 }

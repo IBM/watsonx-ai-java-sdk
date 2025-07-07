@@ -66,7 +66,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
    *
    * @param builder the builder instance
    */
-  public IAMAuthenticator(Builder builder) {
+  protected IAMAuthenticator(Builder builder) {
     this.token = new AtomicReference<>();
     this.apiKey = encode(requireNonNull(builder.apiKey));
     this.url = requireNonNullElse(builder.url, URI.create("https://iam.cloud.ibm.com/identity/token"));

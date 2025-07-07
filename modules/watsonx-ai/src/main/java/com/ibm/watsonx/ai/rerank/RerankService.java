@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
 
 
 /**
- * Service class for performing rerank requests.
+ * Service class to interact with IBM Watsonx Text Rerank APIs.
  * <p>
  * <b>Example usage:</b>
  *

@@ -16,6 +16,8 @@ import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.JsonSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolMessage;
@@ -23,15 +25,14 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
-import com.ibm.watsonx.ai.core.chat.JsonSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.StringSchema;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 
 public class AiService {
 
   private static final Config config = ConfigProvider.getConfig();
   private static final String SYSTEM_MESSAGE = """
-      You are a helpful assistant. Your task is to answer user questions.
-      Since the response will be written in a CLI, keep your answers concise to ensure readability.""";
+    You are a helpful assistant. Your task is to answer user questions.
+    Since the response will be written in a CLI, keep your answers concise to ensure readability.""";
 
   private static final Tool EMAIL_TOOL = Tool.of(
     "send_email",
@@ -59,7 +60,7 @@ public class AiService {
     chatService = ChatService.builder()
       .authenticationProvider(authProvider)
       .projectId(projectId)
-      .modelId("mistralai/mistral-small-24b-instruct-2501")
+      .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
       .url(url)
       .build();
 
@@ -97,5 +98,9 @@ public class AiService {
     }
 
     return chatService.chat(messages, parameters).toAssistantMessage();
+  }
+
+  public FoundationModel getModel() {
+    return chatService.getModelDetails();
   }
 }

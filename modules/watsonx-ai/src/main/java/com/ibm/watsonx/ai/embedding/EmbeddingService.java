@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 
 /**
- * Service class for performing embedding requests.
+ * Service class to interact with IBM Watsonx Text Embeddings APIs.
  * <p>
  * <b>Example usage:</b>
  *

@@ -18,6 +18,8 @@ import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
@@ -51,6 +53,7 @@ public abstract class WatsonxService {
   protected final Duration timeout;
   protected final boolean logResponses;
   protected final AuthenticationProvider authenticationProvider;
+  protected final FoundationModelService foundationModelService;
   protected final SyncHttpClient syncHttpClient;
   protected final AsyncHttpClient asyncHttpClient;
 
@@ -95,8 +98,27 @@ public abstract class WatsonxService {
 
     syncHttpClient = syncHttpClientBuilder.build();
     asyncHttpClient = asyncHttpClientBuilder.build();
+
+    foundationModelService = requireNonNullElse(
+      builder.foundationModelService, FoundationModelService.builder()
+        .url(url)
+        .techPreview(true)
+        .httpClient(httpClient)
+        .logRequests(logRequests)
+        .logResponses(logResponses)
+        .build()
+    );
   }
 
+  /**
+   * Retrieves model details.
+   *
+   * @return Details of the the model.
+   */
+  public FoundationModel getModelDetails() {
+    return foundationModelService.getModelDetails(modelId)
+      .orElseThrow(() -> new RuntimeException("The model with id \"%s\" doesn't exist".formatted(modelId)));
+  }
 
   @SuppressWarnings("unchecked")
   public static abstract class Builder<T extends Builder<T>> {
@@ -110,6 +132,7 @@ public abstract class WatsonxService {
     private Boolean logResponses;
     private HttpClient httpClient;
     private AuthenticationProvider authenticationProvider;
+    private FoundationModelService foundationModelService;
 
     /**
      * Sets the endpoint URL to which the chat request will be sent.
@@ -232,6 +255,16 @@ public abstract class WatsonxService {
      */
     public T authenticationProvider(AuthenticationProvider authenticationProvider) {
       this.authenticationProvider = authenticationProvider;
+      return (T) this;
+    }
+
+    /**
+     * Sets the {@link FoundationModelService} used for authenticating requests.
+     *
+     * @param authenticationProvider {@link FoundationModelService} instance
+     */
+    public T foundationModelService(FoundationModelService foundationModelService) {
+      this.foundationModelService = foundationModelService;
       return (T) this;
     }
   }

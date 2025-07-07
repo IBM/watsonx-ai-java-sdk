@@ -36,7 +36,7 @@ import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 
 /**
- * Service client for performing chat-based inference.
+ * Service class to interact with IBM Watsonx Text Chat APIs.
  * <p>
  * <b>Example usage:</b>
  *
