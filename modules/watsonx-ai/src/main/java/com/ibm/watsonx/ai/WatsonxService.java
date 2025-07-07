@@ -39,8 +39,9 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
  */
 public abstract class WatsonxService {
 
-  protected static final String ML_API_PATH = "/ml/v1/text";
-  protected static final String API_VERSION = "2025-04-23";
+  public static final String ML_API_PATH = "/ml/v1";
+  public static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
+  public static final String API_VERSION = "2025-04-23";
 
   protected final URI url;
   protected final String version;
@@ -126,8 +127,7 @@ public abstract class WatsonxService {
      * @param url the endpoint URL as a string
      */
     public T url(String url) {
-      this.url = URI.create(url);
-      return (T) this;
+      return url(URI.create(url));
     }
 
     /**
@@ -186,7 +186,7 @@ public abstract class WatsonxService {
     }
 
     /**
-     * Enables or disables logging of the request payload sent to the model.
+     * Enables or disables logging of the request payload.
      *
      * @param logRequests {@code true} to log the request, {@code false} otherwise
      */
@@ -196,9 +196,9 @@ public abstract class WatsonxService {
     }
 
     /**
-     * Enables or disables logging of the model's response payload.
+     * Enables or disables logging of the response payload.
      *
-     * @param logResponses {@code true} to log the response; {@code false} otherwise
+     * @param logResponses {@code true} to log the response, {@code false} otherwise
      */
     public T logResponses(Boolean logResponses) {
       this.logResponses = logResponses;

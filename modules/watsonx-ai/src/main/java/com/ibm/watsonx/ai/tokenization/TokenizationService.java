@@ -36,7 +36,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  */
 public class TokenizationService extends WatsonxService {
 
-  public TokenizationService(Builder builder) {
+  protected TokenizationService(Builder builder) {
     super(builder);
   }
 
@@ -77,7 +77,7 @@ public class TokenizationService extends WatsonxService {
       spaceId, requestParameters);
 
     var httpRequest = HttpRequest
-      .newBuilder(URI.create(url.toString() + "%s/tokenization?version=%s".formatted(ML_API_PATH, version)))
+      .newBuilder(URI.create(url.toString() + "%s/tokenization?version=%s".formatted(ML_API_TEXT_PATH, version)))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
       .POST(BodyPublishers.ofString(toJson(tokenizationRequest)))
