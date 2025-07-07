@@ -21,6 +21,16 @@ public interface JsonAdapter {
   <T> T fromJson(String json, Class<T> clazz);
 
   /**
+   * Deserializes a JSON string into an object of the specified generic type.
+   *
+   * @param json the JSON content
+   * @param typeToken the target generic type
+   * @param <T> the type of the resulting object
+   * @return the deserialized object
+   */
+  <T> T fromJson(String json, TypeToken<T> clazz);
+
+  /**
    * Serializes an object to its JSON representation.
    *
    * @param object the object to serialize.

@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai;
+package com.ibm.watsonx.ai.chat;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -43,10 +43,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.ibm.watsonx.ai.chat.ChatHandler;
-import com.ibm.watsonx.ai.chat.ChatRequest;
-import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -55,6 +52,10 @@ import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.Image;
 import com.ibm.watsonx.ai.chat.model.Image.Detail;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
+import com.ibm.watsonx.ai.chat.model.JsonSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextContent;
@@ -66,10 +67,6 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.VideoContent;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.chat.JsonSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.EnumSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.IntegerSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.StringSchema;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")

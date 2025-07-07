@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core.chat;
+package com.ibm.watsonx.ai.chat.model;
 
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -10,14 +10,13 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.ArraySchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.BooleanSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.EnumSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.IntegerSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.NumberSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.ObjectSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.ObjectSchema.Builder;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.StringSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.ArraySchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.BooleanSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.NumberSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
 
 /**
  * Represents a JSON Schema used to describe the structure of JSON/Tool.

@@ -2,18 +2,20 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core;
+package com.ibm.watsonx.ai.chat;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.ibm.watsonx.ai.core.chat.JsonSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.ArraySchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.BooleanSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.EnumSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.IntegerSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.NumberSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.StringSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.ArraySchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.BooleanSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.NumberSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
+import com.ibm.watsonx.ai.core.Json;
+
 
 public class JsonSchemaTest {
 

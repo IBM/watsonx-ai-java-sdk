@@ -14,8 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import com.ibm.watsonx.ai.WatsonxParameters;
-import com.ibm.watsonx.ai.core.chat.JsonSchema;
-import com.ibm.watsonx.ai.core.chat.JsonSchema.ObjectSchema;
+import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
 
 /**
  * Represents a set of parameters used to control the behavior of a chat model during text generation.
