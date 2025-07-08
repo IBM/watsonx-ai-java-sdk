@@ -18,6 +18,8 @@ import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
@@ -39,8 +41,9 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
  */
 public abstract class WatsonxService {
 
-  protected static final String ML_API_PATH = "/ml/v1/text";
-  protected static final String API_VERSION = "2025-04-23";
+  public static final String ML_API_PATH = "/ml/v1";
+  public static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
+  public static final String API_VERSION = "2025-04-23";
 
   protected final URI url;
   protected final String version;
@@ -50,6 +53,7 @@ public abstract class WatsonxService {
   protected final Duration timeout;
   protected final boolean logResponses;
   protected final AuthenticationProvider authenticationProvider;
+  protected final FoundationModelService foundationModelService;
   protected final SyncHttpClient syncHttpClient;
   protected final AsyncHttpClient asyncHttpClient;
 
@@ -94,8 +98,27 @@ public abstract class WatsonxService {
 
     syncHttpClient = syncHttpClientBuilder.build();
     asyncHttpClient = asyncHttpClientBuilder.build();
+
+    foundationModelService = requireNonNullElse(
+      builder.foundationModelService, FoundationModelService.builder()
+        .url(url)
+        .techPreview(true)
+        .httpClient(httpClient)
+        .logRequests(logRequests)
+        .logResponses(logResponses)
+        .build()
+    );
   }
 
+  /**
+   * Retrieves model details.
+   *
+   * @return Details of the the model.
+   */
+  public FoundationModel getModelDetails() {
+    return foundationModelService.getModelDetails(modelId)
+      .orElseThrow(() -> new RuntimeException("The model with id \"%s\" doesn't exist".formatted(modelId)));
+  }
 
   @SuppressWarnings("unchecked")
   public static abstract class Builder<T extends Builder<T>> {
@@ -109,6 +132,7 @@ public abstract class WatsonxService {
     private Boolean logResponses;
     private HttpClient httpClient;
     private AuthenticationProvider authenticationProvider;
+    private FoundationModelService foundationModelService;
 
     /**
      * Sets the endpoint URL to which the chat request will be sent.
@@ -126,8 +150,7 @@ public abstract class WatsonxService {
      * @param url the endpoint URL as a string
      */
     public T url(String url) {
-      this.url = URI.create(url);
-      return (T) this;
+      return url(URI.create(url));
     }
 
     /**
@@ -186,7 +209,7 @@ public abstract class WatsonxService {
     }
 
     /**
-     * Enables or disables logging of the request payload sent to the model.
+     * Enables or disables logging of the request payload.
      *
      * @param logRequests {@code true} to log the request, {@code false} otherwise
      */
@@ -196,9 +219,9 @@ public abstract class WatsonxService {
     }
 
     /**
-     * Enables or disables logging of the model's response payload.
+     * Enables or disables logging of the response payload.
      *
-     * @param logResponses {@code true} to log the response; {@code false} otherwise
+     * @param logResponses {@code true} to log the response, {@code false} otherwise
      */
     public T logResponses(Boolean logResponses) {
       this.logResponses = logResponses;
@@ -232,6 +255,16 @@ public abstract class WatsonxService {
      */
     public T authenticationProvider(AuthenticationProvider authenticationProvider) {
       this.authenticationProvider = authenticationProvider;
+      return (T) this;
+    }
+
+    /**
+     * Sets the {@link FoundationModelService} used for authenticating requests.
+     *
+     * @param authenticationProvider {@link FoundationModelService} instance
+     */
+    public T foundationModelService(FoundationModelService foundationModelService) {
+      this.foundationModelService = foundationModelService;
       return (T) this;
     }
   }

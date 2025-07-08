@@ -1,0 +1,81 @@
+{
+    "total_count": 12,
+    "limit": 100,
+    "first": {
+        "href": "https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_tasks?version=2025-04-23"
+    },
+    "resources": [
+        {
+            "task_id": "question_answering",
+            "label": "Question answering",
+            "rank": 1,
+            "description": "Based on a set of documents or dynamic content, create a chatbot or a question-answering feature grounded on specific content. E.g. building a Q&A resource from a broad knowledge base, providing customer service assistance."
+        },
+        {
+            "task_id": "summarization",
+            "label": "Summarization",
+            "rank": 2,
+            "description": "Transform text with domain-specific content into personalized overviews, capturing key points. E.g. sales conversation summaries, insurance coverage, meeting transcripts, and contract information."
+        },
+        {
+            "task_id": "retrieval_augmented_generation",
+            "label": "Retrieval-Augmented Generation",
+            "rank": 3,
+            "description": "Automatically incorporate information from external sources (such as documents, websites, or databases) to augment user queries and get more accurate, relevant, and contextually rich output."
+        },
+        {
+            "task_id": "classification",
+            "label": "Classification",
+            "rank": 4,
+            "description": "Read and classify written input with as few as zero examples. E.g. sorting of customer complaints, threat & vulnerability classification, sentiment analysis, and customer segmentation."
+        },
+        {
+            "task_id": "generation",
+            "label": "Generation",
+            "rank": 5,
+            "description": "Generate text content for a specific purpose. E.g. content creation for marketing campaigns, job descriptions, blog posts and articles, and email drafting support."
+        },
+        {
+            "task_id": "code",
+            "label": "Code generation and conversion",
+            "rank": 6,
+            "description": "Generate programming code based on natural-language prompts, make suggestions to complete partially written code, make instruction-based modifications in code (e.g. convert the code to another programming language), and automatically generate easily understandable code documentation."
+        },
+        {
+            "task_id": "extraction",
+            "label": "Extraction",
+            "rank": 7,
+            "description": "Identify and extract essential information from unstructured text. E.g. audit acceleration, SEC 10K fact extraction."
+        },
+        {
+            "task_id": "translation",
+            "label": "Translation",
+            "rank": 8,
+            "description": "Translate text or speech from one language to another."
+        },
+        {
+            "task_id": "function_calling",
+            "label": "Function calling",
+            "rank": 9,
+            "description": "The model supports function calling to interface with tools."
+        },
+        {
+            "task_id": "code-generation",
+            "label": "Code generation",
+            "rank": 10,
+            "description": "Generate programming code based on natural-language prompts, make suggestions to complete partially written code, make instruction-based modifications in code (e.g. convert the code to another programming language), and automatically generate easily understandable code documentation."
+        },
+        {
+            "task_id": "code-explanation",
+            "label": "Code explanation",
+            "rank": 11,
+            "description": "Analyze source code and provide detailed explanations of how the code works, and what's its purpose and functionality."
+        },
+        {
+            "task_id": "code-fixing",
+            "label": "Code fixing",
+            "rank": 12,
+            "description": "Examine source code for potential problems and inefficiencies, identify and fix coding errors, generate code fix suggestions, optimize code performance, and make recommendations for improvements."
+        }
+    ]
+}

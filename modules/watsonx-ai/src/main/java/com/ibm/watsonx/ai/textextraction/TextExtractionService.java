@@ -40,7 +40,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Error;
 import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
 
 /**
- * Service client for extracting text from high-value business documents. *
+ * Service class to interact with IBM Watsonx Text Extraction APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -64,7 +64,7 @@ public class TextExtractionService extends WatsonxService {
   private final CosReference documentReference;
   private final CosReference resultReference;
 
-  public TextExtractionService(Builder builder) {
+  protected TextExtractionService(Builder builder) {
     super(builder);
     var tmpUrl = requireNonNull(builder.cosUrl, "cosUrl value cannot be null");
     cosUrl = tmpUrl.endsWith("/") ? tmpUrl.substring(0, tmpUrl.length() - 1) : tmpUrl;
@@ -381,7 +381,7 @@ public class TextExtractionService extends WatsonxService {
     var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
     var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
     var queryParameters = getQueryParameters(projectId, spaceId);
-    var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_PATH, id, queryParameters));
+    var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_TEXT_PATH, id, queryParameters));
 
     var httpRequest = HttpRequest.newBuilder(uri)
       .header("Accept", "application/json")
@@ -464,7 +464,7 @@ public class TextExtractionService extends WatsonxService {
       .map(nullable -> getQueryParameters(projectId, spaceId).concat("&hard_delete=true"))
       .orElse(getQueryParameters(projectId, spaceId));
 
-    var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_PATH, id, queryParameters));
+    var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_TEXT_PATH, id, queryParameters));
     var httpRequest = HttpRequest.newBuilder(uri).DELETE().build();
 
     try {
@@ -587,7 +587,7 @@ public class TextExtractionService extends WatsonxService {
     );
 
     var httpRequest =
-      HttpRequest.newBuilder(URI.create(url.toString() + "%s/extractions?version=%s".formatted(ML_API_PATH, version)))
+      HttpRequest.newBuilder(URI.create(url.toString() + "%s/extractions?version=%s".formatted(ML_API_TEXT_PATH, version)))
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
         .POST(BodyPublishers.ofString(toJson(request)))

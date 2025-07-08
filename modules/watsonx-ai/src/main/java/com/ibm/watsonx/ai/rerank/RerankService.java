@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
 
 
 /**
- * Service class for performing rerank requests.
+ * Service class to interact with IBM Watsonx Text Rerank APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -45,7 +45,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  */
 public final class RerankService extends WatsonxService {
 
-  public RerankService(Builder builder) {
+  protected RerankService(Builder builder) {
     super(builder);
   }
 
@@ -95,7 +95,7 @@ public final class RerankService extends WatsonxService {
     );
 
     var httpRequest = HttpRequest
-      .newBuilder(URI.create(url.toString() + "%s/rerank?version=%s".formatted(ML_API_PATH, version)))
+      .newBuilder(URI.create(url.toString() + "%s/rerank?version=%s".formatted(ML_API_TEXT_PATH, version)))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
       .POST(BodyPublishers.ofString(toJson(rerankRequest)))

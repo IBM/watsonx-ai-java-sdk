@@ -46,7 +46,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
  */
 public class TextGenerationService extends WatsonxService {
 
-  public TextGenerationService(Builder builder) {
+  protected TextGenerationService(Builder builder) {
     super(builder);
   }
 
@@ -112,7 +112,7 @@ public class TextGenerationService extends WatsonxService {
 
     var httpRequest =
       HttpRequest
-        .newBuilder(URI.create(url.toString() + "%s/generation?version=%s".formatted(ML_API_PATH, version)))
+        .newBuilder(URI.create(url.toString() + "%s/generation?version=%s".formatted(ML_API_TEXT_PATH, version)))
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
         .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
@@ -176,7 +176,7 @@ public class TextGenerationService extends WatsonxService {
     var httpRequest =
       HttpRequest
         .newBuilder(
-          URI.create(url.toString() + "%s/generation_stream?version=%s".formatted(ML_API_PATH, version)))
+          URI.create(url.toString() + "%s/generation_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
         .header("Content-Type", "application/json")
         .header("Accept", "text/event-stream")
         .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))

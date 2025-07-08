@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 
 /**
- * Service class for performing embedding requests.
+ * Service class to interact with IBM Watsonx Text Embeddings APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -43,7 +43,7 @@ public final class EmbeddingService extends WatsonxService {
 
   private static final int MAX_SIZE = 1000;
 
-  public EmbeddingService(Builder builder) {
+  protected EmbeddingService(Builder builder) {
     super(builder);
   }
 
@@ -103,7 +103,7 @@ public final class EmbeddingService extends WatsonxService {
         new EmbeddingRequest(modelId, spaceId, projectId, subList, requestParameters);
 
       var httpRequest = HttpRequest
-        .newBuilder(URI.create(url.toString() + "%s/embeddings?version=%s".formatted(ML_API_PATH, version)))
+        .newBuilder(URI.create(url.toString() + "%s/embeddings?version=%s".formatted(ML_API_TEXT_PATH, version)))
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
         .POST(BodyPublishers.ofString(toJson(embeddingRequest)))

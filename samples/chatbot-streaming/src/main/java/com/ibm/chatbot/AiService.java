@@ -20,6 +20,7 @@ import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 
 public class AiService {
 
@@ -73,5 +74,9 @@ public class AiService {
         System.err.println(error);
       }
     });
+  }
+
+  public FoundationModel getModel() {
+    return chatService.getModelDetails();
   }
 }

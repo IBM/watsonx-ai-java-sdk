@@ -1,0 +1,3475 @@
+{
+    "limit": 100,
+    "first": {
+        "href": "https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_specs?version=2025-04-23"
+    },
+    "total_count": 35,
+    "resources": [
+        {
+            "model_id": "core42/jais-13b-chat",
+            "label": "jais-13b-chat",
+            "provider": "Core42",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "Jais-13b-chat is Jais-13b fine-tuned over a curated set of 4 million Arabic and 6 million English prompt-response pairs.",
+            "long_description": "This is a 13 billion parameter fine-tuned bilingual large language model for both Arabic and English. It is based on transformer-based decoder-only (GPT-3) architecture and uses SwiGLU non-linearity. It implements ALiBi position embeddings, enabling the model to extrapolate to long sequence lengths, providing improved context handling and model precision.",
+            "terms_url": "https://www.apache.org/licenses/LICENSE-2.0",
+            "input_tier": "class_2",
+            "output_tier": "class_2",
+            "number_params": "13b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "extraction",
+                "translation"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 2
+                    }
+                },
+                {
+                    "id": "translation",
+                    "ratings": {
+                        "quality": 2
+                    }
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 2048,
+                "max_output_tokens": 2048
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 2048
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 2048
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 2048
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-04-11"
+                }
+            ]
+        },
+        {
+            "model_id": "cross-encoder/ms-marco-minilm-l-12-v2",
+            "label": "ms-marco-minilm-l-12-v2",
+            "provider": "cross-encoder",
+            "source": "cross-encoder",
+            "functions": [
+                {
+                    "id": "rerank"
+                }
+            ],
+            "short_description": "Used for Information Retrieval: Encode and sort a query will all possible passages.",
+            "long_description": "The model can be used for Information Retrieval: Given a query, encode the query will all possible passages (e.g. retrieved with ElasticSearch). Then sort the passages in a decreasing order.",
+            "input_tier": "class_11",
+            "output_tier": "class_11",
+            "number_params": "33.4m",
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-09-17"
+                }
+            ]
+        },
+        {
+            "model_id": "google/flan-t5-xl",
+            "label": "flan-t5-xl-3b",
+            "provider": "Google",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "prompt_tune_inferable"
+                },
+                {
+                    "id": "prompt_tune_trainable"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "A pretrained T5 - an encoder-decoder model pre-trained on a mixture of supervised / unsupervised tasks converted into a text-to-text format.",
+            "long_description": "flan-t5-xl (3B) is a 3 billion parameter model based on the Flan-T5 family. It is a pretrained T5 - an encoder-decoder model pre-trained on a mixture of supervised / unsupervised tasks converted into a text-to-text format, and fine-tuned on the Fine-tuned Language Net (FLAN) with instructions for better zero-shot and few-shot performance.",
+            "terms_url": "https://huggingface.co/google/flan-t5-xl/blob/main/README.md",
+            "input_tier": "class_1",
+            "output_tier": "class_1",
+            "number_params": "3b",
+            "min_shot_size": 0,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "extraction"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization",
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ]
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification",
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ]
+                },
+                {
+                    "id": "generation",
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ]
+                },
+                {
+                    "id": "extraction"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 4096,
+                "max_output_tokens": 4095,
+                "training_data_max_records": 10000
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 4095
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4095
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4095
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2023-12-07"
+                },
+                {
+                    "id": "deprecated",
+                    "start_date": "2025-06-18"
+                },
+                {
+                    "id": "withdrawn",
+                    "start_date": "2025-10-15"
+                }
+            ],
+            "training_parameters": {
+                "init_method": {
+                    "supported": [
+                        "random",
+                        "text"
+                    ],
+                    "default": "random"
+                },
+                "init_text": {
+                    "default": "text"
+                },
+                "num_virtual_tokens": {
+                    "supported": [
+                        20,
+                        50,
+                        100
+                    ],
+                    "default": 100
+                },
+                "num_epochs": {
+                    "default": 20,
+                    "min": 1,
+                    "max": 50
+                },
+                "verbalizer": {
+                    "default": "Input: {{input}} Output:"
+                },
+                "batch_size": {
+                    "default": 16,
+                    "min": 1,
+                    "max": 16
+                },
+                "max_input_tokens": {
+                    "default": 256,
+                    "min": 1,
+                    "max": 256
+                },
+                "max_output_tokens": {
+                    "default": 128,
+                    "min": 1,
+                    "max": 128
+                },
+                "torch_dtype": {
+                    "default": "bfloat16"
+                },
+                "accumulate_steps": {
+                    "default": 16,
+                    "min": 1,
+                    "max": 128
+                },
+                "learning_rate": {
+                    "default": 0.3,
+                    "min": 1.0E-5,
+                    "max": 0.5
+                }
+            }
+        },
+        {
+            "model_id": "google/flan-t5-xxl",
+            "label": "flan-t5-xxl-11b",
+            "provider": "Google",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "flan-t5-xxl is an 11 billion parameter model based on the Flan-T5 family.",
+            "long_description": "flan-t5-xxl (11B) is an 11 billion parameter model based on the Flan-T5 family. It is a pretrained T5 - an encoder-decoder model pre-trained on a mixture of supervised / unsupervised tasks converted into a text-to-text format, and fine-tuned on the Fine-tuned Language Net (FLAN) with instructions for better zero-shot and few-shot performance.",
+            "terms_url": "https://huggingface.co/google/flan-t5-xxl/blob/main/README.md",
+            "input_tier": "class_2",
+            "output_tier": "class_2",
+            "number_params": "11b",
+            "min_shot_size": 0,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "extraction"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 4
+                    }
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 4096,
+                "max_output_tokens": 4095
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 4095
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4095
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4095
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2023-07-07"
+                },
+                {
+                    "id": "deprecated",
+                    "start_date": "2025-05-28"
+                },
+                {
+                    "id": "withdrawn",
+                    "start_date": "2025-07-30"
+                }
+            ]
+        },
+        {
+            "model_id": "google/flan-ul2",
+            "label": "flan-ul2-20b",
+            "provider": "Google",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "flan-ul2 is an encoder decoder model based on the T5 architecture and instruction-tuned using the Fine-tuned Language Net.",
+            "long_description": "flan-ul2 (20B) is an encoder decoder model based on the T5 architecture and instruction-tuned using the Fine-tuned Language Net (FLAN). Compared to the original UL2 model, flan-ul2 (20B) is more usable for few-shot in-context learning because it was trained with a three times larger receptive field. flan-ul2 (20B) outperforms flan-t5 (11B) by an overall relative improvement of +3.2%.",
+            "terms_url": "https://huggingface.co/google/flan-ul2/blob/main/README.md",
+            "input_tier": "class_3",
+            "output_tier": "class_3",
+            "number_params": "20b",
+            "min_shot_size": 0,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "extraction",
+                "translation"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "translation"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 4096,
+                "max_output_tokens": 4095
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 4095
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4095
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4095
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2023-07-07"
+                },
+                {
+                    "id": "deprecated",
+                    "start_date": "2025-05-28"
+                },
+                {
+                    "id": "withdrawn",
+                    "start_date": "2025-07-30"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-13b-instruct-v2",
+            "label": "granite-13b-instruct-v2",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "prompt_tune_inferable"
+                },
+                {
+                    "id": "prompt_tune_trainable"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "The Granite model series is a family of IBM-trained, dense decoder-only models, which are particularly well-suited for generative tasks.",
+            "long_description": "Granite models are designed to be used for a wide range of generative and non-generative tasks with appropriate prompt engineering. They employ a GPT-style decoder-only architecture, with additional innovations from IBM Research and the open community.",
+            "terms_url": "https://www.ibm.com/support/customer/csol/terms/?id=i126-6883",
+            "input_tier": "class_1",
+            "output_tier": "class_1",
+            "number_params": "13b",
+            "min_shot_size": 0,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "extraction",
+                "translation"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 2
+                    },
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ],
+                    "training_parameters": {
+                        "init_method": {
+                            "supported": [
+                                "random",
+                                "text"
+                            ],
+                            "default": "text"
+                        },
+                        "init_text": {
+                            "default": "Please write a summary highlighting the main points of the following text:"
+                        },
+                        "num_virtual_tokens": {
+                            "supported": [
+                                20,
+                                50,
+                                100
+                            ],
+                            "default": 100
+                        },
+                        "num_epochs": {
+                            "default": 40,
+                            "min": 1,
+                            "max": 50
+                        },
+                        "verbalizer": {
+                            "default": "Please write a summary highlighting the main points of the following text: {{input}}"
+                        },
+                        "batch_size": {
+                            "default": 8,
+                            "min": 1,
+                            "max": 16
+                        },
+                        "max_input_tokens": {
+                            "default": 256,
+                            "min": 1,
+                            "max": 1024
+                        },
+                        "max_output_tokens": {
+                            "default": 128,
+                            "min": 1,
+                            "max": 512
+                        },
+                        "torch_dtype": {
+                            "default": "bfloat16"
+                        },
+                        "accumulate_steps": {
+                            "default": 1,
+                            "min": 1,
+                            "max": 128
+                        },
+                        "learning_rate": {
+                            "default": 2.0E-4,
+                            "min": 1.0E-5,
+                            "max": 0.5
+                        }
+                    }
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 2
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 3
+                    },
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ],
+                    "training_parameters": {
+                        "init_method": {
+                            "supported": [
+                                "random",
+                                "text"
+                            ],
+                            "default": "text"
+                        },
+                        "init_text": {
+                            "default": "Classify the text:"
+                        },
+                        "num_virtual_tokens": {
+                            "supported": [
+                                20,
+                                50,
+                                100
+                            ],
+                            "default": 100
+                        },
+                        "num_epochs": {
+                            "default": 20,
+                            "min": 1,
+                            "max": 50
+                        },
+                        "verbalizer": {
+                            "default": "Input: {{input}} Output:"
+                        },
+                        "batch_size": {
+                            "default": 8,
+                            "min": 1,
+                            "max": 16
+                        },
+                        "max_input_tokens": {
+                            "default": 256,
+                            "min": 1,
+                            "max": 1024
+                        },
+                        "max_output_tokens": {
+                            "default": 128,
+                            "min": 1,
+                            "max": 512
+                        },
+                        "torch_dtype": {
+                            "default": "bfloat16"
+                        },
+                        "accumulate_steps": {
+                            "default": 32,
+                            "min": 1,
+                            "max": 128
+                        },
+                        "learning_rate": {
+                            "default": 6.0E-4,
+                            "min": 1.0E-5,
+                            "max": 0.5
+                        }
+                    }
+                },
+                {
+                    "id": "generation",
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ],
+                    "training_parameters": {
+                        "init_method": {
+                            "supported": [
+                                "random",
+                                "text"
+                            ],
+                            "default": "text"
+                        },
+                        "init_text": {
+                            "default": "text"
+                        },
+                        "num_virtual_tokens": {
+                            "supported": [
+                                20,
+                                50,
+                                100
+                            ],
+                            "default": 100
+                        },
+                        "num_epochs": {
+                            "default": 20,
+                            "min": 1,
+                            "max": 50
+                        },
+                        "verbalizer": {
+                            "default": "{{input}}"
+                        },
+                        "batch_size": {
+                            "default": 16,
+                            "min": 1,
+                            "max": 16
+                        },
+                        "max_input_tokens": {
+                            "default": 256,
+                            "min": 1,
+                            "max": 1024
+                        },
+                        "max_output_tokens": {
+                            "default": 128,
+                            "min": 1,
+                            "max": 512
+                        },
+                        "torch_dtype": {
+                            "default": "bfloat16"
+                        },
+                        "accumulate_steps": {
+                            "default": 16,
+                            "min": 1,
+                            "max": 128
+                        },
+                        "learning_rate": {
+                            "default": 2.0E-4,
+                            "min": 1.0E-5,
+                            "max": 0.5
+                        }
+                    }
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 2
+                    }
+                },
+                {
+                    "id": "translation"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 8192,
+                "max_output_tokens": 8191,
+                "training_data_max_records": 10000
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8191
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8191
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8191
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2023-12-01"
+                },
+                {
+                    "id": "deprecated",
+                    "start_date": "2025-06-18",
+                    "alternative_model_ids": [
+                        "ibm/granite-3-3-8b-instruct"
+                    ]
+                },
+                {
+                    "id": "withdrawn",
+                    "start_date": "2025-10-15",
+                    "alternative_model_ids": [
+                        "ibm/granite-3-3-8b-instruct"
+                    ]
+                }
+            ],
+            "training_parameters": {
+                "init_method": {
+                    "supported": [
+                        "random",
+                        "text"
+                    ],
+                    "default": "random"
+                },
+                "init_text": {
+                    "default": "text"
+                },
+                "num_virtual_tokens": {
+                    "supported": [
+                        20,
+                        50,
+                        100
+                    ],
+                    "default": 100
+                },
+                "num_epochs": {
+                    "default": 20,
+                    "min": 1,
+                    "max": 50
+                },
+                "verbalizer": {
+                    "default": "{{input}}"
+                },
+                "batch_size": {
+                    "default": 16,
+                    "min": 1,
+                    "max": 16
+                },
+                "max_input_tokens": {
+                    "default": 256,
+                    "min": 1,
+                    "max": 1024
+                },
+                "max_output_tokens": {
+                    "default": 128,
+                    "min": 1,
+                    "max": 512
+                },
+                "torch_dtype": {
+                    "default": "bfloat16"
+                },
+                "accumulate_steps": {
+                    "default": 16,
+                    "min": 1,
+                    "max": 128
+                },
+                "learning_rate": {
+                    "default": 2.0E-4,
+                    "min": 1.0E-5,
+                    "max": 0.5
+                }
+            }
+        },
+        {
+            "model_id": "ibm/granite-20b-code-instruct",
+            "label": "granite-20b-code-instruct",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "The Granite model series is a family of IBM-trained, dense decoder-only models, which are particularly well-suited for generative tasks.",
+            "long_description": "Granite models are designed to be used for a wide range of generative and non-generative tasks with appropriate prompt engineering. They employ a GPT-style decoder-only architecture, with additional innovations from IBM Research and the open community.",
+            "terms_url": "https://www.ibm.com/support/customer/csol/terms/?id=i126-6883",
+            "input_tier": "class_1",
+            "output_tier": "class_1",
+            "number_params": "20b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "classification",
+                "generation",
+                "extraction",
+                "code-generation",
+                "code-explanation",
+                "code-fixing"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "code-generation"
+                },
+                {
+                    "id": "code-explanation"
+                },
+                {
+                    "id": "code-fixing"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 8192,
+                "max_output_tokens": 4096
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 4096
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4096
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4096
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-05-06"
+                },
+                {
+                    "id": "deprecated",
+                    "start_date": "2025-04-16"
+                },
+                {
+                    "id": "withdrawn",
+                    "start_date": "2025-07-17"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.1.0",
+                    "available_date": "2024-09-03"
+                },
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-05-06"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-3-1-8b-base",
+            "label": "granite-3-1-8b-base",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "base_foundation_model_deployable"
+                },
+                {
+                    "id": "lora_fine_tune_trainable"
+                }
+            ],
+            "short_description": "Granite 3.1 8b base is a pre-trained autoregressive foundation model with a context length of 128k intended for tuning.",
+            "long_description": "Granite models are designed to be used for a wide range of generative and non-generative tasks with appropriate prompt engineering. They employ a GPT-style decoder-only architecture, with additional innovations from IBM Research and the open community.",
+            "terms_url": "https://www.ibm.com/support/customer/csol/terms/?id=i126-6883&lc=en",
+            "input_tier": "",
+            "output_tier": "",
+            "number_params": "8b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling",
+                "code-generation",
+                "code-explanation",
+                "code-fixing"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling"
+                },
+                {
+                    "id": "code-generation"
+                },
+                {
+                    "id": "code-explanation"
+                },
+                {
+                    "id": "code-fixing"
+                }
+            ],
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2025-04-16"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "3.1.0",
+                    "available_date": "2024-12-06"
+                }
+            ],
+            "lora_fine_tuning_parameters": {
+                "num_epochs": {
+                    "default": 10,
+                    "min": 1,
+                    "max": 50
+                },
+                "verbalizer": {
+                    "default": "### Input: {{input}} \n\n### Response: {{output}}"
+                },
+                "batch_size": {
+                    "default": 5,
+                    "min": 1,
+                    "max": 16
+                },
+                "accumulate_steps": {
+                    "default": 1,
+                    "min": 1,
+                    "max": 128
+                },
+                "learning_rate": {
+                    "default": 1.0E-5,
+                    "min": 1.0E-5,
+                    "max": 0.5
+                },
+                "max_seq_length": {
+                    "default": 4096,
+                    "min": 1,
+                    "max": 8192
+                },
+                "tokenizer": {
+                    "default": "ibm/granite-3-1-8b-base"
+                },
+                "response_template": {
+                    "default": "\n### Response:"
+                },
+                "num_gpus": {
+                    "default": 1
+                },
+                "peft_parameters": {
+                    "type": {
+                        "supported": [
+                            "lora"
+                        ],
+                        "default": "lora"
+                    },
+                    "rank": {
+                        "supported": [
+                            8,
+                            16,
+                            32,
+                            64,
+                            128,
+                            256
+                        ],
+                        "default": 32
+                    },
+                    "target_modules": {
+                        "default": [
+                            "all-linear"
+                        ]
+                    },
+                    "lora_alpha": {
+                        "default": 32,
+                        "min": 0,
+                        "max": 999999
+                    },
+                    "lora_dropout": {
+                        "default": 0.05,
+                        "min": 0,
+                        "max": 1
+                    }
+                },
+                "gradient_checkpointing": {
+                    "default": true
+                }
+            },
+            "data_type": "bfloat16",
+            "architecture_type": "granite",
+            "curated_model_info": {
+                "base_model_id": "ibm/granite-3-1-8b-base",
+                "hardware_spec": "WXaaS-S",
+                "lora_hardware_spec": "WXaaS-S-Lora",
+                "configured_max_sequence_length": 131072,
+                "configured_max_output_tokens": 131072,
+                "category": "HOURS_CATEGORY_ONE",
+                "max_gpu_loras": 8,
+                "max_cpu_loras": 10,
+                "max_lora_rank": 256
+            },
+            "deployment_parameters": [
+                {
+                    "name": "enable_lora",
+                    "display_name": "Enable Lora",
+                    "default": false,
+                    "type": "boolean"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-3-2b-instruct",
+            "label": "granite-3-2b-instruct",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "The Granite model series is a family of IBM-trained, dense decoder-only models, which are particularly well-suited for generative tasks.",
+            "long_description": "Granite models are designed to be used for a wide range of generative and non-generative tasks with appropriate prompt engineering. They employ a GPT-style decoder-only architecture, with additional innovations from IBM Research and the open community.",
+            "terms_url": "https://www.ibm.com/support/customer/csol/terms/?id=i126-6883",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "2b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling",
+                "code-generation",
+                "code-explanation",
+                "code-fixing"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling"
+                },
+                {
+                    "id": "code-generation"
+                },
+                {
+                    "id": "code-explanation"
+                },
+                {
+                    "id": "code-fixing"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 131072,
+                "max_output_tokens": 8192
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-10-21"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.1.0",
+                    "available_date": "2024-12-13"
+                },
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-10-21"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-3-3-8b-instruct",
+            "label": "granite-3-3-8b-instruct",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "multilingual"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "Granite-3.3-8b-Instruct is an IBM-trained, dense decoder-only models, which is particularly well-suited for generative tasks.",
+            "long_description": "Granite-3.3-8b-Instruct is designed to be used for a wide range of generative and non-generative tasks with appropriate prompt engineering. It employs a GPT-style decoder-only architecture, with additional innovations from IBM Research and the open community.",
+            "terms_url": "https://www.ibm.com/support/customer/csol/terms/?id=i126-6883&lc=en",
+            "input_tier": "class_12",
+            "output_tier": "class_12",
+            "number_params": "8b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 131072,
+                "max_output_tokens": 16384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 16384
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 16384
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 16384
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2025-04-16"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "3.3.0",
+                    "available_date": "2025-04-16"
+                }
+            ],
+            "supported_languages": [
+                "en",
+                "de",
+                "fr",
+                "it",
+                "pt",
+                "hi",
+                "es",
+                "th"
+            ]
+        },
+        {
+            "model_id": "ibm/granite-3-8b-instruct",
+            "label": "granite-3-8b-instruct",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "The Granite model series is a family of IBM-trained, dense decoder-only models, which are particularly well-suited for generative tasks.",
+            "long_description": "Granite models are designed to be used for a wide range of generative and non-generative tasks with appropriate prompt engineering. They employ a GPT-style decoder-only architecture, with additional innovations from IBM Research and the open community.",
+            "terms_url": "https://www.ibm.com/support/customer/csol/terms/?id=i126-6883",
+            "input_tier": "class_12",
+            "output_tier": "class_12",
+            "number_params": "8b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling",
+                "code-generation",
+                "code-explanation",
+                "code-fixing"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "code-generation"
+                },
+                {
+                    "id": "code-explanation"
+                },
+                {
+                    "id": "code-fixing"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 131072,
+                "max_output_tokens": 8192
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-10-21"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.1.0",
+                    "available_date": "2024-12-13"
+                },
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-10-21"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-34b-code-instruct",
+            "label": "granite-34b-code-instruct",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "The Granite model series is a family of IBM-trained, dense decoder-only models, which are particularly well-suited for generative tasks.",
+            "long_description": "Granite models are designed to be used for a wide range of generative and non-generative tasks with appropriate prompt engineering. They employ a GPT-style decoder-only architecture, with additional innovations from IBM Research and the open community.",
+            "terms_url": "https://www.ibm.com/support/customer/csol/terms/?id=i126-6883",
+            "input_tier": "class_1",
+            "output_tier": "class_1",
+            "number_params": "34b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "code-generation",
+                "code-explanation",
+                "code-fixing"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "code-generation"
+                },
+                {
+                    "id": "code-explanation"
+                },
+                {
+                    "id": "code-fixing"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 8192,
+                "max_output_tokens": 8192
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2025-02-13"
+                },
+                {
+                    "id": "deprecated",
+                    "start_date": "2025-04-16"
+                },
+                {
+                    "id": "withdrawn",
+                    "start_date": "2025-07-17"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-embedding-107m-multilingual",
+            "label": "granite-embedding-107m-multilingual",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "embedding"
+                }
+            ],
+            "short_description": "Granite-Embedding-107M-Multilingual is a 107M parameter model from the Granite Embeddings suite that can be used to generate high quality text embeddings.",
+            "long_description": "Granite-Embedding-107M-Multilingual is a 107M parameter model from the Granite Embeddings suite that can be used to generate high quality text embeddings. This model produces embedding vectors of size 384 and is trained using a combination of open source relevance-pair datasets with permissive, enterprise-friendly license, and IBM collected and generated datasets. It supports 12 languages:  English, German, Spanish, French, Japanese, Portuguese, Arabic, Czech, Italian, Korean, Dutch, and Chinese.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "107m",
+            "model_limits": {
+                "max_sequence_length": 512,
+                "embedding_dimension": 384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2025-01-06"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-embedding-278m-multilingual",
+            "label": "granite-embedding-278m-multilingual",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "embedding"
+                }
+            ],
+            "short_description": "Granite-Embedding-278M-Multilingual is a 278M parameter model from the Granite Embeddings suite that can be used to generate high quality text embeddings.",
+            "long_description": "Granite-Embedding-278M-Multilingual is a 278M parameter model from the Granite Embeddings suite that can be used to generate high quality text embeddings. This model produces embedding vectors of size 768 and is trained using a combination of open source relevance-pair datasets with permissive, enterprise-friendly license, and IBM collected and generated datasets. It supports 12 languages:  English, German, Spanish, French, Japanese, Portuguese, Arabic, Czech, Italian, Korean, Dutch, and Chinese.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "278m",
+            "model_limits": {
+                "max_sequence_length": 512,
+                "embedding_dimension": 768
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2025-01-15"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-ttm-1024-96-r2",
+            "label": "granite-ttm-1024-96-r2",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "time_series_forecast"
+                }
+            ],
+            "short_description": "TinyTimeMixers (TTMs) are compact pre-trained models for Multivariate Time-Series Forecasting, open-sourced by IBM Research",
+            "long_description": "TinyTimeMixers (TTMs) are compact pre-trained models for Multivariate Time-Series Forecasting, open-sourced by IBM Research. Given the last 1024 time-points (i.e. context length), this model can forecast up to next 96 time-points (i.e. forecast length) in future. This model is targeted towards a forecasting setting of context length 1024 and forecast length 96 and recommended for hourly and minutely resolutions (Ex. 10 min, 15 min, 1 hour, etc)",
+            "input_tier": "class_14",
+            "output_tier": "class_15",
+            "number_params": "805k",
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-11-21"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.1.0",
+                    "available_date": "2025-04-25"
+                },
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-11-21"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-ttm-1536-96-r2",
+            "label": "granite-ttm-1536-96-r2",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "time_series_forecast"
+                }
+            ],
+            "short_description": "TinyTimeMixers (TTMs) are compact pre-trained models for Multivariate Time-Series Forecasting, open-sourced by IBM Research",
+            "long_description": "TinyTimeMixers (TTMs) are compact pre-trained models for Multivariate Time-Series Forecasting, open-sourced by IBM Research. Given the last 1536 time-points (i.e. context length), this model can forecast up to next 96 time-points (i.e. forecast length) in future. This model is targeted towards a forecasting setting of context length 1536 and forecast length 96 and recommended for hourly and minutely resolutions (Ex. 10 min, 15 min, 1 hour, etc)",
+            "input_tier": "class_14",
+            "output_tier": "class_15",
+            "number_params": "805k",
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-11-21"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.1.0",
+                    "available_date": "2025-04-25"
+                },
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-11-21"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/granite-ttm-512-96-r2",
+            "label": "granite-ttm-512-96-r2",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "time_series_forecast"
+                }
+            ],
+            "short_description": "TinyTimeMixers (TTMs) are compact pre-trained models for Multivariate Time-Series Forecasting, open-sourced by IBM Research",
+            "long_description": "TinyTimeMixers (TTMs) are compact pre-trained models for Multivariate Time-Series Forecasting, open-sourced by IBM Research. Given the last 512 time-points (i.e. context length), this model can forecast up to next 96 time-points (i.e. forecast length) in future. This model is targeted towards a forecasting setting of context length 512 and forecast length 96 and recommended for hourly and minutely resolutions (Ex. 10 min, 15 min, 1 hour, etc)",
+            "input_tier": "class_14",
+            "output_tier": "class_15",
+            "number_params": "805k",
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-11-21"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.1.0",
+                    "available_date": "2025-04-25"
+                },
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-11-21"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/slate-125m-english-rtrvr",
+            "label": "slate-125m-english-rtrvr",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "embedding"
+                },
+                {
+                    "id": "rerank"
+                },
+                {
+                    "id": "similarity"
+                }
+            ],
+            "short_description": "An embedding model. It has 125 million parameters and an embedding dimension of 768.",
+            "long_description": "This model follows the standard 'sentence transformers' approach, relying on bi-encoders. It generates embeddings for various inputs such as queries, passages, or documents. The training objective is to maximize cosine similarity between two text pieces: text A (query text) and text B (passage text). This process yields sentence embeddings q and p, allowing for comparison through cosine similarity.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "125m",
+            "model_limits": {
+                "max_sequence_length": 512,
+                "embedding_dimension": 768
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-04-18"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/slate-125m-english-rtrvr-v2",
+            "label": "slate-125m-english-rtrvr-v2",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "embedding"
+                },
+                {
+                    "id": "rerank"
+                },
+                {
+                    "id": "similarity"
+                }
+            ],
+            "short_description": "An embedding model with 512 token limit. It has 125 million parameters and an embedding dimension of 768.",
+            "long_description": "This model follows the standard 'sentence transformers' approach, relying on bi-encoders. It generates embeddings for various inputs such as queries, passages, or documents. The training objective is to maximize cosine similarity between two text pieces: text A (query text) and text B (passage text). This process yields sentence embeddings q and p, allowing for comparison through cosine similarity.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "125m",
+            "model_limits": {
+                "max_sequence_length": 512,
+                "embedding_dimension": 768
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-08-15"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/slate-30m-english-rtrvr",
+            "label": "slate-30m-english-rtrvr",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "embedding"
+                },
+                {
+                    "id": "rerank"
+                },
+                {
+                    "id": "similarity"
+                }
+            ],
+            "short_description": "An embedding model. It has 30 million parameters and an embedding dimension of 384.",
+            "long_description": "This model follows the standard 'sentence transformers' approach, relying on bi-encoders. It generates embeddings for various inputs such as queries, passages, or documents. The training objective is to maximize cosine similarity between two text pieces: text A (query text) and text B (passage text). This process yields sentence embeddings q and p, allowing for comparison through cosine similarity.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "30m",
+            "model_limits": {
+                "max_sequence_length": 512,
+                "embedding_dimension": 384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-04-18"
+                }
+            ]
+        },
+        {
+            "model_id": "ibm/slate-30m-english-rtrvr-v2",
+            "label": "slate-30m-english-rtrvr-v2",
+            "provider": "IBM",
+            "source": "IBM",
+            "functions": [
+                {
+                    "id": "embedding"
+                },
+                {
+                    "id": "rerank"
+                },
+                {
+                    "id": "similarity"
+                }
+            ],
+            "short_description": "An embedding model with 512 token limit. It has 30 million parameters and an embedding dimension of 384.",
+            "long_description": "This model follows the standard 'sentence transformers' approach, relying on bi-encoders. It generates embeddings for various inputs such as queries, passages, or documents. The training objective is to maximize cosine similarity between two text pieces: text A (query text) and text B (passage text). This process yields sentence embeddings q and p, allowing for comparison through cosine similarity.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "30m",
+            "model_limits": {
+                "max_sequence_length": 512,
+                "embedding_dimension": 384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-08-15"
+                }
+            ]
+        },
+        {
+            "model_id": "intfloat/multilingual-e5-large",
+            "label": "multilingual-e5-large",
+            "provider": "intfloat",
+            "source": "intfloat",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "embedding"
+                },
+                {
+                    "id": "multilingual"
+                },
+                {
+                    "id": "rerank"
+                },
+                {
+                    "id": "similarity"
+                }
+            ],
+            "short_description": "An embedding model. It has 560 million parameters, has 24 layers and the embedding size is 1024.",
+            "long_description": "This model gets continually trained on a mixture of multilingual datasets. It supports 100 languages from xlm-roberta.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "560m",
+            "model_limits": {
+                "max_sequence_length": 512,
+                "embedding_dimension": 1024
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-05-16"
+                }
+            ],
+            "supported_languages": [
+                "af",
+                "am",
+                "ar",
+                "as",
+                "az",
+                "be",
+                "bg",
+                "bn",
+                "br",
+                "bs",
+                "ca",
+                "cs",
+                "cy",
+                "da",
+                "de",
+                "el",
+                "en",
+                "eo",
+                "es",
+                "et",
+                "eu",
+                "fa",
+                "fi",
+                "fr",
+                "fy",
+                "ga",
+                "gd",
+                "gl",
+                "gu",
+                "ha",
+                "he",
+                "hi",
+                "hr",
+                "hu",
+                "hy",
+                "id",
+                "is",
+                "it",
+                "ja",
+                "jv",
+                "ka",
+                "kk",
+                "km",
+                "kn",
+                "ko",
+                "ku",
+                "ky",
+                "la",
+                "lo",
+                "lt",
+                "lv",
+                "mg",
+                "mk",
+                "ml",
+                "mn",
+                "mr",
+                "ms",
+                "my",
+                "ne",
+                "nl",
+                "no",
+                "om",
+                "or",
+                "pa",
+                "pl",
+                "ps",
+                "pt",
+                "ro",
+                "ru",
+                "sa",
+                "sd",
+                "si",
+                "sk",
+                "sl",
+                "so",
+                "sq",
+                "sr",
+                "su",
+                "sv",
+                "sw",
+                "ta",
+                "te",
+                "th",
+                "tl",
+                "tr",
+                "ug",
+                "uk",
+                "ur",
+                "uz",
+                "vi",
+                "xh",
+                "yi",
+                "zh"
+            ]
+        },
+        {
+            "model_id": "meta-llama/llama-2-13b-chat",
+            "label": "llama-2-13b-chat",
+            "provider": "Meta",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "prompt_tune_inferable"
+                },
+                {
+                    "id": "prompt_tune_trainable"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "Llama-2-13b-chat is an auto-regressive language model that uses an optimized transformer architecture.",
+            "long_description": "Llama-2-13b-chat is a pretrained and fine-tuned generative text model with 13 billion parameters, optimized for dialogue use cases.",
+            "terms_url": "https://ai.meta.com/llama/license",
+            "input_tier": "class_1",
+            "output_tier": "class_1",
+            "number_params": "13b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 3
+                    },
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ]
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 4
+                    },
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ]
+                },
+                {
+                    "id": "generation",
+                    "tags": [
+                        "function_prompt_tune_trainable"
+                    ]
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 4
+                    }
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 4096,
+                "max_output_tokens": 4095,
+                "training_data_max_records": 10000
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 4095
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4095
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4095
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2023-11-09"
+                },
+                {
+                    "id": "deprecated",
+                    "start_date": "2024-08-26"
+                }
+            ],
+            "training_parameters": {
+                "init_method": {
+                    "supported": [
+                        "random",
+                        "text"
+                    ],
+                    "default": "random"
+                },
+                "init_text": {
+                    "default": "text"
+                },
+                "num_virtual_tokens": {
+                    "supported": [
+                        20,
+                        50,
+                        100
+                    ],
+                    "default": 100
+                },
+                "num_epochs": {
+                    "default": 20,
+                    "min": 1,
+                    "max": 50
+                },
+                "verbalizer": {
+                    "default": "{{input}}"
+                },
+                "batch_size": {
+                    "default": 8,
+                    "min": 1,
+                    "max": 16
+                },
+                "max_input_tokens": {
+                    "default": 256,
+                    "min": 1,
+                    "max": 1024
+                },
+                "max_output_tokens": {
+                    "default": 128,
+                    "min": 1,
+                    "max": 512
+                },
+                "torch_dtype": {
+                    "default": "bfloat16"
+                },
+                "accumulate_steps": {
+                    "default": 16,
+                    "min": 1,
+                    "max": 128
+                },
+                "learning_rate": {
+                    "default": 0.002,
+                    "min": 1.0E-5,
+                    "max": 0.5
+                }
+            }
+        },
+        {
+            "model_id": "meta-llama/llama-3-1-8b",
+            "label": "llama-3-1-8b",
+            "provider": "Meta",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "base_foundation_model_deployable"
+                },
+                {
+                    "id": "lora_fine_tune_trainable"
+                }
+            ],
+            "short_description": "Llama-3-1-8b is an auto-regressive language model that uses an optimized transformer architecture.",
+            "long_description": "Llama-3-1-8b is a pretrained and fine-tuned generative text model with 8 billion parameters, optimized for multilingual dialogue use cases and code output.",
+            "terms_url": "https://www.llama.com/llama3_1/license/",
+            "input_tier": "",
+            "output_tier": "",
+            "number_params": "8b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 4
+                    }
+                }
+            ],
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-11-25"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "3.1.0",
+                    "available_date": "2024-08-01"
+                }
+            ],
+            "lora_fine_tuning_parameters": {
+                "num_epochs": {
+                    "default": 5,
+                    "min": 1,
+                    "max": 50
+                },
+                "verbalizer": {
+                    "default": "### Input: {{input}} \n\n### Response: {{output}}"
+                },
+                "batch_size": {
+                    "default": 8,
+                    "min": 1,
+                    "max": 16
+                },
+                "accumulate_steps": {
+                    "default": 1,
+                    "min": 1,
+                    "max": 128
+                },
+                "learning_rate": {
+                    "default": 1.0E-5,
+                    "min": 1.0E-5,
+                    "max": 0.5
+                },
+                "max_seq_length": {
+                    "default": 1024,
+                    "min": 1,
+                    "max": 8192
+                },
+                "tokenizer": {
+                    "default": "meta-llama/llama-3-1-8b"
+                },
+                "response_template": {
+                    "default": "\n### Response:"
+                },
+                "num_gpus": {
+                    "default": 1
+                },
+                "peft_parameters": {
+                    "type": {
+                        "supported": [
+                            "lora"
+                        ],
+                        "default": "lora"
+                    },
+                    "rank": {
+                        "supported": [
+                            8,
+                            16,
+                            32,
+                            64,
+                            128,
+                            256
+                        ],
+                        "default": 32
+                    },
+                    "target_modules": {
+                        "default": []
+                    },
+                    "lora_alpha": {
+                        "default": 64,
+                        "min": 0,
+                        "max": 999999
+                    },
+                    "lora_dropout": {
+                        "default": 0.05,
+                        "min": 0,
+                        "max": 1
+                    }
+                },
+                "gradient_checkpointing": {
+                    "default": true
+                }
+            },
+            "data_type": "bfloat16",
+            "architecture_type": "llama",
+            "curated_model_info": {
+                "base_model_id": "meta-llama/llama-3-1-8b",
+                "hardware_spec": "WXaaS-S",
+                "lora_hardware_spec": "WXaaS-S-Lora",
+                "configured_max_sequence_length": 131072,
+                "configured_max_output_tokens": 131072,
+                "category": "HOURS_CATEGORY_ONE",
+                "max_gpu_loras": 8,
+                "max_cpu_loras": 10,
+                "max_lora_rank": 256
+            },
+            "deployment_parameters": [
+                {
+                    "name": "enable_lora",
+                    "display_name": "Enable Lora",
+                    "default": false,
+                    "type": "boolean"
+                }
+            ]
+        },
+        {
+            "model_id": "meta-llama/llama-3-2-11b-vision-instruct",
+            "label": "llama-3-2-11b-vision-instruct",
+            "provider": "Meta",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "image_chat"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "Llama-3-2-11b-vision-instruc is an auto-regressive language model that uses an optimized transformer architecture.",
+            "long_description": "Llama-3-2-11b-vision-instruc is a pretrained and fine-tuned generative text model with 11 billion parameters, optimized for multilingual dialogue use cases and code output.",
+            "terms_url": "https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/LICENSE",
+            "input_tier": "class_9",
+            "output_tier": "class_9",
+            "number_params": "11b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling",
+                    "ratings": {
+                        "quality": 4
+                    }
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 131072,
+                "max_output_tokens": 8192
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-09-25"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "3.2.0",
+                    "available_date": "2024-09-25"
+                }
+            ]
+        },
+        {
+            "model_id": "meta-llama/llama-3-2-90b-vision-instruct",
+            "label": "llama-3-2-90b-vision-instruct",
+            "provider": "Meta",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "image_chat"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "Llama-3-2-90b-vision-instruct is an auto-regressive language model that uses an optimized transformer architecture.",
+            "long_description": "Llama-3-2-90b-vision-instruct is a pretrained and fine-tuned generative text model with 90 billion parameters, optimized for multilingual dialogue use cases and code output.",
+            "terms_url": "https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/LICENSE",
+            "input_tier": "class_10",
+            "output_tier": "class_10",
+            "number_params": "90b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling",
+                    "ratings": {
+                        "quality": 4
+                    }
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 131072,
+                "max_output_tokens": 8192
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2025-03-21"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "3.2.0",
+                    "available_date": "2024-09-25"
+                }
+            ]
+        },
+        {
+            "model_id": "meta-llama/llama-3-3-70b-instruct",
+            "label": "llama-3-3-70b-instruct",
+            "provider": "Meta",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "multilingual"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "This version of Llama-3.3-70b-instruct is also the FP8 quantized version of the original FP16 weights.",
+            "long_description": "The Meta Llama 3.3 multilingual large language model (LLM) is a pretrained and instruction tuned generative model in 70B (text in/text out). The Llama 3.3 instruction tuned text only model is optimized for multilingual dialogue use cases and outperform many of the available open source and closed chat models on common industry benchmarks.",
+            "terms_url": "https://github.com/meta-llama/llama-models/blob/main/models/llama3_3/LICENSE",
+            "input_tier": "class_13",
+            "output_tier": "class_13",
+            "number_params": "70b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling",
+                    "ratings": {
+                        "quality": 4
+                    }
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 131072,
+                "max_output_tokens": 8192
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-12-06"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "3.3.0",
+                    "available_date": "2024-12-06"
+                }
+            ],
+            "supported_languages": [
+                "en",
+                "de",
+                "fr",
+                "it",
+                "pt",
+                "hi",
+                "es",
+                "th"
+            ]
+        },
+        {
+            "model_id": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
+            "label": "llama-4-maverick-17b-128e-instruct-fp8",
+            "provider": "Meta",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "image_chat"
+                },
+                {
+                    "id": "multilingual"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "Llama 4 Maverick, a 17 billion active parameter model with 128 experts.",
+            "long_description": "The Llama 4 collection of models are natively multimodal AI models that enable text and multimodal experiences. These models leverage a mixture-of-experts architecture to offer industry-leading performance in text and image understanding.",
+            "terms_url": "https://github.com/meta-llama/llama-models/blob/main/models/llama4/LICENSE",
+            "input_tier": "class_9",
+            "output_tier": "class_16",
+            "number_params": "400b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 131072,
+                "max_output_tokens": 8192
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2025-04-07"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "4.0.0",
+                    "available_date": "2025-04-07"
+                }
+            ],
+            "supported_languages": [
+                "en",
+                "de",
+                "fr",
+                "it",
+                "pt",
+                "hi",
+                "es",
+                "th"
+            ]
+        },
+        {
+            "model_id": "mistralai/mistral-large",
+            "label": "mistral-large",
+            "provider": "Mistral AI",
+            "source": "Mistral",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "multilingual"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "Mistral Large, the most advanced Large Language Model (LLM) developed by Mistral Al, is an exceptionally powerful model. Thanks to its state-of-the-art reasoning capabilities it can be applied to any language-based task, including the most sophisticated ones.",
+            "long_description": "Mistral Large is ideal for complex tasks that require large reasoning capabilities or are highly specialized. For comprehensive information and examples about this model, please refer to the release blog post.",
+            "terms_url": "https://www.ibm.com/support/customer/csol/terms/?id=i126-6883",
+            "input_tier": "mistral_large_input",
+            "output_tier": "mistral_large",
+            "number_params": "",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "function_calling"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "function_calling",
+                    "ratings": {
+                        "quality": 4
+                    }
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 128000,
+                "max_output_tokens": 16384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 16384
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 16384
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 16384
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-07-09"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "2.0.0",
+                    "available_date": "2024-07-24"
+                },
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-07-09"
+                }
+            ],
+            "supported_languages": [
+                "en",
+                "fr",
+                "de",
+                "it",
+                "zh",
+                "ja",
+                "ko",
+                "pt",
+                "nl",
+                "pl"
+            ]
+        },
+        {
+            "model_id": "mistralai/mistral-small-3-1-24b-instruct-2503",
+            "label": "mistral-small-3-1-24b-instruct-2503",
+            "provider": "Mistral AI",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "image_chat"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "This model is an instruction-finetuned version of: Mistral-Small-3.1-24B-Base-2503.",
+            "long_description": "Mistral Small 3 (2501), Mistral Small 3.1 (2503) adds state-of-the-art vision understanding and enhances long context capabilities up to 128k tokens without compromising text performance. With 24 billion parameters, this model achieves top-tier capabilities in both text and vision tasks.",
+            "terms_url": "https://www.apache.org/licenses/LICENSE-2.0",
+            "input_tier": "class_c1",
+            "output_tier": "class_17",
+            "number_params": "24b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "function_calling"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "function_calling"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 128000,
+                "max_output_tokens": 16384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 16384
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 16384
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 16384
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2025-04-22"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "available_date": "2025-04-22"
+                }
+            ]
+        },
+        {
+            "model_id": "mistralai/mixtral-8x7b-instruct-v01",
+            "label": "mixtral-8x7b-instruct-v01",
+            "provider": "Mistral AI",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "autoai_rag"
+                },
+                {
+                    "id": "multilingual"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "The Mixtral-8x7B Large Language Model (LLM) is a pretrained generative Sparse Mixture of Experts.",
+            "long_description": "This model is made with AutoGPTQ, which mainly leverages the quantization technique to 'compress' the model weights from FP16 to 4-bit INT and performs 'decompression' on-the-fly before computation (in FP16). As a result, the GPU memory, and the data transferring between GPU memory and GPU compute engine, compared to the original FP16 model, is greatly reduced. The major quantization parameters used in the process are listed below.",
+            "terms_url": "https://www.apache.org/licenses/LICENSE-2.0",
+            "input_tier": "class_1",
+            "output_tier": "class_1",
+            "number_params": "46.7b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation",
+                "code-generation",
+                "code-explanation",
+                "code-fixing"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "retrieval_augmented_generation",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 4
+                    }
+                },
+                {
+                    "id": "translation"
+                },
+                {
+                    "id": "code-generation"
+                },
+                {
+                    "id": "code-explanation"
+                },
+                {
+                    "id": "code-fixing"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 32768,
+                "max_output_tokens": 16384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 16384
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 16384
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 16384
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-04-17"
+                },
+                {
+                    "id": "deprecated",
+                    "start_date": "2025-04-30",
+                    "alternative_model_ids": [
+                        "mistralai/mistral-small-3-1-24b-instruct-2503"
+                    ]
+                },
+                {
+                    "id": "withdrawn",
+                    "start_date": "2025-07-30",
+                    "alternative_model_ids": [
+                        "mistralai/mistral-small-3-1-24b-instruct-2503"
+                    ]
+                }
+            ],
+            "supported_languages": [
+                "en",
+                "fr",
+                "de",
+                "it",
+                "es"
+            ]
+        },
+        {
+            "model_id": "mistralai/pixtral-12b",
+            "label": "pixtral-12b",
+            "provider": "Mistral AI",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "image_chat"
+                },
+                {
+                    "id": "text_chat"
+                },
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "The Pixtral-12b is a Multimodal Model of 12B parameters plus a 400M parameter vision encoder.",
+            "long_description": "Pixtral-12b is a 12-billion parameter model pre-trained and fine-tuned for generative tasks in text and image domains. It is optimized for multilingual use cases and provides robust performance in creative content generation.",
+            "terms_url": "https://www.apache.org/licenses/LICENSE-2.0",
+            "input_tier": "class_9",
+            "output_tier": "class_9",
+            "number_params": "12b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "code",
+                "extraction",
+                "translation"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification"
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "code"
+                },
+                {
+                    "id": "extraction"
+                },
+                {
+                    "id": "translation"
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 128000,
+                "max_output_tokens": 8192
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 8192
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-10-01"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-10-01"
+                }
+            ]
+        },
+        {
+            "model_id": "sdaia/allam-1-13b-instruct",
+            "label": "allam-1-13b-instruct",
+            "provider": "sdaia",
+            "source": "Hugging Face",
+            "functions": [
+                {
+                    "id": "text_generation"
+                }
+            ],
+            "short_description": "ALLaM is a series of powerful language models designed to advance Arabic Language Technology developed by the National Center for Artificial Intelligence (NCAI) at the Saudi Data and AI Authority (SDAIA).",
+            "long_description": "ALLaM is specifically designed to expedite the research and development of Arabic language technologies through Large Language Models (LLM). These models are initialized with Llama-2 weights and undergo training on both Arabic and English languages.",
+            "terms_url": "https://www.ibm.com/docs/en/SSYOK8/wsj/analyze-data/assets/ALLaM_1_License.pdf",
+            "input_tier": "class_2",
+            "output_tier": "class_2",
+            "number_params": "13b",
+            "min_shot_size": 1,
+            "task_ids": [
+                "question_answering",
+                "summarization",
+                "retrieval_augmented_generation",
+                "classification",
+                "generation",
+                "extraction",
+                "translation"
+            ],
+            "tasks": [
+                {
+                    "id": "question_answering"
+                },
+                {
+                    "id": "summarization"
+                },
+                {
+                    "id": "retrieval_augmented_generation"
+                },
+                {
+                    "id": "classification",
+                    "ratings": {
+                        "quality": 3
+                    }
+                },
+                {
+                    "id": "generation"
+                },
+                {
+                    "id": "extraction",
+                    "ratings": {
+                        "quality": 2
+                    }
+                },
+                {
+                    "id": "translation",
+                    "ratings": {
+                        "quality": 2
+                    }
+                }
+            ],
+            "model_limits": {
+                "max_sequence_length": 4096,
+                "max_output_tokens": 4096
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s",
+                    "max_output_tokens": 4096
+                },
+                "v2-professional": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4096
+                },
+                "v2-standard": {
+                    "call_time": "10m0s",
+                    "max_output_tokens": 4096
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-05-16"
+                }
+            ],
+            "versions": [
+                {
+                    "version": "1.1.0",
+                    "available_date": "2024-10-28"
+                },
+                {
+                    "version": "1.0.0",
+                    "available_date": "2024-05-16"
+                }
+            ]
+        },
+        {
+            "model_id": "sentence-transformers/all-minilm-l12-v2",
+            "label": "all-minilm-l12-v2",
+            "provider": "sentence-transformers",
+            "source": "sentence-transformers",
+            "functions": [
+                {
+                    "id": "embedding"
+                },
+                {
+                    "id": "rerank"
+                },
+                {
+                    "id": "similarity"
+                }
+            ],
+            "short_description": "An embedding model with 128 token limit. It has 33.4 million parameters and an embedding dimension of 384.",
+            "long_description": "This model follows sentence transformers approach, it maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "33.4m",
+            "model_limits": {
+                "max_sequence_length": 128,
+                "embedding_dimension": 384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-05-16"
+                }
+            ]
+        },
+        {
+            "model_id": "sentence-transformers/all-minilm-l6-v2",
+            "label": "all-minilm6-v2",
+            "provider": "sentence-transformers",
+            "source": "sentence-transformers",
+            "functions": [
+                {
+                    "id": "embedding"
+                },
+                {
+                    "id": "rerank"
+                },
+                {
+                    "id": "similarity"
+                }
+            ],
+            "short_description": "An embedding model with 128 token limit. It has 23 million parameters and an embedding dimension of 384.",
+            "long_description": "This is a sentence-transformers model. It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.",
+            "input_tier": "class_c1",
+            "output_tier": "class_c1",
+            "number_params": "23m",
+            "model_limits": {
+                "max_sequence_length": 256,
+                "embedding_dimension": 384
+            },
+            "limits": {
+                "lite": {
+                    "call_time": "5m0s"
+                },
+                "v2-professional": {
+                    "call_time": "10m0s"
+                },
+                "v2-standard": {
+                    "call_time": "10m0s"
+                }
+            },
+            "lifecycle": [
+                {
+                    "id": "available",
+                    "start_date": "2024-10-16"
+                }
+            ]
+        }
+    ]
+}

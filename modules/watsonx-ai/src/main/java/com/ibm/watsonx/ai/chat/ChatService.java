@@ -36,7 +36,7 @@ import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 
 /**
- * Service client for performing chat-based inference.
+ * Service class to interact with IBM Watsonx Text Chat APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -56,7 +56,7 @@ import com.ibm.watsonx.ai.core.SseEventLogger;
  */
 public final class ChatService extends WatsonxService {
 
-  public ChatService(Builder builder) {
+  protected ChatService(Builder builder) {
     super(builder);
   }
 
@@ -158,7 +158,7 @@ public final class ChatService extends WatsonxService {
       .build();
 
     var httpRequest =
-      HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat?version=%s".formatted(ML_API_PATH, version)))
+      HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat?version=%s".formatted(ML_API_TEXT_PATH, version)))
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
         .POST(BodyPublishers.ofString(toJson(chatRequest)))
@@ -256,7 +256,7 @@ public final class ChatService extends WatsonxService {
       .build();
 
     var httpRequest =
-      HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat_stream?version=%s".formatted(ML_API_PATH, version)))
+      HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
         .header("Content-Type", "application/json")
         .header("Accept", "text/event-stream")
         .POST(BodyPublishers.ofString(toJson(chatRequest)))
