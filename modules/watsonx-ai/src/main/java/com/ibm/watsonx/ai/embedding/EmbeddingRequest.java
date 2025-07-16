@@ -10,10 +10,8 @@ import java.util.List;
  * Represents a request to generate embeddings from a given model.
  */
 public record EmbeddingRequest(String modelId, String spaceId, String projectId,
-  List<String> inputs, Parameters parameters) {
+    List<String> inputs, Parameters parameters) {
 
-  public record Parameters(Integer truncateInputTokens, ReturnOptions returnOptions) {
-  }
-  public record ReturnOptions(boolean inputText) {
-  }
+    public record Parameters(Integer truncateInputTokens, ReturnOptions returnOptions) {}
+    public record ReturnOptions(boolean inputText) {}
 }

@@ -30,58 +30,58 @@ import org.slf4j.LoggerFactory;
  */
 public class SseEventLogger implements Subscriber<String> {
 
-  private static final Logger logger = LoggerFactory.getLogger(SseEventLogger.class);
-  private final Flow.Subscriber<String> subscriber;
-  private final int statusCode;
-  private final String headers;
-  private StringJoiner dataJoiner;
+    private static final Logger logger = LoggerFactory.getLogger(SseEventLogger.class);
+    private final Flow.Subscriber<String> subscriber;
+    private final int statusCode;
+    private final String headers;
+    private StringJoiner dataJoiner;
 
-  /**
-   * Constructs a new {@code SseEventLogger} with the given downstream subscriber, HTTP status code, and response headers.
-   *
-   * @param subscriber the downstream subscriber to forward events to
-   * @param statusCode the HTTP response status code
-   * @param headers the HTTP response headers
-   */
-  public SseEventLogger(Flow.Subscriber<String> subscriber, int statusCode, HttpHeaders headers) {
-    this.subscriber = requireNonNull(subscriber);
-    this.statusCode = statusCode;
-    this.headers = nonNull(headers) ? HttpUtils.inOneLine(headers.map()) : null;
-    dataJoiner = new StringJoiner("\n");
-  }
-
-  @Override
-  public void onSubscribe(Subscription subscription) {
-    subscriber.onSubscribe(subscription);
-  }
-
-  @Override
-  public void onNext(String item) {
-
-    if (item.isBlank()) {
-      if (dataJoiner.length() > 0) {
-        logger.info(
-          "Response:\n- status code: {}\n- headers: {}\n- body: {}",
-          statusCode,
-          headers,
-          dataJoiner.toString());
-      }
-      dataJoiner = new StringJoiner("\n");
-    } else {
-      dataJoiner.add(item);
+    /**
+     * Constructs a new {@code SseEventLogger} with the given downstream subscriber, HTTP status code, and response headers.
+     *
+     * @param subscriber the downstream subscriber to forward events to
+     * @param statusCode the HTTP response status code
+     * @param headers the HTTP response headers
+     */
+    public SseEventLogger(Flow.Subscriber<String> subscriber, int statusCode, HttpHeaders headers) {
+        this.subscriber = requireNonNull(subscriber);
+        this.statusCode = statusCode;
+        this.headers = nonNull(headers) ? HttpUtils.inOneLine(headers.map()) : null;
+        dataJoiner = new StringJoiner("\n");
     }
 
-    subscriber.onNext(item);
-  }
+    @Override
+    public void onSubscribe(Subscription subscription) {
+        subscriber.onSubscribe(subscription);
+    }
 
-  @Override
-  public void onError(Throwable throwable) {
-    logger.error(throwable.getMessage(), throwable);
-    subscriber.onError(throwable);
-  }
+    @Override
+    public void onNext(String item) {
 
-  @Override
-  public void onComplete() {
-    subscriber.onComplete();
-  }
+        if (item.isBlank()) {
+            if (dataJoiner.length() > 0) {
+                logger.info(
+                    "Response:\n- status code: {}\n- headers: {}\n- body: {}",
+                    statusCode,
+                    headers,
+                    dataJoiner.toString());
+            }
+            dataJoiner = new StringJoiner("\n");
+        } else {
+            dataJoiner.add(item);
+        }
+
+        subscriber.onNext(item);
+    }
+
+    @Override
+    public void onError(Throwable throwable) {
+        logger.error(throwable.getMessage(), throwable);
+        subscriber.onError(throwable);
+    }
+
+    @Override
+    public void onComplete() {
+        subscriber.onComplete();
+    }
 }

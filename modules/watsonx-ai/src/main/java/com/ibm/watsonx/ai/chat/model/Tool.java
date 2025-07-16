@@ -14,9 +14,9 @@ import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
  *
  * <pre>{@code
  * JsonSchema parameters = JsonSchema.builder()
- *   .addProperty("query", JsonSchema.StringSchema.of("Search query"))
- *   .addRequired("query")
- *   .build();
+ *     .addProperty("query", JsonSchema.StringSchema.of("Search query"))
+ *     .addRequired("query")
+ *     .build();
  *
  * // Create a Tool representing a search function
  * Tool.of("search", "Performs a search operation", parameters);
@@ -24,60 +24,59 @@ import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
  */
 public final record Tool(String type, Function function) {
 
-  public record Function(String name, String description, Object parameters) {
-  }
+    public record Function(String name, String description, Object parameters) {}
 
-  private static final String TYPE = "function";
+    private static final String TYPE = "function";
 
-  public Tool {
-    type = TYPE;
-  }
+    public Tool {
+        type = TYPE;
+    }
 
-  /**
-   * Creates a new {@link Tool}.
-   *
-   * @param name The name of the function.
-   * @param description A description of what the function does, used by the model to decide when and how to call the function.
-   * @param parameters The parameters the function accepts, described as a JSON Schema object.
-   * @return A new {@link Tool} instance.
-   */
-  public static Tool of(String name, String description, JsonSchema parameters) {
-    return new Tool("function", new Function(name, description, parameters));
-  }
+    /**
+     * Creates a new {@link Tool}.
+     *
+     * @param name The name of the function.
+     * @param description A description of what the function does, used by the model to decide when and how to call the function.
+     * @param parameters The parameters the function accepts, described as a JSON Schema object.
+     * @return A new {@link Tool} instance.
+     */
+    public static Tool of(String name, String description, JsonSchema parameters) {
+        return new Tool("function", new Function(name, description, parameters));
+    }
 
-  /**
-   * Creates a new {@link Tool}.
-   *
-   * @param name The name of the function.
-   * @param description A description of what the function does, used by the model to decide when and how to call the function.
-   * @param parameters The parameters the function accepts, described as a JSON Schema object.
-   * @return A new {@link Tool} instance.
-   */
-  public static Tool of(String name, String description, ObjectSchema.Builder parameters) {
-    requireNonNull(parameters);
-    return of(name, description, parameters.build());
-  }
+    /**
+     * Creates a new {@link Tool}.
+     *
+     * @param name The name of the function.
+     * @param description A description of what the function does, used by the model to decide when and how to call the function.
+     * @param parameters The parameters the function accepts, described as a JSON Schema object.
+     * @return A new {@link Tool} instance.
+     */
+    public static Tool of(String name, String description, ObjectSchema.Builder parameters) {
+        requireNonNull(parameters);
+        return of(name, description, parameters.build());
+    }
 
-  /**
-   * Creates a new {@link Tool}.
-   *
-   * @param name The name of the function.
-   * @param parameters The parameters the function accepts, described as a JSON Schema object.
-   * @return A new {@link Tool} instance.
-   */
-  public static Tool of(String name, JsonSchema parameters) {
-    return of(name, null, parameters);
-  }
+    /**
+     * Creates a new {@link Tool}.
+     *
+     * @param name The name of the function.
+     * @param parameters The parameters the function accepts, described as a JSON Schema object.
+     * @return A new {@link Tool} instance.
+     */
+    public static Tool of(String name, JsonSchema parameters) {
+        return of(name, null, parameters);
+    }
 
-  /**
-   * Creates a new {@link Tool}.
-   *
-   * @param name The name of the function.
-   * @param parameters The parameters the function accepts, described as a JSON Schema object.
-   * @return A new {@link Tool} instance.
-   */
-  public static Tool of(String name, ObjectSchema.Builder parameters) {
-    requireNonNull(parameters);
-    return of(name, parameters.build());
-  }
+    /**
+     * Creates a new {@link Tool}.
+     *
+     * @param name The name of the function.
+     * @param parameters The parameters the function accepts, described as a JSON Schema object.
+     * @return A new {@link Tool} instance.
+     */
+    public static Tool of(String name, ObjectSchema.Builder parameters) {
+        requireNonNull(parameters);
+        return of(name, parameters.build());
+    }
 }

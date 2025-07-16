@@ -32,244 +32,258 @@ import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
  */
 public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
-  private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
 
-  /**
-   * Checks whether a {@link WatsonxException} is retryable due to an expired authentication token.
-   * <p>
-   * This condition is met if the HTTP status code is 401 and at least one error in the exception's details has the code
-   * {@code AUTHENTICATION_TOKEN_EXPIRED}.
-   */
-  public static RetryInterceptor onTokenExpired(int maxRetries) {
-    return RetryInterceptor.builder()
-      .maxRetries(maxRetries)
-      .retryOn(
-        WatsonxException.class,
-        ex -> {
-          var e = (WatsonxException) ex;
-          boolean watsonxTokenExpired = e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
-            .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
-          boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(detail -> detail.errors().stream()
-            .anyMatch(err -> err.is(WatsonxError.Code.COS_ACCESS_DENIED))).orElse(false);
-          return watsonxTokenExpired || cosTokenExpired;
-        }
-      ).build();
-  }
-
-  private record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {
-  }
-
-  private final Duration retryInterval;
-  private final List<RetryOn> retryOn;
-  private final boolean exponentialBackoff;
-  private Integer maxRetries;
-  private Duration timeout;
-
-  /**
-   * Creates a new {@code RetryInterceptor} using the provided builder.
-   *
-   * @param builder the builder instance
-   */
-  public RetryInterceptor(Builder builder) {
-    requireNonNull(builder);
-    this.retryInterval = requireNonNullElse(builder.retryInterval, Duration.ofMillis(0));
-    this.timeout = this.retryInterval;
-    this.maxRetries = requireNonNullElse(builder.maxRetries, 1);
-    this.retryOn = builder.retryOn;
-    this.exponentialBackoff = builder.exponentialBackoff;
-    if (isNull(retryOn) || retryOn.isEmpty())
-      throw new RuntimeException("At least one exception must be specified");
-  }
-
-  @Override
-  public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
-    throws WatsonxException, IOException, InterruptedException {
-
-    Throwable exception = null;
-
-    for (int attempt = 0; attempt <= maxRetries; attempt++) {
-
-      try {
-
-        if (attempt > 0)
-          Thread.sleep(timeout.toMillis());
-
-        var res = chain.proceed(request, bodyHandler);
-        this.timeout = this.retryInterval;
-        return res;
-
-      } catch (Exception e) {
-        exception = e;
-
-        var shouldRetry =
-          retryOn.stream().anyMatch(retryOn -> {
-            if (!retryOn.clazz().equals(e.getClass()))
-              return false;
-            return retryOn.predicate()
-              .map(p -> p.test(e))
-              .orElse(true);
-          });
-
-        if (shouldRetry) {
-          if (exponentialBackoff && attempt > 0) {
-            timeout = timeout.multipliedBy(2);
-          }
-          if (attempt > 0) {
-            logger.debug("Retrying request ({}/{}) after failure: {}", attempt, maxRetries,
-              exception.getMessage());
-          }
-          chain.resetToIndex(index + 1);
-          continue;
-        }
-
-        this.timeout = this.retryInterval;
-        throw e;
-      }
+    /**
+     * Checks whether a {@link WatsonxException} is retryable due to an expired authentication token.
+     * <p>
+     * This condition is met if the HTTP status code is 401 and at least one error in the exception's details has the code
+     * {@code AUTHENTICATION_TOKEN_EXPIRED}.
+     *
+     * @param maxRetries the maximum number of retry attempts
+     * @return a configured {@link RetryInterceptor} instance that handles token expiration retries
+     */
+    public static RetryInterceptor onTokenExpired(int maxRetries) {
+        return RetryInterceptor.builder()
+            .maxRetries(maxRetries)
+            .retryOn(
+                WatsonxException.class,
+                ex -> {
+                    var e = (WatsonxException) ex;
+                    boolean watsonxTokenExpired = e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
+                        .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
+                    boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(detail -> detail.errors().stream()
+                        .anyMatch(err -> err.is(WatsonxError.Code.COS_ACCESS_DENIED))).orElse(false);
+                    return watsonxTokenExpired || cosTokenExpired;
+                }
+            ).build();
     }
 
-    this.timeout = this.retryInterval;
-    logger.debug("Max retries reached");
+    private record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
 
-    throw new RuntimeException("Max retries reached", isNull(exception) ? new Exception() : exception);
-  }
-
-  @Override
-  public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-    Executor executor, int index, AsyncChain chain) {
-    return executeWithRetry(request, bodyHandler, executor, index, 0, chain);
-  }
-
-  /**
-   * The current timeout interval.
-   */
-  public Duration getTimeout() {
-    return timeout;
-  }
-
-  /**
-   * Returns a new {@link Builder} instance.
-   *
-   * @return {@link Builder} instance.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler,
-    Executor executor, int index, int attempt, AsyncChain chain) {
-
-    return chain.proceed(request, bodyHandler, executor)
-      .handleAsync((response, throwable) -> {
-        if (throwable == null) {
-          this.timeout = this.retryInterval;
-          return CompletableFuture.completedFuture(response);
-        }
-
-        Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
-
-        var shouldRetry =
-          retryOn.stream().anyMatch(retryOn -> {
-            if (!retryOn.clazz().equals(cause.getClass()))
-              return false;
-            return retryOn.predicate()
-              .map(p -> p.test(cause))
-              .orElse(true);
-          });
-
-        if (!shouldRetry || attempt >= maxRetries - 1) {
-          CompletableFuture<HttpResponse<T>> failed = new CompletableFuture<>();
-          logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries, cause.getMessage());
-          logger.debug("Max retries reached");
-          failed.completeExceptionally(new RuntimeException("Max retries reached", cause));
-          this.timeout = this.retryInterval;
-          return failed;
-        }
-
-        if (attempt > 0) {
-          timeout = timeout.multipliedBy(2);
-        }
-        logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries, cause.getMessage());
-
-        return CompletableFuture.supplyAsync(
-          () -> {
-            chain.resetToIndex(index + 1);
-            return executeWithRetry(request, bodyHandler, executor, index, attempt + 1, chain);
-          },
-          CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS, executor)
-        ).thenCompose(Function.identity());
-
-      }, executor).thenCompose(Function.identity());
-  }
-
-  /**
-   * Builder for {@link RetryInterceptor}.
-   */
-  public static class Builder {
-    private Duration retryInterval;
+    private final Duration retryInterval;
+    private final List<RetryOn> retryOn;
+    private final boolean exponentialBackoff;
     private Integer maxRetries;
-    private List<RetryOn> retryOn;
-    private boolean exponentialBackoff = false;
+    private Duration timeout;
 
     /**
-     * Sets the delay between retry attempts.
+     * Creates a new {@code RetryInterceptor} using the provided builder.
      *
-     * @param retryInterval the duration to wait between retries
+     * @param builder the builder instance
      */
-    public Builder retryInterval(Duration retryInterval) {
-      this.retryInterval = retryInterval;
-      return this;
+    public RetryInterceptor(Builder builder) {
+        requireNonNull(builder);
+        this.retryInterval = requireNonNullElse(builder.retryInterval, Duration.ofMillis(0));
+        this.timeout = this.retryInterval;
+        this.maxRetries = requireNonNullElse(builder.maxRetries, 1);
+        this.retryOn = builder.retryOn;
+        this.exponentialBackoff = builder.exponentialBackoff;
+        if (isNull(retryOn) || retryOn.isEmpty())
+            throw new RuntimeException("At least one exception must be specified");
+    }
+
+    @Override
+    public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
+        throws WatsonxException, IOException, InterruptedException {
+
+        Throwable exception = null;
+
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+
+            try {
+
+                if (attempt > 0)
+                    Thread.sleep(timeout.toMillis());
+
+                var res = chain.proceed(request, bodyHandler);
+                this.timeout = this.retryInterval;
+                return res;
+
+            } catch (Exception e) {
+                exception = e;
+
+                var shouldRetry =
+                    retryOn.stream().anyMatch(retryOn -> {
+                        if (!retryOn.clazz().equals(e.getClass()))
+                            return false;
+                        return retryOn.predicate()
+                            .map(p -> p.test(e))
+                            .orElse(true);
+                    });
+
+                if (shouldRetry) {
+                    if (exponentialBackoff && attempt > 0) {
+                        timeout = timeout.multipliedBy(2);
+                    }
+                    if (attempt > 0) {
+                        logger.debug("Retrying request ({}/{}) after failure: {}", attempt, maxRetries,
+                            exception.getMessage());
+                    }
+                    chain.resetToIndex(index + 1);
+                    continue;
+                }
+
+                this.timeout = this.retryInterval;
+                throw e;
+            }
+        }
+
+        this.timeout = this.retryInterval;
+        logger.debug("Max retries reached");
+
+        throw new RuntimeException("Max retries reached", isNull(exception) ? new Exception() : exception);
+    }
+
+    @Override
+    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+        Executor executor, int index, AsyncChain chain) {
+        return executeWithRetry(request, bodyHandler, executor, index, 0, chain);
     }
 
     /**
-     * Sets the maximum number of retry attempts.
+     * The current timeout interval.
      *
-     * @param maxRetries the number of retries
+     * @return the timeout duration
      */
-    public Builder maxRetries(Integer maxRetries) {
-      this.maxRetries = maxRetries;
-      return this;
+    public Duration getTimeout() {
+        return timeout;
     }
 
     /**
-     * Adds a retry condition based on exception class.
+     * Returns a new {@link Builder} instance.
      *
-     * @param clazz the exception type to retry on
+     * @return {@link Builder} instance.
      */
-    public Builder retryOn(Class<? extends Throwable> clazz) {
-      retryOn(clazz, null);
-      return this;
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler,
+        Executor executor, int index, int attempt, AsyncChain chain) {
+
+        return chain.proceed(request, bodyHandler, executor)
+            .handleAsync((response, throwable) -> {
+                if (throwable == null) {
+                    this.timeout = this.retryInterval;
+                    return CompletableFuture.completedFuture(response);
+                }
+
+                Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
+
+                var shouldRetry =
+                    retryOn.stream().anyMatch(retryOn -> {
+                        if (!retryOn.clazz().equals(cause.getClass()))
+                            return false;
+                        return retryOn.predicate()
+                            .map(p -> p.test(cause))
+                            .orElse(true);
+                    });
+
+                if (!shouldRetry || attempt >= maxRetries - 1) {
+                    CompletableFuture<HttpResponse<T>> failed = new CompletableFuture<>();
+                    logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries, cause.getMessage());
+                    logger.debug("Max retries reached");
+                    failed.completeExceptionally(new RuntimeException("Max retries reached", cause));
+                    this.timeout = this.retryInterval;
+                    return failed;
+                }
+
+                if (attempt > 0) {
+                    timeout = timeout.multipliedBy(2);
+                }
+                logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries, cause.getMessage());
+
+                return CompletableFuture.supplyAsync(
+                    () -> {
+                        chain.resetToIndex(index + 1);
+                        return executeWithRetry(request, bodyHandler, executor, index, attempt + 1, chain);
+                    },
+                    CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS, executor)
+                ).thenCompose(Function.identity());
+
+            }, executor).thenCompose(Function.identity());
     }
 
     /**
-     * Adds a retry condition based on exception class and optional predicate.
-     *
-     * @param clazz the exception type to retry on
-     * @param predicate optional predicate to evaluate retry eligibility
+     * Builder for {@link RetryInterceptor}.
      */
-    public Builder retryOn(Class<? extends Throwable> clazz, Predicate<Throwable> predicate) {
-      requireNonNull(clazz);
-      retryOn = requireNonNullElse(retryOn, new ArrayList<>());
-      retryOn.add(new RetryOn(clazz, Optional.ofNullable(predicate)));
-      return this;
-    }
+    public static class Builder {
+        private Duration retryInterval;
+        private Integer maxRetries;
+        private List<RetryOn> retryOn;
+        private boolean exponentialBackoff = false;
 
-    /**
-     * Wether to use exponential backoff in retries or not
-     *
-     * @param enable wether to enable exponential backoff
-     */
-    public Builder exponentialBackoff(boolean enable) {
-      exponentialBackoff = enable;
-      return this;
-    }
+        /**
+         * Prevents direct instantiation of the {@code Builder}.
+         */
+        protected Builder() {}
 
-    /**
-     * Builds a new {@code RetryInterceptor} with the configured parameters.
-     *
-     * @return a new {@code RetryInterceptor}
-     */
-    public RetryInterceptor build() {
-      return new RetryInterceptor(this);
+        /**
+         * Sets the delay between retry attempts.
+         *
+         * @param retryInterval the duration to wait between retries.
+         * @return {@code Builder} instance for method chaining.
+         */
+        public Builder retryInterval(Duration retryInterval) {
+            this.retryInterval = retryInterval;
+            return this;
+        }
+
+        /**
+         * Sets the maximum number of retry attempts.
+         *
+         * @param maxRetries the number of retries.
+         * @return {@code Builder} instance for method chaining.
+         */
+        public Builder maxRetries(Integer maxRetries) {
+            this.maxRetries = maxRetries;
+            return this;
+        }
+
+        /**
+         * Adds a retry condition based on exception class.
+         *
+         * @param clazz the exception type to retry on.
+         * @return {@code Builder} instance for method chaining.
+         */
+        public Builder retryOn(Class<? extends Throwable> clazz) {
+            retryOn(clazz, null);
+            return this;
+        }
+
+        /**
+         * Adds a retry condition based on exception class and optional predicate.
+         *
+         * @param clazz the exception type to retry on.
+         * @param predicate optional predicate to evaluate retry eligibility.
+         * @return {@code Builder} instance for method chaining.
+         */
+        public Builder retryOn(Class<? extends Throwable> clazz, Predicate<Throwable> predicate) {
+            requireNonNull(clazz);
+            retryOn = requireNonNullElse(retryOn, new ArrayList<>());
+            retryOn.add(new RetryOn(clazz, Optional.ofNullable(predicate)));
+            return this;
+        }
+
+        /**
+         * Wether to use exponential backoff in retries or not
+         *
+         * @param enable wether to enable exponential backoff.
+         * @return {@code Builder} instance for method chaining.
+         */
+        public Builder exponentialBackoff(boolean enable) {
+            exponentialBackoff = enable;
+            return this;
+        }
+
+        /**
+         * Builds a new {@code RetryInterceptor} with the configured parameters.
+         *
+         * @return a new {@code RetryInterceptor} instance.
+         */
+        public RetryInterceptor build() {
+            return new RetryInterceptor(this);
+        }
     }
-  }
 }

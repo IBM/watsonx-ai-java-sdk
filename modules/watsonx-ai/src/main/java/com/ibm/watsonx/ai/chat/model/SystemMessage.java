@@ -24,31 +24,31 @@ import static java.util.Objects.requireNonNull;
  */
 public final record SystemMessage(String role, String content, String name) implements ChatMessage {
 
-  public static final String ROLE = "system";
+    public static final String ROLE = "system";
 
-  public SystemMessage {
-    role = ROLE;
-    requireNonNull(content);
-  }
+    public SystemMessage {
+        role = ROLE;
+        requireNonNull(content);
+    }
 
-  /**
-   * Creates a new {@link SystemMessage}.
-   *
-   * @param content the content of the system message
-   * @param name optional participant name
-   * @return a new {@link SystemMessage}
-   */
-  public static SystemMessage of(String content, String name) {
-    return new SystemMessage(ROLE, content, name);
-  }
+    /**
+     * Creates a new {@link SystemMessage}.
+     *
+     * @param content the content of the system message
+     * @param name optional participant name
+     * @return a new {@link SystemMessage}
+     */
+    public static SystemMessage of(String content, String name) {
+        return new SystemMessage(ROLE, content, name);
+    }
 
-  /**
-   * Creates a new {@link SystemMessage}.
-   *
-   * @param content the content of the system message
-   * @return a new {@link SystemMessage}
-   */
-  public static SystemMessage of(String content) {
-    return of(content, null);
-  }
+    /**
+     * Creates a new {@link SystemMessage}.
+     *
+     * @param content the content of the system message
+     * @return a new {@link SystemMessage}
+     */
+    public static SystemMessage of(String content) {
+        return of(content, null);
+    }
 }

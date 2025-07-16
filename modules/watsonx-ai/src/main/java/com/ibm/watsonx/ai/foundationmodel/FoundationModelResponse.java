@@ -26,43 +26,43 @@ import java.util.regex.Pattern;
  */
 public record FoundationModelResponse<T>(Integer limit, Pagination first, Integer totalCount, Pagination next, List<T> resources) {
 
-  /**
-   * Represents a hyperlink reference to a specific point in pagination.
-   *
-   * @param href The full URI of the referenced page (e.g., first or next).
-   */
-  public record Pagination(String href) {
-
     /**
-     * Extracts the {@code limit} value from the pagination href.
+     * Represents a hyperlink reference to a specific point in pagination.
      *
-     * @return An optional integer representing the limit, or empty if not found.
+     * @param href The full URI of the referenced page (e.g., first or next).
      */
-    public Optional<Integer> limit() {
-      return extractValue("limit=(\\d+)");
-    }
+    public record Pagination(String href) {
 
-    /**
-     * Extracts the {@code start} value from the pagination href.
-     *
-     * @return An optional integer representing the start index, or empty if not found.
-     */
-    public Optional<Integer> start() {
-      return extractValue("start=(\\d+)");
-    }
+        /**
+         * Extracts the {@code limit} value from the pagination href.
+         *
+         * @return An optional integer representing the limit, or empty if not found.
+         */
+        public Optional<Integer> limit() {
+            return extractValue("limit=(\\d+)");
+        }
 
-    /**
-     * Extracts a specified value from the pagination href using a regular expression.
-     *
-     * @param regex The regular expression pattern to match.
-     * @return An optional integer, or empty if no match is found.
-     */
-    private Optional<Integer> extractValue(String regex) {
-      var matcher = Pattern.compile(regex).matcher(href);
-      if (matcher.find()) {
-        return Optional.of(Integer.valueOf(matcher.group(1)));
-      } else
-        return Optional.empty();
+        /**
+         * Extracts the {@code start} value from the pagination href.
+         *
+         * @return An optional integer representing the start index, or empty if not found.
+         */
+        public Optional<Integer> start() {
+            return extractValue("start=(\\d+)");
+        }
+
+        /**
+         * Extracts a specified value from the pagination href using a regular expression.
+         *
+         * @param regex The regular expression pattern to match.
+         * @return An optional integer, or empty if no match is found.
+         */
+        private Optional<Integer> extractValue(String regex) {
+            var matcher = Pattern.compile(regex).matcher(href);
+            if (matcher.find()) {
+                return Optional.of(Integer.valueOf(matcher.group(1)));
+            } else
+                return Optional.empty();
+        }
     }
-  }
 }

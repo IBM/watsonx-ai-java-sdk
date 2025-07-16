@@ -8,10 +8,9 @@ package com.ibm.watsonx.ai.textgeneration;
  * Represents a request for generating text using a specified model and input.
  */
 public record TextGenerationRequest(
-  String modelId,
-  String spaceId,
-  String projectId,
-  String input,
-  TextGenerationParameters parameters,
-  Moderation moderations) {
-}
+    String modelId,
+    String spaceId,
+    String projectId,
+    String input,
+    TextGenerationParameters parameters,
+    Moderation moderations) {}

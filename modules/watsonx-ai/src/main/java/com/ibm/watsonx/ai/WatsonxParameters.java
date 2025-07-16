@@ -22,62 +22,62 @@ import com.ibm.watsonx.ai.tokenization.TokenizationParameters;
  * @see TokenizationParameters
  */
 public abstract class WatsonxParameters {
-  protected final String projectId;
-  protected final String spaceId;
-  protected final String modelId;
+    protected final String projectId;
+    protected final String spaceId;
+    protected final String modelId;
 
-  public WatsonxParameters(Builder<?> builder) {
-    projectId = builder.projectId;
-    spaceId = builder.spaceId;
-    modelId = builder.modelId;
-  }
-
-  public String getProjectId() {
-    return projectId;
-  }
-
-  public String getSpaceId() {
-    return spaceId;
-  }
-
-  public String getModelId() {
-    return modelId;
-  }
-
-  @SuppressWarnings("unchecked")
-  public static abstract class Builder<T extends Builder<T>> {
-    private String projectId;
-    private String spaceId;
-    private String modelId;
-
-    /**
-     * Sets the project id.
-     *
-     * @param projectId Project id value
-     */
-    public T projectId(String projectId) {
-      this.projectId = projectId;
-      return (T) this;
+    public WatsonxParameters(Builder<?> builder) {
+        projectId = builder.projectId;
+        spaceId = builder.spaceId;
+        modelId = builder.modelId;
     }
 
-    /**
-     * Sets the space id.
-     *
-     * @param spaceId Space id value
-     */
-    public T spaceId(String spaceId) {
-      this.spaceId = spaceId;
-      return (T) this;
+    public String getProjectId() {
+        return projectId;
     }
 
-    /**
-     * Sets the model id.
-     *
-     * @param modelId the model identifier to use
-     */
-    public T modelId(String modelId) {
-      this.modelId = modelId;
-      return (T) this;
+    public String getSpaceId() {
+        return spaceId;
     }
-  }
+
+    public String getModelId() {
+        return modelId;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static abstract class Builder<T extends Builder<T>> {
+        private String projectId;
+        private String spaceId;
+        private String modelId;
+
+        /**
+         * Sets the project id.
+         *
+         * @param projectId Project id value
+         */
+        public T projectId(String projectId) {
+            this.projectId = projectId;
+            return (T) this;
+        }
+
+        /**
+         * Sets the space id.
+         *
+         * @param spaceId Space id value
+         */
+        public T spaceId(String spaceId) {
+            this.spaceId = spaceId;
+            return (T) this;
+        }
+
+        /**
+         * Sets the model id.
+         *
+         * @param modelId the model identifier to use
+         */
+        public T modelId(String modelId) {
+            this.modelId = modelId;
+            return (T) this;
+        }
+    }
 }

@@ -15,20 +15,25 @@ import org.xml.sax.InputSource;
  */
 public class XmlUtils {
 
-  private static final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    private static final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
-  /**
-   * Parses the given XML string into a Document object.
-   *
-   * @param xml The XML string to be parsed.
-   * @return A Document object representing the XML structure.
-   */
-  public static Document parse(String xml) {
-    try {
-      DocumentBuilder builder = factory.newDocumentBuilder();
-      return builder.parse(new InputSource(new StringReader(xml)));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    /**
+     * Prevents direct instantiation of the {@code Builder}.
+     */
+    protected XmlUtils() {}
+
+    /**
+     * Parses the given XML string into a Document object.
+     *
+     * @param xml The XML string to be parsed.
+     * @return A Document object representing the XML structure.
+     */
+    public static Document parse(String xml) {
+        try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            return builder.parse(new InputSource(new StringReader(xml)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-  }
 }

@@ -18,48 +18,48 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
  */
 public interface SyncHttpInterceptor {
 
-  /**
-   * Intercepts the given HTTP request.
-   *
-   * @param request the HTTP request to intercept
-   * @param bodyHandler the body handler for processing the response
-   * @param index the current index in the interceptor chain
-   * @param chain the chain used to proceed with the execution of the request
-   * @param <T> the type of the response body
-   * @return the HTTP response
-   * @throws WatsonxException if an error occurs during the request api
-   * @throws IOException if an I/O error occurs during interception or execution
-   * @throws InterruptedException if the operation is interrupted
-   */
-  <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
-    throws WatsonxException, IOException, InterruptedException;
-
-  /**
-   * Chain interface for proceeding with the HTTP request.
-   */
-  interface Chain {
-
     /**
-     * Proceeds with the execution of the HTTP request.
+     * Intercepts the given HTTP request.
      *
-     * @param request the HTTP request to execute
+     * @param request the HTTP request to intercept
      * @param bodyHandler the body handler for processing the response
+     * @param index the current index in the interceptor chain
+     * @param chain the chain used to proceed with the execution of the request
      * @param <T> the type of the response body
      * @return the HTTP response
      * @throws WatsonxException if an error occurs during the request api
-     * @throws IOException if an I/O error occurs during execution
+     * @throws IOException if an I/O error occurs during interception or execution
      * @throws InterruptedException if the operation is interrupted
      */
-    <T> HttpResponse<T> proceed(HttpRequest request, BodyHandler<T> bodyHandler)
-      throws WatsonxException, IOException, InterruptedException;
+    <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
+        throws WatsonxException, IOException, InterruptedException;
 
     /**
-     * Resets the interceptor chain to a specific index.
-     * <p>
-     * Typically used by interceptors such as retries to restart the chain execution from a given position.
-     *
-     * @param index the interceptor index to reset to
+     * Chain interface for proceeding with the HTTP request.
      */
-    void resetToIndex(int index);
-  }
+    interface Chain {
+
+        /**
+         * Proceeds with the execution of the HTTP request.
+         *
+         * @param request the HTTP request to execute
+         * @param bodyHandler the body handler for processing the response
+         * @param <T> the type of the response body
+         * @return the HTTP response
+         * @throws WatsonxException if an error occurs during the request api
+         * @throws IOException if an I/O error occurs during execution
+         * @throws InterruptedException if the operation is interrupted
+         */
+        <T> HttpResponse<T> proceed(HttpRequest request, BodyHandler<T> bodyHandler)
+            throws WatsonxException, IOException, InterruptedException;
+
+        /**
+         * Resets the interceptor chain to a specific index.
+         * <p>
+         * Typically used by interceptors such as retries to restart the chain execution from a given position.
+         *
+         * @param index the interceptor index to reset to
+         */
+        void resetToIndex(int index);
+    }
 }

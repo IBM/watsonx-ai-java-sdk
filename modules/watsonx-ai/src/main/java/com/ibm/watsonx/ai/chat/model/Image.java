@@ -21,56 +21,56 @@ import static java.util.Objects.requireNonNullElse;
  */
 public final record Image(String url, String detail) {
 
-  public Image {
-    requireNonNull(url);
-    detail = requireNonNullElse(detail, "auto");
-  }
-
-  /**
-   * Creates a new {@code Image} instance.
-   *
-   * @param mimeType the MIME type of the image (e.g., {@code image/png})
-   * @param data the base64-encoded image data
-   * @return a new {@code Image} instance
-   */
-  public static Image of(String mimeType, String data) {
-    return of(mimeType, data, null);
-  }
-
-  /**
-   * Creates a new {@code Image} instance.
-   *
-   * @param mimeType the MIME type of the image (e.g., {@code image/png})
-   * @param data the base64-encoded image data
-   * @param detail the level of detail to guide image processing
-   * @return a new {@code Image} instance
-   */
-  public static Image of(String mimeType, String data, Detail detail) {
-    requireNonNull(mimeType);
-    requireNonNull(data);
-    detail = requireNonNullElse(detail, Detail.AUTO);
-    return new Image(
-      "data:%s;base64,%s".formatted(mimeType, data),
-      detail.get()
-    );
-  }
-
-  /**
-   * Enum representing the levels of image detail.
-   */
-  public static enum Detail {
-    LOW("low"),
-    HIGH("high"),
-    AUTO("auto");
-
-    private String detail;
-
-    Detail(String detail) {
-      this.detail = detail;
+    public Image {
+        requireNonNull(url);
+        detail = requireNonNullElse(detail, "auto");
     }
 
-    public String get() {
-      return detail;
+    /**
+     * Creates a new {@code Image} instance.
+     *
+     * @param mimeType the MIME type of the image (e.g., {@code image/png})
+     * @param data the base64-encoded image data
+     * @return a new {@code Image} instance
+     */
+    public static Image of(String mimeType, String data) {
+        return of(mimeType, data, null);
     }
-  }
+
+    /**
+     * Creates a new {@code Image} instance.
+     *
+     * @param mimeType the MIME type of the image (e.g., {@code image/png})
+     * @param data the base64-encoded image data
+     * @param detail the level of detail to guide image processing
+     * @return a new {@code Image} instance
+     */
+    public static Image of(String mimeType, String data, Detail detail) {
+        requireNonNull(mimeType);
+        requireNonNull(data);
+        detail = requireNonNullElse(detail, Detail.AUTO);
+        return new Image(
+            "data:%s;base64,%s".formatted(mimeType, data),
+            detail.get()
+        );
+    }
+
+    /**
+     * Enum representing the levels of image detail.
+     */
+    public static enum Detail {
+        LOW("low"),
+        HIGH("high"),
+        AUTO("auto");
+
+        private String detail;
+
+        Detail(String detail) {
+            this.detail = detail;
+        }
+
+        public String get() {
+            return detail;
+        }
+    }
 }

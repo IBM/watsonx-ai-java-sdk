@@ -12,10 +12,10 @@ package com.ibm.watsonx.ai.foundationmodel.filter;
 @FunctionalInterface
 public interface FilterExpression {
 
-  /**
-   * Serialises the filter expression to a string value.
-   *
-   * @return A string representation of the filter expression.
-   */
-  public String expression();
+    /**
+     * Serialises the filter expression to a string value.
+     *
+     * @return A string representation of the filter expression.
+     */
+    public String expression();
 }

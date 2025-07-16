@@ -20,20 +20,20 @@ import static java.util.Objects.requireNonNull;
  */
 public final record TextContent(String type, String text) implements UserContent {
 
-  public static final String TYPE = "text";
+    public static final String TYPE = "text";
 
-  public TextContent {
-    type = TYPE;
-    requireNonNull(text);
-  }
+    public TextContent {
+        type = TYPE;
+        requireNonNull(text);
+    }
 
-  /**
-   * Create a new {@code TextContent} instance.
-   *
-   * @param text the text content to include
-   * @return a new {@code TextContent} instance
-   */
-  public static TextContent of(String text) {
-    return new TextContent(TYPE, text);
-  }
+    /**
+     * Create a new {@code TextContent} instance.
+     *
+     * @param text the text content to include
+     * @return a new {@code TextContent} instance
+     */
+    public static TextContent of(String text) {
+        return new TextContent(TYPE, text);
+    }
 }

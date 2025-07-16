@@ -12,27 +12,27 @@ import java.util.concurrent.Executor;
  */
 public interface AuthenticationProvider {
 
-  /**
-   * Returns a token.
-   *
-   * @return Token.
-   */
-  String getToken();
+    /**
+     * Returns a token.
+     *
+     * @return Token.
+     */
+    String getToken();
 
-  /**
-   * Asynchronously retrieves a token.
-   *
-   * @return a {@link CompletableFuture} that will complete with the token
-   */
-  default CompletableFuture<String> getTokenAsync() {
-    return getTokenAsync(null);
-  }
+    /**
+     * Asynchronously retrieves a token.
+     *
+     * @return a {@link CompletableFuture} that will complete with the token
+     */
+    default CompletableFuture<String> getTokenAsync() {
+        return getTokenAsync(null);
+    }
 
-  /**
-   * Asynchronously retrieves a token.
-   *
-   * @param executor the executor that is used for executing asynchronous tasks
-   * @return a {@link CompletableFuture} that will complete with the token
-   */
-  CompletableFuture<String> getTokenAsync(Executor executor);
+    /**
+     * Asynchronously retrieves a token.
+     *
+     * @param executor the executor that is used for executing asynchronous tasks
+     * @return a {@link CompletableFuture} that will complete with the token
+     */
+    CompletableFuture<String> getTokenAsync(Executor executor);
 }

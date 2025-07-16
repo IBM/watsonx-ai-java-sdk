@@ -23,22 +23,22 @@ import static java.util.Objects.requireNonNull;
  */
 public final record ToolMessage(String role, String content, String toolCallId) implements ChatMessage {
 
-  public static final String ROLE = "tool";
+    public static final String ROLE = "tool";
 
-  public ToolMessage {
-    role = ROLE;
-    requireNonNull(content);
-    requireNonNull(toolCallId);
-  }
+    public ToolMessage {
+        role = ROLE;
+        requireNonNull(content);
+        requireNonNull(toolCallId);
+    }
 
-  /**
-   * Creates a new {@link ToolMessage}.
-   *
-   * @param content the content of the tool message
-   * @param toolCallId the ID of the tool call to which this message responds
-   * @return a new {@link ToolMessage}
-   */
-  public static ToolMessage of(String content, String toolCallId) {
-    return new ToolMessage(ROLE, content, toolCallId);
-  }
+    /**
+     * Creates a new {@link ToolMessage}.
+     *
+     * @param content the content of the tool message
+     * @param toolCallId the ID of the tool call to which this message responds
+     * @return a new {@link ToolMessage}
+     */
+    public static ToolMessage of(String content, String toolCallId) {
+        return new ToolMessage(ROLE, content, toolCallId);
+    }
 }
