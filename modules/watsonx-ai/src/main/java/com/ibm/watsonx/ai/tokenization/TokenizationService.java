@@ -33,6 +33,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * TokenizationResponse response = TokenizationService.tokenize("Tell me a joke");
  * }</pre>
  *
+ * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-tokenization
  */
 public class TokenizationService extends WatsonxService {
 

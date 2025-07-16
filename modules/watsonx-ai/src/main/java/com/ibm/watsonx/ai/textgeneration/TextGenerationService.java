@@ -43,6 +43,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
  * TextGenerationResponse response = textGenerationService.generate("Hello!");
  * }</pre>
  *
+ * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-generation
  */
 public class TextGenerationService extends WatsonxService {
 

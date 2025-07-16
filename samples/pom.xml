@@ -17,6 +17,7 @@
     <module>rerank</module>
     <module>tokenization</module>
     <module>text-extraction</module>
+    <module>time-series</module>
   </modules>
 
   <licenses>

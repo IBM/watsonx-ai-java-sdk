@@ -23,6 +23,7 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 
 /**
@@ -38,6 +39,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
  * @see RerankService
  * @see TokenizationService
  * @see TextExtractionService
+ * @see TimeSeriesService
  */
 public abstract class WatsonxService {
 

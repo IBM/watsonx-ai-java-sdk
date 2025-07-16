@@ -53,6 +53,8 @@ import com.ibm.watsonx.ai.core.SseEventLogger;
  *     UserMessage.text("Tell me a joke.")
  * );
  * }</pre>
+ *
+ * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-chat
  */
 public final class ChatService extends WatsonxService {
 
