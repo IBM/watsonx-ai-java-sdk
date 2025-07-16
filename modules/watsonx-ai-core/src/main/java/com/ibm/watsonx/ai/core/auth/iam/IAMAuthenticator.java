@@ -40,8 +40,8 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
  *
  * <pre>{@code
  * AuthenticationProvider authenticator = IAMAuthenticator.builder()
- *   .apiKey("your-api-key")
- *   .build();
+ *     .apiKey("your-api-key")
+ *     .build();
  * }</pre>
  *
  * <pre>{@code
@@ -53,203 +53,217 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
  */
 public final class IAMAuthenticator implements AuthenticationProvider {
 
-  private final URI url;
-  private final String apiKey;
-  private final String grantType;
-  private final Duration timeout;
-  private final SyncHttpClient syncHttpClient;
-  private final AsyncHttpClient asyncHttpClient;
-  private final AtomicReference<IdentityTokenResponse> token;
-
-  /**
-   * Constructs an IAMAuthenticator instance using the provided builder.
-   *
-   * @param builder the builder instance
-   */
-  protected IAMAuthenticator(Builder builder) {
-    this.token = new AtomicReference<>();
-    this.apiKey = encode(requireNonNull(builder.apiKey));
-    this.url = requireNonNullElse(builder.url, URI.create("https://iam.cloud.ibm.com/identity/token"));
-    this.grantType = encode(requireNonNullElse(builder.grantType, "urn:ibm:params:oauth:grant-type:apikey"));
-    this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-    var httpClient = requireNonNullElse(builder.httpClient, HttpClient.newBuilder().build());
-    this.syncHttpClient = SyncHttpClient.builder().httpClient(httpClient).build();
-    this.asyncHttpClient = AsyncHttpClient.builder().httpClient(httpClient).build();
-  }
-
-  @Override
-  public String getToken() {
-
-    try {
-
-      IdentityTokenResponse currentToken = token.get();
-
-      if (!isExpired(currentToken))
-        return currentToken.accessToken();
-
-      var request = createHttpRequest();
-      var response = syncHttpClient.send(request, BodyHandlers.ofString());
-      var statusCode = response.statusCode();
-
-      if (statusCode >= 200 && statusCode < 300) {
-        token.getAndSet(fromJson(response.body(), IdentityTokenResponse.class));
-        return token.get().accessToken();
-      }
-
-      // The status code is not 2xx.
-      throw new RuntimeException(response.body());
-
-    } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public CompletableFuture<String> getTokenAsync(Executor executor) {
-
-    IdentityTokenResponse currentToken = token.get();
-    executor = requireNonNullElse(executor, asyncHttpClient.executor());
-
-    var request = createHttpRequest();
-
-    if (!isExpired(currentToken)) {
-      return completedFuture(token.get().accessToken());
-    }
-
-    return asyncHttpClient.send(request, BodyHandlers.ofString()).thenApply(response -> {
-
-      var statusCode = response.statusCode();
-
-      if (statusCode >= 200 && statusCode < 300) {
-        token.getAndSet(fromJson(response.body(), IdentityTokenResponse.class));
-        return token.get().accessToken();
-      }
-
-      // The status code is not 2xx.
-      throw new CompletionException(response.body(), new RuntimeException());
-    });
-  }
-
-  /**
-   * A builder class for constructing IAMAuthenticator instances. *
-   * <p>
-   * <b>Example usage:</b>
-   *
-   * <pre>{@code
-   * AuthenticationProvider authenticator = IAMAuthenticator.builder()
-   *   .apiKey("your-api-key")
-   *   .build();
-   * }</pre>
-   *
-   * <pre>{@code
-   * String accessToken = authenticator.getToken();
-   * }</pre>
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /**
-   * Create an HTTP request to retrieve the token.
-   */
-  private HttpRequest createHttpRequest() {
-    BodyPublisher body = BodyPublishers.ofString("grant_type=%s&apikey=%s".formatted(grantType, apiKey));
-    return HttpRequest.newBuilder()
-      .uri(url).timeout(timeout)
-      .header("Content-Type", "application/x-www-form-urlencoded")
-      .POST(body).build();
-  }
-
-  /**
-   * Check whether the token has expired.
-   */
-  private boolean isExpired(IdentityTokenResponse token) {
-    if (isNull(token))
-      return true;
-
-    Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
-    Date now = new Date();
-
-    if (expiration.after(now)) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  /**
-   * Translates a value into application/x-www-form-urlencoded.
-   */
-  private String encode(String value) {
-    return URLEncoder.encode(value, StandardCharsets.UTF_8);
-  }
-
-  /**
-   * The builder class for constructing IAMAuthenticator instances.
-   */
-  public static class Builder {
-
-    private URI url;
-    private String apiKey;
-    private String grantType;
-    private Duration timeout;
-    private HttpClient httpClient;
+    private final URI url;
+    private final String apiKey;
+    private final String grantType;
+    private final Duration timeout;
+    private final SyncHttpClient syncHttpClient;
+    private final AsyncHttpClient asyncHttpClient;
+    private final AtomicReference<IdentityTokenResponse> token;
 
     /**
-     * Sets the base URL for the IBM Cloud IAM token endpoint.
+     * Constructs an IAMAuthenticator instance using the provided builder.
      *
-     * @param url The base URL for the token endpoint.
+     * @param builder the builder instance
      */
-    public Builder url(URI url) {
-      this.url = url;
-      return this;
+    protected IAMAuthenticator(Builder builder) {
+        this.token = new AtomicReference<>();
+        this.apiKey = encode(requireNonNull(builder.apiKey));
+        this.url = requireNonNullElse(builder.url, URI.create("https://iam.cloud.ibm.com/identity/token"));
+        this.grantType = encode(requireNonNullElse(builder.grantType, "urn:ibm:params:oauth:grant-type:apikey"));
+        this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
+        var httpClient = requireNonNullElse(builder.httpClient, HttpClient.newBuilder().build());
+        this.syncHttpClient = SyncHttpClient.builder().httpClient(httpClient).build();
+        this.asyncHttpClient = AsyncHttpClient.builder().httpClient(httpClient).build();
+    }
+
+    @Override
+    public String getToken() {
+
+        try {
+
+            IdentityTokenResponse currentToken = token.get();
+
+            if (!isExpired(currentToken))
+                return currentToken.accessToken();
+
+            var request = createHttpRequest();
+            var response = syncHttpClient.send(request, BodyHandlers.ofString());
+            var statusCode = response.statusCode();
+
+            if (statusCode >= 200 && statusCode < 300) {
+                token.getAndSet(fromJson(response.body(), IdentityTokenResponse.class));
+                return token.get().accessToken();
+            }
+
+            // The status code is not 2xx.
+            throw new RuntimeException(response.body());
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
+    public CompletableFuture<String> getTokenAsync(Executor executor) {
+
+        IdentityTokenResponse currentToken = token.get();
+        executor = requireNonNullElse(executor, asyncHttpClient.executor());
+
+        var request = createHttpRequest();
+
+        if (!isExpired(currentToken)) {
+            return completedFuture(token.get().accessToken());
+        }
+
+        return asyncHttpClient.send(request, BodyHandlers.ofString()).thenApply(response -> {
+
+            var statusCode = response.statusCode();
+
+            if (statusCode >= 200 && statusCode < 300) {
+                token.getAndSet(fromJson(response.body(), IdentityTokenResponse.class));
+                return token.get().accessToken();
+            }
+
+            // The status code is not 2xx.
+            throw new CompletionException(response.body(), new RuntimeException());
+        });
     }
 
     /**
-     * Sets the API key used for authentication.
+     * A builder class for constructing IAMAuthenticator instances. *
+     * <p>
+     * <b>Example usage:</b>
      *
-     * @param apiKey The API key for authentication.
-     */
-    public Builder apiKey(String apiKey) {
-      this.apiKey = apiKey;
-      return this;
-    }
-
-    /**
-     * Sets the grant type used for authentication.
+     * <pre>{@code
+     * AuthenticationProvider authenticator = IAMAuthenticator.builder()
+     *     .apiKey("your-api-key")
+     *     .build();
+     * }</pre>
      *
-     * @param grantType The grant type for authentication.
-     */
-    public Builder grantType(String grantType) {
-      this.grantType = grantType;
-      return this;
-    }
-
-    /**
-     * Sets the timeout duration for the token request.
+     * <pre>{@code
+     * String accessToken = authenticator.getToken();
+     * }</pre>
      *
-     * @param timeout The timeout duration for the token request.
+     * @return {@link Builder} instance.
      */
-    public Builder timeout(Duration timeout) {
-      this.timeout = timeout;
-      return this;
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
-     * Sets the http client.
-     *
-     * @param httpClient {@link HttpClient} instance.
+     * Create an HTTP request to retrieve the token.
      */
-    public Builder httpClient(HttpClient httpClient) {
-      this.httpClient = httpClient;
-      return this;
+    private HttpRequest createHttpRequest() {
+        BodyPublisher body = BodyPublishers.ofString("grant_type=%s&apikey=%s".formatted(grantType, apiKey));
+        return HttpRequest.newBuilder()
+            .uri(url).timeout(timeout)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .POST(body).build();
     }
 
     /**
-     * Builds and returns an IAMAuthenticator instance.
+     * Check whether the token has expired.
      */
-    public IAMAuthenticator build() {
-      return new IAMAuthenticator(this);
+    private boolean isExpired(IdentityTokenResponse token) {
+        if (isNull(token))
+            return true;
+
+        Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
+        Date now = new Date();
+
+        if (expiration.after(now)) {
+            return false;
+        } else {
+            return true;
+        }
     }
-  }
+
+    /**
+     * Translates a value into application/x-www-form-urlencoded.
+     */
+    private String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * The builder class for constructing IAMAuthenticator instances.
+     */
+    public static class Builder {
+
+        private URI url;
+        private String apiKey;
+        private String grantType;
+        private Duration timeout;
+        private HttpClient httpClient;
+
+        /**
+         * Prevents direct instantiation of the {@code Builder}.
+         */
+        protected Builder() {}
+
+        /**
+         * Sets the base URL for the IBM Cloud IAM token endpoint.
+         *
+         * @param url The base URL for the token endpoint.
+         * @return {@code Builder} instance for method chaining
+         */
+        public Builder url(URI url) {
+            this.url = url;
+            return this;
+        }
+
+        /**
+         * Sets the API key used for authentication.
+         *
+         * @param apiKey The API key for authentication.
+         * @return {@code Builder} instance for method chaining
+         */
+        public Builder apiKey(String apiKey) {
+            this.apiKey = apiKey;
+            return this;
+        }
+
+        /**
+         * Sets the grant type used for authentication.
+         *
+         * @param grantType The grant type for authentication.
+         * @return {@code Builder} instance for method chaining
+         */
+        public Builder grantType(String grantType) {
+            this.grantType = grantType;
+            return this;
+        }
+
+        /**
+         * Sets the timeout duration for the token request.
+         *
+         * @param timeout The timeout duration for the token request.
+         * @return {@code Builder} instance for method chaining
+         */
+        public Builder timeout(Duration timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        /**
+         * Sets the http client.
+         *
+         * @param httpClient {@link HttpClient} instance.
+         * @return {@code Builder} instance for method chaining
+         */
+        public Builder httpClient(HttpClient httpClient) {
+            this.httpClient = httpClient;
+            return this;
+        }
+
+        /**
+         * Builds and returns an IAMAuthenticator instance.
+         *
+         * @return {@link IAMAuthenticator} instance
+         */
+        public IAMAuthenticator build() {
+            return new IAMAuthenticator(this);
+        }
+    }
 }

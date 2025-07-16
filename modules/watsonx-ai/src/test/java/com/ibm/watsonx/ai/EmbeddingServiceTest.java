@@ -38,197 +38,197 @@ import com.ibm.watsonx.ai.utils.Utils;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class EmbeddingServiceTest {
 
-  private final String MODEL_ID = "slate";
-  private final String PROJECT_ID = "project_id";
+    private final String MODEL_ID = "slate";
+    private final String PROJECT_ID = "project_id";
 
-  @Mock
-  HttpClient mockHttpClient;
+    @Mock
+    HttpClient mockHttpClient;
 
-  @Mock
-  HttpRequest mockHttpRequest;
+    @Mock
+    HttpRequest mockHttpRequest;
 
-  @Mock
-  HttpResponse<String> mockHttpResponse;
+    @Mock
+    HttpResponse<String> mockHttpResponse;
 
-  @Mock
-  AuthenticationProvider authenticationProvider;
+    @Mock
+    AuthenticationProvider authenticationProvider;
 
-  @Captor
-  ArgumentCaptor<HttpRequest> httpRequestCaptor;
+    @Captor
+    ArgumentCaptor<HttpRequest> httpRequestCaptor;
 
-  @BeforeEach
-  void setUp() {
-    when(authenticationProvider.getToken()).thenReturn("my-super-token");
-  }
+    @BeforeEach
+    void setUp() {
+        when(authenticationProvider.getToken()).thenReturn("my-super-token");
+    }
 
-  @Test
-  void test_embedding() throws Exception {
+    @Test
+    void test_embedding() throws Exception {
 
-    final String REQUEST = """
-      {
-          "inputs": [
-              "Youth craves thrills while adulthood cherishes wisdom.",
-              "Youth seeks ambition while adulthood finds contentment.",
-              "Dreams chased in youth while goals pursued in adulthood."
-          ],
-          "model_id": "%s",
-          "project_id": "%s"
-      }""".formatted(MODEL_ID, PROJECT_ID);
+        final String REQUEST = """
+            {
+                "inputs": [
+                    "Youth craves thrills while adulthood cherishes wisdom.",
+                    "Youth seeks ambition while adulthood finds contentment.",
+                    "Dreams chased in youth while goals pursued in adulthood."
+                ],
+                "model_id": "%s",
+                "project_id": "%s"
+            }""".formatted(MODEL_ID, PROJECT_ID);
 
-    final String RESPONSE = """
-      {
-        "model_id": "%s",
-        "results": [
-          {
-            "embedding": [
-              -0.006929283,
-              -0.005336422,
-              -0.024047505
-            ]
-          }
-        ],
-        "created_at": "2024-02-21T17:32:28Z",
-        "input_token_count": 10
-      }""".formatted(MODEL_ID);
+        final String RESPONSE = """
+            {
+              "model_id": "%s",
+              "results": [
+                {
+                  "embedding": [
+                    -0.006929283,
+                    -0.005336422,
+                    -0.024047505
+                  ]
+                }
+              ],
+              "created_at": "2024-02-21T17:32:28Z",
+              "input_token_count": 10
+            }""".formatted(MODEL_ID);
 
-    when(mockHttpResponse.statusCode()).thenReturn(200);
-    when(mockHttpResponse.body()).thenReturn(RESPONSE);
-    when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
-      .thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+            .thenReturn(mockHttpResponse);
 
-    var embeddingService = EmbeddingService.builder()
-      .authenticationProvider(authenticationProvider)
-      .httpClient(mockHttpClient)
-      .modelId(MODEL_ID)
-      .logRequests(true)
-      .projectId(PROJECT_ID)
-      .url(CloudRegion.DALLAS)
-      .build();
+        var embeddingService = EmbeddingService.builder()
+            .authenticationProvider(authenticationProvider)
+            .httpClient(mockHttpClient)
+            .modelId(MODEL_ID)
+            .logRequests(true)
+            .projectId(PROJECT_ID)
+            .url(CloudRegion.DALLAS)
+            .build();
 
-    var response = embeddingService.embedding(
-      "Youth craves thrills while adulthood cherishes wisdom.",
-      "Youth seeks ambition while adulthood finds contentment.",
-      "Dreams chased in youth while goals pursued in adulthood."
-    );
+        var response = embeddingService.embedding(
+            "Youth craves thrills while adulthood cherishes wisdom.",
+            "Youth seeks ambition while adulthood finds contentment.",
+            "Dreams chased in youth while goals pursued in adulthood."
+        );
 
-    JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-    JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
-  }
+        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+    }
 
-  @Test
-  void test_embedding_parameters() throws Exception {
+    @Test
+    void test_embedding_parameters() throws Exception {
 
-    final String REQUEST = """
-      {
-          "inputs": [
-              "Youth craves thrills while adulthood cherishes wisdom.",
-              "Youth seeks ambition while adulthood finds contentment.",
-              "Dreams chased in youth while goals pursued in adulthood."
-          ],
-          "model_id": "override-model",
-          "project_id": "override-project-id",
-          "space_id": "override-space-id",
-          "parameters" : {
-              "truncate_input_tokens" : 512,
-              "return_options": {
-                  "input_text": true
-              }
-          }
-      }""";
+        final String REQUEST = """
+            {
+                "inputs": [
+                    "Youth craves thrills while adulthood cherishes wisdom.",
+                    "Youth seeks ambition while adulthood finds contentment.",
+                    "Dreams chased in youth while goals pursued in adulthood."
+                ],
+                "model_id": "override-model",
+                "project_id": "override-project-id",
+                "space_id": "override-space-id",
+                "parameters" : {
+                    "truncate_input_tokens" : 512,
+                    "return_options": {
+                        "input_text": true
+                    }
+                }
+            }""";
 
-    final String RESPONSE = """
-      {
-        "model_id": "override-model",
-        "results": [
-          {
-            "embedding": [
-              -0.006929283,
-              -0.005336422,
-              -0.024047505
-            ],
-            "input": "Youth craves thrills while adulthood cherishes wisdom."
-          },
-          {
-            "embedding": [
-              -0.006929283,
-              -0.005336422,
-              -0.024047505
-            ],
-            "input": "Youth seeks ambition while adulthood finds contentment."
-          },
-          {
-            "embedding": [
-              -0.006929283,
-              -0.005336422,
-              -0.024047505
-            ],
-            "input": "Dreams chased in youth while goals pursued in adulthood."
-          }
-        ],
-        "created_at": "2024-02-21T17:32:28Z",
-        "input_token_count": 10
-      }""";
+        final String RESPONSE = """
+            {
+              "model_id": "override-model",
+              "results": [
+                {
+                  "embedding": [
+                    -0.006929283,
+                    -0.005336422,
+                    -0.024047505
+                  ],
+                  "input": "Youth craves thrills while adulthood cherishes wisdom."
+                },
+                {
+                  "embedding": [
+                    -0.006929283,
+                    -0.005336422,
+                    -0.024047505
+                  ],
+                  "input": "Youth seeks ambition while adulthood finds contentment."
+                },
+                {
+                  "embedding": [
+                    -0.006929283,
+                    -0.005336422,
+                    -0.024047505
+                  ],
+                  "input": "Dreams chased in youth while goals pursued in adulthood."
+                }
+              ],
+              "created_at": "2024-02-21T17:32:28Z",
+              "input_token_count": 10
+            }""";
 
-    when(mockHttpResponse.statusCode()).thenReturn(200);
-    when(mockHttpResponse.body()).thenReturn(RESPONSE);
-    when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
-      .thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+            .thenReturn(mockHttpResponse);
 
-    var embeddingService = EmbeddingService.builder()
-      .authenticationProvider(authenticationProvider)
-      .httpClient(mockHttpClient)
-      .modelId(MODEL_ID)
-      .logRequests(true)
-      .projectId(PROJECT_ID)
-      .url(CloudRegion.DALLAS)
-      .build();
+        var embeddingService = EmbeddingService.builder()
+            .authenticationProvider(authenticationProvider)
+            .httpClient(mockHttpClient)
+            .modelId(MODEL_ID)
+            .logRequests(true)
+            .projectId(PROJECT_ID)
+            .url(CloudRegion.DALLAS)
+            .build();
 
-    var parameters = EmbeddingParameters.builder()
-      .modelId("override-model")
-      .projectId("override-project-id")
-      .spaceId("override-space-id")
-      .truncateInputTokens(512)
-      .inputText(true)
-      .build();
+        var parameters = EmbeddingParameters.builder()
+            .modelId("override-model")
+            .projectId("override-project-id")
+            .spaceId("override-space-id")
+            .truncateInputTokens(512)
+            .inputText(true)
+            .build();
 
-    assertEquals(512, parameters.getTruncateInputTokens());
-    assertEquals(true, parameters.getInputText());
+        assertEquals(512, parameters.getTruncateInputTokens());
+        assertEquals(true, parameters.getInputText());
 
-    var inputs = List.of(
-      "Youth craves thrills while adulthood cherishes wisdom.",
-      "Youth seeks ambition while adulthood finds contentment.",
-      "Dreams chased in youth while goals pursued in adulthood."
-    );
+        var inputs = List.of(
+            "Youth craves thrills while adulthood cherishes wisdom.",
+            "Youth seeks ambition while adulthood finds contentment.",
+            "Dreams chased in youth while goals pursued in adulthood."
+        );
 
-    var response = embeddingService.embedding(inputs, parameters);
-    JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-    JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
-  }
+        var response = embeddingService.embedding(inputs, parameters);
+        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+    }
 
-  @Test
-  void test_embedding_exception() throws Exception {
+    @Test
+    void test_embedding_exception() throws Exception {
 
-    var error = new WatsonxError(
-      400, "error", List.of(new Error("X", "X", "X")));
+        var error = new WatsonxError(
+            400, "error", List.of(new Error("X", "X", "X")));
 
-    var json = Json.toJson(error);
+        var json = Json.toJson(error);
 
-    when(mockHttpResponse.statusCode()).thenReturn(400);
-    when(mockHttpResponse.body()).thenReturn(json);
-    when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
-    when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
-      .thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(400);
+        when(mockHttpResponse.body()).thenReturn(json);
+        when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
+        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+            .thenReturn(mockHttpResponse);
 
-    var embeddingService = EmbeddingService.builder()
-      .authenticationProvider(authenticationProvider)
-      .httpClient(mockHttpClient)
-      .modelId(MODEL_ID)
-      .logRequests(true)
-      .projectId(PROJECT_ID)
-      .url(CloudRegion.DALLAS)
-      .build();
+        var embeddingService = EmbeddingService.builder()
+            .authenticationProvider(authenticationProvider)
+            .httpClient(mockHttpClient)
+            .modelId(MODEL_ID)
+            .logRequests(true)
+            .projectId(PROJECT_ID)
+            .url(CloudRegion.DALLAS)
+            .build();
 
-    var ex = assertThrows(RuntimeException.class, () -> embeddingService.embedding("Hello"));
-    JSONAssert.assertEquals(json, ex.getMessage(), true);
-  }
+        var ex = assertThrows(RuntimeException.class, () -> embeddingService.embedding("Hello"));
+        JSONAssert.assertEquals(json, ex.getMessage(), true);
+    }
 }

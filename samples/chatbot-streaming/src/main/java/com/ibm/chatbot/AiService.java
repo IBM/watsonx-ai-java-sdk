@@ -24,59 +24,59 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 
 public class AiService {
 
-  private static final Config config = ConfigProvider.getConfig();
-  private final ChatService chatService;
-  private final ChatMemory memory;
+    private static final Config config = ConfigProvider.getConfig();
+    private final ChatService chatService;
+    private final ChatMemory memory;
 
-  public AiService() {
+    public AiService() {
 
-    final var url = URI.create(config.getValue("WATSONX_URL", String.class));
-    final var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-    final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+        final var url = URI.create(config.getValue("WATSONX_URL", String.class));
+        final var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+        final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-    AuthenticationProvider authProvider = IAMAuthenticator.builder()
-      .apiKey(apiKey)
-      .timeout(Duration.ofSeconds(60))
-      .build();
+        AuthenticationProvider authProvider = IAMAuthenticator.builder()
+            .apiKey(apiKey)
+            .timeout(Duration.ofSeconds(60))
+            .build();
 
-    chatService = ChatService.builder()
-      .authenticationProvider(authProvider)
-      .projectId(projectId)
-      .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
-      .url(url)
-      .build();
+        chatService = ChatService.builder()
+            .authenticationProvider(authProvider)
+            .projectId(projectId)
+            .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+            .url(url)
+            .build();
 
-    memory = new ChatMemory();
-    memory.addMessage(SystemMessage.of("You are an helpful assistant"));
-  }
+        memory = new ChatMemory();
+        memory.addMessage(SystemMessage.of("You are an helpful assistant"));
+    }
 
-  public CompletableFuture<Void> chat(String message, Consumer<String> handler) {
+    public CompletableFuture<Void> chat(String message, Consumer<String> handler) {
 
-    var parameters = ChatParameters.builder()
-      .maxCompletionTokens(0)
-      .build();
+        var parameters = ChatParameters.builder()
+            .maxCompletionTokens(0)
+            .build();
 
-    memory.addMessage(UserMessage.text(message));
-    return chatService.chatStreaming(memory.getMemory(), parameters, new ChatHandler() {
+        memory.addMessage(UserMessage.text(message));
+        return chatService.chatStreaming(memory.getMemory(), parameters, new ChatHandler() {
 
-      @Override
-      public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-        handler.accept(partialResponse);
-      }
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                handler.accept(partialResponse);
+            }
 
-      @Override
-      public void onCompleteResponse(ChatResponse completeResponse) {
-        memory.addMessage(AssistantMessage.text(completeResponse.toText()));
-      }
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                memory.addMessage(AssistantMessage.text(completeResponse.toText()));
+            }
 
-      @Override
-      public void onError(Throwable error) {
-        System.err.println(error);
-      }
-    });
-  }
+            @Override
+            public void onError(Throwable error) {
+                System.err.println(error);
+            }
+        });
+    }
 
-  public FoundationModel getModel() {
-    return chatService.getModelDetails();
-  }
+    public FoundationModel getModel() {
+        return chatService.getModelDetails();
+    }
 }

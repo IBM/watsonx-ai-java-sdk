@@ -32,275 +32,275 @@ import com.ibm.watsonx.ai.utils.Utils;
 @ExtendWith(MockitoExtension.class)
 public class RerankServiceTest {
 
-  @Mock
-  HttpClient mockHttpClient;
+    @Mock
+    HttpClient mockHttpClient;
 
-  @Mock
-  HttpRequest mockHttpRequest;
+    @Mock
+    HttpRequest mockHttpRequest;
 
-  @Mock
-  HttpResponse<String> mockHttpResponse;
+    @Mock
+    HttpResponse<String> mockHttpResponse;
 
-  @Mock
-  AuthenticationProvider mockAuthenticationProvider;
+    @Mock
+    AuthenticationProvider mockAuthenticationProvider;
 
-  @Captor
-  ArgumentCaptor<HttpRequest> httpRequestCaptor;
+    @Captor
+    ArgumentCaptor<HttpRequest> httpRequestCaptor;
 
-  @BeforeEach
-  void setUp() {
-    when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
-  }
+    @BeforeEach
+    void setUp() {
+        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+    }
 
-  @Test
-  void test_rerank() throws Exception {
+    @Test
+    void test_rerank() throws Exception {
 
-    final String REQUEST =
-      """
-        {
-          "model_id": "cross-encoder/ms-marco-minilm-l-12-v2",
-          "project_id": "12ac4cf1-252f-424b-b52d-5cdd9814987f",
-          "inputs": [
-            {
-              "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
-            },
-            {
-              "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-            }
-          ],
-          "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit."
-        }""";
-
-    final String RESPONSE = """
-      {
-        "model_id": "cross-encoder/ms-marco-minilm-l-12-v2",
-        "results": [
-          {
-            "index": 1,
-            "score": 0.7461
-          },
-          {
-            "index": 0,
-            "score": 0.8274
-          }
-        ],
-        "created_at": "2024-02-21T17:32:28Z",
-        "input_token_count": 20
-      }""";
-
-    when(mockHttpResponse.statusCode()).thenReturn(200);
-    when(mockHttpResponse.body()).thenReturn(RESPONSE);
-    when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);;
-
-    var rerankService = RerankService.builder()
-      .url(CloudRegion.LONDON)
-      .httpClient(mockHttpClient)
-      .authenticationProvider(mockAuthenticationProvider)
-      .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-      .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-      .build();
-
-    var response = rerankService.rerank(
-      "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-      List.of(
-        "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
-        "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-      )
-    );
-
-    JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-    JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
-  }
-
-  @Test
-  void test_rerank_parameters() throws Exception {
-
-    final String REQUEST =
-      """
-        {
-          "model_id": "my-new-model-id",
-          "project_id": "my-new-project-id",
-          "space_id": "my-new-space-id",
-          "inputs": [
-            {
-              "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
-            },
-            {
-              "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-            }
-          ],
-          "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-          "parameters": {
-            "truncate_input_tokens": 512,
-            "return_options": {
-                "top_n": 2,
-                "query": true,
-                "inputs": true
-            }
-          }
-        }""";
-
-    final String RESPONSE =
-      """
-        {
-            "model_id": "my-new-model-id",
-            "created_at": "2025-06-15T14:15:09.622Z",
-            "results": [
+        final String REQUEST =
+            """
                 {
-                    "index": 0,
-                    "score": 0.2686532437801361,
-                    "input": {
-                        "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
+                  "model_id": "cross-encoder/ms-marco-minilm-l-12-v2",
+                  "project_id": "12ac4cf1-252f-424b-b52d-5cdd9814987f",
+                  "inputs": [
+                    {
+                      "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
+                    },
+                    {
+                      "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
                     }
+                  ],
+                  "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit."
+                }""";
+
+        final String RESPONSE = """
+            {
+              "model_id": "cross-encoder/ms-marco-minilm-l-12-v2",
+              "results": [
+                {
+                  "index": 1,
+                  "score": 0.7461
                 },
                 {
-                    "index": 1,
-                    "score": -1.575758934020996,
-                    "input": {
-                        "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-                    }
+                  "index": 0,
+                  "score": 0.8274
                 }
-            ],
-            "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-            "input_token_count": 130
-        }""";
+              ],
+              "created_at": "2024-02-21T17:32:28Z",
+              "input_token_count": 20
+            }""";
 
-    when(mockHttpResponse.statusCode()).thenReturn(200);
-    when(mockHttpResponse.body()).thenReturn(RESPONSE);
-    when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);;
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-    var rerankService = RerankService.builder()
-      .url(CloudRegion.LONDON)
-      .httpClient(mockHttpClient)
-      .authenticationProvider(mockAuthenticationProvider)
-      .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-      .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-      .build();
+        var rerankService = RerankService.builder()
+            .url(CloudRegion.LONDON)
+            .httpClient(mockHttpClient)
+            .authenticationProvider(mockAuthenticationProvider)
+            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+            .build();
 
-    var parameters = RerankParameters.builder()
-      .projectId("my-new-project-id")
-      .spaceId("my-new-space-id")
-      .modelId("my-new-model-id")
-      .query(true)
-      .topN(2)
-      .inputs(true)
-      .truncateInputTokens(512)
-      .build();
+        var response = rerankService.rerank(
+            "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+            List.of(
+                "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
+                "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+            )
+        );
 
-    assertEquals(true, parameters.getQuery());
-    assertEquals(2, parameters.getTopN());
-    assertEquals(true, parameters.getInputs());
-    assertEquals(512, parameters.getTruncateInputTokens());
+        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+    }
 
-    var response = rerankService.rerank(
-      "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-      List.of(
-        "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
-        "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-      ),
-      parameters
-    );
+    @Test
+    void test_rerank_parameters() throws Exception {
 
-    JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-    JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
-  }
-
-  @Test
-  void test_rerank_parameters_2() throws Exception {
-
-    final String REQUEST =
-      """
-        {
-          "model_id": "my-new-model-id",
-          "project_id": "my-new-project-id",
-          "space_id": "my-new-space-id",
-          "inputs": [
-            {
-              "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
-            },
-            {
-              "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-            }
-          ],
-          "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-          "parameters": {
-            "truncate_input_tokens": 512,
-            "return_options": {
-                "inputs": true
-            }
-          }
-        }""";
-
-    final String RESPONSE =
-      """
-        {
-            "model_id": "my-new-model-id",
-            "created_at": "2025-06-15T14:15:09.622Z",
-            "results": [
+        final String REQUEST =
+            """
                 {
-                    "index": 0,
-                    "score": 0.2686532437801361,
-                    "input": {
-                        "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
+                  "model_id": "my-new-model-id",
+                  "project_id": "my-new-project-id",
+                  "space_id": "my-new-space-id",
+                  "inputs": [
+                    {
+                      "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
+                    },
+                    {
+                      "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
                     }
-                },
+                  ],
+                  "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                  "parameters": {
+                    "truncate_input_tokens": 512,
+                    "return_options": {
+                        "top_n": 2,
+                        "query": true,
+                        "inputs": true
+                    }
+                  }
+                }""";
+
+        final String RESPONSE =
+            """
                 {
-                    "index": 1,
-                    "score": -1.575758934020996,
-                    "input": {
-                        "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                    "model_id": "my-new-model-id",
+                    "created_at": "2025-06-15T14:15:09.622Z",
+                    "results": [
+                        {
+                            "index": 0,
+                            "score": 0.2686532437801361,
+                            "input": {
+                                "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
+                            }
+                        },
+                        {
+                            "index": 1,
+                            "score": -1.575758934020996,
+                            "input": {
+                                "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                            }
+                        }
+                    ],
+                    "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                    "input_token_count": 130
+                }""";
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        var rerankService = RerankService.builder()
+            .url(CloudRegion.LONDON)
+            .httpClient(mockHttpClient)
+            .authenticationProvider(mockAuthenticationProvider)
+            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+            .build();
+
+        var parameters = RerankParameters.builder()
+            .projectId("my-new-project-id")
+            .spaceId("my-new-space-id")
+            .modelId("my-new-model-id")
+            .query(true)
+            .topN(2)
+            .inputs(true)
+            .truncateInputTokens(512)
+            .build();
+
+        assertEquals(true, parameters.getQuery());
+        assertEquals(2, parameters.getTopN());
+        assertEquals(true, parameters.getInputs());
+        assertEquals(512, parameters.getTruncateInputTokens());
+
+        var response = rerankService.rerank(
+            "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+            List.of(
+                "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
+                "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+            ),
+            parameters
+        );
+
+        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+    }
+
+    @Test
+    void test_rerank_parameters_2() throws Exception {
+
+        final String REQUEST =
+            """
+                {
+                  "model_id": "my-new-model-id",
+                  "project_id": "my-new-project-id",
+                  "space_id": "my-new-space-id",
+                  "inputs": [
+                    {
+                      "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
+                    },
+                    {
+                      "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
                     }
-                }
-            ],
-            "input_token_count": 130
-        }""";
+                  ],
+                  "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                  "parameters": {
+                    "truncate_input_tokens": 512,
+                    "return_options": {
+                        "inputs": true
+                    }
+                  }
+                }""";
 
-    when(mockHttpResponse.statusCode()).thenReturn(200);
-    when(mockHttpResponse.body()).thenReturn(RESPONSE);
-    when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);;
+        final String RESPONSE =
+            """
+                {
+                    "model_id": "my-new-model-id",
+                    "created_at": "2025-06-15T14:15:09.622Z",
+                    "results": [
+                        {
+                            "index": 0,
+                            "score": 0.2686532437801361,
+                            "input": {
+                                "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
+                            }
+                        },
+                        {
+                            "index": 1,
+                            "score": -1.575758934020996,
+                            "input": {
+                                "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                            }
+                        }
+                    ],
+                    "input_token_count": 130
+                }""";
 
-    var rerankService = RerankService.builder()
-      .url(CloudRegion.LONDON)
-      .httpClient(mockHttpClient)
-      .authenticationProvider(mockAuthenticationProvider)
-      .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-      .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-      .build();
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-    var parameters = RerankParameters.builder()
-      .projectId("my-new-project-id")
-      .spaceId("my-new-space-id")
-      .modelId("my-new-model-id")
-      .inputs(true)
-      .truncateInputTokens(512)
-      .build();
+        var rerankService = RerankService.builder()
+            .url(CloudRegion.LONDON)
+            .httpClient(mockHttpClient)
+            .authenticationProvider(mockAuthenticationProvider)
+            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+            .build();
 
-    var response = rerankService.rerank(
-      "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-      List.of(
-        "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
-        "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-      ),
-      parameters
-    );
+        var parameters = RerankParameters.builder()
+            .projectId("my-new-project-id")
+            .spaceId("my-new-space-id")
+            .modelId("my-new-model-id")
+            .inputs(true)
+            .truncateInputTokens(512)
+            .build();
 
-    JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-    JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
-  }
+        var response = rerankService.rerank(
+            "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+            List.of(
+                "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
+                "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+            ),
+            parameters
+        );
 
-  @Test
-  void test_rerank_exeception() throws Exception {
+        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+    }
 
-    when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
+    @Test
+    void test_rerank_exeception() throws Exception {
 
-    var rerankService = RerankService.builder()
-      .url(CloudRegion.LONDON)
-      .httpClient(mockHttpClient)
-      .authenticationProvider(mockAuthenticationProvider)
-      .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-      .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-      .build();
+        when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
 
-    assertThrows(RuntimeException.class, () -> rerankService.rerank("test", List.of("test")));
-  }
+        var rerankService = RerankService.builder()
+            .url(CloudRegion.LONDON)
+            .httpClient(mockHttpClient)
+            .authenticationProvider(mockAuthenticationProvider)
+            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+            .build();
+
+        assertThrows(RuntimeException.class, () -> rerankService.rerank("test", List.of("test")));
+    }
 }

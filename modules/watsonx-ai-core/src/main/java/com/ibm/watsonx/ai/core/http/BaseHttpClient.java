@@ -16,23 +16,23 @@ import java.util.concurrent.ForkJoinPool;
  */
 public abstract class BaseHttpClient {
 
-  final HttpClient delegate;
+    final HttpClient delegate;
 
-  /**
-   * Constructs a new instance of BaseHttpClient with the provided HttpClient delegate.
-   *
-   * @param httpClient {@link HttpClient} instance.
-   */
-  public BaseHttpClient(HttpClient httpClient) {
-    this.delegate = httpClient;
-  }
+    /**
+     * Constructs a new instance of BaseHttpClient with the provided HttpClient delegate.
+     *
+     * @param httpClient {@link HttpClient} instance.
+     */
+    public BaseHttpClient(HttpClient httpClient) {
+        this.delegate = httpClient;
+    }
 
-  /**
-   * Returns the {@code Executor} of the HttpClient.
-   *
-   * @return {@link Executor}
-   */
-  public Executor executor() {
-    return delegate.executor().orElse(ForkJoinPool.commonPool());
-  }
+    /**
+     * Returns the {@code Executor} of the HttpClient.
+     *
+     * @return {@link Executor}
+     */
+    public Executor executor() {
+        return delegate.executor().orElse(ForkJoinPool.commonPool());
+    }
 }

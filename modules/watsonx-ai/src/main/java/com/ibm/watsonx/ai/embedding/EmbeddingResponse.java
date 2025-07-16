@@ -15,18 +15,17 @@ import java.util.List;
  * @param inputTokenCount The number of input tokens that were consumed for this request.
  */
 public record EmbeddingResponse(
-  String modelId,
-  String createdAt,
-  List<Result> results,
-  Integer inputTokenCount) {
+    String modelId,
+    String createdAt,
+    List<Result> results,
+    Integer inputTokenCount) {
 
-  /**
-   * Represents the embedding result for a given input text. Each embedding contains a list of floating point numbers representing the embedding
-   * values.
-   *
-   * @param embedding A list of float values representing the embedding of the input text.
-   */
-  public record Result(List<Float> embedding, String input) {
-  }
+    /**
+     * Represents the embedding result for a given input text. Each embedding contains a list of floating point numbers representing the embedding
+     * values.
+     *
+     * @param embedding A list of float values representing the embedding of the input text.
+     */
+    public record Result(List<Float> embedding, String input) {}
 }
 

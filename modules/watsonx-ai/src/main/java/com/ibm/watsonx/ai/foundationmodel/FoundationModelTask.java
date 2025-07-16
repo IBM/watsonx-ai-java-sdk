@@ -13,8 +13,7 @@ package com.ibm.watsonx.ai.foundationmodel;
  * @param description A brief description of the task’s purpose and capabilities.
  */
 public record FoundationModelTask(
-  String taskId,
-  String label,
-  Integer rank,
-  String description) {
-}
+    String taskId,
+    String label,
+    Integer rank,
+    String description) {}

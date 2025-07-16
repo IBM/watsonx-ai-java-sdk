@@ -15,27 +15,27 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
 
 public class App {
 
-  private static final Config config = ConfigProvider.getConfig();
+    private static final Config config = ConfigProvider.getConfig();
 
-  public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
-    var url = URI.create(config.getValue("WATSONX_URL", String.class));
-    var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-    var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+        var url = URI.create(config.getValue("WATSONX_URL", String.class));
+        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+        var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-    AuthenticationProvider authProvider = IAMAuthenticator.builder()
-      .apiKey(apiKey)
-      .timeout(Duration.ofSeconds(60))
-      .build();
+        AuthenticationProvider authProvider = IAMAuthenticator.builder()
+            .apiKey(apiKey)
+            .timeout(Duration.ofSeconds(60))
+            .build();
 
-    TokenizationService tokenizationService = TokenizationService.builder()
-      .authenticationProvider(authProvider)
-      .projectId(projectId)
-      .modelId("ibm/granite-3-3-8b-instruct")
-      .url(url)
-      .build();
+        TokenizationService tokenizationService = TokenizationService.builder()
+            .authenticationProvider(authProvider)
+            .projectId(projectId)
+            .modelId("ibm/granite-3-3-8b-instruct")
+            .url(url)
+            .build();
 
-    var response = tokenizationService.tokenize("Hello!");
-    System.out.println(Json.prettyPrint(response));
-  }
+        var response = tokenizationService.tokenize("Hello!");
+        System.out.println(Json.prettyPrint(response));
+    }
 }

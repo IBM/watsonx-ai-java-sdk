@@ -30,115 +30,115 @@ import com.ibm.watsonx.ai.core.utils.Utils;
 @ExtendWith(MockitoExtension.class)
 public class BearerInterceptorTest {
 
-  @Mock
-  private HttpClient httpClient;
+    @Mock
+    private HttpClient httpClient;
 
-  @Test
-  void test_bearer_interceptor_sync() throws Exception {
+    @Test
+    void test_bearer_interceptor_sync() throws Exception {
 
-    var response = Utils.okResponse();
-    var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        var response = Utils.okResponse();
+        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
 
-    AuthenticationProvider authenticator = IAMAuthenticator.builder()
-      .httpClient(httpClient)
-      .apiKey("my_super_api_key")
-      .build();
+        AuthenticationProvider authenticator = IAMAuthenticator.builder()
+            .httpClient(httpClient)
+            .apiKey("my_super_api_key")
+            .build();
 
-    var client = SyncHttpClient.builder()
-      .httpClient(httpClient)
-      .interceptor(new BearerInterceptor(authenticator))
-      .build();
+        var client = SyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptor(new BearerInterceptor(authenticator))
+            .build();
 
-    when(httpClient.<String>send(requestCaptor.capture(), any()))
-      .thenReturn(response);
+        when(httpClient.<String>send(requestCaptor.capture(), any()))
+            .thenReturn(response);
 
-    var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
-      .POST(BodyPublishers.ofString("Call this!"))
-      .build();
+        var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
+            .POST(BodyPublishers.ofString("Call this!"))
+            .build();
 
-    client.send(fakeRequest, BodyHandlers.ofString());
-    assertEquals("Bearer my_super_token", requestCaptor.getValue().headers().firstValue("Authorization").get());
-  }
+        client.send(fakeRequest, BodyHandlers.ofString());
+        assertEquals("Bearer my_super_token", requestCaptor.getValue().headers().firstValue("Authorization").get());
+    }
 
-  @Test
-  void test_bearer_interceptor_sync_with_exception() throws Exception {
+    @Test
+    void test_bearer_interceptor_sync_with_exception() throws Exception {
 
-    var response = Utils.koResponse();
-    var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        var response = Utils.koResponse();
+        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
 
-    AuthenticationProvider authenticator = IAMAuthenticator.builder()
-      .httpClient(httpClient)
-      .apiKey("my_super_api_key")
-      .build();
+        AuthenticationProvider authenticator = IAMAuthenticator.builder()
+            .httpClient(httpClient)
+            .apiKey("my_super_api_key")
+            .build();
 
-    var client = SyncHttpClient.builder()
-      .httpClient(httpClient)
-      .interceptor(new BearerInterceptor(authenticator))
-      .build();
+        var client = SyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptor(new BearerInterceptor(authenticator))
+            .build();
 
-    when(httpClient.<String>send(requestCaptor.capture(), any()))
-      .thenReturn(response);
+        when(httpClient.<String>send(requestCaptor.capture(), any()))
+            .thenReturn(response);
 
-    var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
-      .POST(BodyPublishers.ofString("Call this!"))
-      .build();
+        var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
+            .POST(BodyPublishers.ofString("Call this!"))
+            .build();
 
-    var ex = assertThrows(RuntimeException.class, () -> client.send(fakeRequest, BodyHandlers.ofString()));
-    assertEquals(Utils.WRONG_RESPONSE, ex.getMessage());
-  }
+        var ex = assertThrows(RuntimeException.class, () -> client.send(fakeRequest, BodyHandlers.ofString()));
+        assertEquals(Utils.WRONG_RESPONSE, ex.getMessage());
+    }
 
-  @Test
-  void test_bearer_interceptor_async() throws Exception {
+    @Test
+    void test_bearer_interceptor_async() throws Exception {
 
-    var response = Utils.okResponse();
-    var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        var response = Utils.okResponse();
+        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
 
-    AuthenticationProvider authenticator = IAMAuthenticator.builder()
-      .httpClient(httpClient)
-      .apiKey("my_super_api_key")
-      .build();
+        AuthenticationProvider authenticator = IAMAuthenticator.builder()
+            .httpClient(httpClient)
+            .apiKey("my_super_api_key")
+            .build();
 
-    var client = AsyncHttpClient.builder()
-      .httpClient(httpClient)
-      .interceptor(new BearerInterceptor(authenticator))
-      .build();
+        var client = AsyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptor(new BearerInterceptor(authenticator))
+            .build();
 
-    when(httpClient.<String>sendAsync(requestCaptor.capture(), any()))
-      .thenReturn(completedFuture(response));
+        when(httpClient.<String>sendAsync(requestCaptor.capture(), any()))
+            .thenReturn(completedFuture(response));
 
-    var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
-      .POST(BodyPublishers.ofString("Call this!"))
-      .build();
+        var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
+            .POST(BodyPublishers.ofString("Call this!"))
+            .build();
 
-    client.send(fakeRequest, BodyHandlers.ofString()).get();
-    assertEquals("Bearer my_super_token", requestCaptor.getValue().headers().firstValue("Authorization").get());
-  }
+        client.send(fakeRequest, BodyHandlers.ofString()).get();
+        assertEquals("Bearer my_super_token", requestCaptor.getValue().headers().firstValue("Authorization").get());
+    }
 
-  @Test
-  void test_bearer_interceptor_async_with_exception() throws Exception {
+    @Test
+    void test_bearer_interceptor_async_with_exception() throws Exception {
 
-    var response = Utils.koResponse();
-    var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        var response = Utils.koResponse();
+        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
 
-    AuthenticationProvider authenticator = IAMAuthenticator.builder()
-      .httpClient(httpClient)
-      .apiKey("my_super_api_key")
-      .build();
+        AuthenticationProvider authenticator = IAMAuthenticator.builder()
+            .httpClient(httpClient)
+            .apiKey("my_super_api_key")
+            .build();
 
-    var client = AsyncHttpClient.builder()
-      .httpClient(httpClient)
-      .interceptor(new BearerInterceptor(authenticator))
-      .build();
+        var client = AsyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptor(new BearerInterceptor(authenticator))
+            .build();
 
-    when(httpClient.<String>sendAsync(requestCaptor.capture(), any()))
-      .thenReturn(completedFuture(response));
+        when(httpClient.<String>sendAsync(requestCaptor.capture(), any()))
+            .thenReturn(completedFuture(response));
 
-    var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
-      .POST(BodyPublishers.ofString("Call this!"))
-      .build();
+        var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
+            .POST(BodyPublishers.ofString("Call this!"))
+            .build();
 
-    var ex =
-      assertThrows(CompletionException.class, () -> client.send(fakeRequest, BodyHandlers.ofString()).join());
-    assertEquals(Utils.WRONG_RESPONSE, ex.getCause().getMessage());
-  }
+        var ex =
+            assertThrows(CompletionException.class, () -> client.send(fakeRequest, BodyHandlers.ofString()).join());
+        assertEquals(Utils.WRONG_RESPONSE, ex.getCause().getMessage());
+    }
 }

@@ -13,40 +13,40 @@ import java.util.UUID;
  */
 public class StreamingToolFetcher {
 
-  private int index;
-  private StringBuilder arguments;
-  private String id, type, name;
+    private int index;
+    private StringBuilder arguments;
+    private String id, type, name;
 
-  public StreamingToolFetcher(int index) {
-    this.index = index;
-    arguments = new StringBuilder();
-  }
-
-  public void setId(String id) {
-    if (nonNull(id))
-      this.id = id;
-  }
-
-  public void setType(String type) {
-    if (nonNull(type))
-      this.type = type;
-  }
-
-  public void setName(String name) {
-    if (nonNull(name) && !name.isBlank())
-      this.name = name;
-  }
-
-  public void appendArguments(String arguments) {
-    if (nonNull(arguments))
-      this.arguments.append(arguments);
-  }
-
-  public ToolCall build() {
-    // Watsonx doesn't return "id" if the option tool-choice is set to REQUIRED.
-    if (isNull(id)) {
-      this.id = UUID.randomUUID().toString();
+    public StreamingToolFetcher(int index) {
+        this.index = index;
+        arguments = new StringBuilder();
     }
-    return new ToolCall(index, id, type, FunctionCall.of(name, arguments.toString()));
-  }
+
+    public void setId(String id) {
+        if (nonNull(id))
+            this.id = id;
+    }
+
+    public void setType(String type) {
+        if (nonNull(type))
+            this.type = type;
+    }
+
+    public void setName(String name) {
+        if (nonNull(name) && !name.isBlank())
+            this.name = name;
+    }
+
+    public void appendArguments(String arguments) {
+        if (nonNull(arguments))
+            this.arguments.append(arguments);
+    }
+
+    public ToolCall build() {
+        // Watsonx doesn't return "id" if the option tool-choice is set to REQUIRED.
+        if (isNull(id)) {
+            this.id = UUID.randomUUID().toString();
+        }
+        return new ToolCall(index, id, type, FunctionCall.of(name, arguments.toString()));
+    }
 }

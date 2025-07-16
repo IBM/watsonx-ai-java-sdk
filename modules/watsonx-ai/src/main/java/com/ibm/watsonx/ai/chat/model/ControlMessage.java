@@ -23,20 +23,20 @@ import static java.util.Objects.requireNonNull;
  */
 public final record ControlMessage(String role, String content, String name) implements ChatMessage {
 
-  public static final String ROLE = "control";
+    public static final String ROLE = "control";
 
-  public ControlMessage {
-    role = ROLE;
-    requireNonNull(content);
-  }
+    public ControlMessage {
+        role = ROLE;
+        requireNonNull(content);
+    }
 
-  /**
-   * Creates a new {@link ControlMessage}.
-   *
-   * @param content the content of the control message
-   * @return a new {@link ControlMessage}
-   */
-  public static ControlMessage of(String content) {
-    return new ControlMessage(ROLE, content, null);
-  }
+    /**
+     * Creates a new {@link ControlMessage}.
+     *
+     * @param content the content of the control message
+     * @return a new {@link ControlMessage}
+     */
+    public static ControlMessage of(String content) {
+        return new ControlMessage(ROLE, content, null);
+    }
 }

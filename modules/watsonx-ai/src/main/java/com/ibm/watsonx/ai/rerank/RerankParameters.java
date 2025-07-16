@@ -18,134 +18,134 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.ReturnOptions;
  *
  * <pre>{@code
  * RerankParameters.builder()
- *   .truncateInputTokens(512)
- *   .build();
+ *     .truncateInputTokens(512)
+ *     .build();
  * }</pre>
  *
  */
 public final class RerankParameters extends WatsonxParameters {
-  private final Integer truncateInputTokens;
-  private final Integer topN;
-  private final Boolean inputs;
-  private final Boolean query;
+    private final Integer truncateInputTokens;
+    private final Integer topN;
+    private final Boolean inputs;
+    private final Boolean query;
 
-  public RerankParameters(Builder builder) {
-    super(builder);
-    truncateInputTokens = builder.truncateInputTokens;
-    topN = builder.topN;
-    inputs = builder.inputs;
-    query = builder.query;
-  }
+    public RerankParameters(Builder builder) {
+        super(builder);
+        truncateInputTokens = builder.truncateInputTokens;
+        topN = builder.topN;
+        inputs = builder.inputs;
+        query = builder.query;
+    }
 
-  public Integer getTruncateInputTokens() {
-    return truncateInputTokens;
-  }
+    public Integer getTruncateInputTokens() {
+        return truncateInputTokens;
+    }
 
-  public Integer getTopN() {
-    return topN;
-  }
+    public Integer getTopN() {
+        return topN;
+    }
 
-  public Boolean getInputs() {
-    return inputs;
-  }
+    public Boolean getInputs() {
+        return inputs;
+    }
 
-  public Boolean getQuery() {
-    return query;
-  }
+    public Boolean getQuery() {
+        return query;
+    }
 
-  Parameters toRerankRequestParameters() {
+    Parameters toRerankRequestParameters() {
 
-    Parameters parameters = null;
-    ReturnOptions returnOptions = null;
+        Parameters parameters = null;
+        ReturnOptions returnOptions = null;
 
-    if (nonNull(topN) || nonNull(inputs) || nonNull(query))
-      returnOptions = new ReturnOptions(topN, inputs, query);
+        if (nonNull(topN) || nonNull(inputs) || nonNull(query))
+            returnOptions = new ReturnOptions(topN, inputs, query);
 
-    if (nonNull(truncateInputTokens) || nonNull(returnOptions))
-      parameters = new Parameters(truncateInputTokens, returnOptions);
+        if (nonNull(truncateInputTokens) || nonNull(returnOptions))
+            parameters = new Parameters(truncateInputTokens, returnOptions);
 
-    return parameters;
-  }
-
-  /**
-   * Returns a new {@link Builder} instance.
-   * <p>
-   * <b>Example usage:</b>
-   *
-   * <pre>{@code
-   * RerankParameters.builder()
-   *   .truncateInputTokens(512)
-   *   .build();
-   * }</pre>
-   *
-   * @return {@link Builder} instance.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /**
-   * Builder class for constructing {@link RerankParameters} instances.
-   */
-  public static final class Builder extends WatsonxParameters.Builder<Builder> {
-    private Integer truncateInputTokens;
-    private Integer topN;
-    private Boolean inputs;
-    private Boolean query;
+        return parameters;
+    }
 
     /**
-     * The maximum number of tokens allowed per input.
+     * Returns a new {@link Builder} instance.
      * <p>
-     * If the input exceeds this limit, it will be truncated from the end (right side).
-     * <p>
-     * Must be > 1.
+     * <b>Example usage:</b>
      *
-     * @param truncateInputTokens Integer value.
+     * <pre>{@code
+     * RerankParameters.builder()
+     *     .truncateInputTokens(512)
+     *     .build();
+     * }</pre>
+     *
+     * @return {@link Builder} instance.
      */
-    public Builder truncateInputTokens(Integer truncateInputTokens) {
-      this.truncateInputTokens = truncateInputTokens;
-      return this;
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
-     * If set, only the top {@code N} ranked results are returned.
-     * <p>
-     * Must be > 1.
-     *
-     * @param topN Number of ranked results
+     * Builder class for constructing {@link RerankParameters} instances.
      */
-    public Builder topN(Integer topN) {
-      this.topN = topN;
-      return this;
-    }
+    public static final class Builder extends WatsonxParameters.Builder<Builder> {
+        private Integer truncateInputTokens;
+        private Integer topN;
+        private Boolean inputs;
+        private Boolean query;
 
-    /**
-     * Whether to return the input strings in the response.
-     *
-     * @param inputs Boolean value.
-     */
-    public Builder inputs(Boolean inputs) {
-      this.inputs = inputs;
-      return this;
-    }
+        /**
+         * The maximum number of tokens allowed per input.
+         * <p>
+         * If the input exceeds this limit, it will be truncated from the end (right side).
+         * <p>
+         * Must be > 1.
+         *
+         * @param truncateInputTokens Integer value.
+         */
+        public Builder truncateInputTokens(Integer truncateInputTokens) {
+            this.truncateInputTokens = truncateInputTokens;
+            return this;
+        }
 
-    /**
-     * Whether to return the query in the response.
-     *
-     * @param query Boolean value.
-     */
-    public Builder query(Boolean query) {
-      this.query = query;
-      return this;
-    }
+        /**
+         * If set, only the top {@code N} ranked results are returned.
+         * <p>
+         * Must be > 1.
+         *
+         * @param topN Number of ranked results
+         */
+        public Builder topN(Integer topN) {
+            this.topN = topN;
+            return this;
+        }
 
-    /**
-     * Builds a {@link RerankParameters} instance.
-     *
-     * @return a new instance of {@link RerankParameters}
-     */
-    public RerankParameters build() {
-      return new RerankParameters(this);
+        /**
+         * Whether to return the input strings in the response.
+         *
+         * @param inputs Boolean value.
+         */
+        public Builder inputs(Boolean inputs) {
+            this.inputs = inputs;
+            return this;
+        }
+
+        /**
+         * Whether to return the query in the response.
+         *
+         * @param query Boolean value.
+         */
+        public Builder query(Boolean query) {
+            this.query = query;
+            return this;
+        }
+
+        /**
+         * Builds a {@link RerankParameters} instance.
+         *
+         * @return a new instance of {@link RerankParameters}
+         */
+        public RerankParameters build() {
+            return new RerankParameters(this);
+        }
     }
-  }
 }

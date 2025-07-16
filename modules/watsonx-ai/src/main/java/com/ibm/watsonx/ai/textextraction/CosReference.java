@@ -16,21 +16,21 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.DataReference;
  * @param bucket the name of the COS bucket
  */
 public record CosReference(String connection, String bucket) {
-  public CosReference {
-    requireNonNull(connection, "connection can't be null");
-    requireNonNull(bucket, "bucket can't be null");
-  }
+    public CosReference {
+        requireNonNull(connection, "connection can't be null");
+        requireNonNull(bucket, "bucket can't be null");
+    }
 
-  public DataReference toDataReference(String fileName) {
-    requireNonNull(fileName, "fileName can't be null");
-    return new DataReference(
-      DataReference.TYPE_CONNECTION_ASSET,
-      new CosDataConnection(connection),
-      new CosDataLocation(fileName, bucket)
-    );
-  }
+    public DataReference toDataReference(String fileName) {
+        requireNonNull(fileName, "fileName can't be null");
+        return new DataReference(
+            DataReference.TYPE_CONNECTION_ASSET,
+            new CosDataConnection(connection),
+            new CosDataLocation(fileName, bucket)
+        );
+    }
 
-  public static CosReference of(String connection, String bucket) {
-    return new CosReference(connection, bucket);
-  }
+    public static CosReference of(String connection, String bucket) {
+        return new CosReference(connection, bucket);
+    }
 };

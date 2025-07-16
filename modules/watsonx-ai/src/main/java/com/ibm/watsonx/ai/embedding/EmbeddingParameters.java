@@ -18,99 +18,99 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.ReturnOptions;
  *
  * <pre>{@code
  * EmbeddingParameters.builder()
- *   .truncateInputTokens(512)
- *   .build();
+ *     .truncateInputTokens(512)
+ *     .build();
  * }</pre>
  *
  */
 public final class EmbeddingParameters extends WatsonxParameters {
-  private final Integer truncateInputTokens;
-  private final Boolean inputText;
+    private final Integer truncateInputTokens;
+    private final Boolean inputText;
 
-  public EmbeddingParameters(Builder builder) {
-    super(builder);
-    truncateInputTokens = builder.truncateInputTokens;
-    inputText = builder.inputText;
-  }
+    public EmbeddingParameters(Builder builder) {
+        super(builder);
+        truncateInputTokens = builder.truncateInputTokens;
+        inputText = builder.inputText;
+    }
 
-  public Integer getTruncateInputTokens() {
-    return truncateInputTokens;
-  }
+    public Integer getTruncateInputTokens() {
+        return truncateInputTokens;
+    }
 
-  public Boolean getInputText() {
-    return inputText;
-  }
+    public Boolean getInputText() {
+        return inputText;
+    }
 
-  protected Parameters toEmbeddingRequestParameters() {
-    Parameters parameters = null;
-    ReturnOptions returnOptions = null;
+    protected Parameters toEmbeddingRequestParameters() {
+        Parameters parameters = null;
+        ReturnOptions returnOptions = null;
 
-    if (nonNull(inputText))
-      returnOptions = new ReturnOptions(inputText);
+        if (nonNull(inputText))
+            returnOptions = new ReturnOptions(inputText);
 
-    if (nonNull(truncateInputTokens) || nonNull(returnOptions))
-      parameters = new Parameters(truncateInputTokens, returnOptions);
+        if (nonNull(truncateInputTokens) || nonNull(returnOptions))
+            parameters = new Parameters(truncateInputTokens, returnOptions);
 
-    return parameters;
-  }
-
-  /**
-   * Returns a new {@link Builder} instance.
-   * <p>
-   * <b>Example usage:</b>
-   *
-   * <pre>{@code
-   * EmbeddingParameters.builder()
-   *   .truncateInputTokens(512)
-   *   .build();
-   * }</pre>
-   *
-   * @return {@link Builder} instance.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /**
-   * Builder class for constructing {@link EmbeddingParameters} instances.
-   */
-  public static final class Builder extends WatsonxParameters.Builder<Builder> {
-    private Integer truncateInputTokens;
-    private Boolean inputText;
-
-    /**
-     * Represents the maximum number of tokens accepted per input.
-     *
-     * This can be used to avoid requests failing due to input being longer than configured limits. If the text is truncated, then it truncates the
-     * end of the input (on the right), so the start of the input will remain the same.
-     *
-     * If this value exceeds the maximum sequence length (refer to the documentation to find this value for the model) then the call will fail if the
-     * total number of tokens exceeds the maximum sequence length.
-     *
-     * @param truncateInputTokens Integer value.
-     */
-    public Builder truncateInputTokens(Integer truncateInputTokens) {
-      this.truncateInputTokens = truncateInputTokens;
-      return this;
+        return parameters;
     }
 
     /**
-     * Include the input text in each of the results documents.
+     * Returns a new {@link Builder} instance.
+     * <p>
+     * <b>Example usage:</b>
      *
-     * @param inputText Boolean value
+     * <pre>{@code
+     * EmbeddingParameters.builder()
+     *     .truncateInputTokens(512)
+     *     .build();
+     * }</pre>
+     *
+     * @return {@link Builder} instance.
      */
-    public Builder inputText(Boolean inputText) {
-      this.inputText = inputText;
-      return this;
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
-     * Builds a {@link EmbeddingParameters} instance.
-     *
-     * @return a new instance of {@link EmbeddingParameters}
+     * Builder class for constructing {@link EmbeddingParameters} instances.
      */
-    public EmbeddingParameters build() {
-      return new EmbeddingParameters(this);
+    public static final class Builder extends WatsonxParameters.Builder<Builder> {
+        private Integer truncateInputTokens;
+        private Boolean inputText;
+
+        /**
+         * Represents the maximum number of tokens accepted per input.
+         *
+         * This can be used to avoid requests failing due to input being longer than configured limits. If the text is truncated, then it truncates
+         * the end of the input (on the right), so the start of the input will remain the same.
+         *
+         * If this value exceeds the maximum sequence length (refer to the documentation to find this value for the model) then the call will fail if
+         * the total number of tokens exceeds the maximum sequence length.
+         *
+         * @param truncateInputTokens Integer value.
+         */
+        public Builder truncateInputTokens(Integer truncateInputTokens) {
+            this.truncateInputTokens = truncateInputTokens;
+            return this;
+        }
+
+        /**
+         * Include the input text in each of the results documents.
+         *
+         * @param inputText Boolean value
+         */
+        public Builder inputText(Boolean inputText) {
+            this.inputText = inputText;
+            return this;
+        }
+
+        /**
+         * Builds a {@link EmbeddingParameters} instance.
+         *
+         * @return a new instance of {@link EmbeddingParameters}
+         */
+        public EmbeddingParameters build() {
+            return new EmbeddingParameters(this);
+        }
     }
-  }
 }

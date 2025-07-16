@@ -11,8 +11,8 @@ package com.ibm.watsonx.ai.chat.model;
  *
  * <pre>{@code
  * UserMessage.of(
- *   TextContent.of("Tell me more about this image"),
- *   ImageContent.of("image/svg", base64Data)
+ *     TextContent.of("Tell me more about this image"),
+ *     ImageContent.of("image/svg", base64Data)
  * );
  * }</pre>
  *

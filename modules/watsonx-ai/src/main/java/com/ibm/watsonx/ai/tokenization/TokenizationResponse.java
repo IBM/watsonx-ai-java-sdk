@@ -11,6 +11,5 @@ import java.util.List;
  */
 public record TokenizationResponse(String modelId, Result result) {
 
-  public record Result(int tokenCount, List<String> tokens) {
-  }
+    public record Result(int tokenCount, List<String> tokens) {}
 }

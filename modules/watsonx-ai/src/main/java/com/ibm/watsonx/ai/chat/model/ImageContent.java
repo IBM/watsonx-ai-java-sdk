@@ -21,43 +21,43 @@ import com.ibm.watsonx.ai.chat.model.Image.Detail;
  */
 public final record ImageContent(String type, Image imageUrl) implements UserContent {
 
-  public static final String TYPE = "image_url";
+    public static final String TYPE = "image_url";
 
-  public ImageContent {
-    type = TYPE;
-    requireNonNull(imageUrl);
-  }
+    public ImageContent {
+        type = TYPE;
+        requireNonNull(imageUrl);
+    }
 
-  /**
-   * Creates an {@code ImageContent} from an {@link Image}.
-   *
-   * @param imageUrl the image to include
-   * @return a new {@code ImageContent}
-   */
-  public static ImageContent of(Image imageUrl) {
-    return new ImageContent(TYPE, imageUrl);
-  }
+    /**
+     * Creates an {@code ImageContent} from an {@link Image}.
+     *
+     * @param imageUrl the image to include
+     * @return a new {@code ImageContent}
+     */
+    public static ImageContent of(Image imageUrl) {
+        return new ImageContent(TYPE, imageUrl);
+    }
 
-  /**
-   * Creates an {@code ImageContent}.
-   *
-   * @param mimeType the MIME type of the image (e.g., {@code image/png}, {@code image/jpeg})
-   * @param image the base64-encoded image data (without the data URI prefix)
-   * @return a new {@code ImageContent}
-   */
-  public static ImageContent of(String mimeType, String image) {
-    return of(Image.of(mimeType, image, null));
-  }
+    /**
+     * Creates an {@code ImageContent}.
+     *
+     * @param mimeType the MIME type of the image (e.g., {@code image/png}, {@code image/jpeg})
+     * @param image the base64-encoded image data (without the data URI prefix)
+     * @return a new {@code ImageContent}
+     */
+    public static ImageContent of(String mimeType, String image) {
+        return of(Image.of(mimeType, image, null));
+    }
 
-  /**
-   * Creates an {@code ImageContent}.
-   *
-   * @param mimeType the MIME type of the image (e.g., {@code image/png}, {@code image/jpeg})
-   * @param image the base64-encoded image data (without the data URI prefix)
-   * @param detail the level of detail for how the model should process the image
-   * @return a new {@code ImageContent}
-   */
-  public static ImageContent of(String mimeType, String image, Detail detail) {
-    return of(Image.of(mimeType, image, detail));
-  }
+    /**
+     * Creates an {@code ImageContent}.
+     *
+     * @param mimeType the MIME type of the image (e.g., {@code image/png}, {@code image/jpeg})
+     * @param image the base64-encoded image data (without the data URI prefix)
+     * @param detail the level of detail for how the model should process the image
+     * @return a new {@code ImageContent}
+     */
+    public static ImageContent of(String mimeType, String image, Detail detail) {
+        return of(Image.of(mimeType, image, detail));
+    }
 }

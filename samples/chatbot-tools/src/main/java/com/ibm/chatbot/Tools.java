@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Tools {
 
     private static final Logger logger = LoggerFactory.getLogger(Tools.class);
+
     public record SendEmailArguments(List<String> emails, String subject, String body) {};
 
     public static boolean sendEmail(List<String> to, String subject, String body) {

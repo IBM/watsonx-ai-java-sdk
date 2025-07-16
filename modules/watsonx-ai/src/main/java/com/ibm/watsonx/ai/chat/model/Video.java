@@ -21,20 +21,20 @@ import static java.util.Objects.requireNonNull;
  */
 public final record Video(String url) {
 
-  public Video {
-    requireNonNull(url);
-  }
+    public Video {
+        requireNonNull(url);
+    }
 
-  /**
-   * Create a {@code Video} instance from media type and base64-encoded video data.
-   *
-   * @param mimeType the MIME type of the video (e.g., {@code video/mp4})
-   * @param data the base64-encoded video data
-   * @return a new {@link Video} instance
-   */
-  public static Video of(String mimeType, String data) {
-    requireNonNull(mimeType);
-    return new Video("data:%s;base64,%s".formatted(mimeType, data));
-  }
+    /**
+     * Create a {@code Video} instance from media type and base64-encoded video data.
+     *
+     * @param mimeType the MIME type of the video (e.g., {@code video/mp4})
+     * @param data the base64-encoded video data
+     * @return a new {@link Video} instance
+     */
+    public static Video of(String mimeType, String data) {
+        requireNonNull(mimeType);
+        return new Video("data:%s;base64,%s".formatted(mimeType, data));
+    }
 }
 

@@ -11,25 +11,25 @@ package com.ibm.watsonx.ai.chat.model;
  * tokens, and the total number of tokens consumed.
  */
 public class ChatUsage {
-  private Integer completionTokens;
-  private Integer promptTokens;
-  private Integer totalTokens;
+    private Integer completionTokens;
+    private Integer promptTokens;
+    private Integer totalTokens;
 
-  public Integer getCompletionTokens() {
-    return completionTokens;
-  }
+    public Integer getCompletionTokens() {
+        return completionTokens;
+    }
 
-  public Integer getPromptTokens() {
-    return promptTokens;
-  }
+    public Integer getPromptTokens() {
+        return promptTokens;
+    }
 
-  public Integer getTotalTokens() {
-    return totalTokens;
-  }
+    public Integer getTotalTokens() {
+        return totalTokens;
+    }
 
-  @Override
-  public String toString() {
-    return "ChatUsage [completionTokens=" + completionTokens + ", promptTokens=" + promptTokens
-      + ", totalTokens=" + totalTokens + "]";
-  }
+    @Override
+    public String toString() {
+        return "ChatUsage [completionTokens=" + completionTokens + ", promptTokens=" + promptTokens
+            + ", totalTokens=" + totalTokens + "]";
+    }
 }
