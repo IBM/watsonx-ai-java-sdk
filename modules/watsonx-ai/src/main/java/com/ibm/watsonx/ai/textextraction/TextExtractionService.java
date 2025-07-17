@@ -56,6 +56,8 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
  *
  * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
  * }</pre>
+ *
+ * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-extraction
  */
 public class TextExtractionService extends WatsonxService {
 

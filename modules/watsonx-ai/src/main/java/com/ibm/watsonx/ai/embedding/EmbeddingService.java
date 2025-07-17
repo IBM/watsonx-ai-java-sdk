@@ -38,6 +38,8 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  *     "Second input"
  * );
  * }</pre>
+ *
+ * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-embeddings
  */
 public final class EmbeddingService extends WatsonxService {
 

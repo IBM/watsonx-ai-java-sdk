@@ -6,7 +6,7 @@
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-embedding-text</artifactId>
   <version>0.2.0</version>
-  <name>Embedding Text Sample</name>
+  <name>Embedding Sample</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

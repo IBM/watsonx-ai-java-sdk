@@ -4,9 +4,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
-  <artifactId>watsonx-ai-sample-textextraction</artifactId>
+  <artifactId>watsonx-ai-sample-timeseries</artifactId>
   <version>0.2.0</version>
-  <name>TextExtraction Sample</name>
+  <name>TimeSeries Sample</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
@@ -22,7 +22,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.5.1</version>
         <configuration>
-          <mainClass>com.ibm.textextraction.App</mainClass>
+          <mainClass>com.ibm.timeseries.App</mainClass>
         </configuration>
       </plugin>
     </plugins>

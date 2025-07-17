@@ -42,6 +42,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  * );
  * }</pre>
  *
+ * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-rerank
  */
 public final class RerankService extends WatsonxService {
 
