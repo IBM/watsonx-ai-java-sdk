@@ -389,6 +389,25 @@ public final class ChatParameters extends WatsonxParameters {
         }
 
         /**
+         * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+         * <p>
+         * Allows specifying a custom schema name and whether strict schema validation should be applied.
+         * <ul>
+         * <li>If {@code strict} is {@code true}, the model's output must exactly match the schema.</li>
+         * <li>If {@code strict} is {@code false}, additional fields not defined in the schema are allowed.</li>
+         * </ul>
+         *
+         * @param name the identifier name for the schema
+         * @param schema the JSON Schema describing the expected output structure
+         * @param strict whether to enforce strict schema validation
+         */
+        public Builder withJsonSchemaResponse(String name, Map<String, Object> schema, boolean strict) {
+            this.responseFormat = ResponseFormat.JSON_SCHEMA;
+            this.jsonSchema = new JsonSchemaObject(name, schema, strict);
+            return this;
+        }
+
+        /**
          * Random number generator seed to use in sampling mode for experimental repeatability.
          *
          * @param seed the seed value

@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.chat.model;
 
 import static java.util.Objects.requireNonNull;
+import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
 
 /**
@@ -30,6 +31,18 @@ public final record Tool(String type, Function function) {
 
     public Tool {
         type = TYPE;
+    }
+
+    /**
+     * Creates a new {@link Tool}.
+     *
+     * @param name The name of the function.
+     * @param description A description of what the function does, used by the model to decide when and how to call the function.
+     * @param parameters The parameters the function accepts, described as a JSON Schema object.
+     * @return A new {@link Tool} instance.
+     */
+    public static Tool of(String name, String description, Map<String, Object> parameters) {
+        return new Tool("function", new Function(name, description, parameters));
     }
 
     /**

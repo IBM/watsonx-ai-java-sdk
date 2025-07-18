@@ -984,6 +984,26 @@ public class ChatServiceTest {
         var chatResponse = chatService.chat(messages, tools);
         JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
         JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+
+        tools = Tool.of(
+            "sum",
+            "Execute the sum of two numbers",
+            Map.of(
+                "type", "object",
+                "properties", Map.of(
+                    "first_number", Map.of(
+                        "type", "integer"
+                    ),
+                    "second_number", Map.of(
+                        "type", "integer"
+                    )
+                ),
+                "required", List.of("first_number", "second_number")
+            ));
+
+        chatResponse = chatService.chat(messages, tools);
+        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
     }
 
     @Test
