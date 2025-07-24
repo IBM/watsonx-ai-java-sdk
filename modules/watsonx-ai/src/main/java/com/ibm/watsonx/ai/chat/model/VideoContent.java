@@ -18,7 +18,7 @@ import static java.util.Objects.requireNonNull;
  * @param type the type identifier for this content, always set to {@code video_url}
  * @param videoUrl the video content wrapped in a {@link Video} object
  */
-public final record VideoContent(String type, Video videoUrl) implements UserContent {
+public record VideoContent(String type, Video videoUrl) implements UserContent {
 
     public static final String TYPE = "video_url";
 

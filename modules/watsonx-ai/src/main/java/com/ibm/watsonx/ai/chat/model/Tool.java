@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
  * Tool.of("search", "Performs a search operation", parameters);
  * }</pre>
  */
-public final record Tool(String type, Function function) {
+public record Tool(String type, Function function) {
 
     public record Function(String name, String description, Object parameters) {}
 

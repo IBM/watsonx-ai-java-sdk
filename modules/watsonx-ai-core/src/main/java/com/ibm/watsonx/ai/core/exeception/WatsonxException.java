@@ -13,7 +13,7 @@ import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
  * This exception captures the HTTP status code returned by the api and optionally includes detailed error information encapsulated in a
  * {@link WatsonxError} object.
  */
-public class WatsonxException extends RuntimeException {
+public final class WatsonxException extends RuntimeException {
 
     private final Integer statusCode;
     private final WatsonxError details;

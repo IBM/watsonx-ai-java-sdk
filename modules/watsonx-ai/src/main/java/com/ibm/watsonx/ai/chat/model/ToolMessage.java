@@ -21,7 +21,7 @@ import static java.util.Objects.requireNonNull;
  * @param content the content returned by the tool
  * @param toolCallId the identifier of the tool call to which this message is responding
  */
-public final record ToolMessage(String role, String content, String toolCallId) implements ChatMessage {
+public record ToolMessage(String role, String content, String toolCallId) implements ChatMessage {
 
     public static final String ROLE = "tool";
 

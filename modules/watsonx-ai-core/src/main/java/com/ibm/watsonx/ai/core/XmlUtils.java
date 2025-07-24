@@ -13,7 +13,7 @@ import org.xml.sax.InputSource;
 /**
  * Utility class for XML parsing and manipulation.
  */
-public class XmlUtils {
+public final class XmlUtils {
 
     private static final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 

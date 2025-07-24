@@ -16,7 +16,7 @@ import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 /**
  * Default SPI implementation of {@link JsonAdapter} using Jackson.
  */
-public class JacksonAdapter implements JsonAdapter {
+public final class JacksonAdapter implements JsonAdapter {
 
     private final ObjectMapper objectMapper;
 

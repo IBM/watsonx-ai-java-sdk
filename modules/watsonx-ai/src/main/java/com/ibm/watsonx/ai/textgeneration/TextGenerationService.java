@@ -45,7 +45,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
  *
  * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-generation
  */
-public class TextGenerationService extends WatsonxService {
+public final class TextGenerationService extends WatsonxService {
 
     protected TextGenerationService(Builder builder) {
         super(builder);

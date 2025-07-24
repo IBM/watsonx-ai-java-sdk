@@ -30,7 +30,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
 /**
  * An HTTP interceptor that performs automatic retries when configured exceptions are thrown.
  */
-public class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
+public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
 

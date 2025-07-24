@@ -23,8 +23,7 @@ public class App {
             Supported Languages: %s
             ---------------------------------------------""".formatted(
             foundationModel.modelId(), foundationModel.maxSequenceLength(),
-            foundationModel.maxOutputTokens(), foundationModel.supportedLanguages()
-        ));
+            foundationModel.maxOutputTokens(), foundationModel.supportedLanguages()));
 
         System.out.println("Type your message and press enter to send it:\n");
 

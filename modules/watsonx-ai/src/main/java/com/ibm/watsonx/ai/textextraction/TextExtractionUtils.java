@@ -10,7 +10,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
 /**
  * Utility class for text extraction operations.
  */
-public class TextExtractionUtils {
+public final class TextExtractionUtils {
 
     /**
      * Adds a file extension to a given file name.

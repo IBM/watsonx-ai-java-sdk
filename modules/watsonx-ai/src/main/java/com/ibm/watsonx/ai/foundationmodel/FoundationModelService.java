@@ -44,7 +44,7 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  *
  * @see https://cloud.ibm.com/apidocs/watsonx-ai#list-foundation-model-specs
  */
-public class FoundationModelService {
+public final class FoundationModelService {
     private final URI url;
     private final String version;
     private final boolean techPreview;

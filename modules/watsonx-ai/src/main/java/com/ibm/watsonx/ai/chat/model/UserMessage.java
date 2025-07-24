@@ -36,7 +36,7 @@ import java.util.List;
  * @see ImageContent
  * @see VideoContent
  */
-public final record UserMessage(String role, List<UserContent> content, String name) implements ChatMessage {
+public record UserMessage(String role, List<UserContent> content, String name) implements ChatMessage {
 
     public static final String ROLE = "user";
 

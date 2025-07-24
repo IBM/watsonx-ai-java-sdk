@@ -32,7 +32,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
  * }</pre>
  *
  */
-public class TextExtractionParameters extends WatsonxParameters {
+public final class TextExtractionParameters extends WatsonxParameters {
     private final String cosUrl;
     private final List<String> requestedOutputs;
     private final String mode;

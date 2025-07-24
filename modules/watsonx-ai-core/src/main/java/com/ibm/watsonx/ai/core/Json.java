@@ -14,7 +14,7 @@ import com.ibm.watsonx.ai.core.spi.json.jackson.JacksonAdapter;
  * The Json class provides utility methods for JSON serialization and deserialization. It uses a {@link JsonAdapter} to handle the actual conversion
  * between JSON and Java objects. The adapter can be loaded via {@link ServiceLoader} and falls back to a {@link JacksonAdapter} if none is found.
  */
-public class Json {
+public final class Json {
 
     private static final JsonAdapter adapter = loadAdapter();
 

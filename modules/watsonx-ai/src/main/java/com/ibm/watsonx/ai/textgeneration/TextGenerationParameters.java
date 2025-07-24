@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  * }</pre>
  *
  */
-public class TextGenerationParameters extends WatsonxParameters {
+public final class TextGenerationParameters extends WatsonxParameters {
 
     /**
      * Represents an exponential length penalty configuration to influence when text generation should terminate.

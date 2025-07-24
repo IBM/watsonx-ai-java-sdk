@@ -19,7 +19,7 @@ import com.ibm.watsonx.ai.chat.model.Image.Detail;
  * @param type the type identifier for this content, always set to {@code image_url}
  * @param imageUrl the image payload to be used as input for the model
  */
-public final record ImageContent(String type, Image imageUrl) implements UserContent {
+public record ImageContent(String type, Image imageUrl) implements UserContent {
 
     public static final String TYPE = "image_url";
 

@@ -4,7 +4,7 @@
  */
 package com.ibm.watsonx.ai.textextraction;
 
-public class TextExtractionException extends Exception {
+public final class TextExtractionException extends Exception {
 
     final String code;
 

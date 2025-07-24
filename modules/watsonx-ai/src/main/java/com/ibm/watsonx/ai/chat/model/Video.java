@@ -19,7 +19,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @param url the base64-encoded video (e.g., {@code data:video/mp4;base64,...})
  */
-public final record Video(String url) {
+public record Video(String url) {
 
     public Video {
         requireNonNull(url);

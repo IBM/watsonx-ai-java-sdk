@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  * After logging, each received line is forwarded to the wrapped downstream subscriber.
  */
-public class SseEventLogger implements Subscriber<String> {
+public final class SseEventLogger implements Subscriber<String> {
 
     private static final Logger logger = LoggerFactory.getLogger(SseEventLogger.class);
     private final Flow.Subscriber<String> subscriber;

@@ -26,7 +26,7 @@ import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
  * @see AsyncHttpInterceptor
  * @see HttpClient
  */
-public class AsyncHttpClient extends BaseHttpClient {
+public final class AsyncHttpClient extends BaseHttpClient {
 
     final List<AsyncHttpInterceptor> interceptors;
 

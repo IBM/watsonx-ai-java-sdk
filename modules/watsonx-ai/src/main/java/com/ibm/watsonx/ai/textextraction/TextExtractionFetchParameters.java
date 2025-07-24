@@ -18,7 +18,7 @@ package com.ibm.watsonx.ai.textextraction;
  * }</pre>
  *
  */
-public class TextExtractionFetchParameters {
+public final class TextExtractionFetchParameters {
     private final String projectId;
     private final String spaceId;
 

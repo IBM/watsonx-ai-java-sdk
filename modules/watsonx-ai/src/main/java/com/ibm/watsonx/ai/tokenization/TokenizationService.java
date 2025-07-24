@@ -35,7 +35,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  *
  * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-tokenization
  */
-public class TokenizationService extends WatsonxService {
+public final class TokenizationService extends WatsonxService {
 
     protected TokenizationService(Builder builder) {
         super(builder);

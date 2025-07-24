@@ -21,7 +21,7 @@ import static java.util.Objects.requireNonNull;
  * @param content the content of the control message (e.g., {@code thinking})
  * @param name an optional name to differentiate between participants with the same role
  */
-public final record ControlMessage(String role, String content, String name) implements ChatMessage {
+public record ControlMessage(String role, String content, String name) implements ChatMessage {
 
     public static final String ROLE = "control";
 
