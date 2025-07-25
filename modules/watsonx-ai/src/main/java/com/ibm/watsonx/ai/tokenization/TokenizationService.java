@@ -15,10 +15,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
 
 /**
- * Service class for performing text tokenization requests.
+ * Service class to interact with IBM watsonx.ai Text tokenization APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -33,7 +34,9 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * TokenizationResponse response = TokenizationService.tokenize("Tell me a joke");
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-tokenization
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-tokenization" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
 public final class TokenizationService extends WatsonxService {
 
@@ -110,6 +113,9 @@ public final class TokenizationService extends WatsonxService {
      * TokenizationResponse response = TokenizationService.tokenize("Tell me a joke");
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-tokenization" target="_blank"> official documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

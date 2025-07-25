@@ -16,12 +16,13 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.rerank.RerankRequest.Parameters;
 import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
 
 
 /**
- * Service class to interact with IBM Watsonx Text Rerank APIs.
+ * Service class to interact with IBM watsonx.ai Text Rerank APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -42,7 +43,9 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  * );
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-rerank
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-rerank" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
 public final class RerankService extends WatsonxService {
 
@@ -134,6 +137,9 @@ public final class RerankService extends WatsonxService {
      * );
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-rerank" target="_blank"> official documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

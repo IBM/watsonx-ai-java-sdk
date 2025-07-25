@@ -18,10 +18,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 
 /**
- * Service class to interact with IBM Watsonx Text Embeddings APIs.
+ * Service class to interact with IBM watsonx.ai Text Embeddings APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -39,7 +40,9 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  * );
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-embeddings
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-embeddings" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
 public final class EmbeddingService extends WatsonxService {
 
@@ -146,6 +149,9 @@ public final class EmbeddingService extends WatsonxService {
      * );
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-embeddings" target="_blank"> official documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

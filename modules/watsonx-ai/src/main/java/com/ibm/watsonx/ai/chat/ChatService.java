@@ -34,9 +34,10 @@ import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.SseEventLogger;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 
 /**
- * Service class to interact with IBM Watsonx Text Chat APIs.
+ * Service class to interact with IBM watsonx.ai Text Chat APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -54,7 +55,9 @@ import com.ibm.watsonx.ai.core.SseEventLogger;
  * );
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-chat
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-chat" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
 public final class ChatService extends WatsonxService {
 
@@ -443,6 +446,9 @@ public final class ChatService extends WatsonxService {
      * );
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-chat" target="_blank"> official documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

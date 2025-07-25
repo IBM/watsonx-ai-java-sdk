@@ -32,6 +32,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
@@ -40,7 +41,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Error;
 import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
 
 /**
- * Service class to interact with IBM Watsonx Text Extraction APIs.
+ * Service class to interact with IBM watsonx.ai Text Extraction APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -57,9 +58,11 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
  * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-extraction
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-extraction" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
-public class TextExtractionService extends WatsonxService {
+public final class TextExtractionService extends WatsonxService {
 
     private static final Logger logger = LoggerFactory.getLogger(TextExtractionService.class);
     private final String cosUrl;
@@ -739,6 +742,9 @@ public class TextExtractionService extends WatsonxService {
      * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-extraction" target="_blank"> official documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

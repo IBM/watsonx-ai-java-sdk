@@ -23,12 +23,11 @@ import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.SseEventLogger;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
 
 /**
- * Infer the next tokens for a given deployed model with a set of parameters.
- * <p>
- * This API is legacy, consider using {@link ChatService}.
+ * Service class to interact with IBM watsonx.ai Text Generation APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -43,7 +42,9 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
  * TextGenerationResponse response = textGenerationService.generate("Hello!");
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-generation
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-generation" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
 public final class TextGenerationService extends WatsonxService {
 
@@ -285,6 +286,9 @@ public final class TextGenerationService extends WatsonxService {
      * TextGenerationResponse response = textGenerationService.generate("Hello!");
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-generation" target="_blank"> official documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {
