@@ -16,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -149,8 +150,7 @@ public final class ChatService extends WatsonxService {
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
         var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-        var timeLimit =
-            isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit();
+        var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
         var chatRequest = ChatRequest.builder()
             .modelId(modelId)
@@ -159,7 +159,7 @@ public final class ChatService extends WatsonxService {
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .timeLimit(timeLimit)
+            .timeLimit(timeout)
             .build();
 
         var httpRequest =
@@ -167,6 +167,7 @@ public final class ChatService extends WatsonxService {
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(chatRequest)))
+                .timeout(Duration.ofMillis(timeout))
                 .build();
 
         try {
@@ -265,6 +266,7 @@ public final class ChatService extends WatsonxService {
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
                 .POST(BodyPublishers.ofString(toJson(chatRequest)))
+                .timeout(Duration.ofMillis(timeout))
                 .build();
 
         var subscriber = new Flow.Subscriber<String>() {

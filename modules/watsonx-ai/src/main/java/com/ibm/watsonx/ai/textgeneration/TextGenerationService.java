@@ -15,6 +15,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
@@ -102,12 +103,8 @@ public final class TextGenerationService extends WatsonxService {
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
         var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-
-        parameters.setTimeLimit(
-            isNull(parameters.getTimeLimit())
-                ? timeout.toMillis()
-                : parameters.getTimeLimit()
-        );
+        var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
+        parameters.setTimeLimit(timeout);
 
         var textGenerationRequest =
             new TextGenerationRequest(modelId, spaceId, projectId, input, parameters, moderation);
@@ -117,6 +114,7 @@ public final class TextGenerationService extends WatsonxService {
                 .newBuilder(URI.create(url.toString() + "%s/generation?version=%s".formatted(ML_API_TEXT_PATH, version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
+                .timeout(Duration.ofMillis(timeout))
                 .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
                 .build();
 
@@ -165,12 +163,8 @@ public final class TextGenerationService extends WatsonxService {
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
         var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-
-        parameters.setTimeLimit(
-            isNull(parameters.getTimeLimit())
-                ? timeout.toMillis()
-                : parameters.getTimeLimit()
-        );
+        var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
+        parameters.setTimeLimit(timeout);
 
         var textGenerationRequest =
             new TextGenerationRequest(modelId, spaceId, projectId, input, parameters, null);
@@ -181,6 +175,7 @@ public final class TextGenerationService extends WatsonxService {
                     URI.create(url.toString() + "%s/generation_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
+                .timeout(Duration.ofMillis(timeout))
                 .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
                 .build();
 

@@ -112,6 +112,7 @@ public final class EmbeddingService extends WatsonxService {
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(embeddingRequest)))
+                .timeout(timeout)
                 .build();
 
             try {

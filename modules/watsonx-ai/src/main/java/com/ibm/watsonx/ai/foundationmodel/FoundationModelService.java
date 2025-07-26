@@ -187,6 +187,7 @@ public final class FoundationModelService {
 
             var httpRequest = HttpRequest.newBuilder(uri)
                 .header("Accept", "application/json")
+                .timeout(timeout)
                 .GET().build();
 
             var response = syncHttpClient.send(httpRequest, BodyHandlers.ofString());

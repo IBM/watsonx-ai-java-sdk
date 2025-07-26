@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
@@ -393,8 +394,8 @@ public final class TextExtractionService extends WatsonxService {
 
         var httpRequest = HttpRequest.newBuilder(uri)
             .header("Accept", "application/json")
-            .GET()
-            .build();
+            .timeout(timeout)
+            .GET().build();
 
         try {
 
@@ -417,7 +418,7 @@ public final class TextExtractionService extends WatsonxService {
         try {
             var encodedFileName = new URI(null, null, fileName, null).toASCIIString();
             var uri = URI.create(cosUrl + "/%s/%s".formatted(bucketName, encodedFileName));
-            var httpRequest = HttpRequest.newBuilder(uri).DELETE().build();
+            var httpRequest = HttpRequest.newBuilder(uri).DELETE().timeout(timeout).build();
             var response = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
             return response.statusCode() == 204;
         } catch (IOException | InterruptedException | URISyntaxException e) {
@@ -435,7 +436,7 @@ public final class TextExtractionService extends WatsonxService {
         try {
             var encodedFileName = new URI(null, null, fileName, null).toASCIIString();
             var uri = URI.create(cosUrl + "/%s/%s".formatted(bucketName, encodedFileName));
-            var httpRequest = HttpRequest.newBuilder(uri).GET().build();
+            var httpRequest = HttpRequest.newBuilder(uri).GET().timeout(timeout).build();
             return syncHttpClient.send(httpRequest, BodyHandlers.ofString()).body();
         } catch (IOException | InterruptedException | URISyntaxException e) {
             throw new RuntimeException(e);
@@ -473,7 +474,7 @@ public final class TextExtractionService extends WatsonxService {
             .orElse(getQueryParameters(projectId, spaceId));
 
         var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_TEXT_PATH, id, queryParameters));
-        var httpRequest = HttpRequest.newBuilder(uri).DELETE().build();
+        var httpRequest = HttpRequest.newBuilder(uri).DELETE().timeout(timeout).build();
 
         try {
 
@@ -525,6 +526,7 @@ public final class TextExtractionService extends WatsonxService {
             URI uri = URI.create(cosUrl + "/%s/%s".formatted(documentReference.bucket(), encodedFileName));
             HttpRequest httpRequest = HttpRequest.newBuilder().uri(URI.create(uri.toASCIIString()))
                 .PUT(BodyPublishers.ofInputStream(() -> is))
+                .timeout(timeout)
                 .build();
             syncHttpClient.send(httpRequest, BodyHandlers.ofString());
         } catch (IOException | InterruptedException | URISyntaxException e) {
@@ -599,6 +601,7 @@ public final class TextExtractionService extends WatsonxService {
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(request)))
+                .timeout(timeout)
                 .build();
 
         try {
@@ -683,7 +686,11 @@ public final class TextExtractionService extends WatsonxService {
                     try {
                         var encodedFileName = new URI(null, null, outputPath, null).toASCIIString();
                         var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, encodedFileName));
-                        var httpRequest = HttpRequest.newBuilder().uri(URI.create(uri.toASCIIString())).GET().build();
+                        var httpRequest = HttpRequest
+                            .newBuilder()
+                            .uri(URI.create(uri.toASCIIString()))
+                            .timeout(timeout)
+                            .GET().build();
                         yield syncHttpClient.send(httpRequest, BodyHandlers.ofInputStream()).body();
                     } catch (IOException | InterruptedException | URISyntaxException e) {
                         throw new RuntimeException(e);
@@ -701,7 +708,9 @@ public final class TextExtractionService extends WatsonxService {
                 try {
                     var encodedFileName = new URI(null, null, outputPath, null).toASCIIString();
                     var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, encodedFileName));
-                    var httpRequest = HttpRequest.newBuilder(URI.create(uri.toASCIIString())).DELETE().build();
+                    var httpRequest = HttpRequest.newBuilder(URI.create(uri.toASCIIString()))
+                        .timeout(timeout)
+                        .DELETE().build();
                     asyncHttpClient.send(httpRequest, BodyHandlers.ofString());
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
@@ -715,7 +724,9 @@ public final class TextExtractionService extends WatsonxService {
                 try {
                     var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
                     var uri = URI.create(cosUrl + "/%s/%s".formatted(documentBucketName, encodedFileName));
-                    var httpRequest = HttpRequest.newBuilder(URI.create(uri.toASCIIString())).DELETE().build();
+                    var httpRequest = HttpRequest.newBuilder(URI.create(uri.toASCIIString()))
+                        .timeout(timeout)
+                        .DELETE().build();
                     asyncHttpClient.send(httpRequest, BodyHandlers.ofString());
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
@@ -807,6 +818,24 @@ public final class TextExtractionService extends WatsonxService {
          */
         public Builder resultReference(String connectionId, String bucket) {
             return resultReference(CosReference.of(connectionId, bucket));
+        }
+
+        /**
+         * <b>Not supported for TextExtractionService</b>
+         */
+        @Override
+        @Deprecated
+        public Builder foundationModelService(FoundationModelService foundationModelService) {
+            throw new UnsupportedOperationException("Not supported in TextExtractionService");
+        }
+
+        /**
+         * <b>Not supported for TextExtractionService</b>
+         */
+        @Override
+        @Deprecated
+        public Builder modelId(String modelId) {
+            throw new UnsupportedOperationException("Not supported in TextExtractionService");
         }
 
         /**

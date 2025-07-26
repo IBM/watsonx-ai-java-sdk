@@ -59,7 +59,7 @@ public abstract class WatsonxService {
     protected final SyncHttpClient syncHttpClient;
     protected final AsyncHttpClient asyncHttpClient;
 
-    public WatsonxService(Builder<?> builder) {
+    protected WatsonxService(Builder<?> builder) {
         url = requireNonNull(builder.url, "The url must be provided");
         version = requireNonNullElse(builder.version, API_VERSION);
         projectId = builder.projectId;
@@ -74,14 +74,12 @@ public abstract class WatsonxService {
             throw new NullPointerException("Either projectId or spaceId must be provided");
 
         timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-        authenticationProvider =
-            requireNonNull(builder.authenticationProvider, "The authentication provider is mandatory");
+        authenticationProvider = requireNonNull(builder.authenticationProvider, "The authentication provider is mandatory");
 
         boolean logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
 
-        var httpClient =
-            requireNonNullElse(builder.httpClient, HttpClient.newBuilder().connectTimeout(timeout).build());
+        var httpClient = requireNonNullElse(builder.httpClient, HttpClient.newBuilder().build());
         var syncHttpClientBuilder = SyncHttpClient.builder().httpClient(httpClient);
         var asyncHttpClientBuilder = AsyncHttpClient.builder().httpClient(httpClient);
 
@@ -123,7 +121,7 @@ public abstract class WatsonxService {
     }
 
     @SuppressWarnings("unchecked")
-    public static abstract class Builder<T extends Builder<T>> {
+    protected static abstract class Builder<T extends Builder<T>> {
         private URI url;
         private String version;
         private String projectId;
@@ -176,8 +174,6 @@ public abstract class WatsonxService {
 
         /**
          * Sets the default project id.
-         * <p>
-         * If you want to override this value, use the {@link WatsonxParameters}.
          *
          * @param projectId Project id value
          */
@@ -188,8 +184,6 @@ public abstract class WatsonxService {
 
         /**
          * Sets the default space id.
-         * <p>
-         * If you want to override this value, use the {@link WatsonxParameters}.
          *
          * @param spaceId Space id value
          */
@@ -200,8 +194,6 @@ public abstract class WatsonxService {
 
         /**
          * Sets the default model.
-         * <p>
-         * If you want to override this value, use the {@link WatsonxParameters}.
          *
          * @param modelId the model identifier to use
          */

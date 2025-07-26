@@ -77,14 +77,14 @@ public final class TokenizationService extends WatsonxService {
             requestParameters = parameters.toTokenizationRequestParameters();
         }
 
-        var tokenizationRequest = new TokenizationRequest(modelId, input, projectId,
-            spaceId, requestParameters);
+        var tokenizationRequest = new TokenizationRequest(modelId, input, projectId, spaceId, requestParameters);
 
         var httpRequest = HttpRequest
             .newBuilder(URI.create(url.toString() + "%s/tokenization?version=%s".formatted(ML_API_TEXT_PATH, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(tokenizationRequest)))
+            .timeout(timeout)
             .build();
 
         try {

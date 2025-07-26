@@ -48,8 +48,8 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
  * String accessToken = authenticator.getToken();
  * }</pre>
  *
- * @see AuthenticationProvider
- * @see IdentityTokenResponse
+ * For more information, see the <a href="https://cloud.ibm.com/docs/account?topic=account-iamtoken_from_apikey#iamtoken_from_apikey" target="_blank">
+ * official documentation</a>.
  */
 public final class IAMAuthenticator implements AuthenticationProvider {
 

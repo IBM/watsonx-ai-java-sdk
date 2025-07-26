@@ -83,6 +83,7 @@ public final class TimeSeriesService extends WatsonxService {
             .newBuilder(URI.create(url.toString() + "%s/time_series/forecast?version=%s".formatted(ML_API_PATH, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
+            .timeout(timeout)
             .POST(BodyPublishers.ofString(toJson(forecastRequest)))
             .build();
 
