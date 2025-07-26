@@ -21,13 +21,14 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 /**
- * Service class to interact with IBM Watsonx Foundation Models APIs.
+ * Service class to interact with IBM watsonx.ai Foundation Models APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -42,9 +43,12 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  * var maxSequenceLength = result.maxSequenceLength();
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#list-foundation-model-specs
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#list-foundation-model-specs" target="_blank"> official
+ * documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
-public class FoundationModelService {
+public final class FoundationModelService {
     private final URI url;
     private final String version;
     private final boolean techPreview;
@@ -183,6 +187,7 @@ public class FoundationModelService {
 
             var httpRequest = HttpRequest.newBuilder(uri)
                 .header("Accept", "application/json")
+                .timeout(timeout)
                 .GET().build();
 
             var response = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
@@ -251,6 +256,10 @@ public class FoundationModelService {
      * var maxSequenceLength = result.maxSequenceLength();
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#list-foundation-model-specs" target="_blank"> official
+     * documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

@@ -29,7 +29,7 @@ import com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error;
 /**
  * Utility class for working with Http objects.
  */
-public class HttpUtils {
+public final class HttpUtils {
 
     private static final Pattern BEARER_PATTERN =
         Pattern.compile("(Bearer\\s*)(\\w{4})(\\w+)(\\w{4})");

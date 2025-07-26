@@ -21,7 +21,7 @@ import java.util.Optional;
  * }</pre>
  *
  */
-public class TextExtractionDeleteParameters {
+public final class TextExtractionDeleteParameters {
     private final String projectId;
     private final String spaceId;
     private final Optional<Boolean> hardDelete;

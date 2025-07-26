@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.core.http.interceptors;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
-
 import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -20,10 +19,8 @@ import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
@@ -33,7 +30,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
 /**
  * Interceptor that logs HTTP requests and responses.
  */
-public class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
+public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggerInterceptor.class);
     private static final Pattern BASE64_IMAGE_PATTERN =

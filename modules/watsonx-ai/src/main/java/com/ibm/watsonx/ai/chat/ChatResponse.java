@@ -38,12 +38,30 @@ public final class ChatResponse {
     private ChatUsage usage;
 
     /**
+     * Sets the unique identifier of the chat response.
+     *
+     * @param id unique identifier
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
      * Returns the unique identifier of the chat response.
      *
      * @return id
      */
     public String getId() {
         return id;
+    }
+
+    /**
+     * Sets the type of object returned (e.g., "chat.completion").
+     *
+     * @param object the object type
+     */
+    public void setObject(String object) {
+        this.object = object;
     }
 
     /**
@@ -56,12 +74,30 @@ public final class ChatResponse {
     }
 
     /**
+     * Sets the id of the model used to generate the response.
+     *
+     * @param modelId the model id
+     */
+    public void setModelId(String modelId) {
+        this.modelId = modelId;
+    }
+
+    /**
      * Returns the id of the model used to generate the response.
      *
      * @return the model id
      */
     public String getModelId() {
         return modelId;
+    }
+
+    /**
+     * Sets the model name used to generate the response.
+     *
+     * @param model the model name
+     */
+    public void setModel(String model) {
+        this.model = model;
     }
 
     /**
@@ -74,12 +110,30 @@ public final class ChatResponse {
     }
 
     /**
+     * Sets the list of result choices returned by the model.
+     *
+     * @param choices a list of {@link ResultChoice}
+     */
+    public void setChoices(List<ResultChoice> choices) {
+        this.choices = choices;
+    }
+
+    /**
      * Returns the list of result choices returned by the model.
      *
      * @return a list of {@link ResultChoice}
      */
     public List<ResultChoice> getChoices() {
         return choices;
+    }
+
+    /**
+     * Sets the Unix timestamp (in seconds) when the response was created.
+     *
+     * @param created the creation timestamp
+     */
+    public void setCreated(Long created) {
+        this.created = created;
     }
 
     /**
@@ -92,6 +146,15 @@ public final class ChatResponse {
     }
 
     /**
+     * Sets the version of the model that generated the response.
+     *
+     * @param modelVersion the model version
+     */
+    public void setModelVersion(String modelVersion) {
+        this.modelVersion = modelVersion;
+    }
+
+    /**
      * Returns the version of the model that generated the response.
      *
      * @return the model version
@@ -101,12 +164,30 @@ public final class ChatResponse {
     }
 
     /**
+     * Sets the formatted creation timestamp of the response.
+     *
+     * @param setCreatedAt the formatted creation time
+     */
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    /**
      * Returns the formatted creation timestamp of the response.
      *
      * @return the formatted creation time
      */
     public String getCreatedAt() {
         return createdAt;
+    }
+
+    /**
+     * Sets the usage statistics for the response, such as token counts.
+     *
+     * @param usage usage statistics
+     */
+    public void setUsage(ChatUsage usage) {
+        this.usage = usage;
     }
 
     /**
@@ -227,41 +308,5 @@ public final class ChatResponse {
         var resultMessage = choices.get(0).message();
         return new AssistantMessage(AssistantMessage.ROLE, resultMessage.content(), null, resultMessage.refusal(),
             resultMessage.toolCalls());
-    }
-
-    void setId(String id) {
-        this.id = id;
-    }
-
-    void setObject(String object) {
-        this.object = object;
-    }
-
-    void setModelId(String modelId) {
-        this.modelId = modelId;
-    }
-
-    void setModel(String model) {
-        this.model = model;
-    }
-
-    void setChoices(List<ResultChoice> choices) {
-        this.choices = choices;
-    }
-
-    void setCreated(Long created) {
-        this.created = created;
-    }
-
-    void setModelVersion(String modelVersion) {
-        this.modelVersion = modelVersion;
-    }
-
-    void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    void setUsage(ChatUsage usage) {
-        this.usage = usage;
     }
 }

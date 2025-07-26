@@ -31,7 +31,7 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
  *
  * @see Expression
  */
-public class Filter {
+public final class Filter {
 
     private final StringJoiner filterExpression;
 

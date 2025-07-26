@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * }</pre>
  *
  */
-public class TokenizationParameters extends WatsonxParameters {
+public final class TokenizationParameters extends WatsonxParameters {
     private final Boolean returnTokens;
 
     public TokenizationParameters(Builder builder) {

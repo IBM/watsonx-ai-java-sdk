@@ -18,7 +18,7 @@ import static java.util.Objects.requireNonNull;
  * @param type the type identifier for this content, always set to {@code text}
  * @param text the textual content provided by the user
  */
-public final record TextContent(String type, String text) implements UserContent {
+public record TextContent(String type, String text) implements UserContent {
 
     public static final String TYPE = "text";
 

@@ -19,7 +19,7 @@ import static java.util.Objects.requireNonNullElse;
  * @param url the base64-encoded data URI of the image
  * @param detail the detail level for image processing: "low", "high", or "auto" (default: "auto")
  */
-public final record Image(String url, String detail) {
+public record Image(String url, String detail) {
 
     public Image {
         requireNonNull(url);

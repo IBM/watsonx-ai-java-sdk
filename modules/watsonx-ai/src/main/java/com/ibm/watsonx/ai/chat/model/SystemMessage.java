@@ -22,7 +22,7 @@ import static java.util.Objects.requireNonNull;
  * @param content the content of the system message
  * @param name an optional name to differentiate between participants with the same role
  */
-public final record SystemMessage(String role, String content, String name) implements ChatMessage {
+public record SystemMessage(String role, String content, String name) implements ChatMessage {
 
     public static final String ROLE = "system";
 

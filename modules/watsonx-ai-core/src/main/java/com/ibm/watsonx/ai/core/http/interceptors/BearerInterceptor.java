@@ -18,7 +18,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
 /**
  * Interceptor that adds a Bearer token to outgoing requests.
  */
-public class BearerInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
+public final class BearerInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
     private final AuthenticationProvider authenticator;
 

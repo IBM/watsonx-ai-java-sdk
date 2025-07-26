@@ -17,7 +17,7 @@ package com.ibm.watsonx.ai.chat.model;
  * @param type the type of tool call, always {@code function}
  * @param function The function call details
  */
-public final record ToolCall(Integer index, String id, String type, FunctionCall function) {
+public record ToolCall(Integer index, String id, String type, FunctionCall function) {
 
     public static final String TYPE = "function";
 

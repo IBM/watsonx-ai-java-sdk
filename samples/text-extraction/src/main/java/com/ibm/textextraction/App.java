@@ -58,7 +58,8 @@ public class App {
             TextExtractionService textExtractionService = TextExtractionService.builder()
                 .authenticationProvider(authProvider)
                 .projectId(projectId)
-                .url(url).cosUrl(cosUrl)
+                .url(url)
+                .cosUrl(cosUrl)
                 .documentReference(documentReference)
                 .resultReference(resultsReference)
                 .build();

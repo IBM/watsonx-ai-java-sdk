@@ -23,7 +23,7 @@ import java.util.List;
  * }</pre>
  *
  */
-public class Moderation {
+public final class Moderation {
 
     /**
      * Properties controlling the moderation of text with threshold.

@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.chat.model;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.List;
@@ -86,9 +85,9 @@ public final class ChatParameters extends WatsonxParameters {
             this.jsonSchema = null;
         }
 
-        this.toolChoice =
-            nonNull(builder.toolChoice) ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
-                : null;
+        this.toolChoice = nonNull(builder.toolChoice)
+            ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
+            : null;
     }
 
     /**
@@ -206,7 +205,7 @@ public final class ChatParameters extends WatsonxParameters {
          * @param toolChoiceOption a {@link ToolChoice} enum indicating the tool selection strategy
          */
         public Builder toolChoiceOption(ToolChoice toolChoiceOption) {
-            this.toolChoiceOption = requireNonNull(toolChoiceOption);
+            this.toolChoiceOption = toolChoiceOption;
             return this;
         }
 

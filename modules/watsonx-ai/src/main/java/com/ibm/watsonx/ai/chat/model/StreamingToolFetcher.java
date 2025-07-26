@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * The {@code StreamingToolFetcher} class is responsible for fetching a list of tools from a streaming api.
  */
-public class StreamingToolFetcher {
+public final class StreamingToolFetcher {
 
     private int index;
     private StringBuilder arguments;

@@ -15,10 +15,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
 
 /**
- * Service class to interact with IBM Watsonx Time Series Forecast APIs.
+ * Service class to interact with IBM watsonx.ai Time Series Forecast APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -46,7 +47,9 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *     tsService.forecast(inputSchema, data);
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#time-series-forecast
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#time-series-forecast" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
 public final class TimeSeriesService extends WatsonxService {
 
@@ -80,6 +83,7 @@ public final class TimeSeriesService extends WatsonxService {
             .newBuilder(URI.create(url.toString() + "%s/time_series/forecast?version=%s".formatted(ML_API_PATH, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
+            .timeout(timeout)
             .POST(BodyPublishers.ofString(toJson(forecastRequest)))
             .build();
 
@@ -122,6 +126,10 @@ public final class TimeSeriesService extends WatsonxService {
      *     tsService.forecast(inputSchema, data);
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#time-series-forecast" target="_blank"> official
+     * documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

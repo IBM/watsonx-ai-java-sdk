@@ -16,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,9 +35,10 @@ import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.SseEventLogger;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 
 /**
- * Service class to interact with IBM Watsonx Text Chat APIs.
+ * Service class to interact with IBM watsonx.ai Text Chat APIs.
  * <p>
  * <b>Example usage:</b>
  *
@@ -54,7 +56,9 @@ import com.ibm.watsonx.ai.core.SseEventLogger;
  * );
  * }</pre>
  *
- * @see https://cloud.ibm.com/apidocs/watsonx-ai#text-chat
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-chat" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
  */
 public final class ChatService extends WatsonxService {
 
@@ -146,8 +150,7 @@ public final class ChatService extends WatsonxService {
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
         var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
-        var timeLimit =
-            isNull(parameters.getTimeLimit()) && nonNull(timeout) ? timeout.toMillis() : parameters.getTimeLimit();
+        var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
         var chatRequest = ChatRequest.builder()
             .modelId(modelId)
@@ -156,7 +159,7 @@ public final class ChatService extends WatsonxService {
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .timeLimit(timeLimit)
+            .timeLimit(timeout)
             .build();
 
         var httpRequest =
@@ -164,6 +167,7 @@ public final class ChatService extends WatsonxService {
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(chatRequest)))
+                .timeout(Duration.ofMillis(timeout))
                 .build();
 
         try {
@@ -262,6 +266,7 @@ public final class ChatService extends WatsonxService {
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
                 .POST(BodyPublishers.ofString(toJson(chatRequest)))
+                .timeout(Duration.ofMillis(timeout))
                 .build();
 
         var subscriber = new Flow.Subscriber<String>() {
@@ -443,6 +448,9 @@ public final class ChatService extends WatsonxService {
      * );
      * }</pre>
      *
+     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-chat" target="_blank"> official documentation</a>.
+     *
+     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {
