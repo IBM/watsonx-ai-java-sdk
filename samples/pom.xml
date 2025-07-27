@@ -18,6 +18,7 @@
     <module>tokenization</module>
     <module>text-extraction</module>
     <module>time-series</module>
+    <module>utility-tools</module>
   </modules>
 
   <licenses>
@@ -35,7 +36,7 @@
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai</artifactId>
-      <version>0.3.0</version>
+      <version>999-SNAPSHOT</version>
     </dependency>
 
     <dependency>
