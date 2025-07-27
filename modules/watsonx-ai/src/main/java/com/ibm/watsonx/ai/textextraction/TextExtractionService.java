@@ -753,8 +753,6 @@ public final class TextExtractionService extends WatsonxService {
      * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
      * }</pre>
      *
-     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-extraction" target="_blank"> official documentation</a>.
-     *
      * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */

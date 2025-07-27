@@ -150,8 +150,6 @@ public final class EmbeddingService extends WatsonxService {
      * );
      * }</pre>
      *
-     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-embeddings" target="_blank"> official documentation</a>.
-     *
      * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */

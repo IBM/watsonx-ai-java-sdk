@@ -113,8 +113,6 @@ public final class TokenizationService extends WatsonxService {
      * TokenizationResponse response = TokenizationService.tokenize("Tell me a joke");
      * }</pre>
      *
-     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-tokenization" target="_blank"> official documentation</a>.
-     *
      * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */

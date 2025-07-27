@@ -448,8 +448,6 @@ public final class ChatService extends WatsonxService {
      * );
      * }</pre>
      *
-     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-chat" target="_blank"> official documentation</a>.
-     *
      * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */

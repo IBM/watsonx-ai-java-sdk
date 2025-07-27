@@ -137,8 +137,6 @@ public final class RerankService extends WatsonxService {
      * );
      * }</pre>
      *
-     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-rerank" target="_blank"> official documentation</a>.
-     *
      * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
