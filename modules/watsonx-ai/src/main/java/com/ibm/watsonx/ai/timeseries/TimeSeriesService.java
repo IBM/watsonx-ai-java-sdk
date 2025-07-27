@@ -126,9 +126,6 @@ public final class TimeSeriesService extends WatsonxService {
      *     tsService.forecast(inputSchema, data);
      * }</pre>
      *
-     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#time-series-forecast" target="_blank"> official
-     * documentation</a>.
-     *
      * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */

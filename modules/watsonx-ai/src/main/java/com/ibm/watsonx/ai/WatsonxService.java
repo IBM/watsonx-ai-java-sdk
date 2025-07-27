@@ -27,8 +27,6 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 
 /**
- * Abstract base class for all watsonx.ai service classes.
- * <p>
  * This class provides common functionality and shared configuration used across various service-specific clients (e.g., {@code ChatService},
  * {@code TextGenerationService}, etc.). Subclasses should extend this class to inherit support for authentication, HTTP communication, logging, and
  * service metadata such as project or model identifiers.

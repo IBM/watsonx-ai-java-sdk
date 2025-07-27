@@ -281,8 +281,6 @@ public final class TextGenerationService extends WatsonxService {
      * TextGenerationResponse response = textGenerationService.generate("Hello!");
      * }</pre>
      *
-     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-generation" target="_blank"> official documentation</a>.
-     *
      * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */

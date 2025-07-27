@@ -256,9 +256,6 @@ public final class FoundationModelService {
      * var maxSequenceLength = result.maxSequenceLength();
      * }</pre>
      *
-     * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#list-foundation-model-specs" target="_blank"> official
-     * documentation</a>.
-     *
      * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
