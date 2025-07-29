@@ -32,6 +32,7 @@ public class App {
 
         ToolService toolService = ToolService.builder()
             .authenticationProvider(authProvider)
+            .timeout(Duration.ofSeconds(60))
             .url(url)
             .build();
 
@@ -48,7 +49,7 @@ public class App {
             DESCRIPTION: %s
             --------------------------------\n""".formatted(googleSearchResult.url(), googleSearchResult.description()));
 
-        var webCrawlerResult = webCrawlerTool.process(googleSearchResult.url());
+        var webCrawlerResult = webCrawlerTool.process("https://github.com/IBM/watsonx-ai-java-sdk");
         System.out.println("""
             ----- WEB CRAWLER RESULT -----
             %s
