@@ -15,7 +15,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
-import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.rerank.RerankRequest.Parameters;
 import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
@@ -47,10 +47,11 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  *
  * @see AuthenticationProvider
  */
-public final class RerankService extends WatsonxService {
+public final class RerankService extends ModelService {
 
     protected RerankService(Builder builder) {
         super(builder);
+        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
     }
 
     /**
@@ -147,7 +148,7 @@ public final class RerankService extends WatsonxService {
     /**
      * Builder class for constructing {@link RerankService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public static class Builder extends ModelService.Builder<Builder> {
 
         /**
          * Builds a {@link RerankService} instance using the configured parameters.

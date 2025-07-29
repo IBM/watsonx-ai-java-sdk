@@ -14,7 +14,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
 
@@ -51,10 +51,11 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *
  * @see AuthenticationProvider
  */
-public final class TimeSeriesService extends WatsonxService {
+public final class TimeSeriesService extends ModelService {
 
     protected TimeSeriesService(Builder builder) {
         super(builder);
+        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
     }
 
     public ForecastResponse forecast(InputSchema inputSchema, ForecastData data) {
@@ -136,7 +137,7 @@ public final class TimeSeriesService extends WatsonxService {
     /**
      * Builder class for constructing {@link TimeSeriesService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public static class Builder extends ModelService.Builder<Builder> {
 
         /**
          * Builds a {@link TimeSeriesService} instance using the configured parameters.

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
-import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -60,10 +60,11 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *
  * @see AuthenticationProvider
  */
-public final class ChatService extends WatsonxService {
+public final class ChatService extends ModelService {
 
     protected ChatService(Builder builder) {
         super(builder);
+        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
     }
 
     /**
@@ -421,11 +422,9 @@ public final class ChatService extends WatsonxService {
         };
 
         return asyncHttpClient
-            .send(httpRequest,
-                responseInfo -> logResponses
-                    ? BodySubscribers
-                        .fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-                    : BodySubscribers.fromLineSubscriber(subscriber)
+            .send(httpRequest, responseInfo -> logResponses
+                ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+                : BodySubscribers.fromLineSubscriber(subscriber)
             ).thenApply(response -> null);
     }
 
@@ -458,7 +457,7 @@ public final class ChatService extends WatsonxService {
     /**
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public static class Builder extends ModelService.Builder<Builder> {
 
         /**
          * Builds a {@link ChatService} instance using the configured parameters.

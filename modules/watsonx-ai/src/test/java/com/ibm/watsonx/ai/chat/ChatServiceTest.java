@@ -2026,6 +2026,7 @@ public class ChatServiceTest {
         assertEquals("data:jpeg;base64,mock", imageContent.imageUrl().url());
 
         ex = assertThrows(NullPointerException.class, () -> ChatService.builder()
+            .projectId("test")
             .authenticationProvider(mockAuthenticationProvider)
             .url(URI.create("http://localhost:8080"))
             .build());

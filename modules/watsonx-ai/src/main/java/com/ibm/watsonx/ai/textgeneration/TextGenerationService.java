@@ -8,6 +8,7 @@ import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
 import java.net.URI;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
-import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.SseEventLogger;
@@ -47,10 +48,11 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
  *
  * @see AuthenticationProvider
  */
-public final class TextGenerationService extends WatsonxService {
+public final class TextGenerationService extends ModelService {
 
     protected TextGenerationService(Builder builder) {
         super(builder);
+        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
     }
 
     /**
@@ -291,7 +293,7 @@ public final class TextGenerationService extends WatsonxService {
     /**
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public static class Builder extends ModelService.Builder<Builder> {
 
         /**
          * Builds a {@link TextGenerationService} instance using the configured parameters.

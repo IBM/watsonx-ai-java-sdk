@@ -7,23 +7,17 @@ package com.ibm.watsonx.ai.foundationmodel;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Optional;
 import java.util.StringJoiner;
-import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
@@ -48,32 +42,12 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  *
  * @see AuthenticationProvider
  */
-public final class FoundationModelService {
-    private final URI url;
-    private final String version;
+public final class FoundationModelService extends WatsonxService {
     private final boolean techPreview;
-    private final Duration timeout;
-    private final boolean logRequests;
-    private final boolean logResponses;
-    protected final SyncHttpClient syncHttpClient;
 
     protected FoundationModelService(Builder builder) {
-        this.url = requireNonNull(builder.url, "The url must be provided");
-        this.version = requireNonNullElse(builder.version, WatsonxService.API_VERSION);
+        super(builder);
         this.techPreview = requireNonNullElse(builder.techPreview, false);
-        this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-        this.logRequests = requireNonNullElse(builder.logRequests, false);
-        this.logResponses = requireNonNullElse(builder.logResponses, false);
-
-        var httpClient =
-            requireNonNullElse(builder.httpClient, HttpClient.newBuilder().connectTimeout(timeout).build());
-
-        var syncHttpClientBuilder = SyncHttpClient.builder().httpClient(httpClient);
-
-        if (logRequests || logResponses)
-            syncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
-
-        syncHttpClient = syncHttpClientBuilder.build();
     }
 
     /**
@@ -183,7 +157,7 @@ public final class FoundationModelService {
                 queryParameters.add("filters=" + URLEncoder.encode(filters.toString(), StandardCharsets.UTF_8));
 
             var uri =
-                URI.create(url.toString() + "%s/foundation_model_specs?%s".formatted(WatsonxService.ML_API_PATH, queryParameters));
+                URI.create(url.toString() + "%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters));
 
             var httpRequest = HttpRequest.newBuilder(uri)
                 .header("Accept", "application/json")
@@ -226,7 +200,7 @@ public final class FoundationModelService {
             queryParameters.add("limit=" + limit);
 
         var uri =
-            URI.create(url.toString() + "%s/foundation_model_tasks?%s".formatted(WatsonxService.ML_API_PATH, queryParameters));
+            URI.create(url.toString() + "%s/foundation_model_tasks?%s".formatted(ML_API_PATH, queryParameters));
 
         var httpRequest = HttpRequest.newBuilder(uri).GET().build();
 
@@ -266,52 +240,8 @@ public final class FoundationModelService {
     /**
      * Builder class for constructing {@link FoundationModelService} instances with configurable parameters.
      */
-    public static class Builder {
-        private URI url;
-        private String version;
+    public static class Builder extends WatsonxService.Builder<Builder> {
         private Boolean techPreview;
-        private Duration timeout;
-        private Boolean logRequests;
-        private Boolean logResponses;
-        private HttpClient httpClient;
-
-        /**
-         * Sets the endpoint URL to which the chat request will be sent.
-         *
-         * @param url the endpoint URL as a string
-         */
-        public Builder url(URI url) {
-            this.url = url;
-            return this;
-        }
-
-        /**
-         * Sets the endpoint URL to which the chat request will be sent.
-         *
-         * @param url the endpoint URL as a string
-         */
-        public Builder url(String url) {
-            return url(URI.create(url));
-        }
-
-        /**
-         * Sets the endpoint URL to which the chat request will be sent.
-         *
-         * @param url the endpoint URL as a string
-         */
-        public Builder url(CloudRegion url) {
-            return url(URI.create(url.getMlEndpoint()));
-        }
-
-        /**
-         * The version date for the API of the form YYYY-MM-DD.
-         *
-         * @param version Version date
-         */
-        public Builder version(String version) {
-            this.version = version;
-            return this;
-        }
 
         /**
          * See all the Tech Preview models if entitled.
@@ -320,41 +250,6 @@ public final class FoundationModelService {
          */
         public Builder techPreview(boolean techPreview) {
             this.techPreview = techPreview;
-            return this;
-        }
-
-        public Builder timeout(Duration timeout) {
-            this.timeout = timeout;
-            return this;
-        }
-
-        /**
-         * Enables or disables logging of the request payload.
-         *
-         * @param logRequests {@code true} to log the request, {@code false} otherwise
-         */
-        public Builder logRequests(boolean logRequests) {
-            this.logRequests = logRequests;
-            return this;
-        }
-
-        /**
-         * Enables or disables logging of the response payload.
-         *
-         * @param logResponses {@code true} to log the response, {@code false} otherwise
-         */
-        public Builder logResponses(boolean logResponses) {
-            this.logResponses = logResponses;
-            return this;
-        }
-
-        /**
-         * Sets a custom {@link HttpClient} to be used for making requests.
-         *
-         * @param httpClient the {@code HttpClient} instance to use
-         */
-        public Builder httpClient(HttpClient httpClient) {
-            this.httpClient = httpClient;
             return this;
         }
 
