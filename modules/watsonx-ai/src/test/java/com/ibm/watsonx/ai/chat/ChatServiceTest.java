@@ -201,6 +201,7 @@ public class ChatServiceTest {
                 .spaceId("space-id")
                 .messages(messages)
                 .parameters(chatParameters)
+                .timeLimit(chatParameters.getTimeLimit())
                 .build());
 
         assertEquals(expectedBody, bodyPublisherToString(captor));

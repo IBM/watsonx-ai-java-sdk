@@ -51,8 +51,8 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *     .build();
  *
  * ChatResponse response = chatService.chat(
- *     SystemMessage.of("You are a helpful assistant."),
- *     UserMessage.text("Tell me a joke.")
+ *     SystemMessage.of("You are a helpful assistant"),
+ *     UserMessage.text("Tell me a joke")
  * );
  * }</pre>
  *
@@ -163,13 +163,12 @@ public final class ChatService extends ModelService {
             .timeLimit(timeout)
             .build();
 
-        var httpRequest =
-            HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat?version=%s".formatted(ML_API_TEXT_PATH, version)))
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .POST(BodyPublishers.ofString(toJson(chatRequest)))
-                .timeout(Duration.ofMillis(timeout))
-                .build();
+        var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat?version=%s".formatted(ML_API_TEXT_PATH, version)))
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .POST(BodyPublishers.ofString(toJson(chatRequest)))
+            .timeout(Duration.ofMillis(timeout))
+            .build();
 
         try {
 
@@ -244,9 +243,6 @@ public final class ChatService extends ModelService {
 
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
-        if (isNull(parameters.getModelId()) && isNull(this.modelId))
-            throw new NullPointerException("The modelId must be provided");
-
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
         var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
@@ -262,13 +258,12 @@ public final class ChatService extends ModelService {
             .timeLimit(timeout)
             .build();
 
-        var httpRequest =
-            HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
-                .header("Content-Type", "application/json")
-                .header("Accept", "text/event-stream")
-                .POST(BodyPublishers.ofString(toJson(chatRequest)))
-                .timeout(Duration.ofMillis(timeout))
-                .build();
+        var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
+            .header("Content-Type", "application/json")
+            .header("Accept", "text/event-stream")
+            .POST(BodyPublishers.ofString(toJson(chatRequest)))
+            .timeout(Duration.ofMillis(timeout))
+            .build();
 
         var subscriber = new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
@@ -442,8 +437,8 @@ public final class ChatService extends ModelService {
      *     .build();
      *
      * ChatResponse response = chatService.chat(
-     *     SystemMessage.of("You are a helpful assistant."),
-     *     UserMessage.text("Tell me a joke.")
+     *     SystemMessage.of("You are a helpful assistant"),
+     *     UserMessage.text("Tell me a joke")
      * );
      * }</pre>
      *

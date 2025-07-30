@@ -57,7 +57,6 @@ public abstract class WatsonxService {
     protected final AsyncHttpClient asyncHttpClient;
     protected final AuthenticationProvider authenticationProvider;
 
-
     protected WatsonxService(Builder<?> builder) {
         url = requireNonNull(builder.url, "The url must be provided");
         version = requireNonNullElse(builder.version, API_VERSION);

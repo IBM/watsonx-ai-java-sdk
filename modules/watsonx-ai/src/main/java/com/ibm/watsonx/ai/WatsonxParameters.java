@@ -7,7 +7,9 @@ package com.ibm.watsonx.ai;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.embedding.EmbeddingParameters;
 import com.ibm.watsonx.ai.rerank.RerankParameters;
+import com.ibm.watsonx.ai.textextraction.TextExtractionParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
 import com.ibm.watsonx.ai.tokenization.TokenizationParameters;
 
 /**
@@ -16,9 +18,11 @@ import com.ibm.watsonx.ai.tokenization.TokenizationParameters;
  * It serves as a base class for different types of parameters used in the {@code watsonx.ai} platform.
  *
  * @see ChatParameters
- * @see TextGenerationParameters
  * @see EmbeddingParameters
  * @see RerankParameters
+ * @see TextExtractionParameters
+ * @see TextGenerationParameters
+ * @see TimeSeriesParameters
  * @see TokenizationParameters
  */
 public abstract class WatsonxParameters {

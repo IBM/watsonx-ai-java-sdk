@@ -220,7 +220,6 @@ public final class ChatRequest {
             this.stop = parameters.getStop();
             this.temperature = parameters.getTemperature();
             this.topP = parameters.getTopP();
-            this.timeLimit = parameters.getTimeLimit();
             this.responseFormat = parameters.getResponseFormat();
             this.jsonSchema = parameters.getJsonSchema();
             return this;
