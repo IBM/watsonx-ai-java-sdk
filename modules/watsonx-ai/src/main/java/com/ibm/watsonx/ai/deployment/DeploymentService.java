@@ -17,6 +17,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,13 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationProvider;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
+import com.ibm.watsonx.ai.timeseries.ForecastData;
+import com.ibm.watsonx.ai.timeseries.ForecastRequest;
+import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
+import com.ibm.watsonx.ai.timeseries.ForecastResponse;
+import com.ibm.watsonx.ai.timeseries.InputSchema;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesProvider;
 
 /**
  * Service class to interact with IBM watsonx.ai Deployment APIs.
@@ -58,7 +66,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
  *
  * @see AuthenticationProvider
  */
-public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider {
+public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
     private final String deployment;
@@ -77,14 +85,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
-        if (nonNull(parameters.getModelId()))
-            logger.info("The modelId parameter is ignored for the deployment service");
-
-        if (nonNull(parameters.getProjectId()))
-            logger.info("The projectId parameter is ignored for the deployment service");
-
-        if (nonNull(parameters.getSpaceId()))
-            logger.info("The spaceId parameter is ignored for the deployment service");
+        logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
         var textGenerationRequest =
             new TextGenerationRequest(null, null, null, input, parameters, moderation);
@@ -117,14 +118,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
-        if (nonNull(parameters.getModelId()))
-            logger.info("The modelId parameter is ignored for the deployment service");
-
-        if (nonNull(parameters.getProjectId()))
-            logger.info("The projectId parameter is ignored for the deployment service");
-
-        if (nonNull(parameters.getSpaceId()))
-            logger.info("The spaceId parameter is ignored for the deployment service");
+        logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
         var textGenerationRequest =
             new TextGenerationRequest(null, null, null, input, parameters, null);
@@ -155,14 +149,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
-        if (nonNull(parameters.getModelId()))
-            logger.info("The modelId parameter is ignored for the deployment service");
-
-        if (nonNull(parameters.getProjectId()))
-            logger.info("The projectId parameter is ignored for the deployment service");
-
-        if (nonNull(parameters.getSpaceId()))
-            logger.info("The spaceId parameter is ignored for the deployment service");
+        logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
         var chatRequest = ChatRequest.builder()
             .messages(messages)
@@ -198,14 +185,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
-        if (nonNull(parameters.getModelId()))
-            logger.info("The modelId parameter is ignored for the deployment service");
-
-        if (nonNull(parameters.getProjectId()))
-            logger.info("The projectId parameter is ignored for the deployment service");
-
-        if (nonNull(parameters.getSpaceId()))
-            logger.info("The spaceId parameter is ignored for the deployment service");
+        logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
         var chatRequest = ChatRequest.builder()
             .messages(messages)
@@ -231,6 +211,41 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             ).thenApply(response -> null);
     }
 
+    @Override
+    public ForecastResponse forecast(InputSchema inputSchema, ForecastData data, TimeSeriesParameters parameters) {
+
+        requireNonNull(inputSchema, "InputSchema cannot be null");
+        requireNonNull(data, "Data cannot be null");
+
+        Parameters requestParameters = null;
+        Map<String, List<Object>> futureData = null;
+
+        if (nonNull(parameters)) {
+            logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
+            requestParameters = parameters.toParameters();
+            futureData = nonNull(parameters.getFutureData()) ? parameters.getFutureData().asMap() : null;
+        }
+
+        var forecastRequest = new ForecastRequest(null, null, null, data.asMap(), inputSchema, futureData, requestParameters);
+
+        var httpRequest = HttpRequest
+            .newBuilder(URI.create(url.toString() + "%s/deployments/%s/time_series/forecast?version=%s".formatted(ML_API_PATH, deployment, version)))
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .timeout(timeout)
+            .POST(BodyPublishers.ofString(toJson(forecastRequest)))
+            .build();
+
+        try {
+
+            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            return fromJson(httpReponse.body(), ForecastResponse.class);
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Returns a new {@link Builder} instance.
      * <p>
@@ -253,6 +268,24 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * This method helps notify developers when they set parameters that are not applicable to deployments.
+     *
+     * @param modelId the model identifier, ignored in deployment context
+     * @param projectId the project identifier, ignored in deployment context
+     * @param spaceId the space identifier, ignored in deployment context
+     */
+    private void logIgnoredParameters(String modelId, String projectId, String spaceId) {
+        if (nonNull(modelId))
+            logger.info("The modelId parameter is ignored for the deployment service");
+
+        if (nonNull(projectId))
+            logger.info("The projectId parameter is ignored for the deployment service");
+
+        if (nonNull(spaceId))
+            logger.info("The spaceId parameter is ignored for the deployment service");
     }
 
     /**

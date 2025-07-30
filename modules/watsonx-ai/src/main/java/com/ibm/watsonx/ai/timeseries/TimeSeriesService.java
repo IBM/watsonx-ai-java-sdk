@@ -51,17 +51,14 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *
  * @see AuthenticationProvider
  */
-public final class TimeSeriesService extends ModelService {
+public final class TimeSeriesService extends ModelService implements TimeSeriesProvider {
 
     protected TimeSeriesService(Builder builder) {
         super(builder);
         requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
     }
 
-    public ForecastResponse forecast(InputSchema inputSchema, ForecastData data) {
-        return forecast(inputSchema, data, null);
-    }
-
+    @Override
     public ForecastResponse forecast(InputSchema inputSchema, ForecastData data, TimeSeriesParameters parameters) {
         requireNonNull(inputSchema, "InputSchema cannot be null");
         requireNonNull(data, "Data cannot be null");
@@ -78,7 +75,7 @@ public final class TimeSeriesService extends ModelService {
             requestParameters = parameters.toParameters();
         }
 
-        var forecastRequest = new ForecastRequest(modelId, spaceId, projectId, data.asMap(), inputSchema, requestParameters);
+        var forecastRequest = new ForecastRequest(modelId, spaceId, projectId, data.asMap(), inputSchema, null, requestParameters);
 
         var httpRequest = HttpRequest
             .newBuilder(URI.create(url.toString() + "%s/time_series/forecast?version=%s".formatted(ML_API_PATH, version)))

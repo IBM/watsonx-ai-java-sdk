@@ -16,7 +16,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
 
 /**
  * A provider interface for text generation functionality.
- * 
+ *
  * @see TextGenerationService
  * @see DeploymentService
  */

@@ -25,6 +25,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -55,6 +56,9 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
+import com.ibm.watsonx.ai.timeseries.ForecastData;
+import com.ibm.watsonx.ai.timeseries.InputSchema;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -576,6 +580,114 @@ public class DeploymentServiceTest {
         deploymentService.chatStreaming(messages, chatParameters, chatHandler);
         response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
+        Thread.sleep(50);
+    }
+
+    @Test
+    void test_forecast() throws Exception {
+
+        var EXPECTED = """
+            {
+                  "model_id": "ibm/ttm-1024-96-r2",
+                  "created_at": "2020-05-02T16:27:51Z",
+                  "results": [
+                    {
+                      "date": [
+                        "2020-01-05T02:00:00",
+                        "2020-01-05T03:00:00",
+                        "2020-01-06T00:00:00"
+                      ],
+                      "ID1": [
+                        "D1",
+                        "D1",
+                        "D1"
+                      ],
+                      "TARGET1": [
+                        1.86,
+                        3.24,
+                        6.78
+                      ]
+                    }
+                  ],
+                  "input_data_points": 512,
+                  "output_data_points": 1024
+            }""";
+
+        DeploymentService deploymentService = DeploymentService.builder()
+            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticationProvider(mockAuthenticationProvider)
+            .deployment("my-deployment-id")
+            .build();
+
+        InputSchema inputSchema = InputSchema.builder()
+            .timestampColumn("date")
+            .addIdColumn("ID1")
+            .build();
+
+        ForecastData data = ForecastData.create()
+            .add("date", "2020-01-01T00:00:00")
+            .add("date", "2020-01-01T01:00:00")
+            .add("date", "2020-01-05T01:00:00")
+            .addAll("ID1", Arrays.asList("D1", "D1", "D1"))
+            .addAll("TARGET1", Arrays.asList(1.46, 2.34, 4.55));
+
+        TimeSeriesParameters parameters = TimeSeriesParameters.builder()
+            .modelId("modelId")
+            .projectId("projectId")
+            .spaceId("spaceId")
+            .futureData(
+                ForecastData.create()
+                    .add("date", "2021-01-01T00:00:00")
+                    .add("ID1", "D1")
+                    .add("TARGET1", 5)
+            )
+            .build();
+
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/time_series/forecast?version=2025-04-23")
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .withHeader("Content-Type", equalTo("application/json"))
+            .withHeader("Accept", equalTo("application/json"))
+            .withRequestBody(equalToJson("""
+                {
+                    "schema": {
+                        "timestamp_column": "date",
+                        "id_columns": [ "ID1" ]
+                    },
+                    "data": {
+                        "date": [
+                            "2020-01-01T00:00:00",
+                            "2020-01-01T01:00:00",
+                            "2020-01-05T01:00:00"
+                        ],
+                        "ID1": [
+                            "D1",
+                            "D1",
+                            "D1"
+                        ],
+                        "TARGET1": [
+                            1.46,
+                            2.34,
+                            4.55
+                        ]
+                    },
+                    "future_data": {
+                        "date": [
+                            "2021-01-01T00:00:00"
+                        ],
+                        "ID1": [
+                            "D1"
+                        ],
+                        "TARGET1": [
+                            5
+                        ]
+                    }
+                }"""))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(EXPECTED)));
+
+        var result = deploymentService.forecast(inputSchema, data, parameters);
+        JSONAssert.assertEquals(EXPECTED, toJson(result), true);
     }
 
     @Test
@@ -595,6 +707,9 @@ public class DeploymentServiceTest {
         var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate("test"));
         assertEquals(ex.getCause().getMessage(), "IOException");
         ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(UserMessage.text("test")));
+        assertEquals(ex.getCause().getMessage(), "InterruptedException");
+        ex = assertThrows(RuntimeException.class,
+            () -> deploymentService.forecast(InputSchema.builder().timestampColumn("test").build(), ForecastData.create()));
         assertEquals(ex.getCause().getMessage(), "InterruptedException");
     }
 }
