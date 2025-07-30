@@ -119,7 +119,7 @@ public final class ChatService extends ModelService implements ChatProvider {
 
         requireNonNull(handler, "The chatHandler parameter can not be null");
         requireNonNull(messages, "The list of messages can not be null");
-        
+
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);

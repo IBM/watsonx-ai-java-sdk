@@ -15,7 +15,7 @@ public final class StreamingToolFetcher {
 
     private int index;
     private StringBuilder arguments;
-    private String id, type, name;
+    private String id, name;
 
     public StreamingToolFetcher(int index) {
         this.index = index;
@@ -25,11 +25,6 @@ public final class StreamingToolFetcher {
     public void setId(String id) {
         if (nonNull(id))
             this.id = id;
-    }
-
-    public void setType(String type) {
-        if (nonNull(type))
-            this.type = type;
     }
 
     public void setName(String name) {
@@ -47,6 +42,6 @@ public final class StreamingToolFetcher {
         if (isNull(id)) {
             this.id = UUID.randomUUID().toString();
         }
-        return new ToolCall(index, id, type, FunctionCall.of(name, arguments.toString()));
+        return ToolCall.of(index, id, name, arguments.toString());
     }
 }

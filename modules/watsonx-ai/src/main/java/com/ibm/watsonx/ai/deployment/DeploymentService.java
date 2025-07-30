@@ -29,6 +29,7 @@ import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.core.SseEventLogger;
+import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
@@ -36,6 +37,27 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationProvider;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
 
+/**
+ * Service class to interact with IBM watsonx.ai Deployment APIs.
+ * <p>
+ * <b>Example usage:</b>
+ *
+ * <pre>{@code
+ * DeploymentService deploymentService = DeploymentService.builder()
+ *     .url("https://...") // or use CloudRegion
+ *     .deployment("...")
+ *     .authenticationProvider(authProvider)
+ *     .build();
+ *
+ * ChatResponse response = deploymentService.chat(
+ *     UserMessage.text("Tell me a joke")
+ * );
+ * }</pre>
+ *
+ * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#deployments-text-chat" target="_blank"> official documentation</a>.
+ *
+ * @see AuthenticationProvider
+ */
 public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
@@ -209,6 +231,26 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             ).thenApply(response -> null);
     }
 
+    /**
+     * Returns a new {@link Builder} instance.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * DeploymentService deploymentService = DeploymentService.builder()
+     *     .url("https://...") // or use CloudRegion
+     *     .deployment("...")
+     *     .authenticationProvider(authProvider)
+     *     .build();
+     *
+     * ChatResponse response = deploymentService.chat(
+     *     UserMessage.text("Tell me a joke")
+     * );
+     * }</pre>
+     *
+     * @see AuthenticationProvider
+     * @return {@link Builder} instance.
+     */
     public static Builder builder() {
         return new Builder();
     }

@@ -114,6 +114,7 @@ public class ChatServiceTest {
             .toolChoiceOption(ToolChoice.REQUIRED)
             .topLogprobs(10)
             .topP(1.2)
+            .withJsonSchemaResponse("test", Map.of(), false)
             .build();
 
         var chatService = ChatService.builder()
@@ -757,7 +758,9 @@ public class ChatServiceTest {
                         JsonSchema.builder()
                             .addNumberProperty("value")
                             .addEnumProperty("density", "LOW", "MEDIUM", "HIGH")
-                            .required("value", "density"))
+                            .required("value", "density")
+                            .build()
+                    )
             ).build();
 
         var parameters = ChatParameters.builder()
@@ -777,6 +780,15 @@ public class ChatServiceTest {
         assertEquals(new Province("Napoli", new Population(3116402, "HIGH")), response.provinces.get(2));
         assertEquals(new Province("Avellino", new Population(423536, "LOW")), response.provinces.get(3));
         assertEquals(new Province("Salerno", new Population(1108369, "MEDIUM")), response.provinces.get(4));
+
+        parameters = ChatParameters.builder()
+            .withJsonSchemaResponse(jsonSchema)
+            .build();
+
+        chatResponse = chatService.chat(messages, parameters);
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
+
+
     }
 
     @Test
@@ -2050,11 +2062,11 @@ public class ChatServiceTest {
 
         var chatParameters = ChatParameters.builder().build();
 
-        var ex2 = assertThrows(IllegalArgumentException.class, () -> chatService.chat(null, chatParameters));
-        assertEquals("The list of messages can not be null or empty", ex2.getMessage());
+        var ex2 = assertThrows(NullPointerException.class, () -> chatService.chat(null, chatParameters));
+        assertEquals("The list of messages can not be null", ex2.getMessage());
         ex2 =
-            assertThrows(IllegalArgumentException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
-        assertEquals("The list of messages can not be null or empty", ex2.getMessage());
+            assertThrows(NullPointerException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
+        assertEquals("The list of messages can not be null", ex2.getMessage());
     }
 
     @Test

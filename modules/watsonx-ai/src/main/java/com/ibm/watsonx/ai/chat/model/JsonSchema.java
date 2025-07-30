@@ -198,11 +198,6 @@ public sealed interface JsonSchema
                 return addProperty(name, EnumSchema.of(values));
             }
 
-            public Builder addObjectProperty(String name, ObjectSchema.Builder schema) {
-                requireNonNull(schema);
-                return addProperty(name, schema.build());
-            }
-
             public Builder addObjectProperty(String name, JsonSchema schema) {
                 return addProperty(name, schema);
             }
@@ -212,11 +207,6 @@ public sealed interface JsonSchema
                 requireNonNull(schema);
                 properties.put(name, schema);
                 return this;
-            }
-
-            public Builder addProperty(String name, ObjectSchema.Builder schema) {
-                requireNonNull(schema);
-                return addProperty(name, schema.build());
             }
 
             public Builder required(List<String> required) {
@@ -398,10 +388,6 @@ public sealed interface JsonSchema
 
         public static ArraySchema of(JsonSchema schema) {
             return new ArraySchema("array", schema);
-        }
-
-        public static ArraySchema of(ObjectSchema.Builder schema) {
-            return new ArraySchema("array", schema.build());
         }
     }
 
