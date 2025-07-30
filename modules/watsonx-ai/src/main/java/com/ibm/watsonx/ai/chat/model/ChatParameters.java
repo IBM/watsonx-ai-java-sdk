@@ -12,7 +12,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
 
 /**
@@ -34,7 +34,7 @@ import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
  * The parameters encapsulated in this class control aspects such as output randomness, token limits, tool invocation, stopping criteria, and
  * reproducibility.
  */
-public final class ChatParameters extends WatsonxParameters {
+public final class ChatParameters extends WatsonxModelParameters {
 
     public record JsonSchemaObject(String name, Object schema, boolean strict) {};
 
@@ -177,7 +177,7 @@ public final class ChatParameters extends WatsonxParameters {
     /**
      * Builder class for constructing {@link ChatParameters} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxParameters.Builder<Builder> {
+    public static class Builder extends WatsonxModelParameters.Builder<Builder> {
         private ToolChoice toolChoiceOption;
         private String toolChoice;
         private Double frequencyPenalty;

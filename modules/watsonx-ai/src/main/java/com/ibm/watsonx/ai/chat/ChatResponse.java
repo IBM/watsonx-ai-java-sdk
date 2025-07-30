@@ -166,7 +166,7 @@ public final class ChatResponse {
     /**
      * Sets the formatted creation timestamp of the response.
      *
-     * @param setCreatedAt the formatted creation time
+     * @param createdAt the formatted creation time
      */
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;

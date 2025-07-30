@@ -101,7 +101,7 @@ public final class FoundationModelService extends WatsonxService {
      *
      * @param start A pagination token for fetching the next set of results (provided by the service).
      * @param limit The number of models to return (1–200). Defaults to 100 if null.
-     * @param filter A string expression for filtering models using logical combinations of filters.
+     * @param filters A string expression for filtering models using logical combinations of filters.
      *
      *            <p>
      *            <b>Filter Syntax:</b>

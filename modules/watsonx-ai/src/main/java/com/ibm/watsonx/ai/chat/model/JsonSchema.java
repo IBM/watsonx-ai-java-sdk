@@ -43,7 +43,7 @@ public sealed interface JsonSchema
     permits ObjectSchema, StringSchema, NumberSchema, IntegerSchema, BooleanSchema, ArraySchema, EnumSchema {
 
     /**
-     * Create a new instance of {@link Builder}. Represents a JSON Schema used to describe the structure of JSON/Tool.
+     * Create a new instance of {@link ObjectSchema.Builder}. Represents a JSON Schema used to describe the structure of JSON/Tool.
      * <p>
      * Example usage:
      *

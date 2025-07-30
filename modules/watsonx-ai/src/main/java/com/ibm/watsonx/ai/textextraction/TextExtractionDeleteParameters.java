@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.textextraction;
 
 import java.util.Optional;
+import com.ibm.watsonx.ai.WatsonxParameters;
 
 /**
  * Represents a set of parameters used to control the behavior of a text extraction delete operation.
@@ -21,23 +22,12 @@ import java.util.Optional;
  * }</pre>
  *
  */
-public final class TextExtractionDeleteParameters {
-    private final String projectId;
-    private final String spaceId;
+public final class TextExtractionDeleteParameters extends WatsonxParameters {
     private final Optional<Boolean> hardDelete;
 
     public TextExtractionDeleteParameters(Builder builder) {
-        this.projectId = builder.projectId;
-        this.spaceId = builder.spaceId;
+        super(builder);
         this.hardDelete = Optional.ofNullable(builder.hardDelete);
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public String getSpaceId() {
-        return spaceId;
     }
 
     public Optional<Boolean> getHardDelete() {
@@ -65,30 +55,8 @@ public final class TextExtractionDeleteParameters {
     /**
      * Builder class for constructing {@link TextExtractionDeleteParameters} instances.
      */
-    public static class Builder {
-        private String projectId;
-        private String spaceId;
+    public static class Builder extends WatsonxParameters.Builder<Builder> {
         private Boolean hardDelete;
-
-        /**
-         * Sets the project id.
-         *
-         * @param projectId the project id.
-         */
-        public Builder projectId(String projectId) {
-            this.projectId = projectId;
-            return this;
-        }
-
-        /**
-         * Sets the space id.
-         *
-         * @param spaceId the space id.
-         */
-        public Builder spaceId(String spaceId) {
-            this.spaceId = spaceId;
-            return this;
-        }
 
         /**
          * Sets the hard delete option.

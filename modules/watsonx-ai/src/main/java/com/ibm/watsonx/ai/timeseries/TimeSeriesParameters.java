@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.timeseries;
 
 import static java.util.Objects.nonNull;
-import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
 import com.ibm.watsonx.ai.embedding.EmbeddingParameters;
 import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
 
@@ -24,7 +24,7 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  * }</pre>
  *
  */
-public final class TimeSeriesParameters extends WatsonxParameters {
+public final class TimeSeriesParameters extends WatsonxModelParameters {
 
     private final Integer predictionLength;
 
@@ -61,7 +61,7 @@ public final class TimeSeriesParameters extends WatsonxParameters {
     /**
      * Builder class for constructing {@link TimeSeriesParameters} instances.
      */
-    public static final class Builder extends WatsonxParameters.Builder<Builder> {
+    public static final class Builder extends WatsonxModelParameters.Builder<Builder> {
         private Integer predictionLength;
 
         public Builder predictionLength(int predictionLength) {

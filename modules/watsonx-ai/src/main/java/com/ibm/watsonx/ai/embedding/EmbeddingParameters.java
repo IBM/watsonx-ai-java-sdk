@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.embedding;
 
 import static java.util.Objects.nonNull;
-import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.ReturnOptions;
 
@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.ReturnOptions;
  * }</pre>
  *
  */
-public final class EmbeddingParameters extends WatsonxParameters {
+public final class EmbeddingParameters extends WatsonxModelParameters {
     private final Integer truncateInputTokens;
     private final Boolean inputText;
 
@@ -74,7 +74,7 @@ public final class EmbeddingParameters extends WatsonxParameters {
     /**
      * Builder class for constructing {@link EmbeddingParameters} instances.
      */
-    public static final class Builder extends WatsonxParameters.Builder<Builder> {
+    public static final class Builder extends WatsonxModelParameters.Builder<Builder> {
         private Integer truncateInputTokens;
         private Boolean inputText;
 

@@ -7,7 +7,7 @@ package com.ibm.watsonx.ai.textgeneration;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.List;
-import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
 
 /**
  * Represents a set of parameters used to control the behavior of a text generation request.
@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  * }</pre>
  *
  */
-public final class TextGenerationParameters extends WatsonxParameters {
+public final class TextGenerationParameters extends WatsonxModelParameters {
 
     /**
      * Represents an exponential length penalty configuration to influence when text generation should terminate.
@@ -128,7 +128,7 @@ public final class TextGenerationParameters extends WatsonxParameters {
         return includeStopSequence;
     }
 
-    void setTimeLimit(Long timeLimit) {
+    public void setTimeLimit(Long timeLimit) {
         this.timeLimit = timeLimit;
     }
 
@@ -154,7 +154,7 @@ public final class TextGenerationParameters extends WatsonxParameters {
     /**
      * Builder class for constructing {@link TextGenerationParameters} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxParameters.Builder<Builder> {
+    public static class Builder extends WatsonxModelParameters.Builder<Builder> {
         private String decodingMethod;
         private LengthPenalty lengthPenalty;
         private Integer maxNewTokens;
