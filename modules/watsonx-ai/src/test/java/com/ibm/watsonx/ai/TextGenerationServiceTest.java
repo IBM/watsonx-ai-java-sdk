@@ -12,6 +12,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,6 +26,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -373,12 +375,14 @@ public class TextGenerationServiceTest {
             .spaceId("new-space-id")
             .projectId("new-project-id")
             .timeLimit(Duration.ofSeconds(2))
+            .promptVariables(Map.of("test", "test")) // this field must be ignored
             .build());
 
         expected = new TextGenerationRequest("new-model", "new-space-id", "new-project-id", "Hello!",
             TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(2)).build(), null);
 
         JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(httpRequestCaptor), false);
+        assertFalse(Utils.bodyPublisherToString(httpRequestCaptor).contains("prompt_variables"));
     }
 
     @Test
@@ -518,6 +522,7 @@ public class TextGenerationServiceTest {
         CompletableFuture<TextGenerationResponse> result = new CompletableFuture<>();
         textGenerationService.generateStreaming(
             "<|system|>\nYou are a translation assistant. Your job is to translate any input from the user into English. Do not explain the translation. Just output the translated text.<|user|>\nTraduci in inglese: \"Oggi è una bella giornata\"<|assistant|>\n",
+            TextGenerationParameters.builder().promptVariables(Map.of("test", "test")).build(), // This field must be ignored
             new TextGenerationHandler() {
 
                 @Override

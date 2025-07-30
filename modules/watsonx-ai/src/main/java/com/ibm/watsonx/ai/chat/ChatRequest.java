@@ -38,6 +38,7 @@ public final class ChatRequest {
     private final Double topP;
     private final Long timeLimit;
     private final Map<String, Object> responseFormat;
+    private final String context;
 
     public ChatRequest(Builder builder) {
         this.modelId = builder.modelId;
@@ -59,6 +60,7 @@ public final class ChatRequest {
         this.temperature = builder.temperature;
         this.topP = builder.topP;
         this.timeLimit = builder.timeLimit;
+        this.context = builder.context;
 
         if (nonNull(builder.responseFormat)) {
             this.responseFormat = builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.type())
@@ -149,6 +151,10 @@ public final class ChatRequest {
         return responseFormat;
     }
 
+    public String getContext() {
+        return context;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -175,6 +181,7 @@ public final class ChatRequest {
         private Long timeLimit;
         private String responseFormat;
         private JsonSchemaObject jsonSchema;
+        private String context;
 
         public Builder modelId(String modelId) {
             this.modelId = modelId;
@@ -222,6 +229,7 @@ public final class ChatRequest {
             this.topP = parameters.getTopP();
             this.responseFormat = parameters.getResponseFormat();
             this.jsonSchema = parameters.getJsonSchema();
+            this.context = parameters.getContext();
             return this;
         }
 

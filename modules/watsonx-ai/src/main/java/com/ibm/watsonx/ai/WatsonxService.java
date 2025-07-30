@@ -18,6 +18,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
+import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
@@ -30,10 +31,11 @@ import com.ibm.watsonx.ai.tool.ToolService;
 
 /**
  * This class provides common functionality and shared configuration used across various service-specific clients (e.g., {@code ChatService},
- * {@code TextGenerationService}, etc.). Subclasses should extend this class to inherit support for authentication, HTTP communication, etc..
+ * {@code TextGenerationService}, etc.). Subclasses should extend this class to inherit support for authentication, HTTP communication, and so on.
  *
  * @see ChatService
  * @see TextGenerationService
+ * @see DeploymentService
  * @see EmbeddingService
  * @see RerankService
  * @see TokenizationService
@@ -284,7 +286,7 @@ public abstract class WatsonxService {
             /**
              * Sets the {@link FoundationModelService} used for authenticating requests.
              *
-             * @param authenticationProvider {@link FoundationModelService} instance
+             * @param foundationModelService {@link FoundationModelService} instance
              */
             public T foundationModelService(FoundationModelService foundationModelService) {
                 this.foundationModelService = foundationModelService;

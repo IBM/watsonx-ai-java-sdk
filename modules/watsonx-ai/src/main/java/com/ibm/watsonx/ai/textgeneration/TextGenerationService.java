@@ -17,16 +17,13 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Flow;
-import java.util.concurrent.Flow.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
 
 /**
  * Service class to interact with IBM watsonx.ai Text Generation APIs.
@@ -50,6 +47,8 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
  */
 public final class TextGenerationService extends ModelService implements TextGenerationProvider {
 
+    private static final Logger logger = LoggerFactory.getLogger(TextGenerationService.class);
+
     protected TextGenerationService(Builder builder) {
         super(builder);
         requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
@@ -62,6 +61,11 @@ public final class TextGenerationService extends ModelService implements TextGen
             throw new IllegalArgumentException("The input can not be null or empty");
 
         parameters = requireNonNullElse(parameters, TextGenerationParameters.builder().build());
+
+        if (nonNull(parameters.getPromptVariables())) {
+            parameters.setPromptVariables(null);
+            logger.warn("Prompt variables are not supported in Text Generation service");
+        }
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
@@ -94,10 +98,13 @@ public final class TextGenerationService extends ModelService implements TextGen
     @Override
     public CompletableFuture<Void> generateStreaming(String input, TextGenerationParameters parameters, TextGenerationHandler handler) {
 
-        if (isNull(input) || input.isBlank())
-            throw new IllegalArgumentException("The input can not be null or empty");
-
+        requireNonNull(input, "input cannot be null");
         parameters = requireNonNullElse(parameters, TextGenerationParameters.builder().build());
+
+        if (nonNull(parameters.getPromptVariables())) {
+            parameters.setPromptVariables(null);
+            logger.warn("Prompt variables are not supported in Text Generation service");
+        }
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
@@ -108,97 +115,18 @@ public final class TextGenerationService extends ModelService implements TextGen
         var textGenerationRequest =
             new TextGenerationRequest(modelId, spaceId, projectId, input, parameters, null);
 
-        var httpRequest =
-            HttpRequest
-                .newBuilder(
-                    URI.create(url.toString() + "%s/generation_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
-                .header("Content-Type", "application/json")
-                .header("Accept", "text/event-stream")
-                .timeout(Duration.ofMillis(timeout))
-                .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
-                .build();
+        var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/generation_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
+            .header("Content-Type", "application/json")
+            .header("Accept", "text/event-stream")
+            .timeout(Duration.ofMillis(timeout))
+            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
+            .build();
 
-        var subscriber = new Flow.Subscriber<String>() {
-            private Flow.Subscription subscription;
-            private int inputTokenCount;
-            private int generatedTokenCount;
-            private String stopReason;
-            private boolean success = true;
-            private final StringBuilder stringBuilder = new StringBuilder();
-
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                this.subscription = subscription;
-                this.subscription.request(1);
-            }
-
-            @Override
-            public void onNext(String partialMessage) {
-
-                try {
-
-                    if (isNull(partialMessage) || partialMessage.isBlank() || !partialMessage.startsWith("data: "))
-                        return;
-
-                    var messageData = partialMessage.split("data: ")[1];
-                    var chunk = Json.fromJson(messageData, TextGenerationResponse.class);
-
-                    if (chunk.results().size() == 0) {
-                        return;
-                    }
-
-                    var result = chunk.results().get(0);
-
-                    if (nonNull(result.inputTokenCount()))
-                        inputTokenCount += result.inputTokenCount();
-
-                    if (nonNull(result.generatedTokenCount()))
-                        generatedTokenCount += result.generatedTokenCount();
-
-                    if (nonNull(result.stopReason()))
-                        stopReason = result.stopReason();
-
-                    if (nonNull(result.generatedText()) && !result.generatedText().isEmpty()) {
-                        stringBuilder.append(result.generatedText());
-                        handler.onPartialResponse(result.generatedText());
-                    }
-
-                } catch (RuntimeException e) {
-
-                    success = false;
-                    onError(e);
-
-                } finally {
-
-                    if (success)
-                        subscription.request(1);
-                }
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                handler.onError(throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                try {
-
-                    var result = List.of(new Result(stringBuilder.toString(), stopReason, generatedTokenCount,
-                        inputTokenCount, null, null, null, null));
-                    handler.onCompleteResponse(new TextGenerationResponse(modelId, null, null, result));
-
-                } catch (RuntimeException e) {
-                    handler.onError(e);
-                }
-            }
-        };
-
+        var subscriber = subscriber(handler);
         return asyncHttpClient
             .send(httpRequest,
                 responseInfo -> logResponses
-                    ? BodySubscribers
-                        .fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+                    ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
                     : BodySubscribers.fromLineSubscriber(subscriber)
             ).thenApply(response -> null);
     }

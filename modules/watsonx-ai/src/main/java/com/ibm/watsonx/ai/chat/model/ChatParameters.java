@@ -5,7 +5,6 @@
 package com.ibm.watsonx.ai.chat.model;
 
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
@@ -13,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
+import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 /**
  * Represents a set of parameters used to control the behavior of a chat model during text generation.
@@ -54,6 +53,7 @@ public final class ChatParameters extends WatsonxModelParameters {
     private final Long timeLimit;
     private final String responseFormat;
     private final JsonSchemaObject jsonSchema;
+    private final String context;
 
     public ChatParameters(Builder builder) {
         super(builder);
@@ -70,17 +70,12 @@ public final class ChatParameters extends WatsonxModelParameters {
         this.timeLimit = builder.timeLimit;
         this.seed = builder.seed;
         this.stop = builder.stop;
+        this.context = builder.context;
 
         if (nonNull(builder.responseFormat)) {
-
-            if (builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA) && isNull(builder.jsonSchema))
-                throw new IllegalArgumentException("JSON schema must be provided when using JSON_SCHEMA response format");
-
             this.responseFormat = builder.responseFormat.type();
             this.jsonSchema = builder.jsonSchema;
-
         } else {
-
             this.responseFormat = null;
             this.jsonSchema = null;
         }
@@ -174,6 +169,10 @@ public final class ChatParameters extends WatsonxModelParameters {
         return jsonSchema;
     }
 
+    public String getContext() {
+        return context;
+    }
+
     /**
      * Builder class for constructing {@link ChatParameters} instances with configurable parameters.
      */
@@ -194,6 +193,7 @@ public final class ChatParameters extends WatsonxModelParameters {
         private Double topP;
         private Long timeLimit;
         private JsonSchemaObject jsonSchema;
+        private String context;
 
         /**
          * Specifies the tool selection strategy.
@@ -355,15 +355,6 @@ public final class ChatParameters extends WatsonxModelParameters {
          *
          * @param schema the JSON Schema describing the expected output structure
          */
-        public Builder withJsonSchemaResponse(ObjectSchema.Builder schema) {
-            return withJsonSchemaResponse(schema.build());
-        }
-
-        /**
-         * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
-         *
-         * @param schema the JSON Schema describing the expected output structure
-         */
         public Builder withJsonSchemaResponse(JsonSchema schema) {
             return withJsonSchemaResponse(UUID.randomUUID().toString(), schema, true);
         }
@@ -423,6 +414,27 @@ public final class ChatParameters extends WatsonxModelParameters {
          */
         public Builder stop(List<String> stop) {
             this.stop = stop;
+            return this;
+        }
+
+        /**
+         * Sets the context string to be inserted into the messages during chat generation.
+         * <p>
+         * Depending on the underlying model, the provided context may be injected into:
+         * <ul>
+         * <li>the content of the <b>system</b> role message.</li>
+         * <li>the beginning of the <b>last user</b> message.</li>
+         * </ul>
+         * For example, if context is {@code "Today is Wednesday"} and the user input is {@code "Who are you and which day is tomorrow?"}, the
+         * resulting message may be {@code "Today is Wednesday. Who are you and which day is tomorrow?"}.
+         * <p>
+         * <b>Note:</b> This parameter is only supported when using {@link DeploymentService}.
+         *
+         * @param context The context string to insert into the messages
+         * @return The current Builder instance for method chaining
+         */
+        public Builder context(String context) {
+            this.context = context;
             return this;
         }
 
