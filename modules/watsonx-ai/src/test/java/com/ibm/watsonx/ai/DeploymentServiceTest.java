@@ -10,10 +10,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.API_VERSION;
+import static com.ibm.watsonx.ai.core.Json.prettyPrint;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,6 +54,7 @@ import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
+import com.ibm.watsonx.ai.deployment.FindByIdParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationRequest;
@@ -691,6 +694,328 @@ public class DeploymentServiceTest {
     }
 
     @Test
+    void test_find_by_id_prompt_tune() throws Exception {
+
+        var EXPECTED_RESPONSE = """
+            {
+                "metadata": {
+                        "id": "6213cf1-252f-424b-b52d-5cdd9814956c",
+                        "created_at": "2023-05-02T16:27:51Z",
+                        "project_id": "12ac4cf1-252f-424b-b52d-5cdd9814987f",
+                        "name": "text_classification",
+                        "description": "Classification prompt tuned model deployment",
+                        "tags": [
+                            "classification"
+                        ]
+                },
+                "entity": {
+                    "asset": {
+                        "id": "4cedab6d-e8e4-4214-b81a-2ddb122db2ab"
+                    },
+                    "online": {},
+                    "deployed_asset_type": "prompt_tune",
+                    "base_model_id": "google/flan-ul2",
+                    "status": {
+                        "state": "ready",
+                        "message": {
+                            "level": "info",
+                            "text": "The deployment is successful"
+                    },
+                    "inference": [
+                        {
+                            "url": "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/2cd0bcda-581d-4f04-8028-ec2bc90cc375/text/generation"
+                        },
+                        {
+                            "url": "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/2cd0bcda-581d-4f04-8028-ec2bc90cc375/text/generation_stream",
+                            "sse": true
+                        }
+                    ]
+                    }
+                }
+            }""";
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
+        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        DeploymentService deploymentService = DeploymentService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .deployment("mysuperdeployment")
+            .build();
+
+        var response = deploymentService.findById(
+            FindByIdParameters.builder()
+                .projectId("my-project-id")
+                .build()
+        );
+
+        JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+        assertTrue(httpRequest.getValue().uri().toString().contains("/mysuperdeployment"));
+        assertTrue(httpRequest.getValue().uri().getQuery().contains("my-project-id"));
+    }
+
+    @Test
+    void test_find_by_id_prompt_template() throws Exception {
+
+        var EXPECTED_RESPONSE = """
+            {
+                "metadata": {
+                    "id": "6213cf1-252f-424b-b52d-5cdd9814956c",
+                    "created_at": "2023-05-02T16:27:51Z",
+                    "project_id": "12ac4cf1-252f-424b-b52d-5cdd9814987f",
+                    "name": "text_classification",
+                    "description": "Classification prompt template deployment",
+                    "tags": [
+                    "classification"
+                    ]
+                },
+                "entity": {
+                    "prompt_template": {
+                    "id": "4cedab6d-e8e4-4214-b81a-2ddb122db2ab"
+                    },
+                    "online": {},
+                    "deployed_asset_type": "foundation_model",
+                    "base_model_id": "google/flan-t5-xl",
+                    "status": {
+                    "state": "ready",
+                    "message": {
+                        "level": "info",
+                        "text": "The deployment is successful"
+                    },
+                    "inference": [
+                        {
+                        "url": "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/2cd0bcda-581d-4f04-8028-ec2bc90cc375/text/generation"
+                        },
+                        {
+                        "url": "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/2cd0bcda-581d-4f04-8028-ec2bc90cc375/text/generation_stream",
+                        "sse": true
+                        }
+                    ]
+                    }
+                }
+            }""";
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
+        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        DeploymentService deploymentService = DeploymentService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .deployment("my-deployment-id")
+            .build();
+
+        var response = deploymentService.findById(
+            FindByIdParameters.builder()
+                .spaceId("my-space-id")
+                .build()
+        );
+
+        JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+        assertTrue(httpRequest.getValue().uri().toString().contains("/my-deployment-id"));
+        assertTrue(httpRequest.getValue().uri().getQuery().contains("my-space-id"));
+    }
+
+    @Test
+    void test_find_by_id_foundation_model() throws Exception {
+
+        var EXPECTED_RESPONSE = """
+            {
+                "metadata": {
+                    "id": "6213cf1-252f-424b-b52d-5cdd9814956c",
+                    "created_at": "2023-05-02T16:27:51Z",
+                    "project_id": "12ac4cf1-252f-424b-b52d-5cdd9814987f",
+                    "name": "my_tuned_flan"
+                },
+                "entity": {
+                    "asset": {
+                    "id": "366c31e9-1a6b-417a-8e25-06178a1514a1"
+                    },
+                    "online": {
+                    "parameters": {
+                        "serving_name": "myflan"
+                    }
+                    },
+                    "deployed_asset_type": "custom_foundation_model",
+                    "base_model_id": "google/flan-t5-xl",
+                    "status": {
+                    "state": "ready",
+                    "message": {
+                        "level": "info",
+                        "text": "The deployment is successful"
+                    },
+                    "inference": [
+                        {
+                        "url": "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/6213cf1-252f-424b-b52d-5cdd9814956c/text/generation"
+                        },
+                        {
+                        "url": "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/myflan/text/generation",
+                        "uses_serving_name": true
+                        },
+                        {
+                        "url": "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/6213cf1-252f-424b-b52d-5cdd9814956c/text/generation_stream",
+                        "sse": true
+                        },
+                        {
+                        "url": "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/myflan/text/generation_stream",
+                        "sse": true,
+                        "uses_serving_name": true
+                        }
+                    ]
+                    }
+                }
+            }""";
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
+        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        DeploymentService deploymentService = DeploymentService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .deployment("my-deployment-id")
+            .build();
+
+        var response = deploymentService.findById(
+            FindByIdParameters.builder()
+                .deployment("override-deployment")
+                .spaceId("my-space-id")
+                .build()
+        );
+
+        JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+        assertFalse(httpRequest.getValue().uri().toString().contains("my-deployment-id"));
+        assertTrue(httpRequest.getValue().uri().toString().contains("/override-deployment"));
+        assertTrue(httpRequest.getValue().uri().getQuery().contains("my-space-id"));
+
+        assertThrows(IllegalArgumentException.class, () -> deploymentService.findById(
+            FindByIdParameters.builder()
+                .deployment("override-deployment")
+                .build()
+        ), "Either projectId or spaceId must be provided");
+    }
+
+    @Test
+    void test_deployment_resource_conversion() throws Exception {
+
+        var EXPECTED_RESPONSE = """
+            {
+                "metadata": {
+                    "id": "6213cf1-252f-424b-b52d-5cdd9814956c",
+                    "created_at": "2023-05-02T16:27:51Z",
+                    "rev": "5",
+                    "owner": "user-12345",
+                    "modified_at": "2023-05-05T10:15:30Z",
+                    "parent_id": "parent-abc",
+                    "name": "text_classification",
+                    "description": "Classification prompt tuned model deployment",
+                    "tags": ["classification", "nlp", "production"],
+                    "commit_info": {
+                        "committed_at": "2023-05-03T09:00:00Z",
+                        "commit_message": "Initial deployment commit"
+                    },
+                    "space_id": "3fc54cf1-252f-424b-b52d-5cdd9814987f",
+                    "project_id": "12ac4cf1-252f-424b-b52d-5cdd9814987f"
+                },
+                "entity": {
+                    "online": {
+                    "parameters": {
+                        "serving_name": "text_classification_deploy",
+                        "batch_size": 16
+                    }
+                    },
+                    "custom": {
+                    "env": "production",
+                    "team": "nlp"
+                    },
+                    "prompt_template": {
+                    "id": "template-123"
+                    },
+                    "hardware_spec": {
+                    "id": "hw-456",
+                    "rev": "2",
+                    "name": "gpu_m",
+                    "num_nodes": 2
+                    },
+                    "hardware_request": {
+                    "size": "gpu_m",
+                    "num_nodes": 2
+                    },
+                    "asset": {
+                        "id": "4cedab6d-e8e4-4214-b81a-2ddb122db2ab",
+                        "rev": "3",
+                        "resource_key": "f52fe20c-a1fe-4e54-9b78-6bf2ff61b455"
+                    },
+                    "base_model_id": "google/flan-ul2",
+                    "deployed_asset_type": "prompt_tune",
+                    "verbalizer": "classification_verbalizer",
+                    "status": {
+                    "state": "ready",
+                    "message": {
+                        "level": "info",
+                        "text": "The deployment is successful"
+                    },
+                    "failure": {
+                        "trace": "3fd543d2-36e0-4f83-9be3-5c6dd498af4f",
+                        "errors": [
+                        {
+                            "code": "missing_field",
+                            "message": "The 'name' field is required.",
+                            "more_info": "https://cloud.ibm.com/apidocs/machine-learning#models-get",
+                            "target": {
+                            "type": "field",
+                            "name": "name"
+                            }
+                        }
+                        ]
+                    },
+                    "inference": [
+                        {
+                        "url": "https://ml.cloud.ibm.com/ml/v1/deployments/abc123/text/generation",
+                        "sse": false,
+                        "uses_serving_name": true
+                        },
+                        {
+                        "url": "https://ml.cloud.ibm.com/ml/v1/deployments/abc123/text/generation_stream",
+                        "sse": true,
+                        "uses_serving_name": true
+                        }
+                    ]
+                    },
+                    "tooling": {
+                    "tool": "custom-ui",
+                    "version": "1.2.3"
+                    }
+                }
+            }""";
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
+        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        DeploymentService deploymentService = DeploymentService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .deployment("my-deployment-id")
+            .build();
+
+        var response = deploymentService.findById(
+            FindByIdParameters.builder()
+                .deployment("override-deployment")
+                .spaceId("my-space-id")
+                .build()
+        );
+
+        System.out.println(prettyPrint(toJson(response)));
+        JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+    }
+
+    @Test
     void test_exception() throws Exception {
 
         when(mockHttpClient.send(any(), any()))
@@ -711,5 +1036,7 @@ public class DeploymentServiceTest {
         ex = assertThrows(RuntimeException.class,
             () -> deploymentService.forecast(InputSchema.builder().timestampColumn("test").build(), ForecastData.create()));
         assertEquals(ex.getCause().getMessage(), "InterruptedException");
+        ex = assertThrows(RuntimeException.class,
+            () -> deploymentService.findById(FindByIdParameters.builder().projectId("project-id").build()), "InterruptedException");
     }
 }

@@ -18,6 +18,7 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +75,46 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     protected DeploymentService(Builder builder) {
         super(builder);
         deployment = requireNonNull(builder.deployment, "deployment cannot be null");
+    }
+
+    /**
+     * Retrieves deployment details with the specified parameters.
+     *
+     * @param parameters the {@link FindByIdParameters} specifying a different deployment, project or space ID, and other options
+     * @return the {@link DeploymentResource} with the retrieved deployment details
+     */
+    public DeploymentResource findById(FindByIdParameters parameters) {
+
+        parameters = requireNonNullElse(parameters, FindByIdParameters.builder().build());
+        var deploymentId = requireNonNullElse(parameters.getDeployment(), deployment);
+
+        StringJoiner queryParameters = new StringJoiner("&", "?", "");
+
+        if (nonNull(parameters.getProjectId()))
+            queryParameters.add("project_id=".concat(parameters.getProjectId()));
+
+        if (nonNull(parameters.getSpaceId()))
+            queryParameters.add("space_id=".concat(parameters.getSpaceId()));
+
+        if (queryParameters.length() == 1)
+            throw new IllegalArgumentException("Either projectId or spaceId must be provided");
+
+        queryParameters.add("version=".concat(version));
+
+        var httpRequest = HttpRequest
+            .newBuilder(URI.create(url.toString() + "ml/v4/deployments/%s%s".formatted(deploymentId, queryParameters.toString())))
+            .header("Content-Type", "application/json")
+            .timeout(Duration.ofMillis(timeout.toMillis()))
+            .GET().build();
+
+        try {
+
+            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            return fromJson(httpReponse.body(), DeploymentResource.class);
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
