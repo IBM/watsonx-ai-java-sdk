@@ -19,6 +19,7 @@
     <module>text-extraction</module>
     <module>time-series</module>
     <module>utility-tools</module>
+    <module>deployment</module>
   </modules>
 
   <licenses>

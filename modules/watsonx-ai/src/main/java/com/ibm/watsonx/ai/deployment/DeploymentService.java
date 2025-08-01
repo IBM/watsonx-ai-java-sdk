@@ -102,7 +102,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         queryParameters.add("version=".concat(version));
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(url.toString() + "ml/v4/deployments/%s%s".formatted(deploymentId, queryParameters.toString())))
+            .newBuilder(URI.create(url.toString() + "/ml/v4/deployments/%s%s".formatted(deploymentId, queryParameters.toString())))
             .header("Content-Type", "application/json")
             .timeout(Duration.ofMillis(timeout.toMillis()))
             .GET().build();
