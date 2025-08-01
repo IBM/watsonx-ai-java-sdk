@@ -31,10 +31,9 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.WatsonxService.ProjectService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
-import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
@@ -63,7 +62,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
  *
  * @see AuthenticationProvider
  */
-public final class TextExtractionService extends WatsonxService {
+public final class TextExtractionService extends ProjectService {
 
     private static final Logger logger = LoggerFactory.getLogger(TextExtractionService.class);
     private final String cosUrl;
@@ -72,6 +71,7 @@ public final class TextExtractionService extends WatsonxService {
 
     protected TextExtractionService(Builder builder) {
         super(builder);
+        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
         var tmpUrl = requireNonNull(builder.cosUrl, "cosUrl value cannot be null");
         cosUrl = tmpUrl.endsWith("/") ? tmpUrl.substring(0, tmpUrl.length() - 1) : tmpUrl;
         documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");
@@ -763,7 +763,7 @@ public final class TextExtractionService extends WatsonxService {
     /**
      * Builder class for constructing {@link TextExtractionService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public static class Builder extends ProjectService.Builder<Builder> {
         private String cosUrl;
         private CosReference documentReference;
         private CosReference resultReference;
@@ -816,24 +816,6 @@ public final class TextExtractionService extends WatsonxService {
          */
         public Builder resultReference(String connectionId, String bucket) {
             return resultReference(CosReference.of(connectionId, bucket));
-        }
-
-        /**
-         * <b>Not supported for TextExtractionService</b>
-         */
-        @Override
-        @Deprecated
-        public Builder foundationModelService(FoundationModelService foundationModelService) {
-            throw new UnsupportedOperationException("Not supported in TextExtractionService");
-        }
-
-        /**
-         * <b>Not supported for TextExtractionService</b>
-         */
-        @Override
-        @Deprecated
-        public Builder modelId(String modelId) {
-            throw new UnsupportedOperationException("Not supported in TextExtractionService");
         }
 
         /**

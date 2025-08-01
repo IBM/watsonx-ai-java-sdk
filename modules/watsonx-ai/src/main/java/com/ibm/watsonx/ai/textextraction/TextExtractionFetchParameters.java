@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.textextraction;
 
+import com.ibm.watsonx.ai.WatsonxParameters;
+
 /**
  * Represents a set of parameters used to control the behavior of a text extraction fetch operation.
  * <p>
@@ -18,21 +20,10 @@ package com.ibm.watsonx.ai.textextraction;
  * }</pre>
  *
  */
-public final class TextExtractionFetchParameters {
-    private final String projectId;
-    private final String spaceId;
+public final class TextExtractionFetchParameters extends WatsonxParameters {
 
-    public TextExtractionFetchParameters(Builder build) {
-        this.projectId = build.projectId;
-        this.spaceId = build.spaceId;
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public String getSpaceId() {
-        return spaceId;
+    public TextExtractionFetchParameters(Builder builder) {
+        super(builder);
     }
 
     /**
@@ -55,29 +46,7 @@ public final class TextExtractionFetchParameters {
     /**
      * Builder class for constructing {@link TextExtractionFetchParameters} instances.
      */
-    public static class Builder {
-        private String projectId;
-        private String spaceId;
-
-        /**
-         * Sets the project id.
-         *
-         * @param projectId the project id.
-         */
-        public Builder projectId(String projectId) {
-            this.projectId = projectId;
-            return this;
-        }
-
-        /**
-         * Sets the space id.
-         *
-         * @param spaceId the space id.
-         */
-        public Builder spaceId(String spaceId) {
-            this.spaceId = spaceId;
-            return this;
-        }
+    public static class Builder extends WatsonxParameters.Builder<Builder> {
 
         /**
          * Builds a {@link TextExtractionFetchParameters} instance using the configured parameters.

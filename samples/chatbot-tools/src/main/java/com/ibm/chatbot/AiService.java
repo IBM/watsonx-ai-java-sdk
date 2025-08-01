@@ -60,6 +60,7 @@ public class AiService {
         chatService = ChatService.builder()
             .authenticationProvider(authProvider)
             .projectId(projectId)
+            .timeout(Duration.ofSeconds(60))
             .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
             .url(url)
             .build();

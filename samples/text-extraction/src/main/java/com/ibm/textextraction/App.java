@@ -57,6 +57,7 @@ public class App {
 
             TextExtractionService textExtractionService = TextExtractionService.builder()
                 .authenticationProvider(authProvider)
+                .timeout(Duration.ofSeconds(60))
                 .projectId(projectId)
                 .url(url)
                 .cosUrl(cosUrl)

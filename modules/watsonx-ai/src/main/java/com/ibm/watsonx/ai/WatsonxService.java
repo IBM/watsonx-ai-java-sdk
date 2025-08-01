@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
@@ -17,6 +18,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
+import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
@@ -25,19 +27,22 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
+import com.ibm.watsonx.ai.tool.ToolService;
 
 /**
  * This class provides common functionality and shared configuration used across various service-specific clients (e.g., {@code ChatService},
- * {@code TextGenerationService}, etc.). Subclasses should extend this class to inherit support for authentication, HTTP communication, logging, and
- * service metadata such as project or model identifiers.
+ * {@code TextGenerationService}, etc.). Subclasses should extend this class to inherit support for authentication, HTTP communication, and so on.
  *
  * @see ChatService
  * @see TextGenerationService
+ * @see DeploymentService
  * @see EmbeddingService
  * @see RerankService
  * @see TokenizationService
  * @see TextExtractionService
  * @see TimeSeriesService
+ * @see FoundationModelService
+ * @see ToolService
  */
 public abstract class WatsonxService {
 
@@ -47,37 +52,22 @@ public abstract class WatsonxService {
 
     protected final URI url;
     protected final String version;
-    protected final String projectId;
-    protected final String spaceId;
-    protected final String modelId;
     protected final Duration timeout;
-    protected final boolean logResponses;
-    protected final AuthenticationProvider authenticationProvider;
-    protected final FoundationModelService foundationModelService;
+    protected final boolean logRequests, logResponses;
     protected final SyncHttpClient syncHttpClient;
+    protected final HttpClient httpClient;
     protected final AsyncHttpClient asyncHttpClient;
+    protected final AuthenticationProvider authenticationProvider;
 
     protected WatsonxService(Builder<?> builder) {
         url = requireNonNull(builder.url, "The url must be provided");
         version = requireNonNullElse(builder.version, API_VERSION);
-        projectId = builder.projectId;
-        spaceId = builder.spaceId;
-
-        if (!TextExtractionService.class.isInstance(this))
-            modelId = requireNonNull(builder.modelId, "The modelId must be provided");
-        else
-            modelId = null;
-
-        if (isNull(projectId) && isNull(spaceId))
-            throw new NullPointerException("Either projectId or spaceId must be provided");
-
         timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-        authenticationProvider = requireNonNull(builder.authenticationProvider, "The authentication provider is mandatory");
 
-        boolean logRequests = requireNonNullElse(builder.logRequests, false);
+        logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
 
-        var httpClient = requireNonNullElse(builder.httpClient, HttpClient.newBuilder().build());
+        httpClient = requireNonNullElse(builder.httpClient, HttpClient.newBuilder().build());
         var syncHttpClientBuilder = SyncHttpClient.builder().httpClient(httpClient);
         var asyncHttpClientBuilder = AsyncHttpClient.builder().httpClient(httpClient);
 
@@ -85,9 +75,14 @@ public abstract class WatsonxService {
         syncHttpClientBuilder.interceptor(retryInterceptor);
         asyncHttpClientBuilder.interceptor(retryInterceptor);
 
-        var bearerInterceptor = new BearerInterceptor(authenticationProvider);
-        syncHttpClientBuilder.interceptor(bearerInterceptor);
-        asyncHttpClientBuilder.interceptor(bearerInterceptor);
+        if (nonNull(builder.authenticationProvider)) {
+            authenticationProvider = builder.authenticationProvider;
+            var bearerInterceptor = new BearerInterceptor(authenticationProvider);
+            syncHttpClientBuilder.interceptor(bearerInterceptor);
+            asyncHttpClientBuilder.interceptor(bearerInterceptor);
+        } else {
+            authenticationProvider = null;
+        }
 
         if (logRequests || logResponses) {
             syncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
@@ -96,41 +91,17 @@ public abstract class WatsonxService {
 
         syncHttpClient = syncHttpClientBuilder.build();
         asyncHttpClient = asyncHttpClientBuilder.build();
-
-        foundationModelService = requireNonNullElse(
-            builder.foundationModelService, FoundationModelService.builder()
-                .url(url)
-                .techPreview(true)
-                .httpClient(httpClient)
-                .logRequests(logRequests)
-                .logResponses(logResponses)
-                .build()
-        );
-    }
-
-    /**
-     * Retrieves model details.
-     *
-     * @return Details of the the model.
-     */
-    public FoundationModel getModelDetails() {
-        return foundationModelService.getModelDetails(modelId)
-            .orElseThrow(() -> new RuntimeException("The model with id \"%s\" doesn't exist".formatted(modelId)));
     }
 
     @SuppressWarnings("unchecked")
     protected static abstract class Builder<T extends Builder<T>> {
         private URI url;
         private String version;
-        private String projectId;
-        private String spaceId;
-        private String modelId;
         private Duration timeout;
         private Boolean logRequests;
         private Boolean logResponses;
         private HttpClient httpClient;
         private AuthenticationProvider authenticationProvider;
-        private FoundationModelService foundationModelService;
 
         /**
          * Sets the endpoint URL to which the chat request will be sent.
@@ -167,36 +138,6 @@ public abstract class WatsonxService {
          */
         public T version(String version) {
             this.version = version;
-            return (T) this;
-        }
-
-        /**
-         * Sets the default project id.
-         *
-         * @param projectId Project id value
-         */
-        public T projectId(String projectId) {
-            this.projectId = projectId;
-            return (T) this;
-        }
-
-        /**
-         * Sets the default space id.
-         *
-         * @param spaceId Space id value
-         */
-        public T spaceId(String spaceId) {
-            this.spaceId = spaceId;
-            return (T) this;
-        }
-
-        /**
-         * Sets the default model.
-         *
-         * @param modelId the model identifier to use
-         */
-        public T modelId(String modelId) {
-            this.modelId = modelId;
             return (T) this;
         }
 
@@ -249,15 +190,108 @@ public abstract class WatsonxService {
             this.authenticationProvider = authenticationProvider;
             return (T) this;
         }
+    }
+
+    /**
+     * Abstract base class for watsonx services that require a project or space context.
+     */
+    public static abstract class ProjectService extends WatsonxService {
+        protected final String projectId;
+        protected final String spaceId;
+
+        protected ProjectService(Builder<?> builder) {
+            super(builder);
+            projectId = builder.projectId;
+            spaceId = builder.spaceId;
+
+            if (isNull(projectId) && isNull(spaceId))
+                throw new NullPointerException("Either projectId or spaceId must be provided");
+        }
+
+        @SuppressWarnings("unchecked")
+        protected static abstract class Builder<T extends Builder<T>> extends WatsonxService.Builder<T> {
+            private String projectId;
+            private String spaceId;
+
+            /**
+             * Sets the default project id.
+             *
+             * @param projectId Project id value
+             */
+            public T projectId(String projectId) {
+                this.projectId = projectId;
+                return (T) this;
+            }
+
+            /**
+             * Sets the default space id.
+             *
+             * @param spaceId Space id value
+             */
+            public T spaceId(String spaceId) {
+                this.spaceId = spaceId;
+                return (T) this;
+            }
+        }
+    }
+
+    /**
+     * Abstract base class for watsonx services that operate on a specific model.
+     */
+    public static abstract class ModelService extends ProjectService {
+
+        protected final String modelId;
+        protected final FoundationModelService foundationModelService;
+
+        protected ModelService(Builder<?> builder) {
+            super(builder);
+            modelId = requireNonNull(builder.modelId, "The modelId must be provided");
+            foundationModelService = requireNonNullElse(
+                builder.foundationModelService, FoundationModelService.builder()
+                    .url(url)
+                    .techPreview(true)
+                    .httpClient(httpClient)
+                    .logRequests(logRequests)
+                    .logResponses(logResponses)
+                    .build()
+            );
+        }
 
         /**
-         * Sets the {@link FoundationModelService} used for authenticating requests.
+         * Retrieves model details.
          *
-         * @param authenticationProvider {@link FoundationModelService} instance
+         * @return Details of the the model.
          */
-        public T foundationModelService(FoundationModelService foundationModelService) {
-            this.foundationModelService = foundationModelService;
-            return (T) this;
+        public FoundationModel getModelDetails() {
+            return foundationModelService.getModelDetails(modelId)
+                .orElseThrow(() -> new RuntimeException("The model with id \"%s\" doesn't exist".formatted(modelId)));
+        }
+
+
+        @SuppressWarnings("unchecked")
+        protected static abstract class Builder<T extends Builder<T>> extends ProjectService.Builder<T> {
+            private String modelId;
+            private FoundationModelService foundationModelService;
+
+            /**
+             * Sets the default model.
+             *
+             * @param modelId the model identifier to use
+             */
+            public T modelId(String modelId) {
+                this.modelId = modelId;
+                return (T) this;
+            }
+
+            /**
+             * Sets the {@link FoundationModelService} used for authenticating requests.
+             *
+             * @param foundationModelService {@link FoundationModelService} instance
+             */
+            public T foundationModelService(FoundationModelService foundationModelService) {
+                this.foundationModelService = foundationModelService;
+                return (T) this;
+            }
         }
     }
 }

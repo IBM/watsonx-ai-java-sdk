@@ -31,6 +31,7 @@ public class App {
         TokenizationService tokenizationService = TokenizationService.builder()
             .authenticationProvider(authProvider)
             .projectId(projectId)
+            .timeout(Duration.ofSeconds(60))
             .modelId("ibm/granite-3-3-8b-instruct")
             .url(url)
             .build();

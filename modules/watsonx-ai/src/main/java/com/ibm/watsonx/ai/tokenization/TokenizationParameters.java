@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.tokenization;
 
 import static java.util.Objects.nonNull;
-import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
 import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
 
 /**
@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * }</pre>
  *
  */
-public final class TokenizationParameters extends WatsonxParameters {
+public final class TokenizationParameters extends WatsonxModelParameters {
     private final Boolean returnTokens;
 
     public TokenizationParameters(Builder builder) {
@@ -63,7 +63,7 @@ public final class TokenizationParameters extends WatsonxParameters {
     /**
      * Builder class for constructing {@link TokenizationParameters} instances.
      */
-    public static final class Builder extends WatsonxParameters.Builder<Builder> {
+    public static final class Builder extends WatsonxModelParameters.Builder<Builder> {
         private Boolean returnTokens;
 
         /**

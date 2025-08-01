@@ -32,6 +32,7 @@ public class App {
         EmbeddingService embeddingService = EmbeddingService.builder()
             .authenticationProvider(authProvider)
             .projectId(projectId)
+            .timeout(Duration.ofSeconds(60))
             .modelId("ibm/granite-embedding-278m-multilingual")
             .url(url)
             .build();

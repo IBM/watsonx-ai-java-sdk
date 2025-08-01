@@ -14,7 +14,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
 
@@ -51,16 +51,14 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *
  * @see AuthenticationProvider
  */
-public final class TimeSeriesService extends WatsonxService {
+public final class TimeSeriesService extends ModelService implements TimeSeriesProvider {
 
     protected TimeSeriesService(Builder builder) {
         super(builder);
+        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
     }
 
-    public ForecastResponse forecast(InputSchema inputSchema, ForecastData data) {
-        return forecast(inputSchema, data, null);
-    }
-
+    @Override
     public ForecastResponse forecast(InputSchema inputSchema, ForecastData data, TimeSeriesParameters parameters) {
         requireNonNull(inputSchema, "InputSchema cannot be null");
         requireNonNull(data, "Data cannot be null");
@@ -77,7 +75,7 @@ public final class TimeSeriesService extends WatsonxService {
             requestParameters = parameters.toParameters();
         }
 
-        var forecastRequest = new ForecastRequest(modelId, spaceId, projectId, data.asMap(), inputSchema, requestParameters);
+        var forecastRequest = new ForecastRequest(modelId, spaceId, projectId, data.asMap(), inputSchema, null, requestParameters);
 
         var httpRequest = HttpRequest
             .newBuilder(URI.create(url.toString() + "%s/time_series/forecast?version=%s".formatted(ML_API_PATH, version)))
@@ -136,7 +134,7 @@ public final class TimeSeriesService extends WatsonxService {
     /**
      * Builder class for constructing {@link TimeSeriesService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public static class Builder extends ModelService.Builder<Builder> {
 
         /**
          * Builds a {@link TimeSeriesService} instance using the configured parameters.

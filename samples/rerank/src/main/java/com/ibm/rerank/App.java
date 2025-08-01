@@ -33,6 +33,7 @@ public class App {
         RerankService rerankService = RerankService.builder()
             .authenticationProvider(authProvider)
             .projectId(projectId)
+            .timeout(Duration.ofSeconds(60))
             .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
             .url(url)
             .build();

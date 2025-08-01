@@ -47,6 +47,7 @@ public class App {
         ChatService chatService = ChatService.builder()
             .authenticationProvider(authProvider)
             .projectId(projectId)
+            .timeout(Duration.ofSeconds(60))
             .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
             .url(url)
             .build();

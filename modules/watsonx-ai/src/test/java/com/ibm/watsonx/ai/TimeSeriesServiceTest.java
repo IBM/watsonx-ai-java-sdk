@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.timeseries;
+package com.ibm.watsonx.ai;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -34,6 +34,10 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
+import com.ibm.watsonx.ai.timeseries.ForecastData;
+import com.ibm.watsonx.ai.timeseries.InputSchema;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 
 @ExtendWith(MockitoExtension.class)
 public class TimeSeriesServiceTest {

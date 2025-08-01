@@ -39,6 +39,7 @@ public class App {
         TimeSeriesService tsService = TimeSeriesService.builder()
             .authenticationProvider(authProvider)
             .projectId(projectId)
+            .timeout(Duration.ofSeconds(60))
             .url(url)
             .modelId("ibm/granite-ttm-512-96-r2")
             .build();

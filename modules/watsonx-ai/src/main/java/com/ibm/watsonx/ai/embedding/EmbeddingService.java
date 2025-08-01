@@ -17,7 +17,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 
@@ -44,12 +44,13 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  *
  * @see AuthenticationProvider
  */
-public final class EmbeddingService extends WatsonxService {
+public final class EmbeddingService extends ModelService {
 
     private static final int MAX_SIZE = 1000;
 
     protected EmbeddingService(Builder builder) {
         super(builder);
+        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
     }
 
     /**
@@ -160,7 +161,7 @@ public final class EmbeddingService extends WatsonxService {
     /**
      * Builder class for constructing {@link EmbeddingService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public static class Builder extends ModelService.Builder<Builder> {
 
         /**
          * Builds a {@link EmbeddingService} instance using the configured parameters.

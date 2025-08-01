@@ -7,7 +7,9 @@ package com.ibm.watsonx.ai.textgeneration;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.List;
-import com.ibm.watsonx.ai.WatsonxParameters;
+import java.util.Map;
+import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
+import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 /**
  * Represents a set of parameters used to control the behavior of a text generation request.
@@ -25,7 +27,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  * }</pre>
  *
  */
-public final class TextGenerationParameters extends WatsonxParameters {
+public final class TextGenerationParameters extends WatsonxModelParameters {
 
     /**
      * Represents an exponential length penalty configuration to influence when text generation should terminate.
@@ -53,6 +55,7 @@ public final class TextGenerationParameters extends WatsonxParameters {
     private final Integer truncateInputTokens;
     private final ReturnOptions returnOptions;
     private final Boolean includeStopSequence;
+    private Map<String, String> promptVariables;
 
     public TextGenerationParameters(Builder builder) {
         super(builder);
@@ -70,6 +73,7 @@ public final class TextGenerationParameters extends WatsonxParameters {
         truncateInputTokens = builder.truncateInputTokens;
         returnOptions = builder.returnOptions;
         includeStopSequence = builder.includeStopSequence;
+        promptVariables = builder.promptVariables;
     }
 
     public String getDecodingMethod() {
@@ -128,8 +132,16 @@ public final class TextGenerationParameters extends WatsonxParameters {
         return includeStopSequence;
     }
 
-    void setTimeLimit(Long timeLimit) {
+    public Map<String, String> getPromptVariables() {
+        return promptVariables;
+    }
+
+    public void setTimeLimit(Long timeLimit) {
         this.timeLimit = timeLimit;
+    }
+
+    public void setPromptVariables(Map<String, String> promptVariables) {
+        this.promptVariables = promptVariables;
     }
 
     /**
@@ -154,7 +166,7 @@ public final class TextGenerationParameters extends WatsonxParameters {
     /**
      * Builder class for constructing {@link TextGenerationParameters} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxParameters.Builder<Builder> {
+    public static class Builder extends WatsonxModelParameters.Builder<Builder> {
         private String decodingMethod;
         private LengthPenalty lengthPenalty;
         private Integer maxNewTokens;
@@ -169,6 +181,7 @@ public final class TextGenerationParameters extends WatsonxParameters {
         private Integer truncateInputTokens;
         private ReturnOptions returnOptions;
         private Boolean includeStopSequence;
+        private Map<String, String> promptVariables;
 
         /**
          * Sets the decoding strategy to use during text generation.
@@ -337,6 +350,23 @@ public final class TextGenerationParameters extends WatsonxParameters {
          */
         public Builder includeStopSequence(Boolean includeStopSequence) {
             this.includeStopSequence = includeStopSequence;
+            return this;
+        }
+
+        /**
+         * Sets the map of prompt variables to be injected into a parameterized prompt template.
+         * <p>
+         * This method is used to assign values to placeholder variables defined in a prompt template associated with a deployment. These variables
+         * are resolved server-side before generating the response.
+         * <p>
+         * <strong>Note:</strong> This method is only applicable when using the {@link DeploymentService}, and has no effect in
+         * {@link TextGenerationService}, where prompt templates and variables are not supported.
+         *
+         * @param promptVariables a map of variable names to their corresponding replacement values
+         * @return this {@code Builder} instance for method chaining
+         */
+        public Builder promptVariables(Map<String, String> promptVariables) {
+            this.promptVariables = promptVariables;
             return this;
         }
 

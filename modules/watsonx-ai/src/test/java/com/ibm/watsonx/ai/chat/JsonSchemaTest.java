@@ -98,6 +98,7 @@ public class JsonSchemaTest {
                 .addStringProperty("lastName")
                 .addStringProperty("middleName")
                 .required("firstName", "lastName")
+                .build()
             )
             .addIntegerProperty("age")
             .build();

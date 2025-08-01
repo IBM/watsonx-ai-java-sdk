@@ -25,6 +25,7 @@ public record ForecastRequest(
     String projectId,
     Map<String, List<Object>> data,
     InputSchema schema,
+    Map<String, List<Object>> futureData,
     Parameters parameters) {
 
     /**
