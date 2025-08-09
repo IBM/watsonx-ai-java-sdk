@@ -55,7 +55,7 @@ public final class TimeSeriesService extends ModelService implements TimeSeriesP
 
     protected TimeSeriesService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     @Override

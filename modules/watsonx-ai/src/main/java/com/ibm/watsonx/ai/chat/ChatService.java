@@ -52,7 +52,7 @@ public final class ChatService extends ModelService implements ChatProvider {
 
     protected ChatService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     /**

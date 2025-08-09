@@ -24,14 +24,14 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * TokenizationService rerankService = TokenizationService.builder()
+ * TokenizationService tokenizationService = TokenizationService.builder()
  *     .url("https://...") // or use CloudRegion
  *     .authenticationProvider(authProvider)
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-3-8b-instruct")
  *     .build();
  *
- * TokenizationResponse response = TokenizationService.tokenize("Tell me a joke");
+ * TokenizationResponse response = tokenizationService.tokenize("Tell me a joke");
  * }</pre>
  *
  * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-tokenization" target="_blank"> official documentation</a>.
@@ -42,7 +42,7 @@ public final class TokenizationService extends ModelService {
 
     protected TokenizationService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     /**
@@ -104,14 +104,14 @@ public final class TokenizationService extends ModelService {
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * TokenizationService rerankService = TokenizationService.builder()
+     * TokenizationService tokenizationService = TokenizationService.builder()
      *     .url("https://...") // or use CloudRegion
      *     .authenticationProvider(authProvider)
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-3-8b-instruct")
      *     .build();
      *
-     * TokenizationResponse response = TokenizationService.tokenize("Tell me a joke");
+     * TokenizationResponse response = tokenizationService.tokenize("Tell me a joke");
      * }</pre>
      *
      * @see AuthenticationProvider

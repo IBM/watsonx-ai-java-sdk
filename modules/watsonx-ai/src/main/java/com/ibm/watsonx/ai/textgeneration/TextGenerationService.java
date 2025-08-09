@@ -51,7 +51,7 @@ public final class TextGenerationService extends ModelService implements TextGen
 
     protected TextGenerationService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     @Override

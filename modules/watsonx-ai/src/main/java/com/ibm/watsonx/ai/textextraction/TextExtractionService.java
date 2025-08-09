@@ -71,7 +71,7 @@ public final class TextExtractionService extends ProjectService {
 
     protected TextExtractionService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
         var tmpUrl = requireNonNull(builder.cosUrl, "cosUrl value cannot be null");
         cosUrl = tmpUrl.endsWith("/") ? tmpUrl.substring(0, tmpUrl.length() - 1) : tmpUrl;
         documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");

@@ -57,7 +57,6 @@ public abstract class WatsonxService {
     protected final SyncHttpClient syncHttpClient;
     protected final HttpClient httpClient;
     protected final AsyncHttpClient asyncHttpClient;
-    protected final AuthenticationProvider authenticationProvider;
 
     protected WatsonxService(Builder<?> builder) {
         url = requireNonNull(builder.url, "The url must be provided");
@@ -76,12 +75,9 @@ public abstract class WatsonxService {
         asyncHttpClientBuilder.interceptor(retryInterceptor);
 
         if (nonNull(builder.authenticationProvider)) {
-            authenticationProvider = builder.authenticationProvider;
-            var bearerInterceptor = new BearerInterceptor(authenticationProvider);
+            var bearerInterceptor = new BearerInterceptor(builder.authenticationProvider);
             syncHttpClientBuilder.interceptor(bearerInterceptor);
             asyncHttpClientBuilder.interceptor(bearerInterceptor);
-        } else {
-            authenticationProvider = null;
         }
 
         if (logRequests || logResponses) {
@@ -189,6 +185,15 @@ public abstract class WatsonxService {
         public T authenticationProvider(AuthenticationProvider authenticationProvider) {
             this.authenticationProvider = authenticationProvider;
             return (T) this;
+        }
+
+        /**
+         * Returns the authentication provider.
+         *
+         * @return the configured {@link AuthenticationProvider}, or {@code null} if none has been set.
+         */
+        public AuthenticationProvider getAuthenticationProvider() {
+            return authenticationProvider;
         }
     }
 

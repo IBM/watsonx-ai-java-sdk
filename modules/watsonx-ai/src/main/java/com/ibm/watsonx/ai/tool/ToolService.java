@@ -62,7 +62,7 @@ public final class ToolService extends WatsonxService {
 
     public ToolService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     /**

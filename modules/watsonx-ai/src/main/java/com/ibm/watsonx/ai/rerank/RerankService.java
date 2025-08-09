@@ -51,7 +51,7 @@ public final class RerankService extends ModelService {
 
     protected RerankService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     /**

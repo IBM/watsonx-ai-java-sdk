@@ -50,7 +50,7 @@ public final class EmbeddingService extends ModelService {
 
     protected EmbeddingService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     /**
