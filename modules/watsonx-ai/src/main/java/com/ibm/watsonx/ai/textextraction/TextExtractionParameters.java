@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import com.ibm.watsonx.ai.WatsonxParameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
@@ -461,12 +462,10 @@ public final class TextExtractionParameters extends WatsonxParameters {
         }
 
         public static Type fromValue(String value) {
-            for (Type type : Type.values()) {
-                if (type.value.equalsIgnoreCase(value)) {
-                    return type;
-                }
-            }
-            throw new IllegalArgumentException("Unknown Type value: " + value);
+            return Stream.of(Type.values())
+                .filter(status -> status.value.equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Type value: " + value));
         }
     }
 

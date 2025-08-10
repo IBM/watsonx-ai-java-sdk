@@ -4,10 +4,12 @@
  */
 package com.ibm.watsonx.ai;
 
+import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -189,6 +191,7 @@ public class EmbeddingServiceTest {
             .spaceId("override-space-id")
             .truncateInputTokens(512)
             .inputText(true)
+            .transactionId("my-transaction-id")
             .build();
 
         assertEquals(512, parameters.getTruncateInputTokens());
@@ -203,6 +206,7 @@ public class EmbeddingServiceTest {
         var response = embeddingService.embedding(inputs, parameters);
         JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
         JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        assertEquals(httpRequestCaptor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
     }
 
     @Test
@@ -230,5 +234,21 @@ public class EmbeddingServiceTest {
 
         var ex = assertThrows(RuntimeException.class, () -> embeddingService.embedding("Hello"));
         JSONAssert.assertEquals(json, ex.getMessage(), true);
+    }
+
+    @Test
+    void test_exception() throws Exception {
+
+        when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
+
+        var chatService = EmbeddingService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(authenticationProvider)
+            .httpClient(mockHttpClient)
+            .projectId("project-id")
+            .modelId("model-id")
+            .build();
+
+        assertThrows(RuntimeException.class, () -> chatService.embedding("test"), "IOException");
     }
 }

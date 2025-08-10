@@ -10,10 +10,12 @@ package com.ibm.watsonx.ai;
 public abstract class WatsonxParameters {
     protected final String projectId;
     protected final String spaceId;
+    protected final String transactionId;
 
     public WatsonxParameters(Builder<?> builder) {
         projectId = builder.projectId;
         spaceId = builder.spaceId;
+        transactionId = builder.transactionId;
     }
 
     /**
@@ -35,6 +37,15 @@ public abstract class WatsonxParameters {
     }
 
     /**
+     * Returns the transaction id.
+     *
+     * @return transaction id value
+     */
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    /**
      * Abstract builder class for constructing {@link WatsonxParameters} instances.
      *
      * @param <T> the type of the concrete builder subclass
@@ -43,6 +54,7 @@ public abstract class WatsonxParameters {
     public static abstract class Builder<T extends Builder<T>> {
         private String projectId;
         private String spaceId;
+        private String transactionId;
 
         /**
          * Sets the project id.
@@ -61,6 +73,16 @@ public abstract class WatsonxParameters {
          */
         public T spaceId(String spaceId) {
             this.spaceId = spaceId;
+            return (T) this;
+        }
+
+        /**
+         * Sets the transaction id for request tracking.
+         *
+         * @param transactionId the transaction id.
+         */
+        public T transactionId(String transactionId) {
+            this.transactionId = transactionId;
             return (T) this;
         }
     }

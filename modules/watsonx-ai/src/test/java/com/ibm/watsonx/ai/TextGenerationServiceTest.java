@@ -9,6 +9,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -375,6 +376,7 @@ public class TextGenerationServiceTest {
             .spaceId("new-space-id")
             .projectId("new-project-id")
             .timeLimit(Duration.ofSeconds(2))
+            .transactionId("my-transaction-id")
             .promptVariables(Map.of("test", "test")) // this field must be ignored
             .build());
 
@@ -383,6 +385,7 @@ public class TextGenerationServiceTest {
 
         JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(httpRequestCaptor), false);
         assertFalse(Utils.bodyPublisherToString(httpRequestCaptor).contains("prompt_variables"));
+        assertEquals(httpRequestCaptor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
     }
 
     @Test
@@ -457,6 +460,7 @@ public class TextGenerationServiceTest {
 
         wireMock.stubFor(post("/ml/v1/text/generation_stream?version=%s".formatted(VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson(
                 """
                       {
@@ -522,7 +526,8 @@ public class TextGenerationServiceTest {
         CompletableFuture<TextGenerationResponse> result = new CompletableFuture<>();
         textGenerationService.generateStreaming(
             "<|system|>\nYou are a translation assistant. Your job is to translate any input from the user into English. Do not explain the translation. Just output the translated text.<|user|>\nTraduci in inglese: \"Oggi è una bella giornata\"<|assistant|>\n",
-            TextGenerationParameters.builder().promptVariables(Map.of("test", "test")).build(), // This field must be ignored
+            TextGenerationParameters.builder().transactionId("my-transaction-id").promptVariables(Map.of("test", "test")).build(), // This field must
+                                                                                                                                   // be ignored
             new TextGenerationHandler() {
 
                 @Override

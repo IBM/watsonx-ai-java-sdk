@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai;
 
+import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -181,6 +182,7 @@ public class RerankServiceTest {
             .projectId("my-new-project-id")
             .spaceId("my-new-space-id")
             .modelId("my-new-model-id")
+            .transactionId("my-transaction-id")
             .query(true)
             .topN(2)
             .inputs(true)
@@ -203,6 +205,7 @@ public class RerankServiceTest {
 
         JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
         JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        assertEquals(httpRequestCaptor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
     }
 
     @Test

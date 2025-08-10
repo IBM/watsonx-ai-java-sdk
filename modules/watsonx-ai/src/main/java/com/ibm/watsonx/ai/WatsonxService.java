@@ -20,7 +20,6 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
-import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textextraction.TextExtractionService;
@@ -49,6 +48,7 @@ public abstract class WatsonxService {
     public static final String ML_API_PATH = "/ml/v1";
     public static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
     public static final String API_VERSION = "2025-04-23";
+    public static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
 
     protected final URI url;
     protected final String version;
@@ -57,7 +57,6 @@ public abstract class WatsonxService {
     protected final SyncHttpClient syncHttpClient;
     protected final HttpClient httpClient;
     protected final AsyncHttpClient asyncHttpClient;
-    protected final AuthenticationProvider authenticationProvider;
 
     protected WatsonxService(Builder<?> builder) {
         url = requireNonNull(builder.url, "The url must be provided");
@@ -76,12 +75,9 @@ public abstract class WatsonxService {
         asyncHttpClientBuilder.interceptor(retryInterceptor);
 
         if (nonNull(builder.authenticationProvider)) {
-            authenticationProvider = builder.authenticationProvider;
-            var bearerInterceptor = new BearerInterceptor(authenticationProvider);
+            var bearerInterceptor = new BearerInterceptor(builder.authenticationProvider);
             syncHttpClientBuilder.interceptor(bearerInterceptor);
             asyncHttpClientBuilder.interceptor(bearerInterceptor);
-        } else {
-            authenticationProvider = null;
         }
 
         if (logRequests || logResponses) {
@@ -190,6 +186,15 @@ public abstract class WatsonxService {
             this.authenticationProvider = authenticationProvider;
             return (T) this;
         }
+
+        /**
+         * Returns the authentication provider.
+         *
+         * @return the configured {@link AuthenticationProvider}, or {@code null} if none has been set.
+         */
+        public AuthenticationProvider getAuthenticationProvider() {
+            return authenticationProvider;
+        }
     }
 
     /**
@@ -256,17 +261,6 @@ public abstract class WatsonxService {
                     .build()
             );
         }
-
-        /**
-         * Retrieves model details.
-         *
-         * @return Details of the the model.
-         */
-        public FoundationModel getModelDetails() {
-            return foundationModelService.getModelDetails(modelId)
-                .orElseThrow(() -> new RuntimeException("The model with id \"%s\" doesn't exist".formatted(modelId)));
-        }
-
 
         @SuppressWarnings("unchecked")
         protected static abstract class Builder<T extends Builder<T>> extends ProjectService.Builder<T> {

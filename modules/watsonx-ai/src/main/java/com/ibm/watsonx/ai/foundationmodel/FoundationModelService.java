@@ -5,16 +5,15 @@
 package com.ibm.watsonx.ai.foundationmodel;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Optional.ofNullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.StringJoiner;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
@@ -51,27 +50,12 @@ public final class FoundationModelService extends WatsonxService {
     }
 
     /**
-     * Retrieves the details of a model.
-     *
-     * @param modelId Unique identifier of the model.
-     * @return an {@link Optional} containing the {@link FoundationModel} details if found, or an empty {@code Optional} if the model is not
-     *         available.
-     */
-    public Optional<FoundationModel> getModelDetails(String modelId) {
-        var result = getModels(Filter.of(modelId(modelId)));
-        if (result.totalCount() == 1)
-            return Optional.of(result.resources().get(0));
-        else
-            return Optional.empty();
-    }
-
-    /**
      * Retrieves all available foundation models.
      *
      * @return a {@link FoundationModelResponse} containing the full list of foundation models (default limit applies).
      */
     public FoundationModelResponse<FoundationModel> getModels() {
-        return getModels(null);
+        return getModels(FoundationModelParameters.builder().build());
     }
 
     /**
@@ -81,19 +65,19 @@ public final class FoundationModelService extends WatsonxService {
      * @return a {@link FoundationModelResponse} containing the filtered list of models (default limit applies).
      */
     public FoundationModelResponse<FoundationModel> getModels(Filter filter) {
-        return getModels(null, null, filter);
+        return getModels(FoundationModelParameters.builder().filter(filter).build());
     }
 
     /**
      * Retrieves a list of foundation models with pagination and filtering.
      *
-     * @param start A pagination token indicating where to start fetching results.
-     * @param limit The maximum number of models to return.
-     * @param filter The {@link Filter} criteria used to narrow down model results.
+     * @param parameters Parameters for the get models request.
      * @return a {@link FoundationModelResponse} containing the filtered and/or paginated list of models.
      */
-    public FoundationModelResponse<FoundationModel> getModels(Integer start, Integer limit, Filter filter) {
-        return getModels(start, limit, nonNull(filter) ? filter.toString() : null);
+    public FoundationModelResponse<FoundationModel> getModels(FoundationModelParameters parameters) {
+        parameters = requireNonNullElse(parameters, FoundationModelParameters.builder().build());
+        var techPreview = ofNullable(parameters.getTechPreview()).orElse(this.techPreview);
+        return getModels(parameters.getStart(), parameters.getLimit(), parameters.getTransactionId(), techPreview, parameters.getFilter());
     }
 
     /**
@@ -101,6 +85,8 @@ public final class FoundationModelService extends WatsonxService {
      *
      * @param start A pagination token for fetching the next set of results (provided by the service).
      * @param limit The number of models to return (1–200). Defaults to 100 if null.
+     * @param transactionId Transaction id for tracking calls.
+     * @param techPreview Filter to return the models in tech preview.
      * @param filters A string expression for filtering models using logical combinations of filters.
      *
      *            <p>
@@ -138,10 +124,11 @@ public final class FoundationModelService extends WatsonxService {
      *            </ul>
      * @return List of foundation models.
      */
-    protected FoundationModelResponse<FoundationModel> getModels(Integer start, Integer limit, String filters) {
+    protected FoundationModelResponse<FoundationModel> getModels(Integer start, Integer limit, String transactionId, Boolean techPreview,
+        String filters) {
         try {
 
-            StringJoiner queryParameters = new StringJoiner("&", "", "");
+            var queryParameters = new StringJoiner("&", "", "");
             queryParameters.add("version=" + version);
 
             if (nonNull(start))
@@ -162,9 +149,12 @@ public final class FoundationModelService extends WatsonxService {
             var httpRequest = HttpRequest.newBuilder(uri)
                 .header("Accept", "application/json")
                 .timeout(timeout)
-                .GET().build();
+                .GET();
 
-            var response = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            if (nonNull(transactionId))
+                httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
+
+            var response = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(response.body(), new TypeToken<FoundationModelResponse<FoundationModel>>() {});
 
         } catch (IOException | InterruptedException e) {
@@ -178,7 +168,7 @@ public final class FoundationModelService extends WatsonxService {
      * @return a {@link FoundationModelResponse} containing foundation model tasks (default limit applies).
      */
     public FoundationModelResponse<FoundationModelTask> getTasks() {
-        return getTasks(null, null);
+        return getTasks(FoundationModelParameters.builder().build());
     }
 
     /**
@@ -188,25 +178,28 @@ public final class FoundationModelService extends WatsonxService {
      * @param limit The maximum number of models to return.
      * @return a {@link FoundationModelResponse} containing the list of tasks.
      */
-    public FoundationModelResponse<FoundationModelTask> getTasks(Integer start, Integer limit) {
+    public FoundationModelResponse<FoundationModelTask> getTasks(FoundationModelParameters parameters) {
 
         StringJoiner queryParameters = new StringJoiner("&", "", "");
         queryParameters.add("version=" + version);
 
-        if (nonNull(start))
-            queryParameters.add("start=" + start);
+        if (nonNull(parameters.getStart()))
+            queryParameters.add("start=" + parameters.getStart());
 
-        if (nonNull(limit))
-            queryParameters.add("limit=" + limit);
+        if (nonNull(parameters.getLimit()))
+            queryParameters.add("limit=" + parameters.getLimit());
 
         var uri =
             URI.create(url.toString() + "%s/foundation_model_tasks?%s".formatted(ML_API_PATH, queryParameters));
 
-        var httpRequest = HttpRequest.newBuilder(uri).GET().build();
+        var httpRequest = HttpRequest.newBuilder(uri).GET();
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var response = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var response = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(response.body(), new TypeToken<FoundationModelResponse<FoundationModelTask>>() {});
 
         } catch (IOException | InterruptedException e) {

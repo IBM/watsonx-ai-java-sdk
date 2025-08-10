@@ -10,6 +10,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Optional.ofNullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -51,7 +52,7 @@ public final class TextGenerationService extends ModelService implements TextGen
 
     protected TextGenerationService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     @Override
@@ -68,13 +69,13 @@ public final class TextGenerationService extends ModelService implements TextGen
         }
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-        var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-        var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
         var textGenerationRequest =
-            new TextGenerationRequest(modelId, spaceId, projectId, input, parameters, moderation);
+            new TextGenerationRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), moderation);
 
         var httpRequest =
             HttpRequest
@@ -82,12 +83,14 @@ public final class TextGenerationService extends ModelService implements TextGen
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .timeout(Duration.ofMillis(timeout))
-                .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
-                .build();
+                .POST(BodyPublishers.ofString(toJson(textGenerationRequest)));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), TextGenerationResponse.class);
 
         } catch (IOException | InterruptedException e) {
@@ -107,24 +110,26 @@ public final class TextGenerationService extends ModelService implements TextGen
         }
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-        var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-        var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
         var textGenerationRequest =
-            new TextGenerationRequest(modelId, spaceId, projectId, input, parameters, null);
+            new TextGenerationRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), null);
 
         var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/generation_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .timeout(Duration.ofMillis(timeout))
-            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
-            .build();
+            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         var subscriber = subscriber(handler);
         return asyncHttpClient
-            .send(httpRequest,
+            .send(httpRequest.build(),
                 responseInfo -> logResponses
                     ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
                     : BodySubscribers.fromLineSubscriber(subscriber)

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textgeneration;
 
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.List;
@@ -142,6 +143,37 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
 
     public void setPromptVariables(Map<String, String> promptVariables) {
         this.promptVariables = promptVariables;
+    }
+
+    /**
+     * Creates a new {@link Builder} instance initialized with all the current {@link TextGenerationParameters} values, except for {@code modelId},
+     * {@code projectId}, {@code spaceId}, and {@code transactionId}.
+     *
+     * @return a {@link TextGenerationParameters} pre-populated with the current object's values, excluding any fields that must be omitted.
+     */
+    public TextGenerationParameters toSanitized() {
+        var builder = new Builder()
+            .decodingMethod(decodingMethod)
+            .includeStopSequence(includeStopSequence)
+            .maxNewTokens(maxNewTokens)
+            .minNewTokens(minNewTokens)
+            .promptVariables(promptVariables)
+            .randomSeed(randomSeed)
+            .repetitionPenalty(repetitionPenalty)
+            .returnOptions(returnOptions)
+            .stopSequences(stopSequences)
+            .temperature(temperature)
+            .topK(topK)
+            .topP(topP)
+            .truncateInputTokens(truncateInputTokens);
+
+        if (nonNull(lengthPenalty))
+            builder.lengthPenalty(lengthPenalty.decayFactor(), lengthPenalty.startIndex());
+
+        if (nonNull(timeLimit))
+            builder.timeLimit(Duration.ofMillis(timeLimit));
+
+        return builder.build();
     }
 
     /**

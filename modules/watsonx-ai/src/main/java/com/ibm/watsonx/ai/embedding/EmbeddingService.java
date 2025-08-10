@@ -9,6 +9,7 @@ import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Optional.ofNullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -50,7 +51,7 @@ public final class EmbeddingService extends ModelService {
 
     protected EmbeddingService(Builder builder) {
         super(builder);
-        requireNonNull(super.authenticationProvider, "authenticationProvider cannot be null");
+        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     /**
@@ -87,12 +88,14 @@ public final class EmbeddingService extends ModelService {
         String modelId = this.modelId;
         String projectId = this.projectId;
         String spaceId = this.spaceId;
+        String transactionId = null;
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
             modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-            projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-            spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+            projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+            spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
+            transactionId = parameters.getTransactionId();
             requestParameters = parameters.toEmbeddingRequestParameters();
         }
 
@@ -113,12 +116,14 @@ public final class EmbeddingService extends ModelService {
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(embeddingRequest)))
-                .timeout(timeout)
-                .build();
+                .timeout(timeout);
+
+            if (nonNull(transactionId))
+                httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
             try {
 
-                var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+                var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
                 var response = fromJson(httpReponse.body(), EmbeddingResponse.class);
                 results.addAll(response.results());
                 inputTokenCount += response.inputTokenCount();
