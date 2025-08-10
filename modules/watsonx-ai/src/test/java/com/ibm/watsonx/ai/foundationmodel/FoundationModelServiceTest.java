@@ -10,11 +10,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.jsonResponse;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.API_VERSION;
 import static com.ibm.watsonx.ai.WatsonxService.ML_API_PATH;
+import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,9 +29,9 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelResponse.Pagination;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
@@ -44,49 +43,8 @@ public class FoundationModelServiceTest {
         .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
         .build();
 
-    @Test
-    void test_get_models_by_id() throws Exception {
-
-        var RESPONSE =
-            """
-                {
-                      "total_count": {total_count},
-                      "limit": 100,
-                      "first": {
-                          "href": "https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_specs?version=2025-04-23&filters=modelid_meta-llama%2Fllama-3-3-70b-instruct"
-                      },
-                      "resources": [
-                          {}
-                      ]
-                }""";
-
-        var queryParameters =
-            """
-                version=%s\
-                &filters=modelid_test""".formatted(API_VERSION);
-
-        wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters))
-            .inScenario("getModels")
-            .whenScenarioStateIs(Scenario.STARTED)
-            .willSetStateTo("secondCall")
-            .withHeader("Accept", equalTo("application/json"))
-            .willReturn(jsonResponse(RESPONSE.replace("{total_count}", "1"), 200))
-        );
-
-        wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters))
-            .inScenario("getModels")
-            .whenScenarioStateIs("secondCall")
-            .withHeader("Accept", equalTo("application/json"))
-            .willReturn(jsonResponse(RESPONSE.replace("{total_count}", "0"), 200))
-        );
-
-        var service = FoundationModelService.builder()
-            .url("http://localhost:%d".formatted(wireMock.getPort()))
-            .build();
-
-        assertNotNull(service.getModelDetails("test"));
-        assertFalse(service.getModelDetails("test").isPresent());
-    }
+    @Captor
+    HttpRequest httpRequest;
 
     @Test
     void test_get_models_without_parameters() throws Exception {
@@ -107,6 +65,32 @@ public class FoundationModelServiceTest {
     }
 
     @Test
+    void test_get_models_with_only_filter_parameter() throws Exception {
+
+        String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
+
+        var queryParameters =
+            """
+                version=%s\
+                &filters=modelid_test""".formatted(API_VERSION);
+
+        wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters))
+            .withHeader("Accept", equalTo("application/json"))
+            .willReturn(jsonResponse(EXPECTED, 200))
+        );
+
+        var service = FoundationModelService.builder()
+            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .build();
+
+        var result = service.getModels(Filter.of(modelId("test")));
+        var foundationModel = result.resources().get(0);
+        assertEquals("core42/jais-13b-chat", foundationModel.modelId());
+        assertEquals(2048, foundationModel.maxSequenceLength());
+        assertEquals(2048, foundationModel.maxOutputTokens());
+    }
+
+    @Test
     void test_get_models_with_parameters() throws Exception {
 
         String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
@@ -116,11 +100,11 @@ public class FoundationModelServiceTest {
                 version=%s\
                 &start=100\
                 &limit=10\
-                &tech_preview=true\
                 &filters=modelid_test""".formatted(API_VERSION);
 
         wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters))
             .withHeader("Accept", equalTo("application/json"))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .willReturn(jsonResponse(EXPECTED, 200))
         );
 
@@ -132,7 +116,15 @@ public class FoundationModelServiceTest {
             .timeout(Duration.ofSeconds(1))
             .build();
 
-        var result = service.getModels(100, 10, Filter.of(modelId("test")));
+        var parameters = FoundationModelParameters.builder()
+            .start(100)
+            .limit(10)
+            .filter(Filter.of(modelId("test")))
+            .techPreview(false)
+            .transactionId("my-transaction-id")
+            .build();
+
+        var result = service.getModels(parameters);
         assertEquals(100, result.limit());
         assertEquals(new Pagination("https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_specs?version=2025-04-23"), result.first());
         assertEquals(35, result.totalCount());
@@ -194,6 +186,7 @@ public class FoundationModelServiceTest {
                 &limit=12""".formatted(API_VERSION);
 
         wireMock.stubFor(get("%s/foundation_model_tasks?%s".formatted(ML_API_PATH, queryParameters))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .willReturn(jsonResponse(EXPECTED, 200))
         );
 
@@ -201,7 +194,13 @@ public class FoundationModelServiceTest {
             .url("http://localhost:%d".formatted(wireMock.getPort()))
             .build();
 
-        var result = service.getTasks(100, 12);
+        var parameters = FoundationModelParameters.builder()
+            .start(100)
+            .limit(12)
+            .transactionId("my-transaction-id")
+            .build();
+
+        var result = service.getTasks(parameters);
         assertEquals(100, result.limit());
         assertEquals(new Pagination("https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_tasks?version=2025-04-23"), result.first());
         assertEquals(12, result.totalCount());

@@ -9,6 +9,7 @@ import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Optional.ofNullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -69,12 +70,14 @@ public final class TokenizationService extends ModelService {
         String modelId = this.modelId;
         String projectId = this.projectId;
         String spaceId = this.spaceId;
+        String transactionId = null;
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
             modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-            projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-            spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+            projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+            spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
+            transactionId = parameters.getTransactionId();
             requestParameters = parameters.toTokenizationRequestParameters();
         }
 
@@ -85,12 +88,14 @@ public final class TokenizationService extends ModelService {
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(tokenizationRequest)))
-            .timeout(timeout)
-            .build();
+            .timeout(timeout);
+
+        if (nonNull(transactionId))
+            httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), TokenizationResponse.class);
 
         } catch (IOException | InterruptedException e) {

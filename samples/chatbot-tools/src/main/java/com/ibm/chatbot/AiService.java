@@ -4,6 +4,7 @@
  */
 package com.ibm.chatbot;
 
+import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import static java.util.Objects.nonNull;
 import java.net.URI;
 import java.time.Duration;
@@ -26,6 +27,8 @@ import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
+import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 public class AiService {
 
@@ -44,7 +47,9 @@ public class AiService {
             .required("emails", "subject", "body")
     );
 
+    private static final String MODEL_ID = "mistralai/mistral-small-3-1-24b-instruct-2503";
     private final ChatService chatService;
+    private final FoundationModelService foundationModelService;
     private final ChatMemory memory;
 
     public AiService() {
@@ -61,8 +66,14 @@ public class AiService {
             .authenticationProvider(authProvider)
             .projectId(projectId)
             .timeout(Duration.ofSeconds(60))
-            .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+            .modelId(MODEL_ID)
             .url(url)
+            .build();
+
+        foundationModelService = FoundationModelService.builder()
+            .authenticationProvider(authProvider)
+            .url(url)
+            .timeout(Duration.ofSeconds(60))
             .build();
 
         memory = new ChatMemory();
@@ -102,6 +113,6 @@ public class AiService {
     }
 
     public FoundationModel getModel() {
-        return chatService.getModelDetails();
+        return foundationModelService.getModels(Filter.of(modelId(MODEL_ID))).resources().get(0);
     }
 }

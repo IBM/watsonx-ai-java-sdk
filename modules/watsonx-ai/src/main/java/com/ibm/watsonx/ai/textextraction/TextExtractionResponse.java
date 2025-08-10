@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.textextraction;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.DataReference;
 import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
 
@@ -81,12 +82,10 @@ public record TextExtractionResponse(Metadata metadata, Entity entity) {
         }
 
         public static Status fromValue(String value) {
-            for (Status status : Status.values()) {
-                if (status.value.equalsIgnoreCase(value)) {
-                    return status;
-                }
-            }
-            throw new IllegalArgumentException("Unknown Type value: " + value);
+            return Stream.of(Status.values())
+                .filter(status -> status.value.equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Type value: " + value));
         }
     }
 }

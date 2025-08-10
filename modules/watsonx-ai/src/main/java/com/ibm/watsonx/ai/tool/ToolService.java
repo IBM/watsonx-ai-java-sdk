@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.tool;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.net.URI;
@@ -67,22 +68,33 @@ public final class ToolService extends WatsonxService {
 
     /**
      * Retrieves the complete list of supported utility tools.
-     * <p>
-     * Each tool contains metadata including name, description, input/config schemas, and agent instructions.
      *
      * @return a list of {@link UtilityTool} instances representing all available tools
      */
     public Resources getAll() {
+        return getAll(ToolParameters.builder().build());
+    }
 
-        HttpRequest httpRequest =
+    /**
+     * Retrieves the complete list of supported utility tools.
+     *
+     * @param parameters Parameters to customize the request
+     * @return a list of {@link UtilityTool} instances representing all available tools
+     */
+    public Resources getAll(ToolParameters parameters) {
+
+        var httpRequest =
             HttpRequest.newBuilder(URI.create(url.toString().concat(API_PATH)))
                 .header("Accept", "application/json")
                 .timeout(timeout)
-                .GET().build();
+                .GET();
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), Resources.class);
 
         } catch (IOException | InterruptedException e) {
@@ -97,18 +109,32 @@ public final class ToolService extends WatsonxService {
      * @return a {@link UtilityTool} instance representing the requested tool.
      */
     public UtilityTool getByName(String name) {
+        return getByName(name, ToolParameters.builder().build());
+    }
+
+    /**
+     * Retrieves the metadata and configuration details of a specific utility tool by name.
+     *
+     * @param name the unique name of the tool.
+     * @param parameters Parameters to customize the request
+     * @return a {@link UtilityTool} instance representing the requested tool.
+     */
+    public UtilityTool getByName(String name, ToolParameters parameters) {
 
         requireNonNull(name, "The name of the tool must be provided");
 
-        HttpRequest httpRequest =
+        var httpRequest =
             HttpRequest.newBuilder(URI.create(url.toString() + "%s/%s".formatted(API_PATH, name)))
                 .header("Accept", "application/json")
                 .timeout(timeout)
-                .GET().build();
+                .GET();
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), UtilityTool.class);
 
         } catch (IOException | InterruptedException e) {
@@ -125,21 +151,36 @@ public final class ToolService extends WatsonxService {
      * @return the output string produced by the tool.
      */
     public String run(ToolRequest toolRequest) {
+        return run(toolRequest, ToolParameters.builder().build());
+    }
+
+    /**
+     * Executes the specified utility tool by sending a request with the given input and configuration.
+     * <p>
+     * The response is expected to contain a JSON object with an {@code output} field, which is returned as a string.
+     *
+     * @param toolRequest the {@link ToolRequest} object containing the tool name, input, and config.
+     * @param parameters Parameters to customize the request
+     * @return the output string produced by the tool.
+     */
+    public String run(ToolRequest toolRequest, ToolParameters parameters) {
         requireNonNull(toolRequest, "The tool run request must be provided");
         requireNonNull(toolRequest.toolName(), "The name of the tool must be provided");
         requireNonNull(toolRequest.input(), "The input of the tool must be provided");
 
-        HttpRequest httpRequest =
+        var httpRequest =
             HttpRequest.newBuilder(URI.create(url.toString() + "%s/run".formatted(API_PATH)))
                 .header("Accept", "application/json")
                 .header("Content-Type", "application/json")
                 .timeout(timeout)
-                .POST(BodyPublishers.ofString(toJson(toolRequest)))
-                .build();
+                .POST(BodyPublishers.ofString(toJson(toolRequest)));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             var result = fromJson(httpReponse.body(), Map.class);
             return (String) result.get("output");
 

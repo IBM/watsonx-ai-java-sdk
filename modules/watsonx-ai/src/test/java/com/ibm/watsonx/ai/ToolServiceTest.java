@@ -4,10 +4,12 @@
  */
 package com.ibm.watsonx.ai;
 
+import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.tool.ToolParameters;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
@@ -107,6 +110,10 @@ public class ToolServiceTest {
             URI.create(CloudRegion.DALLAS.getWxEndpoint().concat("/v1-beta/utility_agent_tools")),
             httpRequest.getValue().uri()
         );
+
+        utilityTools = toolService.getAll(ToolParameters.builder().transactionId("my-transaction-id").build());
+        assertNotNull(utilityTools);
+        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
     }
 
     @Test
@@ -150,6 +157,10 @@ public class ToolServiceTest {
             URI.create(CloudRegion.DALLAS.getWxEndpoint().concat("/v1-beta/utility_agent_tools/GoogleSearch")),
             httpRequest.getValue().uri()
         );
+
+        utilityTools = toolService.getByName("GoogleSearch", ToolParameters.builder().transactionId("my-transaction-id").build());
+        assertNotNull(utilityTools);
+        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
     }
 
     @Test
@@ -178,6 +189,10 @@ public class ToolServiceTest {
             httpRequest.getValue().uri()
         );
         JSONAssert.assertEquals(toJson(body), bodyPublisherToString(httpRequest), true);
+
+        result = toolService.run(body, ToolParameters.builder().transactionId("my-transaction-id").build());
+        assertNotNull(result);
+        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
 
         body = ToolRequest.unstructuredInput("GoogleSearch", "test", Map.of("test", "test"));
         toolService.run(body);

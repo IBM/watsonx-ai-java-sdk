@@ -11,6 +11,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Optional.ofNullable;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -387,19 +388,22 @@ public final class TextExtractionService extends ProjectService {
     public TextExtractionResponse fetchExtractionRequest(String id, TextExtractionFetchParameters parameters) {
         requireNonNull(id, "The id can not be null");
 
-        var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-        var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var queryParameters = getQueryParameters(projectId, spaceId);
         var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_TEXT_PATH, id, queryParameters));
 
         var httpRequest = HttpRequest.newBuilder(uri)
             .header("Accept", "application/json")
             .timeout(timeout)
-            .GET().build();
+            .GET();
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), TextExtractionResponse.class);
 
         } catch (IOException | InterruptedException e) {
@@ -466,19 +470,22 @@ public final class TextExtractionService extends ProjectService {
     public boolean deleteRequest(String id, TextExtractionDeleteParameters parameters) {
         requireNonNull(id, "The id can not be null");
 
-        var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-        var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
 
         var queryParameters = parameters.getHardDelete()
             .map(nullable -> getQueryParameters(projectId, spaceId).concat("&hard_delete=true"))
             .orElse(getQueryParameters(projectId, spaceId));
 
         var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_TEXT_PATH, id, queryParameters));
-        var httpRequest = HttpRequest.newBuilder(uri).DELETE().timeout(timeout).build();
+        var httpRequest = HttpRequest.newBuilder(uri).timeout(timeout).DELETE();
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return true;
 
         } catch (IOException | InterruptedException e) {
@@ -522,12 +529,14 @@ public final class TextExtractionService extends ProjectService {
                 "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
 
         try {
-            String encodedFileName = new URI(null, null, fileName, null).toASCIIString();
-            URI uri = URI.create(cosUrl + "/%s/%s".formatted(documentReference.bucket(), encodedFileName));
-            HttpRequest httpRequest = HttpRequest.newBuilder().uri(URI.create(uri.toASCIIString()))
+            var encodedFileName = new URI(null, null, fileName, null).toASCIIString();
+            var uri = URI.create(cosUrl + "/%s/%s".formatted(documentReference.bucket(), encodedFileName));
+            var httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(uri.toASCIIString()))
                 .PUT(BodyPublishers.ofInputStream(() -> is))
                 .timeout(timeout)
                 .build();
+
             syncHttpClient.send(httpRequest, BodyHandlers.ofString());
         } catch (IOException | InterruptedException | URISyntaxException e) {
             throw new RuntimeException(e);
@@ -552,19 +561,21 @@ public final class TextExtractionService extends ProjectService {
         Parameters params = null;
         Map<String, Object> custom = null;
         Duration timeout = Duration.ofSeconds(60);
+        String transactionId = null;
 
         if (nonNull(parameters)) {
             removeOutputFile = parameters.isRemoveOutputFile();
             removeUploadedFile = parameters.isRemoveUploadedFile();
             outputFileName = parameters.getOutputFileName();
-            projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-            spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+            projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+            spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
             requestedOutputs = requireNonNullElse(parameters.getRequestedOutputs(), requestedOutputs);
             documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
             resultReference = requireNonNullElse(parameters.getResultReference(), this.resultReference);
             params = parameters.toParameters();
             custom = parameters.getCustom();
             timeout = requireNonNullElse(parameters.getTimeout(), Duration.ofSeconds(60));
+            transactionId = parameters.getTransactionId();
         }
 
         if (!waitUntilJobIsDone && (removeOutputFile || removeUploadedFile))
@@ -601,12 +612,14 @@ public final class TextExtractionService extends ProjectService {
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(request)))
-                .timeout(timeout)
-                .build();
+                .timeout(timeout);
+
+        if (nonNull(transactionId))
+            httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             var response = fromJson(httpReponse.body(), TextExtractionResponse.class);
 
             if (!waitUntilJobIsDone)
@@ -686,11 +699,11 @@ public final class TextExtractionService extends ProjectService {
                     try {
                         var encodedFileName = new URI(null, null, outputPath, null).toASCIIString();
                         var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, encodedFileName));
-                        var httpRequest = HttpRequest
-                            .newBuilder()
+                        var httpRequest = HttpRequest.newBuilder()
                             .uri(URI.create(uri.toASCIIString()))
                             .timeout(timeout)
                             .GET().build();
+
                         yield syncHttpClient.send(httpRequest, BodyHandlers.ofInputStream()).body();
                     } catch (IOException | InterruptedException | URISyntaxException e) {
                         throw new RuntimeException(e);
@@ -710,8 +723,9 @@ public final class TextExtractionService extends ProjectService {
                     var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, encodedFileName));
                     var httpRequest = HttpRequest.newBuilder(URI.create(uri.toASCIIString()))
                         .timeout(timeout)
-                        .DELETE().build();
-                    asyncHttpClient.send(httpRequest, BodyHandlers.ofString());
+                        .DELETE();
+
+                    asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
@@ -726,8 +740,9 @@ public final class TextExtractionService extends ProjectService {
                     var uri = URI.create(cosUrl + "/%s/%s".formatted(documentBucketName, encodedFileName));
                     var httpRequest = HttpRequest.newBuilder(URI.create(uri.toASCIIString()))
                         .timeout(timeout)
-                        .DELETE().build();
-                    asyncHttpClient.send(httpRequest, BodyHandlers.ofString());
+                        .DELETE();
+
+                    asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
                 }

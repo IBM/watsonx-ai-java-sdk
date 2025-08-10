@@ -9,6 +9,7 @@ import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Optional.ofNullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -105,11 +106,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .newBuilder(URI.create(url.toString() + "/ml/v4/deployments/%s%s".formatted(deploymentId, queryParameters.toString())))
             .header("Content-Type", "application/json")
             .timeout(Duration.ofMillis(timeout.toMillis()))
-            .GET().build();
+            .GET();
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), DeploymentResource.class);
 
         } catch (IOException | InterruptedException e) {
@@ -129,19 +133,21 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
         var textGenerationRequest =
-            new TextGenerationRequest(null, null, null, input, parameters, moderation);
+            new TextGenerationRequest(null, null, null, input, parameters.toSanitized(), moderation);
 
         var httpRequest = HttpRequest
             .newBuilder(URI.create(url.toString() + "%s/deployments/%s/text/generation?version=%s".formatted(ML_API_PATH, deployment, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .timeout(Duration.ofMillis(timeout))
-            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
-            .build();
+            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), TextGenerationResponse.class);
 
         } catch (IOException | InterruptedException e) {
@@ -162,7 +168,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
         var textGenerationRequest =
-            new TextGenerationRequest(null, null, null, input, parameters, null);
+            new TextGenerationRequest(null, null, null, input, parameters.toSanitized(), null);
 
         var httpRequest = HttpRequest
             .newBuilder(
@@ -170,12 +176,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .timeout(Duration.ofMillis(timeout))
-            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)))
-            .build();
+            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         var subscriber = subscriber(handler);
         return asyncHttpClient
-            .send(httpRequest,
+            .send(httpRequest.build(),
                 responseInfo -> logResponses
                     ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
                     : BodySubscribers.fromLineSubscriber(subscriber)
@@ -204,12 +212,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(chatRequest)))
-                .timeout(Duration.ofMillis(timeout))
-                .build();
+                .timeout(Duration.ofMillis(timeout));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), ChatResponse.class);
 
         } catch (IOException | InterruptedException e) {
@@ -241,12 +251,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
                 .POST(BodyPublishers.ofString(toJson(chatRequest)))
-                .timeout(Duration.ofMillis(timeout))
-                .build();
+                .timeout(Duration.ofMillis(timeout));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         var subscriber = subscriber(chatRequest.getToolChoiceOption(), handler);
         return asyncHttpClient
-            .send(httpRequest, responseInfo -> logResponses
+            .send(httpRequest.build(), responseInfo -> logResponses
                 ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
                 : BodySubscribers.fromLineSubscriber(subscriber)
             ).thenApply(response -> null);
@@ -260,11 +272,13 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         Parameters requestParameters = null;
         Map<String, List<Object>> futureData = null;
+        String transactionId = null;
 
         if (nonNull(parameters)) {
             logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
             requestParameters = parameters.toParameters();
-            futureData = nonNull(parameters.getFutureData()) ? parameters.getFutureData().asMap() : null;
+            futureData = ofNullable(parameters.getFutureData()).map(p -> p.asMap()).orElse(null);
+            transactionId = parameters.getTransactionId();
         }
 
         var forecastRequest = new ForecastRequest(null, null, null, data.asMap(), inputSchema, futureData, requestParameters);
@@ -274,12 +288,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .timeout(timeout)
-            .POST(BodyPublishers.ofString(toJson(forecastRequest)))
-            .build();
+            .POST(BodyPublishers.ofString(toJson(forecastRequest)));
+
+        if (nonNull(transactionId))
+            httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), ForecastResponse.class);
 
         } catch (IOException | InterruptedException e) {

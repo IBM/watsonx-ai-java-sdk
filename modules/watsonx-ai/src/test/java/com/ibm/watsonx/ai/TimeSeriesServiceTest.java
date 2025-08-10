@@ -9,6 +9,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -231,6 +232,7 @@ public class TimeSeriesServiceTest {
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson(BODY))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -241,6 +243,7 @@ public class TimeSeriesServiceTest {
             .projectId("my-project-id")
             .spaceId("my-space-id")
             .predictionLength(512)
+            .transactionId("my-transaction-id")
             .build();
 
         var result = tsService.forecast(inputSchema, data, parameters);

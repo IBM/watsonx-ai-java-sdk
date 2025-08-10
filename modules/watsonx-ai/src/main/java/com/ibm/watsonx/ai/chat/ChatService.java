@@ -9,6 +9,7 @@ import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.Optional.ofNullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -73,8 +74,8 @@ public final class ChatService extends ModelService implements ChatProvider {
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-        var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-        var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
         var chatRequest = ChatRequest.builder()
@@ -91,12 +92,14 @@ public final class ChatService extends ModelService implements ChatProvider {
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(chatRequest)))
-            .timeout(Duration.ofMillis(timeout))
-            .build();
+            .timeout(Duration.ofMillis(timeout));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpReponse.body(), ChatResponse.class);
 
         } catch (IOException | InterruptedException e) {
@@ -123,8 +126,8 @@ public final class ChatService extends ModelService implements ChatProvider {
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-        var projectId = nonNull(parameters.getProjectId()) ? parameters.getProjectId() : this.projectId;
-        var spaceId = nonNull(parameters.getSpaceId()) ? parameters.getSpaceId() : this.spaceId;
+        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
         var chatRequest = ChatRequest.builder()
@@ -141,12 +144,14 @@ public final class ChatService extends ModelService implements ChatProvider {
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .POST(BodyPublishers.ofString(toJson(chatRequest)))
-            .timeout(Duration.ofMillis(timeout))
-            .build();
+            .timeout(Duration.ofMillis(timeout));
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         var subscriber = subscriber(chatRequest.getToolChoiceOption(), handler);
         return asyncHttpClient
-            .send(httpRequest, responseInfo -> logResponses
+            .send(httpRequest.build(), responseInfo -> logResponses
                 ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
                 : BodySubscribers.fromLineSubscriber(subscriber)
             ).thenApply(response -> null);

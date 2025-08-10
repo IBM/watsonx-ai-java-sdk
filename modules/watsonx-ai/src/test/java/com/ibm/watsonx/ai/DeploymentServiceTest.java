@@ -10,6 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.API_VERSION;
+import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.prettyPrint;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
@@ -27,6 +28,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -105,11 +107,12 @@ public class DeploymentServiceTest {
             .modelId("model-id")
             .projectId("project-id")
             .spaceId("space-id")
+            .timeLimit(Duration.ofSeconds(10))
             .build();
 
         String input = "how far is paris from bangalore:";
         TextGenerationRequest EXPECTED_BODY =
-            new TextGenerationRequest(null, null, null, input, parameters, null);
+            new TextGenerationRequest(null, null, null, input, parameters.toSanitized(), null);
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("""
@@ -155,10 +158,12 @@ public class DeploymentServiceTest {
 
         TextGenerationParameters parameters = TextGenerationParameters.builder()
             .promptVariables(Map.of("city", "paris"))
+            .transactionId("my-transaction-id")
+            .timeLimit(Duration.ofSeconds(10))
             .build();
 
         TextGenerationRequest EXPECTED_BODY =
-            new TextGenerationRequest(null, null, null, null, parameters, null);
+            new TextGenerationRequest(null, null, null, null, parameters.toSanitized(), null);
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("""
@@ -183,6 +188,7 @@ public class DeploymentServiceTest {
         assertEquals(4, response.results().get(0).generatedTokenCount());
         assertEquals(12, response.results().get(0).inputTokenCount());
         assertEquals("eos_token", response.results().get(0).stopReason());
+        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
 
         JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(httpRequest), true);
         assertEquals(
@@ -205,18 +211,17 @@ public class DeploymentServiceTest {
             .modelId("model-id")
             .projectId("project-id")
             .spaceId("space-id")
+            .transactionId("my-transaction-id")
             .build();
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/generation_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson(
                 """
                       {
                       "input": "how far is paris from bangalore:",
                       "parameters": {
-                            "project_id" : "project-id",
-                            "space_id" : "space-id",
-                            "model_id" : "model-id",
                             "time_limit": 10000
                       }
                     }"""))
@@ -395,6 +400,7 @@ public class DeploymentServiceTest {
             .modelId("model-id")
             .projectId("project-id")
             .spaceId("space-id")
+            .transactionId("my-transaction-id")
             .build();
 
         ChatRequest EXPECTED_BODY = ChatRequest.builder()
@@ -439,6 +445,7 @@ public class DeploymentServiceTest {
         assertEquals(1, response.getChoices().size());
         assertEquals("The 2020 World Series was played at the Globe Life Field in Arlington, Texas.\n",
             response.getChoices().get(0).message().content());
+        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
 
         JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(httpRequest), true);
         assertEquals(
@@ -463,6 +470,7 @@ public class DeploymentServiceTest {
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson("""
                 {
                     "messages": [
@@ -519,6 +527,7 @@ public class DeploymentServiceTest {
             .maxCompletionTokens(0)
             .temperature(0.0)
             .context("test")
+            .transactionId("my-transaction-id")
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
@@ -638,6 +647,7 @@ public class DeploymentServiceTest {
             .modelId("modelId")
             .projectId("projectId")
             .spaceId("spaceId")
+            .transactionId("my-transaction-id")
             .futureData(
                 ForecastData.create()
                     .add("date", "2021-01-01T00:00:00")
@@ -650,6 +660,7 @@ public class DeploymentServiceTest {
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson("""
                 {
                     "schema": {
@@ -897,6 +908,15 @@ public class DeploymentServiceTest {
                 .deployment("override-deployment")
                 .build()
         ), "Either projectId or spaceId must be provided");
+
+        deploymentService.findById(
+            FindByIdParameters.builder()
+                .deployment("override-deployment")
+                .spaceId("my-space-id")
+                .transactionId("my-transaction-id")
+                .build()
+        );
+        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
     }
 
     @Test

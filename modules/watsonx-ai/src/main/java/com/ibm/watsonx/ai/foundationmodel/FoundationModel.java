@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.foundationmodel;
 
+import static java.util.Optional.ofNullable;
 import java.util.List;
 import java.util.Map;
 
@@ -35,11 +36,11 @@ public record FoundationModel(
     List<DeploymentParameter> deploymentParameters) {
 
     public Integer maxSequenceLength() {
-        return modelLimits.maxSequenceLength();
+        return ofNullable(modelLimits).map(m -> m.maxSequenceLength()).orElse(null);
     }
 
     public Integer maxOutputTokens() {
-        return modelLimits.maxOutputTokens();
+        return ofNullable(modelLimits).map(m -> m.maxOutputTokens()).orElse(null);
     }
 
     public record Function(String id) {}

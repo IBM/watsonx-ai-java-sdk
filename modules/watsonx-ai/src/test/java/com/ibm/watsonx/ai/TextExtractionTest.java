@@ -18,6 +18,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.HTML;
 import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.JSON;
@@ -332,6 +333,7 @@ public class TextExtractionTest {
         JSONAssert.assertEquals(EXPECTED, Json.toJson(new TextExtractionResponse(metadata, entity)), true);
 
         TextExtractionParameters params = TextExtractionParameters.builder()
+            .transactionId("my-transaction-id")
             .requestedOutputs(Type.PLAIN_TEXT, Type.HTML)
             .mode(Mode.STANDARD)
             .ocrMode(OcrMode.ENABLED)
@@ -480,6 +482,7 @@ public class TextExtractionTest {
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson("""
                 {
                     "project_id": "new-project-id",
@@ -533,6 +536,7 @@ public class TextExtractionTest {
             .resultReference(CosReference.of("my-new-connection-2", "my-new-bucket-2"))
             .requestedOutputs(Type.MD)
             .addCustomProperty("key", "value")
+            .transactionId("my-transaction-id")
             .build();
 
         var response = textExtractionService.startExtraction("myfile.pdf", parameters);
@@ -742,6 +746,7 @@ public class TextExtractionTest {
             .stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id=%s".formatted(projectId))
                 .withHeader("Authorization", equalTo("Bearer my-super-token"))
                 .withHeader("Accept", equalTo("application/json"))
+                .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
                 .willReturn(aResponse()
                     .withStatus(200)
                     .withBody("{}")
@@ -749,6 +754,7 @@ public class TextExtractionTest {
 
         var parameters = TextExtractionFetchParameters.builder()
             .projectId("new-project-id")
+            .transactionId("my-transaction-id")
             .build();
 
         response = textExtractionService.fetchExtractionRequest("b3b85a66-7324-470c-b62e-75579eecf045", parameters);
@@ -829,6 +835,7 @@ public class TextExtractionTest {
                 delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id=" + projectId
                     + "&hard_delete=true")
                     .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                    .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
                     .willReturn(aResponse()
                         .withStatus(204)
                     ));
@@ -836,6 +843,7 @@ public class TextExtractionTest {
         var parameters = TextExtractionDeleteParameters.builder()
             .projectId("new-project-id")
             .hardDelete(true)
+            .transactionId("my-transaction-id")
             .build();
 
         assertTrue(textExtractionService.deleteRequest("b3b85a66-7324-470c-b62e-75579eecf045", parameters));
@@ -882,6 +890,8 @@ public class TextExtractionTest {
         assertThrows(RuntimeException.class, () -> textExtractionService.startExtraction("file.txt"));
         assertThrows(RuntimeException.class, () -> textExtractionService.fetchExtractionRequest("id"));
         assertThrows(RuntimeException.class, () -> textExtractionService.deleteRequest("id"));
+        assertThrows(RuntimeException.class, () -> textExtractionService.readFile("test", "id"));
+        assertThrows(RuntimeException.class, () -> textExtractionService.deleteFile("test", "id"));
 
         var error = new WatsonxError(
             400, "error", List.of(new WatsonxError.Error("X", "X", "X")));
@@ -904,6 +914,22 @@ public class TextExtractionTest {
         assertEquals("file.json", TextExtractionUtils.addExtension("file.json", Type.JSON));
         assertEquals("file.html", TextExtractionUtils.addExtension("file.json", Type.HTML));
         assertEquals("/", TextExtractionUtils.addExtension("/", Type.PAGE_IMAGES));
+    }
+
+    @Test
+
+    void test_read_file() {
+
+        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+
+        cosServer.stubFor(get("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(
+                aResponse().withStatus(200)
+                    .withBody("test")
+            ));
+
+        assertEquals("test", textExtractionService.readFile(BUCKET_NAME, FILE_NAME));
     }
 
     @Test
@@ -979,6 +1005,7 @@ public class TextExtractionTest {
             () -> textExtractionService.uploadExtractAndFetch(file));
         assertEquals(ex.getCode(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
+        assertEquals("TextExtractionException [code=file_not_found, message=doesnotexist.pdf (No such file or directory)]", ex.toString());
 
         watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));

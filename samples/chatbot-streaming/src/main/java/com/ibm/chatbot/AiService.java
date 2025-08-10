@@ -4,6 +4,7 @@
  */
 package com.ibm.chatbot;
 
+import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -21,11 +22,15 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
+import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 public class AiService {
 
     private static final Config config = ConfigProvider.getConfig();
+    private static final String MODEL_ID = "meta-llama/llama-4-maverick-17b-128e-instruct-fp8";
     private final ChatService chatService;
+    private final FoundationModelService foundationModelService;
     private final ChatMemory memory;
 
     public AiService() {
@@ -43,8 +48,14 @@ public class AiService {
             .authenticationProvider(authProvider)
             .projectId(projectId)
             .timeout(Duration.ofSeconds(60))
-            .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+            .modelId(MODEL_ID)
             .url(url)
+            .build();
+
+        foundationModelService = FoundationModelService.builder()
+            .authenticationProvider(authProvider)
+            .url(url)
+            .timeout(Duration.ofSeconds(60))
             .build();
 
         memory = new ChatMemory();
@@ -78,6 +89,6 @@ public class AiService {
     }
 
     public FoundationModel getModel() {
-        return chatService.getModelDetails();
+        return foundationModelService.getModels(Filter.of(modelId(MODEL_ID))).resources().get(0);
     }
 }
