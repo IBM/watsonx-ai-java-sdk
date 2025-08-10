@@ -253,6 +253,48 @@ public class RetryInterceptorTest {
         }
 
         @Test
+        @SuppressWarnings("unchecked")
+        void retry_with_tool_exception() throws Exception {
+
+            RetryInterceptor retryInterceptor = RetryInterceptor.onTokenExpired(3);
+
+            SyncHttpClient client = SyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any()))
+                .thenAnswer(CHAIN_MOCK);
+
+            var tokenExpiredResponse = mock(HttpResponse.class);
+            when(tokenExpiredResponse.statusCode()).thenReturn(401);
+            when(tokenExpiredResponse.headers())
+                .thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
+            when(tokenExpiredResponse.body()).thenReturn(
+                """
+                    {
+                        "code": 401,
+                        "error": "Unauthorized",
+                        "reason": "Unauthorized",
+                        "message": "Access denied",
+                        "description": "jwt expired"
+                    }""");
+
+            when(httpResponse.statusCode())
+                .thenReturn(200);
+
+            when(httpClient.send(httpRequest, bodyHandler))
+                .thenReturn(tokenExpiredResponse)
+                .thenReturn(httpResponse);
+
+            var result = client.send(httpRequest, bodyHandler);
+            assertEquals(httpResponse, result);
+            verify(httpClient, times(2)).send(httpRequest, bodyHandler);
+            verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), anyInt(), any());
+        }
+
+        @Test
         void retry_with_exponential_backoff_fail_retries() throws Exception {
             Duration timeout = Duration.ofMillis(10);
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()

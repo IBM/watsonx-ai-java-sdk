@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.core;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.joining;
 import java.io.InputStream;
 import java.net.http.HttpResponse;
@@ -114,13 +115,49 @@ public final class HttpUtils {
         if (isNull(contentType))
             throw new IllegalArgumentException("Missing content type");
 
-        if (contentType.contains("application/json"))
-            return fromJson(body, WatsonxError.class);
+        if (contentType.contains("application/json")) {
+
+            // Today the Agent Tool APIs doesn't return a WatsonxError.
+            // Check if the behavior is present even after the APIs are no longer in beta.
+
+            var error = fromJson(body, WatsonxError.class);
+            if (isNull(error.trace())) {
+                return parseToolError(body);
+            } else
+                return error;
+        }
 
         if (contentType.contains("application/xml"))
             return parseXmlError(body);
 
         throw new RuntimeException(body);
+    }
+
+    /**
+     * Parses an error response from the beta Agent Tool APIs into a {@link WatsonxError} with a standardized format.
+     * <p>
+     * This method is used when the API does not return a full {@link WatsonxError} structure. It extracts the {@code code}, {@code message}, and
+     * {@code description} fields from the JSON body and maps them to a {@link WatsonxError} with a predefined
+     * {@link WatsonxError.Code#AUTHENTICATION_TOKEN_EXPIRED} error code.
+     *
+     * @param body the raw JSON error response as a String.
+     * @return An instance of WatsonxError parsed from the body.
+     */
+
+    public static WatsonxError parseToolError(String body) {
+        var parseToolError = fromJson(body, Map.class);
+
+        var statusCode = (Integer) parseToolError.get("code");
+        var message = (String) parseToolError.get("message");
+        var description = (String) parseToolError.get("description");
+
+        Error error;
+        if (nonNull(description) && description.contains("jwt expired"))
+            error = new Error(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED.value(), message, description);
+        else
+            error = new Error(WatsonxError.Code.UNCLASSIFIED.value(), message, description);
+
+        return new WatsonxError(statusCode, "", List.of(error));
     }
 
     /**

@@ -13,7 +13,7 @@ import java.util.List;
  * @param trace the error trace or correlation ID
  * @param errors the list of individual error details
  */
-public record WatsonxError(int statusCode, String trace, List<Error> errors) {
+public record WatsonxError(Integer statusCode, String trace, List<Error> errors) {
 
     /**
      * Represents a single error item in the watsonx error response.
@@ -72,7 +72,10 @@ public record WatsonxError(int statusCode, String trace, List<Error> errors) {
         TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST("text_extraction_event_does_not_exist"),
 
         /** Access to Cloud Object Storage was denied. */
-        COS_ACCESS_DENIED("AccessDenied");
+        COS_ACCESS_DENIED("AccessDenied"),
+
+        /** Unclassified. */
+        UNCLASSIFIED("Unclassified");
 
         private final String value;
 
