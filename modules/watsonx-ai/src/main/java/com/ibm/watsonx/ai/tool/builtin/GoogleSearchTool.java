@@ -9,7 +9,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.List;
 import java.util.Map;
-import com.ibm.watsonx.ai.core.Beta;
+import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
@@ -17,7 +17,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
 /**
  * Tool to search online for trends, news, current events, real-time information, or research topics.
  */
-@Beta
+@Experimental
 public class GoogleSearchTool {
 
     public record GoogleSearchResult(String title, String description, String url) {}

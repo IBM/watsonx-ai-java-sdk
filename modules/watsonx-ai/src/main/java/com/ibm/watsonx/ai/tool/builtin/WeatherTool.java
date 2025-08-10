@@ -7,14 +7,14 @@ package com.ibm.watsonx.ai.tool.builtin;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.util.Map;
-import com.ibm.watsonx.ai.core.Beta;
+import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
 
 /**
  * Tool to fetch weather information.
  */
-@Beta
+@Experimental
 public class WeatherTool {
 
     private final ToolService toolService;

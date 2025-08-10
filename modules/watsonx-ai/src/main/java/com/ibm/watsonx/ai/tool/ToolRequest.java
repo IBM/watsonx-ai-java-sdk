@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.tool;
 
 import java.util.Map;
-import com.ibm.watsonx.ai.core.Beta;
+import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.tool.ToolRequest.StructuredInput;
 import com.ibm.watsonx.ai.tool.ToolRequest.UnstructuredInput;
 
@@ -15,7 +15,7 @@ import com.ibm.watsonx.ai.tool.ToolRequest.UnstructuredInput;
  * @see StructuredInput
  * @see UnstructuredInput
  */
-@Beta
+@Experimental
 public sealed interface ToolRequest permits StructuredInput, UnstructuredInput {
 
     /**
