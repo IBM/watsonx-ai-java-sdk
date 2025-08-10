@@ -7,14 +7,14 @@ package com.ibm.watsonx.ai.tool.builtin;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static java.util.Objects.requireNonNull;
 import java.util.Map;
-import com.ibm.watsonx.ai.core.Beta;
+import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
 
 /**
  * Tool for fetching the content of web pages.
  */
-@Beta
+@Experimental
 public class WebCrawlerTool {
 
     private final ToolService toolService;

@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.tool;
 
 import java.util.Map;
-import com.ibm.watsonx.ai.core.Beta;
+import com.ibm.watsonx.ai.core.Experimental;
 
 /**
  * Represents a utility tool resource.
@@ -18,7 +18,7 @@ import com.ibm.watsonx.ai.core.Beta;
  * @param inputSchema JSON schema describing the input payload accepted when invoking the tool.
  * @param configSchema JSON schema describing configuration parameters accepted by the tool.
  */
-@Beta
+@Experimental
 public record UtilityTool(
     String name,
     String description,

@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.WatsonxService;
-import com.ibm.watsonx.ai.core.Beta;
+import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
@@ -54,7 +54,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * @see WikipediaTool
  * @see AuthenticationProvider
  */
-@Beta
+@Experimental
 public final class ToolService extends WatsonxService {
 
     private static final String API_PATH = "/v1-beta/utility_agent_tools";
