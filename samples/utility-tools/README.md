@@ -7,6 +7,7 @@ This sample demonstrates how to use IBM watsonx.ai Utility Agent Tools through t
 Before running the application, set the following environment variables or create a `.env` file in the project root:
 
 - `WATSONX_API_KEY` – Your watsonx.ai API key
+- `TAVILY_SEARCH_API_KEY` - Tavily API Key (If not set, the TavilySearchTool will not be used)
 - `WATSONX_URL` – The base URL for the watsonx.ai service
 
 > NOTE: This is a partial list of URLs:

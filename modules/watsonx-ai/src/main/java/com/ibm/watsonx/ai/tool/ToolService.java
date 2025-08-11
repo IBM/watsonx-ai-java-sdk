@@ -20,6 +20,7 @@ import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
+import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
 import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
@@ -49,6 +50,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * documentation</a>.
  *
  * @see GoogleSearchTool
+ * @see TavilySearchTool
  * @see WeatherTool
  * @see WebCrawlerTool
  * @see WikipediaTool
