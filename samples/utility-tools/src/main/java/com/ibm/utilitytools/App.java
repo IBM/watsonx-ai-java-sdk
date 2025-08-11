@@ -12,6 +12,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
+import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
 import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
@@ -23,10 +24,11 @@ public class App {
     public static void main(String[] args) throws Exception {
 
         var url = URI.create(config.getValue("WATSONX_URL", String.class));
-        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+        var watsonxApiKey = config.getValue("WATSONX_API_KEY", String.class);
+        var tavilyApiKey = config.getOptionalValue("TAVILY_SEARCH_API_KEY", String.class);
 
         AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
+            .apiKey(watsonxApiKey)
             .timeout(Duration.ofSeconds(60))
             .build();
 
@@ -48,6 +50,21 @@ public class App {
             URL: %s
             DESCRIPTION: %s
             --------------------------------\n""".formatted(googleSearchResult.url(), googleSearchResult.description()));
+
+        if (tavilyApiKey.isPresent()) {
+
+            TavilySearchTool tavilySearchTool = new TavilySearchTool(toolService, tavilyApiKey.get());
+            var tavilySearchResult = tavilySearchTool.search("watsonx.ai java sdk", 1).get(0);
+
+            System.out.println("""
+                ----- TAVILY SEARCH RESULT -----
+                URL: %s
+                TITLE: %s
+                CONTENT: %s
+                SCORE: %f
+                --------------------------------\n""".formatted(tavilySearchResult.url(), tavilySearchResult.title(), tavilySearchResult.content(),
+                tavilySearchResult.score()));
+        }
 
         var webCrawlerResult = webCrawlerTool.process("https://github.com/IBM/watsonx-ai-java-sdk");
         System.out.println("""

@@ -36,6 +36,7 @@ import com.ibm.watsonx.ai.tool.ToolParameters;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
+import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
 import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
@@ -272,6 +273,64 @@ public class ToolServiceTest {
                 "GoogleSearch",
                 Map.of("q", "test"),
                 Map.of("maxResults", 5)
+            )),
+            bodyPublisherToString(httpRequest),
+            true
+        );
+    }
+
+    @Test
+    void test_tavily_search_tool() throws Exception {
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(
+            """
+                {
+                    "output": "[{\\"url\\":\\"https://example.com/test1\\",\\"title\\":\\"Title 1\\",\\"content\\":\\"Test 1\\",\\"score\\":0.63,\\"raw_content\\":null},{\\"url\\":\\"https://example.com/test2\\",\\"title\\":\\"Title 2\\",\\"content\\":\\"Test 2\\",\\"score\\":0.55,\\"raw_content\\":null}]"
+                }""");
+
+        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        var toolService = ToolService.builder()
+            .url(CloudRegion.LONDON)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .build();
+
+        var tavilySearch = new TavilySearchTool(toolService, "apiKey");
+
+        var result = tavilySearch.search("test");
+        assertEquals(2, result.size());
+        assertEquals("Title 1", result.get(0).title());
+        assertEquals("Test 1", result.get(0).content());
+        assertEquals(0.63, result.get(0).score());
+        assertEquals("https://example.com/test1", result.get(0).url());
+        assertEquals("Title 2", result.get(1).title());
+        assertEquals("Test 2", result.get(1).content());
+        assertEquals(0.55, result.get(1).score());
+        assertEquals("https://example.com/test2", result.get(1).url());
+        JSONAssert.assertEquals(
+            toJson(ToolRequest.structuredInput(
+                "TavilySearch",
+                Map.of("query", "test"),
+                Map.of(
+                    "apiKey", "apiKey",
+                    "maxResults", 10
+                )
+            )),
+            bodyPublisherToString(httpRequest),
+            true
+        );
+
+        tavilySearch.search("test", 5);
+        JSONAssert.assertEquals(
+            toJson(ToolRequest.structuredInput(
+                "TavilySearch",
+                Map.of("query", "test"),
+                Map.of(
+                    "apiKey", "apiKey",
+                    "maxResults", 5
+                )
             )),
             bodyPublisherToString(httpRequest),
             true
