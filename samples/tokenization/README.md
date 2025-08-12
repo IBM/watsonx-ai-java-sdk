@@ -12,16 +12,16 @@ Before running the application, set the following environment variables or creat
 
 Example (Linux/macOS):
 ```bash
-export WATSONX_API_KEY=your-api-key
-export WATSONX_URL=https://your-watsonx-url
-export WATSONX_PROJECT_ID=your-project-id
+export WATSONX_API_KEY=api-key
+export WATSONX_URL=https://watsonx-url
+export WATSONX_PROJECT_ID=project-id
 ```
 
 Example (Windows CMD):
 ```cmd
-set WATSONX_API_KEY=your-api-key
-set WATSONX_URL=https://your-watsonx-url
-set WATSONX_PROJECT_ID=your-project-id
+set WATSONX_API_KEY=api-key
+set WATSONX_URL=https://watsonx-url
+set WATSONX_PROJECT_ID=project-id
 ```
 ## How to Run
 Use Maven to run the application. 

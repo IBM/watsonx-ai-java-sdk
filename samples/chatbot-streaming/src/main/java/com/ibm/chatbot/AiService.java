@@ -28,7 +28,7 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 public class AiService {
 
     private static final Config config = ConfigProvider.getConfig();
-    private static final String MODEL_ID = "meta-llama/llama-4-maverick-17b-128e-instruct-fp8";
+    private String modelId;
     private final ChatService chatService;
     private final FoundationModelService foundationModelService;
     private final ChatMemory memory;
@@ -38,6 +38,7 @@ public class AiService {
         final var url = URI.create(config.getValue("WATSONX_URL", String.class));
         final var apiKey = config.getValue("WATSONX_API_KEY", String.class);
         final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+        modelId = config.getOptionalValue("WATSONX_MODEL_ID", String.class).orElse("mistralai/mistral-medium-2505");
 
         AuthenticationProvider authProvider = IAMAuthenticator.builder()
             .apiKey(apiKey)
@@ -48,7 +49,7 @@ public class AiService {
             .authenticationProvider(authProvider)
             .projectId(projectId)
             .timeout(Duration.ofSeconds(60))
-            .modelId(MODEL_ID)
+            .modelId(modelId)
             .url(url)
             .build();
 
@@ -89,6 +90,6 @@ public class AiService {
     }
 
     public FoundationModel getModel() {
-        return foundationModelService.getModels(Filter.of(modelId(MODEL_ID))).resources().get(0);
+        return foundationModelService.getModels(Filter.of(modelId(modelId))).resources().get(0);
     }
 }

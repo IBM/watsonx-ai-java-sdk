@@ -24,19 +24,19 @@ Before running the application, set the following environment variables or creat
 ### Example (Linux/macOS):
 
 ```bash
-export WATSONX_API_KEY=your-api-key
-export WATSONX_URL=https://your-watsonx-url
-export WATSONX_DEPLOYMENT=your-deployment-id
-export WATSONX_SPACE_ID=your-space-id
+export WATSONX_API_KEY=api-key
+export WATSONX_URL=https://watsonx-url
+export WATSONX_DEPLOYMENT=deployment-id
+export WATSONX_SPACE_ID=space-id
 ```
 
 ### Example (Windows CMD):
 
 ```cmd
-set WATSONX_API_KEY=your-api-key
-set WATSONX_URL=https://your-watsonx-url
-set WATSONX_DEPLOYMENT=your-deployment-id
-set WATSONX_SPACE_ID=your-space-id
+set WATSONX_API_KEY=api-key
+set WATSONX_URL=https://watsonx-url
+set WATSONX_DEPLOYMENT=deployment-id
+set WATSONX_SPACE_ID=space-id
 ```
 
 ## How to Run
