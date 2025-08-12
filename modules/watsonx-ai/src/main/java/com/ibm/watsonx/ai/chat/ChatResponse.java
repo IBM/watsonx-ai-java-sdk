@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
@@ -221,19 +222,32 @@ public final class ChatResponse {
     }
 
     /**
-     * Extracts the textual content enclosed within the specified XML-like tags from the assistant's response.
+     * Extracts textual content enclosed within the specified XML-like tags from the assistant's response.
      * <p>
-     * This method is particularly useful when working with models that output segmented content using tags such as {@code <think>} or
-     * {@code <response>}. The input should contain only the tag names (e.g., {@code "think"}, {@code "response"}), not the angle brackets.
+     * This method parses the assistant's output as XML (wrapped in a synthetic {@code <root>} tag) and returns the textual content associated with
+     * each requested tag.
+     * <ul>
+     * <li>For normal tags, the returned value is the full text inside the tag, including nested elements' text.</li>
+     * <li>For the synthetic {@code root} tag (i.e., the top-level element), only the <b>direct text nodes</b> outside of any child elements are
+     * included.</li>
+     * </ul>
+     * <p>
+     * This behavior is particularly useful when working with models that output segmented content using tags such as {@code <think>} or
+     * {@code <response>}, and when you need to distinguish between top-level text and text inside nested tags.
+     * <p>
+     * The input should contain only the tag names (e.g., {@code "think"}, {@code "response"}), not the angle brackets.
+     *
      * <p>
      * <b>Example usage:</b>
+     * </p>
      *
      * <pre>{@code
-     * var tags = Set.of("think", "response");
-     * var parts = instance.toTextByTags(tags);
-     * String think = parts.get("think");
+     * var tags = Set.of("think", "response", "root");
+     * var parts = chatResponse.toTextByTags(tags);
+     * String think = parts.get("think");   // text inside <think>...</think>
+     * String resp = parts.get("response"); // text inside <response>...</response>
+     * String rootText = parts.get("root"); // only direct text outside child tags
      * }</pre>
-     *
      *
      * @param tags a set of tag names to extract content from, without angle brackets
      * @return a map where each key is a tag name and its value is the corresponding extracted text
@@ -244,13 +258,34 @@ public final class ChatResponse {
         var wrappedXml = "<root>" + toText() + "</root>";
 
         Document doc = XmlUtils.parse(wrappedXml);
+        Element root = doc.getDocumentElement();
         Map<String, String> result = new HashMap<>();
 
         for (String tag : tags) {
+
             NodeList nodes = doc.getElementsByTagName(tag);
+
             for (int i = 0; i < nodes.getLength(); i++) {
                 Element element = (Element) nodes.item(i);
-                String textContent = element.getTextContent().trim();
+                String textContent;
+                if (element == root) {
+                    StringBuilder sb = new StringBuilder();
+                    NodeList children = element.getChildNodes();
+                    for (int j = 0; j < children.getLength(); j++) {
+                        Node child = children.item(j);
+
+                        if (child.getNodeType() != Node.TEXT_NODE)
+                            continue;
+
+                        String text = child.getTextContent().trim();
+                        if (!text.isEmpty())
+                            sb.append(text);
+                    }
+                    textContent = sb.isEmpty() ? null : sb.toString();
+                } else {
+                    textContent = element.getTextContent().trim();
+                }
+
                 result.put(tag, textContent);
             }
         }
@@ -261,18 +296,21 @@ public final class ChatResponse {
     /**
      * Extracts the textual content enclosed within a single specified XML-like tag from the assistant's response.
      * <p>
-     * This method is particularly useful when working with models that output segmented content using tags such as {@code <think>} or
-     * {@code <response>}. The input should contain only the tag names (e.g., {@code "think"}, {@code "response"}), not the angle brackets.
+     * Behaves like {@link #toTextByTags(Set)} but for a single tag. If the specified tag is the synthetic {@code root} element, only the direct text
+     * nodes outside of child tags are included.
+     * <p>
+     * The input should contain only the tag name (e.g., {@code "think"}), not the angle brackets.
+     *
      * <p>
      * <b>Example usage:</b>
+     * </p>
      *
-     * <pre>
-     * String response = instance.toTextByTag("response");
-     * </pre>
+     * <pre>{@code
+     * String think = instance.toTextByTag("think");
+     * }</pre>
      *
      * @param tag the tag name to extract content from, without angle brackets
-     * @return the textual content inside the specified tag, or {@code null} if not present
-     * @throws RuntimeException if the underlying text is not valid XML or parsing fails
+     * @return the textual content inside the specified tag
      */
     public String toTextByTag(String tag) {
         return toTextByTags(Set.of(tag)).get(tag);
