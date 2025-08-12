@@ -77,6 +77,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionParameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.EmbeddedImageMode;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.KvpMode;
+import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Language;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Mode;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.OcrMode;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
@@ -337,7 +338,7 @@ public class TextExtractionTest {
             .requestedOutputs(Type.PLAIN_TEXT, Type.HTML)
             .mode(Mode.STANDARD)
             .ocrMode(OcrMode.ENABLED)
-            .languages("en", "it")
+            .languages(Language.ENGLISH, Language.ITALIAN)
             .autoRotationCorrection(true)
             .createEmbeddedImages(EmbeddedImageMode.ENABLED_TEXT)
             .outputDpi(150)
