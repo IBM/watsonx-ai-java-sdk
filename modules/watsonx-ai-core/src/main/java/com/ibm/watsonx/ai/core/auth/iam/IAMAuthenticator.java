@@ -40,7 +40,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
  *
  * <pre>{@code
  * AuthenticationProvider authenticator = IAMAuthenticator.builder()
- *     .apiKey("your-api-key")
+ *     .apiKey("api-key")
  *     .build();
  * }</pre>
  *
@@ -137,7 +137,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
      *
      * <pre>{@code
      * AuthenticationProvider authenticator = IAMAuthenticator.builder()
-     *     .apiKey("your-api-key")
+     *     .apiKey("api-key")
      *     .build();
      * }</pre>
      *
