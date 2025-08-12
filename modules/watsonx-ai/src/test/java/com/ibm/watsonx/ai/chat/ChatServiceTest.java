@@ -1308,9 +1308,94 @@ public class ChatServiceTest {
         var parts = chatResponse.toTextByTags(Set.of("think", "response"));
         assertEquals("Think", parts.get("think"));
         assertEquals("Result", parts.get("response"));
+        assertNull(parts.get("root"));
         assertEquals("Result", chatResponse.toTextByTag("response"));
+        assertNull(chatResponse.toTextByTag("root"));
         assertEquals(captor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
     }
+
+    @Test
+    void test_control_message_with_single_tag() throws Exception {
+
+        final String REQUEST = """
+              {
+                "model_id": "ibm/granite-3-3-8b-instruct",
+                "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+                "messages": [
+                    {
+                        "role": "control",
+                        "content": "thinking"
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "What is the result of 1 + 1"
+                            }
+                        ]
+                    }
+                ]
+            }""";
+
+        final String RESPONSE =
+            """
+                {
+                    "id": "chatcmpl-326dc89051c826dd8d3c690a2d716e77",
+                    "object": "chat.completion",
+                    "model_id": "ibm/granite-3-3-8b-instruct",
+                    "model": "ibm/granite-3-3-8b-instruct",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "<think>Think</think>Result"
+                            },
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "created": 1749323488,
+                    "model_version": "3.3.0",
+                    "created_at": "2025-06-07T19:11:29.419Z",
+                    "usage": {
+                        "completion_tokens": 162,
+                        "prompt_tokens": 198,
+                        "total_tokens": 360
+                    }
+                }""";
+
+        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .modelId("ibm/granite-3-3-8b-instruct")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .url(CloudRegion.SYDNEY)
+            .build();
+
+        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
+        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        var messages = List.<ChatMessage>of(
+            ControlMessage.of("thinking"),
+            UserMessage.text("What is the result of 1 + 1")
+        );
+
+        var chatResponse = chatService.chat(messages, ChatParameters.builder().transactionId("my-transaction-id").build());
+        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+
+        var parts = chatResponse.toTextByTags(Set.of("think", "root"));
+        assertEquals("Think", parts.get("think"));
+        assertEquals("Result", parts.get("root"));
+        assertEquals("Result", chatResponse.toTextByTag("root"));
+        assertEquals(captor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+    }
+
 
     @Test
     void chat_streaming_test() throws Exception {
