@@ -5,6 +5,8 @@
 package com.ibm.watsonx.ai.chat;
 
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
+import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher.PartialToolCall;
+import com.ibm.watsonx.ai.chat.model.ToolCall;
 
 /**
  * Callback interface used to handle streaming chat responses.
@@ -23,7 +25,7 @@ public interface ChatHandler {
     /**
      * Called once the full chat response has been received and the stream is complete. This marks the end of the response sequence.
      *
-     * @param completeResponse the full assembled chat response
+     * @param completeResponse the full chat response
      */
     void onCompleteResponse(ChatResponse completeResponse);
 
@@ -33,4 +35,24 @@ public interface ChatHandler {
      * @param error the exception that was thrown
      */
     void onError(Throwable error);
+
+    /**
+     * Called whenever a partial tool call is detected during the chat streaming process. This method may be invoked multiple times if the model
+     * streams tool call arguments or metadata in chunks.
+     *
+     * @param partialToolCall the partial chunk of the tool call received
+     */
+    default void onPartialToolCall(PartialToolCall partialToolCall) {
+        // Invoked whenever a partial tool call is detected during the streaming process
+    }
+
+    /**
+     * Called once a tool call has been fully received.
+     *
+     * @param completeToolCall the fully constructed tool call
+     */
+    default void onCompleteToolCall(ToolCall completeToolCall) {
+        // Allows triggering actions as soon as the complete tool call is available, without necessarily waiting for the full assistant response to
+        // finish streaming.
+    }
 }

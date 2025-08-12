@@ -10,6 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
+import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
@@ -28,6 +30,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +54,8 @@ import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
+import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.Image;
 import com.ibm.watsonx.ai.chat.model.Image.Detail;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
@@ -59,6 +64,7 @@ import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
+import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.Tool;
@@ -771,6 +777,7 @@ public class ChatServiceTest {
         var response = chatResponse.toText(LLMResponse.class);
         assertEquals("Campania", response.name());
         assertEquals(5, response.provinces.size());
+        assertEquals(FinishReason.STOP, chatResponse.finishReason());
         assertEquals(new Province("Caserta", new Population(924414, "LOW")), response.provinces.get(0));
         assertEquals(new Province("Benevento", new Population(283393, "LOW")), response.provinces.get(1));
         assertEquals(new Province("Napoli", new Population(3116402, "HIGH")), response.provinces.get(2));
@@ -1499,6 +1506,16 @@ public class ChatServiceTest {
             public void onError(Throwable error) {
                 result.completeExceptionally(error);
             }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                fail("Unexpected partial tool call");
+            }
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {
+                fail("Unexpected complete tool call");
+            }
         });
 
         ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
@@ -1648,6 +1665,9 @@ public class ChatServiceTest {
             )
         );
 
+        List<PartialToolCall> toolFetchers = new ArrayList<>();
+        List<ToolCall> toolCalls = new ArrayList<>();
+
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         chatService.chatStreaming(messages, tools, new ChatHandler() {
 
@@ -1662,6 +1682,16 @@ public class ChatServiceTest {
             @Override
             public void onError(Throwable error) {
                 result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                toolFetchers.add(partialToolCall);
+            }
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {
+                toolCalls.add(completeToolCall);
             }
         });
 
@@ -1701,6 +1731,33 @@ public class ChatServiceTest {
         assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
             response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+
+
+        assertEquals(4, toolFetchers.size());
+        assertEquals("{\"index\":0,\"id\":\"chatcmpl-tool-af37032523934f019aa7258469580a7a\",\"name\":\"sum\",\"arguments\":\"\"}",
+            toJson(toolFetchers.get(0)));
+        assertEquals(
+            "{\"index\":0,\"id\":\"chatcmpl-tool-af37032523934f019aa7258469580a7a\",\"name\":\"sum\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
+            toJson(toolFetchers.get(1)));
+        assertEquals("{\"index\":1,\"id\":\"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b\",\"name\":\"subtraction\",\"arguments\":\"\"}",
+            toJson(toolFetchers.get(2)));
+        assertEquals(
+            "{\"index\":1,\"id\":\"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b\",\"name\":\"subtraction\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
+            toJson(toolFetchers.get(3)));
+
+        assertEquals(2, toolCalls.size());
+        assertEquals(new ToolCall(
+            0,
+            "chatcmpl-tool-af37032523934f019aa7258469580a7a",
+            "function",
+            new FunctionCall("sum", "{\"firstNumber\": 2, \"secondNumber\": 2}")
+        ), toolCalls.get(0));
+        assertEquals(new ToolCall(
+            1,
+            "chatcmpl-tool-f762db03c60f441dba57bab09552bb7b",
+            "function",
+            new FunctionCall("subtraction", "{\"firstNumber\": 2, \"secondNumber\": 2}")
+        ), toolCalls.get(1));
     }
 
     @Test
@@ -1927,6 +1984,9 @@ public class ChatServiceTest {
             )
         );
 
+        List<PartialToolCall> toolFetchers = new ArrayList<>();
+        List<ToolCall> toolCalls = new ArrayList<>();
+
         var chatParameters = ChatParameters.builder()
             .transactionId("my-transaction-id")
             .toolChoiceOption(ToolChoice.REQUIRED)
@@ -1946,6 +2006,16 @@ public class ChatServiceTest {
             @Override
             public void onError(Throwable error) {
                 result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                toolFetchers.add(partialToolCall);
+            }
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {
+                toolCalls.add(completeToolCall);
             }
         });
 
@@ -1985,6 +2055,161 @@ public class ChatServiceTest {
         assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
         assertEquals("{\"firstNumber\": 4, \"secondNumber\": 2}",
             response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+
+        assertEquals(28, toolFetchers.size());
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"")),
+            toJson(toolFetchers.get(0)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"first")),
+            toJson(toolFetchers.get(1)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber")),
+            toJson(toolFetchers.get(2)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\":")),
+            toJson(toolFetchers.get(3)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": ")),
+            toJson(toolFetchers.get(4)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2")),
+            toJson(toolFetchers.get(5)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2,")),
+            toJson(toolFetchers.get(6)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"")),
+            toJson(toolFetchers.get(7)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"second")),
+            toJson(toolFetchers.get(8)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber")),
+            toJson(toolFetchers.get(9)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber\":")),
+            toJson(toolFetchers.get(10)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber\": ")),
+            toJson(toolFetchers.get(11)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber\": 2")),
+            toJson(toolFetchers.get(12)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber\": 2}")),
+            toJson(toolFetchers.get(13)),
+            true
+        );
+
+
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"")),
+            toJson(toolFetchers.get(14)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"first")),
+            toJson(toolFetchers.get(15)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber")),
+            toJson(toolFetchers.get(16)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\":")),
+            toJson(toolFetchers.get(17)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": ")),
+            toJson(toolFetchers.get(18)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4")),
+            toJson(toolFetchers.get(19)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4,")),
+            toJson(toolFetchers.get(20)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"")),
+            toJson(toolFetchers.get(21)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"second")),
+            toJson(toolFetchers.get(22)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber")),
+            toJson(toolFetchers.get(23)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber\":")),
+            toJson(toolFetchers.get(24)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber\": ")),
+            toJson(toolFetchers.get(25)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber\": 2")),
+            toJson(toolFetchers.get(26)),
+            true
+        );
+        JSONAssert.assertEquals(
+            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber\": 2}")),
+            toJson(toolFetchers.get(27)),
+            true
+        );
+
+        assertEquals(2, toolCalls.size());
+        assertEquals(0, toolCalls.get(0).index());
+        assertNotNull(toolCalls.get(0).id());
+        assertEquals("function", toolCalls.get(0).type());
+        assertEquals(new FunctionCall("sum", "{\"firstNumber\": 2, \"secondNumber\": 2}"), toolCalls.get(0).function());
+
+        assertEquals(1, toolCalls.get(1).index());
+        assertNotNull(toolCalls.get(1).id());
+        assertEquals("function", toolCalls.get(1).type());
+        assertEquals(new FunctionCall("subtraction", "{\"firstNumber\": 4, \"secondNumber\": 2}"), toolCalls.get(1).function());
     }
 
     @Test
@@ -2044,6 +2269,16 @@ public class ChatServiceTest {
             public void onError(Throwable error) {
                 result.completeExceptionally(error);
             }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                fail();
+            }
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {
+                fail();
+            }
         });
 
         assertThrows(ExecutionException.class, () -> result.get(3, TimeUnit.SECONDS));
@@ -2090,6 +2325,16 @@ public class ChatServiceTest {
             public void onError(Throwable error) {
                 result.completeExceptionally(error);
             }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                fail();
+            }
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {
+                fail();
+            }
         });
 
         var ex = assertThrows(ExecutionException.class, () -> result.get(3, TimeUnit.SECONDS));
@@ -2108,6 +2353,12 @@ public class ChatServiceTest {
 
             @Override
             public void onError(Throwable error) {}
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {}
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {}
         };
 
         var ex = assertThrows(NullPointerException.class, () -> AssistantMessage.text(null));

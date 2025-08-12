@@ -17,7 +17,9 @@ import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
+import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
@@ -85,6 +87,16 @@ public class AiService {
             @Override
             public void onError(Throwable error) {
                 System.err.println(error);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                // No tool calls
+            }
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {
+                // No tool calls
             }
         });
     }

@@ -254,6 +254,12 @@ public interface ChatProvider {
                             // First occurrence of the object, create it.
                             toolFetcher = new StreamingToolFetcher(index);
                             tools.add(toolFetcher);
+
+                            if (index - 1 >= 0) {
+                                var tool = tools.get(index - 1).build();
+                                handler.onCompleteToolCall(tool);
+                            }
+
                         } else {
                             // Incomplete version is present, complete it.
                             toolFetcher = tools.get(index);
@@ -265,6 +271,8 @@ public interface ChatProvider {
                             toolFetcher.setName(deltaTool.function().name());
                             toolFetcher.appendArguments(deltaTool.function().arguments());
                         }
+
+                        handler.onPartialToolCall(toolFetcher.buildPartial());
                     }
 
                     if (nonNull(message.delta().content())) {
@@ -307,6 +315,7 @@ public interface ChatProvider {
                         toolCalls = tools.stream()
                             .map(StreamingToolFetcher::build)
                             .toList();
+                        handler.onCompleteToolCall(toolCalls.get(toolCalls.size() - 1));
                     }
 
                     var resultMessage = new ResultMessage(role, content, refusal, toolCalls);
