@@ -27,11 +27,14 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
  * TextExtractionParameters.builder()
  *     .requestedOutputs(Type.JSON)
  *     .mode(Mode.HIGH_QUALITY)
- *     .languages("it", "en")
+ *     .languages(Language.ENGLISH, Language.ITALIAN)
  *     .outputFileName("extracted.json")
  *     .build();
  * }</pre>
  *
+ * For more information, see the
+ * <a href=" https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction-params.html?context=wx&audience=wdp" target=
+ * "_blank"> documentation</a>.
  */
 public final class TextExtractionParameters extends WatsonxParameters {
     private final String cosUrl;
@@ -174,7 +177,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
      * TextExtractionParameters.builder()
      *     .requestedOutputs(Type.JSON)
      *     .mode(Mode.HIGH_QUALITY)
-     *     .languages("it", "en")
+     *     .languages(Language.ENGLISH, Language.ITALIAN)
      *     .outputFileName("extracted.json")
      *     .build();
      * }</pre>
@@ -287,6 +290,15 @@ public final class TextExtractionParameters extends WatsonxParameters {
          */
         public Builder languages(String... languages) {
             return languages(Arrays.asList(languages));
+        }
+
+        /**
+         * Sets the list of languages expected in the document.
+         *
+         * @param languages the list of language
+         */
+        public Builder languages(Language... languages) {
+            return languages(Stream.of(languages).map(Language::isoCode).toList());
         }
 
         /**
@@ -548,6 +560,9 @@ public final class TextExtractionParameters extends WatsonxParameters {
         }
     }
 
+    /**
+     * Enum representing the Cloud Object Storage (COS) service URLs for different IBM Cloud regions.
+     */
     public static enum CosUrl {
         US_SOUTH("https://s3.us-south.cloud-object-storage.appdomain.cloud"),
         US_EAST("https://s3.us-east.cloud-object-storage.appdomain.cloud"),
@@ -569,6 +584,89 @@ public final class TextExtractionParameters extends WatsonxParameters {
 
         public String value() {
             return url;
+        }
+    }
+
+    /**
+     * Enum representing supported languages with their corresponding ISO 639 language codes.
+     */
+    public static enum Language {
+        AFRIKAANS("af"),
+        ALBANIAN("sq"),
+        AYMARA("ay"),
+        BASQUE("eu"),
+        BELARUSIAN("be"),
+        BISLAMA("bi"),
+        BULGARIAN("bg"),
+        CATALAN("ca"),
+        CREE("cr"),
+        DANISH("da"),
+        DUTCH("nl"),
+        ENGLISH("en"),
+        ESTONIAN("et"),
+        FIJIAN("fj"),
+        FILIPINO("fil"),
+        FINNISH("fi"),
+        FRENCH("fr"),
+        GALICIAN("gl"),
+        GERMAN("de"),
+        GREEK("el"),
+        HAITIAN_CREOLE("ht"),
+        HEBREW("he"),
+        HINDI("hi"),
+        INDONESIAN("id"),
+        IRISH("ga"),
+        ITALIAN("it"),
+        JAPANESE("ja"),
+        JAVANESE("jv"),
+        KALAALLISUT("kl"),
+        KINYARWANDA("rw"),
+        KONGO("kg"),
+        KOREAN("ko"),
+        KUANYAMA("kj"),
+        LATIN("la"),
+        MALAGASY("mg"),
+        MANX("gv"),
+        MARATHI("mr"),
+        MACEDONIAN("mk"),
+        NDONGA("ng"),
+        NEPALI("ne"),
+        NORTH_NDEBELE("nd"),
+        NORWEGIAN("no"),
+        OCCITAN("oc"),
+        OJIBWA("oj"),
+        POLISH("pl"),
+        PORTUGUESE("pt"),
+        QUECHUA("qu"),
+        ROMANSH("rm"),
+        RUNDI("rn"),
+        RUSSIAN("ru"),
+        SANGO("sg"),
+        SANSKRIT("sa"),
+        SERBIAN("sr"),
+        SHONA("sn"),
+        SPANISH("es"),
+        SUNDANESE("su"),
+        SWAHILI("sw"),
+        SWATI("ss"),
+        SWEDISH("sv"),
+        TAMIL("ta"),
+        TELUGU("te"),
+        TSONGA("ts"),
+        TSWANA("tn"),
+        UKRAINIAN("uk"),
+        UZBEK("uz"),
+        XHOSA("xh"),
+        ZULU("zu");
+
+        private final String isoCode;
+
+        Language(String isoCode) {
+            this.isoCode = isoCode;
+        }
+
+        public String isoCode() {
+            return isoCode;
         }
     }
 }
