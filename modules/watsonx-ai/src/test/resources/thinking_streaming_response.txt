@@ -1,0 +1,635 @@
+id: 1
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.410Z"}
+
+id: 2
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\u003c"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.410Z"}
+
+id: 3
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"think"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.418Z"}
+
+id: 4
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\u003e"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.426Z"}
+
+id: 5
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"The"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.435Z"}
+
+id: 6
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" translation"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.444Z"}
+
+id: 7
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" of"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.452Z"}
+
+id: 8
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.461Z"}
+
+id: 9
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Hello"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.469Z"}
+
+id: 10
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.478Z"}
+
+id: 11
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.486Z"}
+
+id: 12
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" It"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.495Z"}
+
+id: 13
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"alian"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.504Z"}
+
+id: 14
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" is"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.512Z"}
+
+id: 15
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" straightforward"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.521Z"}
+
+id: 16
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"."}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.530Z"}
+
+id: 17
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.538Z"}
+
+id: 18
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Hello"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.547Z"}
+
+id: 19
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.555Z"}
+
+id: 20
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.564Z"}
+
+id: 21
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" English"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.572Z"}
+
+id: 22
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" directly"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.581Z"}
+
+id: 23
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" trans"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.589Z"}
+
+id: 24
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"lates"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.598Z"}
+
+id: 25
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" to"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.607Z"}
+
+id: 26
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.615Z"}
+
+id: 27
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.624Z"}
+
+id: 28
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.632Z"}
+
+id: 29
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.641Z"}
+
+id: 30
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.649Z"}
+
+id: 31
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" It"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.658Z"}
+
+id: 32
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"alian"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.666Z"}
+
+id: 33
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":","}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.675Z"}
+
+id: 34
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" which"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.683Z"}
+
+id: 35
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" is"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.692Z"}
+
+id: 36
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" a"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.700Z"}
+
+id: 37
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" common"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.709Z"}
+
+id: 38
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" inform"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.717Z"}
+
+id: 39
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"al"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.726Z"}
+
+id: 40
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" g"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.734Z"}
+
+id: 41
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"reeting"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.743Z"}
+
+id: 42
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"."}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.752Z"}
+
+id: 43
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" For"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.760Z"}
+
+id: 44
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" a"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.769Z"}
+
+id: 45
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" more"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.777Z"}
+
+id: 46
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" formal"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.786Z"}
+
+id: 47
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" context"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.794Z"}
+
+id: 48
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":","}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.803Z"}
+
+id: 49
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.811Z"}
+
+id: 50
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Bu"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.820Z"}
+
+id: 51
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"ong"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.828Z"}
+
+id: 52
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"ior"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.837Z"}
+
+id: 53
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"no"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.845Z"}
+
+id: 54
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.854Z"}
+
+id: 55
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" can"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.862Z"}
+
+id: 56
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" be"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.871Z"}
+
+id: 57
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" used"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.879Z"}
+
+id: 58
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":","}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.888Z"}
+
+id: 59
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" meaning"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.896Z"}
+
+id: 60
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.905Z"}
+
+id: 61
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Good"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.914Z"}
+
+id: 62
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" day"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.922Z"}
+
+id: 63
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":".\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.931Z"}
+
+id: 64
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" However"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.939Z"}
+
+id: 65
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":","}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.948Z"}
+
+id: 66
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" since"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.956Z"}
+
+id: 67
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" the"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.965Z"}
+
+id: 68
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" request"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.973Z"}
+
+id: 69
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" is"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.982Z"}
+
+id: 70
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" for"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.991Z"}
+
+id: 71
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" a"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:21.999Z"}
+
+id: 72
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" direct"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.008Z"}
+
+id: 73
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" translation"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.016Z"}
+
+id: 74
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" of"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.025Z"}
+
+id: 75
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.033Z"}
+
+id: 76
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Hello"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.042Z"}
+
+id: 77
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":",\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.051Z"}
+
+id: 78
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.059Z"}
+
+id: 79
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.068Z"}
+
+id: 80
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.076Z"}
+
+id: 81
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.085Z"}
+
+id: 82
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" is"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.093Z"}
+
+id: 83
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" the"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.102Z"}
+
+id: 84
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" most"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.111Z"}
+
+id: 85
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" appropriate"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.119Z"}
+
+id: 86
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" response"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.128Z"}
+
+id: 87
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":".\u003c/"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.136Z"}
+
+id: 88
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"think"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.145Z"}
+
+id: 89
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\u003e\u003c"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.153Z"}
+
+id: 90
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"response"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.162Z"}
+
+id: 91
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\u003e"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.170Z"}
+
+id: 92
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"###"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.179Z"}
+
+id: 93
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Translation"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.187Z"}
+
+id: 94
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":":"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.196Z"}
+
+id: 95
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\n"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.205Z"}
+
+id: 96
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\n"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.213Z"}
+
+id: 97
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.222Z"}
+
+id: 98
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Hello"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.230Z"}
+
+id: 99
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.239Z"}
+
+id: 100
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.247Z"}
+
+id: 101
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" It"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.256Z"}
+
+id: 102
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"alian"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.264Z"}
+
+id: 103
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" is"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.273Z"}
+
+id: 104
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" **"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.281Z"}
+
+id: 105
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.290Z"}
+
+id: 106
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.299Z"}
+
+id: 107
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"**."}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.307Z"}
+
+id: 108
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \n"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.316Z"}
+
+id: 109
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\n"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.324Z"}
+
+id: 110
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"This"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.333Z"}
+
+id: 111
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" is"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.341Z"}
+
+id: 112
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" the"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.350Z"}
+
+id: 113
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" inform"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.358Z"}
+
+id: 114
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"al"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.367Z"}
+
+id: 115
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" equivalent"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.376Z"}
+
+id: 116
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":","}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.384Z"}
+
+id: 117
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" widely"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.393Z"}
+
+id: 118
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" used"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.401Z"}
+
+id: 119
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.410Z"}
+
+id: 120
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" every"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.418Z"}
+
+id: 121
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"day"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.427Z"}
+
+id: 122
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" conversation"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.435Z"}
+
+id: 123
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"."}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.444Z"}
+
+id: 124
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" For"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.453Z"}
+
+id: 125
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" a"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.461Z"}
+
+id: 126
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" formal"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.470Z"}
+
+id: 127
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" g"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.478Z"}
+
+id: 128
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"reeting"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.487Z"}
+
+id: 129
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":","}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.495Z"}
+
+id: 130
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" one"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.504Z"}
+
+id: 131
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" would"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.512Z"}
+
+id: 132
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" say"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.521Z"}
+
+id: 133
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.530Z"}
+
+id: 134
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Bu"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.538Z"}
+
+id: 135
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"ong"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.547Z"}
+
+id: 136
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"ior"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.555Z"}
+
+id: 137
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"no"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.564Z"}
+
+id: 138
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":",\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.572Z"}
+
+id: 139
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" but"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.581Z"}
+
+id: 140
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" given"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.590Z"}
+
+id: 141
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" the"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.598Z"}
+
+id: 142
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" direct"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.607Z"}
+
+id: 143
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" translation"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.615Z"}
+
+id: 144
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" request"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.624Z"}
+
+id: 145
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":","}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.633Z"}
+
+id: 146
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" \""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.641Z"}
+
+id: 147
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.650Z"}
+
+id: 148
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.658Z"}
+
+id: 149
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.667Z"}
+
+id: 150
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" is"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.675Z"}
+
+id: 151
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" the"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.684Z"}
+
+id: 152
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" most"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.693Z"}
+
+id: 153
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" fitting"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.701Z"}
+
+id: 154
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" response"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.710Z"}
+
+id: 155
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":".\u003c/"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.718Z"}
+
+id: 156
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"response"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.727Z"}
+
+id: 157
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"\u003e"}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.735Z"}
+
+id: 158
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.744Z"}
+
+id: 159
+event: message
+data: {"id":"chatcmpl-7efd7495-b867-4789-8f19-345e732bb85c---a46d3264881090573251f103107293ba---180650c0-3866-47e0-b1c5-99266394d686","object":"chat.completion.chunk","model_id":"ibm/granite-3-3-8b-instruct","model":"ibm/granite-3-3-8b-instruct","choices":[],"created":1755020181,"model_version":"3.3.0","created_at":"2025-08-12T17:36:22.744Z","usage":{"completion_tokens":157,"prompt_tokens":195,"total_tokens":352}}

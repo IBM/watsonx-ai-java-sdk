@@ -52,11 +52,13 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
-import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdParameters;
@@ -606,6 +608,97 @@ public class DeploymentServiceTest {
         response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
         Thread.sleep(50);
+    }
+
+    @Test
+    void test_chat_streaming_thinking() throws Exception {
+
+        String BODY = new String(ClassLoader.getSystemResourceAsStream("thinking_streaming_response.txt").readAllBytes());
+
+        DeploymentService deploymentService = DeploymentService.builder()
+            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticationProvider(mockAuthenticationProvider)
+            .deployment("my-deployment-id")
+            .thinking(new ExtractionTags("think", "response"))
+            .build();
+
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .withRequestBody(equalToJson("""
+                {
+                    "messages": [
+                        {
+                            "role": "control",
+                            "content": "thinking"
+                        },
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Translate \\"Hello\\" in Italian"
+                                }
+                            ]
+                        }
+                    ],
+                    "time_limit": 10000
+                }"""))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(159, 200)
+                .withBody(BODY)));
+
+        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        List<ChatMessage> messages = List.of(
+            ControlMessage.of("thinking"),
+            UserMessage.text("Translate \"Hello\" in Italian")
+        );
+
+        StringBuilder thinkingResponse = new StringBuilder();
+        StringBuilder response = new StringBuilder();
+
+        deploymentService.chatStreaming(messages, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                response.append(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                throw new RuntimeException("Error in onComplete handler");
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                thinkingResponse.append(partialThinking);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                fail();
+            }
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {
+                fail();
+            }
+        }).get(3, TimeUnit.SECONDS);
+
+        assertEquals(
+            "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.",
+            thinkingResponse.toString()
+        );
+
+        assertTrue(response.toString().contains(
+            "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response."));
     }
 
     @Test

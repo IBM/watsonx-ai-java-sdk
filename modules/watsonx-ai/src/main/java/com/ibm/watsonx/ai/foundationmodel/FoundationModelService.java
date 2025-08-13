@@ -174,8 +174,7 @@ public final class FoundationModelService extends WatsonxService {
     /**
      * Retrieves a paginated list of tasks.
      *
-     * @param start A pagination token indicating where to start fetching results.
-     * @param limit The maximum number of models to return.
+     * @param parameters Parameter to customize the get tasks operation.
      * @return a {@link FoundationModelResponse} containing the list of tasks.
      */
     public FoundationModelResponse<FoundationModelTask> getTasks(FoundationModelParameters parameters) {

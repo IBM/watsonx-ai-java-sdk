@@ -28,9 +28,12 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
@@ -71,11 +74,16 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesProvider;
 public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
+    private final StreamingStateTracker stateTracker;
     private final String deployment;
 
     protected DeploymentService(Builder builder) {
         super(builder);
         deployment = requireNonNull(builder.deployment, "deployment cannot be null");
+        if (nonNull(builder.tags))
+            stateTracker = new StreamingStateTracker(builder.tags);
+        else
+            stateTracker = null;
     }
 
     /**
@@ -256,7 +264,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
-        var subscriber = subscriber(chatRequest.getToolChoiceOption(), handler);
+        var subscriber = subscriber(chatRequest.getToolChoiceOption(), stateTracker, handler);
         return asyncHttpClient
             .send(httpRequest.build(), responseInfo -> logResponses
                 ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
@@ -350,9 +358,36 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      */
     public static class Builder extends WatsonxService.Builder<Builder> {
         private String deployment;
+        private ExtractionTags tags;
 
         public Builder deployment(String deployment) {
             this.deployment = deployment;
+            return this;
+        }
+
+        /**
+         * Sets the tag names used to extract segmented content from the assistant's response.
+         * <p>
+         * The provided {@link ExtractionTags} define which XML-like tags (such as {@code <think>} and {@code <response>}) will be used to extract the
+         * response from the {@link AssistantMessage}.
+         * <p>
+         * If the {@code response} tag is not specified in {@link ExtractionTags}, it will automatically default to {@code "root"}, meaning that only
+         * the text nodes directly under the root element will be treated as the final response.
+         * <p>
+         * Example:
+         *
+         * <pre>{@code
+         * // Explicitly set both tags
+         * builder.thinking(new ExtractionTags("think", "response")).build();
+         *
+         * // Only set reasoning tag — response defaults to "root"
+         * builder.thinking(new ExtractionTags("think")).build();
+         * }</pre>
+         *
+         * @param tags an {@link ExtractionTags} instance containing the reasoning and (optionally) response tag names
+         */
+        public Builder thinking(ExtractionTags tags) {
+            this.tags = tags;
             return this;
         }
 

@@ -4,9 +4,10 @@
  */
 package com.ibm.watsonx.ai.chat;
 
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
-import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
+import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 
 /**
  * Callback interface used to handle streaming chat responses.
@@ -55,4 +56,18 @@ public interface ChatHandler {
         // Allows triggering actions as soon as the complete tool call is available, without necessarily waiting for the full assistant response to
         // finish streaming.
     }
+
+    /**
+     * Called whenever a partial segment of the assistant's reasoning process is received during streaming.
+     * <p>
+     * This method may be invoked multiple times if the reasoning content is streamed in multiple chunks.
+     * <p>
+     * <strong>Note:</strong> For this handler to work, {@link ExtractionTags} must be configured in the {@code ChatService} so that reasoning tags
+     * can be detected in the stream.
+     *
+     * @param partialThinking the raw partial text of the reasoning content
+     * @param partialChatResponse the structured partial chat response
+     * @see ExtractionTags
+     */
+    default void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {}
 }

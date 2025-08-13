@@ -94,7 +94,6 @@ public interface TextGenerationProvider {
     /**
      * Returns a {@link Flow.Subscriber} implementation that processes streaming text generation responses.
      *
-     * @param modelId the identifier of the model used for generation
      * @param handler the callback handler to receive updates and final result
      * @return a {@link Flow.Subscriber} for processing streamed text generation responses
      */

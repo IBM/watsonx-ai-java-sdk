@@ -18,9 +18,10 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
-import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
+import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
+import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
@@ -166,10 +167,11 @@ public interface ChatProvider {
      * Returns a {@link Flow.Subscriber} implementation that processes streaming chat responses.
      *
      * @param toolChoiceOption the tool choice strategy used during generation
+     * @param stateTracker the {@link StreamingStateTracker} instance responsible for tracking XML-like tag states during streaming
      * @param handler the {@link ChatHandler} instance to receive streaming callbacks
      * @return a {@link Flow.Subscriber} capable of consuming {@code String} events representing streamed chat responses
      */
-    public default Flow.Subscriber<String> subscriber(String toolChoiceOption, ChatHandler handler) {
+    public default Flow.Subscriber<String> subscriber(String toolChoiceOption, StreamingStateTracker stateTracker, ChatHandler handler) {
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
             private String finishReason;
@@ -283,7 +285,18 @@ public interface ChatProvider {
                             return;
 
                         stringBuilder.append(token);
-                        handler.onPartialResponse(token, chunk);
+
+                        if (nonNull(stateTracker)) {
+                            var r = stateTracker.update(token);
+                            var content = r.content();
+                            switch(r.state()) {
+                                case RESPONSE -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
+                                case THINKING -> content.ifPresent(c -> handler.onPartialThinking(c, chunk));
+                                case UNKNOWN -> {}
+                            }
+                        } else {
+                            handler.onPartialResponse(token, chunk);
+                        }
                     }
 
                 } catch (RuntimeException e) {
