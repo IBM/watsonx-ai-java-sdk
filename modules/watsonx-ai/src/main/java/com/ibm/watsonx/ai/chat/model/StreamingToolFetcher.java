@@ -13,6 +13,8 @@ import java.util.UUID;
  */
 public final class StreamingToolFetcher {
 
+    public record PartialToolCall(int index, String id, String name, String arguments) {}
+
     private int index;
     private StringBuilder arguments;
     private String id, name;
@@ -35,6 +37,10 @@ public final class StreamingToolFetcher {
     public void appendArguments(String arguments) {
         if (nonNull(arguments))
             this.arguments.append(arguments);
+    }
+
+    public PartialToolCall buildPartial() {
+        return new PartialToolCall(index, id, name, arguments.toString());
     }
 
     public ToolCall build() {

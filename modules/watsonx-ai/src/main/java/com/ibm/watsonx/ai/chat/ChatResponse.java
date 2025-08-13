@@ -17,6 +17,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.XmlUtils;
@@ -346,5 +347,18 @@ public final class ChatResponse {
         var resultMessage = choices.get(0).message();
         return new AssistantMessage(AssistantMessage.ROLE, resultMessage.content(), null, resultMessage.refusal(),
             resultMessage.toolCalls());
+    }
+
+    /**
+     * Retrieves the finish reason for the current chat response.
+     *
+     * @return a {@code String} representing the reason why the response generation finished d
+     */
+    public FinishReason finishReason() {
+        if (isNull(choices) || choices.isEmpty())
+            throw new RuntimeException("The \"choices\" field is null or empty");
+
+        var resultMessage = choices.get(0);
+        return FinishReason.fromValue(resultMessage.finishReason());
     }
 }

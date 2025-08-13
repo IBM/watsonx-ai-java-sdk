@@ -12,6 +12,7 @@
     <module>chatbot</module>
     <module>chatbot-streaming</module>
     <module>chatbot-tools</module>
+    <module>chatbot-streaming-tools</module>
     <module>image-analyzer</module>
     <module>embedding-text</module>
     <module>rerank</module>
