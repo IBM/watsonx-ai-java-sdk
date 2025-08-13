@@ -20,10 +20,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
-import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.core.SseEventLogger;
@@ -54,32 +53,18 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  */
 public final class ChatService extends ModelService implements ChatProvider {
 
-    private final StreamingStateTracker stateTracker;
-
     protected ChatService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
-        if (nonNull(builder.tags))
-            stateTracker = new StreamingStateTracker(builder.tags);
-        else
-            stateTracker = null;
     }
 
-    /**
-     * Sends a chat request to the model using the provided messages, tools, and parameters.
-     * <p>
-     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, include
-     * {@link Tool} definitions for function-calling models, and customize the generation behavior via {@link ChatParameters}.
-     *
-     * @param messages the list of chat messages representing the conversation history
-     * @param tools list of tools the model may call during generation
-     * @param parameters parameters to customize the output generation
-     * @return a {@link ChatResponse} object containing the model's reply
-     */
     @Override
-    public ChatResponse chat(List<ChatMessage> messages, List<Tool> tools, ChatParameters parameters) {
+    public ChatResponse chat(ChatRequest chatRequest) {
 
-        requireNonNull(messages, "The list of messages can not be null");
+        List<ChatMessage> messages = chatRequest.getMessages();
+        List<Tool> tools = chatRequest.getTools();
+        ChatParameters parameters = chatRequest.getParameters();
+
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
@@ -87,7 +72,7 @@ public final class ChatService extends ModelService implements ChatProvider {
         var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
-        var chatRequest = ChatRequest.builder()
+        var textChatRequest = TextChatRequest.builder()
             .modelId(modelId)
             .projectId(projectId)
             .spaceId(spaceId)
@@ -100,7 +85,7 @@ public final class ChatService extends ModelService implements ChatProvider {
         var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat?version=%s".formatted(ML_API_TEXT_PATH, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .POST(BodyPublishers.ofString(toJson(chatRequest)))
+            .POST(BodyPublishers.ofString(toJson(textChatRequest)))
             .timeout(Duration.ofMillis(timeout));
 
         if (nonNull(parameters.getTransactionId()))
@@ -116,22 +101,17 @@ public final class ChatService extends ModelService implements ChatProvider {
         }
     }
 
-    /**
-     * Sends a streaming chat request using the provided messages, tools, and parameters.
-     * <p>
-     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
-     * {@link ChatHandler}.
-     *
-     * @param messages the list of chat messages forming the prompt history
-     * @param tools the list of tools that the model may use
-     * @param parameters additional optional parameters for the chat invocation
-     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
-     */
-    public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatParameters parameters, ChatHandler handler) {
+    @Override
+    public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
+
+        var messages = chatRequest.getMessages();
+        var tools = chatRequest.getTools();
+        var parameters = chatRequest.getParameters();
+        var stateTracker = nonNull(chatRequest.getExtractionTags())
+            ? new StreamingStateTracker(chatRequest.getExtractionTags())
+            : null;
 
         requireNonNull(handler, "The chatHandler parameter can not be null");
-        requireNonNull(messages, "The list of messages can not be null");
-
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
@@ -139,7 +119,7 @@ public final class ChatService extends ModelService implements ChatProvider {
         var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
-        var chatRequest = ChatRequest.builder()
+        var textChatRequest = TextChatRequest.builder()
             .modelId(modelId)
             .projectId(projectId)
             .spaceId(spaceId)
@@ -152,13 +132,13 @@ public final class ChatService extends ModelService implements ChatProvider {
         var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
-            .POST(BodyPublishers.ofString(toJson(chatRequest)))
+            .POST(BodyPublishers.ofString(toJson(textChatRequest)))
             .timeout(Duration.ofMillis(timeout));
 
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
-        var subscriber = subscriber(chatRequest.getToolChoiceOption(), stateTracker, handler);
+        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), stateTracker, handler);
         return asyncHttpClient
             .send(httpRequest.build(), responseInfo -> logResponses
                 ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
@@ -196,33 +176,6 @@ public final class ChatService extends ModelService implements ChatProvider {
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
     public static class Builder extends ModelService.Builder<Builder> {
-        private ExtractionTags tags;
-
-        /**
-         * Sets the tag names used to extract segmented content from the assistant's response.
-         * <p>
-         * The provided {@link ExtractionTags} define which XML-like tags (such as {@code <think>} and {@code <response>}) will be used to extract the
-         * response from the {@link AssistantMessage}.
-         * <p>
-         * If the {@code response} tag is not specified in {@link ExtractionTags}, it will automatically default to {@code "root"}, meaning that only
-         * the text nodes directly under the root element will be treated as the final response.
-         * <p>
-         * Example:
-         *
-         * <pre>{@code
-         * // Explicitly set both tags
-         * builder.thinking(new ExtractionTags("think", "response")).build();
-         *
-         * // Only set reasoning tag — response defaults to "root"
-         * builder.thinking(new ExtractionTags("think")).build();
-         * }</pre>
-         *
-         * @param tags an {@link ExtractionTags} instance containing the reasoning and (optionally) response tag names
-         */
-        public Builder thinking(ExtractionTags tags) {
-            this.tags = tags;
-            return this;
-        }
 
         /**
          * Builds a {@link ChatService} instance using the configured parameters.

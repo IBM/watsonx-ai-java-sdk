@@ -56,6 +56,7 @@ import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
@@ -408,7 +409,7 @@ public class DeploymentServiceTest {
             .transactionId("my-transaction-id")
             .build();
 
-        ChatRequest EXPECTED_BODY = ChatRequest.builder()
+        TextChatRequest EXPECTED_BODY = TextChatRequest.builder()
             .messages(List.of(UserMessage.text("Hello")))
             .parameters(parameters)
             .timeLimit(10000l)
@@ -619,7 +620,6 @@ public class DeploymentServiceTest {
             .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
             .deployment("my-deployment-id")
-            .thinking(new ExtractionTags("think", "response"))
             .build();
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -651,15 +651,17 @@ public class DeploymentServiceTest {
         when(mockAuthenticationProvider.getTokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        List<ChatMessage> messages = List.of(
-            ControlMessage.of("thinking"),
-            UserMessage.text("Translate \"Hello\" in Italian")
-        );
+        ChatRequest chatRequest = ChatRequest.builder()
+            .messages(
+                ControlMessage.of("thinking"),
+                UserMessage.text("Translate \"Hello\" in Italian"))
+            .thinking(ExtractionTags.of("think", "response"))
+            .build();
 
         StringBuilder thinkingResponse = new StringBuilder();
         StringBuilder response = new StringBuilder();
 
-        deploymentService.chatStreaming(messages, new ChatHandler() {
+        deploymentService.chatStreaming(chatRequest, new ChatHandler() {
 
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {

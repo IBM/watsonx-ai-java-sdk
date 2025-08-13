@@ -4,83 +4,60 @@
  */
 package com.ibm.watsonx.ai.chat;
 
-import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import java.util.List;
-import java.util.Map;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.JsonSchemaObject;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ResponseFormat;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.Tool;
 
 /**
- * Represents a chat request to a conversational model.
+ * Represents a chat request sent to the model.
+ * <p>
+ * Instances are created using the {@link Builder} pattern:
+ * <p>
+ * <b>Example usage:</b>
+ *
+ * <pre>{@code
+ * var tool = Tool.of(
+ *     "send_email",
+ *     "Send an email",
+ *     JsonSchema.builder()
+ *         .addStringProperty("email")
+ *         .addStringProperty("subject")
+ *         .addStringProperty("body")
+ *         .required("email", "subject", "body")
+ * );
+ *
+ * var parameters = ChatParameters.builder()
+ *     .temperature(0.7)
+ *     .maxCompletionTokens(0)
+ *     .build();
+ *
+ * ChatRequest request = ChatRequest.builder()
+ *     .messages(
+ *         SystemMessage.of("You are a helpful assistant"),
+ *         UserMessage.text("Tell me a joke")
+ *     )
+ *     .tools(tool)
+ *     .parameters(parameters)
+ *     .build();
+ * }</pre>
  */
-public final class ChatRequest {
-
-    private final String modelId;
-    private final String spaceId;
-    private final String projectId;
+public class ChatRequest {
     private final List<ChatMessage> messages;
     private final List<Tool> tools;
-    private final String toolChoiceOption;
-    private final Map<String, Object> toolChoice;
-    private final Double frequencyPenalty;
-    private final Map<String, Integer> logitBias;
-    private final Boolean logprobs;
-    private final Integer topLogprobs;
-    private final Integer maxCompletionTokens;
-    private final Integer n;
-    private final Double presencePenalty;
-    private final Integer seed;
-    private final List<String> stop;
-    private final Double temperature;
-    private final Double topP;
-    private final Long timeLimit;
-    private final Map<String, Object> responseFormat;
-    private final String context;
+    private final ChatParameters parameters;
+    private final ExtractionTags extractionTags;
 
-    public ChatRequest(Builder builder) {
-        this.modelId = builder.modelId;
-        this.spaceId = builder.spaceId;
-        this.projectId = builder.projectId;
-        this.messages = builder.messages;
+    protected ChatRequest(Builder builder) {
+        this.messages = requireNonNull(builder.messages, "messages cannot be null");
+        if (this.messages.isEmpty())
+            throw new RuntimeException("messages cannot be empty");
         this.tools = builder.tools;
-        this.toolChoiceOption = builder.toolChoiceOption;
-        this.toolChoice = builder.toolChoice;
-        this.frequencyPenalty = builder.frequencyPenalty;
-        this.logitBias = builder.logitBias;
-        this.logprobs = builder.logprobs;
-        this.topLogprobs = builder.topLogprobs;
-        this.maxCompletionTokens = builder.maxCompletionTokens;
-        this.n = builder.n;
-        this.presencePenalty = builder.presencePenalty;
-        this.seed = builder.seed;
-        this.stop = builder.stop;
-        this.temperature = builder.temperature;
-        this.topP = builder.topP;
-        this.timeLimit = builder.timeLimit;
-        this.context = builder.context;
-
-        if (nonNull(builder.responseFormat)) {
-            this.responseFormat = builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.type())
-                ? Map.of("type", builder.responseFormat, "json_schema", builder.jsonSchema)
-                : Map.of("type", builder.responseFormat);
-        } else {
-            this.responseFormat = null;
-        }
-    }
-
-    public String getModelId() {
-        return modelId;
-    }
-
-    public String getSpaceId() {
-        return spaceId;
-    }
-
-    public String getProjectId() {
-        return projectId;
+        this.parameters = builder.parameters;
+        this.extractionTags = builder.extractionTags;
     }
 
     public List<ChatMessage> getMessages() {
@@ -91,148 +68,139 @@ public final class ChatRequest {
         return tools;
     }
 
-    public String getToolChoiceOption() {
-        return toolChoiceOption;
+    public ChatParameters getParameters() {
+        return parameters;
     }
 
-    public Map<String, Object> getToolChoice() {
-        return toolChoice;
+    public ExtractionTags getExtractionTags() {
+        return extractionTags;
     }
 
-    public Double getFrequencyPenalty() {
-        return frequencyPenalty;
-    }
-
-    public Map<String, Integer> getLogitBias() {
-        return logitBias;
-    }
-
-    public Boolean getLogprobs() {
-        return logprobs;
-    }
-
-    public Integer getTopLogprobs() {
-        return topLogprobs;
-    }
-
-    public Integer getMaxCompletionTokens() {
-        return maxCompletionTokens;
-    }
-
-    public Integer getN() {
-        return n;
-    }
-
-    public Double getPresencePenalty() {
-        return presencePenalty;
-    }
-
-    public Integer getSeed() {
-        return seed;
-    }
-
-    public List<String> getStop() {
-        return stop;
-    }
-
-    public Double getTemperature() {
-        return temperature;
-    }
-
-    public Double getTopP() {
-        return topP;
-    }
-
-    public Long getTimeLimit() {
-        return timeLimit;
-    }
-
-    public Map<String, Object> getResponseFormat() {
-        return responseFormat;
-    }
-
-    public String getContext() {
-        return context;
-    }
-
+    /**
+     * Returns a new {@link Builder} instance.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * var tool = Tool.of(
+     *     "send_email",
+     *     "Send an email",
+     *     JsonSchema.builder()
+     *         .addStringProperty("email")
+     *         .addStringProperty("subject")
+     *         .addStringProperty("body")
+     *         .required("email", "subject", "body")
+     * );
+     *
+     * var parameters = ChatParameters.builder()
+     *     .temperature(0.7)
+     *     .maxCompletionTokens(0)
+     *     .build();
+     *
+     * ChatRequest request = ChatRequest.builder()
+     *     .messages(
+     *         SystemMessage.of("You are a helpful assistant"),
+     *         UserMessage.text("Tell me a joke")
+     *     )
+     *     .tools(tool)
+     *     .parameters(parameters)
+     *     .build();
+     * }</pre>
+     *
+     * @return {@link Builder} instance.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Builder class for constructing {@link ChatRequest} instances.
+     */
     public static class Builder {
-        private String modelId;
-        private String spaceId;
-        private String projectId;
         private List<ChatMessage> messages;
         private List<Tool> tools;
-        private String toolChoiceOption;
-        private Map<String, Object> toolChoice;
-        private Double frequencyPenalty;
-        private Map<String, Integer> logitBias;
-        private Boolean logprobs;
-        private Integer topLogprobs;
-        private Integer maxCompletionTokens;
-        private Integer n;
-        private Double presencePenalty;
-        private Integer seed;
-        private List<String> stop;
-        private Double temperature;
-        private Double topP;
-        private Long timeLimit;
-        private String responseFormat;
-        private JsonSchemaObject jsonSchema;
-        private String context;
+        private ChatParameters parameters;
+        private ExtractionTags extractionTags;
 
-        public Builder modelId(String modelId) {
-            this.modelId = modelId;
-            return this;
+        /**
+         * Sets the conversation messages for the request.
+         *
+         * @param messages list of {@link ChatMessage} objects
+         */
+        public Builder messages(ChatMessage... messages) {
+            return messages(List.of(messages));
         }
 
-        public Builder spaceId(String spaceId) {
-            this.spaceId = spaceId;
-            return this;
-        }
-
-        public Builder projectId(String projectId) {
-            this.projectId = projectId;
-            return this;
-        }
-
+        /**
+         * Sets the conversation messages for the request.
+         *
+         * @param messages list of {@link ChatMessage} objects
+         */
         public Builder messages(List<ChatMessage> messages) {
             this.messages = messages;
             return this;
         }
 
+        /**
+         * Sets the tools available for invocation by the model.
+         *
+         * @param tools list of {@link Tool} objects
+         */
+        public Builder tools(Tool... tools) {
+            return tools(List.of(tools));
+        }
+
+        /**
+         * Sets the tools available for invocation by the model.
+         *
+         * @param tools list of {@link Tool} objects
+         */
         public Builder tools(List<Tool> tools) {
             this.tools = tools;
             return this;
         }
 
-        public Builder timeLimit(Long timeLimit) {
-            this.timeLimit = timeLimit;
-            return this;
-        }
-
+        /**
+         * Sets the parameters controlling the chat model's behavior.
+         *
+         * @param parameters a {@link ChatParameters} instance
+         */
         public Builder parameters(ChatParameters parameters) {
-            this.toolChoiceOption = parameters.getToolChoiceOption();
-            this.toolChoice = parameters.getToolChoice();
-            this.frequencyPenalty = parameters.getFrequencyPenalty();
-            this.logitBias = parameters.getLogitBias();
-            this.logprobs = parameters.getLogprobs();
-            this.topLogprobs = parameters.getTopLogprobs();
-            this.maxCompletionTokens = parameters.getMaxCompletionTokens();
-            this.n = parameters.getN();
-            this.presencePenalty = parameters.getPresencePenalty();
-            this.seed = parameters.getSeed();
-            this.stop = parameters.getStop();
-            this.temperature = parameters.getTemperature();
-            this.topP = parameters.getTopP();
-            this.responseFormat = parameters.getResponseFormat();
-            this.jsonSchema = parameters.getJsonSchema();
-            this.context = parameters.getContext();
+            this.parameters = parameters;
             return this;
         }
 
+        /**
+         * Sets the tag names used to extract segmented content from the assistant's response.
+         * <p>
+         * The provided {@link ExtractionTags} define which XML-like tags (such as {@code <think>} and {@code <response>}) will be used to extract the
+         * response from the {@link AssistantMessage}.
+         * <p>
+         * If the {@code response} tag is not specified in {@link ExtractionTags}, it will automatically default to {@code "root"}, meaning that only
+         * the text nodes directly under the root element will be treated as the final response.
+         * <p>
+         * Example:
+         *
+         * <pre>{@code
+         * // Explicitly set both tags
+         * builder.thinking(ExtractionTags.of("think", "response")).build();
+         *
+         * // Only set reasoning tag — response defaults to "root"
+         * builder.thinking(ExtractionTags.of("think")).build();
+         * }</pre>
+         *
+         * @param tags an {@link ExtractionTags} instance containing the reasoning and (optionally) response tag names
+         */
+        public Builder thinking(ExtractionTags extractionTags) {
+            this.extractionTags = extractionTags;
+            return this;
+        }
+
+        /**
+         * Builds a {@link ChatRequest} instance using the configured parameters.
+         *
+         * @return a new instance of {@link ChatRequest}
+         */
         public ChatRequest build() {
             return new ChatRequest(this);
         }

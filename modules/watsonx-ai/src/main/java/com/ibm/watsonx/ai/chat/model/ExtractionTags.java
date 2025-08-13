@@ -19,10 +19,10 @@ import static java.util.Objects.requireNonNull;
  *
  * <pre>{@code
  * // Explicitly setting both tags
- * ExtractionTags tags = new ExtractionTags("think", "response");
+ * ExtractionTags tags = ExtractionTags.of("think", "response");
  *
  * // Setting only the reasoning tag — response will default to "root"
- * ExtractionTags tagsDefaultResponse = new ExtractionTags("think");
+ * ExtractionTags tagsDefaultResponse = ExtractionTags.of("think");
  * }</pre>
  *
  * @param think the tag name representing the model's reasoning section (without angle brackets)
@@ -37,5 +37,13 @@ public record ExtractionTags(String think, String response) {
 
     public ExtractionTags(String think) {
         this(think, "root");
+    }
+
+    public static ExtractionTags of(String think, String response) {
+        return new ExtractionTags(think, response);
+    }
+
+    public static ExtractionTags of(String think) {
+        return new ExtractionTags(think);
     }
 }
