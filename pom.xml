@@ -6,7 +6,7 @@
   <name>IBM watsonx.ai Java SDK</name>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-parent</artifactId>
-  <version>0.6.0</version>
+  <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
   <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
   <description>Java client library and SDK for IBM watsonx.ai</description>
