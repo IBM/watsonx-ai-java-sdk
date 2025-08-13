@@ -6,7 +6,7 @@ package com.ibm.watsonx.ai.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher;
+import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher;
 
 public class StreamingToolFetcherTest {
 

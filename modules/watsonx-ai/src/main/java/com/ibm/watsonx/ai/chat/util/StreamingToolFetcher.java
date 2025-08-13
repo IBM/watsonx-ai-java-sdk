@@ -2,11 +2,12 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.chat.model;
+package com.ibm.watsonx.ai.chat.util;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.util.UUID;
+import com.ibm.watsonx.ai.chat.model.ToolCall;
 
 /**
  * The {@code StreamingToolFetcher} class is responsible for fetching a list of tools from a streaming api.

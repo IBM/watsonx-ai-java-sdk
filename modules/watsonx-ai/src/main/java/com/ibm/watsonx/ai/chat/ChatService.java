@@ -20,9 +20,12 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 
@@ -51,16 +54,22 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  */
 public final class ChatService extends ModelService implements ChatProvider {
 
+    private final StreamingStateTracker stateTracker;
+
     protected ChatService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        if (nonNull(builder.tags))
+            stateTracker = new StreamingStateTracker(builder.tags);
+        else
+            stateTracker = null;
     }
 
     /**
      * Sends a chat request to the model using the provided messages, tools, and parameters.
      * <p>
      * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, include
-     * {@link Tool} definitions for function-calling models, and customize the generation behavior via {@link ChatChatParameters}.
+     * {@link Tool} definitions for function-calling models, and customize the generation behavior via {@link ChatParameters}.
      *
      * @param messages the list of chat messages representing the conversation history
      * @param tools list of tools the model may call during generation
@@ -149,7 +158,7 @@ public final class ChatService extends ModelService implements ChatProvider {
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
-        var subscriber = subscriber(chatRequest.getToolChoiceOption(), handler);
+        var subscriber = subscriber(chatRequest.getToolChoiceOption(), stateTracker, handler);
         return asyncHttpClient
             .send(httpRequest.build(), responseInfo -> logResponses
                 ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
@@ -187,6 +196,33 @@ public final class ChatService extends ModelService implements ChatProvider {
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
     public static class Builder extends ModelService.Builder<Builder> {
+        private ExtractionTags tags;
+
+        /**
+         * Sets the tag names used to extract segmented content from the assistant's response.
+         * <p>
+         * The provided {@link ExtractionTags} define which XML-like tags (such as {@code <think>} and {@code <response>}) will be used to extract the
+         * response from the {@link AssistantMessage}.
+         * <p>
+         * If the {@code response} tag is not specified in {@link ExtractionTags}, it will automatically default to {@code "root"}, meaning that only
+         * the text nodes directly under the root element will be treated as the final response.
+         * <p>
+         * Example:
+         *
+         * <pre>{@code
+         * // Explicitly set both tags
+         * builder.thinking(new ExtractionTags("think", "response")).build();
+         *
+         * // Only set reasoning tag — response defaults to "root"
+         * builder.thinking(new ExtractionTags("think")).build();
+         * }</pre>
+         *
+         * @param tags an {@link ExtractionTags} instance containing the reasoning and (optionally) response tag names
+         */
+        public Builder thinking(ExtractionTags tags) {
+            this.tags = tags;
+            return this;
+        }
 
         /**
          * Builds a {@link ChatService} instance using the configured parameters.

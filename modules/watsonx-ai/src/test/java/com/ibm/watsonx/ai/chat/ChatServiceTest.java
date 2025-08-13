@@ -54,6 +54,7 @@ import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.Image;
@@ -64,7 +65,6 @@ import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
-import com.ibm.watsonx.ai.chat.model.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.Tool;
@@ -73,6 +73,7 @@ import com.ibm.watsonx.ai.chat.model.ToolMessage;
 import com.ibm.watsonx.ai.chat.model.UserContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.VideoContent;
+import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 
@@ -2339,6 +2340,114 @@ public class ChatServiceTest {
 
         var ex = assertThrows(ExecutionException.class, () -> result.get(3, TimeUnit.SECONDS));
         assertEquals("Error in onComplete handler", ex.getCause().getMessage());
+    }
+
+    @Test
+    void test_chat_streaming_thinking() throws Exception {
+
+        var httpPort = wireMock.getPort();
+        String BODY = new String(ClassLoader.getSystemResourceAsStream("thinking_streaming_response.txt").readAllBytes());
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .withRequestBody(equalToJson("""
+                {
+                    "model_id": "ibm/granite-3-3-8b-instruct",
+                    "project_id": "project-id",
+                    "messages": [
+                        {
+                            "role": "control",
+                            "content": "thinking"
+                        },
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Translate \\"Hello\\" in Italian"
+                                }
+                            ]
+                        }
+                    ],
+                    "time_limit": 10000
+                }"""))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(159, 200)
+                .withBody(BODY)));
+
+        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("ibm/granite-3-3-8b-instruct")
+            .projectId("project-id")
+            .url(URI.create("http://localhost:%s".formatted(httpPort)))
+            .thinking(new ExtractionTags("think", "response"))
+            .build();
+
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        List<ChatMessage> messages = List.of(
+            ControlMessage.of("thinking"),
+            UserMessage.text("Translate \"Hello\" in Italian")
+        );
+
+        StringBuilder thinkingResponse = new StringBuilder();
+        StringBuilder response = new StringBuilder();
+
+        chatService.chatStreaming(messages, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                response.append(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                thinkingResponse.append(partialThinking);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                fail();
+            }
+
+            @Override
+            public void onCompleteToolCall(ToolCall completeToolCall) {
+                fail();
+            }
+        }).get(3, TimeUnit.SECONDS);
+
+
+        var EXEPECTED_THINKING =
+            "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.";
+
+        var EXPECTED_RESPONSE =
+            "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response.";
+
+        assertTrue(result.get().toText().contains("<think>"));
+        assertTrue(result.get().toText().contains("</think>"));
+        assertTrue(result.get().toText().contains("<response>"));
+        assertTrue(result.get().toText().contains("</response>"));
+        assertTrue(result.get().toText().contains(EXEPECTED_THINKING));
+        assertTrue(result.get().toText().contains(EXPECTED_RESPONSE));
+
+        assertEquals(
+            EXEPECTED_THINKING,
+            thinkingResponse.toString()
+        );
+
+        assertTrue(response.toString().contains(EXPECTED_RESPONSE));
     }
 
     @Test
