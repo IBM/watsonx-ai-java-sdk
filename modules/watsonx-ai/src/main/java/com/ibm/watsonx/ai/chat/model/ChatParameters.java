@@ -19,12 +19,12 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  * <p>
  * Instances of this class are created using the {@link Builder} pattern:
  * <p>
- * Example usage:
+ * <b>Example usage:</b>
  *
  * <pre>{@code
  * ChatParameters params = ChatParameters.builder()
  *     .temperature(0.7)
- *     .maxTokens(100)
+ *     .maxCompletionTokens(0)
  *     .toolChoiceOption(ToolChoice.AUTO)
  *     .withJsonResponse()
  *     .build();
@@ -83,26 +83,6 @@ public final class ChatParameters extends WatsonxModelParameters {
         this.toolChoice = nonNull(builder.toolChoice)
             ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
             : null;
-    }
-
-    /**
-     * Returns a new {@link Builder} instance.
-     * <p>
-     * <b>Example usage:</b>
-     *
-     * <pre>{@code
-     * ChatParameters params = ChatParameters.builder()
-     *     .temperature(0.7)
-     *     .maxTokens(100)
-     *     .toolChoiceOption(ToolChoice.AUTO)
-     *     .withJsonResponse()
-     *     .build();
-     * }</pre>
-     *
-     * @return {@link Builder} instance.
-     */
-    public static Builder builder() {
-        return new Builder();
     }
 
     public String getToolChoiceOption() {
@@ -171,6 +151,26 @@ public final class ChatParameters extends WatsonxModelParameters {
 
     public String getContext() {
         return context;
+    }
+
+    /**
+     * Returns a new {@link Builder} instance.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * ChatParameters params = ChatParameters.builder()
+     *     .temperature(0.7)
+     *     .maxCompletionTokens(0)
+     *     .toolChoiceOption(ToolChoice.AUTO)
+     *     .withJsonResponse()
+     *     .build();
+     * }</pre>
+     *
+     * @return {@link Builder} instance.
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**

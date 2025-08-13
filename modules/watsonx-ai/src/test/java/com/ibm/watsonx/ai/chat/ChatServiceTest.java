@@ -66,6 +66,7 @@ import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
@@ -199,7 +200,7 @@ public class ChatServiceTest {
         assertEquals("POST", actualRequest.method());
 
         String expectedBody = Json.toJson(
-            ChatRequest.builder()
+            TextChatRequest.builder()
                 .modelId("my-super-model")
                 .projectId("project-id")
                 .spaceId("space-id")
@@ -266,7 +267,7 @@ public class ChatServiceTest {
         assertEquals("POST", actualRequest.method());
 
         String expectedBody = Json.toJson(
-            ChatRequest.builder()
+            TextChatRequest.builder()
                 .modelId("my-default-model")
                 .projectId("default-project-id")
                 .spaceId("default-space-id")
@@ -279,6 +280,8 @@ public class ChatServiceTest {
 
     @Test
     void text_chat() throws Exception {
+
+        assertThrows(RuntimeException.class, () -> ChatRequest.builder().messages(List.of()).build(), "messages cannot be empty");
 
         final String REQUEST = """
             {
@@ -465,22 +468,23 @@ public class ChatServiceTest {
         ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
         when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var messages = List.<ChatMessage>of(
-            UserMessage.text("What is the weather like in Boston today?"));
-
-        var tools = List.of(
-            Tool.of(
-                "get_current_weather",
-                JsonSchema.builder()
-                    .addProperty("location", StringSchema.of("The city, e.g. San Francisco, CA"))
-                    .addProperty("unit", EnumSchema.of("celsius", "fahrenheit"))
-                    .required("location")));
-
         var parameters = ChatParameters.builder()
             .toolChoice("get_current_weather")
             .build();
 
-        var chatResponse = chatService.chat(messages, tools, parameters);
+        var chatResponse = chatService.chat(
+            ChatRequest.builder()
+                .messages(UserMessage.text("What is the weather like in Boston today?"))
+                .tools(Tool.of(
+                    "get_current_weather",
+                    JsonSchema.builder()
+                        .addProperty("location", StringSchema.of("The city, e.g. San Francisco, CA"))
+                        .addProperty("unit", EnumSchema.of("celsius", "fahrenheit"))
+                        .required("location")))
+                .parameters(parameters)
+                .build()
+        );
+
         JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
         JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
         assertEquals("ChatUsage [completionTokens=18, promptTokens=19, totalTokens=37]",
@@ -1993,8 +1997,14 @@ public class ChatServiceTest {
             .toolChoiceOption(ToolChoice.REQUIRED)
             .build();
 
+        var chatRequest = ChatRequest.builder()
+            .messages(messages)
+            .tools(tools)
+            .parameters(chatParameters)
+            .build();
+
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        chatService.chatStreaming(messages, tools, chatParameters, new ChatHandler() {
+        chatService.chatStreaming(chatRequest, new ChatHandler() {
 
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -2383,19 +2393,21 @@ public class ChatServiceTest {
             .modelId("ibm/granite-3-3-8b-instruct")
             .projectId("project-id")
             .url(URI.create("http://localhost:%s".formatted(httpPort)))
-            .thinking(new ExtractionTags("think", "response"))
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        List<ChatMessage> messages = List.of(
-            ControlMessage.of("thinking"),
-            UserMessage.text("Translate \"Hello\" in Italian")
-        );
+        ChatRequest chatRequest = ChatRequest.builder()
+            .messages(
+                ControlMessage.of("thinking"),
+                UserMessage.text("Translate \"Hello\" in Italian"))
+            .thinking(ExtractionTags.of("think", "response"))
+            .build();
+
 
         StringBuilder thinkingResponse = new StringBuilder();
         StringBuilder response = new StringBuilder();
 
-        chatService.chatStreaming(messages, new ChatHandler() {
+        chatService.chatStreaming(chatRequest, new ChatHandler() {
 
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -2511,10 +2523,10 @@ public class ChatServiceTest {
         var chatParameters = ChatParameters.builder().build();
 
         var ex2 = assertThrows(NullPointerException.class, () -> chatService.chat(null, chatParameters));
-        assertEquals("The list of messages can not be null", ex2.getMessage());
+        assertEquals("messages cannot be null", ex2.getMessage());
         ex2 =
             assertThrows(NullPointerException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
-        assertEquals("The list of messages can not be null", ex2.getMessage());
+        assertEquals("messages cannot be null", ex2.getMessage());
     }
 
     @Test

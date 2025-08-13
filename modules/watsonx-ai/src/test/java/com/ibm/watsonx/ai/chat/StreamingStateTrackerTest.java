@@ -38,7 +38,7 @@ public class StreamingStateTrackerTest {
 
     @Test
     public void streaming_state_tracker_test_2() {
-        StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think"));
+        StreamingStateTracker tracker = new StreamingStateTracker(ExtractionTags.of("think"));
         assertEquals(new Result(UNKNOWN, Optional.empty()), tracker.update("<"));
         assertEquals(new Result(UNKNOWN, Optional.empty()), tracker.update("think"));
         assertEquals(new Result(THINKING, Optional.empty()), tracker.update(">"));

@@ -28,10 +28,9 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.core.SseEventLogger;
@@ -74,16 +73,11 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesProvider;
 public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
-    private final StreamingStateTracker stateTracker;
     private final String deployment;
 
     protected DeploymentService(Builder builder) {
         super(builder);
         deployment = requireNonNull(builder.deployment, "deployment cannot be null");
-        if (nonNull(builder.tags))
-            stateTracker = new StreamingStateTracker(builder.tags);
-        else
-            stateTracker = null;
     }
 
     /**
@@ -199,16 +193,18 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public ChatResponse chat(List<ChatMessage> messages, List<Tool> tools, ChatParameters parameters) {
+    public ChatResponse chat(ChatRequest chatRequest) {
 
-        requireNonNull(messages, "messages cannot be null");
+        List<ChatMessage> messages = chatRequest.getMessages();
+        List<Tool> tools = chatRequest.getTools();
+        ChatParameters parameters = chatRequest.getParameters();
 
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
         logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
-        var chatRequest = ChatRequest.builder()
+        var textChatRequest = TextChatRequest.builder()
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
@@ -219,7 +215,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             HttpRequest.newBuilder(URI.create(url.toString() + "%s/deployments/%s/text/chat?version=%s".formatted(ML_API_PATH, deployment, version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
-                .POST(BodyPublishers.ofString(toJson(chatRequest)))
+                .POST(BodyPublishers.ofString(toJson(textChatRequest)))
                 .timeout(Duration.ofMillis(timeout));
 
         if (nonNull(parameters.getTransactionId()))
@@ -236,17 +232,22 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatParameters parameters, ChatHandler handler) {
+    public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
+
+        var messages = chatRequest.getMessages();
+        var tools = chatRequest.getTools();
+        var parameters = chatRequest.getParameters();
+        var stateTracker = nonNull(chatRequest.getExtractionTags())
+            ? new StreamingStateTracker(chatRequest.getExtractionTags())
+            : null;
 
         requireNonNull(handler, "The chatHandler parameter can not be null");
-        requireNonNull(messages, "messages cannot be null");
-
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
         logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
-        var chatRequest = ChatRequest.builder()
+        var textChatRequest = TextChatRequest.builder()
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
@@ -258,13 +259,13 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                 .newBuilder(URI.create(url.toString() + "%s/deployments/%s/text/chat_stream?version=%s".formatted(ML_API_PATH, deployment, version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
-                .POST(BodyPublishers.ofString(toJson(chatRequest)))
+                .POST(BodyPublishers.ofString(toJson(textChatRequest)))
                 .timeout(Duration.ofMillis(timeout));
 
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
-        var subscriber = subscriber(chatRequest.getToolChoiceOption(), stateTracker, handler);
+        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), stateTracker, handler);
         return asyncHttpClient
             .send(httpRequest.build(), responseInfo -> logResponses
                 ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
@@ -358,36 +359,9 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      */
     public static class Builder extends WatsonxService.Builder<Builder> {
         private String deployment;
-        private ExtractionTags tags;
 
         public Builder deployment(String deployment) {
             this.deployment = deployment;
-            return this;
-        }
-
-        /**
-         * Sets the tag names used to extract segmented content from the assistant's response.
-         * <p>
-         * The provided {@link ExtractionTags} define which XML-like tags (such as {@code <think>} and {@code <response>}) will be used to extract the
-         * response from the {@link AssistantMessage}.
-         * <p>
-         * If the {@code response} tag is not specified in {@link ExtractionTags}, it will automatically default to {@code "root"}, meaning that only
-         * the text nodes directly under the root element will be treated as the final response.
-         * <p>
-         * Example:
-         *
-         * <pre>{@code
-         * // Explicitly set both tags
-         * builder.thinking(new ExtractionTags("think", "response")).build();
-         *
-         * // Only set reasoning tag — response defaults to "root"
-         * builder.thinking(new ExtractionTags("think")).build();
-         * }</pre>
-         *
-         * @param tags an {@link ExtractionTags} instance containing the reasoning and (optionally) response tag names
-         */
-        public Builder thinking(ExtractionTags tags) {
-            this.tags = tags;
             return this;
         }
 
