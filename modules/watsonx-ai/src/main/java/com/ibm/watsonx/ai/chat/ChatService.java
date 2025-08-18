@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
@@ -94,7 +95,16 @@ public final class ChatService extends ModelService implements ChatProvider {
         try {
 
             var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), ChatResponse.class);
+            var chatResponse = fromJson(httpReponse.body(), ChatResponse.class);
+
+            // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
+            if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoice.REQUIRED.type())) {
+                var assistantMessage = chatResponse.toAssistantMessage();
+                if (nonNull(assistantMessage.toolCalls()) && !assistantMessage.toolCalls().isEmpty())
+                    chatResponse.getChoices().get(0).setFinishReason("tool_calls");
+            }
+
+            return chatResponse;
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

@@ -180,11 +180,11 @@ public class ChatServiceTest {
         assertEquals("my-super-model-model", chatResponse.getModel());
         assertNotNull(chatResponse.getChoices());
         assertEquals(1, chatResponse.getChoices().size());
-        assertEquals(0, chatResponse.getChoices().get(0).index());
-        assertEquals(0, chatResponse.getChoices().get(0).index());
-        assertEquals("assistant", chatResponse.getChoices().get(0).message().role());
-        assertEquals("Hello!!!", chatResponse.getChoices().get(0).message().content());
-        assertEquals("stop", chatResponse.getChoices().get(0).finishReason());
+        assertEquals(0, chatResponse.getChoices().get(0).getIndex());
+        assertEquals(0, chatResponse.getChoices().get(0).getIndex());
+        assertEquals("assistant", chatResponse.getChoices().get(0).getMessage().role());
+        assertEquals("Hello!!!", chatResponse.getChoices().get(0).getMessage().content());
+        assertEquals("stop", chatResponse.getChoices().get(0).getFinishReason());
         assertEquals(1749288614, chatResponse.getCreated());
         assertEquals("2025-06-07T09:30:15.122Z", chatResponse.getCreatedAt());
         assertNotNull(chatResponse.getUsage());
@@ -1527,9 +1527,9 @@ public class ChatServiceTest {
         assertNotNull(response);
         assertNotNull(response.getChoices());
         assertEquals(1, response.getChoices().size());
-        assertEquals("stop", response.getChoices().get(0).finishReason());
-        assertEquals(0, response.getChoices().get(0).index());
-        assertEquals("Ciao", response.getChoices().get(0).message().content());
+        assertEquals("stop", response.getChoices().get(0).getFinishReason());
+        assertEquals(0, response.getChoices().get(0).getIndex());
+        assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
         assertEquals("Ciao", response.toText());
         assertNotNull(response.getCreated());
         assertNotNull(response.getCreatedAt());
@@ -1715,27 +1715,27 @@ public class ChatServiceTest {
         assertEquals(368, response.getUsage().getTotalTokens());
         assertNotNull(response.getChoices());
         assertEquals(1, response.getChoices().size());
-        assertEquals(0, response.getChoices().get(0).index());
-        assertEquals("tool_calls", response.getChoices().get(0).finishReason());
-        assertNotNull(response.getChoices().get(0).message());
-        assertNull(response.getChoices().get(0).message().content());
-        assertNull(response.getChoices().get(0).message().refusal());
-        assertEquals("assistant", response.getChoices().get(0).message().role());
-        assertEquals(2, response.getChoices().get(0).message().toolCalls().size());
+        assertEquals(0, response.getChoices().get(0).getIndex());
+        assertEquals("tool_calls", response.getChoices().get(0).getFinishReason());
+        assertNotNull(response.getChoices().get(0).getMessage());
+        assertNull(response.getChoices().get(0).getMessage().content());
+        assertNull(response.getChoices().get(0).getMessage().refusal());
+        assertEquals("assistant", response.getChoices().get(0).getMessage().role());
+        assertEquals(2, response.getChoices().get(0).getMessage().toolCalls().size());
         assertEquals("chatcmpl-tool-af37032523934f019aa7258469580a7a",
-            response.getChoices().get(0).message().toolCalls().get(0).id());
-        assertEquals(0, response.getChoices().get(0).message().toolCalls().get(0).index());
-        assertEquals("function", response.getChoices().get(0).message().toolCalls().get(0).type());
-        assertEquals("sum", response.getChoices().get(0).message().toolCalls().get(0).function().name());
+            response.getChoices().get(0).getMessage().toolCalls().get(0).id());
+        assertEquals(0, response.getChoices().get(0).getMessage().toolCalls().get(0).index());
+        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(0).type());
+        assertEquals("sum", response.getChoices().get(0).getMessage().toolCalls().get(0).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).message().toolCalls().get(0).function().arguments());
+            response.getChoices().get(0).getMessage().toolCalls().get(0).function().arguments());
         assertEquals("chatcmpl-tool-f762db03c60f441dba57bab09552bb7b",
-            response.getChoices().get(0).message().toolCalls().get(1).id());
-        assertEquals(1, response.getChoices().get(0).message().toolCalls().get(1).index());
-        assertEquals("function", response.getChoices().get(0).message().toolCalls().get(1).type());
-        assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
+            response.getChoices().get(0).getMessage().toolCalls().get(1).id());
+        assertEquals(1, response.getChoices().get(0).getMessage().toolCalls().get(1).index());
+        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(1).type());
+        assertEquals("subtraction", response.getChoices().get(0).getMessage().toolCalls().get(1).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+            response.getChoices().get(0).getMessage().toolCalls().get(1).function().arguments());
 
 
         assertEquals(4, toolFetchers.size());
@@ -2045,27 +2045,27 @@ public class ChatServiceTest {
         assertEquals(423, response.getUsage().getTotalTokens());
         assertNotNull(response.getChoices());
         assertEquals(1, response.getChoices().size());
-        assertEquals(0, response.getChoices().get(0).index());
-        assertEquals("tool_calls", response.getChoices().get(0).finishReason());
-        assertNotNull(response.getChoices().get(0).message());
-        assertNull(response.getChoices().get(0).message().content());
-        assertNull(response.getChoices().get(0).message().refusal());
-        assertEquals("assistant", response.getChoices().get(0).message().role());
-        assertEquals(2, response.getChoices().get(0).message().toolCalls().size());
+        assertEquals(0, response.getChoices().get(0).getIndex());
+        assertEquals("tool_calls", response.getChoices().get(0).getFinishReason());
+        assertNotNull(response.getChoices().get(0).getMessage());
+        assertNull(response.getChoices().get(0).getMessage().content());
+        assertNull(response.getChoices().get(0).getMessage().refusal());
+        assertEquals("assistant", response.getChoices().get(0).getMessage().role());
+        assertEquals(2, response.getChoices().get(0).getMessage().toolCalls().size());
         // If tool_choice_option is "required" watsonx doesn't return the id, so it will be autogenerated.
-        assertNotNull(response.getChoices().get(0).message().toolCalls().get(0).id());
-        assertEquals(0, response.getChoices().get(0).message().toolCalls().get(0).index());
-        assertEquals("function", response.getChoices().get(0).message().toolCalls().get(0).type());
-        assertEquals("sum", response.getChoices().get(0).message().toolCalls().get(0).function().name());
+        assertNotNull(response.getChoices().get(0).getMessage().toolCalls().get(0).id());
+        assertEquals(0, response.getChoices().get(0).getMessage().toolCalls().get(0).index());
+        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(0).type());
+        assertEquals("sum", response.getChoices().get(0).getMessage().toolCalls().get(0).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).message().toolCalls().get(0).function().arguments());
+            response.getChoices().get(0).getMessage().toolCalls().get(0).function().arguments());
         // If tool_choice_option is "required" watsonx doesn't return the id, so it will be autogenerated.
-        assertNotNull(response.getChoices().get(0).message().toolCalls().get(1).id());
-        assertEquals(1, response.getChoices().get(0).message().toolCalls().get(1).index());
-        assertEquals("function", response.getChoices().get(0).message().toolCalls().get(1).type());
-        assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
+        assertNotNull(response.getChoices().get(0).getMessage().toolCalls().get(1).id());
+        assertEquals(1, response.getChoices().get(0).getMessage().toolCalls().get(1).index());
+        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(1).type());
+        assertEquals("subtraction", response.getChoices().get(0).getMessage().toolCalls().get(1).function().name());
         assertEquals("{\"firstNumber\": 4, \"secondNumber\": 2}",
-            response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+            response.getChoices().get(0).getMessage().toolCalls().get(1).function().arguments());
 
         assertEquals(28, toolFetchers.size());
         JSONAssert.assertEquals(
@@ -2460,6 +2460,66 @@ public class ChatServiceTest {
         );
 
         assertTrue(response.toString().contains(EXPECTED_RESPONSE));
+    }
+
+    @Test
+    void chat_tool_choice_option_required() throws Exception {
+
+        // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
+        // In this case, the SDK forces the finish response.
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(
+            """
+                {
+                    "model": "model",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "",
+                                "tool_calls": [
+                                    {
+                                        "id": "chatcmpl-tool-6e63f95869944f03a86fdab6189ba0b5",
+                                        "type": "function",
+                                        "function": {
+                                            "name": "getWeather",
+                                            "arguments": "{\\"city\\": \\"Munich\\"}"
+                                        }
+                                    }
+                                ]
+                            },
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "created": 1755501551,
+                    "model_version": "3.2.0",
+                    "created_at": "2025-08-18T07:19:13.136Z",
+                    "usage": {
+                        "completion_tokens": 23,
+                        "prompt_tokens": 309,
+                        "total_tokens": 332
+                    }
+                }""");
+
+        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
+        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("ibm/granite-3-3-8b-instruct")
+            .projectId("project-id")
+            .url(CloudRegion.FRANKFURT)
+            .httpClient(mockHttpClient)
+            .build();
+
+        var parameters = ChatParameters.builder()
+            .toolChoiceOption(ToolChoice.REQUIRED)
+            .build();
+
+        var response = chatService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
+        assertEquals("tool_calls", response.finishReason().value());
     }
 
     @Test
