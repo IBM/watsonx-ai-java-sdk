@@ -15,12 +15,14 @@ import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
@@ -32,11 +34,14 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -2642,6 +2647,38 @@ public class ChatServiceTest {
                 result.completeExceptionally(error);
             }
         }).get(3, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void verify_the_use_of_custom_executor() throws Exception {
+
+        List<String> executedThreads = Collections.synchronizedList(new ArrayList<>());
+        Executor trackingExecutor = command -> {
+            executedThreads.add(Thread.currentThread().getName());
+            new Thread(command, "test-thread").start();
+        };
+
+        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockHttpClient.executor()).thenReturn(Optional.of(trackingExecutor));
+
+        var chatService = ChatService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .projectId("project-id")
+            .modelId("model-id")
+            .build();
+
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(mockHttpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(CompletableFuture.completedFuture(response));
+
+        ChatHandler handler = mock(ChatHandler.class);
+        CompletableFuture<Void> future = chatService.chatStreaming(List.of(UserMessage.text("Hello")), handler);
+
+        future.get(3, TimeUnit.SECONDS);
+
+        assertFalse(executedThreads.isEmpty());
+        assertTrue(executedThreads.stream().anyMatch(name -> name.contains("test-thread")));
     }
 
     @Test
