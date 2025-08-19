@@ -345,21 +345,20 @@ public interface ChatProvider {
                     }
 
                 } catch (RuntimeException e) {
-
-                    success = false;
-                    onError(e);
-
+                    handler.onError(e);
+                    success = !handler.failOnFirstError();
                 } finally {
-
-                    if (success)
+                    if (success) {
                         subscription.request(1);
+                    } else {
+                        subscription.cancel();
+                    }
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
                 handler.onError(throwable);
-                subscription.cancel();
             }
 
             @Override
