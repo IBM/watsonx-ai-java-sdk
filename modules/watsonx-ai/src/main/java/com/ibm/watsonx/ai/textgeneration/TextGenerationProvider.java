@@ -162,14 +162,14 @@ public interface TextGenerationProvider {
                     }
 
                 } catch (RuntimeException e) {
-
-                    success = false;
-                    onError(e);
-
+                    handler.onError(e);
+                    success = !handler.failOnFirstError();
                 } finally {
-
-                    if (success)
+                    if (success) {
                         subscription.request(1);
+                    } else {
+                        subscription.cancel();
+                    }
                 }
             }
 
