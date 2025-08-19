@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -108,26 +107,25 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     public CompletableFuture<String> getTokenAsync(Executor executor) {
 
         IdentityTokenResponse currentToken = token.get();
-        executor = requireNonNullElse(executor, asyncHttpClient.executor());
-
         var request = createHttpRequest();
 
         if (!isExpired(currentToken)) {
             return completedFuture(token.get().accessToken());
         }
 
-        return asyncHttpClient.send(request, BodyHandlers.ofString()).thenApply(response -> {
+        return asyncHttpClient.send(request, BodyHandlers.ofString())
+            .thenApplyAsync(response -> {
 
-            var statusCode = response.statusCode();
+                var statusCode = response.statusCode();
 
-            if (statusCode >= 200 && statusCode < 300) {
-                token.getAndSet(fromJson(response.body(), IdentityTokenResponse.class));
-                return token.get().accessToken();
-            }
+                if (statusCode >= 200 && statusCode < 300) {
+                    token.getAndSet(fromJson(response.body(), IdentityTokenResponse.class));
+                    return token.get().accessToken();
+                }
 
-            // The status code is not 2xx.
-            throw new CompletionException(response.body(), new RuntimeException());
-        });
+                // The status code is not 2xx.
+                throw new RuntimeException(response.body());
+            }, requireNonNullElse(executor, asyncHttpClient.executor()));
     }
 
     /**

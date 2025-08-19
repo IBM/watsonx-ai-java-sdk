@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
@@ -30,10 +31,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +57,7 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -450,7 +456,7 @@ public class DeploymentServiceTest {
         assertEquals(213, response.getUsage().getTotalTokens());
         assertEquals(1, response.getChoices().size());
         assertEquals("The 2020 World Series was played at the Globe Life Field in Arlington, Texas.\n",
-            response.getChoices().get(0).message().content());
+            response.getChoices().get(0).getMessage().content());
         assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
 
         JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(httpRequest), true);
@@ -574,9 +580,9 @@ public class DeploymentServiceTest {
         assertNotNull(response);
         assertNotNull(response.getChoices());
         assertEquals(1, response.getChoices().size());
-        assertEquals("stop", response.getChoices().get(0).finishReason());
-        assertEquals(0, response.getChoices().get(0).index());
-        assertEquals("Ciao", response.getChoices().get(0).message().content());
+        assertEquals("stop", response.getChoices().get(0).getFinishReason());
+        assertEquals(0, response.getChoices().get(0).getIndex());
+        assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
         assertEquals("Ciao", response.toText());
         assertNotNull(response.getCreated());
         assertNotNull(response.getCreatedAt());
@@ -1141,6 +1147,102 @@ public class DeploymentServiceTest {
 
         System.out.println(prettyPrint(toJson(response)));
         JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+    }
+
+    @Test
+    void chat_tool_choice_option_required() throws Exception {
+
+        // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
+        // In this case, the SDK forces the finish response.
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(
+            """
+                {
+                    "model": "model",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "",
+                                "tool_calls": [
+                                    {
+                                        "id": "chatcmpl-tool-6e63f95869944f03a86fdab6189ba0b5",
+                                        "type": "function",
+                                        "function": {
+                                            "name": "getWeather",
+                                            "arguments": "{\\"city\\": \\"Munich\\"}"
+                                        }
+                                    }
+                                ]
+                            },
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "created": 1755501551,
+                    "model_version": "3.2.0",
+                    "created_at": "2025-08-18T07:19:13.136Z",
+                    "usage": {
+                        "completion_tokens": 23,
+                        "prompt_tokens": 309,
+                        "total_tokens": 332
+                    }
+                }""");
+
+        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
+        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        var deploymentService = DeploymentService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .deployment("my-deployment-id")
+            .build();
+
+        var parameters = ChatParameters.builder()
+            .toolChoiceOption(ToolChoice.REQUIRED)
+            .build();
+
+        var response = deploymentService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
+        assertEquals("tool_calls", response.finishReason().value());
+    }
+
+    @Test
+    void verify_the_use_of_custom_executor() throws Exception {
+
+        List<String> executedThreads = Collections.synchronizedList(new ArrayList<>());
+        Executor trackingExecutor = command -> {
+            executedThreads.add(Thread.currentThread().getName());
+            new Thread(command, "test-thread").start();
+        };
+
+        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        when(mockHttpClient.executor()).thenReturn(Optional.of(trackingExecutor));
+
+        DeploymentService deploymentService = DeploymentService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .deployment("my-deployment-id")
+            .build();
+
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(mockHttpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletableFuture<Void> future = deploymentService.chatStreaming(List.of(UserMessage.text("Hello")), mock(ChatHandler.class));
+
+        future.get(3, TimeUnit.SECONDS);
+
+        assertFalse(executedThreads.isEmpty());
+        assertTrue(executedThreads.stream().anyMatch(name -> name.contains("test-thread")));
+
+        future = deploymentService.generateStreaming("Hello", mock(TextGenerationHandler.class));
+
+        future.get(3, TimeUnit.SECONDS);
+
+        assertFalse(executedThreads.isEmpty());
+        assertTrue(executedThreads.stream().anyMatch(name -> name.contains("test-thread")));
     }
 
     @Test

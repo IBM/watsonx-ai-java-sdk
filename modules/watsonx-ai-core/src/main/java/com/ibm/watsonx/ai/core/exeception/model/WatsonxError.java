@@ -37,7 +37,7 @@ public record WatsonxError(Integer statusCode, String trace, List<Error> errors)
     /**
      * Enumerates the known watsonx error codes.
      */
-    public enum Code {
+    public static enum Code {
         /** Authorization was rejected. */
         AUTHORIZATION_REJECTED("authorization_rejected"),
 

@@ -6,16 +6,26 @@ package com.ibm.watsonx.ai.core;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -73,9 +83,12 @@ public class IAMAuthenticatorAsyncTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void test_ko_token() throws Exception {
 
-        var response = Utils.koResponse();
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(response.body()).thenReturn(Utils.WRONG_RESPONSE);
+        when(response.statusCode()).thenReturn(400);
 
         when(httpClient.<String>sendAsync(any(), any()))
             .thenReturn(CompletableFuture.completedFuture(response));
@@ -132,5 +145,36 @@ public class IAMAuthenticatorAsyncTest {
         assertEquals("application/x-www-form-urlencoded",
             requestCaptor.getValue().headers().firstValue("Content-Type").get());
         assertEquals("grant_type=new_grant_type&apikey=my_super_api_key", Utils.bodyPublisherToString(requestCaptor));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void verify_the_use_of_custom_executor() throws Exception {
+
+        List<String> executedThreads = Collections.synchronizedList(new ArrayList<>());
+        Executor trackingExecutor = command -> {
+            executedThreads.add(Thread.currentThread().getName());
+            new Thread(command, "test-thread").start();
+        };
+
+        when(httpClient.executor()).thenReturn(Optional.of(trackingExecutor));
+
+        var authenticator = IAMAuthenticator.builder()
+            .httpClient(httpClient)
+            .grantType("new_grant_type")
+            .timeout(Duration.ofSeconds(1))
+            .url(URI.create("http://mytest.com"))
+            .apiKey("my_super_api_key")
+            .build();
+
+        var response = Utils.okResponse();
+        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletableFuture<String> future = authenticator.getTokenAsync();
+
+        future.get(3, TimeUnit.SECONDS);
+
+        executedThreads.stream().forEach(System.out::println);
+        assertFalse(executedThreads.isEmpty());
     }
 }

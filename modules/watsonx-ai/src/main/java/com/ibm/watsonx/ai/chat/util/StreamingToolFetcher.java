@@ -40,8 +40,16 @@ public final class StreamingToolFetcher {
             this.arguments.append(arguments);
     }
 
-    public PartialToolCall buildPartial() {
-        return new PartialToolCall(index, id, name, arguments.toString());
+    public int getIndex() {
+        return index;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public ToolCall build() {
@@ -49,6 +57,6 @@ public final class StreamingToolFetcher {
         if (isNull(id)) {
             this.id = UUID.randomUUID().toString();
         }
-        return ToolCall.of(index, id, name, arguments.toString());
+        return ToolCall.of(index, id, name, arguments.toString().isBlank() ? "{}" : arguments.toString());
     }
 }

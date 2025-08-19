@@ -17,6 +17,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -30,6 +31,7 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
@@ -184,19 +186,18 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         var subscriber = subscriber(handler);
-        return asyncHttpClient
-            .send(httpRequest.build(),
-                responseInfo -> logResponses
-                    ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-                    : BodySubscribers.fromLineSubscriber(subscriber)
-            ).thenApply(response -> null);
+        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+            : BodySubscribers.fromLineSubscriber(subscriber))
+            .thenAcceptAsync(r -> {}, asyncHttpClient.executor())
+            .exceptionallyAsync(t -> handlerError(t, handler), asyncHttpClient.executor());
     }
 
     @Override
     public ChatResponse chat(ChatRequest chatRequest) {
 
         List<ChatMessage> messages = chatRequest.getMessages();
-        List<Tool> tools = chatRequest.getTools();
+        List<Tool> tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
         ChatParameters parameters = chatRequest.getParameters();
 
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
@@ -224,7 +225,16 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         try {
 
             var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), ChatResponse.class);
+            var chatResponse = fromJson(httpReponse.body(), ChatResponse.class);
+
+            // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
+            if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoice.REQUIRED.type())) {
+                var assistantMessage = chatResponse.toAssistantMessage();
+                if (nonNull(assistantMessage.toolCalls()) && !assistantMessage.toolCalls().isEmpty())
+                    chatResponse.getChoices().get(0).setFinishReason("tool_calls");
+            }
+
+            return chatResponse;
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -235,7 +245,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
 
         var messages = chatRequest.getMessages();
-        var tools = chatRequest.getTools();
+        var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
         var parameters = chatRequest.getParameters();
         var stateTracker = nonNull(chatRequest.getExtractionTags())
             ? new StreamingStateTracker(chatRequest.getExtractionTags())
@@ -265,12 +275,16 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
-        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), stateTracker, handler);
-        return asyncHttpClient
-            .send(httpRequest.build(), responseInfo -> logResponses
-                ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-                : BodySubscribers.fromLineSubscriber(subscriber)
-            ).thenApply(response -> null);
+        Map<String, Boolean> toolHasParameters = new HashMap<>();
+        if (nonNull(tools))
+            tools.stream().forEach(tool -> toolHasParameters.put(tool.function().name(), tool.hasParameters()));
+
+        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), toolHasParameters, stateTracker, handler);
+        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+            : BodySubscribers.fromLineSubscriber(subscriber))
+            .thenAcceptAsync(r -> {}, asyncHttpClient.executor())
+            .exceptionallyAsync(t -> handlerError(t, handler), asyncHttpClient.executor());
     }
 
     @Override

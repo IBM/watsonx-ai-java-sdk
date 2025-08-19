@@ -189,7 +189,7 @@ public class ChatRequest {
          * builder.thinking(ExtractionTags.of("think")).build();
          * }</pre>
          *
-         * @param tags an {@link ExtractionTags} instance containing the reasoning and (optionally) response tag names
+         * @param extractionTags an {@link ExtractionTags} instance containing the reasoning and (optionally) response tag names
          */
         public Builder thinking(ExtractionTags extractionTags) {
             this.extractionTags = extractionTags;

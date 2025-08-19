@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.ObjectSchema;
@@ -31,6 +32,7 @@ public record Tool(String type, Function function) {
 
     public Tool {
         type = TYPE;
+        requireNonNull(function, "function cannot be null");
     }
 
     /**
@@ -91,5 +93,14 @@ public record Tool(String type, Function function) {
     public static Tool of(String name, ObjectSchema.Builder parameters) {
         requireNonNull(parameters);
         return of(name, parameters.build());
+    }
+
+    /**
+     * Checks whether this tool has any parameters defined.
+     *
+     * @return {@code true} if parameters are present, {@code false} otherwise.
+     */
+    public boolean hasParameters() {
+        return isNull(function.parameters) ? false : true;
     }
 }

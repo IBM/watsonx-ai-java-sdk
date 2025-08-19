@@ -8,11 +8,13 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
@@ -115,10 +117,12 @@ public class BearerInterceptorTest {
     }
 
     @Test
-    void test_bearer_interceptor_async_with_exception() throws Exception {
+    @SuppressWarnings("unchecked")
+    void test_bearer_interceptor_async_with_exception() {
 
-        var response = Utils.koResponse();
-        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(response.body()).thenReturn(Utils.WRONG_RESPONSE);
+        when(response.statusCode()).thenReturn(400);
 
         AuthenticationProvider authenticator = IAMAuthenticator.builder()
             .httpClient(httpClient)
@@ -130,7 +134,7 @@ public class BearerInterceptorTest {
             .interceptor(new BearerInterceptor(authenticator))
             .build();
 
-        when(httpClient.<String>sendAsync(requestCaptor.capture(), any()))
+        when(httpClient.<String>sendAsync(any(), any()))
             .thenReturn(completedFuture(response));
 
         var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))

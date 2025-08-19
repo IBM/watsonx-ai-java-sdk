@@ -6,10 +6,12 @@ package com.ibm.watsonx.ai.textgeneration;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
+import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
@@ -92,6 +94,18 @@ public interface TextGenerationProvider {
     public CompletableFuture<Void> generateStreaming(String input, TextGenerationParameters parameters, TextGenerationHandler handler);
 
     /**
+     * Handles an error by invoking the {@link ChatHandler}'s {@code onError} callback if the given throwable is non-null.
+     *
+     * @param t the {@link Throwable} to handle
+     * @param handler the {@link ChatHandler} that should be notified of the error
+     * @return always {@code null}, enabling direct use in async exception handlers
+     */
+    public default Void handlerError(Throwable t, TextGenerationHandler handler) {
+        ofNullable(t).ifPresent(handler::onError);
+        return null;
+    }
+
+    /**
      * Returns a {@link Flow.Subscriber} implementation that processes streaming text generation responses.
      *
      * @param handler the callback handler to receive updates and final result
@@ -148,14 +162,14 @@ public interface TextGenerationProvider {
                     }
 
                 } catch (RuntimeException e) {
-
-                    success = false;
-                    onError(e);
-
+                    handler.onError(e);
+                    success = !handler.failOnFirstError();
                 } finally {
-
-                    if (success)
+                    if (success) {
                         subscription.request(1);
+                    } else {
+                        subscription.cancel();
+                    }
                 }
             }
 

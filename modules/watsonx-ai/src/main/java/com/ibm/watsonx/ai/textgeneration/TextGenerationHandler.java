@@ -30,4 +30,13 @@ public interface TextGenerationHandler {
      * @param error the exception that was thrown
      */
     void onError(Throwable error);
+
+    /**
+     * Determines whether the handler should fail immediately upon the first error encountered.
+     *
+     * @return {@code true} if the handler should fail on first error, {@code false} otherwise
+     */
+    default boolean failOnFirstError() {
+        return false;
+    }
 }

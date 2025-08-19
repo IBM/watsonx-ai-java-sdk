@@ -246,26 +246,15 @@ public abstract class WatsonxService {
     public static abstract class ModelService extends ProjectService {
 
         protected final String modelId;
-        protected final FoundationModelService foundationModelService;
 
         protected ModelService(Builder<?> builder) {
             super(builder);
             modelId = requireNonNull(builder.modelId, "The modelId must be provided");
-            foundationModelService = requireNonNullElse(
-                builder.foundationModelService, FoundationModelService.builder()
-                    .url(url)
-                    .techPreview(true)
-                    .httpClient(httpClient)
-                    .logRequests(logRequests)
-                    .logResponses(logResponses)
-                    .build()
-            );
         }
 
         @SuppressWarnings("unchecked")
         protected static abstract class Builder<T extends Builder<T>> extends ProjectService.Builder<T> {
             private String modelId;
-            private FoundationModelService foundationModelService;
 
             /**
              * Sets the default model.
@@ -274,16 +263,6 @@ public abstract class WatsonxService {
              */
             public T modelId(String modelId) {
                 this.modelId = modelId;
-                return (T) this;
-            }
-
-            /**
-             * Sets the {@link FoundationModelService} used for authenticating requests.
-             *
-             * @param foundationModelService {@link FoundationModelService} instance
-             */
-            public T foundationModelService(FoundationModelService foundationModelService) {
-                this.foundationModelService = foundationModelService;
                 return (T) this;
             }
         }

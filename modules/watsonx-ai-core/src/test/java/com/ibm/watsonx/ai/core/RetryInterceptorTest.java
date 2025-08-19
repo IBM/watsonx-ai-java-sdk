@@ -21,11 +21,14 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Flow;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -396,6 +399,7 @@ public class RetryInterceptorTest {
         };
 
         @Test
+        @SuppressWarnings("unchecked")
         void retry_only_with_exception() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
@@ -413,17 +417,17 @@ public class RetryInterceptorTest {
             when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
-            when(httpClient.sendAsync(httpRequest, bodyHandler))
+            when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
                 .thenReturn(CompletableFuture.failedFuture(new NullPointerException()));
 
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
-            assertEquals("Max retries reached", ex.getCause().getMessage());
-            assertEquals(NullPointerException.class, ex.getCause().getCause().getClass());
-            verify(httpClient, times(3)).sendAsync(httpRequest, bodyHandler);
+            assertEquals(NullPointerException.class, ex.getCause().getClass());
+            verify(httpClient, times(3)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             verify(mockInterceptor, times(3)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void retry_with_exception_and_supplier() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
@@ -440,17 +444,18 @@ public class RetryInterceptorTest {
             when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
-            when(httpClient.sendAsync(httpRequest, bodyHandler))
+            when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
                 .thenReturn(CompletableFuture.failedFuture(new NullPointerException("Super null pointer exception")));
 
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
-            assertEquals(NullPointerException.class, ex.getCause().getCause().getClass());
-            assertEquals("Super null pointer exception", ex.getCause().getCause().getMessage());
-            verify(httpClient, times(3)).sendAsync(httpRequest, bodyHandler);
+            assertEquals(NullPointerException.class, ex.getCause().getClass());
+            assertEquals("Super null pointer exception", ex.getCause().getMessage());
+            verify(httpClient, times(3)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             verify(mockInterceptor, times(3)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void retry_with_unhandled_exception() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
@@ -467,16 +472,17 @@ public class RetryInterceptorTest {
             when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
-            when(httpClient.sendAsync(httpRequest, bodyHandler))
+            when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
                 .thenReturn(CompletableFuture.failedFuture(new RuntimeException()));
 
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
             assertEquals(RuntimeException.class, ex.getCause().getClass());
-            verify(httpClient, times(1)).sendAsync(httpRequest, bodyHandler);
+            verify(httpClient, times(1)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             verify(mockInterceptor, times(1)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void retry_with_result() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
@@ -490,19 +496,16 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
-            when(httpResponse.statusCode())
-                .thenReturn(200);
-
             when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
-            when(httpClient.sendAsync(httpRequest, bodyHandler))
+            when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
                 .thenReturn(CompletableFuture.failedFuture(new NullPointerException()))
                 .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
             var result = client.send(httpRequest, bodyHandler).join();
             assertEquals(httpResponse, result);
-            verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
+            verify(httpClient, times(2)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
@@ -521,38 +524,50 @@ public class RetryInterceptorTest {
             when(mockInterceptor.intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
-            var tokenExpiredResponse = mock(HttpResponse.class);
-            when(tokenExpiredResponse.statusCode()).thenReturn(401);
-            when(tokenExpiredResponse.headers())
-                .thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
-            when(tokenExpiredResponse.body()).thenReturn(
-                """
-                    {
-                        "errors": [
-                            {
-                                "code": "authentication_token_expired",
-                                "message": "Failed to authenticate the request due to invalid token: Failed to parse and verify token",
-                                "more_info": "https://cloud.ibm.com/apidocs/watsonx-ai#text-chat"
-                            }
-                        ],
-                        "trace": "23e11747002c4d2919987401b745f6a7",
-                        "status_code": 401
-                    }""");
+            when(httpClient.sendAsync(any(), any(BodyHandler.class)))
+                .thenAnswer(invocation -> {
+                    BodyHandler<String> handler = invocation.getArgument(1);
+                    var responseInfo = mock(HttpResponse.ResponseInfo.class);
+                    when(responseInfo.statusCode()).thenReturn(401);
+                    when(responseInfo.headers())
+                        .thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
 
-            when(httpResponse.statusCode())
-                .thenReturn(200);
+                    var subscriber = handler.apply(responseInfo);
 
-            when(httpClient.sendAsync(httpRequest, bodyHandler))
-                .thenReturn(completedFuture(tokenExpiredResponse))
+                    String errorBody = """
+                        {
+                            "errors": [
+                                {
+                                    "code": "authentication_token_expired",
+                                    "message": "Failed to authenticate the request due to invalid token: Failed to parse and verify token",
+                                    "more_info": "https://cloud.ibm.com/apidocs/watsonx-ai#text-chat"
+                                }
+                            ],
+                            "trace": "23e11747002c4d2919987401b745f6a7",
+                            "status_code": 401
+                        }""";
+
+                    subscriber.onSubscribe(mock(Flow.Subscription.class));
+                    subscriber.onNext(List.of(ByteBuffer.wrap(errorBody.getBytes(StandardCharsets.UTF_8))));
+                    subscriber.onComplete();
+
+                    return subscriber.getBody().handle((body, throwable) -> {
+                        if (throwable != null) {
+                            return CompletableFuture.failedFuture(throwable);
+                        }
+                        return CompletableFuture.failedFuture(new IllegalStateException("Exception was expected"));
+                    }).thenCompose(cf -> cf);
+                })
                 .thenReturn(completedFuture(httpResponse));
 
             var result = client.send(httpRequest, bodyHandler).get();
             assertEquals(httpResponse, result);
-            verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
+            verify(httpClient, times(2)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             verify(mockInterceptor, times(2)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void retry_with_exponential_backoff_fail_retries() throws Exception {
             Duration timeout = Duration.ofMillis(10);
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
@@ -582,16 +597,17 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
-            when(httpClient.sendAsync(httpRequest, bodyHandler))
+            when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
                 .thenReturn(CompletableFuture.failedFuture(new NullPointerException()));
 
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
-            assertEquals(NullPointerException.class, ex.getCause().getCause().getClass());
-            verify(httpClient, times(3)).sendAsync(httpRequest, bodyHandler);
+            assertEquals(NullPointerException.class, ex.getCause().getClass());
+            verify(httpClient, times(3)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void retry_with_exponential_backoff_succeed_after_retry() throws Exception {
             Duration timeout = Duration.ofMillis(10);
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
@@ -621,16 +637,13 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
-            when(httpClient.sendAsync(httpRequest, bodyHandler))
+            when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
                 .thenReturn(failedFuture(new NullPointerException()))
                 .thenReturn(completedFuture(httpResponse));
 
-            when(httpResponse.statusCode()).thenReturn(200);
-
             client.send(httpRequest, bodyHandler).join();
-            verify(httpClient, times(2)).sendAsync(httpRequest, bodyHandler);
+            verify(httpClient, times(2)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
-
         }
     }
 }

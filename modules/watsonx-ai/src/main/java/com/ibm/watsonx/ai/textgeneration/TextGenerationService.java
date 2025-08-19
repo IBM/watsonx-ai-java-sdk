@@ -128,12 +128,11 @@ public final class TextGenerationService extends ModelService implements TextGen
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         var subscriber = subscriber(handler);
-        return asyncHttpClient
-            .send(httpRequest.build(),
-                responseInfo -> logResponses
-                    ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-                    : BodySubscribers.fromLineSubscriber(subscriber)
-            ).thenApply(response -> null);
+        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+            : BodySubscribers.fromLineSubscriber(subscriber))
+            .thenAcceptAsync(r -> {}, asyncHttpClient.executor())
+            .exceptionallyAsync(t -> handlerError(t, handler), asyncHttpClient.executor());
     }
 
     /**

@@ -15,12 +15,14 @@ import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
@@ -32,11 +34,14 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -77,6 +82,7 @@ import com.ibm.watsonx.ai.chat.model.VideoContent;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
@@ -180,11 +186,11 @@ public class ChatServiceTest {
         assertEquals("my-super-model-model", chatResponse.getModel());
         assertNotNull(chatResponse.getChoices());
         assertEquals(1, chatResponse.getChoices().size());
-        assertEquals(0, chatResponse.getChoices().get(0).index());
-        assertEquals(0, chatResponse.getChoices().get(0).index());
-        assertEquals("assistant", chatResponse.getChoices().get(0).message().role());
-        assertEquals("Hello!!!", chatResponse.getChoices().get(0).message().content());
-        assertEquals("stop", chatResponse.getChoices().get(0).finishReason());
+        assertEquals(0, chatResponse.getChoices().get(0).getIndex());
+        assertEquals(0, chatResponse.getChoices().get(0).getIndex());
+        assertEquals("assistant", chatResponse.getChoices().get(0).getMessage().role());
+        assertEquals("Hello!!!", chatResponse.getChoices().get(0).getMessage().content());
+        assertEquals("stop", chatResponse.getChoices().get(0).getFinishReason());
         assertEquals(1749288614, chatResponse.getCreated());
         assertEquals("2025-06-07T09:30:15.122Z", chatResponse.getCreatedAt());
         assertNotNull(chatResponse.getUsage());
@@ -1527,9 +1533,9 @@ public class ChatServiceTest {
         assertNotNull(response);
         assertNotNull(response.getChoices());
         assertEquals(1, response.getChoices().size());
-        assertEquals("stop", response.getChoices().get(0).finishReason());
-        assertEquals(0, response.getChoices().get(0).index());
-        assertEquals("Ciao", response.getChoices().get(0).message().content());
+        assertEquals("stop", response.getChoices().get(0).getFinishReason());
+        assertEquals(0, response.getChoices().get(0).getIndex());
+        assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
         assertEquals("Ciao", response.toText());
         assertNotNull(response.getCreated());
         assertNotNull(response.getCreatedAt());
@@ -1715,40 +1721,36 @@ public class ChatServiceTest {
         assertEquals(368, response.getUsage().getTotalTokens());
         assertNotNull(response.getChoices());
         assertEquals(1, response.getChoices().size());
-        assertEquals(0, response.getChoices().get(0).index());
-        assertEquals("tool_calls", response.getChoices().get(0).finishReason());
-        assertNotNull(response.getChoices().get(0).message());
-        assertNull(response.getChoices().get(0).message().content());
-        assertNull(response.getChoices().get(0).message().refusal());
-        assertEquals("assistant", response.getChoices().get(0).message().role());
-        assertEquals(2, response.getChoices().get(0).message().toolCalls().size());
+        assertEquals(0, response.getChoices().get(0).getIndex());
+        assertEquals("tool_calls", response.getChoices().get(0).getFinishReason());
+        assertNotNull(response.getChoices().get(0).getMessage());
+        assertNull(response.getChoices().get(0).getMessage().content());
+        assertNull(response.getChoices().get(0).getMessage().refusal());
+        assertEquals("assistant", response.getChoices().get(0).getMessage().role());
+        assertEquals(2, response.getChoices().get(0).getMessage().toolCalls().size());
         assertEquals("chatcmpl-tool-af37032523934f019aa7258469580a7a",
-            response.getChoices().get(0).message().toolCalls().get(0).id());
-        assertEquals(0, response.getChoices().get(0).message().toolCalls().get(0).index());
-        assertEquals("function", response.getChoices().get(0).message().toolCalls().get(0).type());
-        assertEquals("sum", response.getChoices().get(0).message().toolCalls().get(0).function().name());
+            response.getChoices().get(0).getMessage().toolCalls().get(0).id());
+        assertEquals(0, response.getChoices().get(0).getMessage().toolCalls().get(0).index());
+        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(0).type());
+        assertEquals("sum", response.getChoices().get(0).getMessage().toolCalls().get(0).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).message().toolCalls().get(0).function().arguments());
+            response.getChoices().get(0).getMessage().toolCalls().get(0).function().arguments());
         assertEquals("chatcmpl-tool-f762db03c60f441dba57bab09552bb7b",
-            response.getChoices().get(0).message().toolCalls().get(1).id());
-        assertEquals(1, response.getChoices().get(0).message().toolCalls().get(1).index());
-        assertEquals("function", response.getChoices().get(0).message().toolCalls().get(1).type());
-        assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
+            response.getChoices().get(0).getMessage().toolCalls().get(1).id());
+        assertEquals(1, response.getChoices().get(0).getMessage().toolCalls().get(1).index());
+        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(1).type());
+        assertEquals("subtraction", response.getChoices().get(0).getMessage().toolCalls().get(1).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+            response.getChoices().get(0).getMessage().toolCalls().get(1).function().arguments());
 
 
-        assertEquals(4, toolFetchers.size());
-        assertEquals("{\"index\":0,\"id\":\"chatcmpl-tool-af37032523934f019aa7258469580a7a\",\"name\":\"sum\",\"arguments\":\"\"}",
-            toJson(toolFetchers.get(0)));
+        assertEquals(2, toolFetchers.size());
         assertEquals(
             "{\"index\":0,\"id\":\"chatcmpl-tool-af37032523934f019aa7258469580a7a\",\"name\":\"sum\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
-            toJson(toolFetchers.get(1)));
-        assertEquals("{\"index\":1,\"id\":\"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b\",\"name\":\"subtraction\",\"arguments\":\"\"}",
-            toJson(toolFetchers.get(2)));
+            toJson(toolFetchers.get(0)));
         assertEquals(
             "{\"index\":1,\"id\":\"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b\",\"name\":\"subtraction\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
-            toJson(toolFetchers.get(3)));
+            toJson(toolFetchers.get(1)));
 
         assertEquals(2, toolCalls.size());
         assertEquals(new ToolCall(
@@ -2045,27 +2047,27 @@ public class ChatServiceTest {
         assertEquals(423, response.getUsage().getTotalTokens());
         assertNotNull(response.getChoices());
         assertEquals(1, response.getChoices().size());
-        assertEquals(0, response.getChoices().get(0).index());
-        assertEquals("tool_calls", response.getChoices().get(0).finishReason());
-        assertNotNull(response.getChoices().get(0).message());
-        assertNull(response.getChoices().get(0).message().content());
-        assertNull(response.getChoices().get(0).message().refusal());
-        assertEquals("assistant", response.getChoices().get(0).message().role());
-        assertEquals(2, response.getChoices().get(0).message().toolCalls().size());
+        assertEquals(0, response.getChoices().get(0).getIndex());
+        assertEquals("tool_calls", response.getChoices().get(0).getFinishReason());
+        assertNotNull(response.getChoices().get(0).getMessage());
+        assertNull(response.getChoices().get(0).getMessage().content());
+        assertNull(response.getChoices().get(0).getMessage().refusal());
+        assertEquals("assistant", response.getChoices().get(0).getMessage().role());
+        assertEquals(2, response.getChoices().get(0).getMessage().toolCalls().size());
         // If tool_choice_option is "required" watsonx doesn't return the id, so it will be autogenerated.
-        assertNotNull(response.getChoices().get(0).message().toolCalls().get(0).id());
-        assertEquals(0, response.getChoices().get(0).message().toolCalls().get(0).index());
-        assertEquals("function", response.getChoices().get(0).message().toolCalls().get(0).type());
-        assertEquals("sum", response.getChoices().get(0).message().toolCalls().get(0).function().name());
+        assertNotNull(response.getChoices().get(0).getMessage().toolCalls().get(0).id());
+        assertEquals(0, response.getChoices().get(0).getMessage().toolCalls().get(0).index());
+        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(0).type());
+        assertEquals("sum", response.getChoices().get(0).getMessage().toolCalls().get(0).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).message().toolCalls().get(0).function().arguments());
+            response.getChoices().get(0).getMessage().toolCalls().get(0).function().arguments());
         // If tool_choice_option is "required" watsonx doesn't return the id, so it will be autogenerated.
-        assertNotNull(response.getChoices().get(0).message().toolCalls().get(1).id());
-        assertEquals(1, response.getChoices().get(0).message().toolCalls().get(1).index());
-        assertEquals("function", response.getChoices().get(0).message().toolCalls().get(1).type());
-        assertEquals("subtraction", response.getChoices().get(0).message().toolCalls().get(1).function().name());
+        assertNotNull(response.getChoices().get(0).getMessage().toolCalls().get(1).id());
+        assertEquals(1, response.getChoices().get(0).getMessage().toolCalls().get(1).index());
+        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(1).type());
+        assertEquals("subtraction", response.getChoices().get(0).getMessage().toolCalls().get(1).function().name());
         assertEquals("{\"firstNumber\": 4, \"secondNumber\": 2}",
-            response.getChoices().get(0).message().toolCalls().get(1).function().arguments());
+            response.getChoices().get(0).getMessage().toolCalls().get(1).function().arguments());
 
         assertEquals(28, toolFetchers.size());
         JSONAssert.assertEquals(
@@ -2074,67 +2076,67 @@ public class ChatServiceTest {
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"first")),
+            toJson(new PartialToolCall(0, null, "sum", "first")),
             toJson(toolFetchers.get(1)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber")),
+            toJson(new PartialToolCall(0, null, "sum", "Number")),
             toJson(toolFetchers.get(2)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\":")),
+            toJson(new PartialToolCall(0, null, "sum", "\":")),
             toJson(toolFetchers.get(3)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": ")),
+            toJson(new PartialToolCall(0, null, "sum", " ")),
             toJson(toolFetchers.get(4)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2")),
+            toJson(new PartialToolCall(0, null, "sum", "2")),
             toJson(toolFetchers.get(5)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2,")),
+            toJson(new PartialToolCall(0, null, "sum", ",")),
             toJson(toolFetchers.get(6)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"")),
+            toJson(new PartialToolCall(0, null, "sum", " \"")),
             toJson(toolFetchers.get(7)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"second")),
+            toJson(new PartialToolCall(0, null, "sum", "second")),
             toJson(toolFetchers.get(8)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber")),
+            toJson(new PartialToolCall(0, null, "sum", "Number")),
             toJson(toolFetchers.get(9)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber\":")),
+            toJson(new PartialToolCall(0, null, "sum", "\":")),
             toJson(toolFetchers.get(10)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber\": ")),
+            toJson(new PartialToolCall(0, null, "sum", " ")),
             toJson(toolFetchers.get(11)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber\": 2")),
+            toJson(new PartialToolCall(0, null, "sum", "2")),
             toJson(toolFetchers.get(12)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"firstNumber\": 2, \"secondNumber\": 2}")),
+            toJson(new PartialToolCall(0, null, "sum", "}")),
             toJson(toolFetchers.get(13)),
             true
         );
@@ -2146,67 +2148,67 @@ public class ChatServiceTest {
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"first")),
+            toJson(new PartialToolCall(1, null, "subtraction", "first")),
             toJson(toolFetchers.get(15)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber")),
+            toJson(new PartialToolCall(1, null, "subtraction", "Number")),
             toJson(toolFetchers.get(16)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\":")),
+            toJson(new PartialToolCall(1, null, "subtraction", "\":")),
             toJson(toolFetchers.get(17)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": ")),
+            toJson(new PartialToolCall(1, null, "subtraction", " ")),
             toJson(toolFetchers.get(18)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4")),
+            toJson(new PartialToolCall(1, null, "subtraction", "4")),
             toJson(toolFetchers.get(19)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4,")),
+            toJson(new PartialToolCall(1, null, "subtraction", ",")),
             toJson(toolFetchers.get(20)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"")),
+            toJson(new PartialToolCall(1, null, "subtraction", " \"")),
             toJson(toolFetchers.get(21)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"second")),
+            toJson(new PartialToolCall(1, null, "subtraction", "second")),
             toJson(toolFetchers.get(22)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber")),
+            toJson(new PartialToolCall(1, null, "subtraction", "Number")),
             toJson(toolFetchers.get(23)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber\":")),
+            toJson(new PartialToolCall(1, null, "subtraction", "\":")),
             toJson(toolFetchers.get(24)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber\": ")),
+            toJson(new PartialToolCall(1, null, "subtraction", " ")),
             toJson(toolFetchers.get(25)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber\": 2")),
+            toJson(new PartialToolCall(1, null, "subtraction", "2")),
             toJson(toolFetchers.get(26)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"firstNumber\": 4, \"secondNumber\": 2}")),
+            toJson(new PartialToolCall(1, null, "subtraction", "}")),
             toJson(toolFetchers.get(27)),
             true
         );
@@ -2463,6 +2465,66 @@ public class ChatServiceTest {
     }
 
     @Test
+    void chat_tool_choice_option_required() throws Exception {
+
+        // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
+        // In this case, the SDK forces the finish response.
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(
+            """
+                {
+                    "model": "model",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "",
+                                "tool_calls": [
+                                    {
+                                        "id": "chatcmpl-tool-6e63f95869944f03a86fdab6189ba0b5",
+                                        "type": "function",
+                                        "function": {
+                                            "name": "getWeather",
+                                            "arguments": "{\\"city\\": \\"Munich\\"}"
+                                        }
+                                    }
+                                ]
+                            },
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "created": 1755501551,
+                    "model_version": "3.2.0",
+                    "created_at": "2025-08-18T07:19:13.136Z",
+                    "usage": {
+                        "completion_tokens": 23,
+                        "prompt_tokens": 309,
+                        "total_tokens": 332
+                    }
+                }""");
+
+        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
+        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("ibm/granite-3-3-8b-instruct")
+            .projectId("project-id")
+            .url(CloudRegion.FRANKFURT)
+            .httpClient(mockHttpClient)
+            .build();
+
+        var parameters = ChatParameters.builder()
+            .toolChoiceOption(ToolChoice.REQUIRED)
+            .build();
+
+        var response = chatService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
+        assertEquals("tool_calls", response.finishReason().value());
+    }
+
+    @Test
     void parameters_test() {
 
         var chatHandler = new ChatHandler() {
@@ -2527,6 +2589,96 @@ public class ChatServiceTest {
         ex2 =
             assertThrows(NullPointerException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
         assertEquals("messages cannot be null", ex2.getMessage());
+    }
+
+    @Test
+    void test_chat_streaming_model_not_supported_exception() throws Exception {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse()
+                .withStatus(404)
+                .withHeader("Content-Type", "application/json")
+                .withBody("""
+                    {
+                        "errors": [
+                            {
+                                "code": "model_not_supported",
+                                "message": "Model 'doesn't exist' is not supported",
+                                "more_info": "https://cloud.ibm.com/apidocs/watsonx-ai#text-chat-stream"
+                            }
+                        ],
+                        "trace": "245ff8904f4aaf0fdaedc0bf05e2e45b",
+                        "status_code": 404
+                    }""")));
+
+        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("notExist")
+            .projectId("project-id")
+            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        ChatRequest chatRequest = ChatRequest.builder()
+            .messages(UserMessage.text("fail"))
+            .build();
+
+        chatService.chatStreaming(chatRequest, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                fail("Should not be called");
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                fail("Should not be called");
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                assertTrue(WatsonxException.class.isInstance(error));
+                WatsonxException e = (WatsonxException) error;
+                assertTrue(e.details().isPresent());
+                assertEquals("model_not_supported", e.details().get().errors().get(0).code());
+                result.completeExceptionally(error);
+            }
+        }).get(3, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void verify_the_use_of_custom_executor() throws Exception {
+
+        List<String> executedThreads = Collections.synchronizedList(new ArrayList<>());
+        Executor trackingExecutor = command -> {
+            executedThreads.add(Thread.currentThread().getName());
+            new Thread(command, "test-thread").start();
+        };
+
+        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockHttpClient.executor()).thenReturn(Optional.of(trackingExecutor));
+
+        var chatService = ChatService.builder()
+            .url(CloudRegion.DALLAS)
+            .authenticationProvider(mockAuthenticationProvider)
+            .httpClient(mockHttpClient)
+            .projectId("project-id")
+            .modelId("model-id")
+            .build();
+
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(mockHttpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(CompletableFuture.completedFuture(response));
+
+        ChatHandler handler = mock(ChatHandler.class);
+        CompletableFuture<Void> future = chatService.chatStreaming(List.of(UserMessage.text("Hello")), handler);
+
+        future.get(3, TimeUnit.SECONDS);
+
+        assertFalse(executedThreads.isEmpty());
+        assertTrue(executedThreads.stream().anyMatch(name -> name.contains("test-thread")));
     }
 
     @Test

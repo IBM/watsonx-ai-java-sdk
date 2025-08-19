@@ -27,8 +27,6 @@ import com.ibm.watsonx.ai.core.XmlUtils;
  */
 public final class ChatResponse {
 
-    public record ResultChoice(Integer index, ResultMessage message, String finishReason) {}
-
     private String id;
     private String object;
     private String modelId;
@@ -344,7 +342,7 @@ public final class ChatResponse {
         if (isNull(choices) || choices.isEmpty())
             throw new RuntimeException("The \"choices\" field is null or empty");
 
-        var resultMessage = choices.get(0).message();
+        var resultMessage = choices.get(0).getMessage();
         return new AssistantMessage(AssistantMessage.ROLE, resultMessage.content(), null, resultMessage.refusal(),
             resultMessage.toolCalls());
     }
@@ -359,6 +357,44 @@ public final class ChatResponse {
             throw new RuntimeException("The \"choices\" field is null or empty");
 
         var resultMessage = choices.get(0);
-        return FinishReason.fromValue(resultMessage.finishReason());
+        return FinishReason.fromValue(resultMessage.getFinishReason());
+    }
+
+    public static class ResultChoice {
+        private Integer index;
+        private ResultMessage message;
+        private String finishReason;
+
+        public ResultChoice() {}
+
+        public ResultChoice(Integer index, ResultMessage message, String finishReason) {
+            this.index = index;
+            this.message = message;
+            this.finishReason = finishReason;
+        }
+
+        public Integer getIndex() {
+            return index;
+        }
+
+        public void setIndex(Integer index) {
+            this.index = index;
+        }
+
+        public ResultMessage getMessage() {
+            return message;
+        }
+
+        public void setMessage(ResultMessage message) {
+            this.message = message;
+        }
+
+        public String getFinishReason() {
+            return finishReason;
+        }
+
+        public void setFinishReason(String finishReason) {
+            this.finishReason = finishReason;
+        }
     }
 }
