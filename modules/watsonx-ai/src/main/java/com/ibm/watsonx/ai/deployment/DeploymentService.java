@@ -17,6 +17,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -185,12 +186,11 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
         var subscriber = subscriber(handler);
-        return asyncHttpClient
-            .send(httpRequest.build(),
-                responseInfo -> logResponses
-                    ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-                    : BodySubscribers.fromLineSubscriber(subscriber)
-            ).thenApply(response -> null);
+        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+            : BodySubscribers.fromLineSubscriber(subscriber))
+            .thenAcceptAsync(r -> {}, asyncHttpClient.executor())
+            .exceptionallyAsync(t -> handlerError(t, handler), asyncHttpClient.executor());
     }
 
     @Override
@@ -275,12 +275,16 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
-        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), stateTracker, handler);
-        return asyncHttpClient
-            .send(httpRequest.build(), responseInfo -> logResponses
-                ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-                : BodySubscribers.fromLineSubscriber(subscriber)
-            ).thenApply(response -> null);
+        Map<String, Boolean> toolHasParameters = new HashMap<>();
+        if (nonNull(tools))
+            tools.stream().forEach(tool -> toolHasParameters.put(tool.function().name(), tool.hasParameters()));
+
+        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), toolHasParameters, stateTracker, handler);
+        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+            : BodySubscribers.fromLineSubscriber(subscriber))
+            .thenAcceptAsync(r -> {}, asyncHttpClient.executor())
+            .exceptionallyAsync(t -> handlerError(t, handler), asyncHttpClient.executor());
     }
 
     @Override

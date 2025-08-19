@@ -17,7 +17,9 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -98,6 +100,7 @@ public final class ChatService extends ModelService implements ChatProvider {
             var chatResponse = fromJson(httpReponse.body(), ChatResponse.class);
 
             // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
+            // Open an issue.
             if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoice.REQUIRED.type())) {
                 var assistantMessage = chatResponse.toAssistantMessage();
                 if (nonNull(assistantMessage.toolCalls()) && !assistantMessage.toolCalls().isEmpty())
@@ -148,12 +151,16 @@ public final class ChatService extends ModelService implements ChatProvider {
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
 
-        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), stateTracker, handler);
-        return asyncHttpClient
-            .send(httpRequest.build(), responseInfo -> logResponses
-                ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-                : BodySubscribers.fromLineSubscriber(subscriber)
-            ).thenApply(response -> null);
+        Map<String, Boolean> toolHasParameters = new HashMap<>();
+        if (nonNull(tools))
+            tools.stream().forEach(tool -> toolHasParameters.put(tool.function().name(), tool.hasParameters()));
+
+        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), toolHasParameters, stateTracker, handler);
+        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+            : BodySubscribers.fromLineSubscriber(subscriber))
+            .thenAcceptAsync(r -> {}, asyncHttpClient.executor())
+            .exceptionallyAsync(t -> handlerError(t, handler), asyncHttpClient.executor());
     }
 
     /**

@@ -6,27 +6,26 @@ package com.ibm.watsonx.ai.core;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -96,10 +95,7 @@ public class AsyncHttpClientTest {
         when(interceptor2.intercept(eq(httpRequest), eq(handler), any(), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(httpResponse.statusCode())
-            .thenReturn(200);
-
-        when(httpClient.sendAsync(httpRequest, handler))
+        when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
             .thenReturn(completedFuture(httpResponse));
 
         var result = client.send(httpRequest, handler);
@@ -125,10 +121,7 @@ public class AsyncHttpClientTest {
         when(interceptor2.intercept(eq(httpRequest), eq(handler), any(), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(httpResponse.statusCode())
-            .thenReturn(200);
-
-        when(httpClient.sendAsync(httpRequest, handler))
+        when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
             .thenReturn(completedFuture(httpResponse));
 
         var result = client.send(httpRequest, handler);
@@ -147,10 +140,7 @@ public class AsyncHttpClientTest {
             .httpClient(httpClient)
             .build();
 
-        when(httpResponse.statusCode())
-            .thenReturn(200);
-
-        when(httpClient.sendAsync(httpRequest, handler))
+        when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
             .thenReturn(completedFuture(httpResponse));
 
         var result = client.send(httpRequest, handler).get();
@@ -160,48 +150,57 @@ public class AsyncHttpClientTest {
     @Test
     void test_send_httpRequest_with_401() throws Exception {
 
-        AsyncHttpClient client = AsyncHttpClient.builder()
-            .httpClient(httpClient)
-            .build();
-
-        when(httpResponse.statusCode())
-            .thenReturn(401);
-
-        when(httpResponse.headers())
-            .thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
-
-        when(httpResponse.body())
-            .thenReturn(
-                """
+        wireMock.stubFor(get(urlEqualTo("/test-401"))
+            .willReturn(aResponse()
+                .withStatus(401)
+                .withHeader("Content-Type", "application/json")
+                .withBody("""
                     {
                         "errors": [
                             {
                                 "code": "authentication_token_not_valid",
-                                "message": "Failed to authenticate the httpRequest due to invalid token: Failed to parse and verify token",
+                                "message": "Failed to authenticate the httpRequest due to invalid token",
                                 "more_info": "https://cloud.ibm.com/apidocs/watsonx-ai#text-chat"
                             }
                         ],
                         "trace": "23e11747002c4d2919987401b745f6a7",
                         "status_code": 401
-                    }""");
+                    }""")));
 
-        when(httpClient.sendAsync(httpRequest, handler)).thenReturn(completedFuture(httpResponse));
-        var ex = assertThrows(CompletionException.class, () -> client.send(httpRequest, handler).join());
+        AsyncHttpClient client = AsyncHttpClient.builder().build();
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:%s/test-401".formatted(wireMock.getPort())))
+            .GET()
+            .build();
+
+        HttpResponse.BodyHandler<String> handler = HttpResponse.BodyHandlers.ofString();
+
+        CompletionException ex = assertThrows(CompletionException.class, () -> client.send(request, handler).join());
         assertEquals(WatsonxException.class, ex.getCause().getClass());
+
+        WatsonxException cause = (WatsonxException) ex.getCause();
+        assertTrue(cause.getMessage().contains("authentication_token_not_valid"));
     }
 
 
     @Test
     void test_send_httpRequest_with_no_exception_body() throws Exception {
 
-        AsyncHttpClient client = AsyncHttpClient.builder()
-            .httpClient(httpClient)
+        wireMock.stubFor(get(urlEqualTo("/test-401"))
+            .willReturn(aResponse()
+                .withStatus(401)
+                .withHeader("Content-Type", "application/json")));
+
+        AsyncHttpClient client = AsyncHttpClient.builder().build();
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:%s/test-401".formatted(wireMock.getPort())))
+            .GET()
             .build();
 
-        when(httpResponse.statusCode()).thenReturn(401);
 
-        when(httpClient.sendAsync(httpRequest, handler)).thenReturn(completedFuture(httpResponse));
-        var ex = assertThrows(CompletionException.class, () -> client.send(httpRequest, handler).join());
+        CompletionException ex = assertThrows(CompletionException.class, () -> client.send(request, handler).join());
         assertEquals(WatsonxException.class, ex.getCause().getClass());
     }
 
@@ -232,75 +231,13 @@ public class AsyncHttpClientTest {
                 .build()
         );
 
-        CompletableFuture<HttpResponse<String>> mockFuture = mock(CompletableFuture.class);
-
-        when(httpClient.sendAsync(eq(httpRequest), eq(handler))).thenReturn(mockFuture);
         when(httpClient.executor()).thenReturn(Optional.of(executor));
 
-        when(mockFuture.handleAsync(any(), any(Executor.class))).thenAnswer(invocation -> {
-            assertEquals(executor, invocation.getArgument(1));
-            return CompletableFuture.completedFuture("result-mock");
-        });
-
-        AsyncHttpClient.builder()
+        var client = AsyncHttpClient.builder()
             .httpClient(httpClient)
-            .build()
-            .send(httpRequest, handler);
-    }
+            .build();
 
-    @Test
-    void test_override_http_default_executor_by_parameter() throws Exception {
-
-        Executor customExecutor = Executors.newCachedThreadPool(
-            new ThreadFactoryBuilder()
-                .setNameFormat("my-super-thread")
-                .build()
-        );
-
-        Executor overrideExecutor = Executors.newCachedThreadPool(
-            new ThreadFactoryBuilder()
-                .setNameFormat("my-super-override-thread")
-                .build()
-        );
-
-        CompletableFuture<HttpResponse<String>> mockFuture = mock(CompletableFuture.class);
-
-        when(httpClient.sendAsync(eq(httpRequest), eq(handler))).thenReturn(mockFuture);
-        when(httpClient.executor()).thenReturn(Optional.of(customExecutor));
-
-        when(mockFuture.handleAsync(any(), any(Executor.class))).thenAnswer(invocation -> {
-            assertEquals(overrideExecutor, invocation.getArgument(1));
-            return CompletableFuture.completedFuture("result-mock");
-        });
-
-        AsyncHttpClient.builder()
-            .httpClient(httpClient)
-            .build()
-            .send(httpRequest, handler, overrideExecutor);
-    }
-
-    @Test
-    void test_executor_by_parameter() throws Exception {
-
-        Executor overrideExecutor = Executors.newCachedThreadPool(
-            new ThreadFactoryBuilder()
-                .setNameFormat("my-super-override-thread")
-                .build()
-        );
-
-        CompletableFuture<HttpResponse<String>> mockFuture = mock(CompletableFuture.class);
-
-        when(httpClient.sendAsync(eq(httpRequest), eq(handler))).thenReturn(mockFuture);
-
-        when(mockFuture.handleAsync(any(), any(Executor.class))).thenAnswer(invocation -> {
-            assertEquals(overrideExecutor, invocation.getArgument(1));
-            return CompletableFuture.completedFuture("result-mock");
-        });
-
-        AsyncHttpClient.builder()
-            .httpClient(httpClient)
-            .build()
-            .send(httpRequest, handler, overrideExecutor);
+        assertEquals(executor, client.executor());
     }
 
     @Test

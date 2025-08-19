@@ -6,22 +6,24 @@ package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher;
+import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
@@ -184,14 +186,28 @@ public interface ChatProvider {
     public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler);
 
     /**
+     * Handles an error by invoking the {@link ChatHandler}'s {@code onError} callback if the given throwable is non-null.
+     *
+     * @param t the {@link Throwable} to handle
+     * @param handler the {@link ChatHandler} that should be notified of the error
+     * @return always {@code null}, enabling direct use in async exception handlers
+     */
+    public default Void handlerError(Throwable t, ChatHandler handler) {
+        ofNullable(t).map(Throwable::getCause).ifPresent(handler::onError);
+        return null;
+    }
+
+    /**
      * Returns a {@link Flow.Subscriber} implementation that processes streaming chat responses.
      *
      * @param toolChoiceOption the tool choice strategy used during generation
+     * @param toolHasParameters A map indicating whether each tool requires parameters.
      * @param stateTracker the {@link StreamingStateTracker} instance responsible for tracking XML-like tag states during streaming
      * @param handler the {@link ChatHandler} instance to receive streaming callbacks
      * @return a {@link Flow.Subscriber} capable of consuming {@code String} events representing streamed chat responses
      */
-    public default Flow.Subscriber<String> subscriber(String toolChoiceOption, StreamingStateTracker stateTracker, ChatHandler handler) {
+    public default Flow.Subscriber<String> subscriber(String toolChoiceOption, Map<String, Boolean> toolHasParameters,
+        StreamingStateTracker stateTracker, ChatHandler handler) {
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
             private String finishReason;
@@ -261,9 +277,9 @@ public interface ChatProvider {
 
                         StreamingToolFetcher toolFetcher;
 
-                        // Watsonx doesn't return "tool_calls" when the tool-choice is set to REQUIRED.
-                        if (nonNull(toolChoiceOption) && toolChoiceOption.equals(ToolChoice.REQUIRED.type()))
-                            finishReason = "tool_calls";
+                        // Watsonx doesn't return "tool_calls".
+                        // Open an issue.
+                        finishReason = "tool_calls";
 
                         // During streaming there is only one element in the tool_calls,
                         // but the "index" field can be used to understand how many tools need to be
@@ -292,9 +308,18 @@ public interface ChatProvider {
                         if (nonNull(deltaTool.function())) {
                             toolFetcher.setName(deltaTool.function().name());
                             toolFetcher.appendArguments(deltaTool.function().arguments());
-                        }
 
-                        handler.onPartialToolCall(toolFetcher.buildPartial());
+                            // There is a bug in the Streaming API: it does not return an empty object for tools without arguments.
+                            // Open an issue.
+                            var toolHasParameter = toolHasParameters.get(toolFetcher.getName());
+                            var arguments = toolHasParameter ? deltaTool.function().arguments() : "{}";
+
+                            if (!arguments.isEmpty()) {
+                                var partialToolCall =
+                                    new PartialToolCall(toolFetcher.getIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
+                                handler.onPartialToolCall(partialToolCall);
+                            }
+                        }
                     }
 
                     if (nonNull(message.delta().content())) {
@@ -334,6 +359,7 @@ public interface ChatProvider {
             @Override
             public void onError(Throwable throwable) {
                 handler.onError(throwable);
+                subscription.cancel();
             }
 
             @Override

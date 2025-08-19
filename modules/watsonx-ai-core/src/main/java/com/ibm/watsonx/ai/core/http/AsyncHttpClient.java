@@ -10,12 +10,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodySubscribers;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
@@ -99,35 +99,32 @@ public final class AsyncHttpClient extends BaseHttpClient {
         }
 
         @Override
-        public <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler,
-            Executor executor) {
+        public <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler, Executor executor) {
             if (index < interceptors.size()) {
                 var interceptorIndex = index++;
                 return interceptors.get(interceptorIndex).intercept(request, handler, executor, interceptorIndex, this);
             } else {
-                return httpClient.sendAsync(request, handler)
-                    .handleAsync((response, exception) -> {
-                        if (exception != null)
-                            throw new CompletionException(exception);
+                return httpClient.sendAsync(request, responseInfo -> {
 
-                        int statusCode = response.statusCode();
-                        if (statusCode >= 200 && statusCode < 300) {
-                            return response;
+                    int statusCode = responseInfo.statusCode();
+                    if (statusCode >= 200 && statusCode < 300) {
+                        return handler.apply(responseInfo);
+                    }
+
+                    return BodySubscribers.mapping(
+                        BodySubscribers.ofString(StandardCharsets.UTF_8),
+                        body -> {
+                            if (body.isEmpty())
+                                throw new WatsonxException(statusCode);
+
+                            String contentType = responseInfo.headers().firstValue("Content-Type")
+                                .orElseThrow(() -> new WatsonxException(body, statusCode, null));
+
+                            WatsonxError details = HttpUtils.parseErrorBody(body, contentType);
+                            throw new WatsonxException(body, statusCode, details);
                         }
-
-                        var bodyOpt = HttpUtils.extractBodyAsString(response);
-
-                        if (bodyOpt.isEmpty())
-                            throw new CompletionException(new WatsonxException(statusCode));
-
-                        String body = bodyOpt.get();
-                        String contentType = response.headers().firstValue("Content-Type")
-                            .orElseThrow(() -> new WatsonxException(body, statusCode, null));
-
-                        WatsonxError details = HttpUtils.parseErrorBody(body, contentType);
-                        throw new CompletionException(new WatsonxException(body, statusCode, details));
-
-                    }, requireNonNullElse(executor, httpClient.executor().orElse(ForkJoinPool.commonPool())));
+                    );
+                });
             }
         }
 

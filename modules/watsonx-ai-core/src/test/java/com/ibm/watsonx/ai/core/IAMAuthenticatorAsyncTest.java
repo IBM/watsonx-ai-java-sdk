@@ -8,12 +8,14 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
@@ -73,9 +75,12 @@ public class IAMAuthenticatorAsyncTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void test_ko_token() throws Exception {
 
-        var response = Utils.koResponse();
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(response.body()).thenReturn(Utils.WRONG_RESPONSE);
+        when(response.statusCode()).thenReturn(400);
 
         when(httpClient.<String>sendAsync(any(), any()))
             .thenReturn(CompletableFuture.completedFuture(response));

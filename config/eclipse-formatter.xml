@@ -344,5 +344,6 @@
 <setting id="org.eclipse.jdt.core.formatter.comment.count_line_length_from_starting_position" value="true"/>
 <setting id="org.eclipse.jdt.core.formatter.comment.format_javadoc_comments" value="true"/>
 <setting id="org.eclipse.jdt.core.formatter.comment.format_line_comments" value="true"/>
+<setting id="org.eclipse.jdt.core.formatter.keep_empty_block_on_one_line" value="true"/>
 </profile>
 </profiles>

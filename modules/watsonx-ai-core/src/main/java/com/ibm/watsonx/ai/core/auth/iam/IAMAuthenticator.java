@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -116,7 +115,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
             return completedFuture(token.get().accessToken());
         }
 
-        return asyncHttpClient.send(request, BodyHandlers.ofString()).thenApply(response -> {
+        return asyncHttpClient.send(request, BodyHandlers.ofString()).thenApplyAsync(response -> {
 
             var statusCode = response.statusCode();
 
@@ -126,8 +125,8 @@ public final class IAMAuthenticator implements AuthenticationProvider {
             }
 
             // The status code is not 2xx.
-            throw new CompletionException(response.body(), new RuntimeException());
-        });
+            throw new RuntimeException(response.body());
+        }, executor);
     }
 
     /**
