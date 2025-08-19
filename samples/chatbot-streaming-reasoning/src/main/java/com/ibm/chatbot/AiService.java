@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatHandler;
+import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
@@ -52,7 +53,6 @@ public class AiService {
             .timeout(Duration.ofSeconds(60))
             .modelId(modelId)
             .url(url)
-            .thinking(new ExtractionTags("think", "response"))
             .build();
 
         foundationModelService = FoundationModelService.builder()
@@ -72,7 +72,13 @@ public class AiService {
             .build();
 
         memory.addMessage(UserMessage.text(message));
-        return chatService.chatStreaming(memory.getMemory(), parameters, new ChatHandler() {
+
+        var chatRequest = ChatRequest.builder()
+            .parameters(parameters)
+            .messages(memory.getMemory())
+            .thinking(ExtractionTags.of("think", "response"))
+            .build();
+        return chatService.chatStreaming(chatRequest, new ChatHandler() {
             private boolean firstReasoningChunk = true;
             private boolean firstResponseChunk = true;
 

@@ -89,7 +89,7 @@ public class AiService {
             .temperature(0.0)
             .build();
 
-        var response = chatService.chat(memory.getMemory(), List.of(EMAIL_TOOL), parameters);
+        var response = chatService.chat(memory.getMemory(), parameters, EMAIL_TOOL);
         var assistantMessage = response.toAssistantMessage();
 
         if (nonNull(assistantMessage.toolCalls())) {

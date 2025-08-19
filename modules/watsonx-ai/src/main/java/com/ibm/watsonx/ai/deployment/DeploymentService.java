@@ -197,7 +197,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     public ChatResponse chat(ChatRequest chatRequest) {
 
         List<ChatMessage> messages = chatRequest.getMessages();
-        List<Tool> tools = chatRequest.getTools();
+        List<Tool> tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
         ChatParameters parameters = chatRequest.getParameters();
 
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
@@ -245,7 +245,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
 
         var messages = chatRequest.getMessages();
-        var tools = chatRequest.getTools();
+        var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
         var parameters = chatRequest.getParameters();
         var stateTracker = nonNull(chatRequest.getExtractionTags())
             ? new StreamingStateTracker(chatRequest.getExtractionTags())

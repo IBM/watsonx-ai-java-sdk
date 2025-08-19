@@ -53,29 +53,7 @@ public interface ChatProvider {
      */
 
     public default ChatResponse chat(List<ChatMessage> messages) {
-        return chat(
-            ChatRequest.builder()
-                .messages(messages).build()
-        );
-    }
-
-    /**
-     * Sends a chat request to the model using the provided messages and tools.
-     * <p>
-     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, include
-     * {@link Tool} definitions for function-calling models.
-     *
-     * @param messages the list of chat messages representing the conversation history
-     * @param tools list of tools the model may call during generation
-     * @return a {@link ChatResponse} object containing the model's reply
-     */
-    public default ChatResponse chat(List<ChatMessage> messages, List<Tool> tools) {
-        return chat(
-            ChatRequest.builder()
-                .messages(messages)
-                .tools(tools)
-                .build()
-        );
+        return chat(messages, ChatParameters.builder().build());
     }
 
     /**
@@ -93,6 +71,20 @@ public interface ChatProvider {
     }
 
     /**
+     * Sends a chat request to the model using the provided messages and tools.
+     * <p>
+     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, include
+     * {@link Tool} definitions for function-calling models.
+     *
+     * @param messages the list of chat messages representing the conversation history
+     * @param tools list of tools the model may call during generation
+     * @return a {@link ChatResponse} object containing the model's reply
+     */
+    public default ChatResponse chat(List<ChatMessage> messages, List<Tool> tools) {
+        return chat(messages, null, tools);
+    }
+
+    /**
      * Sends a chat request to the model using the provided messages, and parameters.
      * <p>
      * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, and customize
@@ -103,10 +95,41 @@ public interface ChatProvider {
      * @return a {@link ChatResponse} object containing the model's reply
      */
     public default ChatResponse chat(List<ChatMessage> messages, ChatParameters parameters) {
+        return chat(messages, parameters, List.of());
+    }
+
+    /**
+     * Sends a chat request to the model using the provided messages, and parameters.
+     * <p>
+     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, and customize
+     * the generation behavior via {@link ChatParameters}.
+     *
+     * @param messages the list of chat messages representing the conversation history
+     * @param parameters parameters to customize the output generation
+     * @param tools list of tools the model may call during generation
+     * @return a {@link ChatResponse} object containing the model's reply
+     */
+    public default ChatResponse chat(List<ChatMessage> messages, ChatParameters parameters, Tool... tools) {
+        return chat(messages, parameters, Arrays.asList(tools));
+    }
+
+    /**
+     * Sends a chat request to the model using the provided messages, and parameters.
+     * <p>
+     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, and customize
+     * the generation behavior via {@link ChatParameters}.
+     *
+     * @param messages the list of chat messages representing the conversation history
+     * @param parameters parameters to customize the output generation
+     * @param tools list of tools the model may call during generation
+     * @return a {@link ChatResponse} object containing the model's reply
+     */
+    public default ChatResponse chat(List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools) {
         return chat(
             ChatRequest.builder()
                 .messages(messages)
                 .parameters(parameters)
+                .tools(tools)
                 .build()
         );
     }
@@ -121,10 +144,7 @@ public interface ChatProvider {
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
      */
     public default CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, ChatHandler handler) {
-        var chatRequest = ChatRequest.builder()
-            .messages(messages)
-            .build();
-        return chatStreaming(chatRequest, handler);
+        return chatStreaming(messages, ChatParameters.builder().build(), handler);
     }
 
     /**
@@ -138,11 +158,7 @@ public interface ChatProvider {
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
      */
     public default CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
-        var chatRequest = ChatRequest.builder()
-            .messages(messages)
-            .tools(tools)
-            .build();
-        return chatStreaming(chatRequest, handler);
+        return chatStreaming(messages, ChatParameters.builder().build(), tools, handler);
     }
 
     /**
@@ -156,9 +172,26 @@ public interface ChatProvider {
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
      */
     public default CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, ChatHandler handler) {
+        return chatStreaming(messages, parameters, null, handler);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages.
+     * <p>
+     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
+     * {@link ChatHandler}.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param tools the list of tools that the model may use
+     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     */
+    public default CompletableFuture<Void> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools,
+        ChatHandler handler) {
         var chatRequest = ChatRequest.builder()
             .messages(messages)
             .parameters(parameters)
+            .tools(tools)
             .build();
         return chatStreaming(chatRequest, handler);
     }
