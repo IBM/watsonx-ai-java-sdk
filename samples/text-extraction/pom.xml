@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-textextraction</artifactId>
-  <version>0.6.0</version>
+  <version>0.6.1</version>
   <name>TextExtraction Sample</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>watsonx-ai-sample-parent</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1</version>
     <relativePath>../</relativePath>
   </parent>
 
