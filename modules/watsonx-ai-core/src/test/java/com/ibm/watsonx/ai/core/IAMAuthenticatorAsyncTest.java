@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.core;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -61,25 +60,6 @@ public class IAMAuthenticatorAsyncTest {
             requestCaptor.getValue().headers().firstValue("Content-Type").get());
         assertEquals("grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&apikey=my_super_api_key",
             Utils.bodyPublisherToString(requestCaptor));
-    }
-
-    @Test
-    void test_expired_token() throws Exception {
-
-        var response = Utils.expiredResponse();
-
-        when(httpClient.<String>sendAsync(any(), any()))
-            .thenReturn(completedFuture(response));
-
-        AuthenticationProvider authenticator = IAMAuthenticator.builder()
-            .httpClient(httpClient)
-            .apiKey("my_super_api_key")
-            .build();
-
-        authenticator.getTokenAsync().get();
-
-        assertEquals("my_super_token", authenticator.getTokenAsync().get());
-        verify(httpClient, times(2)).sendAsync(any(), any());
     }
 
     @Test

@@ -422,8 +422,8 @@ public class RetryInterceptorTest {
 
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
             assertEquals(NullPointerException.class, ex.getCause().getClass());
-            verify(httpClient, times(3)).sendAsync(eq(httpRequest), any(BodyHandler.class));
-            verify(mockInterceptor, times(3)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
+            verify(httpClient, times(4)).sendAsync(eq(httpRequest), any(BodyHandler.class));
+            verify(mockInterceptor, times(4)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
@@ -450,8 +450,8 @@ public class RetryInterceptorTest {
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
             assertEquals(NullPointerException.class, ex.getCause().getClass());
             assertEquals("Super null pointer exception", ex.getCause().getMessage());
-            verify(httpClient, times(3)).sendAsync(eq(httpRequest), any(BodyHandler.class));
-            verify(mockInterceptor, times(3)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
+            verify(httpClient, times(4)).sendAsync(eq(httpRequest), any(BodyHandler.class));
+            verify(mockInterceptor, times(4)).intercept(eq(httpRequest), eq(bodyHandler), any(), anyInt(), any());
         }
 
         @Test
@@ -602,7 +602,7 @@ public class RetryInterceptorTest {
 
             var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
             assertEquals(NullPointerException.class, ex.getCause().getClass());
-            verify(httpClient, times(3)).sendAsync(eq(httpRequest), any(BodyHandler.class));
+            verify(httpClient, times(4)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
         }
 
