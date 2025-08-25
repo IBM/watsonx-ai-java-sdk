@@ -10,20 +10,20 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.ibm.watsonx.ai.core.spi.json.JsonAdapter;
+import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
- * Default SPI implementation of {@link JsonAdapter} using Jackson.
+ * Default SPI implementation of {@link JsonProvider} using Jackson.
  */
-public final class JacksonAdapter implements JsonAdapter {
+public final class JacksonProvider implements JsonProvider {
 
     private final ObjectMapper objectMapper;
 
     /**
-     * Constructs a {@code JacksonAdapter} instance with default configuration.
+     * Constructs a {@code JacksonProvider} instance with default configuration.
      */
-    public JacksonAdapter() {
+    public JacksonProvider() {
         this.objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setSerializationInclusion(Include.NON_NULL)
