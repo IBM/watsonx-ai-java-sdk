@@ -76,5 +76,6 @@ public class App {
             Forecast result:
             %s
             """.formatted(prettyPrint(tsService.forecast(inputSchema, data, parameters))));
+        System.exit(0);
     }
 }

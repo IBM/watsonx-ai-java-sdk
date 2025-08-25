@@ -13,6 +13,7 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
 
@@ -107,6 +108,10 @@ public interface TextGenerationProvider {
 
     /**
      * Returns a {@link Flow.Subscriber} implementation that processes streaming text generation responses.
+     * <p>
+     * <b>Thread Safety Note:</b> If this handler instance is shared across multiple streaming requests, it must be implemented to be thread-safe as
+     * its methods may be invoked concurrently from different threads. This is particularly important when the I/O executor is configured with
+     * multiple threads (which is the default configuration using {@link ExecutorProvider#ioExecutor()}).
      *
      * @param handler the callback handler to receive updates and final result
      * @return a {@link Flow.Subscriber} for processing streamed text generation responses
@@ -114,11 +119,11 @@ public interface TextGenerationProvider {
     public default Flow.Subscriber<String> subscriber(TextGenerationHandler handler) {
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
-            private String modelId;
-            private int inputTokenCount;
-            private int generatedTokenCount;
-            private String stopReason;
-            private boolean success = true;
+            private volatile String modelId;
+            private volatile int inputTokenCount;
+            private volatile int generatedTokenCount;
+            private volatile String stopReason;
+            private volatile boolean success = true;
             private final StringBuilder stringBuilder = new StringBuilder();
 
             @Override

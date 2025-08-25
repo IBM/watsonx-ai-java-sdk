@@ -8,25 +8,28 @@ import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.tokenization.TokenizationParameters;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.utils.Utils;
@@ -34,27 +37,12 @@ import com.ibm.watsonx.ai.utils.Utils;
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class TokenizationServiceTest {
-
-    @Mock
-    HttpClient mockHttpClient;
-
-    @Mock
-    HttpRequest mockHttpRequest;
-
-    @Mock
-    HttpResponse<String> mockHttpResponse;
-
-    @Mock
-    AuthenticationProvider mockAuthenticationProvider;
-
-    @Captor
-    ArgumentCaptor<HttpRequest> httpRequestCaptor;
+public class TokenizationServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setUp() {
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
     }
 
     @Test
@@ -77,20 +65,21 @@ public class TokenizationServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var tokenizationService = TokenizationService.builder()
-            .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-            .modelId("google/flan-ul2")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var tokenizationService = TokenizationService.builder()
+                .url(CloudRegion.LONDON)
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("google/flan-ul2")
+                .build();
 
-        var response = tokenizationService.tokenize("Write a tagline for an alumni association: Together we");
+            var response = tokenizationService.tokenize("Write a tagline for an alumni association: Together we");
 
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        });
     }
 
     @Test
@@ -113,19 +102,24 @@ public class TokenizationServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.sendAsync(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
+        when(mockHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
 
-        var tokenizationService = TokenizationService.builder()
-            .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-            .modelId("google/flan-ul2")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var tokenizationService = TokenizationService.builder()
+                .url(CloudRegion.LONDON)
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("google/flan-ul2")
+                .build();
 
-        var response = tokenizationService.asyncTokenize("Write a tagline for an alumni association: Together we").get();
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            try {
+                var response = tokenizationService.asyncTokenize("Write a tagline for an alumni association: Together we").get();
+                JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+                JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
     }
 
     @Test
@@ -164,31 +158,32 @@ public class TokenizationServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var tokenizationService = TokenizationService.builder()
-            .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-            .modelId("google/flan-ul2")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var tokenizationService = TokenizationService.builder()
+                .url(CloudRegion.LONDON)
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("google/flan-ul2")
+                .build();
 
-        var parameters = TokenizationParameters.builder()
-            .returnTokens(true)
-            .transactionId("my-transaction-id")
-            .build();
+            var parameters = TokenizationParameters.builder()
+                .returnTokens(true)
+                .transactionId("my-transaction-id")
+                .build();
 
-        assertEquals(true, parameters.getReturnTokens());
+            assertEquals(true, parameters.getReturnTokens());
 
-        var response = tokenizationService.tokenize(
-            "Write a tagline for an alumni association: Together we",
-            parameters
-        );
+            var response = tokenizationService.tokenize(
+                "Write a tagline for an alumni association: Together we",
+                parameters
+            );
 
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
-        assertEquals(httpRequestCaptor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+        });
     }
 
     @Test
@@ -212,29 +207,30 @@ public class TokenizationServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var tokenizationService = TokenizationService.builder()
-            .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-            .modelId("google/flan-ul2")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var tokenizationService = TokenizationService.builder()
+                .url(CloudRegion.LONDON)
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("google/flan-ul2")
+                .build();
 
-        var parameters = TokenizationParameters.builder()
-            .modelId("my-model-id")
-            .projectId("my-project-id")
-            .spaceId("my-space-id")
-            .build();
+            var parameters = TokenizationParameters.builder()
+                .modelId("my-model-id")
+                .projectId("my-project-id")
+                .spaceId("my-space-id")
+                .build();
 
-        var response = tokenizationService.tokenize(
-            "Write a tagline for an alumni association: Together we",
-            parameters
-        );
+            var response = tokenizationService.tokenize(
+                "Write a tagline for an alumni association: Together we",
+                parameters
+            );
 
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        });
     }
 
     @Test
@@ -244,12 +240,73 @@ public class TokenizationServiceTest {
 
         var tokenizationService = TokenizationService.builder()
             .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
             .modelId("google/flan-ul2")
             .build();
 
         assertThrows(RuntimeException.class, () -> tokenizationService.tokenize("test"));
+    }
+
+    @Test
+    void test_executor() throws Exception {
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn("""
+            {
+              "model_id": "google/flan-ul2",
+              "result": {
+                "token_count": 11
+              }
+            }""");
+
+        List<String> threadNames = new ArrayList<>();
+
+        Executor cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+            threadNames.add(Thread.currentThread().getName());
+            r.run();
+        }, "cpu-thread"));
+
+        Executor ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+            threadNames.add(Thread.currentThread().getName());
+            r.run();
+        }, "io-thread"));
+
+        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
+            mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
+
+            withWatsonxServiceMock(() -> {
+
+                when(mockHttpClient.sendAsync(any(), any(BodyHandler.class)))
+                    .thenReturn(completedFuture(mockHttpResponse));
+
+
+                when(mockHttpClient.executor()).thenReturn(Optional.of(ioExecutor));
+
+                var tokenizationService = TokenizationService.builder()
+                    .url(CloudRegion.LONDON)
+                    .authenticationProvider(mockAuthenticationProvider)
+                    .projectId("project-id")
+                    .modelId("model-id")
+                    .logRequests(true)
+                    .logResponses(true)
+                    .build();
+
+                try {
+                    tokenizationService.asyncTokenize("input")
+                        .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
+                        .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
+                        .get(3, TimeUnit.SECONDS);
+
+                    assertEquals(4, threadNames.size());
+                    assertEquals("io-thread", threadNames.get(0));
+                    assertEquals("cpu-thread", threadNames.get(1));
+                    assertEquals("io-thread", threadNames.get(2));
+                    assertEquals("cpu-thread", threadNames.get(3));
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
+        }
     }
 }

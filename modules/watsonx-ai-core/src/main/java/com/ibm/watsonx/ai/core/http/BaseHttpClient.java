@@ -6,7 +6,7 @@ package com.ibm.watsonx.ai.core.http;
 
 import java.net.http.HttpClient;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
  * The abstract base class for all HTTP client
@@ -33,6 +33,6 @@ public abstract class BaseHttpClient {
      * @return {@link Executor}
      */
     public Executor executor() {
-        return delegate.executor().orElse(ForkJoinPool.commonPool());
+        return delegate.executor().orElse(ExecutorProvider.ioExecutor());
     }
 }

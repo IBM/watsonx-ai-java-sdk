@@ -12,7 +12,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -27,6 +26,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
+import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 /**
  * The {@code IAMAuthenticator} class is an implementation of the {@link AuthenticationProvider} interface, responsible for authenticating with IBM
@@ -59,6 +60,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
     private final AtomicReference<IdentityTokenResponse> token;
+    private final Executor computationExecutor;
 
     /**
      * Constructs an IAMAuthenticator instance using the provided builder.
@@ -66,18 +68,19 @@ public final class IAMAuthenticator implements AuthenticationProvider {
      * @param builder the builder instance
      */
     protected IAMAuthenticator(Builder builder) {
-        this.token = new AtomicReference<>();
-        this.apiKey = encode(requireNonNull(builder.apiKey));
-        this.url = requireNonNullElse(builder.url, URI.create("https://iam.cloud.ibm.com/identity/token"));
-        this.grantType = encode(requireNonNullElse(builder.grantType, "urn:ibm:params:oauth:grant-type:apikey"));
-        this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-        var httpClient = requireNonNullElse(builder.httpClient, HttpClient.newBuilder().build());
-        this.syncHttpClient = SyncHttpClient.builder().httpClient(httpClient).build();
-        this.asyncHttpClient = AsyncHttpClient.builder().httpClient(httpClient).build();
+        token = new AtomicReference<>();
+        apiKey = encode(requireNonNull(builder.apiKey));
+        url = requireNonNullElse(builder.url, URI.create("https://iam.cloud.ibm.com/identity/token"));
+        grantType = encode(requireNonNullElse(builder.grantType, "urn:ibm:params:oauth:grant-type:apikey"));
+        timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
+        var httpClient = HttpClientProvider.httpClient();
+        syncHttpClient = SyncHttpClient.builder().httpClient(httpClient).build();
+        asyncHttpClient = AsyncHttpClient.builder().httpClient(httpClient).build();
+        computationExecutor = requireNonNullElse(builder.computationExecutor, ExecutorProvider.cpuExecutor());
     }
 
     @Override
-    public String getToken() {
+    public String token() {
 
         try {
 
@@ -104,7 +107,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     }
 
     @Override
-    public CompletableFuture<String> getTokenAsync(Executor executor) {
+    public CompletableFuture<String> asyncToken() {
 
         IdentityTokenResponse currentToken = token.get();
         var request = createHttpRequest();
@@ -125,7 +128,8 @@ public final class IAMAuthenticator implements AuthenticationProvider {
 
                 // The status code is not 2xx.
                 throw new RuntimeException(response.body());
-            }, requireNonNullElse(executor, asyncHttpClient.executor()));
+            }, computationExecutor)
+            .thenApplyAsync(r -> r, asyncHttpClient.executor());
     }
 
     /**
@@ -193,7 +197,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
         private String apiKey;
         private String grantType;
         private Duration timeout;
-        private HttpClient httpClient;
+        private Executor computationExecutor;
 
         /**
          * Prevents direct instantiation of the {@code Builder}.
@@ -245,13 +249,14 @@ public final class IAMAuthenticator implements AuthenticationProvider {
         }
 
         /**
-         * Sets the http client.
+         * Sets the {@link Executor} to be used for CPU-bound asynchronous operations.
+         * <p>
+         * If not provided, a default executor will be used internally by the SDK.
          *
-         * @param httpClient {@link HttpClient} instance.
-         * @return {@code Builder} instance for method chaining
+         * @param computationExecutor the {@link Executor} instance to use for CPU-bound tasks
          */
-        public Builder httpClient(HttpClient httpClient) {
-            this.httpClient = httpClient;
+        public Builder computationExecutor(Executor computationExecutor) {
+            this.computationExecutor = computationExecutor;
             return this;
         }
 

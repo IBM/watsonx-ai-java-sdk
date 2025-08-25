@@ -10,25 +10,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error;
 import com.ibm.watsonx.ai.embedding.EmbeddingParameters;
@@ -38,29 +31,14 @@ import com.ibm.watsonx.ai.utils.Utils;
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class EmbeddingServiceTest {
+public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
     private final String MODEL_ID = "slate";
     private final String PROJECT_ID = "project_id";
 
-    @Mock
-    HttpClient mockHttpClient;
-
-    @Mock
-    HttpRequest mockHttpRequest;
-
-    @Mock
-    HttpResponse<String> mockHttpResponse;
-
-    @Mock
-    AuthenticationProvider authenticationProvider;
-
-    @Captor
-    ArgumentCaptor<HttpRequest> httpRequestCaptor;
-
     @BeforeEach
     void setUp() {
-        when(authenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
     }
 
     @Test
@@ -95,26 +73,27 @@ public class EmbeddingServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
-        var embeddingService = EmbeddingService.builder()
-            .authenticationProvider(authenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId(MODEL_ID)
-            .logRequests(true)
-            .projectId(PROJECT_ID)
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var embeddingService = EmbeddingService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId(MODEL_ID)
+                .logRequests(true)
+                .projectId(PROJECT_ID)
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        var response = embeddingService.embedding(
-            "Youth craves thrills while adulthood cherishes wisdom.",
-            "Youth seeks ambition while adulthood finds contentment.",
-            "Dreams chased in youth while goals pursued in adulthood."
-        );
+            var response = embeddingService.embedding(
+                "Youth craves thrills while adulthood cherishes wisdom.",
+                "Youth seeks ambition while adulthood finds contentment.",
+                "Dreams chased in youth while goals pursued in adulthood."
+            );
 
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        });
     }
 
     @Test
@@ -173,40 +152,41 @@ public class EmbeddingServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
-        var embeddingService = EmbeddingService.builder()
-            .authenticationProvider(authenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId(MODEL_ID)
-            .logRequests(true)
-            .projectId(PROJECT_ID)
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var embeddingService = EmbeddingService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId(MODEL_ID)
+                .logRequests(true)
+                .projectId(PROJECT_ID)
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        var parameters = EmbeddingParameters.builder()
-            .modelId("override-model")
-            .projectId("override-project-id")
-            .spaceId("override-space-id")
-            .truncateInputTokens(512)
-            .inputText(true)
-            .transactionId("my-transaction-id")
-            .build();
+            var parameters = EmbeddingParameters.builder()
+                .modelId("override-model")
+                .projectId("override-project-id")
+                .spaceId("override-space-id")
+                .truncateInputTokens(512)
+                .inputText(true)
+                .transactionId("my-transaction-id")
+                .build();
 
-        assertEquals(512, parameters.getTruncateInputTokens());
-        assertEquals(true, parameters.getInputText());
+            assertEquals(512, parameters.getTruncateInputTokens());
+            assertEquals(true, parameters.getInputText());
 
-        var inputs = List.of(
-            "Youth craves thrills while adulthood cherishes wisdom.",
-            "Youth seeks ambition while adulthood finds contentment.",
-            "Dreams chased in youth while goals pursued in adulthood."
-        );
+            var inputs = List.of(
+                "Youth craves thrills while adulthood cherishes wisdom.",
+                "Youth seeks ambition while adulthood finds contentment.",
+                "Dreams chased in youth while goals pursued in adulthood."
+            );
 
-        var response = embeddingService.embedding(inputs, parameters);
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
-        assertEquals(httpRequestCaptor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            var response = embeddingService.embedding(inputs, parameters);
+            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+        });
     }
 
     @Test
@@ -220,20 +200,21 @@ public class EmbeddingServiceTest {
         when(mockHttpResponse.statusCode()).thenReturn(400);
         when(mockHttpResponse.body()).thenReturn(json);
         when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
-        var embeddingService = EmbeddingService.builder()
-            .authenticationProvider(authenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId(MODEL_ID)
-            .logRequests(true)
-            .projectId(PROJECT_ID)
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var embeddingService = EmbeddingService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId(MODEL_ID)
+                .logRequests(true)
+                .projectId(PROJECT_ID)
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        var ex = assertThrows(RuntimeException.class, () -> embeddingService.embedding("Hello"));
-        JSONAssert.assertEquals(json, ex.getMessage(), true);
+            var ex = assertThrows(RuntimeException.class, () -> embeddingService.embedding("Hello"));
+            JSONAssert.assertEquals(json, ex.getMessage(), true);
+        });
     }
 
     @Test
@@ -243,8 +224,7 @@ public class EmbeddingServiceTest {
 
         var chatService = EmbeddingService.builder()
             .url(CloudRegion.DALLAS)
-            .authenticationProvider(authenticationProvider)
-            .httpClient(mockHttpClient)
+            .authenticationProvider(mockAuthenticationProvider)
             .projectId("project-id")
             .modelId("model-id")
             .build();

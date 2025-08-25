@@ -17,6 +17,7 @@ import java.util.concurrent.Flow.Subscription;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
@@ -25,6 +26,7 @@ import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 /**
@@ -232,24 +234,33 @@ public interface ChatProvider {
 
     /**
      * Returns a {@link Flow.Subscriber} implementation that processes streaming chat responses.
+     * <p>
+     * <b>Thread Safety Note:</b> If this handler instance is shared across multiple streaming requests, it must be implemented to be thread-safe as
+     * its methods may be invoked concurrently from different threads. This is particularly important when the I/O executor is configured with
+     * multiple threads (which is the default configuration using {@link ExecutorProvider#ioExecutor()}).
      *
      * @param toolChoiceOption the tool choice strategy used during generation
-     * @param toolHasParameters A map indicating whether each tool requires parameters.
-     * @param stateTracker the {@link StreamingStateTracker} instance responsible for tracking XML-like tag states during streaming
-     * @param handler the {@link ChatHandler} instance to receive streaming callbacks
+     * @param toolHasParameters A map indicating whether each tool requires parameters
+     * @param extractionTags the {@link ExtractionTags} used to extract the thinking/responses during streaming
+     * @param handler the {@link ChatHandler} instance to receive streaming callbacks.
+     *
      * @return a {@link Flow.Subscriber} capable of consuming {@code String} events representing streamed chat responses
      */
-    public default Flow.Subscriber<String> subscriber(String toolChoiceOption, Map<String, Boolean> toolHasParameters,
-        StreamingStateTracker stateTracker, ChatHandler handler) {
+    public default Flow.Subscriber<String> subscriber(
+        String toolChoiceOption, // Read-only
+        Map<String, Boolean> toolHasParameters, // Read-only
+        ExtractionTags extractionTags, // Read-only
+        ChatHandler handler) {
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
-            private String finishReason;
-            private String role;
-            private String refusal;
-            private boolean success = true;
+            private volatile String finishReason;
+            private volatile String role;
+            private volatile String refusal;
+            private volatile boolean success = true;
             private final StringBuilder stringBuilder = new StringBuilder();
             private final List<StreamingToolFetcher> tools = new ArrayList<>();
             private final ChatResponse chatResponse = new ChatResponse();
+            private final StreamingStateTracker stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
 
             @Override
             public void onSubscribe(Subscription subscription) {
@@ -266,6 +277,7 @@ public interface ChatProvider {
                         return;
 
                     var messageData = partialMessage.split("data: ")[1];
+                    // TODO: Use the ExecutorProvider.cpuExecutor().
                     var chunk = Json.fromJson(messageData, PartialChatResponse.class);
 
                     // Last message get the "usage" values

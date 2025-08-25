@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.foundationmodel;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.jsonResponse;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.API_VERSION;
 import static com.ibm.watsonx.ai.WatsonxService.ML_API_PATH;
 import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
@@ -16,35 +15,21 @@ import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelI
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelResponse.Pagination;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
-public class FoundationModelServiceTest {
-
-    @RegisterExtension
-    WireMockExtension wireMock = WireMockExtension.newInstance()
-        .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
-        .build();
-
-    @Captor
-    HttpRequest httpRequest;
+public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
     @Test
     void test_get_models_without_parameters() throws Exception {
@@ -221,39 +206,44 @@ public class FoundationModelServiceTest {
 
         String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_tasks_response.json").readAllBytes());
 
-        var mockHttpClient = mock(HttpClient.class);
-        var mockHttpResponse = mock(HttpResponse.class);
-        var captor = ArgumentCaptor.forClass(HttpRequest.class);
-
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var service = FoundationModelService.builder()
-            .url(CloudRegion.DALLAS)
-            .version("2025-12-12")
-            .httpClient(mockHttpClient)
-            .build();
+        withWatsonxServiceMock(() -> {
 
-        service.getTasks();
-        var httpRequest = captor.getValue();
-        assertEquals(URI.create("https://us-south.ml.cloud.ibm.com/ml/v1/foundation_model_tasks?version=2025-12-12"), httpRequest.uri());
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var service = FoundationModelService.builder()
+                .url(CloudRegion.DALLAS)
+                .version("2025-12-12")
+
+                .build();
+
+            service.getTasks();
+            var uri = mockHttpRequest.getValue().uri();
+            assertEquals(URI.create("https://us-south.ml.cloud.ibm.com/ml/v1/foundation_model_tasks?version=2025-12-12"), uri);
+        });
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void test_exceptions() throws Exception {
 
-        var mockHttpClient = mock(HttpClient.class);
-        when(mockHttpClient.send(any(), any(BodyHandler.class)))
-            .thenThrow(IOException.class);
+        withWatsonxServiceMock(() -> {
+            try {
+                when(mockHttpClient.send(any(), any(BodyHandler.class)))
+                    .thenThrow(IOException.class);
 
-        var service = FoundationModelService.builder()
-            .url(CloudRegion.DALLAS)
-            .httpClient(mockHttpClient)
-            .build();
 
-        assertThrows(RuntimeException.class, () -> service.getModels());
-        assertThrows(RuntimeException.class, () -> service.getTasks());
+                var service = FoundationModelService.builder()
+                    .url(CloudRegion.DALLAS)
+                    .build();
+
+                assertThrows(RuntimeException.class, () -> service.getModels());
+                assertThrows(RuntimeException.class, () -> service.getTasks());
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
     }
 }

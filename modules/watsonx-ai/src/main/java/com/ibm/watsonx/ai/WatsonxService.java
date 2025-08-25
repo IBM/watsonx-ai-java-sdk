@@ -9,8 +9,8 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -18,6 +18,8 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
+import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
@@ -55,8 +57,8 @@ public abstract class WatsonxService {
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
     protected final SyncHttpClient syncHttpClient;
-    protected final HttpClient httpClient;
     protected final AsyncHttpClient asyncHttpClient;
+    protected final Executor computationExecutor;
 
     protected WatsonxService(Builder<?> builder) {
         url = requireNonNull(builder.url, "The url must be provided");
@@ -66,7 +68,7 @@ public abstract class WatsonxService {
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
 
-        httpClient = requireNonNullElse(builder.httpClient, HttpClient.newBuilder().build());
+        var httpClient = HttpClientProvider.httpClient();
         var syncHttpClientBuilder = SyncHttpClient.builder().httpClient(httpClient);
         var asyncHttpClientBuilder = AsyncHttpClient.builder().httpClient(httpClient);
 
@@ -87,6 +89,7 @@ public abstract class WatsonxService {
 
         syncHttpClient = syncHttpClientBuilder.build();
         asyncHttpClient = asyncHttpClientBuilder.build();
+        computationExecutor = ExecutorProvider.cpuExecutor();
     }
 
     @SuppressWarnings("unchecked")
@@ -96,7 +99,6 @@ public abstract class WatsonxService {
         private Duration timeout;
         private Boolean logRequests;
         private Boolean logResponses;
-        private HttpClient httpClient;
         private AuthenticationProvider authenticationProvider;
 
         /**
@@ -164,16 +166,6 @@ public abstract class WatsonxService {
          */
         public T timeout(Duration timeout) {
             this.timeout = timeout;
-            return (T) this;
-        }
-
-        /**
-         * Sets a custom {@link HttpClient} to be used for making requests.
-         *
-         * @param httpClient the {@code HttpClient} instance to use
-         */
-        public T httpClient(HttpClient httpClient) {
-            this.httpClient = httpClient;
             return (T) this;
         }
 

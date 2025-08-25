@@ -87,10 +87,10 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         return CompletableFuture
             .runAsync(() -> logRequest(request), executor)
             .thenCompose(v -> chain.proceed(request, bodyHandler, executor))
-            .whenCompleteAsync((respose, exception) -> {
+            .whenComplete((respose, exception) -> {
                 if (isNull(exception))
                     logResponse(request, respose);
-            }, executor);
+            });
     }
 
     @Override

@@ -12,27 +12,35 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Flow;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
@@ -41,6 +49,7 @@ import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 @ExtendWith(MockitoExtension.class)
 public class RetryInterceptorTest {
@@ -644,6 +653,65 @@ public class RetryInterceptorTest {
             client.send(httpRequest, bodyHandler).join();
             verify(httpClient, times(2)).sendAsync(eq(httpRequest), any(BodyHandler.class));
             assertEquals(retryInterceptor.getTimeout().toMillis(), timeout.toMillis());
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void test_executor() throws Exception {
+
+        var threadNames = new ArrayList<>();
+
+        var cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+            threadNames.add(Thread.currentThread().getName());
+            r.run();
+        }, "cpu-thread"));
+
+        var ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+            threadNames.add(Thread.currentThread().getName());
+            r.run();
+        }, "io-thread"));
+
+        var mockHttpResponse = mock(HttpResponse.class);
+        when(httpClient.executor()).thenReturn(Optional.of(ioExecutor));
+        when(httpClient.sendAsync(any(), any(BodyHandler.class)))
+            .thenReturn(failedFuture(new NullPointerException("First error")))
+            .thenReturn(failedFuture(new NullPointerException("Second error")))
+            .thenReturn(failedFuture(new NullPointerException("Third error")))
+            .thenReturn(completedFuture(mockHttpResponse));
+
+        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
+            mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
+
+            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryInterval(Duration.ofMillis(1))
+                .retryOn(NullPointerException.class)
+                .build();
+
+            var client = AsyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(new AsyncHttpInterceptor() {
+                    @Override
+                    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, Executor executor,
+                        int index, AsyncChain chain) {
+                        return chain.proceed(request, bodyHandler, executor)
+                            .thenApplyAsync(r -> r, cpuExecutor)
+                            .thenApplyAsync(r -> r, ioExecutor);
+                    }
+                }).build();
+
+            client.send(HttpRequest.newBuilder()
+                .uri(URI.create("https://test.com"))
+                .GET().build(), BodyHandlers.ofString())
+                .thenRun(() -> threadNames.add(Thread.currentThread().getName()))
+                .get(3, TimeUnit.SECONDS);
+
+            assertEquals(3, threadNames.size());
+            assertEquals("io-thread", threadNames.get(0));
+            assertEquals("cpu-thread", threadNames.get(1));
+            assertEquals("io-thread", threadNames.get(2));
         }
     }
 }

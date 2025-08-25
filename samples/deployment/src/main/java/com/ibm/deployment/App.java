@@ -54,5 +54,6 @@ public class App {
         var message = "How are you?";
         System.out.println("USER: ".concat(message));
         System.out.println("ASSISTANT: ".concat(deploymentService.chat(UserMessage.text(message)).toText()));
+        System.exit(0);
     }
 }

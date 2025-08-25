@@ -40,7 +40,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
@@ -207,33 +206,11 @@ public class AsyncHttpClientTest {
     @Test
     void test_http_custom_executor() throws Exception {
 
-        Executor executor = Executors.newCachedThreadPool(
-            new ThreadFactoryBuilder()
-                .setNameFormat("my-super-thread")
-                .build()
-        );
+        Executor executor = Executors.newCachedThreadPool();
 
         when(httpClient.executor()).thenReturn(Optional.of(executor));
 
         AsyncHttpClient client = AsyncHttpClient.builder()
-            .httpClient(httpClient)
-            .build();
-
-        assertEquals(executor, client.executor());
-    }
-
-    @Test
-    void test_delegate_http_custom_executor() throws Exception {
-
-        Executor executor = Executors.newCachedThreadPool(
-            new ThreadFactoryBuilder()
-                .setNameFormat("my-super-thread")
-                .build()
-        );
-
-        when(httpClient.executor()).thenReturn(Optional.of(executor));
-
-        var client = AsyncHttpClient.builder()
             .httpClient(httpClient)
             .build();
 

@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -44,7 +45,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -59,14 +59,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.ai.textextraction.CosReference;
@@ -98,7 +95,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionUtils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
-public class TextExtractionTest {
+public class TextExtractionTest extends AbstractWatsonxTest {
 
     private final String BUCKET_NAME = "my-bucket";
     private final String FILE_NAME = "test.pdf";
@@ -178,17 +175,6 @@ public class TextExtractionTest {
               }
             }""";
 
-    @Mock
-    HttpClient mockHttpClient;
-
-    @Mock
-    HttpRequest mockHttpRequest;
-
-    @Mock
-    HttpResponse<String> mockHttpResponse;
-
-    @Mock
-    AuthenticationProvider mockAuthenticationProvider;
 
     @RegisterExtension
     WireMockExtension cosServer = WireMockExtension.newInstance()
@@ -460,7 +446,7 @@ public class TextExtractionTest {
             )
         );
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
@@ -478,7 +464,7 @@ public class TextExtractionTest {
     @Test
     void test_start_extraction_with_parameters() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
@@ -547,7 +533,7 @@ public class TextExtractionTest {
     @Test
     void test_text_extraction_page_images() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
@@ -604,7 +590,7 @@ public class TextExtractionTest {
     @Test
     void test_text_extraction_multiple_outputs() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
@@ -717,7 +703,7 @@ public class TextExtractionTest {
                       }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         watsonxServer.stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id="
             + URLEncoder.encode("<project_id>", Charset.defaultCharset()))
@@ -790,7 +776,7 @@ public class TextExtractionTest {
     void text_text_extraction_delete() {
 
         var projectId = URLEncoder.encode("<project_id>", Charset.defaultCharset());
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         watsonxServer.stubFor(delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id=" + projectId)
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -830,7 +816,7 @@ public class TextExtractionTest {
         projectId = URLEncoder.encode("new-project-id", Charset.defaultCharset());
         var spaceId = URLEncoder.encode("new-space-id", Charset.defaultCharset());
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         watsonxServer
             .stubFor(
                 delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id=" + projectId
@@ -874,40 +860,40 @@ public class TextExtractionTest {
     @Test
     void test_execeptions() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpClient.send(any(), any(BodyHandler.class)))
             .thenThrow(IOException.class);
 
-        var textExtractionService = TextExtractionService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .projectId("<project_id>")
-            .url(URI.create("http://localhost"))
-            .cosUrl(CosUrl.EU_GB)
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var textExtractionService = TextExtractionService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("<project_id>")
+                .url(URI.create("http://localhost"))
+                .cosUrl(CosUrl.EU_GB)
+                .documentReference("<connection_id>", "bucket")
+                .resultReference("<connection_id>", "bucket")
+                .build();
 
-        assertThrows(RuntimeException.class, () -> textExtractionService.startExtraction("file.txt"));
-        assertThrows(RuntimeException.class, () -> textExtractionService.fetchExtractionRequest("id"));
-        assertThrows(RuntimeException.class, () -> textExtractionService.deleteRequest("id"));
-        assertThrows(RuntimeException.class, () -> textExtractionService.readFile("test", "id"));
-        assertThrows(RuntimeException.class, () -> textExtractionService.deleteFile("test", "id"));
+            assertThrows(RuntimeException.class, () -> textExtractionService.startExtraction("file.txt"));
+            assertThrows(RuntimeException.class, () -> textExtractionService.fetchExtractionRequest("id"));
+            assertThrows(RuntimeException.class, () -> textExtractionService.deleteRequest("id"));
+            assertThrows(RuntimeException.class, () -> textExtractionService.readFile("test", "id"));
+            assertThrows(RuntimeException.class, () -> textExtractionService.deleteFile("test", "id"));
 
-        var error = new WatsonxError(
-            400, "error", List.of(new WatsonxError.Error("X", "X", "X")));
+            var error = new WatsonxError(
+                400, "error", List.of(new WatsonxError.Error("X", "X", "X")));
 
-        var json = Json.toJson(error);
+            var json = Json.toJson(error);
 
-        when(mockHttpResponse.statusCode()).thenReturn(400);
-        when(mockHttpResponse.body()).thenReturn(json);
-        when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
-        when(mockHttpClient.send(any(), any(BodyHandler.class)))
-            .thenReturn(mockHttpResponse);
+            when(mockHttpResponse.statusCode()).thenReturn(400);
+            when(mockHttpResponse.body()).thenReturn(json);
+            when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
 
+            mockHttpClientSend(any(), any(BodyHandler.class));
 
-        var ex = assertThrows(WatsonxException.class, () -> textExtractionService.deleteRequest("id"));
-        JSONAssert.assertEquals(json, ex.getMessage(), true);
+            var ex = assertThrows(WatsonxException.class, () -> textExtractionService.deleteRequest("id"));
+            JSONAssert.assertEquals(json, ex.getMessage(), true);
+        });
     }
 
     @Test
@@ -921,7 +907,7 @@ public class TextExtractionTest {
 
     void test_read_file() {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         cosServer.stubFor(get("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -936,7 +922,7 @@ public class TextExtractionTest {
     @Test
     void extractAndFetchTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
         mockServers(outputFileName, false, false);
@@ -955,7 +941,7 @@ public class TextExtractionTest {
     @Test
     void uploadExtractAndFetchInputStreamTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var inputStream = TextExtractionTest.class.getClassLoader().getResourceAsStream(FILE_NAME);
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
@@ -976,7 +962,7 @@ public class TextExtractionTest {
     @Test
     void uploadExtractAndFetchTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
         var outputFileName = file.getName().replace(".pdf", ".txt");
@@ -1019,7 +1005,7 @@ public class TextExtractionTest {
     @Test
     void startExtractionTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
         mockServers(outputFileName, false, false);
@@ -1038,7 +1024,7 @@ public class TextExtractionTest {
     @Test
     void uploadAndStartExtractionTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
         var outputFileName = file.getName().replace(".pdf", ".txt");
@@ -1080,7 +1066,7 @@ public class TextExtractionTest {
     @Test
     void uploadAndStartExtractionInputStreamTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         InputStream inputStream = TextExtractionTest.class.getClassLoader().getResourceAsStream(FILE_NAME);
         String outputFileName = FILE_NAME.replace(".pdf", ".txt");
@@ -1101,8 +1087,8 @@ public class TextExtractionTest {
     @Test
     void forceRemoveOutputAndUploadedFiles() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         var outputFileName = "myNewOutput.json";
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
@@ -1160,7 +1146,7 @@ public class TextExtractionTest {
     @Test
     void mdOutputFileNameTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var outputFileName = "test.md";
         mockServers(outputFileName, false, false);
@@ -1177,7 +1163,7 @@ public class TextExtractionTest {
     @Test
     void jsonOutputFileNameTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = "test.json";
 
         mockServers(outputFileName, false, false);
@@ -1194,7 +1180,7 @@ public class TextExtractionTest {
     @Test
     void textPlainOutputFileNameTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = "test.txt";
 
         mockServers(outputFileName, false, false);
@@ -1211,7 +1197,7 @@ public class TextExtractionTest {
     @Test
     void pageImagesOutputFolderTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFolderName = "/";
 
         mockServers(outputFolderName, false, false);
@@ -1228,7 +1214,7 @@ public class TextExtractionTest {
     @Test
     void multipleTypeOutputFolderTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFolderName = "/";
 
         mockServers(outputFolderName, false, false);
@@ -1262,29 +1248,33 @@ public class TextExtractionTest {
             .thenReturn(mockHttpResponse)
             .thenReturn(response2);
 
-        var service = TextExtractionService.builder()
-            .url("http://localhost:%s".formatted(watsonxServer.getPort()))
-            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .projectId("projectid")
-            .documentReference("<connection_id>", BUCKET_NAME)
-            .resultReference("<connection_id>", BUCKET_NAME)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var service = TextExtractionService.builder()
+                .url("http://localhost:%s".formatted(watsonxServer.getPort()))
+                .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("projectid")
+                .documentReference("<connection_id>", BUCKET_NAME)
+                .resultReference("<connection_id>", BUCKET_NAME)
+                .build();
 
-        var parameters = new TextExtractionParameters.Builder()
-            .cosUrl(CosUrl.JP_OSA)
-            .build();
+            var parameters = new TextExtractionParameters.Builder()
+                .cosUrl(CosUrl.JP_OSA)
+                .build();
 
-        service.extractAndFetch("test.pdf", parameters);
+            try {
+                service.extractAndFetch("test.pdf", parameters);
+                verify(mockHttpClient, times(3)).send(mockHttpRequest.capture(), any());
+            } catch (Exception e) {
+                fail(e);
+            }
 
-        ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(mockHttpClient, times(3)).send(requestCaptor.capture(), any());
 
-        List<HttpRequest> allRequests = requestCaptor.getAllValues();
-        HttpRequest lastRequest = allRequests.get(2);
+            List<HttpRequest> allRequests = mockHttpRequest.getAllValues();
+            HttpRequest lastRequest = allRequests.get(2);
 
-        assertEquals("https://s3.jp-osa.cloud-object-storage.appdomain.cloud/my-bucket/test.txt", lastRequest.uri().toString());
+            assertEquals("https://s3.jp-osa.cloud-object-storage.appdomain.cloud/my-bucket/test.txt", lastRequest.uri().toString());
+        });
     }
 
 
@@ -1405,7 +1395,7 @@ public class TextExtractionTest {
     @Test
     void simulateLongResponseTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
 
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
@@ -1458,7 +1448,7 @@ public class TextExtractionTest {
     @Test
     void simulateTimeoutResponseTest() {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
 
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
@@ -1520,8 +1510,8 @@ public class TextExtractionTest {
     @Test
     void simulateFailedStatusOnResponseTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
@@ -1598,7 +1588,7 @@ public class TextExtractionTest {
     @Test
     void noSuchBucketTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
@@ -1648,7 +1638,7 @@ public class TextExtractionTest {
     @Test
     void noSuchKeyTest() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
@@ -1720,7 +1710,7 @@ public class TextExtractionTest {
     @Test
     void textExtractionEventDoesntExistTest() {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -1750,7 +1740,7 @@ public class TextExtractionTest {
     @Test
     void checkExtractionStatusTest() throws TextExtractionException {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
         var EXPECTED = TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME, "completed");
 
@@ -1769,7 +1759,7 @@ public class TextExtractionTest {
     @Test
     void overrideConnectionIdAndBucket() throws Exception {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var outputFileName = FILE_NAME.replace(".pdf", ".txt");
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
@@ -1888,7 +1878,7 @@ public class TextExtractionTest {
     @Test
     void deleteFileTest() {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         cosServer.resetAll();
 
@@ -1919,7 +1909,7 @@ public class TextExtractionTest {
 
         assertTrue(textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME));
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
-        verify(mockAuthenticationProvider, times(2)).getToken();
+        verify(mockAuthenticationProvider, times(2)).token();
     }
 
 

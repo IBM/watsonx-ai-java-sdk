@@ -163,11 +163,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         Executor executor, int index, int attempt, AsyncChain chain) {
 
         return chain.proceed(request, bodyHandler, executor)
-            .handleAsync((response, throwable) -> {
-                if (throwable == null) {
-                    this.timeout = this.retryInterval;
-                    return CompletableFuture.completedFuture(response);
-                }
+            .exceptionallyCompose(throwable -> {
 
                 Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
 
@@ -188,9 +184,9 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     return failed;
                 }
 
-                if (attempt > 0) {
+                if (exponentialBackoff && attempt > 0)
                     timeout = timeout.multipliedBy(2);
-                }
+
                 logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries, cause.getMessage());
 
                 return CompletableFuture.supplyAsync(
@@ -200,8 +196,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     },
                     CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS, executor)
                 ).thenCompose(Function.identity());
-
-            }, executor).thenCompose(Function.identity());
+            });
     }
 
     /**

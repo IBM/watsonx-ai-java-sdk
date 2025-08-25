@@ -4,82 +4,73 @@
  */
 package com.ibm.watsonx.ai.core;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
-public class IAMAuthenticatorAsyncTest {
-
-    @Mock
-    private HttpClient httpClient;
+public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
 
     @Test
     void test_ok_token() throws Exception {
 
-        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
         var response = Utils.okResponse();
 
-        when(httpClient.<String>sendAsync(requestCaptor.capture(), any()))
-            .thenReturn(CompletableFuture.completedFuture(response));
+        withWatsonxServiceMock(() -> {
+            when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
+                .thenReturn(CompletableFuture.completedFuture(response));
 
-        AuthenticationProvider authenticator = IAMAuthenticator.builder()
-            .httpClient(httpClient)
-            .apiKey("my_super_api_key")
-            .build();
+            AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                .apiKey("my_super_api_key")
+                .build();
 
-        assertEquals("my_super_token", authenticator.getTokenAsync().get());
-        assertEquals("https://iam.cloud.ibm.com/identity/token", requestCaptor.getValue().uri().toString());
-        assertEquals("application/x-www-form-urlencoded",
-            requestCaptor.getValue().headers().firstValue("Content-Type").get());
-        assertEquals("grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&apikey=my_super_api_key",
-            Utils.bodyPublisherToString(requestCaptor));
+            assertEquals("my_super_token", assertDoesNotThrow(() -> authenticator.asyncToken().get()));
+            assertEquals("https://iam.cloud.ibm.com/identity/token", mockHttpRequest.getValue().uri().toString());
+            assertEquals("application/x-www-form-urlencoded",
+                mockHttpRequest.getValue().headers().firstValue("Content-Type").get());
+            assertEquals("grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&apikey=my_super_api_key",
+                Utils.bodyPublisherToString(mockHttpRequest));
+        });
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void test_ko_token() throws Exception {
 
-        HttpResponse<String> response = mock(HttpResponse.class);
-        when(response.body()).thenReturn(Utils.WRONG_RESPONSE);
-        when(response.statusCode()).thenReturn(400);
+        when(mockHttpResponse.body()).thenReturn(Utils.WRONG_RESPONSE);
+        when(mockHttpResponse.statusCode()).thenReturn(400);
 
-        when(httpClient.<String>sendAsync(any(), any()))
-            .thenReturn(CompletableFuture.completedFuture(response));
+        withWatsonxServiceMock(() -> {
+            when(mockHttpClient.<String>sendAsync(any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
 
-        AuthenticationProvider authenticator = IAMAuthenticator.builder()
-            .httpClient(httpClient)
-            .apiKey("my_super_api_key")
-            .build();
+            AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                .apiKey("my_super_api_key")
+                .build();
 
-        var ex = assertThrows(RuntimeException.class, () -> authenticator.getTokenAsync().join());
-        assertEquals(Utils.WRONG_RESPONSE, ex.getCause().getMessage());
+            var ex = assertThrows(RuntimeException.class, () -> authenticator.asyncToken().join());
+            assertEquals(Utils.WRONG_RESPONSE, ex.getCause().getMessage());
+        });
     }
 
     @Test
@@ -87,74 +78,89 @@ public class IAMAuthenticatorAsyncTest {
 
         var response = Utils.okResponse();
 
-        when(httpClient.<String>sendAsync(any(), any()))
-            .thenReturn(CompletableFuture.completedFuture(response));
+        withWatsonxServiceMock(() -> {
+            when(mockHttpClient.<String>sendAsync(any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(response));
 
-        AuthenticationProvider authenticator = IAMAuthenticator.builder()
-            .httpClient(httpClient)
-            .apiKey("my_super_api_key")
-            .build();
+            AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                .apiKey("my_super_api_key")
+                .build();
 
-        // Execute the http request.
-        authenticator.getTokenAsync().get();
-        // Get the value from the cache.
-        authenticator.getTokenAsync().get();
+            // Execute the http request.
+            assertDoesNotThrow(() -> authenticator.asyncToken().get());
+            // Get the value from the cache.
+            assertDoesNotThrow(() -> authenticator.asyncToken().get());
 
-        verify(httpClient, times(1)).sendAsync(any(), any());
+            verify(mockHttpClient, times(1)).sendAsync(any(), any());
+        });
     }
 
     @Test
     void test_custom_parameters() throws Exception {
 
-        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
         var response = Utils.okResponse();
 
-        when(httpClient.<String>sendAsync(requestCaptor.capture(), any()))
-            .thenReturn(CompletableFuture.completedFuture(response));
+        withWatsonxServiceMock(() -> {
+            when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
+                .thenReturn(CompletableFuture.completedFuture(response));
 
-        AuthenticationProvider authenticator = IAMAuthenticator.builder()
-            .httpClient(httpClient)
-            .grantType("new_grant_type")
-            .timeout(Duration.ofSeconds(1))
-            .url(URI.create("http://mytest.com"))
-            .apiKey("my_super_api_key")
-            .build();
+            AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                .grantType("new_grant_type")
+                .timeout(Duration.ofSeconds(1))
+                .url(URI.create("http://mytest.com"))
+                .apiKey("my_super_api_key")
+                .build();
 
-        assertEquals("my_super_token", authenticator.getTokenAsync().get());
-        assertEquals("http://mytest.com", requestCaptor.getValue().uri().toString());
-        assertEquals("application/x-www-form-urlencoded",
-            requestCaptor.getValue().headers().firstValue("Content-Type").get());
-        assertEquals("grant_type=new_grant_type&apikey=my_super_api_key", Utils.bodyPublisherToString(requestCaptor));
+            assertEquals("my_super_token", assertDoesNotThrow(() -> authenticator.asyncToken().get()));
+            assertEquals("http://mytest.com", mockHttpRequest.getValue().uri().toString());
+            assertEquals("application/x-www-form-urlencoded",
+                mockHttpRequest.getValue().headers().firstValue("Content-Type").get());
+            assertEquals("grant_type=new_grant_type&apikey=my_super_api_key", Utils.bodyPublisherToString(mockHttpRequest));
+        });
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void verify_the_use_of_custom_executor() throws Exception {
+    void test_executor() throws Exception {
 
-        List<String> executedThreads = Collections.synchronizedList(new ArrayList<>());
-        Executor trackingExecutor = command -> {
-            executedThreads.add(Thread.currentThread().getName());
-            new Thread(command, "test-thread").start();
-        };
+        var mockHttpResponse = Utils.okResponse();
 
-        when(httpClient.executor()).thenReturn(Optional.of(trackingExecutor));
+        withWatsonxServiceMock(() -> {
+            when(mockHttpClient.sendAsync(any(), any(BodyHandler.class)))
+                .thenReturn(completedFuture(mockHttpResponse));
 
-        var authenticator = IAMAuthenticator.builder()
-            .httpClient(httpClient)
-            .grantType("new_grant_type")
-            .timeout(Duration.ofSeconds(1))
-            .url(URI.create("http://mytest.com"))
-            .apiKey("my_super_api_key")
-            .build();
+            List<String> threadNames = new ArrayList<>();
 
-        var response = Utils.okResponse();
-        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(CompletableFuture.completedFuture(response));
+            Executor cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+                threadNames.add(Thread.currentThread().getName());
+                r.run();
+            }, "cpu-thread"));
 
-        CompletableFuture<String> future = authenticator.getTokenAsync();
+            Executor ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+                threadNames.add(Thread.currentThread().getName());
+                r.run();
+            }, "io-thread"));
 
-        future.get(3, TimeUnit.SECONDS);
+            when(mockHttpClient.executor()).thenReturn(Optional.of(ioExecutor));
 
-        executedThreads.stream().forEach(System.out::println);
-        assertFalse(executedThreads.isEmpty());
+            var authenticator = IAMAuthenticator.builder()
+                .grantType("new_grant_type")
+                .timeout(Duration.ofSeconds(1))
+                .url(URI.create("http://mytest.com"))
+                .apiKey("my_super_api_key")
+                .computationExecutor(cpuExecutor)
+                .build();
+
+            assertDoesNotThrow(() -> authenticator.asyncToken()
+                .thenRun(() -> threadNames.add(Thread.currentThread().getName()))
+                .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
+                .get(3, TimeUnit.SECONDS));
+
+            assertEquals(4, threadNames.size());
+            assertEquals("cpu-thread", threadNames.get(0));
+            assertEquals("io-thread", threadNames.get(1));
+            assertEquals("io-thread", threadNames.get(2));
+            assertEquals("cpu-thread", threadNames.get(3));
+        });
     }
 }

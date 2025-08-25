@@ -11,9 +11,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.API_VERSION;
 import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
-import static com.ibm.watsonx.ai.core.Json.prettyPrint;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,31 +22,27 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -66,7 +62,7 @@ import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
@@ -80,19 +76,7 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @SuppressWarnings("unchecked")
-public class DeploymentServiceTest {
-
-    @Mock
-    HttpClient mockHttpClient;
-
-    @Mock
-    AuthenticationProvider mockAuthenticationProvider;
-
-    @Captor
-    ArgumentCaptor<HttpRequest> httpRequest;
-
-    @Mock
-    HttpResponse<String> mockHttpResponse;
+public class DeploymentServiceTest extends AbstractWatsonxTest {
 
     @RegisterExtension
     WireMockExtension wireMock = WireMockExtension.newInstance()
@@ -101,113 +85,118 @@ public class DeploymentServiceTest {
 
     @BeforeEach
     void setup() {
-        when(mockAuthenticationProvider.getToken()).thenReturn("token");
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticationProvider.token()).thenReturn("token");
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
     }
 
     @Test
     void test_generate() throws Exception {
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        TextGenerationParameters parameters = TextGenerationParameters.builder()
-            .modelId("model-id")
-            .projectId("project-id")
-            .spaceId("space-id")
-            .timeLimit(Duration.ofSeconds(10))
-            .build();
+            TextGenerationParameters parameters = TextGenerationParameters.builder()
+                .modelId("model-id")
+                .projectId("project-id")
+                .spaceId("space-id")
+                .timeLimit(Duration.ofSeconds(10))
+                .build();
 
-        String input = "how far is paris from bangalore:";
-        TextGenerationRequest EXPECTED_BODY =
-            new TextGenerationRequest(null, null, null, input, parameters.toSanitized(), null);
+            String input = "how far is paris from bangalore:";
+            TextGenerationRequest EXPECTED_BODY =
+                new TextGenerationRequest(null, null, null, input, parameters.toSanitized(), null);
 
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn("""
-            {
-              "model_id": "google/flan-ul2",
-              "created_at": "2023-07-21T16:52:32.190Z",
-              "results": [
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn("""
                 {
-                  "generated_text": "4,000 km",
-                  "generated_token_count": 4,
-                  "input_token_count": 12,
-                  "stop_reason": "eos_token"
-                }
-              ]
-            }""");
-        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+                  "model_id": "google/flan-ul2",
+                  "created_at": "2023-07-21T16:52:32.190Z",
+                  "results": [
+                    {
+                      "generated_text": "4,000 km",
+                      "generated_token_count": 4,
+                      "input_token_count": 12,
+                      "stop_reason": "eos_token"
+                    }
+                  ]
+                }""");
 
-        var response = deploymentService.generate(input, parameters);
-        assertEquals("google/flan-ul2", response.modelId());
-        assertEquals("2023-07-21T16:52:32.190Z", response.createdAt());
-        assertEquals("4,000 km", response.results().get(0).generatedText());
-        assertEquals(4, response.results().get(0).generatedTokenCount());
-        assertEquals(12, response.results().get(0).inputTokenCount());
-        assertEquals("eos_token", response.results().get(0).stopReason());
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(httpRequest), true);
-        assertEquals(
-            URI.create(CloudRegion.DALLAS.getMlEndpoint()
-                .concat("/ml/v1/deployments/my-deployment-id/text/generation?version=%s".formatted(API_VERSION))),
-            httpRequest.getValue().uri()
-        );
+            var response = deploymentService.generate(input, parameters);
+            assertEquals("google/flan-ul2", response.modelId());
+            assertEquals("2023-07-21T16:52:32.190Z", response.createdAt());
+            assertEquals("4,000 km", response.results().get(0).generatedText());
+            assertEquals(4, response.results().get(0).generatedTokenCount());
+            assertEquals(12, response.results().get(0).inputTokenCount());
+            assertEquals("eos_token", response.results().get(0).stopReason());
+
+            JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(mockHttpRequest), true);
+            assertEquals(
+                URI.create(CloudRegion.DALLAS.getMlEndpoint()
+                    .concat("/ml/v1/deployments/my-deployment-id/text/generation?version=%s".formatted(API_VERSION))),
+                mockHttpRequest.getValue().uri()
+            );
+        });
     }
 
     @Test
     void test_generate_prompt_template() throws Exception {
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+        withWatsonxServiceMock(() -> {
 
-        TextGenerationParameters parameters = TextGenerationParameters.builder()
-            .promptVariables(Map.of("city", "paris"))
-            .transactionId("my-transaction-id")
-            .timeLimit(Duration.ofSeconds(10))
-            .build();
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        TextGenerationRequest EXPECTED_BODY =
-            new TextGenerationRequest(null, null, null, null, parameters.toSanitized(), null);
+            TextGenerationParameters parameters = TextGenerationParameters.builder()
+                .promptVariables(Map.of("city", "paris"))
+                .transactionId("my-transaction-id")
+                .timeLimit(Duration.ofSeconds(10))
+                .build();
 
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn("""
-            {
-              "model_id": "google/flan-ul2",
-              "created_at": "2023-07-21T16:52:32.190Z",
-              "results": [
+            TextGenerationRequest EXPECTED_BODY =
+                new TextGenerationRequest(null, null, null, null, parameters.toSanitized(), null);
+
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn("""
                 {
-                  "generated_text": "4,000 km",
-                  "generated_token_count": 4,
-                  "input_token_count": 12,
-                  "stop_reason": "eos_token"
-                }
-              ]
-            }""");
-        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+                  "model_id": "google/flan-ul2",
+                  "created_at": "2023-07-21T16:52:32.190Z",
+                  "results": [
+                    {
+                      "generated_text": "4,000 km",
+                      "generated_token_count": 4,
+                      "input_token_count": 12,
+                      "stop_reason": "eos_token"
+                    }
+                  ]
+                }""");
 
-        var response = deploymentService.generate(null, parameters);
-        assertEquals("google/flan-ul2", response.modelId());
-        assertEquals("2023-07-21T16:52:32.190Z", response.createdAt());
-        assertEquals("4,000 km", response.results().get(0).generatedText());
-        assertEquals(4, response.results().get(0).generatedTokenCount());
-        assertEquals(12, response.results().get(0).inputTokenCount());
-        assertEquals("eos_token", response.results().get(0).stopReason());
-        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(httpRequest), true);
-        assertEquals(
-            URI.create(CloudRegion.DALLAS.getMlEndpoint()
-                .concat("/ml/v1/deployments/my-deployment-id/text/generation?version=%s".formatted(API_VERSION))),
-            httpRequest.getValue().uri()
-        );
+            var response = deploymentService.generate(null, parameters);
+            assertEquals("google/flan-ul2", response.modelId());
+            assertEquals("2023-07-21T16:52:32.190Z", response.createdAt());
+            assertEquals("4,000 km", response.results().get(0).generatedText());
+            assertEquals(4, response.results().get(0).generatedTokenCount());
+            assertEquals(12, response.results().get(0).inputTokenCount());
+            assertEquals("eos_token", response.results().get(0).stopReason());
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+
+            JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(mockHttpRequest), true);
+            assertEquals(
+                URI.create(CloudRegion.DALLAS.getMlEndpoint()
+                    .concat("/ml/v1/deployments/my-deployment-id/text/generation?version=%s".formatted(API_VERSION))),
+                mockHttpRequest.getValue().uri()
+            );
+        });
     }
 
     @Test
@@ -401,74 +390,76 @@ public class DeploymentServiceTest {
     @Test
     void test_chat() throws Exception {
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        ChatParameters parameters = ChatParameters.builder()
-            .modelId("model-id")
-            .projectId("project-id")
-            .spaceId("space-id")
-            .transactionId("my-transaction-id")
-            .build();
+            ChatParameters parameters = ChatParameters.builder()
+                .modelId("model-id")
+                .projectId("project-id")
+                .spaceId("space-id")
+                .transactionId("my-transaction-id")
+                .build();
 
-        TextChatRequest EXPECTED_BODY = TextChatRequest.builder()
-            .messages(List.of(UserMessage.text("Hello")))
-            .parameters(parameters)
-            .timeLimit(10000l)
-            .build();
+            TextChatRequest EXPECTED_BODY = TextChatRequest.builder()
+                .messages(List.of(UserMessage.text("Hello")))
+                .parameters(parameters)
+                .timeLimit(10000l)
+                .build();
 
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn("""
-            {
-              "id": "cmpl-15475d0dea9b4429a55843c77997f8a9",
-              "model_id": "ibm/granite-3-2b-instruct",
-              "created": 1689958352,
-              "created_at": "2023-07-21T16:52:32.190Z",
-              "choices": [
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn("""
                 {
-                  "index": 0,
-                  "message": {
-                    "role": "assistant",
-                    "content": "The 2020 World Series was played at the Globe Life Field in Arlington, Texas.\\n"
-                  },
-                  "finish_reason": "stop"
-                }
-              ],
-              "usage": {
-                "completion_tokens": 27,
-                "prompt_tokens": 186,
-                "total_tokens": 213
-              }
-            }""");
-        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+                  "id": "cmpl-15475d0dea9b4429a55843c77997f8a9",
+                  "model_id": "ibm/granite-3-2b-instruct",
+                  "created": 1689958352,
+                  "created_at": "2023-07-21T16:52:32.190Z",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "The 2020 World Series was played at the Globe Life Field in Arlington, Texas.\\n"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": {
+                    "completion_tokens": 27,
+                    "prompt_tokens": 186,
+                    "total_tokens": 213
+                  }
+                }""");
 
-        var response = deploymentService.chat(List.of(UserMessage.text("Hello")), parameters);
-        assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.getId());
-        assertEquals("ibm/granite-3-2b-instruct", response.getModelId());
-        assertEquals("2023-07-21T16:52:32.190Z", response.getCreatedAt());
-        assertEquals(1689958352, response.getCreated());
-        assertEquals(27, response.getUsage().getCompletionTokens());
-        assertEquals(186, response.getUsage().getPromptTokens());
-        assertEquals(213, response.getUsage().getTotalTokens());
-        assertEquals(1, response.getChoices().size());
-        assertEquals("The 2020 World Series was played at the Globe Life Field in Arlington, Texas.\n",
-            response.getChoices().get(0).getMessage().content());
-        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(httpRequest), true);
-        assertEquals(
-            URI.create(CloudRegion.DALLAS.getMlEndpoint()
-                .concat("/ml/v1/deployments/my-deployment-id/text/chat?version=%s".formatted(API_VERSION))),
-            httpRequest.getValue().uri()
-        );
+            var response = deploymentService.chat(List.of(UserMessage.text("Hello")), parameters);
+            assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.getId());
+            assertEquals("ibm/granite-3-2b-instruct", response.getModelId());
+            assertEquals("2023-07-21T16:52:32.190Z", response.getCreatedAt());
+            assertEquals(1689958352, response.getCreated());
+            assertEquals(27, response.getUsage().getCompletionTokens());
+            assertEquals(186, response.getUsage().getPromptTokens());
+            assertEquals(213, response.getUsage().getTotalTokens());
+            assertEquals(1, response.getChoices().size());
+            assertEquals("The 2020 World Series was played at the Globe Life Field in Arlington, Texas.\n",
+                response.getChoices().get(0).getMessage().content());
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
 
-        deploymentService.chat(List.of(UserMessage.text("Hello")));
-        response = deploymentService.chat(List.of(UserMessage.text("Hello")), parameters);
-        assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.getId());
+            JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(mockHttpRequest), true);
+            assertEquals(
+                URI.create(CloudRegion.DALLAS.getMlEndpoint()
+                    .concat("/ml/v1/deployments/my-deployment-id/text/chat?version=%s".formatted(API_VERSION))),
+                mockHttpRequest.getValue().uri()
+            );
+
+            deploymentService.chat(List.of(UserMessage.text("Hello")));
+            response = deploymentService.chat(List.of(UserMessage.text("Hello")), parameters);
+            assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.getId());
+        });
     }
 
     @Test
@@ -654,7 +645,7 @@ public class DeploymentServiceTest {
                 .withChunkedDribbleDelay(159, 200)
                 .withBody(BODY)));
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         ChatRequest chatRequest = ChatRequest.builder()
@@ -861,24 +852,26 @@ public class DeploymentServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
-        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("mysuperdeployment")
-            .build();
+        withWatsonxServiceMock(() -> {
 
-        var response = deploymentService.findById(
-            FindByIdParameters.builder()
-                .projectId("my-project-id")
-                .build()
-        );
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("mysuperdeployment")
+                .build();
 
-        JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
-        assertTrue(httpRequest.getValue().uri().toString().contains("/mysuperdeployment"));
-        assertTrue(httpRequest.getValue().uri().getQuery().contains("my-project-id"));
+            var response = deploymentService.findById(
+                FindByIdParameters.builder()
+                    .projectId("my-project-id")
+                    .build()
+            );
+
+            JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+            assertTrue(mockHttpRequest.getValue().uri().toString().contains("/mysuperdeployment"));
+            assertTrue(mockHttpRequest.getValue().uri().getQuery().contains("my-project-id"));
+        });
     }
 
     @Test
@@ -924,24 +917,25 @@ public class DeploymentServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
-        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        var response = deploymentService.findById(
-            FindByIdParameters.builder()
-                .spaceId("my-space-id")
-                .build()
-        );
+            var response = deploymentService.findById(
+                FindByIdParameters.builder()
+                    .spaceId("my-space-id")
+                    .build()
+            );
 
-        JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
-        assertTrue(httpRequest.getValue().uri().toString().contains("/my-deployment-id"));
-        assertTrue(httpRequest.getValue().uri().getQuery().contains("my-space-id"));
+            JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+            assertTrue(mockHttpRequest.getValue().uri().toString().contains("/my-deployment-id"));
+            assertTrue(mockHttpRequest.getValue().uri().getQuery().contains("my-space-id"));
+        });
     }
 
     @Test
@@ -996,41 +990,42 @@ public class DeploymentServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
-        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        var response = deploymentService.findById(
-            FindByIdParameters.builder()
-                .deployment("override-deployment")
-                .spaceId("my-space-id")
-                .build()
-        );
+            var response = deploymentService.findById(
+                FindByIdParameters.builder()
+                    .deployment("override-deployment")
+                    .spaceId("my-space-id")
+                    .build()
+            );
 
-        JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
-        assertFalse(httpRequest.getValue().uri().toString().contains("my-deployment-id"));
-        assertTrue(httpRequest.getValue().uri().toString().contains("/override-deployment"));
-        assertTrue(httpRequest.getValue().uri().getQuery().contains("my-space-id"));
+            JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+            assertFalse(mockHttpRequest.getValue().uri().toString().contains("my-deployment-id"));
+            assertTrue(mockHttpRequest.getValue().uri().toString().contains("/override-deployment"));
+            assertTrue(mockHttpRequest.getValue().uri().getQuery().contains("my-space-id"));
 
-        assertThrows(IllegalArgumentException.class, () -> deploymentService.findById(
-            FindByIdParameters.builder()
-                .deployment("override-deployment")
-                .build()
-        ), "Either projectId or spaceId must be provided");
+            assertThrows(IllegalArgumentException.class, () -> deploymentService.findById(
+                FindByIdParameters.builder()
+                    .deployment("override-deployment")
+                    .build()
+            ), "Either projectId or spaceId must be provided");
 
-        deploymentService.findById(
-            FindByIdParameters.builder()
-                .deployment("override-deployment")
-                .spaceId("my-space-id")
-                .transactionId("my-transaction-id")
-                .build()
-        );
-        assertEquals(httpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            deploymentService.findById(
+                FindByIdParameters.builder()
+                    .deployment("override-deployment")
+                    .spaceId("my-space-id")
+                    .transactionId("my-transaction-id")
+                    .build()
+            );
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+        });
     }
 
     @Test
@@ -1129,24 +1124,24 @@ public class DeploymentServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
-        when(mockHttpClient.send(httpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        var response = deploymentService.findById(
-            FindByIdParameters.builder()
-                .deployment("override-deployment")
-                .spaceId("my-space-id")
-                .build()
-        );
+            var response = deploymentService.findById(
+                FindByIdParameters.builder()
+                    .deployment("override-deployment")
+                    .spaceId("my-space-id")
+                    .build()
+            );
 
-        System.out.println(prettyPrint(toJson(response)));
-        JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+            JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
+        });
     }
 
     @Test
@@ -1193,56 +1188,94 @@ public class DeploymentServiceTest {
         ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
         when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        var parameters = ChatParameters.builder()
-            .toolChoiceOption(ToolChoice.REQUIRED)
-            .build();
+            var parameters = ChatParameters.builder()
+                .toolChoiceOption(ToolChoice.REQUIRED)
+                .build();
 
-        var response = deploymentService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
-        assertEquals("tool_calls", response.finishReason().value());
+            var response = deploymentService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
+            assertEquals("tool_calls", response.finishReason().value());
+        });
     }
 
     @Test
-    void verify_the_use_of_custom_executor() throws Exception {
+    void test_executor() throws Exception {
 
-        List<String> executedThreads = Collections.synchronizedList(new ArrayList<>());
-        Executor trackingExecutor = command -> {
-            executedThreads.add(Thread.currentThread().getName());
-            new Thread(command, "test-thread").start();
-        };
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
-        when(mockHttpClient.executor()).thenReturn(Optional.of(trackingExecutor));
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
 
-        HttpResponse<String> response = mock(HttpResponse.class);
-        when(mockHttpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(CompletableFuture.completedFuture(response));
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.563Z"}
 
-        CompletableFuture<Void> future = deploymentService.chatStreaming(List.of(UserMessage.text("Hello")), mock(ChatHandler.class));
+                        id: 5
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.564Z","usage":{"completion_tokens":3,"prompt_tokens":38,"total_tokens":41}}
+                        """)));
 
-        future.get(3, TimeUnit.SECONDS);
+        List<String> threadNames = new ArrayList<>();
 
-        assertFalse(executedThreads.isEmpty());
-        assertTrue(executedThreads.stream().anyMatch(name -> name.contains("test-thread")));
+        Executor ioExecutor = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
+            threadNames.add(Thread.currentThread().getName());
+            r.run();
+        }, "my-thread"));
 
-        future = deploymentService.generateStreaming("Hello", mock(TextGenerationHandler.class));
+        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
+            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
+            when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
 
-        future.get(3, TimeUnit.SECONDS);
+            var deploymentService = DeploymentService.builder()
+                .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        assertFalse(executedThreads.isEmpty());
-        assertTrue(executedThreads.stream().anyMatch(name -> name.contains("test-thread")));
+            CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+            deploymentService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    assertEquals("my-thread", Thread.currentThread().getName());
+                    assertNotNull(partialResponse);
+                    assertNotNull(partialChatResponse);
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    assertEquals("my-thread", Thread.currentThread().getName());
+                    result.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    fail(error);
+                }
+            });
+
+            result.get(3, TimeUnit.SECONDS);
+            assertEquals(1, threadNames.size());
+            assertEquals("my-thread", threadNames.get(0));
+        }
     }
 
     @Test
@@ -1252,21 +1285,22 @@ public class DeploymentServiceTest {
             .thenThrow(new IOException("IOException"))
             .thenThrow(new InterruptedException("InterruptedException"));
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .deployment("my-deployment-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .deployment("my-deployment-id")
+                .build();
 
-        var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate("test"));
-        assertEquals(ex.getCause().getMessage(), "IOException");
-        ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(UserMessage.text("test")));
-        assertEquals(ex.getCause().getMessage(), "InterruptedException");
-        ex = assertThrows(RuntimeException.class,
-            () -> deploymentService.forecast(InputSchema.builder().timestampColumn("test").build(), ForecastData.create()));
-        assertEquals(ex.getCause().getMessage(), "InterruptedException");
-        ex = assertThrows(RuntimeException.class,
-            () -> deploymentService.findById(FindByIdParameters.builder().projectId("project-id").build()), "InterruptedException");
+            var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate("test"));
+            assertEquals(ex.getCause().getMessage(), "IOException");
+            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(UserMessage.text("test")));
+            assertEquals(ex.getCause().getMessage(), "InterruptedException");
+            ex = assertThrows(RuntimeException.class,
+                () -> deploymentService.forecast(InputSchema.builder().timestampColumn("test").build(), ForecastData.create()));
+            assertEquals(ex.getCause().getMessage(), "InterruptedException");
+            ex = assertThrows(RuntimeException.class,
+                () -> deploymentService.findById(FindByIdParameters.builder().projectId("project-id").build()), "InterruptedException");
+        });
     }
 }

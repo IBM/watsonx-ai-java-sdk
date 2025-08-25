@@ -34,7 +34,6 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
-import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
@@ -247,9 +246,6 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var messages = chatRequest.getMessages();
         var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
         var parameters = chatRequest.getParameters();
-        var stateTracker = nonNull(chatRequest.getExtractionTags())
-            ? new StreamingStateTracker(chatRequest.getExtractionTags())
-            : null;
 
         requireNonNull(handler, "The chatHandler parameter can not be null");
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
@@ -279,7 +275,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         if (nonNull(tools))
             tools.stream().forEach(tool -> toolHasParameters.put(tool.function().name(), tool.hasParameters()));
 
-        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), toolHasParameters, stateTracker, handler);
+        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), toolHasParameters, chatRequest.getExtractionTags(), handler);
         return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))

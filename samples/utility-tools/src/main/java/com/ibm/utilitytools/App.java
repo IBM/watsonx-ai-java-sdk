@@ -85,5 +85,6 @@ public class App {
             ----- WEATHER RESULT -----
             %s
             --------------------------------""".formatted(weatherResult.trim()));
+        System.exit(0);
     }
 }
