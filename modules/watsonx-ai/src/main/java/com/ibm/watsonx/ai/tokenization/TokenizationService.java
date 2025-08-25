@@ -15,7 +15,9 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
 
@@ -57,6 +59,16 @@ public final class TokenizationService extends ModelService {
     }
 
     /**
+     * Tokenizes the provided input.
+     *
+     * @param input The input string to tokenize
+     * @return The tokenization response.
+     */
+    public CompletableFuture<TokenizationResponse> asyncTokenize(String input) {
+        return asyncTokenize(input, null);
+    }
+
+    /**
      * Tokenizes the input using parameters.
      *
      * @param input The input string to tokenize.
@@ -65,6 +77,38 @@ public final class TokenizationService extends ModelService {
      */
     public TokenizationResponse tokenize(String input, TokenizationParameters parameters) {
 
+        try {
+
+            var httpRequest = buildHttpRequest(input, parameters);
+            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
+            return fromJson(httpReponse.body(), TokenizationResponse.class);
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Tokenizes the input using parameters.
+     *
+     * @param input The input string to tokenize.
+     * @param parameters Tokenization parameters.
+     * @return The tokenization response.
+     */
+    public CompletableFuture<TokenizationResponse> asyncTokenize(String input, TokenizationParameters parameters) {
+        var httpRequest = buildHttpRequest(input, parameters);
+        return asyncHttpClient.send(httpRequest, BodyHandlers.ofString())
+            .thenApplyAsync(r -> Json.fromJson(r.body(), TokenizationResponse.class), asyncHttpClient.executor());
+    }
+
+    /**
+     * Builds an HTTP request for tokenization.
+     *
+     * @param input The input string to be tokenized.
+     * @param parameters Tokenization parameters.
+     * @return A built HttpRequest object for tokenization.
+     */
+    private HttpRequest buildHttpRequest(String input, TokenizationParameters parameters) {
         requireNonNull(input, "Input cannot be null");
 
         String modelId = this.modelId;
@@ -93,14 +137,7 @@ public final class TokenizationService extends ModelService {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TokenizationResponse.class);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return httpRequest.build();
     }
 
     /**
