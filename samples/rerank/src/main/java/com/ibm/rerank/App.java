@@ -21,38 +21,45 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        var url = URI.create(config.getValue("WATSONX_URL", String.class));
-        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-        var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+        try {
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
+            var url = URI.create(config.getValue("WATSONX_URL", String.class));
+            var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+            var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-        RerankService rerankService = RerankService.builder()
-            .authenticationProvider(authProvider)
-            .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
-            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-            .url(url)
-            .build();
+            AuthenticationProvider authProvider = IAMAuthenticator.builder()
+                .apiKey(apiKey)
+                .timeout(Duration.ofSeconds(60))
+                .build();
 
-        RerankParameters parameters = RerankParameters.builder()
-            .query(true)
-            .inputs(true)
-            .build();
+            RerankService rerankService = RerankService.builder()
+                .authenticationProvider(authProvider)
+                .projectId(projectId)
+                .timeout(Duration.ofSeconds(60))
+                .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+                .url(url)
+                .build();
 
-        var response = rerankService.rerank(
-            "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-            List.of(
-                "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
-                "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-            ),
-            parameters
-        );
+            RerankParameters parameters = RerankParameters.builder()
+                .query(true)
+                .inputs(true)
+                .build();
 
-        System.out.println(Json.prettyPrint(response));
-        System.exit(0);
+            var response = rerankService.rerank(
+                "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                List.of(
+                    "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
+                    "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                ),
+                parameters
+            );
+
+            System.out.println(Json.prettyPrint(response));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.exit(0);
+        }
     }
 }

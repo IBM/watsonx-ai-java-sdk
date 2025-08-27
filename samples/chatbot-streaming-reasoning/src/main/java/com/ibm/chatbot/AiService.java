@@ -5,6 +5,7 @@
 package com.ibm.chatbot;
 
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
+import static java.util.Objects.isNull;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -52,6 +53,7 @@ public class AiService {
             .projectId(projectId)
             .timeout(Duration.ofSeconds(60))
             .modelId(modelId)
+            .logRequests(true)
             .url(url)
             .build();
 
@@ -78,6 +80,7 @@ public class AiService {
             .messages(memory.getMemory())
             .thinking(ExtractionTags.of("think", "response"))
             .build();
+
         return chatService.chatStreaming(chatRequest, new ChatHandler() {
             private boolean firstReasoningChunk = true;
             private boolean firstResponseChunk = true;
@@ -93,13 +96,16 @@ public class AiService {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                var text = AssistantMessage.text(completeResponse.toTextByTag("response"));
-                memory.addMessage(text);
+                var response = completeResponse.toTextByTag("response");
+                if (isNull(response))
+                    memory.addMessage(AssistantMessage.text(completeResponse.toText()));
+                else
+                    memory.addMessage(AssistantMessage.text(response));
             }
 
             @Override
             public void onError(Throwable error) {
-                System.err.println(error);
+                error.printStackTrace();
             }
 
             @Override
