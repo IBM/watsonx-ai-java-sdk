@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-tools-chatbot</artifactId>
-  <version>0.6.1</version>
+  <version>0.7.0</version>
   <name>Chatbot Tools Sample</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>watsonx-ai-sample-parent</artifactId>
-    <version>0.6.1</version>
+    <version>0.7.0</version>
     <relativePath>../</relativePath>
   </parent>
 
