@@ -15,6 +15,13 @@ public class StreamingToolFetcherTest {
 
         StreamingToolFetcher fetcher = new StreamingToolFetcher(0);
 
+        fetcher.setId("id");
+        assertEquals("id", fetcher.build().id());
+        fetcher.setId(null);
+        assertEquals("id", fetcher.build().id());
+        fetcher.setId("");
+        assertEquals("id", fetcher.build().id());
+
         fetcher.setName("name");
         assertEquals("name", fetcher.build().function().name());
         fetcher.setName(null);
@@ -25,6 +32,8 @@ public class StreamingToolFetcherTest {
         fetcher.appendArguments("test");
         assertEquals("test", fetcher.build().function().arguments());
         fetcher.appendArguments(null);
+        assertEquals("test", fetcher.build().function().arguments());
+        fetcher.appendArguments("");
         assertEquals("test", fetcher.build().function().arguments());
     }
 }
