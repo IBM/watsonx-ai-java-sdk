@@ -600,6 +600,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .projectId("project-id")
             .maxCompletionTokens(0)
             .temperature(0.0)
+            .context("test")
+            .transactionId("my-transaction-id")
             .build();
 
         deploymentService.chatStreaming(messages, chatParameters, chatHandler);
