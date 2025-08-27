@@ -382,7 +382,8 @@ public interface ChatProvider {
                             switch(r.state()) {
                                 case RESPONSE -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
                                 case THINKING -> content.ifPresent(c -> handler.onPartialThinking(c, chunk));
-                                case UNKNOWN -> {}
+                                case NO_THINKING -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
+                                case START, UNKNOWN -> {}
                             }
                         } else {
                             handler.onPartialResponse(token, chunk);

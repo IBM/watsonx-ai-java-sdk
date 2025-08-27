@@ -27,55 +27,62 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        var url = URI.create(config.getValue("WATSONX_URL", String.class));
-        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-        var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+        try {
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
+            var url = URI.create(config.getValue("WATSONX_URL", String.class));
+            var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+            var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-        TimeSeriesService tsService = TimeSeriesService.builder()
-            .authenticationProvider(authProvider)
-            .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
-            .url(url)
-            .modelId("ibm/granite-ttm-512-96-r2")
-            .build();
+            AuthenticationProvider authProvider = IAMAuthenticator.builder()
+                .apiKey(apiKey)
+                .timeout(Duration.ofSeconds(60))
+                .build();
 
-        var inputSchema = InputSchema.builder()
-            .timestampColumn("date")
-            .addIdColumn("ID1")
-            .addTargetColumn("TARGET1")
-            .build();
+            TimeSeriesService tsService = TimeSeriesService.builder()
+                .authenticationProvider(authProvider)
+                .projectId(projectId)
+                .timeout(Duration.ofSeconds(60))
+                .url(url)
+                .modelId("ibm/granite-ttm-512-96-r2")
+                .build();
 
-        Random rand = new Random();
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        LocalDateTime start = LocalDateTime.of(2023, 10, 1, 0, 0);
+            var inputSchema = InputSchema.builder()
+                .timestampColumn("date")
+                .addIdColumn("ID1")
+                .addTargetColumn("TARGET1")
+                .build();
 
-        var dates = IntStream.range(0, 512)
-            .mapToObj(i -> start.plusHours(i).format(formatter))
-            .collect(Collectors.toList());
+            Random rand = new Random();
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            LocalDateTime start = LocalDateTime.of(2023, 10, 1, 0, 0);
 
-        var target = IntStream.range(0, 512)
-            .mapToDouble(v -> rand.nextDouble())
-            .boxed()
-            .collect(Collectors.toList());
+            var dates = IntStream.range(0, 512)
+                .mapToObj(i -> start.plusHours(i).format(formatter))
+                .collect(Collectors.toList());
 
-        var data = ForecastData.create()
-            .add("ID1", "D1", 512)
-            .addAll("TARGET1", target)
-            .addAll("date", dates);
+            var target = IntStream.range(0, 512)
+                .mapToDouble(v -> rand.nextDouble())
+                .boxed()
+                .collect(Collectors.toList());
 
-        var parameters = TimeSeriesParameters.builder()
-            .predictionLength(6)
-            .build();
+            var data = ForecastData.create()
+                .add("ID1", "D1", 512)
+                .addAll("TARGET1", target)
+                .addAll("date", dates);
 
-        System.out.println("""
-            Forecast result:
-            %s
-            """.formatted(prettyPrint(tsService.forecast(inputSchema, data, parameters))));
-        System.exit(0);
+            var parameters = TimeSeriesParameters.builder()
+                .predictionLength(6)
+                .build();
+
+            System.out.println("""
+                Forecast result:
+                %s
+                """.formatted(prettyPrint(tsService.forecast(inputSchema, data, parameters))));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.exit(0);
+        }
     }
 }

@@ -23,68 +23,76 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        var url = URI.create(config.getValue("WATSONX_URL", String.class));
-        var watsonxApiKey = config.getValue("WATSONX_API_KEY", String.class);
-        var tavilyApiKey = config.getOptionalValue("TAVILY_SEARCH_API_KEY", String.class);
+        try {
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(watsonxApiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
+            var url = URI.create(config.getValue("WATSONX_URL", String.class));
+            var watsonxApiKey = config.getValue("WATSONX_API_KEY", String.class);
+            var tavilyApiKey = config.getOptionalValue("TAVILY_SEARCH_API_KEY", String.class);
 
-        ToolService toolService = ToolService.builder()
-            .authenticationProvider(authProvider)
-            .timeout(Duration.ofSeconds(60))
-            .url(url)
-            .build();
+            AuthenticationProvider authProvider = IAMAuthenticator.builder()
+                .apiKey(watsonxApiKey)
+                .timeout(Duration.ofSeconds(60))
+                .build();
 
-        GoogleSearchTool googleSearchTool = new GoogleSearchTool(toolService);
-        WebCrawlerTool webCrawlerTool = new WebCrawlerTool(toolService);
-        WikipediaTool wikipediaTool = new WikipediaTool(toolService);
-        WeatherTool weatherTool = new WeatherTool(toolService);
+            ToolService toolService = ToolService.builder()
+                .authenticationProvider(authProvider)
+                .timeout(Duration.ofSeconds(60))
+                .url(url)
+                .build();
 
-        var googleSearchResult = googleSearchTool.search("watsonx.ai java sdk", 1).get(0);
+            GoogleSearchTool googleSearchTool = new GoogleSearchTool(toolService);
+            WebCrawlerTool webCrawlerTool = new WebCrawlerTool(toolService);
+            WikipediaTool wikipediaTool = new WikipediaTool(toolService);
+            WeatherTool weatherTool = new WeatherTool(toolService);
 
-        System.out.println("""
-            ----- GOOGLE SEARCH RESULT -----
-            URL: %s
-            DESCRIPTION: %s
-            --------------------------------\n""".formatted(googleSearchResult.url(), googleSearchResult.description()));
-
-        if (tavilyApiKey.isPresent()) {
-
-            TavilySearchTool tavilySearchTool = new TavilySearchTool(toolService, tavilyApiKey.get());
-            var tavilySearchResult = tavilySearchTool.search("watsonx.ai java sdk", 1).get(0);
+            var googleSearchResult = googleSearchTool.search("watsonx.ai java sdk", 1).get(0);
 
             System.out.println("""
-                ----- TAVILY SEARCH RESULT -----
+                ----- GOOGLE SEARCH RESULT -----
                 URL: %s
-                TITLE: %s
-                CONTENT: %s
-                SCORE: %f
-                --------------------------------\n""".formatted(tavilySearchResult.url(), tavilySearchResult.title(), tavilySearchResult.content(),
-                tavilySearchResult.score()));
+                DESCRIPTION: %s
+                --------------------------------\n""".formatted(googleSearchResult.url(), googleSearchResult.description()));
+
+            if (tavilyApiKey.isPresent()) {
+
+                TavilySearchTool tavilySearchTool = new TavilySearchTool(toolService, tavilyApiKey.get());
+                var tavilySearchResult = tavilySearchTool.search("watsonx.ai java sdk", 1).get(0);
+
+                System.out.println("""
+                    ----- TAVILY SEARCH RESULT -----
+                    URL: %s
+                    TITLE: %s
+                    CONTENT: %s
+                    SCORE: %f
+                    --------------------------------\n""".formatted(tavilySearchResult.url(), tavilySearchResult.title(),
+                    tavilySearchResult.content(),
+                    tavilySearchResult.score()));
+            }
+
+            var webCrawlerResult = webCrawlerTool.process("https://github.com/IBM/watsonx-ai-java-sdk");
+            System.out.println("""
+                ----- WEB CRAWLER RESULT -----
+                %s
+                ...
+                --------------------------------\n""".formatted(webCrawlerResult.subSequence(0, 100)));
+
+            var wikipediaResult = wikipediaTool.search("watsonx.ai");
+            System.out.println("""
+                ----- WIKIPEDIA RESULT -----
+                %s
+                ...
+                --------------------------------\n""".formatted(wikipediaResult.subSequence(0, 100)));
+
+            var weatherResult = weatherTool.find("Rome");
+            System.out.println("""
+                ----- WEATHER RESULT -----
+                %s
+                --------------------------------""".formatted(weatherResult.trim()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.exit(0);
         }
-
-        var webCrawlerResult = webCrawlerTool.process("https://github.com/IBM/watsonx-ai-java-sdk");
-        System.out.println("""
-            ----- WEB CRAWLER RESULT -----
-            %s
-            ...
-            --------------------------------\n""".formatted(webCrawlerResult.subSequence(0, 100)));
-
-        var wikipediaResult = wikipediaTool.search("watsonx.ai");
-        System.out.println("""
-            ----- WIKIPEDIA RESULT -----
-            %s
-            ...
-            --------------------------------\n""".formatted(wikipediaResult.subSequence(0, 100)));
-
-        var weatherResult = weatherTool.find("Rome");
-        System.out.println("""
-            ----- WEATHER RESULT -----
-            %s
-            --------------------------------""".formatted(weatherResult.trim()));
-        System.exit(0);
     }
 }

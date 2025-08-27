@@ -19,25 +19,33 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        var url = URI.create(config.getValue("WATSONX_URL", String.class));
-        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-        var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+        try {
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
+            var url = URI.create(config.getValue("WATSONX_URL", String.class));
+            var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+            var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-        TokenizationService tokenizationService = TokenizationService.builder()
-            .authenticationProvider(authProvider)
-            .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
-            .modelId("ibm/granite-3-3-8b-instruct")
-            .url(url)
-            .build();
+            AuthenticationProvider authProvider = IAMAuthenticator.builder()
+                .apiKey(apiKey)
+                .timeout(Duration.ofSeconds(60))
+                .build();
 
-        var response = tokenizationService.tokenize("Hello!");
-        System.out.println(Json.prettyPrint(response));
-        System.exit(0);
+            TokenizationService tokenizationService = TokenizationService.builder()
+                .authenticationProvider(authProvider)
+                .projectId(projectId)
+                .timeout(Duration.ofSeconds(60))
+                .modelId("ibm/granite-3-3-8b-instruct")
+                .url(url)
+                .build();
+
+            var response = tokenizationService.tokenize("Hello!");
+            System.out.println(Json.prettyPrint(response));
+            System.exit(0);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.exit(0);
+        }
     }
 }

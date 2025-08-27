@@ -28,50 +28,57 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        List<Path> paths;
+        try {
 
-        if (args.length == 0)
-            paths = List.of(Paths.get(App.class.getClassLoader().getResource("alien.jpg").toURI()));
-        else
-            paths = Stream.of(args).map(Path::of).toList();
+            List<Path> paths;
 
-        var url = URI.create(config.getValue("WATSONX_URL", String.class));
-        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-        var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+            if (args.length == 0)
+                paths = List.of(Paths.get(App.class.getClassLoader().getResource("alien.jpg").toURI()));
+            else
+                paths = Stream.of(args).map(Path::of).toList();
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
+            var url = URI.create(config.getValue("WATSONX_URL", String.class));
+            var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+            var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-        ChatService chatService = ChatService.builder()
-            .authenticationProvider(authProvider)
-            .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
-            .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
-            .url(url)
-            .build();
+            AuthenticationProvider authProvider = IAMAuthenticator.builder()
+                .apiKey(apiKey)
+                .timeout(Duration.ofSeconds(60))
+                .build();
 
-        for (Path path : paths) {
+            ChatService chatService = ChatService.builder()
+                .authenticationProvider(authProvider)
+                .projectId(projectId)
+                .timeout(Duration.ofSeconds(60))
+                .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+                .url(url)
+                .build();
 
-            var bytes = Files.readAllBytes(path);
-            var mimeType = Files.probeContentType(path);
-            var base64Data = Base64.getEncoder().encodeToString(bytes);
+            for (Path path : paths) {
 
-            var messages = List.<ChatMessage>of(
-                SystemMessage
-                    .of("You are a helpful assistant. Your task is to provide the user with a description of the image."),
-                UserMessage.of(ImageContent.of(mimeType, base64Data))
-            );
+                var bytes = Files.readAllBytes(path);
+                var mimeType = Files.probeContentType(path);
+                var base64Data = Base64.getEncoder().encodeToString(bytes);
 
-            var imageDescription = chatService.chat(messages).toText();
+                var messages = List.<ChatMessage>of(
+                    SystemMessage
+                        .of("You are a helpful assistant. Your task is to provide the user with a description of the image."),
+                    UserMessage.of(ImageContent.of(mimeType, base64Data))
+                );
 
-            System.out.println("""
-                ----------------------------------------------------
-                Filename: %s
-                Description: %s
-                ----------------------------------------------------"""
-                .formatted(path.getFileName(), imageDescription));
+                var imageDescription = chatService.chat(messages).toText();
+
+                System.out.println("""
+                    ----------------------------------------------------
+                    Filename: %s
+                    Description: %s
+                    ----------------------------------------------------"""
+                    .formatted(path.getFileName(), imageDescription));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
             System.exit(0);
         }
     }

@@ -20,31 +20,39 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        var url = URI.create(config.getValue("WATSONX_URL", String.class));
-        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-        var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+        try {
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
+            var url = URI.create(config.getValue("WATSONX_URL", String.class));
+            var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+            var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-        EmbeddingService embeddingService = EmbeddingService.builder()
-            .authenticationProvider(authProvider)
-            .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
-            .modelId("ibm/granite-embedding-278m-multilingual")
-            .url(url)
-            .build();
+            AuthenticationProvider authProvider = IAMAuthenticator.builder()
+                .apiKey(apiKey)
+                .timeout(Duration.ofSeconds(60))
+                .build();
 
-        var response = embeddingService.embedding(
-            List.of("Hello"),
-            EmbeddingParameters.builder()
-                .inputText(true)
-                .build()
-        );
+            EmbeddingService embeddingService = EmbeddingService.builder()
+                .authenticationProvider(authProvider)
+                .projectId(projectId)
+                .timeout(Duration.ofSeconds(60))
+                .modelId("ibm/granite-embedding-278m-multilingual")
+                .url(url)
+                .build();
 
-        System.out.println(response);
-        System.exit(0);
+            var response = embeddingService.embedding(
+                List.of("Hello"),
+                EmbeddingParameters.builder()
+                    .inputText(true)
+                    .build()
+            );
+
+            System.out.println(response);
+            System.exit(0);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.exit(0);
+        }
     }
 }

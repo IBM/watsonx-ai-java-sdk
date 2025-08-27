@@ -20,40 +20,46 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        var url = URI.create(config.getValue("WATSONX_URL", String.class));
-        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-        var deployment = config.getValue("WATSONX_DEPLOYMENT", String.class);
-        var spaceId = config.getValue("WATSONX_SPACE_ID", String.class);
+        try {
+            var url = URI.create(config.getValue("WATSONX_URL", String.class));
+            var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+            var deployment = config.getValue("WATSONX_DEPLOYMENT", String.class);
+            var spaceId = config.getValue("WATSONX_SPACE_ID", String.class);
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
+            AuthenticationProvider authProvider = IAMAuthenticator.builder()
+                .apiKey(apiKey)
+                .timeout(Duration.ofSeconds(60))
+                .build();
 
-        DeploymentService deploymentService = DeploymentService.builder()
-            .authenticationProvider(authProvider)
-            .timeout(Duration.ofSeconds(60))
-            .deployment(deployment)
-            .url(url)
-            .build();
+            DeploymentService deploymentService = DeploymentService.builder()
+                .authenticationProvider(authProvider)
+                .timeout(Duration.ofSeconds(60))
+                .deployment(deployment)
+                .url(url)
+                .build();
 
-        var deploymentInfo = deploymentService.findById(
-            FindByIdParameters.builder()
-                .spaceId(spaceId)
-                .build()
-        );
+            var deploymentInfo = deploymentService.findById(
+                FindByIdParameters.builder()
+                    .spaceId(spaceId)
+                    .build()
+            );
 
-        System.out.println("""
-            ---------------------------------------------
-            Model: %s
-            Deployment Asset Type: %s
-            Deployment Status: %s
-            ---------------------------------------------""".formatted(
-            deploymentInfo.metadata().name(), deploymentInfo.entity().deployedAssetType(), deploymentInfo.entity().status().state()));
+            System.out.println("""
+                ---------------------------------------------
+                Model: %s
+                Deployment Asset Type: %s
+                Deployment Status: %s
+                ---------------------------------------------""".formatted(
+                deploymentInfo.metadata().name(), deploymentInfo.entity().deployedAssetType(), deploymentInfo.entity().status().state()));
 
-        var message = "How are you?";
-        System.out.println("USER: ".concat(message));
-        System.out.println("ASSISTANT: ".concat(deploymentService.chat(UserMessage.text(message)).toText()));
-        System.exit(0);
+            var message = "How are you?";
+            System.out.println("USER: ".concat(message));
+            System.out.println("ASSISTANT: ".concat(deploymentService.chat(UserMessage.text(message)).toText()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.exit(0);
+        }
     }
 }

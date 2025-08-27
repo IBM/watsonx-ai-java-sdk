@@ -30,7 +30,7 @@ public class StreamingStateTracker {
     private final ExtractionTags extractionTags;
     private final StringBuilder tagBuffer = new StringBuilder();
     private final StringBuilder textBuffer = new StringBuilder();
-    private State currentState = State.UNKNOWN;
+    private State currentState = State.START;
     private TagParseState parseState = TagParseState.CONTENT;
 
     /**
@@ -57,9 +57,15 @@ public class StreamingStateTracker {
      * @return a {@link Result} containing the updated state
      */
     public Result update(String chunk) {
-        chunk = decodeUnicodeSymbols(chunk);
+        if (chunk.isEmpty())
+            return new Result(currentState, Optional.empty());
 
-        for (char c : chunk.toCharArray()) {
+        chunk = decodeUnicodeSymbols(chunk);
+        if (currentState == State.NO_THINKING)
+            return new Result(currentState, Optional.of(chunk));
+
+        char[] chars = chunk.toCharArray();
+        for (char c : chars) {
             switch(parseState) {
                 case CONTENT -> {
                     if (c == '<') {
@@ -90,6 +96,10 @@ public class StreamingStateTracker {
 
                     // If the tag cannot possibly match any known tag, treat it as plain text
                     if (!matchesAnyPrefix) {
+
+                        if (currentState == State.START)
+                            currentState = State.NO_THINKING;
+
                         parseState = TagParseState.CONTENT;
                         textBuffer.append(tagBuffer);
                         tagBuffer.setLength(0);
@@ -105,6 +115,10 @@ public class StreamingStateTracker {
                 }
             }
         }
+
+        String partialTag = tagBuffer.toString();
+        if (currentState == State.START && (partialTag.isEmpty() || partialTag.startsWith(THINKING_START_TAG)))
+            currentState = State.NO_THINKING;
 
         String textOut = textBuffer.toString();
         textBuffer.setLength(0);
@@ -142,13 +156,18 @@ public class StreamingStateTracker {
      */
     public enum State {
 
+        /** The LLM is not producing any output */
+        START,
+
         /** The LLM is producing reasoning */
         THINKING,
 
         /** The LLM is producing the final response */
         RESPONSE,
 
-        /** Not inside any recognized tag. */
+        /** The LLM is producing output, without thinking */
+        NO_THINKING,
+
         UNKNOWN
     }
 
