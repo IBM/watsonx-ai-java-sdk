@@ -8,7 +8,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
@@ -16,24 +15,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.timeseries.ForecastData;
 import com.ibm.watsonx.ai.timeseries.InputSchema;
@@ -41,26 +35,12 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 
 @ExtendWith(MockitoExtension.class)
-public class TimeSeriesServiceTest {
-
-    @Mock
-    HttpClient mockHttpClient;
-
-    @Mock
-    AuthenticationProvider mockAuthenticationProvider;
-
-    @Mock
-    HttpResponse<String> mockHttpResponse;
-
-    @RegisterExtension
-    WireMockExtension wireMock = WireMockExtension.newInstance()
-        .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
-        .build();
+public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
     @Test
     void test_forecast_without_parameters() {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var EXPECTED = """
             {
@@ -149,7 +129,7 @@ public class TimeSeriesServiceTest {
     @Test
     void test_forecast_with_parameters() {
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var EXPECTED = """
             {
@@ -319,36 +299,41 @@ public class TimeSeriesServiceTest {
     @SuppressWarnings("unchecked")
     void test_exception() throws Exception {
 
-        TimeSeriesService tsService = TimeSeriesService.builder()
-            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("my-project-id")
-            .modelId("ibm/granite-ttm-1536-96-r2")
-            .httpClient(mockHttpClient)
-            .build();
+        withWatsonxServiceMock(() -> {
+            TimeSeriesService tsService = TimeSeriesService.builder()
+                .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("my-project-id")
+                .modelId("ibm/granite-ttm-1536-96-r2")
+                .build();
 
-        InputSchema inputSchema = InputSchema.builder()
-            .timestampColumn("date")
-            .addIdColumn("ID1")
-            .build();
+            InputSchema inputSchema = InputSchema.builder()
+                .timestampColumn("date")
+                .addIdColumn("ID1")
+                .build();
 
-        ForecastData data = ForecastData.create()
-            .add("date", "2020-01-01T00:00:00")
-            .add("date", "2020-01-01T01:00:00")
-            .add("date", "2020-01-05T01:00:00")
-            .addAll("ID1", Arrays.asList("D1", "D1", "D1"))
-            .addAll("TARGET1", Arrays.asList(1.46, 2.34, 4.55));
+            ForecastData data = ForecastData.create()
+                .add("date", "2020-01-01T00:00:00")
+                .add("date", "2020-01-01T01:00:00")
+                .add("date", "2020-01-05T01:00:00")
+                .addAll("ID1", Arrays.asList("D1", "D1", "D1"))
+                .addAll("TARGET1", Arrays.asList(1.46, 2.34, 4.55));
 
-        var ex = assertThrows(NullPointerException.class, () -> tsService.forecast(null, data));
-        assertEquals(ex.getMessage(), "InputSchema cannot be null");
+            var ex = assertThrows(NullPointerException.class, () -> tsService.forecast(null, data));
+            assertEquals(ex.getMessage(), "InputSchema cannot be null");
 
-        ex = assertThrows(NullPointerException.class, () -> tsService.forecast(inputSchema, null));
-        assertEquals(ex.getMessage(), "Data cannot be null");
+            ex = assertThrows(NullPointerException.class, () -> tsService.forecast(inputSchema, null));
+            assertEquals(ex.getMessage(), "Data cannot be null");
 
-        when(mockHttpClient.send(any(), any(BodyHandler.class))).thenThrow(IOException.class);
-        assertThrows(RuntimeException.class, () -> tsService.forecast(inputSchema, data));
+            try {
+                when(mockHttpClient.send(any(), any(BodyHandler.class))).thenThrow(IOException.class);
+                assertThrows(RuntimeException.class, () -> tsService.forecast(inputSchema, data));
 
-        when(mockHttpClient.send(any(), any(BodyHandler.class))).thenThrow(InterruptedException.class);
-        assertThrows(RuntimeException.class, () -> tsService.forecast(inputSchema, data));
+                when(mockHttpClient.send(any(), any(BodyHandler.class))).thenThrow(InterruptedException.class);
+                assertThrows(RuntimeException.class, () -> tsService.forecast(inputSchema, data));
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
     }
 }

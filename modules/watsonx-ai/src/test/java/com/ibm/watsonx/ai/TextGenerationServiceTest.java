@@ -8,7 +8,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -17,34 +16,31 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
 import com.ibm.watsonx.ai.textgeneration.Moderation.GraniteGuardian;
 import com.ibm.watsonx.ai.textgeneration.Moderation.Hap;
@@ -68,31 +64,12 @@ import com.ibm.watsonx.ai.utils.Utils;
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class TextGenerationServiceTest {
-
-    @Mock
-    HttpClient mockHttpClient;
-
-    @Mock
-    HttpRequest mockHttpRequest;
-
-    @Captor
-    ArgumentCaptor<HttpRequest> httpRequestCaptor;
-
-    @Mock
-    AuthenticationProvider mockAuthenticationProvider;
-
-    @Mock
-    HttpResponse<String> mockHttpResponse;
-
-    @RegisterExtension
-    WireMockExtension wireMock = WireMockExtension.newInstance()
-        .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
-        .build();
+public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setUp() {
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        resetHttpClient();
     }
 
     @Test
@@ -350,42 +327,44 @@ public class TextGenerationServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("{}");
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
-        var textGenerationService = TextGenerationService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("model")
-            .projectId("project-id")
-            .spaceId("space-id")
-            .timeout(Duration.ofSeconds(1))
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
 
-        var response = textGenerationService.generate("Hello!");
-        assertNotNull(response);
+            var textGenerationService = TextGenerationService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("model")
+                .projectId("project-id")
+                .spaceId("space-id")
+                .timeout(Duration.ofSeconds(1))
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        var expected = new TextGenerationRequest("model", "space-id", "project-id", "Hello!",
-            TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), null);
+            var response = textGenerationService.generate("Hello!");
+            assertNotNull(response);
 
-        JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(httpRequestCaptor), true);
+            var expected = new TextGenerationRequest("model", "space-id", "project-id", "Hello!",
+                TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), null);
 
-        response = textGenerationService.generate("Hello!", TextGenerationParameters.builder()
-            .modelId("new-model")
-            .spaceId("new-space-id")
-            .projectId("new-project-id")
-            .timeLimit(Duration.ofSeconds(2))
-            .transactionId("my-transaction-id")
-            .promptVariables(Map.of("test", "test")) // this field must be ignored
-            .build());
+            JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), true);
 
-        expected = new TextGenerationRequest("new-model", "new-space-id", "new-project-id", "Hello!",
-            TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(2)).build(), null);
+            response = textGenerationService.generate("Hello!", TextGenerationParameters.builder()
+                .modelId("new-model")
+                .spaceId("new-space-id")
+                .projectId("new-project-id")
+                .timeLimit(Duration.ofSeconds(2))
+                .transactionId("my-transaction-id")
+                .promptVariables(Map.of("test", "test")) // this field must be ignored
+                .build());
 
-        JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(httpRequestCaptor), false);
-        assertFalse(Utils.bodyPublisherToString(httpRequestCaptor).contains("prompt_variables"));
-        assertEquals(httpRequestCaptor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            expected = new TextGenerationRequest("new-model", "new-space-id", "new-project-id", "Hello!",
+                TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(2)).build(), null);
+
+            JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), false);
+            assertFalse(Utils.bodyPublisherToString(mockHttpRequest).contains("prompt_variables"));
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+        });
     }
 
     @Test
@@ -393,33 +372,34 @@ public class TextGenerationServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("{}");
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
-        var textGenerationService = TextGenerationService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("model")
-            .projectId("project-id")
-            .spaceId("space-id")
-            .timeout(Duration.ofSeconds(1))
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var textGenerationService = TextGenerationService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("model")
+                .projectId("project-id")
+                .spaceId("space-id")
+                .timeout(Duration.ofSeconds(1))
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        var moderation = Moderation.builder()
-            .hap(Hap.of(TextModeration.of(0.85f), TextModeration.of(0.9f), true))
-            .pii(Pii.of(true, false, false))
-            .graniteGuardian(GraniteGuardian.of(TextModeration.of(0.95f), true))
-            .inputRanges(List.of(InputRanges.of(0, 100)))
-            .build();
+            var moderation = Moderation.builder()
+                .hap(Hap.of(TextModeration.of(0.85f), TextModeration.of(0.9f), true))
+                .pii(Pii.of(true, false, false))
+                .graniteGuardian(GraniteGuardian.of(TextModeration.of(0.95f), true))
+                .inputRanges(List.of(InputRanges.of(0, 100)))
+                .build();
 
-        var response = textGenerationService.generate("Hello!", moderation);
-        assertNotNull(response);
+            var response = textGenerationService.generate("Hello!", moderation);
+            assertNotNull(response);
 
-        var expected = new TextGenerationRequest("model", "space-id", "project-id", "Hello!",
-            TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), moderation);
+            var expected = new TextGenerationRequest("model", "space-id", "project-id", "Hello!",
+                TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), moderation);
 
-        JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(httpRequestCaptor), true);
+            JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), true);
+        });
     }
 
     @Test
@@ -427,7 +407,6 @@ public class TextGenerationServiceTest {
 
         var textGenerationService = TextGenerationService.builder()
             .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
             .modelId("model")
             .projectId("project-id")
             .spaceId("space-id")
@@ -441,12 +420,12 @@ public class TextGenerationServiceTest {
         ex = assertThrows(IllegalArgumentException.class, () -> textGenerationService.generate(""));
         assertEquals(ex.getMessage(), "The input can not be null or empty");
 
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenThrow(IOException.class);
 
         assertThrows(RuntimeException.class, () -> textGenerationService.generate("Hello"));
 
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class)))
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenThrow(InterruptedException.class);
 
         assertThrows(RuntimeException.class, () -> textGenerationService.generate("Hello"));
@@ -510,11 +489,10 @@ public class TextGenerationServiceTest {
                         """)));
 
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var textGenerationService = TextGenerationService.builder()
             .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
             .modelId("ibm/granite-13b-instruct-v2")
             .logResponses(true)
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
@@ -557,5 +535,98 @@ public class TextGenerationServiceTest {
         assertEquals("ibm/granite-13b-instruct-v2", response.modelId());
         assertEquals(28, response.results().get(0).generatedTokenCount());
         assertEquals(68, response.results().get(0).inputTokenCount());
+    }
+
+    @Test
+    void test_executor() throws Exception {
+
+        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=%s".formatted(WatsonxService.API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(8, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"model_id":"ibm/granite-13b-instruct-v2","created_at":"2025-06-24T15:30:13.500Z","results":[{"generated_text":"","generated_token_count":0,"input_token_count":68,"stop_reason":"not_finished"}],"system":{"warnings":[{"message":"Model 'ibm/granite-13b-instruct-v2' is in deprecated state from 2025-06-18. It will be in withdrawn state from 2025-10-15. IDs of alternative models: ibm/granite-3-3-8b-instruct.","id":"deprecation_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-model-lifecycle.html?context=wx&audience=wdp"},{"message":"This API is legacy. Please consider using '/ml/v1/text/chat_stream' instead.","id":"api_legacy"}]}}
+
+                        id: 2
+                        event: message
+                        data: {"model_id":"ibm/granite-13b-instruct-v2","created_at":"2025-06-24T15:30:13.516Z","results":[{"generated_text":"Toda","generated_token_count":1,"input_token_count":0,"stop_reason":"not_finished"}]}
+
+                        id: 3
+                        event: message
+                        data: {"model_id":"ibm/granite-13b-instruct-v2","created_at":"2025-06-24T15:30:13.528Z","results":[{"generated_text":"y i","generated_token_count":2,"input_token_count":0,"stop_reason":"not_finished"}]}
+
+                        id: 4
+                        event: message
+                        data: {"model_id":"ibm/granite-13b-instruct-v2","created_at":"2025-06-24T15:30:13.540Z","results":[{"generated_text":"s ","generated_token_count":3,"input_token_count":0,"stop_reason":"not_finished"}]}
+
+                        id: 5
+                        event: message
+                        data: {"model_id":"ibm/granite-13b-instruct-v2","created_at":"2025-06-24T15:30:13.552Z","results":[{"generated_text":"a beautifu","generated_token_count":4,"input_token_count":0,"stop_reason":"not_finished"}]}
+
+                        id: 6
+                        event: message
+                        data: {"model_id":"ibm/granite-13b-instruct-v2","created_at":"2025-06-24T15:30:13.564Z","results":[{"generated_text":"l da","generated_token_count":5,"input_token_count":0,"stop_reason":"not_finished"}]}
+
+                        id: 7
+                        event: message
+                        data: {"model_id":"ibm/granite-13b-instruct-v2","created_at":"2025-06-24T15:30:13.576Z","results":[{"generated_text":"y","generated_token_count":6,"input_token_count":0,"stop_reason":"not_finished"}]}
+
+                        id: 8
+                        event: message
+                        data: {"model_id":"ibm/granite-13b-instruct-v2","created_at":"2025-06-24T15:30:13.588Z","results":[{"generated_text":".","generated_token_count":7,"input_token_count":0,"stop_reason":"eos_token"}]}
+                        """)));
+
+        List<String> threadNames = new ArrayList<>();
+
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
+
+        Executor ioExecutor = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
+            threadNames.add(Thread.currentThread().getName());
+            r.run();
+        }, "my-thread"));
+
+        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
+            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
+            var textGenerationService = TextGenerationService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-13b-instruct-v2")
+                .projectId("project-id")
+                .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+                .build();
+
+            CompletableFuture<TextGenerationResponse> result = new CompletableFuture<>();
+            textGenerationService.generateStreaming("test",
+                new TextGenerationHandler() {
+
+                    @Override
+                    public void onPartialResponse(String partialResponse) {
+                        assertEquals("my-thread", Thread.currentThread().getName());
+                        assertTrue(
+                            partialResponse.equals("Toda") || partialResponse.equals("y i") ||
+                                partialResponse.equals("s ") || partialResponse.equals("a beautifu") ||
+                                partialResponse.equals("l da") || partialResponse.equals("y") || partialResponse.equals(".")
+                        );
+                    }
+
+                    @Override
+                    public void onCompleteResponse(TextGenerationResponse completeResponse) {
+                        assertEquals("my-thread", Thread.currentThread().getName());
+                        result.complete(completeResponse);
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        fail(error);
+                    }
+                });
+
+
+            result.get(3, TimeUnit.SECONDS);
+            assertEquals(1, threadNames.size());
+            assertEquals("my-thread", threadNames.get(0));
+        }
     }
 }

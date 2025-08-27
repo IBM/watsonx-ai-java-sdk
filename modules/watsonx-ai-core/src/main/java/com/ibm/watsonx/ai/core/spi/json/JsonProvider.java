@@ -7,7 +7,7 @@ package com.ibm.watsonx.ai.core.spi.json;
 /**
  * Service Provider Interface (SPI) for JSON serialization and deserialization.
  */
-public interface JsonAdapter {
+public interface JsonProvider {
 
     /**
      * Deserializes a JSON string into an instance of the specified class.

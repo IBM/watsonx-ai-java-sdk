@@ -40,7 +40,7 @@
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai</artifactId>
-      <version>0.6.1</version>
+      <version>999-SNAPSHOT</version>
     </dependency>
 
     <dependency>

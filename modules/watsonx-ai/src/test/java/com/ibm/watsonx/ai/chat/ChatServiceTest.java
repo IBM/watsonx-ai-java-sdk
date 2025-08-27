@@ -8,28 +8,30 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -37,23 +39,25 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
+import org.mockito.InOrder;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
+import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
+import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -81,207 +85,193 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.VideoContent;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-public class ChatServiceTest {
-
-    @Mock
-    HttpClient mockHttpClient;
-
-    @Mock
-    AuthenticationProvider mockAuthenticationProvider;
-
-    @Mock
-    HttpResponse<String> mockHttpResponse;
-
-    @RegisterExtension
-    WireMockExtension wireMock = WireMockExtension.newInstance()
-        .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
-        .build();
+public class ChatServiceTest extends AbstractWatsonxTest {
 
     @Test
-    void try_all_chat_parameters() throws Exception {
+    void try_all_chat_parameters() {
 
-        var chatParameters = ChatParameters.builder()
-            .frequencyPenalty(2.0)
-            .logitBias(Map.of("test", -10))
-            .logprobs(true)
-            .maxCompletionTokens(0)
-            .modelId("my-super-model")
-            .n(10)
-            .presencePenalty(1.0)
-            .projectId("project-id")
-            .withJsonResponse()
-            .seed(10)
-            .spaceId("space-id")
-            .stop(List.of("stop"))
-            .temperature(1.0)
-            .timeLimit(Duration.ofSeconds(60))
-            .toolChoice("my-tool")
-            .toolChoiceOption(ToolChoice.REQUIRED)
-            .topLogprobs(10)
-            .topP(1.2)
-            .withJsonSchemaResponse("test", Map.of(), false)
-            .build();
+        withWatsonxServiceMock(() -> {
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .logRequests(true)
-            .logResponses(true)
-            // These values will be overridden by the chat parameters
-            .modelId("my-default-model")
-            .projectId("default-project-id")
-            .spaceId("default-space-id")
-            // ------------------------------------------------------
-            .timeout(Duration.ofSeconds(60))
-            .url(URI.create("http://my-cloud-instance.com"))
-            .version(("1988-03-23"))
-            .build();
-
-        var messages = List.<ChatMessage>of(UserMessage.text("Hello"));
-
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(
-            Map.of(
-                "Content-Type", List.of("application/json"),
-                "Accept", List.of("application/json")),
-            (k, v) -> true));
-        when(mockHttpResponse.body()).thenReturn(
-            """
-                {
-                    "id": "chatcmpl-43962cc06e5346ccbd653a04a48e4b5b",
-                    "object" : "chat.completion",
-                    "model_id" : "my-super-model",
-                    "model" : "my-super-model-model",
-                    "choices" : [ {
-                    "index" : 0,
-                    "message" : {
-                        "role" : "assistant",
-                        "content" : "Hello!!!"
-                    },
-                    "finish_reason" : "stop"
-                    }],
-                    "created" : 1749288614,
-                    "model_version" : "1.1.0",
-                    "created_at" : "2025-06-07T09:30:15.122Z",
-                    "usage" : {
-                    "completion_tokens" : 37,
-                    "prompt_tokens" : 66,
-                    "total_tokens" : 103
-                    }
-                }""");
-
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
-
-        var chatResponse = chatService.chat(messages, chatParameters);
-        assertEquals("chatcmpl-43962cc06e5346ccbd653a04a48e4b5b", chatResponse.getId());
-        assertEquals("my-super-model", chatResponse.getModelId());
-        assertEquals("my-super-model-model", chatResponse.getModel());
-        assertNotNull(chatResponse.getChoices());
-        assertEquals(1, chatResponse.getChoices().size());
-        assertEquals(0, chatResponse.getChoices().get(0).getIndex());
-        assertEquals(0, chatResponse.getChoices().get(0).getIndex());
-        assertEquals("assistant", chatResponse.getChoices().get(0).getMessage().role());
-        assertEquals("Hello!!!", chatResponse.getChoices().get(0).getMessage().content());
-        assertEquals("stop", chatResponse.getChoices().get(0).getFinishReason());
-        assertEquals(1749288614, chatResponse.getCreated());
-        assertEquals("2025-06-07T09:30:15.122Z", chatResponse.getCreatedAt());
-        assertNotNull(chatResponse.getUsage());
-        assertEquals(37, chatResponse.getUsage().getCompletionTokens());
-        assertEquals(66, chatResponse.getUsage().getPromptTokens());
-        assertEquals(103, chatResponse.getUsage().getTotalTokens());
-
-        HttpRequest actualRequest = captor.getValue();
-        assertEquals("http://my-cloud-instance.com/ml/v1/text/chat?version=1988-03-23", actualRequest.uri().toString());
-        assertEquals("Bearer my-super-token", actualRequest.headers().firstValue("Authorization").orElse(""));
-        assertEquals("application/json", actualRequest.headers().firstValue("Accept").orElse(""));
-        assertEquals("application/json", actualRequest.headers().firstValue("Content-Type").orElse(""));
-        assertEquals("POST", actualRequest.method());
-
-        String expectedBody = Json.toJson(
-            TextChatRequest.builder()
+            var chatParameters = ChatParameters.builder()
+                .frequencyPenalty(2.0)
+                .logitBias(Map.of("test", -10))
+                .logprobs(true)
+                .maxCompletionTokens(0)
                 .modelId("my-super-model")
+                .n(10)
+                .presencePenalty(1.0)
                 .projectId("project-id")
+                .withJsonResponse()
+                .seed(10)
                 .spaceId("space-id")
-                .messages(messages)
-                .parameters(chatParameters)
-                .timeLimit(chatParameters.getTimeLimit())
-                .build());
+                .stop(List.of("stop"))
+                .temperature(1.0)
+                .timeLimit(Duration.ofSeconds(60))
+                .toolChoice("my-tool")
+                .toolChoiceOption(ToolChoice.REQUIRED)
+                .topLogprobs(10)
+                .topP(1.2)
+                .withJsonSchemaResponse("test", Map.of(), false)
+                .build();
 
-        assertEquals(expectedBody, bodyPublisherToString(captor));
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .logRequests(true)
+                .logResponses(true)
+                // These values will be overridden by the chat parameters
+                .modelId("my-default-model")
+                .projectId("default-project-id")
+                .spaceId("default-space-id")
+                // ------------------------------------------------------
+                .timeout(Duration.ofSeconds(60))
+                .url(URI.create("http://my-cloud-instance.com"))
+                .version(("1988-03-23"))
+                .build();
+
+            var messages = List.<ChatMessage>of(UserMessage.text("Hello"));
+
+            when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(
+                Map.of(
+                    "Content-Type", List.of("application/json"),
+                    "Accept", List.of("application/json")),
+                (k, v) -> true));
+            when(mockHttpResponse.body()).thenReturn(
+                """
+                    {
+                        "id": "chatcmpl-43962cc06e5346ccbd653a04a48e4b5b",
+                        "object" : "chat.completion",
+                        "model_id" : "my-super-model",
+                        "model" : "my-super-model-model",
+                        "choices" : [ {
+                        "index" : 0,
+                        "message" : {
+                            "role" : "assistant",
+                            "content" : "Hello!!!"
+                        },
+                        "finish_reason" : "stop"
+                        }],
+                        "created" : 1749288614,
+                        "model_version" : "1.1.0",
+                        "created_at" : "2025-06-07T09:30:15.122Z",
+                        "usage" : {
+                        "completion_tokens" : 37,
+                        "prompt_tokens" : 66,
+                        "total_tokens" : 103
+                        }
+                    }""");
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var chatResponse = chatService.chat(messages, chatParameters);
+            assertEquals("chatcmpl-43962cc06e5346ccbd653a04a48e4b5b", chatResponse.getId());
+            assertEquals("my-super-model", chatResponse.getModelId());
+            assertEquals("my-super-model-model", chatResponse.getModel());
+            assertNotNull(chatResponse.getChoices());
+            assertEquals(1, chatResponse.getChoices().size());
+            assertEquals(0, chatResponse.getChoices().get(0).getIndex());
+            assertEquals(0, chatResponse.getChoices().get(0).getIndex());
+            assertEquals("assistant", chatResponse.getChoices().get(0).getMessage().role());
+            assertEquals("Hello!!!", chatResponse.getChoices().get(0).getMessage().content());
+            assertEquals("stop", chatResponse.getChoices().get(0).getFinishReason());
+            assertEquals(1749288614, chatResponse.getCreated());
+            assertEquals("2025-06-07T09:30:15.122Z", chatResponse.getCreatedAt());
+            assertNotNull(chatResponse.getUsage());
+            assertEquals(37, chatResponse.getUsage().getCompletionTokens());
+            assertEquals(66, chatResponse.getUsage().getPromptTokens());
+            assertEquals(103, chatResponse.getUsage().getTotalTokens());
+
+            HttpRequest actualRequest = mockHttpRequest.getValue();
+            assertEquals("http://my-cloud-instance.com/ml/v1/text/chat?version=1988-03-23", actualRequest.uri().toString());
+            assertEquals("Bearer my-super-token", actualRequest.headers().firstValue("Authorization").orElse(""));
+            assertEquals("application/json", actualRequest.headers().firstValue("Accept").orElse(""));
+            assertEquals("application/json", actualRequest.headers().firstValue("Content-Type").orElse(""));
+            assertEquals("POST", actualRequest.method());
+
+            String expectedBody = Json.toJson(
+                TextChatRequest.builder()
+                    .modelId("my-super-model")
+                    .projectId("project-id")
+                    .spaceId("space-id")
+                    .messages(messages)
+                    .parameters(chatParameters)
+                    .timeLimit(chatParameters.getTimeLimit())
+                    .build());
+
+            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+        });
     }
 
     @Test
     void try_default_chat_parameters() throws Exception {
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("my-default-model")
-            .projectId("default-project-id")
-            .spaceId("default-space-id")
-            .url(CloudRegion.FRANKFURT)
-            .build();
+        withWatsonxServiceMock(() -> {
 
-        var messages = List.<ChatMessage>of(UserMessage.text("Hello"));
-
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn(
-            """
-                {
-                    "id": "chatcmpl-43962cc06e5346ccbd653a04a48e4b5b",
-                    "object" : "chat.completion",
-                    "model_id" : "my-super-model",
-                    "model" : "my-super-model-model",
-                    "choices" : [ {
-                    "index" : 0,
-                    "message" : {
-                        "role" : "assistant",
-                        "content" : "Hello!!!"
-                    },
-                    "finish_reason" : "stop"
-                    }],
-                    "created" : 1749288614,
-                    "model_version" : "1.1.0",
-                    "created_at" : "2025-06-07T09:30:15.122Z",
-                    "usage" : {
-                    "completion_tokens" : 37,
-                    "prompt_tokens" : 66,
-                    "total_tokens" : 103
-                    }
-                }""");
-
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
-
-        chatService.chat(messages);
-        HttpRequest actualRequest = captor.getValue();
-        assertEquals("https://eu-de.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-04-23",
-            actualRequest.uri().toString());
-        assertEquals("Bearer my-super-token", actualRequest.headers().firstValue("Authorization").orElse(""));
-        assertEquals("application/json", actualRequest.headers().firstValue("Accept").orElse(""));
-        assertEquals("application/json", actualRequest.headers().firstValue("Content-Type").orElse(""));
-        assertEquals("POST", actualRequest.method());
-
-        String expectedBody = Json.toJson(
-            TextChatRequest.builder()
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
                 .modelId("my-default-model")
                 .projectId("default-project-id")
                 .spaceId("default-space-id")
-                .messages(messages)
-                .timeLimit(10000L)
-                .build());
+                .url(CloudRegion.FRANKFURT)
+                .build();
 
-        assertEquals(expectedBody, bodyPublisherToString(captor));
+            var messages = List.<ChatMessage>of(UserMessage.text("Hello"));
+
+            when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn(
+                """
+                    {
+                        "id": "chatcmpl-43962cc06e5346ccbd653a04a48e4b5b",
+                        "object" : "chat.completion",
+                        "model_id" : "my-super-model",
+                        "model" : "my-super-model-model",
+                        "choices" : [ {
+                        "index" : 0,
+                        "message" : {
+                            "role" : "assistant",
+                            "content" : "Hello!!!"
+                        },
+                        "finish_reason" : "stop"
+                        }],
+                        "created" : 1749288614,
+                        "model_version" : "1.1.0",
+                        "created_at" : "2025-06-07T09:30:15.122Z",
+                        "usage" : {
+                        "completion_tokens" : 37,
+                        "prompt_tokens" : 66,
+                        "total_tokens" : 103
+                        }
+                    }""");
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            chatService.chat(messages);
+            HttpRequest actualRequest = mockHttpRequest.getValue();
+            assertEquals("https://eu-de.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-04-23",
+                actualRequest.uri().toString());
+            assertEquals("Bearer my-super-token", actualRequest.headers().firstValue("Authorization").orElse(""));
+            assertEquals("application/json", actualRequest.headers().firstValue("Accept").orElse(""));
+            assertEquals("application/json", actualRequest.headers().firstValue("Content-Type").orElse(""));
+            assertEquals("POST", actualRequest.method());
+
+            String expectedBody = Json.toJson(
+                TextChatRequest.builder()
+                    .modelId("my-default-model")
+                    .projectId("default-project-id")
+                    .spaceId("default-space-id")
+                    .messages(messages)
+                    .timeLimit(10000L)
+                    .build());
+
+            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+        });
     }
 
     @Test
@@ -346,35 +336,36 @@ public class ChatServiceTest {
                   }
                 }""";
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("meta-llama/llama-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.LONDON)
-            .build();
+        withWatsonxServiceMock(() -> {
 
-        var messages = List.<ChatMessage>of(
-            SystemMessage.of("You are a helpful assistant."),
-            UserMessage.text("Who won the world series in 2020?"),
-            AssistantMessage.text("The Los Angeles Dodgers won the World Series in 2020."),
-            UserMessage.text("Where was it played?"));
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("meta-llama/llama-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.LONDON)
+                .build();
 
-        var parameters = ChatParameters.builder()
-            .timeLimit(Duration.ofMillis(1000))
-            .maxCompletionTokens(100)
-            .temperature(0.0)
-            .build();
+            var messages = List.<ChatMessage>of(
+                SystemMessage.of("You are a helpful assistant."),
+                UserMessage.text("Who won the world series in 2020?"),
+                AssistantMessage.text("The Los Angeles Dodgers won the World Series in 2020."),
+                UserMessage.text("Where was it played?"));
 
-        var chatResponse = chatService.chat(messages, parameters);
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            var parameters = ChatParameters.builder()
+                .timeLimit(Duration.ofMillis(1000))
+                .maxCompletionTokens(100)
+                .temperature(0.0)
+                .build();
+
+            var chatResponse = chatService.chat(messages, parameters);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+        });
     }
 
     @Test
@@ -459,42 +450,42 @@ public class ChatServiceTest {
                 }
             }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("meta-llama/llama-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("meta-llama/llama-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var parameters = ChatParameters.builder()
-            .toolChoice("get_current_weather")
-            .build();
+            var parameters = ChatParameters.builder()
+                .toolChoice("get_current_weather")
+                .build();
 
-        var chatResponse = chatService.chat(
-            ChatRequest.builder()
-                .messages(UserMessage.text("What is the weather like in Boston today?"))
-                .tools(Tool.of(
-                    "get_current_weather",
-                    JsonSchema.builder()
-                        .addProperty("location", StringSchema.of("The city, e.g. San Francisco, CA"))
-                        .addProperty("unit", EnumSchema.of("celsius", "fahrenheit"))
-                        .required("location")))
-                .parameters(parameters)
-                .build()
-        );
+            var chatResponse = chatService.chat(
+                ChatRequest.builder()
+                    .messages(UserMessage.text("What is the weather like in Boston today?"))
+                    .tools(Tool.of(
+                        "get_current_weather",
+                        JsonSchema.builder()
+                            .addProperty("location", StringSchema.of("The city, e.g. San Francisco, CA"))
+                            .addProperty("unit", EnumSchema.of("celsius", "fahrenheit"))
+                            .required("location")))
+                    .parameters(parameters)
+                    .build()
+            );
 
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
-        assertEquals("ChatUsage [completionTokens=18, promptTokens=19, totalTokens=37]",
-            chatResponse.getUsage().toString());
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            assertEquals("ChatUsage [completionTokens=18, promptTokens=19, totalTokens=37]",
+                chatResponse.getUsage().toString());
+        });
     }
 
     @Test
@@ -546,29 +537,29 @@ public class ChatServiceTest {
                   }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("meta-llama/llama-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("meta-llama/llama-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var messages = List.<ChatMessage>of(
-            SystemMessage.of("You are a helpful assistant designed to output JSON."),
-            UserMessage.text("Who won the world series in 2020?"));
+            var messages = List.<ChatMessage>of(
+                SystemMessage.of("You are a helpful assistant designed to output JSON."),
+                UserMessage.text("Who won the world series in 2020?"));
 
-        var parameters = ChatParameters.builder().withTextResponse().build();
-        var chatResponse = chatService.chat(messages, parameters);
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            var parameters = ChatParameters.builder().withTextResponse().build();
+            var chatResponse = chatService.chat(messages, parameters);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+        });
     }
 
     @Test
@@ -620,29 +611,29 @@ public class ChatServiceTest {
                   }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("meta-llama/llama-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("meta-llama/llama-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var messages = List.<ChatMessage>of(
-            SystemMessage.of("You are a helpful assistant designed to output JSON."),
-            UserMessage.text("Who won the world series in 2020?"));
+            var messages = List.<ChatMessage>of(
+                SystemMessage.of("You are a helpful assistant designed to output JSON."),
+                UserMessage.text("Who won the world series in 2020?"));
 
-        var parameters = ChatParameters.builder().withJsonResponse().build();
-        var chatResponse = chatService.chat(messages, parameters);
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            var parameters = ChatParameters.builder().withJsonResponse().build();
+            var chatResponse = chatService.chat(messages, parameters);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+        });
     }
 
     record LLMResponse(String name, List<Province> provinces) {}
@@ -742,67 +733,66 @@ public class ChatServiceTest {
                   }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .logRequests(true)
-            .modelId("meta-llama/llama-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .logRequests(true)
+                .modelId("meta-llama/llama-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        var messages = List.<ChatMessage>of(
-            SystemMessage.of("Given a region return the information"),
-            UserMessage.text("Campania"));
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var jsonSchema = JsonSchema.builder()
-            .addStringProperty("name")
-            .addArrayProperty("provinces",
-                JsonSchema.builder()
-                    .addStringProperty("name")
-                    .addObjectProperty("population",
-                        JsonSchema.builder()
-                            .addNumberProperty("value")
-                            .addEnumProperty("density", "LOW", "MEDIUM", "HIGH")
-                            .required("value", "density")
-                            .build()
-                    )
-            ).build();
+            var messages = List.<ChatMessage>of(
+                SystemMessage.of("Given a region return the information"),
+                UserMessage.text("Campania"));
 
-        var parameters = ChatParameters.builder()
-            .withJsonSchemaResponse("test", jsonSchema, true)
-            .build();
+            var jsonSchema = JsonSchema.builder()
+                .addStringProperty("name")
+                .addArrayProperty("provinces",
+                    JsonSchema.builder()
+                        .addStringProperty("name")
+                        .addObjectProperty("population",
+                            JsonSchema.builder()
+                                .addNumberProperty("value")
+                                .addEnumProperty("density", "LOW", "MEDIUM", "HIGH")
+                                .required("value", "density")
+                                .build()
+                        )
+                ).build();
 
-        var chatResponse = chatService.chat(messages, parameters);
+            var parameters = ChatParameters.builder()
+                .withJsonSchemaResponse("test", jsonSchema, true)
+                .build();
 
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
+            var chatResponse = chatService.chat(messages, parameters);
 
-        var response = chatResponse.toText(LLMResponse.class);
-        assertEquals("Campania", response.name());
-        assertEquals(5, response.provinces.size());
-        assertEquals(FinishReason.STOP, chatResponse.finishReason());
-        assertEquals(new Province("Caserta", new Population(924414, "LOW")), response.provinces.get(0));
-        assertEquals(new Province("Benevento", new Population(283393, "LOW")), response.provinces.get(1));
-        assertEquals(new Province("Napoli", new Population(3116402, "HIGH")), response.provinces.get(2));
-        assertEquals(new Province("Avellino", new Population(423536, "LOW")), response.provinces.get(3));
-        assertEquals(new Province("Salerno", new Population(1108369, "MEDIUM")), response.provinces.get(4));
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
 
-        parameters = ChatParameters.builder()
-            .withJsonSchemaResponse(jsonSchema)
-            .build();
+            var response = chatResponse.toText(LLMResponse.class);
+            assertEquals("Campania", response.name());
+            assertEquals(5, response.provinces.size());
+            assertEquals(FinishReason.STOP, chatResponse.finishReason());
+            assertEquals(new Province("Caserta", new Population(924414, "LOW")), response.provinces.get(0));
+            assertEquals(new Province("Benevento", new Population(283393, "LOW")), response.provinces.get(1));
+            assertEquals(new Province("Napoli", new Population(3116402, "HIGH")), response.provinces.get(2));
+            assertEquals(new Province("Avellino", new Population(423536, "LOW")), response.provinces.get(3));
+            assertEquals(new Province("Salerno", new Population(1108369, "MEDIUM")), response.provinces.get(4));
 
-        chatResponse = chatService.chat(messages, parameters);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
+            parameters = ChatParameters.builder()
+                .withJsonSchemaResponse(jsonSchema)
+                .build();
 
-
+            chatResponse = chatService.chat(messages, parameters);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
+        });
     }
 
     @Test
@@ -871,37 +861,37 @@ public class ChatServiceTest {
               }
             }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("ibm/granite-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var messages = List.<ChatMessage>of(UserMessage.text("2 + 2"));
-        var tools = Tool.of(
-            "sum",
-            "Execute the sum of two numbers",
-            JsonSchema.builder()
-                .addProperty("first_number", IntegerSchema.of())
-                .addProperty("second_number", IntegerSchema.of())
-                .required(List.of("first_number", "second_number")));
+            var messages = List.<ChatMessage>of(UserMessage.text("2 + 2"));
+            var tools = Tool.of(
+                "sum",
+                "Execute the sum of two numbers",
+                JsonSchema.builder()
+                    .addProperty("first_number", IntegerSchema.of())
+                    .addProperty("second_number", IntegerSchema.of())
+                    .required(List.of("first_number", "second_number")));
 
-        var chatResponse = chatService.chat(messages, List.of(tools));
+            var chatResponse = chatService.chat(messages, List.of(tools));
 
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-        var ex = assertThrows(RuntimeException.class, () -> chatResponse.toText());
-        assertEquals("The response is of the type \"tool_calls\" and contains no text", ex.getMessage());
+            var ex = assertThrows(RuntimeException.class, () -> chatResponse.toText());
+            assertEquals("The response is of the type \"tool_calls\" and contains no text", ex.getMessage());
+        });
     }
 
     @Test
@@ -978,59 +968,59 @@ public class ChatServiceTest {
                   }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("ibm/granite-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.LONDON)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.LONDON)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var messages = List.<ChatMessage>of(
-            UserMessage.text("2 + 2"),
-            AssistantMessage.of(ToolCall.of("id", "sum", "{\"first_number\": 2, \"second_number\": 2}")),
-            ToolMessage.of("The result is 4", "id")
-        );
+            var messages = List.<ChatMessage>of(
+                UserMessage.text("2 + 2"),
+                AssistantMessage.of(ToolCall.of("id", "sum", "{\"first_number\": 2, \"second_number\": 2}")),
+                ToolMessage.of("The result is 4", "id")
+            );
 
-        var tools = Tool.of(
-            "sum",
-            "Execute the sum of two numbers",
-            JsonSchema.builder()
-                .addProperty("first_number", IntegerSchema.of())
-                .addProperty("second_number", IntegerSchema.of())
-                .required(List.of("first_number", "second_number"))
-                .build());
+            var tools = Tool.of(
+                "sum",
+                "Execute the sum of two numbers",
+                JsonSchema.builder()
+                    .addProperty("first_number", IntegerSchema.of())
+                    .addProperty("second_number", IntegerSchema.of())
+                    .required(List.of("first_number", "second_number"))
+                    .build());
 
-        var chatResponse = chatService.chat(messages, tools);
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            var chatResponse = chatService.chat(messages, tools);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-        tools = Tool.of(
-            "sum",
-            "Execute the sum of two numbers",
-            Map.of(
-                "type", "object",
-                "properties", Map.of(
-                    "first_number", Map.of(
-                        "type", "integer"
+            tools = Tool.of(
+                "sum",
+                "Execute the sum of two numbers",
+                Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "first_number", Map.of(
+                            "type", "integer"
+                        ),
+                        "second_number", Map.of(
+                            "type", "integer"
+                        )
                     ),
-                    "second_number", Map.of(
-                        "type", "integer"
-                    )
-                ),
-                "required", List.of("first_number", "second_number")
-            ));
+                    "required", List.of("first_number", "second_number")
+                ));
 
-        chatResponse = chatService.chat(messages, tools);
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            chatResponse = chatService.chat(messages, tools);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+        });
     }
 
     @Test
@@ -1075,26 +1065,26 @@ public class ChatServiceTest {
               }
             }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("ibm/granite-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.TOKYO)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.TOKYO)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var messages = List.<ChatMessage>of(UserMessage.of("Alan", List.<UserContent>of(TextContent.of("2 + 2"))));
-        var chatResponse = chatService.chat(messages);
+            var messages = List.<ChatMessage>of(UserMessage.of("Alan", List.<UserContent>of(TextContent.of("2 + 2"))));
+            var chatResponse = chatService.chat(messages);
 
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+        });
     }
 
     @Test
@@ -1149,29 +1139,29 @@ public class ChatServiceTest {
                       }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.TORONTO)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.TORONTO)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var message = UserMessage.of(
-            TextContent.of("Tell me more about this image"),
-            ImageContent.of("image/svg", Base64.getEncoder().encodeToString(bytes))
-        );
+            var message = UserMessage.of(
+                TextContent.of("Tell me more about this image"),
+                ImageContent.of("image/svg", Base64.getEncoder().encodeToString(bytes))
+            );
 
-        var chatResponse = chatService.chat(message);
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            var chatResponse = chatService.chat(message);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+        });
     }
 
     @Test
@@ -1223,29 +1213,29 @@ public class ChatServiceTest {
                       }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var message = UserMessage.of(List.of(
-            TextContent.of("Tell me more about this video"),
-            VideoContent.of("video/mp4", "ABC")
-        ));
+            var message = UserMessage.of(List.of(
+                TextContent.of("Tell me more about this video"),
+                VideoContent.of("video/mp4", "ABC")
+            ));
 
-        var chatResponse = chatService.chat(message);
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            var chatResponse = chatService.chat(message);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+        });
     }
 
     @Test
@@ -1299,37 +1289,37 @@ public class ChatServiceTest {
                     }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("ibm/granite-3-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.SYDNEY)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-3-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.SYDNEY)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var messages = List.<ChatMessage>of(
-            ControlMessage.of("thinking"),
-            UserMessage.text("What is the result of 1 + 1")
-        );
+            var messages = List.<ChatMessage>of(
+                ControlMessage.of("thinking"),
+                UserMessage.text("What is the result of 1 + 1")
+            );
 
-        var chatResponse = chatService.chat(messages, ChatParameters.builder().transactionId("my-transaction-id").build());
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            var chatResponse = chatService.chat(messages, ChatParameters.builder().transactionId("my-transaction-id").build());
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-        var parts = chatResponse.toTextByTags(Set.of("think", "response"));
-        assertEquals("Think", parts.get("think"));
-        assertEquals("Result", parts.get("response"));
-        assertNull(parts.get("root"));
-        assertEquals("Result", chatResponse.toTextByTag("response"));
-        assertNull(chatResponse.toTextByTag("root"));
-        assertEquals(captor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            var parts = chatResponse.toTextByTags(Set.of("think", "response"));
+            assertEquals("Think", parts.get("think"));
+            assertEquals("Result", parts.get("response"));
+            assertNull(parts.get("root"));
+            assertEquals("Result", chatResponse.toTextByTag("response"));
+            assertNull(chatResponse.toTextByTag("root"));
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+        });
     }
 
     @Test
@@ -1383,35 +1373,35 @@ public class ChatServiceTest {
                     }
                 }""";
 
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .modelId("ibm/granite-3-3-8b-instruct")
-            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(CloudRegion.SYDNEY)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-3-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .url(CloudRegion.SYDNEY)
+                .build();
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var messages = List.<ChatMessage>of(
-            ControlMessage.of("thinking"),
-            UserMessage.text("What is the result of 1 + 1")
-        );
+            var messages = List.<ChatMessage>of(
+                ControlMessage.of("thinking"),
+                UserMessage.text("What is the result of 1 + 1")
+            );
 
-        var chatResponse = chatService.chat(messages, ChatParameters.builder().transactionId("my-transaction-id").build());
-        JSONAssert.assertEquals(REQUEST, bodyPublisherToString(captor), false);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            var chatResponse = chatService.chat(messages, ChatParameters.builder().transactionId("my-transaction-id").build());
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-        var parts = chatResponse.toTextByTags(Set.of("think", "root"));
-        assertEquals("Think", parts.get("think"));
-        assertEquals("Result", parts.get("root"));
-        assertEquals("Result", chatResponse.toTextByTag("root"));
-        assertEquals(captor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            var parts = chatResponse.toTextByTags(Set.of("think", "root"));
+            assertEquals("Think", parts.get("think"));
+            assertEquals("Result", parts.get("root"));
+            assertEquals("Result", chatResponse.toTextByTag("root"));
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+        });
     }
 
 
@@ -1474,11 +1464,10 @@ public class ChatServiceTest {
                         """)));
 
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
             .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
             .url(URI.create("http://localhost:%s".formatted(httpPort)))
@@ -1640,12 +1629,10 @@ public class ChatServiceTest {
                         """)));
 
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
-
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
             .modelId("ibm/granite-3-3-8b-instruct")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
             .logResponses(true)
@@ -1957,11 +1944,10 @@ public class ChatServiceTest {
                         data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.661Z","usage":{"completion_tokens":49,"prompt_tokens":374,"total_tokens":423}}
                         """)));
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(HttpClient.newBuilder().executor(Executors.newSingleThreadExecutor()).build())
             .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
             .url(URI.create("http://localhost:%s".formatted(httpPort)))
@@ -2253,7 +2239,7 @@ public class ChatServiceTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
                         """)));
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
@@ -2265,37 +2251,42 @@ public class ChatServiceTest {
 
         AtomicInteger counter = new AtomicInteger();
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        chatService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
 
-            @Override
-            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                assertNotNull(partialResponse);
-                counter.incrementAndGet();
-            }
+        var mockChatHandler = mock(ChatHandler.class);
+        doAnswer(invocation -> {
+            String partialResponse = invocation.getArgument(0);
+            assertNotNull(partialResponse);
+            counter.incrementAndGet();
+            return null;
+        }).when(mockChatHandler).onPartialResponse(anyString(), any());
 
-            @Override
-            public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
-            }
+        doAnswer(invocation -> {
+            ChatResponse completeResponse = invocation.getArgument(0);
+            result.complete(completeResponse);
+            return null;
+        }).when(mockChatHandler).onCompleteResponse(any());
 
-            @Override
-            public void onError(Throwable error) {
-                result.completeExceptionally(error);
-            }
+        doAnswer(invocation -> {
+            Throwable error = invocation.getArgument(0);
+            assertInstanceOf(JsonParseException.class, error.getCause());
+            counter.incrementAndGet();
+            return null;
+        }).when(mockChatHandler).onError(any());
 
-            @Override
-            public void onPartialToolCall(PartialToolCall partialToolCall) {
-                fail();
-            }
+        InOrder inOrder = inOrder(mockChatHandler);
 
-            @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {
-                fail();
-            }
-        });
+        chatService.chatStreaming(List.of(UserMessage.text("Hello")), mockChatHandler);
 
-        assertThrows(ExecutionException.class, () -> result.get(3, TimeUnit.SECONDS));
-        assertEquals(1, counter.get());
+        var response = result.get(3, TimeUnit.SECONDS);
+
+        inOrder.verify(mockChatHandler).onPartialResponse(eq("C"), any());
+        inOrder.verify(mockChatHandler).onError(any(RuntimeException.class));
+        inOrder.verify(mockChatHandler).onPartialResponse(eq("iao"), any());
+        inOrder.verify(mockChatHandler).onCompleteResponse(any());
+
+        assertEquals(3, counter.get());
+        assertEquals("Ciao", response.toText());
+
     }
 
     @Test
@@ -2313,7 +2304,7 @@ public class ChatServiceTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
                         """)));
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
@@ -2388,7 +2379,7 @@ public class ChatServiceTest {
                 .withChunkedDribbleDelay(159, 200)
                 .withBody(BODY)));
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
@@ -2440,8 +2431,9 @@ public class ChatServiceTest {
             public void onCompleteToolCall(ToolCall completeToolCall) {
                 fail();
             }
-        }).get(3, TimeUnit.SECONDS);
+        });
 
+        var chatResponse = result.get(3, TimeUnit.SECONDS);
 
         var EXEPECTED_THINKING =
             "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.";
@@ -2449,12 +2441,12 @@ public class ChatServiceTest {
         var EXPECTED_RESPONSE =
             "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response.";
 
-        assertTrue(result.get().toText().contains("<think>"));
-        assertTrue(result.get().toText().contains("</think>"));
-        assertTrue(result.get().toText().contains("<response>"));
-        assertTrue(result.get().toText().contains("</response>"));
-        assertTrue(result.get().toText().contains(EXEPECTED_THINKING));
-        assertTrue(result.get().toText().contains(EXPECTED_RESPONSE));
+        assertTrue(chatResponse.toText().contains("<think>"));
+        assertTrue(chatResponse.toText().contains("</think>"));
+        assertTrue(chatResponse.toText().contains("<response>"));
+        assertTrue(chatResponse.toText().contains("</response>"));
+        assertTrue(chatResponse.toText().contains(EXEPECTED_THINKING));
+        assertTrue(chatResponse.toText().contains(EXPECTED_RESPONSE));
 
         assertEquals(
             EXEPECTED_THINKING,
@@ -2505,23 +2497,23 @@ public class ChatServiceTest {
                     }
                 }""");
 
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .modelId("ibm/granite-3-3-8b-instruct")
-            .projectId("project-id")
-            .url(CloudRegion.FRANKFURT)
-            .httpClient(mockHttpClient)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-3-3-8b-instruct")
+                .projectId("project-id")
+                .url(CloudRegion.FRANKFURT)
+                .build();
 
-        var parameters = ChatParameters.builder()
-            .toolChoiceOption(ToolChoice.REQUIRED)
-            .build();
+            var parameters = ChatParameters.builder()
+                .toolChoiceOption(ToolChoice.REQUIRED)
+                .build();
 
-        var response = chatService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
-        assertEquals("tool_calls", response.finishReason().value());
+            var response = chatService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
+            assertEquals("tool_calls", response.finishReason().value());
+        });
     }
 
     @Test
@@ -2575,20 +2567,22 @@ public class ChatServiceTest {
             .build());
         assertEquals("Either projectId or spaceId must be provided", ex.getMessage());
 
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .modelId("model-id")
-            .projectId("project-id")
-            .url(CloudRegion.DALLAS)
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("model-id")
+                .projectId("project-id")
+                .url(CloudRegion.DALLAS)
+                .build();
 
-        var chatParameters = ChatParameters.builder().build();
+            var chatParameters = ChatParameters.builder().build();
 
-        var ex2 = assertThrows(NullPointerException.class, () -> chatService.chat(null, chatParameters));
-        assertEquals("messages cannot be null", ex2.getMessage());
-        ex2 =
-            assertThrows(NullPointerException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
-        assertEquals("messages cannot be null", ex2.getMessage());
+            var ex2 = assertThrows(NullPointerException.class, () -> chatService.chat(null, chatParameters));
+            assertEquals("messages cannot be null", ex2.getMessage());
+            ex2 =
+                assertThrows(NullPointerException.class, () -> chatService.chatStreaming(null, chatParameters, chatHandler));
+            assertEquals("messages cannot be null", ex2.getMessage());
+        });
     }
 
     @Test
@@ -2612,7 +2606,7 @@ public class ChatServiceTest {
                         "status_code": 404
                     }""")));
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
@@ -2647,38 +2641,172 @@ public class ChatServiceTest {
                 result.completeExceptionally(error);
             }
         }).get(3, TimeUnit.SECONDS);
+
     }
 
     @Test
-    void verify_the_use_of_custom_executor() throws Exception {
+    void test_chat_streaming_non_blocking_io_thread() {
 
-        List<String> executedThreads = Collections.synchronizedList(new ArrayList<>());
-        Executor trackingExecutor = command -> {
-            executedThreads.add(Thread.currentThread().getName());
-            new Thread(command, "test-thread").start();
-        };
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(WatsonxService.API_VERSION))
+            .inScenario("chat_stream_scenario")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willSetStateTo("SECOND_CALL")
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
 
-        when(mockAuthenticationProvider.getTokenAsync()).thenReturn(completedFuture("my-super-token"));
-        when(mockHttpClient.executor()).thenReturn(Optional.of(trackingExecutor));
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
 
-        var chatService = ChatService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .projectId("project-id")
-            .modelId("model-id")
-            .build();
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
 
-        HttpResponse<String> response = mock(HttpResponse.class);
-        when(mockHttpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(CompletableFuture.completedFuture(response));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(WatsonxService.API_VERSION))
+            .inScenario("chat_stream_scenario")
+            .whenScenarioStateIs("SECOND_CALL")
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
 
-        ChatHandler handler = mock(ChatHandler.class);
-        CompletableFuture<Void> future = chatService.chatStreaming(List.of(UserMessage.text("Hello")), handler);
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"He"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
 
-        future.get(3, TimeUnit.SECONDS);
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"llo"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
 
-        assertFalse(executedThreads.isEmpty());
-        assertTrue(executedThreads.stream().anyMatch(name -> name.contains("test-thread")));
+        List<String> listResult = Collections.synchronizedList(new ArrayList<>());
+
+        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
+
+            var executor = Executors.newCachedThreadPool();
+
+            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(Executors.newSingleThreadExecutor());
+            when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-token"));
+
+            var chatService = ChatService.builder()
+                .url("http://localhost:%s".formatted(wireMock.getPort()))
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("project-id")
+                .modelId("model-id")
+                .build();
+
+            AtomicBoolean isFirstInvocation = new AtomicBoolean(true);
+            List<CompletableFuture<Void>> futures = Collections.synchronizedList(new ArrayList<>());
+
+            var chatHandler = new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    futures.add(CompletableFuture.runAsync(() -> {
+                        if (isFirstInvocation.compareAndSet(true, false)) {
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                                fail(e);
+                            }
+                        }
+                        listResult.add(partialResponse);
+                    }, executor));
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {}
+
+                @Override
+                public void onError(Throwable error) {
+                    fail(error);
+                }
+            };
+
+
+            assertDoesNotThrow(() -> chatService.chatStreaming(List.of(UserMessage.text("Ciao")), chatHandler).get(3, TimeUnit.SECONDS));
+            assertDoesNotThrow(() -> chatService.chatStreaming(List.of(UserMessage.text("Hello")), chatHandler).get(3, TimeUnit.SECONDS));
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            assertEquals(List.of("iao", "He", "llo", "C"), listResult);
+        }
+    }
+
+    @Test
+    void test_executor() throws Exception {
+
+        String BODY = new String(ClassLoader.getSystemResourceAsStream("thinking_streaming_response.txt").readAllBytes());
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(WatsonxService.API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 200)
+                .withBody(BODY)));
+
+        List<String> threadNames = new ArrayList<>();
+
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
+
+        Executor ioExecutor = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
+            threadNames.add(Thread.currentThread().getName());
+            r.run();
+        }, "my-thread"));
+
+        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
+            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
+            var chatService = ChatService.builder()
+                .url("http://localhost:%s".formatted(wireMock.getPort()))
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("project-id")
+                .modelId("model-id")
+                .build();
+
+            CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+            chatService.chatStreaming(List.of(
+                ControlMessage.of("thinking"),
+                UserMessage.text("Hello")), new ChatHandler() {
+
+                    @Override
+                    public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                        assertEquals("my-thread", Thread.currentThread().getName());
+                        assertNotNull(partialResponse);
+                        assertNotNull(partialChatResponse);
+                    }
+
+                    @Override
+                    public void onCompleteResponse(ChatResponse completeResponse) {
+                        assertEquals("my-thread", Thread.currentThread().getName());
+                        result.complete(completeResponse);
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        assertEquals("my-thread", Thread.currentThread().getName());
+                        assertInstanceOf(JsonParseException.class, error.getCause());
+                    }
+
+                    @Override
+                    public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                        assertEquals("my-thread", Thread.currentThread().getName());
+                        assertNotNull(partialThinking);
+                        assertNotNull(partialChatResponse);
+                    }
+                });
+
+            result.get(3, TimeUnit.SECONDS);
+            assertEquals(1, threadNames.size());
+            assertEquals("my-thread", threadNames.get(0));
+        }
     }
 
     @Test
@@ -2686,14 +2814,16 @@ public class ChatServiceTest {
 
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 
-        var chatService = ChatService.builder()
-            .url(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
-            .httpClient(mockHttpClient)
-            .projectId("project-id")
-            .modelId("model-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
 
-        assertThrows(RuntimeException.class, () -> chatService.chat(UserMessage.text("test")), "IOException");
+                .projectId("project-id")
+                .modelId("model-id")
+                .build();
+
+            assertThrows(RuntimeException.class, () -> chatService.chat(UserMessage.text("test")), "IOException");
+        });
     }
 }

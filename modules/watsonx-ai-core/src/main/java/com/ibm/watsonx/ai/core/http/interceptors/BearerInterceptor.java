@@ -34,14 +34,14 @@ public final class BearerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     @Override
     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
         Executor executor, int index, AsyncChain chain) {
-        return authenticator.getTokenAsync()
-            .thenComposeAsync(token -> chain.proceed(requestWithBearer(request, token), bodyHandler, executor), executor);
+        return authenticator.asyncToken()
+            .thenCompose(token -> chain.proceed(requestWithBearer(request, token), bodyHandler, executor));
     }
 
     @Override
     public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
         throws WatsonxException, IOException, InterruptedException {
-        var token = authenticator.getToken();
+        var token = authenticator.token();
         return chain.proceed(requestWithBearer(request, token), bodyHandler);
     }
 

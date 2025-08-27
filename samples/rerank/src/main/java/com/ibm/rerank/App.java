@@ -53,5 +53,6 @@ public class App {
         );
 
         System.out.println(Json.prettyPrint(response));
+        System.exit(0);
     }
 }

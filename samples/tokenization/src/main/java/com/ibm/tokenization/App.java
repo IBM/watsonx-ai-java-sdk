@@ -38,5 +38,6 @@ public class App {
 
         var response = tokenizationService.tokenize("Hello!");
         System.out.println(Json.prettyPrint(response));
+        System.exit(0);
     }
 }

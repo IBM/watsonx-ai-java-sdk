@@ -45,5 +45,6 @@ public class App {
         );
 
         System.out.println(response);
+        System.exit(0);
     }
 }

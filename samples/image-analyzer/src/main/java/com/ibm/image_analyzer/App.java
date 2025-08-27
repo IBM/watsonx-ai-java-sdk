@@ -72,6 +72,7 @@ public class App {
                 Description: %s
                 ----------------------------------------------------"""
                 .formatted(path.getFileName(), imageDescription));
+            System.exit(0);
         }
     }
 }

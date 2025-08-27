@@ -10,47 +10,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.rerank.RerankParameters;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.utils.Utils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
-public class RerankServiceTest {
-
-    @Mock
-    HttpClient mockHttpClient;
-
-    @Mock
-    HttpRequest mockHttpRequest;
-
-    @Mock
-    HttpResponse<String> mockHttpResponse;
-
-    @Mock
-    AuthenticationProvider mockAuthenticationProvider;
-
-    @Captor
-    ArgumentCaptor<HttpRequest> httpRequestCaptor;
+public class RerankServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setUp() {
-        when(mockAuthenticationProvider.getToken()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
     }
 
     @Test
@@ -91,26 +69,27 @@ public class RerankServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var rerankService = RerankService.builder()
-            .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var rerankService = RerankService.builder()
+                .url(CloudRegion.LONDON)
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+                .build();
 
-        var response = rerankService.rerank(
-            "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-            List.of(
-                "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
-                "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-            )
-        );
+            var response = rerankService.rerank(
+                "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                List.of(
+                    "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
+                    "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                )
+            );
 
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        });
     }
 
     @Test
@@ -168,44 +147,45 @@ public class RerankServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var rerankService = RerankService.builder()
-            .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var rerankService = RerankService.builder()
+                .url(CloudRegion.LONDON)
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+                .build();
 
-        var parameters = RerankParameters.builder()
-            .projectId("my-new-project-id")
-            .spaceId("my-new-space-id")
-            .modelId("my-new-model-id")
-            .transactionId("my-transaction-id")
-            .query(true)
-            .topN(2)
-            .inputs(true)
-            .truncateInputTokens(512)
-            .build();
+            var parameters = RerankParameters.builder()
+                .projectId("my-new-project-id")
+                .spaceId("my-new-space-id")
+                .modelId("my-new-model-id")
+                .transactionId("my-transaction-id")
+                .query(true)
+                .topN(2)
+                .inputs(true)
+                .truncateInputTokens(512)
+                .build();
 
-        assertEquals(true, parameters.getQuery());
-        assertEquals(2, parameters.getTopN());
-        assertEquals(true, parameters.getInputs());
-        assertEquals(512, parameters.getTruncateInputTokens());
+            assertEquals(true, parameters.getQuery());
+            assertEquals(2, parameters.getTopN());
+            assertEquals(true, parameters.getInputs());
+            assertEquals(512, parameters.getTruncateInputTokens());
 
-        var response = rerankService.rerank(
-            "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-            List.of(
-                "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
-                "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-            ),
-            parameters
-        );
+            var response = rerankService.rerank(
+                "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                List.of(
+                    "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
+                    "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                ),
+                parameters
+            );
 
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
-        assertEquals(httpRequestCaptor.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+        });
     }
 
     @Test
@@ -260,35 +240,36 @@ public class RerankServiceTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(httpRequestCaptor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
-        var rerankService = RerankService.builder()
-            .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var rerankService = RerankService.builder()
+                .url(CloudRegion.LONDON)
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+                .build();
 
-        var parameters = RerankParameters.builder()
-            .projectId("my-new-project-id")
-            .spaceId("my-new-space-id")
-            .modelId("my-new-model-id")
-            .inputs(true)
-            .truncateInputTokens(512)
-            .build();
+            var parameters = RerankParameters.builder()
+                .projectId("my-new-project-id")
+                .spaceId("my-new-space-id")
+                .modelId("my-new-model-id")
+                .inputs(true)
+                .truncateInputTokens(512)
+                .build();
 
-        var response = rerankService.rerank(
-            "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
-            List.of(
-                "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
-                "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
-            ),
-            parameters
-        );
+            var response = rerankService.rerank(
+                "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                List.of(
+                    "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
+                    "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                ),
+                parameters
+            );
 
-        JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(httpRequestCaptor), true);
-        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        });
     }
 
     @Test
@@ -296,14 +277,15 @@ public class RerankServiceTest {
 
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
 
-        var rerankService = RerankService.builder()
-            .url(CloudRegion.LONDON)
-            .httpClient(mockHttpClient)
-            .authenticationProvider(mockAuthenticationProvider)
-            .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
-            .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var rerankService = RerankService.builder()
+                .url(CloudRegion.LONDON)
+                .authenticationProvider(mockAuthenticationProvider)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+                .build();
 
-        assertThrows(RuntimeException.class, () -> rerankService.rerank("test", List.of("test")));
+            assertThrows(RuntimeException.class, () -> rerankService.rerank("test", List.of("test")));
+        });
     }
 }

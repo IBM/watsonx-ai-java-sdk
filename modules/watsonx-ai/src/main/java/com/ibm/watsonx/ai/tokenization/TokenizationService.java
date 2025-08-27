@@ -98,7 +98,8 @@ public final class TokenizationService extends ModelService {
     public CompletableFuture<TokenizationResponse> asyncTokenize(String input, TokenizationParameters parameters) {
         var httpRequest = buildHttpRequest(input, parameters);
         return asyncHttpClient.send(httpRequest, BodyHandlers.ofString())
-            .thenApplyAsync(r -> Json.fromJson(r.body(), TokenizationResponse.class), asyncHttpClient.executor());
+            .thenApplyAsync(r -> Json.fromJson(r.body(), TokenizationResponse.class), computationExecutor)
+            .thenApplyAsync(r -> r, asyncHttpClient.executor());
     }
 
     /**

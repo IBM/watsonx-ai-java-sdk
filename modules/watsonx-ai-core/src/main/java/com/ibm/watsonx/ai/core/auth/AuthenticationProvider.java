@@ -5,7 +5,6 @@
 package com.ibm.watsonx.ai.core.auth;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 
 /**
@@ -16,26 +15,19 @@ import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 public interface AuthenticationProvider {
 
     /**
-     * Returns a token.
+     * Returns an access token for authenticating requests.
      *
-     * @return Token.
+     * @return the access token as a {@link String}
      */
-    String getToken();
+    String token();
 
     /**
-     * Asynchronously retrieves a token.
+     * Asynchronously retrieves an access token for authenticating requests.
+     * <p>
+     * This method is useful when token acquisition involves network calls, I/O operations, or potentially long-running computations. The returned
+     * {@link CompletableFuture} will complete with the token when available.
      *
-     * @return a {@link CompletableFuture} that will complete with the token
+     * @return a {@link CompletableFuture} that will complete with the access token
      */
-    default CompletableFuture<String> getTokenAsync() {
-        return getTokenAsync(null);
-    }
-
-    /**
-     * Asynchronously retrieves a token.
-     *
-     * @param executor the executor that is used for executing asynchronous tasks
-     * @return a {@link CompletableFuture} that will complete with the token
-     */
-    CompletableFuture<String> getTokenAsync(Executor executor);
+    CompletableFuture<String> asyncToken();
 }

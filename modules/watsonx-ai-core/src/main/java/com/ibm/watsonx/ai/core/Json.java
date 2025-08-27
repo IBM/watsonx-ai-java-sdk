@@ -6,22 +6,22 @@ package com.ibm.watsonx.ai.core;
 
 import static java.util.Objects.requireNonNull;
 import java.util.ServiceLoader;
-import com.ibm.watsonx.ai.core.spi.json.JsonAdapter;
+import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
-import com.ibm.watsonx.ai.core.spi.json.jackson.JacksonAdapter;
+import com.ibm.watsonx.ai.core.spi.json.jackson.JacksonProvider;
 
 /**
- * The Json class provides utility methods for JSON serialization and deserialization. It uses a {@link JsonAdapter} to handle the actual conversion
- * between JSON and Java objects. The adapter can be loaded via {@link ServiceLoader} and falls back to a {@link JacksonAdapter} if none is found.
+ * The Json class provides utility methods for JSON serialization and deserialization. It uses a {@link JsonProvider} to handle the actual conversion
+ * between JSON and Java objects. The provider can be loaded via {@link ServiceLoader} and falls back to a {@link JacksonProvider} if none is found.
  */
 public final class Json {
 
-    private static final JsonAdapter adapter = loadAdapter();
+    private static final JsonProvider provider = loadProvider();
 
     /**
      * Prevents direct instantiation of the {@code Builder}.
      */
-    protected Json() {}
+    private Json() {}
 
     /**
      * Deserializes a JSON string into an object of the specified class.
@@ -32,7 +32,7 @@ public final class Json {
      * @return the deserialized object
      */
     public static <T> T fromJson(String json, Class<T> clazz) {
-        return adapter.fromJson(json, clazz);
+        return provider.fromJson(json, clazz);
     }
 
     /**
@@ -44,7 +44,7 @@ public final class Json {
      * @return the deserialized object
      */
     public static <T> T fromJson(String json, TypeToken<T> typeToken) {
-        return adapter.fromJson(json, typeToken);
+        return provider.fromJson(json, typeToken);
     }
 
     /**
@@ -54,7 +54,7 @@ public final class Json {
      * @return the JSON string
      */
     public static String toJson(Object object) {
-        return adapter.toJson(object);
+        return provider.toJson(object);
     }
 
     /**
@@ -65,16 +65,16 @@ public final class Json {
      */
     public static String prettyPrint(Object object) {
         requireNonNull(object);
-        return adapter.prettyPrint(object);
+        return provider.prettyPrint(object);
     }
 
     /**
-     * Attempts to load a {@link JsonAdapter} via {@link ServiceLoader}.
+     * Attempts to load a {@link JsonProvider} via {@link ServiceLoader}.
      * <p>
-     * Falls back to {@link JacksonAdapter} if none is found.
+     * Falls back to {@link JacksonProvider} if none is found.
      */
-    private static JsonAdapter loadAdapter() {
-        return ServiceLoader.load(JsonAdapter.class)
-            .findFirst().orElse(new JacksonAdapter());
+    private static JsonProvider loadProvider() {
+        return ServiceLoader.load(JsonProvider.class)
+            .findFirst().orElse(new JacksonProvider());
     }
 }

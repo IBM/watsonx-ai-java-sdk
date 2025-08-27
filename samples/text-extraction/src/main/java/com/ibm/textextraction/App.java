@@ -87,6 +87,7 @@ public class App {
             System.out.print("Shutdown application..");
             Thread.sleep(500);
             System.out.println("DONE!");
+            System.exit(0);
         }
     }
 }
