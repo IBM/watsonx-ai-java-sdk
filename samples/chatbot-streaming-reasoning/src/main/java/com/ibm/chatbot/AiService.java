@@ -53,7 +53,6 @@ public class AiService {
             .projectId(projectId)
             .timeout(Duration.ofSeconds(60))
             .modelId(modelId)
-            .logRequests(true)
             .url(url)
             .build();
 
