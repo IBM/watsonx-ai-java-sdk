@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.core.http.interceptors;
 
+import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
@@ -34,11 +35,15 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
     private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
 
+    private record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
+
+    private final Duration retryInterval;
+    private final List<RetryOn> retryOn;
+    private final boolean exponentialBackoff;
+    private final Integer maxRetries;
+
     /**
      * Checks whether a {@link WatsonxException} is retryable due to an expired authentication token.
-     * <p>
-     * This condition is met if the HTTP status code is 401 and at least one error in the exception's details has the code
-     * {@code AUTHENTICATION_TOKEN_EXPIRED}.
      *
      * @param maxRetries the maximum number of retry attempts
      * @return a configured {@link RetryInterceptor} instance that handles token expiration retries
@@ -59,14 +64,6 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
             ).build();
     }
 
-    private record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
-
-    private final Duration retryInterval;
-    private final List<RetryOn> retryOn;
-    private final boolean exponentialBackoff;
-    private Integer maxRetries;
-    private Duration timeout;
-
     /**
      * Creates a new {@code RetryInterceptor} using the provided builder.
      *
@@ -74,13 +71,12 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
      */
     public RetryInterceptor(Builder builder) {
         requireNonNull(builder);
-        this.retryInterval = requireNonNullElse(builder.retryInterval, Duration.ofMillis(0));
-        this.timeout = this.retryInterval;
-        this.maxRetries = requireNonNullElse(builder.maxRetries, 1);
-        this.retryOn = builder.retryOn;
-        this.exponentialBackoff = builder.exponentialBackoff;
-        if (isNull(retryOn) || retryOn.isEmpty())
-            throw new RuntimeException("At least one exception must be specified");
+        retryInterval = requireNonNullElse(builder.retryInterval, Duration.ofMillis(0));
+        maxRetries = requireNonNullElse(builder.maxRetries, 1);
+        retryOn = requireNonNull(builder.retryOn, "At least one exception must be specified");
+        exponentialBackoff = builder.exponentialBackoff;
+        if (exponentialBackoff && retryInterval.isZero())
+            throw new IllegalArgumentException("Retry interval must be positive when exponential backoff is enabled");
     }
 
     @Override
@@ -89,15 +85,23 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
         Throwable exception = null;
 
+        String requestId = request.headers()
+            .firstValue(REQUEST_ID_HEADER)
+            .orElseThrow(); // This should never happen. The SyncHttpClient and AsyncHttpClient add this header if it is not present.
+
+        Duration timeout = Duration.from(retryInterval);
+
         for (int attempt = 0; attempt <= maxRetries; attempt++) {
 
             try {
 
-                if (attempt > 0)
+                if (attempt > 0 && !timeout.isZero()) {
+                    logger.debug("Retry request \"{}\" after {} ms", requestId, timeout.toMillis());
                     Thread.sleep(timeout.toMillis());
+                }
 
                 var res = chain.proceed(request, bodyHandler);
-                this.timeout = this.retryInterval;
+                timeout = Duration.from(retryInterval);
                 return res;
 
             } catch (Exception e) {
@@ -117,53 +121,38 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                         timeout = timeout.multipliedBy(2);
                     }
                     if (attempt > 0) {
-                        logger.debug("Retrying request ({}/{}) after failure: {}", attempt, maxRetries,
+                        logger.debug("Retrying request \"{}\" ({}/{}) after failure: {}", requestId, attempt, maxRetries,
                             exception.getMessage());
                     }
                     chain.resetToIndex(index + 1);
                     continue;
                 }
 
-                this.timeout = this.retryInterval;
+                timeout = Duration.from(retryInterval);
                 throw e;
             }
         }
 
-        this.timeout = this.retryInterval;
-        logger.debug("Max retries reached");
-
-        throw new RuntimeException("Max retries reached", isNull(exception) ? new Exception() : exception);
+        timeout = Duration.from(retryInterval);
+        throw new RuntimeException("Max retries reached for request [%s]".formatted(requestId), isNull(exception) ? new Exception() : exception);
     }
 
     @Override
     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
         Executor executor, int index, AsyncChain chain) {
-        return executeWithRetry(request, bodyHandler, executor, index, 0, chain);
+        return executeWithRetry(request, bodyHandler, executor, index, 0, Duration.from(retryInterval), chain);
     }
 
-    /**
-     * The current timeout interval.
-     *
-     * @return the timeout duration
-     */
-    public Duration getTimeout() {
-        return timeout;
-    }
-
-    /**
-     * Returns a new {@link Builder} instance.
-     *
-     * @return {@link Builder} instance.
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
 
     private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler,
-        Executor executor, int index, int attempt, AsyncChain chain) {
+        Executor executor, int index, int attempt, Duration timeout, AsyncChain chain) {
 
         return chain.proceed(request, bodyHandler, executor)
             .exceptionallyCompose(throwable -> {
+
+                String requestId = request.headers()
+                    .firstValue(REQUEST_ID_HEADER)
+                    .orElseThrow(); // This should never happen. The SyncHttpClient and AsyncHttpClient add this header if it is not present.
 
                 Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
 
@@ -178,25 +167,34 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
                 if (!shouldRetry || attempt >= maxRetries) {
                     CompletableFuture<HttpResponse<T>> failed = new CompletableFuture<>();
-                    logger.debug("Max retries reached");
+                    logger.debug("Max retries reached for request \"{}\"", requestId);
                     failed.completeExceptionally(cause);
-                    this.timeout = this.retryInterval;
                     return failed;
                 }
 
-                if (exponentialBackoff && attempt > 0)
-                    timeout = timeout.multipliedBy(2);
+                Duration nextTimeout = exponentialBackoff ? timeout.multipliedBy(2) : timeout;
 
-                logger.debug("Retrying request ({}/{}) after failure: {}", attempt + 1, maxRetries, cause.getMessage());
+                if (!timeout.isZero())
+                    logger.debug("Retry request \"{}\" after {} ms", requestId, nextTimeout.toMillis());
 
                 return CompletableFuture.supplyAsync(
                     () -> {
+                        logger.debug("Retrying request \"{}\" ({}/{}) after failure: {}", requestId, attempt + 1, maxRetries, cause.getMessage());
                         chain.resetToIndex(index + 1);
-                        return executeWithRetry(request, bodyHandler, executor, index, attempt + 1, chain);
+                        return executeWithRetry(request, bodyHandler, executor, index, attempt + 1, nextTimeout, chain);
                     },
-                    CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS, executor)
+                    CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, executor)
                 ).thenCompose(Function.identity());
             });
+    }
+
+    /**
+     * Returns a new {@link Builder} instance.
+     *
+     * @return {@link Builder} instance.
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
