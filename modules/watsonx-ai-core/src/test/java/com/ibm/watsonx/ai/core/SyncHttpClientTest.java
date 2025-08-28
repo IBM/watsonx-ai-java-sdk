@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -19,6 +20,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -37,6 +39,9 @@ public class SyncHttpClientTest {
     HttpClient httpClient;
 
     @Mock
+    HttpRequest httpRequest;
+
+    @Mock
     HttpResponse<String> httpResponse;
 
     @Mock
@@ -52,10 +57,16 @@ public class SyncHttpClientTest {
         return chain.proceed(req, bh);
     };
 
+    @BeforeEach
+    void setUp() {
+        when(httpRequest.uri()).thenReturn(URI.create("https://test.com"));
+        when(httpRequest.method()).thenReturn("GET");
+        when(httpRequest.headers()).thenReturn(HttpHeaders.of(Map.of(), (k, v) -> true));
+    }
+
     @Test
     void test_send_request_with_interceptor() throws Exception {
 
-        HttpRequest request = mock(HttpRequest.class);
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
             .httpClient(httpClient)
@@ -63,60 +74,58 @@ public class SyncHttpClientTest {
             .interceptor(interceptor2)
             .build();
 
-        when(interceptor1.intercept(eq(request), eq(handler), anyInt(), any()))
+        when(interceptor1.intercept(any(), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(interceptor2.intercept(eq(request), eq(handler), anyInt(), any()))
+        when(interceptor2.intercept(any(), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
         when(httpResponse.statusCode())
             .thenReturn(200);
 
-        when(httpClient.send(request, handler)).thenReturn(httpResponse);
+        when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
 
-        var response = client.send(request, handler);
+        var response = client.send(httpRequest, handler);
 
         assertEquals(httpResponse, response);
 
         InOrder inOrder = inOrder(interceptor1, interceptor2);
-        inOrder.verify(interceptor1).intercept(eq(request), eq(handler), anyInt(), any());
-        inOrder.verify(interceptor2).intercept(eq(request), eq(handler), anyInt(), any());
+        inOrder.verify(interceptor1).intercept(any(), eq(handler), anyInt(), any());
+        inOrder.verify(interceptor2).intercept(any(), eq(handler), anyInt(), any());
     }
 
     @Test
     void test_send_request_with_interceptors() throws Exception {
 
-        HttpRequest request = mock(HttpRequest.class);
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
             .httpClient(httpClient)
             .interceptors(List.of(interceptor1, interceptor2))
             .build();
 
-        when(interceptor1.intercept(eq(request), eq(handler), anyInt(), any()))
+        when(interceptor1.intercept(any(), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(interceptor2.intercept(eq(request), eq(handler), anyInt(), any()))
+        when(interceptor2.intercept(any(), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
         when(httpResponse.statusCode())
             .thenReturn(200);
 
-        when(httpClient.send(request, handler)).thenReturn(httpResponse);
+        when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
 
-        var response = client.send(request, handler);
+        var response = client.send(httpRequest, handler);
 
         assertEquals(httpResponse, response);
 
         InOrder inOrder = inOrder(interceptor1, interceptor2);
-        inOrder.verify(interceptor1).intercept(eq(request), eq(handler), anyInt(), any());
-        inOrder.verify(interceptor2).intercept(eq(request), eq(handler), anyInt(), any());
+        inOrder.verify(interceptor1).intercept(any(), eq(handler), anyInt(), any());
+        inOrder.verify(interceptor2).intercept(any(), eq(handler), anyInt(), any());
     }
 
     @Test
     void test_send_request_without_interceptor() throws Exception {
 
-        HttpRequest request = mock(HttpRequest.class);
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
             .httpClient(httpClient)
@@ -125,16 +134,15 @@ public class SyncHttpClientTest {
         when(httpResponse.statusCode())
             .thenReturn(200);
 
-        when(httpClient.send(request, handler)).thenReturn(httpResponse);
+        when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
 
-        var response = client.send(request, handler);
+        var response = client.send(httpRequest, handler);
         assertEquals(httpResponse, response);
     }
 
     @Test
     void test_send_request_with_401() throws Exception {
 
-        HttpRequest request = mock(HttpRequest.class);
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
             .httpClient(httpClient)
@@ -161,14 +169,13 @@ public class SyncHttpClientTest {
                         "status_code": 401
                     }""");
 
-        when(httpClient.send(request, handler)).thenReturn(httpResponse);
-        assertThrows(WatsonxException.class, () -> client.send(request, handler));
+        when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+        assertThrows(WatsonxException.class, () -> client.send(httpRequest, handler));
     }
 
     @Test
     void test_send_request_with_no_exception_body() throws Exception {
 
-        HttpRequest request = mock(HttpRequest.class);
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
             .httpClient(httpClient)
@@ -177,7 +184,7 @@ public class SyncHttpClientTest {
         when(httpResponse.statusCode())
             .thenReturn(401);
 
-        when(httpClient.send(request, handler)).thenReturn(httpResponse);
-        assertThrows(WatsonxException.class, () -> client.send(request, handler));
+        when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+        assertThrows(WatsonxException.class, () -> client.send(httpRequest, handler));
     }
 }

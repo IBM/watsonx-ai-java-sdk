@@ -59,7 +59,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
      * @return a {@link CompletableFuture} of the HTTP response
      */
     public <T> CompletableFuture<HttpResponse<T>> send(HttpRequest request, BodyHandler<T> handler) {
-        return send(request, handler, executor());
+        return send(addRequestIdHeaderIfNotPresent(request), handler, executor());
     }
 
     /**
