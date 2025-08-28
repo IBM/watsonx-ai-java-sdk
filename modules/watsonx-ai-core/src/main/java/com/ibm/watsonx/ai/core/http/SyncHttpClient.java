@@ -58,7 +58,7 @@ public final class SyncHttpClient extends BaseHttpClient {
      */
     public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> bodyHandler)
         throws WatsonxException, IOException, InterruptedException {
-        return new InterceptorChain(delegate, interceptors).proceed(request, bodyHandler);
+        return new InterceptorChain(delegate, interceptors).proceed(addRequestIdHeaderIfNotPresent(request), bodyHandler);
     }
 
     /**

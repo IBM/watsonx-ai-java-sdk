@@ -21,23 +21,28 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
@@ -46,6 +51,7 @@ import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class AsyncHttpClientTest {
 
     @Mock
@@ -65,6 +71,13 @@ public class AsyncHttpClientTest {
 
     @Mock
     AsyncHttpInterceptor interceptor2;
+
+    @BeforeEach
+    void setup() {
+        when(httpRequest.uri()).thenReturn(URI.create("https://test.com"));
+        when(httpRequest.method()).thenReturn("GET");
+        when(httpRequest.headers()).thenReturn(HttpHeaders.of(Map.of(), (k, v) -> true));
+    }
 
     @RegisterExtension
     WireMockExtension wireMock = WireMockExtension.newInstance()
@@ -88,13 +101,13 @@ public class AsyncHttpClientTest {
             .interceptor(interceptor2)
             .build();
 
-        when(interceptor1.intercept(eq(httpRequest), eq(handler), any(), anyInt(), any()))
+        when(interceptor1.intercept(any(), eq(handler), any(), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(interceptor2.intercept(eq(httpRequest), eq(handler), any(), anyInt(), any()))
+        when(interceptor2.intercept(any(), eq(handler), any(), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
+        when(httpClient.sendAsync(any(), any(BodyHandler.class)))
             .thenReturn(completedFuture(httpResponse));
 
         var result = client.send(httpRequest, handler);
@@ -102,8 +115,8 @@ public class AsyncHttpClientTest {
         assertEquals(httpResponse, result.get());
 
         InOrder inOrder = inOrder(interceptor1, interceptor2);
-        inOrder.verify(interceptor1).intercept(eq(httpRequest), eq(handler), any(), anyInt(), any());
-        inOrder.verify(interceptor2).intercept(eq(httpRequest), eq(handler), any(), anyInt(), any());
+        inOrder.verify(interceptor1).intercept(any(), eq(handler), any(), anyInt(), any());
+        inOrder.verify(interceptor2).intercept(any(), eq(handler), any(), anyInt(), any());
     }
 
     @Test
@@ -114,13 +127,13 @@ public class AsyncHttpClientTest {
             .interceptors(List.of(interceptor1, interceptor2))
             .build();
 
-        when(interceptor1.intercept(eq(httpRequest), eq(handler), any(), anyInt(), any()))
+        when(interceptor1.intercept(any(), eq(handler), any(), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(interceptor2.intercept(eq(httpRequest), eq(handler), any(), anyInt(), any()))
+        when(interceptor2.intercept(any(), eq(handler), any(), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
+        when(httpClient.sendAsync(any(), any(BodyHandler.class)))
             .thenReturn(completedFuture(httpResponse));
 
         var result = client.send(httpRequest, handler);
@@ -128,8 +141,8 @@ public class AsyncHttpClientTest {
         assertEquals(httpResponse, result.get());
 
         InOrder inOrder = inOrder(interceptor1, interceptor2);
-        inOrder.verify(interceptor1).intercept(eq(httpRequest), eq(handler), any(), anyInt(), any());
-        inOrder.verify(interceptor2).intercept(eq(httpRequest), eq(handler), any(), anyInt(), any());
+        inOrder.verify(interceptor1).intercept(any(), eq(handler), any(), anyInt(), any());
+        inOrder.verify(interceptor2).intercept(any(), eq(handler), any(), anyInt(), any());
     }
 
     @Test
@@ -139,7 +152,7 @@ public class AsyncHttpClientTest {
             .httpClient(httpClient)
             .build();
 
-        when(httpClient.sendAsync(eq(httpRequest), any(BodyHandler.class)))
+        when(httpClient.sendAsync(any(), any(BodyHandler.class)))
             .thenReturn(completedFuture(httpResponse));
 
         var result = client.send(httpRequest, handler).get();
