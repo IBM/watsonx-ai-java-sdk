@@ -77,7 +77,11 @@ public class ExecutorProvider {
                 .orElse(Runtime.getRuntime().availableProcessors());
 
             AtomicInteger counter = new AtomicInteger(1);
-            ExecutorService defaultExecutor = Executors.newFixedThreadPool(nThreads, r -> new Thread(r, "io-thread-" + counter.getAndIncrement()));
+            ExecutorService defaultExecutor = Executors.newFixedThreadPool(nThreads, r -> {
+                var thread = new Thread(r, "io-thread-" + counter.getAndIncrement());
+                thread.setDaemon(true);
+                return thread;
+            });
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 defaultExecutor.shutdown();
