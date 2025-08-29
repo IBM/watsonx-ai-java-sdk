@@ -96,14 +96,13 @@ public final class SyncHttpClient extends BaseHttpClient {
             HttpResponse<T> httpResponse = client.send(request, bodyHandler);
             int statusCode = httpResponse.statusCode();
 
-            if (statusCode >= 200 && statusCode < 300) {
+            if (statusCode >= 200 && statusCode < 300)
                 return httpResponse;
-            }
 
             Optional<String> bodyOpt = HttpUtils.extractBodyAsString(httpResponse);
-            if (bodyOpt.isEmpty()) {
-                throw new WatsonxException(statusCode);
-            }
+
+            if (bodyOpt.isEmpty())
+                throw new WatsonxException("Status code: " + statusCode, statusCode, null);
 
             String body = bodyOpt.get();
             String contentType = httpResponse.headers().firstValue("Content-Type")

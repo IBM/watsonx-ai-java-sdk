@@ -115,7 +115,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
                         BodySubscribers.ofString(StandardCharsets.UTF_8),
                         body -> {
                             if (body.isEmpty())
-                                throw new WatsonxException(statusCode);
+                                throw new WatsonxException("Status code: " + statusCode, statusCode, null);
 
                             String contentType = responseInfo.headers().firstValue("Content-Type")
                                 .orElseThrow(() -> new WatsonxException(body, statusCode, null));

@@ -48,6 +48,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
+import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
@@ -243,7 +244,7 @@ public class RetryInterceptorTest {
         @SuppressWarnings("unchecked")
         void retry_with_watsonx_exception() throws Exception {
 
-            RetryInterceptor retryInterceptor = RetryInterceptor.onTokenExpired(3);
+            RetryInterceptor retryInterceptor = onTokenExpired(3);
 
             SyncHttpClient client = SyncHttpClient.builder()
                 .httpClient(httpClient)
@@ -289,7 +290,7 @@ public class RetryInterceptorTest {
         @SuppressWarnings("unchecked")
         void retry_with_tool_exception() throws Exception {
 
-            RetryInterceptor retryInterceptor = RetryInterceptor.onTokenExpired(3);
+            RetryInterceptor retryInterceptor = onTokenExpired(3);
 
             SyncHttpClient client = SyncHttpClient.builder()
                 .httpClient(httpClient)
@@ -497,7 +498,7 @@ public class RetryInterceptorTest {
         @SuppressWarnings("unchecked")
         void retry_with_watsonx_exception() throws Exception {
 
-            RetryInterceptor retryInterceptor = RetryInterceptor.onTokenExpired(3);
+            RetryInterceptor retryInterceptor = onTokenExpired(3);
 
             AsyncHttpClient client = AsyncHttpClient.builder()
                 .httpClient(httpClient)
@@ -643,5 +644,21 @@ public class RetryInterceptorTest {
             assertEquals("cpu-thread", threadNames.get(1));
             assertEquals("io-thread", threadNames.get(2));
         }
+    }
+
+    private RetryInterceptor onTokenExpired(int maxRetries) {
+        return RetryInterceptor.builder()
+            .maxRetries(maxRetries)
+            .retryOn(
+                WatsonxException.class,
+                ex -> {
+                    var e = (WatsonxException) ex;
+                    boolean watsonxTokenExpired = e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
+                        .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
+                    boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(detail -> detail.errors().stream()
+                        .anyMatch(err -> err.is(WatsonxError.Code.COS_ACCESS_DENIED))).orElse(false);
+                    return watsonxTokenExpired || cosTokenExpired;
+                }
+            ).build();
     }
 }

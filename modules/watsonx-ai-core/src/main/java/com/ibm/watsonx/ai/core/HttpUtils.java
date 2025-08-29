@@ -70,7 +70,7 @@ public final class HttpUtils {
 
         try {
             if (body instanceof String str) {
-                return Optional.of(str);
+                return str.isBlank() ? Optional.empty() : Optional.of(str);
             } else if (body instanceof byte[] bytes) {
                 return Optional.of(new String(bytes, StandardCharsets.UTF_8));
             } else if (body instanceof InputStream inputStream) {

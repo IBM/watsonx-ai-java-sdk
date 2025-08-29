@@ -8,10 +8,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -86,6 +89,7 @@ import com.ibm.watsonx.ai.chat.model.VideoContent;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
+import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 @ExtendWith(MockitoExtension.class)
@@ -2740,6 +2744,240 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             assertEquals(List.of("iao", "He", "llo", "C"), listResult);
         }
+    }
+
+    @Test
+    void test_sync_interceptors() {
+
+        List<WatsonxError.Error> errors =
+            List.of(new WatsonxError.Error("authentication_token_expired", "Failed to authenticate the request due to an expired token", ""));
+        WatsonxError detail = new WatsonxError(401, "57ed27e71f8e27dc25f00800a80b9529", errors);
+        when(mockAuthenticationProvider.token())
+            .thenThrow(new WatsonxException("Failed to authenticate the request due to an expired token", 401, detail))
+            .thenReturn("my-super-token");
+
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(aResponse().withStatus(429))
+            .willSetStateTo("SecondAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs("SecondAttempt")
+            .willReturn(aResponse().withStatus(503))
+            .willSetStateTo("ThirdAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs("ThirdAttempt")
+            .willReturn(aResponse().withStatus(504))
+            .willSetStateTo("FourthAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs("FourthAttempt")
+            .willReturn(aResponse().withStatus(520))
+            .willSetStateTo("FinalAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs("FinalAttempt")
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(
+                    """
+                            {
+                              "id": "cmpl-15475d0dea9b4429a55843c77997f8a9",
+                              "model_id": "meta-llama/llama-3-8b-instruct",
+                              "created": 1689958352,
+                              "created_at": "2023-07-21T16:52:32.190Z",
+                              "choices": [
+                                {
+                                  "index": 0,
+                                  "message": {
+                                    "role": "assistant",
+                                    "content": "The 2020 World Series was played at Globe Life Field in Arlington, Texas,\\nwhich is the home stadium of the Texas Rangers.\\nHowever, the series was played with no fans in attendance due to the COVID-19 pandemic.\\n"
+                                  },
+                                  "finish_reason": "stop"
+                                }
+                              ],
+                              "usage": {
+                                "completion_tokens": 47,
+                                "prompt_tokens": 59,
+                                "total_tokens": 106
+                              }
+                            }
+                        """)));
+
+        var chatService = ChatService.builder()
+            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("model-id")
+            .projectId("project-id")
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+        chatService.chat("Hello");
+
+        int count = wireMock.findAll(postRequestedFor(urlMatching("/ml/v1/text/chat.*"))).size();
+        assertEquals(5, count);
+    }
+
+    @Test
+    void test_async_interceptors() {
+
+        List<WatsonxError.Error> errors =
+            List.of(new WatsonxError.Error("authentication_token_expired", "Failed to authenticate the request due to an expired token", ""));
+        WatsonxError detail = new WatsonxError(401, "57ed27e71f8e27dc25f00800a80b9529", errors);
+
+        String FIRST_CALL = """
+            {
+              "model_id" : "model-id",
+              "project_id" : "project-id",
+              "messages" : [ {
+                "role" : "user",
+                "content" : [ {
+                  "type" : "text",
+                  "text" : "Hello 1"
+                } ]
+              } ],
+              "time_limit" : 10000
+            }""";
+
+        String SECOND_CALL = """
+            {
+              "model_id" : "model-id",
+              "project_id" : "project-id",
+              "messages" : [ {
+                "role" : "user",
+                "content" : [ {
+                  "type" : "text",
+                  "text" : "Hello 2"
+                } ]
+              } ],
+              "time_limit" : 10000
+            }""";
+
+        when(mockAuthenticationProvider.asyncToken())
+            .thenReturn(failedFuture(new WatsonxException("Failed to authenticate the request due to an expired token", 401, detail)))
+            .thenReturn(completedFuture("my-super-token"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .withRequestBody(equalToJson(FIRST_CALL))
+            .willReturn(aResponse().withStatus(429))
+            .willSetStateTo("SecondAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs("SecondAttempt")
+            .withRequestBody(equalToJson(FIRST_CALL))
+            .willReturn(aResponse().withStatus(503))
+            .willSetStateTo("ThirdAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs("ThirdAttempt")
+            .withRequestBody(equalToJson(FIRST_CALL))
+            .willReturn(aResponse().withStatus(504))
+            .willSetStateTo("FourthAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs("FourthAttempt")
+            .withRequestBody(equalToJson(FIRST_CALL))
+            .willReturn(aResponse().withStatus(520))
+            .willSetStateTo("FinalAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario")
+            .whenScenarioStateIs("FinalAttempt")
+            .withRequestBody(equalToJson(FIRST_CALL))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"He"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"llo"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario2")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .withRequestBody(equalToJson(SECOND_CALL))
+            .willReturn(aResponse().withStatus(429))
+            .willSetStateTo("SecondAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario2")
+            .whenScenarioStateIs("SecondAttempt")
+            .withRequestBody(equalToJson(SECOND_CALL))
+            .willReturn(aResponse().withStatus(503))
+            .willSetStateTo("ThirdAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario2")
+            .whenScenarioStateIs("ThirdAttempt")
+            .withRequestBody(equalToJson(SECOND_CALL))
+            .willReturn(aResponse().withStatus(504))
+            .willSetStateTo("FourthAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario2")
+            .whenScenarioStateIs("FourthAttempt")
+            .withRequestBody(equalToJson(SECOND_CALL))
+            .willReturn(aResponse().withStatus(520))
+            .willSetStateTo("FinalAttempt"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+            .inScenario("RetryScenario2")
+            .whenScenarioStateIs("FinalAttempt")
+            .withRequestBody(equalToJson(SECOND_CALL))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"He"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"llo"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
+
+        var chatService = ChatService.builder()
+            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("model-id")
+            .projectId("project-id")
+            .build();
+
+        assertDoesNotThrow(() -> CompletableFuture.allOf(
+            chatService.chatStreaming("Hello 1", mock(ChatHandler.class)),
+            chatService.chatStreaming("Hello 2", mock(ChatHandler.class))
+        ).get(3, TimeUnit.SECONDS));
+        int count = wireMock.findAll(postRequestedFor(urlMatching("/ml/v1/text/chat_stream.*"))).size();
+        assertEquals(10, count);
     }
 
     @Test
