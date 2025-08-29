@@ -22,6 +22,7 @@ import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
+import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
@@ -36,6 +37,16 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  * @see DeploymentService
  */
 public interface ChatProvider {
+
+    /**
+     * Sends a chat request to the model using the provided message.
+     *
+     * @param message Message to send.
+     * @return a {@link ChatResponse} object containing the model's reply
+     */
+    public default ChatResponse chat(String message) {
+        return chat(UserMessage.text(message));
+    }
 
     /**
      * Sends a chat request to the model using the provided messages.
@@ -134,6 +145,16 @@ public interface ChatProvider {
                 .tools(tools)
                 .build()
         );
+    }
+
+    /**
+     * Sends a chat request to the model using the provided message.
+     *
+     * @param message Message to send.
+     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     */
+    public default CompletableFuture<Void> chatStreaming(String message, ChatHandler handler) {
+        return chatStreaming(List.of(UserMessage.text(message)), handler);
     }
 
     /**

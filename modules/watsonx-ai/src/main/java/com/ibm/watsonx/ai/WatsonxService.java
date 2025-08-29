@@ -72,15 +72,17 @@ public abstract class WatsonxService {
         var syncHttpClientBuilder = SyncHttpClient.builder().httpClient(httpClient);
         var asyncHttpClientBuilder = AsyncHttpClient.builder().httpClient(httpClient);
 
-        var retryInterceptor = RetryInterceptor.onTokenExpired(1);
-        syncHttpClientBuilder.interceptor(retryInterceptor);
-        asyncHttpClientBuilder.interceptor(retryInterceptor);
+        syncHttpClientBuilder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
+        asyncHttpClientBuilder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
 
         if (nonNull(builder.authenticationProvider)) {
             var bearerInterceptor = new BearerInterceptor(builder.authenticationProvider);
             syncHttpClientBuilder.interceptor(bearerInterceptor);
             asyncHttpClientBuilder.interceptor(bearerInterceptor);
         }
+
+        syncHttpClientBuilder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
+        asyncHttpClientBuilder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
 
         if (logRequests || logResponses) {
             syncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));

@@ -2,12 +2,16 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} - %msg%n" />
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] - %msg%n" />
         </Console>
     </Appenders>
     <Loggers>
+        <Logger name="com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor" level="debug"
+            additivity="false">
+            <AppenderRef ref="Console" />
+        </Logger>
         <Root level="info">
-            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Console" />
         </Root>
     </Loggers>
 </Configuration>

@@ -29,7 +29,7 @@ import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
 
 /**
- * An HTTP interceptor that performs automatic retries when configured exceptions are thrown.
+ * An HTTP interceptor that performs automatic retries.
  */
 public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
@@ -44,25 +44,44 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
     /**
      * Checks whether a {@link WatsonxException} is retryable due to an expired authentication token.
-     *
-     * @param maxRetries the maximum number of retry attempts
-     * @return a configured {@link RetryInterceptor} instance that handles token expiration retries
      */
-    public static RetryInterceptor onTokenExpired(int maxRetries) {
-        return RetryInterceptor.builder()
-            .maxRetries(maxRetries)
-            .retryOn(
-                WatsonxException.class,
-                ex -> {
-                    var e = (WatsonxException) ex;
-                    boolean watsonxTokenExpired = e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
-                        .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
-                    boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(detail -> detail.errors().stream()
-                        .anyMatch(err -> err.is(WatsonxError.Code.COS_ACCESS_DENIED))).orElse(false);
-                    return watsonxTokenExpired || cosTokenExpired;
-                }
-            ).build();
-    }
+    public static final RetryInterceptor ON_TOKEN_EXPIRED = RetryInterceptor.builder()
+        .maxRetries(1)
+        .retryOn(
+            WatsonxException.class,
+            ex -> {
+                var e = (WatsonxException) ex;
+                boolean watsonxTokenExpired = e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
+                    .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
+                boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(detail -> detail.errors().stream()
+                    .anyMatch(err -> err.is(WatsonxError.Code.COS_ACCESS_DENIED))).orElse(false);
+                return watsonxTokenExpired || cosTokenExpired;
+            }
+        ).build();
+
+    /**
+     * A {@link RetryInterceptor} that retries requests when a {@link WatsonxException} is thrown with one of the following transient HTTP status
+     * codes:
+     * <ul>
+     * <li><code>429</code> — Too Many Requests</li>
+     * <li><code>503</code> — Service Unavailable</li>
+     * <li><code>504</code> — Gateway Timeout</li>
+     * <li><code>520</code> — Unknown Error</li>
+     * </ul>
+     */
+    public static final RetryInterceptor ON_RETRYABLE_STATUS_CODES = RetryInterceptor.builder()
+        .maxRetries(10)
+        .exponentialBackoff(true)
+        .retryInterval(Duration.ofMillis(20))
+        .retryOn(
+            WatsonxException.class,
+            ex -> {
+                var statusCode = ((WatsonxException) ex).statusCode();
+                return statusCode == 429 || statusCode == 503 || statusCode == 504 || statusCode == 520
+                    ? true
+                    : false;
+            }
+        ).build();
 
     /**
      * Creates a new {@code RetryInterceptor} using the provided builder.
@@ -95,6 +114,11 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
             try {
 
+                if (attempt > 0) {
+                    logger.debug("Retrying request \"{}\" ({}/{}) after failure: {}", requestId, attempt, maxRetries,
+                        exception.getMessage());
+                }
+
                 if (attempt > 0 && !timeout.isZero()) {
                     logger.debug("Retry request \"{}\" after {} ms", requestId, timeout.toMillis());
                     Thread.sleep(timeout.toMillis());
@@ -120,10 +144,6 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     if (exponentialBackoff && attempt > 0) {
                         timeout = timeout.multipliedBy(2);
                     }
-                    if (attempt > 0) {
-                        logger.debug("Retrying request \"{}\" ({}/{}) after failure: {}", requestId, attempt, maxRetries,
-                            exception.getMessage());
-                    }
                     chain.resetToIndex(index + 1);
                     continue;
                 }
@@ -148,7 +168,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         Executor executor, int index, int attempt, Duration timeout, AsyncChain chain) {
 
         return chain.proceed(request, bodyHandler, executor)
-            .exceptionallyCompose(throwable -> {
+            .exceptionallyComposeAsync(throwable -> {
 
                 String requestId = request.headers()
                     .firstValue(REQUEST_ID_HEADER)
@@ -184,8 +204,8 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                         return executeWithRetry(request, bodyHandler, executor, index, attempt + 1, nextTimeout, chain);
                     },
                     CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, executor)
-                ).thenCompose(Function.identity());
-            });
+                ).thenComposeAsync(Function.identity(), executor);
+            }, executor);
     }
 
     /**
