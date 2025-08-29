@@ -35,6 +35,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     private static final Logger logger = LoggerFactory.getLogger(LoggerInterceptor.class);
     private static final Pattern BASE64_IMAGE_PATTERN =
         Pattern.compile("(data:.+;base64,)(.{15})([^\"]+)([\\s\\S]*)");
+
     private final boolean logRequest;
     private final boolean logResponse;
 
@@ -106,8 +107,11 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         if (!logRequest)
             return;
 
-        if (request.bodyPublisher().isPresent()) {
-            request.bodyPublisher().get().subscribe(new Subscriber<>() {
+        request.bodyPublisher().ifPresentOrElse(
+            publisher -> publisher.subscribe(new Subscriber<>() {
+                private StringBuilder builder;
+                private Boolean isImageDetected;
+
                 @Override
                 public void onSubscribe(Subscription subscription) {
                     subscription.request(Long.MAX_VALUE);
@@ -115,18 +119,39 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
                 @Override
                 public void onNext(ByteBuffer item) {
-                    printRequest(request, new String(item.array(), StandardCharsets.UTF_8));
+                    String body = StandardCharsets.UTF_8.decode(item).toString();
+
+                    if (isNull(isImageDetected)) {
+                        isImageDetected = BASE64_IMAGE_PATTERN.matcher(body).find();
+                        if (isImageDetected) {
+                            builder = new StringBuilder();
+                            builder.append(body);
+                            return;
+                        } else {
+                            printRequest(request, body);
+                            return;
+                        }
+                    }
+
+                    if (isImageDetected) {
+                        builder.append(body);
+                    }
                 }
 
                 @Override
                 public void onError(Throwable throwable) {}
 
                 @Override
-                public void onComplete() {}
-            });
-        } else
-            printRequest(request, null);
+                public void onComplete() {
+                    if (nonNull(isImageDetected) && isImageDetected) {
+                        printRequest(request, builder.toString());
+                    }
+                }
+            }),
+            () -> printRequest(request, null)
+        );
     }
+
 
     private <T> void logResponse(HttpRequest request, HttpResponse<T> response) {
         if (!logResponse)

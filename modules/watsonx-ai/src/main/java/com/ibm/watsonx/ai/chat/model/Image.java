@@ -51,7 +51,7 @@ public record Image(String url, String detail) {
         detail = requireNonNullElse(detail, Detail.AUTO);
         return new Image(
             "data:%s;base64,%s".formatted(mimeType, data),
-            detail.get()
+            detail.value()
         );
     }
 
@@ -69,7 +69,7 @@ public record Image(String url, String detail) {
             this.detail = detail;
         }
 
-        public String get() {
+        public String value() {
             return detail;
         }
     }

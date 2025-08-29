@@ -5,6 +5,11 @@
 package com.ibm.watsonx.ai.chat.model;
 
 import static java.util.Objects.requireNonNull;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 import com.ibm.watsonx.ai.chat.model.Image.Detail;
 
 /**
@@ -26,6 +31,56 @@ public record ImageContent(String type, Image imageUrl) implements UserContent {
     public ImageContent {
         type = TYPE;
         requireNonNull(imageUrl);
+    }
+
+    /**
+     * Creates an {@code ImageContent} from a {@link File}.
+     *
+     * @param file the image file to load
+     * @return a new {@code ImageContent}
+     * @throws IOException if the file cannot be read
+     */
+    public static ImageContent from(File file) throws IOException {
+        return from(file, null);
+    }
+
+    /**
+     * Creates an {@code ImageContent} from a {@link File}, with a specified detail level.
+     *
+     * @param file the image file to load
+     * @param detail the level of detail for how the model should process the image
+     * @return a new {@code ImageContent}
+     * @throws IOException if the file cannot be read
+     */
+    public static ImageContent from(File file, Detail detail) throws IOException {
+        return from(file.toPath(), detail);
+    }
+
+    /**
+     * Creates an {@code ImageContent} from a file {@link Path}.
+     *
+     * @param path the path to the image file
+     * @return a new {@code ImageContent}
+     * @throws IOException if the file cannot be read
+     */
+    public static ImageContent from(Path path) throws IOException {
+        return from(path, null);
+    }
+
+    /**
+     * Creates an {@code ImageContent} from a file {@link Path}, with a specified detail level.
+     *
+     * @param path the path to the image file
+     * @param detail the level of detail for how the model should process the image
+     * @return a new {@code ImageContent}
+     * @throws IOException if the file cannot be read
+     */
+    public static ImageContent from(Path path, Detail detail) throws IOException {
+        requireNonNull(path);
+        var bytes = Files.readAllBytes(path);
+        var mimeType = Files.probeContentType(path);
+        var base64Data = Base64.getEncoder().encodeToString(bytes);
+        return of(Image.of(mimeType, base64Data));
     }
 
     /**
