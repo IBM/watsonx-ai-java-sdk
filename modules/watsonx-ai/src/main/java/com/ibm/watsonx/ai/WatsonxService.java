@@ -47,10 +47,10 @@ import com.ibm.watsonx.ai.tool.ToolService;
  */
 public abstract class WatsonxService {
 
-    public static final String ML_API_PATH = "/ml/v1";
-    public static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
-    public static final String API_VERSION = "2025-04-23";
-    public static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
+    protected static final String ML_API_PATH = "/ml/v1";
+    protected static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
+    protected static final String API_VERSION = "2025-04-23";
+    protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
 
     protected final URI url;
     protected final String version;

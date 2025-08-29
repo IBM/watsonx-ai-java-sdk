@@ -10,7 +10,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -49,7 +48,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,7 +59,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
-import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -780,7 +777,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
 
-            var response = chatResponse.toText(LLMResponse.class);
+            var response = chatResponse.toObject(LLMResponse.class);
             assertEquals("Campania", response.name());
             assertEquals(5, response.provinces.size());
             assertEquals(FinishReason.STOP, chatResponse.finishReason());
@@ -899,6 +896,89 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void test_tool_call_without_parameters() throws Exception {
+
+        final String REQUEST = """
+            {
+              "model_id" : "ibm/granite-3-8b-instruct",
+              "project_id" : "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+              "messages" : [ {
+                "role" : "user",
+                "content" : [ {
+                  "type" : "text",
+                  "text" : "What time is it?"
+                } ]
+              } ],
+              "tools" : [ {
+                "type" : "function",
+                "function" : {
+                  "name" : "get_time",
+                  "description" : "Get the current time"
+                }
+              } ],
+              "time_limit": 10000
+            }""";
+
+        final String RESPONSE = """
+            {
+              "id" : "chatcmpl-344f198bce61aabb4bf2c318d05b3e80",
+              "object" : "chat.completion",
+              "model_id" : "ibm/granite-3-8b-instruct",
+              "model" : "ibm/granite-3-8b-instruct",
+              "choices" : [ {
+                "index" : 0,
+                "message" : {
+                  "role" : "assistant",
+                  "tool_calls" : [ {
+                    "id" : "chatcmpl-tool-95b123bc5f214e7ebaf5fc7e111410a4",
+                    "type" : "function",
+                    "function" : {
+                      "name" : "get_time",
+                      "arguments" : "{}"
+                    }
+                  } ]
+                },
+                "finish_reason" : "tool_calls"
+              } ],
+              "created" : 1749320949,
+              "model_version" : "1.1.0",
+              "created_at" : "2025-06-07T18:29:09.521Z",
+              "usage" : {
+                "completion_tokens" : 31,
+                "prompt_tokens" : 239,
+                "total_tokens" : 270
+              }
+            }""";
+
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-3-8b-instruct")
+                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+                .logRequests(true)
+                .url(CloudRegion.DALLAS)
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));
+            var tools = Tool.of("get_time", "Get the current time");
+
+            var chatResponse = chatService.chat(messages, List.of(tools));
+
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
+
+            var ex = assertThrows(RuntimeException.class, () -> chatResponse.extractContent());
+            assertEquals("The response is of the type \"tool_calls\" and contains no text", ex.getMessage());
+        });
+    }
+
+    @Test
     void test_tool_calls_with_result() throws Exception {
 
         final String REQUEST = """
@@ -988,7 +1068,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             var messages = List.<ChatMessage>of(
                 UserMessage.text("2 + 2"),
-                AssistantMessage.of(ToolCall.of("id", "sum", "{\"first_number\": 2, \"second_number\": 2}")),
+                AssistantMessage.tools(ToolCall.of("id", "sum", "{\"first_number\": 2, \"second_number\": 2}")),
                 ToolMessage.of("The result is 4", "id")
             );
 
@@ -2735,10 +2815,24 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     @Test
     void test_chat_streaming_non_blocking_io_thread() {
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(WatsonxService.API_VERSION))
-            .inScenario("chat_stream_scenario")
-            .whenScenarioStateIs(Scenario.STARTED)
-            .willSetStateTo("SECOND_CALL")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withRequestBody(equalToJson(
+                """
+                    {
+                      "model_id": "model-id",
+                      "project_id": "project-id",
+                      "messages": [
+                        {
+                          "role": "user",
+                          "content": [{
+                            "type": "text",
+                            "text": "Ciao"
+                          }]
+                        }
+                      ],
+                      "time_limit": 10000
+                    }"""
+            ))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withChunkedDribbleDelay(3, 200)
@@ -2757,9 +2851,24 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
                         """)));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(WatsonxService.API_VERSION))
-            .inScenario("chat_stream_scenario")
-            .whenScenarioStateIs("SECOND_CALL")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withRequestBody(equalToJson(
+                """
+                    {
+                      "model_id": "model-id",
+                      "project_id": "project-id",
+                      "messages": [
+                        {
+                          "role": "user",
+                          "content": [{
+                            "type": "text",
+                            "text": "Hello"
+                          }]
+                        }
+                      ],
+                      "time_limit": 10000
+                    }"""
+            ))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withChunkedDribbleDelay(3, 200)
@@ -2794,22 +2903,15 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .modelId("model-id")
                 .build();
 
-            AtomicBoolean isFirstInvocation = new AtomicBoolean(true);
-            List<CompletableFuture<Void>> futures = Collections.synchronizedList(new ArrayList<>());
+            List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new ArrayList<>());
 
             var chatHandler = new ChatHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                    futures.add(CompletableFuture.runAsync(() -> {
-                        if (isFirstInvocation.compareAndSet(true, false)) {
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
-                                fail(e);
-                            }
-                        }
-                        listResult.add(partialResponse);
-                    }, executor));
+                    var nextTimeout = partialResponse.equals("C") ? Duration.ofMillis(500) : Duration.ofMillis(0);
+                    futures.add(CompletableFuture.supplyAsync(
+                        () -> listResult.add(partialResponse),
+                        CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, executor)));
                 }
 
                 @Override
@@ -2822,11 +2924,12 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             };
 
 
-            assertDoesNotThrow(() -> chatService.chatStreaming(List.of(UserMessage.text("Ciao")), chatHandler).get(3, TimeUnit.SECONDS));
-            assertDoesNotThrow(() -> chatService.chatStreaming(List.of(UserMessage.text("Hello")), chatHandler).get(3, TimeUnit.SECONDS));
+            CompletableFuture.allOf(
+                chatService.chatStreaming(List.of(UserMessage.text("Ciao")), chatHandler),
+                chatService.chatStreaming(List.of(UserMessage.text("Hello")), chatHandler)).join();
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            assertEquals(List.of("iao", "He", "llo", "C"), listResult);
+            assertEquals(List.of("He", "llo", "iao", "C"), listResult);
         }
     }
 
@@ -2840,31 +2943,31 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .thenThrow(new WatsonxException("Failed to authenticate the request due to an expired token", 401, detail))
             .thenReturn("my-super-token");
 
-        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs(Scenario.STARTED)
             .willReturn(aResponse().withStatus(429))
             .willSetStateTo("SecondAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs("SecondAttempt")
             .willReturn(aResponse().withStatus(503))
             .willSetStateTo("ThirdAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs("ThirdAttempt")
             .willReturn(aResponse().withStatus(504))
             .willSetStateTo("FourthAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs("FourthAttempt")
             .willReturn(aResponse().withStatus(520))
             .willSetStateTo("FinalAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs("FinalAttempt")
             .willReturn(aResponse()
@@ -2949,35 +3052,35 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .thenReturn(failedFuture(new WatsonxException("Failed to authenticate the request due to an expired token", 401, detail)))
             .thenReturn(completedFuture("my-super-token"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs(Scenario.STARTED)
             .withRequestBody(equalToJson(FIRST_CALL))
             .willReturn(aResponse().withStatus(429))
             .willSetStateTo("SecondAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs("SecondAttempt")
             .withRequestBody(equalToJson(FIRST_CALL))
             .willReturn(aResponse().withStatus(503))
             .willSetStateTo("ThirdAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs("ThirdAttempt")
             .withRequestBody(equalToJson(FIRST_CALL))
             .willReturn(aResponse().withStatus(504))
             .willSetStateTo("FourthAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs("FourthAttempt")
             .withRequestBody(equalToJson(FIRST_CALL))
             .willReturn(aResponse().withStatus(520))
             .willSetStateTo("FinalAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario")
             .whenScenarioStateIs("FinalAttempt")
             .withRequestBody(equalToJson(FIRST_CALL))
@@ -2999,35 +3102,35 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"llo"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
                         """)));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario2")
             .whenScenarioStateIs(Scenario.STARTED)
             .withRequestBody(equalToJson(SECOND_CALL))
             .willReturn(aResponse().withStatus(429))
             .willSetStateTo("SecondAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario2")
             .whenScenarioStateIs("SecondAttempt")
             .withRequestBody(equalToJson(SECOND_CALL))
             .willReturn(aResponse().withStatus(503))
             .willSetStateTo("ThirdAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario2")
             .whenScenarioStateIs("ThirdAttempt")
             .withRequestBody(equalToJson(SECOND_CALL))
             .willReturn(aResponse().withStatus(504))
             .willSetStateTo("FourthAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario2")
             .whenScenarioStateIs("FourthAttempt")
             .withRequestBody(equalToJson(SECOND_CALL))
             .willReturn(aResponse().withStatus(520))
             .willSetStateTo("FinalAttempt"));
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + WatsonxService.API_VERSION)
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=" + API_VERSION)
             .inScenario("RetryScenario2")
             .whenScenarioStateIs("FinalAttempt")
             .withRequestBody(equalToJson(SECOND_CALL))
@@ -3069,7 +3172,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         String BODY = new String(ClassLoader.getSystemResourceAsStream("thinking_streaming_response.txt").readAllBytes());
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(WatsonxService.API_VERSION))
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withChunkedDribbleDelay(5, 200)

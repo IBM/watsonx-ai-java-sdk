@@ -63,7 +63,12 @@ public record TextExtractionRequest(String projectId, String spaceId, DataRefere
         Integer outputDpi,
         Boolean outputTokensAndBbox,
         String kvpMode,
-        SemanticConfig semanticConfig) {}
+        SemanticConfig semanticConfig) {
+
+        public static Parameters of(List<String> requestedOutputs) {
+            return new Parameters(requestedOutputs, null, null, null, null, null, null, null, null, null);
+        }
+    }
 
     /**
      * Represents a semantic key-value pair field used in schema extraction.

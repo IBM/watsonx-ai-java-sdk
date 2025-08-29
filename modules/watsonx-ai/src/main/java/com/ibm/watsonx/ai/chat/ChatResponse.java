@@ -259,7 +259,7 @@ public final class ChatResponse {
      * @param clazz the target class for deserialization
      * @return an instance of {@code clazz} parsed from the response content
      */
-    public <T> T toText(Class<T> clazz) {
+    public <T> T toObject(Class<T> clazz) {
         requireNonNull(clazz);
         return Json.fromJson(extractContent(), clazz);
     }
@@ -328,5 +328,16 @@ public final class ChatResponse {
         public void setFinishReason(String finishReason) {
             this.finishReason = finishReason;
         }
+
+        @Override
+        public String toString() {
+            return "ResultChoice [index=" + index + ", message=" + message + ", finishReason=" + finishReason + "]";
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ChatResponse [id=" + id + ", object=" + object + ", modelId=" + modelId + ", model=" + model + ", choices=" + choices + ", created="
+            + created + ", modelVersion=" + modelVersion + ", createdAt=" + createdAt + ", usage=" + usage + "]";
     }
 }

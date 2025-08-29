@@ -58,7 +58,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
     public TextExtractionParameters(Builder builder) {
         super(builder);
         this.cosUrl = builder.cosUrl;
-        this.requestedOutputs = requireNonNullElse(builder.requestedOutputs, List.of("plain_text"));
+        this.requestedOutputs = requireNonNullElse(builder.requestedOutputs, List.of(Type.MD.value));
         this.mode = builder.mode;
         this.ocrMode = builder.ocrMode;
         this.languages = builder.languages;

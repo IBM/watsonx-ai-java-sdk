@@ -197,6 +197,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .projectId("projectid")
             .documentReference("<connection_id>", BUCKET_NAME)
             .resultReference("<connection_id>", BUCKET_NAME)
+            .logRequests(true)
+            .logResponses(true)
             .build();
     }
 
@@ -389,13 +391,13 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                             "id": "<connection-id>"
                         },
                         "location": {
-                            "file_name": "myfile.txt",
+                            "file_name": "myfile.md",
                             "bucket": "bucket"
                         }
                     },
                     "parameters": {
                         "requested_outputs": [
-                            "plain_text"
+                            "md"
                         ],
                         "mode": "standard",
                         "languages": [
@@ -435,9 +437,12 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                             "id": "<connection_id>"
                         },
                         "location": {
-                            "file_name": "myfile.txt",
+                            "file_name": "myfile.md",
                             "bucket": "bucket"
                         }
+                    },
+                    "parameters": {
+                        "requested_outputs" : [ "md" ]
                     }
                 }"""))
             .willReturn(aResponse()
@@ -455,6 +460,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .cosUrl(CosUrl.AU_SYD)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
         var response = textExtractionService.startExtraction("myfile.pdf");
@@ -514,6 +521,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .cosUrl(CosUrl.BR_SAO)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
         var parameters = TextExtractionParameters.builder()
@@ -577,6 +586,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
         var parameters = TextExtractionParameters.builder()
@@ -634,6 +645,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .cosUrl(CosUrl.CA_TOR)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
         var parameters = TextExtractionParameters.builder()
@@ -721,6 +734,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .cosUrl(CosUrl.EU_DE)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
         var response = textExtractionService.fetchExtractionRequest("b3b85a66-7324-470c-b62e-75579eecf045");
@@ -754,6 +769,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .cosUrl(CosUrl.JP_OSA)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
         watsonxServer.stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&space_id=%s".formatted(spaceId))
@@ -791,6 +808,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .cosUrl(CosUrl.EU_ES)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
         assertTrue(textExtractionService.deleteRequest("b3b85a66-7324-470c-b62e-75579eecf045"));
@@ -842,6 +861,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .cosUrl(CosUrl.JP_TOK)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
         watsonxServer.stubFor(delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&space_id=%s".formatted(spaceId))
@@ -870,8 +891,12 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                 .projectId("<project_id>")
                 .url(URI.create("http://localhost"))
                 .cosUrl(CosUrl.EU_GB)
+                .logRequests(true)
+                .logResponses(true)
                 .documentReference("<connection_id>", "bucket")
                 .resultReference("<connection_id>", "bucket")
+                .logRequests(true)
+                .logResponses(true)
                 .build();
 
             assertThrows(RuntimeException.class, () -> textExtractionService.startExtraction("file.txt"));
@@ -1256,6 +1281,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                 .projectId("projectid")
                 .documentReference("<connection_id>", BUCKET_NAME)
                 .resultReference("<connection_id>", BUCKET_NAME)
+                .logRequests(true)
+                .logResponses(true)
                 .build();
 
             var parameters = TextExtractionParameters.builder()
