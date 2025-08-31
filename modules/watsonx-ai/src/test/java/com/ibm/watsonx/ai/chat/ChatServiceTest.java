@@ -2649,6 +2649,65 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void test_chat_streaming_error_event() {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(2, 10)
+                .withBody(
+                    """
+                        id: 1
+                        event: error
+                        data: error
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Hello"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
+
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        CompletableFuture<Throwable> futureEx = new CompletableFuture<>();
+        CompletableFuture<String> futureMessage = new CompletableFuture<>();
+        chatService.chatStreaming("Hello", new ChatHandler() {
+            private StringBuilder builder = new StringBuilder();
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                builder.append(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                futureMessage.complete(builder.toString());
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                futureEx.completeExceptionally(error);
+            }
+        });
+
+        try {
+            futureEx.get(300, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            var ex = assertInstanceOf(RuntimeException.class, e.getCause());
+            assertEquals("error", ex.getMessage());
+        }
+
+        var message = assertDoesNotThrow(() -> futureMessage.get(3, TimeUnit.SECONDS));
+        assertEquals("Hello", message);
+    }
+
+    @Test
     void test_chat_streaming_non_blocking_io_thread() {
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(WatsonxService.API_VERSION))

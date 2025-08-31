@@ -128,6 +128,7 @@ public interface TextGenerationProvider {
             private volatile int generatedTokenCount;
             private volatile String stopReason;
             private volatile boolean success = true;
+            private volatile boolean pendingSSEError = false;
             private final StringBuffer buffer = new StringBuffer();
 
             @Override
@@ -141,10 +142,25 @@ public interface TextGenerationProvider {
 
                 try {
 
-                    if (isNull(partialMessage) || partialMessage.isBlank() || !partialMessage.startsWith("data: "))
+                    if (isNull(partialMessage) || partialMessage.isBlank())
+                        return;
+
+                    if (partialMessage.startsWith("event: error")) {
+                        pendingSSEError = true;
+                        return;
+                    }
+
+                    if (!partialMessage.startsWith("data:"))
                         return;
 
                     var messageData = partialMessage.split("data: ")[1];
+
+                    if (pendingSSEError) {
+                        pendingSSEError = false;
+                        throw new RuntimeException(messageData);
+                    }
+
+                    // TODO: Use the ExecutorProvider.cpuExecutor().
                     var chunk = Json.fromJson(messageData, TextGenerationResponse.class);
 
                     if (chunk.results().size() == 0) {
@@ -173,9 +189,7 @@ public interface TextGenerationProvider {
                     }
 
                 } catch (RuntimeException e) {
-                    synchronized (handler) {
-                        handler.onError(e);
-                    }
+                    onError(e);
                     success = !handler.failOnFirstError();
                 } finally {
                     if (success) {
@@ -204,7 +218,7 @@ public interface TextGenerationProvider {
                     }
 
                 } catch (RuntimeException e) {
-                    handler.onError(e);
+                    onError(e);
                 }
             }
         };
