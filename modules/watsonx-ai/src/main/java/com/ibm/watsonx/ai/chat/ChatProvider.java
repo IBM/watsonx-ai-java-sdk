@@ -9,6 +9,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -27,7 +28,6 @@ import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 /**
@@ -256,9 +256,14 @@ public interface ChatProvider {
     /**
      * Returns a {@link Flow.Subscriber} implementation that processes streaming chat responses.
      * <p>
-     * <b>Thread Safety Note:</b> If this handler instance is shared across multiple streaming requests, it must be implemented to be thread-safe as
-     * its methods may be invoked concurrently from different threads. This is particularly important when the I/O executor is configured with
-     * multiple threads (which is the default configuration using {@link ExecutorProvider#ioExecutor()}).
+     * This subscriber is designed to be thread-safe for a single streaming request. It correctly handles state aggregation and memory visibility for
+     * its internal fields.
+     * <p>
+     * <b>Thread Safety Considerations:</b>
+     * <p>
+     * This implementation guarantees that all callback methods on the provided {@code ChatHandler} instance will be invoked sequentially, even if the
+     * {@code ChatHandler} is shared across multiple concurrent streaming requests. This is achieved by using a synchronized lock on the handler
+     * instance itself, which serializes access to its methods.
      *
      * @param toolChoiceOption the tool choice strategy used during generation
      * @param toolHasParameters A map indicating whether each tool requires parameters
@@ -278,9 +283,9 @@ public interface ChatProvider {
             private volatile String role;
             private volatile String refusal;
             private volatile boolean success = true;
-            private final StringBuilder stringBuilder = new StringBuilder();
-            private final List<StreamingToolFetcher> tools = new ArrayList<>();
+            private final StringBuffer buffer = new StringBuffer();
             private final ChatResponse chatResponse = new ChatResponse();
+            private final List<StreamingToolFetcher> tools = Collections.synchronizedList(new ArrayList<>());
             private final StreamingStateTracker stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
 
             @Override
@@ -301,43 +306,48 @@ public interface ChatProvider {
                     // TODO: Use the ExecutorProvider.cpuExecutor().
                     var chunk = Json.fromJson(messageData, PartialChatResponse.class);
 
-                    // Last message get the "usage" values
-                    if (chunk.choices().size() == 0) {
-                        chatResponse.setUsage(chunk.usage());
-                        return;
+                    synchronized (chatResponse) {
+                        // Last message get the "usage" values
+                        if (chunk.choices().size() == 0) {
+                            chatResponse.setUsage(chunk.usage());
+                            return;
+                        }
                     }
 
                     var message = chunk.choices().get(0);
 
-                    if (isNull(chatResponse.getCreated()) && nonNull(chunk.created()))
-                        chatResponse.setCreated(chunk.created());
+                    synchronized (chatResponse) {
 
-                    if (isNull(chatResponse.getCreatedAt()) && nonNull(chunk.createdAt()))
-                        chatResponse.setCreatedAt(chunk.createdAt());
+                        if (isNull(chatResponse.getCreated()) && nonNull(chunk.created()))
+                            chatResponse.setCreated(chunk.created());
 
-                    if (isNull(chatResponse.getId()) && nonNull(chunk.id()))
-                        chatResponse.setId(chunk.id());
+                        if (isNull(chatResponse.getCreatedAt()) && nonNull(chunk.createdAt()))
+                            chatResponse.setCreatedAt(chunk.createdAt());
 
-                    if (isNull(chatResponse.getModelId()) && nonNull(chunk.modelId()))
-                        chatResponse.setModelId(chunk.modelId());
+                        if (isNull(chatResponse.getId()) && nonNull(chunk.id()))
+                            chatResponse.setId(chunk.id());
 
-                    if (isNull(chatResponse.getObject()) && nonNull(chunk.object()))
-                        chatResponse.setObject(chunk.object());
+                        if (isNull(chatResponse.getModelId()) && nonNull(chunk.modelId()))
+                            chatResponse.setModelId(chunk.modelId());
 
-                    if (isNull(chatResponse.getModelVersion()) && nonNull(chunk.modelVersion()))
-                        chatResponse.setModelVersion(chunk.modelVersion());
+                        if (isNull(chatResponse.getObject()) && nonNull(chunk.object()))
+                            chatResponse.setObject(chunk.object());
 
-                    if (isNull(chatResponse.getModel()) && nonNull(chunk.model()))
-                        chatResponse.setModel(chunk.model());
+                        if (isNull(chatResponse.getModelVersion()) && nonNull(chunk.modelVersion()))
+                            chatResponse.setModelVersion(chunk.modelVersion());
 
-                    if (isNull(finishReason) && nonNull(message.finishReason()))
-                        finishReason = message.finishReason();
+                        if (isNull(chatResponse.getModel()) && nonNull(chunk.model()))
+                            chatResponse.setModel(chunk.model());
 
-                    if (isNull(role) && nonNull(message.delta().role()))
-                        role = message.delta().role();
+                        if (isNull(finishReason) && nonNull(message.finishReason()))
+                            finishReason = message.finishReason();
 
-                    if (isNull(refusal) && nonNull(message.delta().refusal()))
-                        refusal = message.delta().refusal();
+                        if (isNull(role) && nonNull(message.delta().role()))
+                            role = message.delta().role();
+
+                        if (isNull(refusal) && nonNull(message.delta().refusal()))
+                            refusal = message.delta().refusal();
+                    }
 
                     if (message.delta().toolCalls() != null) {
 
@@ -361,7 +371,9 @@ public interface ChatProvider {
 
                             if (index - 1 >= 0) {
                                 var tool = tools.get(index - 1).build();
-                                handler.onCompleteToolCall(tool);
+                                synchronized (handler) {
+                                    handler.onCompleteToolCall(tool);
+                                }
                             }
 
                         } else {
@@ -383,7 +395,9 @@ public interface ChatProvider {
                             if (!arguments.isEmpty()) {
                                 var partialToolCall =
                                     new PartialToolCall(toolFetcher.getIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
-                                handler.onPartialToolCall(partialToolCall);
+                                synchronized (handler) {
+                                    handler.onPartialToolCall(partialToolCall);
+                                }
                             }
                         }
                     }
@@ -395,24 +409,30 @@ public interface ChatProvider {
                         if (token.isEmpty())
                             return;
 
-                        stringBuilder.append(token);
+                        buffer.append(token);
 
                         if (nonNull(stateTracker)) {
                             var r = stateTracker.update(token);
                             var content = r.content();
-                            switch(r.state()) {
-                                case RESPONSE -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
-                                case THINKING -> content.ifPresent(c -> handler.onPartialThinking(c, chunk));
-                                case NO_THINKING -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
-                                case START, UNKNOWN -> {}
+                            synchronized (handler) {
+                                switch(r.state()) {
+                                    case RESPONSE -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
+                                    case THINKING -> content.ifPresent(c -> handler.onPartialThinking(c, chunk));
+                                    case NO_THINKING -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
+                                    case START, UNKNOWN -> {}
+                                }
                             }
                         } else {
-                            handler.onPartialResponse(token, chunk);
+                            synchronized (handler) {
+                                handler.onPartialResponse(token, chunk);
+                            }
                         }
                     }
 
                 } catch (RuntimeException e) {
-                    handler.onError(e);
+                    synchronized (handler) {
+                        handler.onError(e);
+                    }
                     success = !handler.failOnFirstError();
                 } finally {
                     if (success) {
@@ -425,7 +445,9 @@ public interface ChatProvider {
 
             @Override
             public void onError(Throwable throwable) {
-                handler.onError(throwable);
+                synchronized (handler) {
+                    handler.onError(throwable);
+                }
             }
 
             @Override
@@ -433,22 +455,32 @@ public interface ChatProvider {
                 try {
 
                     List<ToolCall> toolCalls = null;
-                    String content = stringBuilder.toString();
+                    String content = buffer.toString();
 
                     if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
                         content = null;
                         toolCalls = tools.stream()
                             .map(StreamingToolFetcher::build)
                             .toList();
-                        handler.onCompleteToolCall(toolCalls.get(toolCalls.size() - 1));
+                        synchronized (handler) {
+                            handler.onCompleteToolCall(toolCalls.get(toolCalls.size() - 1));
+                        }
                     }
 
                     var resultMessage = new ResultMessage(role, content, refusal, toolCalls);
-                    chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
-                    handler.onCompleteResponse(chatResponse);
+
+                    synchronized (chatResponse) {
+                        chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
+                    }
+
+                    synchronized (handler) {
+                        handler.onCompleteResponse(chatResponse);
+                    }
 
                 } catch (RuntimeException e) {
-                    handler.onError(e);
+                    synchronized (handler) {
+                        handler.onError(e);
+                    }
                 }
             }
         };
