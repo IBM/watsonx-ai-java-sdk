@@ -28,8 +28,8 @@ public class StreamingStateTracker {
     private final String RESPONSE_START_TAG;
     private final String RESPONSE_CLOSE_TAG;
     private final ExtractionTags extractionTags;
-    private final StringBuilder tagBuffer = new StringBuilder();
-    private final StringBuilder textBuffer = new StringBuilder();
+    private final StringBuilder tagBuffer;
+    private final StringBuilder textBuffer;
     private State currentState = State.START;
     private TagParseState parseState = TagParseState.CONTENT;
 
@@ -41,10 +41,12 @@ public class StreamingStateTracker {
     public StreamingStateTracker(ExtractionTags extractionTags) {
         requireNonNull(extractionTags, "extractionTags cannot be null");
         this.extractionTags = extractionTags;
-        this.THINKING_START_TAG = "<" + extractionTags.think() + ">";
-        this.THINKING_CLOSE_TAG = "</" + extractionTags.think() + ">";
-        this.RESPONSE_START_TAG = "<" + extractionTags.response() + ">";
-        this.RESPONSE_CLOSE_TAG = "</" + extractionTags.response() + ">";
+        tagBuffer = new StringBuilder();
+        textBuffer = new StringBuilder();
+        THINKING_START_TAG = "<" + extractionTags.think() + ">";
+        THINKING_CLOSE_TAG = "</" + extractionTags.think() + ">";
+        RESPONSE_START_TAG = "<" + extractionTags.response() + ">";
+        RESPONSE_CLOSE_TAG = "</" + extractionTags.response() + ">";
     }
 
     /**
@@ -56,7 +58,7 @@ public class StreamingStateTracker {
      * @param chunk the incoming streamed text
      * @return a {@link Result} containing the updated state
      */
-    public Result update(String chunk) {
+    public synchronized Result update(String chunk) {
         if (chunk.isEmpty())
             return new Result(currentState, Optional.empty());
 

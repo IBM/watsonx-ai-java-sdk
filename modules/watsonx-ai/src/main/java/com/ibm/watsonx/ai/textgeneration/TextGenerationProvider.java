@@ -13,7 +13,6 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
 
@@ -109,9 +108,14 @@ public interface TextGenerationProvider {
     /**
      * Returns a {@link Flow.Subscriber} implementation that processes streaming text generation responses.
      * <p>
-     * <b>Thread Safety Note:</b> If this handler instance is shared across multiple streaming requests, it must be implemented to be thread-safe as
-     * its methods may be invoked concurrently from different threads. This is particularly important when the I/O executor is configured with
-     * multiple threads (which is the default configuration using {@link ExecutorProvider#ioExecutor()}).
+     * This subscriber is designed to be thread-safe for a single streaming request. It correctly handles state aggregation and memory visibility for
+     * its internal fields.
+     * <p>
+     * <b>Thread Safety Considerations:</b>
+     * <p>
+     * This implementation guarantees that all callback methods on the provided {@code TextGenerationHandler} instance will be invoked sequentially,
+     * even if the {@code TextGenerationHandler} is shared across multiple concurrent streaming requests. This is achieved by using a synchronized
+     * lock on the handler instance itself, which serializes access to its methods.
      *
      * @param handler the callback handler to receive updates and final result
      * @return a {@link Flow.Subscriber} for processing streamed text generation responses
@@ -124,7 +128,7 @@ public interface TextGenerationProvider {
             private volatile int generatedTokenCount;
             private volatile String stopReason;
             private volatile boolean success = true;
-            private final StringBuilder stringBuilder = new StringBuilder();
+            private final StringBuffer buffer = new StringBuffer();
 
             @Override
             public void onSubscribe(Subscription subscription) {
@@ -162,12 +166,16 @@ public interface TextGenerationProvider {
                         stopReason = result.stopReason();
 
                     if (nonNull(result.generatedText()) && !result.generatedText().isEmpty()) {
-                        stringBuilder.append(result.generatedText());
-                        handler.onPartialResponse(result.generatedText());
+                        buffer.append(result.generatedText());
+                        synchronized (handler) {
+                            handler.onPartialResponse(result.generatedText());
+                        }
                     }
 
                 } catch (RuntimeException e) {
-                    handler.onError(e);
+                    synchronized (handler) {
+                        handler.onError(e);
+                    }
                     success = !handler.failOnFirstError();
                 } finally {
                     if (success) {
@@ -180,16 +188,20 @@ public interface TextGenerationProvider {
 
             @Override
             public void onError(Throwable throwable) {
-                handler.onError(throwable);
+                synchronized (handler) {
+                    handler.onError(throwable);
+                }
             }
 
             @Override
             public void onComplete() {
                 try {
 
-                    var result = List.of(new Result(stringBuilder.toString(), stopReason, generatedTokenCount,
+                    var result = List.of(new Result(buffer.toString(), stopReason, generatedTokenCount,
                         inputTokenCount, null, null, null, null));
-                    handler.onCompleteResponse(new TextGenerationResponse(modelId, null, null, result));
+                    synchronized (handler) {
+                        handler.onCompleteResponse(new TextGenerationResponse(modelId, null, null, result));
+                    }
 
                 } catch (RuntimeException e) {
                     handler.onError(e);

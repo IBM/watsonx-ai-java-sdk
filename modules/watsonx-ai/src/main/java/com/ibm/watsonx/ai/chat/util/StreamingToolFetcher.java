@@ -16,13 +16,13 @@ public final class StreamingToolFetcher {
 
     public record PartialToolCall(int index, String id, String name, String arguments) {}
 
-    private int index;
-    private StringBuilder arguments;
-    private String id, name;
+    private volatile int index;
+    private StringBuffer arguments;
+    private volatile String id, name;
 
     public StreamingToolFetcher(int index) {
         this.index = index;
-        arguments = new StringBuilder();
+        arguments = new StringBuffer();
     }
 
     public void setId(String id) {
