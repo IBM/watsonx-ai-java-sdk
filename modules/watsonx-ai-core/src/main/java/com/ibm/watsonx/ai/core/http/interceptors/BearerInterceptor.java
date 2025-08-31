@@ -35,7 +35,7 @@ public final class BearerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
         Executor executor, int index, AsyncChain chain) {
         return authenticator.asyncToken()
-            .thenCompose(token -> chain.proceed(requestWithBearer(request, token), bodyHandler, executor));
+            .thenComposeAsync(token -> chain.proceed(requestWithBearer(request, token), bodyHandler, executor), executor);
     }
 
     @Override
