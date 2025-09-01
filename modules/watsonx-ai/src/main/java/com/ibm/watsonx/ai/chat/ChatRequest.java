@@ -6,7 +6,6 @@ package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.requireNonNull;
 import java.util.List;
-import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -171,25 +170,26 @@ public class ChatRequest {
         }
 
         /**
-         * Sets the tag names used to extract segmented content from the assistant's response.
+         * Sets the tag names used to extract segmented content from the assistant's output.
          * <p>
-         * The provided {@link ExtractionTags} define which XML-like tags (such as {@code <think>} and {@code <response>}) will be used to extract the
-         * response from the {@link AssistantMessage}.
+         * The provided {@link ExtractionTags} define which XML-like tags (such as {@code <think>} and {@code <response>}) will be used to separate
+         * the reasoning portion from the final response.
          * <p>
-         * If the {@code response} tag is not specified in {@link ExtractionTags}, it will automatically default to {@code "root"}, meaning that only
-         * the text nodes directly under the root element will be treated as the final response.
+         * If the {@code response} tag is not specified in {@link ExtractionTags}, the final response will be considered as all the content outside
+         * the {@code reasoning} tag.
          * <p>
-         * Example:
+         * <b>Example</b>
          *
          * <pre>{@code
          * // Explicitly set both tags
          * builder.thinking(ExtractionTags.of("think", "response")).build();
          *
-         * // Only set reasoning tag — response defaults to "root"
+         * // Only set reasoning tag:
+         * // the response will be everything outside <think>...</think>
          * builder.thinking(ExtractionTags.of("think")).build();
          * }</pre>
          *
-         * @param extractionTags an {@link ExtractionTags} instance containing the reasoning and (optionally) response tag names
+         * @param extractionTags an {@link ExtractionTags} instance containing the reasoning tag and, optionally, the response tag
          */
         public Builder thinking(ExtractionTags extractionTags) {
             this.extractionTags = extractionTags;

@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.chat;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
@@ -25,6 +26,7 @@ import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
+import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.core.SseEventLogger;
@@ -67,8 +69,11 @@ public final class ChatService extends ModelService implements ChatProvider {
         List<Tool> tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
         ChatParameters parameters = chatRequest.getParameters();
 
-        parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
+        if (messages.stream().anyMatch(ControlMessage.class::isInstance)
+            && isNull(chatRequest.getExtractionTags()))
+            throw new IllegalArgumentException("Extraction tags are required when using control messages");
 
+        parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
         var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
@@ -106,6 +111,7 @@ public final class ChatService extends ModelService implements ChatProvider {
                     chatResponse.getChoices().get(0).setFinishReason("tool_calls");
             }
 
+            chatResponse.setExtractionTags(chatRequest.getExtractionTags());
             return chatResponse;
 
         } catch (IOException | InterruptedException e) {
@@ -115,13 +121,15 @@ public final class ChatService extends ModelService implements ChatProvider {
 
     @Override
     public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
+        requireNonNull(handler, "The chatHandler parameter can not be null");
 
         var messages = chatRequest.getMessages();
         var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
-        var parameters = chatRequest.getParameters();
+        var parameters = requireNonNullElse(chatRequest.getParameters(), ChatParameters.builder().build());
 
-        requireNonNull(handler, "The chatHandler parameter can not be null");
-        parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
+        if (messages.stream().anyMatch(ControlMessage.class::isInstance)
+            && isNull(chatRequest.getExtractionTags()))
+            throw new IllegalArgumentException("Extraction tags are required when using control messages");
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);

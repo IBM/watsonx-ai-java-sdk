@@ -574,7 +574,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertEquals("stop", response.getChoices().get(0).getFinishReason());
         assertEquals(0, response.getChoices().get(0).getIndex());
         assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
-        assertEquals("Ciao", response.toText());
+        assertEquals("Ciao", response.extractContent());
         assertNotNull(response.getCreated());
         assertNotNull(response.getCreatedAt());
         assertNotNull(response.getId());

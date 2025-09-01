@@ -77,8 +77,8 @@ public class StreamingStateTrackerTest {
         assertEquals(new Result(THINKING, Optional.of("I")), tracker.update(">I"));
         assertEquals(new Result(THINKING, Optional.of("I")), tracker.update("I"));
         assertEquals(new Result(THINKING, Optional.of("'m ")), tracker.update("'m "));
-        assertEquals(new Result(THINKING, Optional.empty()), tracker.update("<think"));
-        assertEquals(new Result(THINKING, Optional.of("<thinking")), tracker.update("ing"));
+        assertEquals(new Result(THINKING, Optional.of("<think")), tracker.update("<think"));
+        assertEquals(new Result(THINKING, Optional.of("ing")), tracker.update("ing"));
         assertEquals(new Result(THINKING, Optional.of("/>")), tracker.update("/>"));
         assertEquals(new Result(THINKING, Optional.of(".")), tracker.update(".</"));
         assertEquals(new Result(THINKING, Optional.empty()), tracker.update("think"));
@@ -144,5 +144,37 @@ public class StreamingStateTrackerTest {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think", "response"));
         assertEquals(new Result(NO_THINKING, Optional.of("He")), tracker.update("He"));
         assertEquals(new Result(NO_THINKING, Optional.of("llo")), tracker.update("llo"));
+    }
+
+    @Test
+    public void streaming_state_tracker_test_8() {
+        StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think"));
+        assertEquals(new Result(THINKING, Optional.empty()), tracker.update("<think>"));
+        assertEquals(new Result(THINKING, Optional.of("The value ")), tracker.update("The value </"));
+        assertEquals(new Result(THINKING, Optional.of("</> ")), tracker.update("> "));
+        assertEquals(new Result(THINKING, Optional.of(" means")), tracker.update(" means"));
+        assertEquals(new Result(RESPONSE, Optional.empty()), tracker.update("</think>"));
+        assertEquals(new Result(RESPONSE, Optional.of("I don't know")), tracker.update("I don't know"));
+        assertEquals(new Result(RESPONSE, Optional.of("what ")), tracker.update("what <"));
+        assertEquals(new Result(RESPONSE, Optional.of("</>")), tracker.update("/>"));
+        assertEquals(new Result(RESPONSE, Optional.of("means")), tracker.update("means"));
+    }
+
+    @Test
+    public void streaming_state_tracker_test_9() {
+        StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think", "response"));
+        assertEquals(new Result(THINKING, Optional.empty()), tracker.update("<think>"));
+        assertEquals(new Result(THINKING, Optional.of("I <think> that the <response>")), tracker.update("I <think> that the <response>"));
+        assertEquals(new Result(THINKING, Optional.of("> ")), tracker.update("> "));
+        assertEquals(new Result(THINKING, Optional.of(" means")), tracker.update(" means"));
+        assertEquals(new Result(UNKNOWN, Optional.empty()), tracker.update("</think>"));
+        assertEquals(new Result(UNKNOWN, Optional.empty()), tracker.update("<respon"));
+        assertEquals(new Result(RESPONSE, Optional.empty()), tracker.update("se>"));
+        assertEquals(new Result(RESPONSE, Optional.of("I don't know")), tracker.update("I don't know"));
+        assertEquals(new Result(RESPONSE, Optional.of("what ")), tracker.update("what <"));
+        assertEquals(new Result(RESPONSE, Optional.of("</>")), tracker.update("/>"));
+        assertEquals(new Result(RESPONSE, Optional.of("means")), tracker.update("means"));
+        assertEquals(new Result(RESPONSE, Optional.of(".")), tracker.update(".</"));
+        assertEquals(new Result(UNKNOWN, Optional.empty()), tracker.update("response>"));
     }
 }

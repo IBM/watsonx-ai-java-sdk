@@ -4,18 +4,21 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Holds the XML-like tag names used to segment the assistant's output into reasoning and final response parts.
+ * Represents XML-like tag names used to segment an assistant's output into two logical parts:
+ * <ul>
+ * <li><b>think</b>: defines the tag that wraps the assistant's internal reasoning</li>
+ * <li><b>response</b>: defines the tag that wraps the final answer</li>
+ * </ul>
+ *
  * <p>
- * Typically used with methods such as {@code toTextByTags(java.util.Set)} to extract content from specific sections (e.g., {@code <think>} and
- * {@code <response>}).
- * <p>
- * If no specific response tag is provided, the default {@code "root"} tag will be used, which corresponds to the text nodes directly under the root
- * element of the parsed XML.
- * <p>
- * Example:
+ * <b>Example:</b>
  *
  * <pre>{@code
  * // Explicitly setting both tags
@@ -24,19 +27,21 @@ import static java.util.Objects.requireNonNull;
  * // Setting only the reasoning tag — response will default to "root"
  * ExtractionTags tagsDefaultResponse = ExtractionTags.of("think");
  * }</pre>
+ * <p>
+ * If the <b>response</b> tag is not defined, the response is considered to be all the content outside the <b>think</b> (reasoning) tag.
  *
- * @param think the tag name representing the model's reasoning section (without angle brackets)
- * @param response the tag name representing the model's final response section (without angle brackets), defaults to {@code "root"} if not set
+ * @param think the XML-like tag name representing the reasoning section (required, without angle brackets)
+ * @param response the XML-like tag name representing the final response section (optional, without angle brackets)
  */
 public record ExtractionTags(String think, String response) {
 
     public ExtractionTags(String think, String response) {
-        this.think = requireNonNull(think);
-        this.response = requireNonNull(response);
+        this.think = stripBrackets(requireNonNull(think));
+        this.response = stripBrackets(response);
     }
 
     public ExtractionTags(String think) {
-        this(think, "root");
+        this(think, null);
     }
 
     public static ExtractionTags of(String think, String response) {
@@ -45,5 +50,57 @@ public record ExtractionTags(String think, String response) {
 
     public static ExtractionTags of(String think) {
         return new ExtractionTags(think);
+    }
+
+    /**
+     * Extracts the response part from the given content string.
+     * <p>
+     * If a response tag is defined, the method searches for content enclosed by the response tag.
+     * <p>
+     * If no response tag is defined, it removes the reasoning section (enclosed in the {@code think} tag) and returns everything outside it as the
+     * response.
+     *
+     * @param content the full structured content to parse
+     * @return the extracted response, or {@code null} if no match is found
+     */
+    public String extractResponse(String content) {
+
+        if (isNull(response))
+            return content.replaceAll("<" + think + ">.*?</" + think + ">", "").trim();
+
+        String regex = "(?<=</" + think + ">)\\s*<" + response + ">(.*)</" + response + ">";
+        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(content);
+        return matcher.find() ? matcher.group(1).trim() : null;
+    }
+
+    /**
+     * Extracts the reasoning part (content enclosed in the {@code think} tag) from the given content string.
+     *
+     * @param content the full structured content to parse
+     * @return the extracted reasoning, or {@code null} if no match is found
+     */
+    public String extractThinking(String content) {
+
+        String regex = "<" + think + ">(.*?)</" + think + ">";
+        if (nonNull(response))
+            regex += ".*<" + response + ">";
+
+        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(content);
+        return matcher.find() ? matcher.group(1).trim() : null;
+    }
+
+    private static String stripBrackets(String tag) {
+        if (isNull(tag))
+            return null;
+
+        if (tag.startsWith("<"))
+            tag = tag.substring(1);
+
+        if (tag.endsWith(">"))
+            tag = tag.substring(0, tag.length() - 1);
+
+        return tag;
     }
 }

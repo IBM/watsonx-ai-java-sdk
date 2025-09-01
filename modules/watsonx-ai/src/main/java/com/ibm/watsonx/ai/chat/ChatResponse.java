@@ -7,23 +7,28 @@ package com.ibm.watsonx.ai.chat;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.XmlUtils;
 
 /**
  * Represents the response from a chat completion request.
+ * <p>
+ * This class provides methods to access both the assistant's plain response and (optionally) its reasoning process.
+ * <p>
+ * If {@link ChatRequest.Builder#thinking(boolean)} is enabled, the {@link ExtractionTags} will be used to separate the reasoning ("thinking") part
+ * from the assistant's final response.
+ * <p>
+ * In that case:
+ * <ul>
+ * <li>{@link #extractContent()} returns only the final response, excluding reasoning</li>
+ * <li>{@link #extractThinking()} returns the reasoning text</li>
+ * <li>{@link #toAssistantMessage()} always includes only the final response, never reasoning</li>
+ * </ul>
  */
 public final class ChatResponse {
 
@@ -36,6 +41,7 @@ public final class ChatResponse {
     private String modelVersion;
     private String createdAt;
     private ChatUsage usage;
+    private transient ExtractionTags extractionTags;
 
     /**
      * Sets the unique identifier of the chat response.
@@ -200,126 +206,51 @@ public final class ChatResponse {
     }
 
     /**
-     * Returns the textual content of the assistant's chat response, if available.
-     * <p>
-     * This method retrieves the content of the {@link ResultChoice} only if:
-     * <ul>
-     * <li>The choices list is not null or empty</li>
-     * <li>The finish reason is not {@code tool_calls}</li>
-     * </ul>
-     * A {@link RuntimeException} is thrown if any of these conditions are not met.
-     *
-     * @return the assistant's message content as plain text
+     * Set the {@code ExtractionTags} object used in the {@code toResponse()}, {@code toThinking()} and {@code toAssistantMessage} functions.
      */
-    public String toText() {
+    void setExtractionTags(ExtractionTags extractionTags) {
+        this.extractionTags = extractionTags;
+    }
 
-        var assistantMessage = toAssistantMessage();
-        if (nonNull(assistantMessage.toolCalls()))
+    /**
+     * Extracts the assistant's response text from the chat completion.
+     * <p>
+     * If {@link ChatRequest.Builder#thinking()} was enabled when creating the request, {@link ExtractionTags} will be applied to ensure that only the
+     * response part is returned, excluding any reasoning content.
+     *
+     * @return the assistant's response text as plain content
+     * @throws RuntimeException if the response is of type "tool_calls" and contains no textual content
+     */
+    public String extractContent() {
+        var resultMessage = choices.get(0).getMessage();
+        if (nonNull(resultMessage.toolCalls()))
             throw new RuntimeException("The response is of the type \"tool_calls\" and contains no text");
 
-        return assistantMessage.content();
+        return isNull(extractionTags)
+            ? resultMessage.content()
+            : extractionTags.extractResponse(resultMessage.content());
     }
 
     /**
-     * Extracts textual content enclosed within the specified XML-like tags from the assistant's response.
+     * Extracts the assistant's reasoning text (if present) from the chat completion.
      * <p>
-     * This method parses the assistant's output as XML (wrapped in a synthetic {@code <root>} tag) and returns the textual content associated with
-     * each requested tag.
-     * <ul>
-     * <li>For normal tags, the returned value is the full text inside the tag, including nested elements' text.</li>
-     * <li>For the synthetic {@code root} tag (i.e., the top-level element), only the <b>direct text nodes</b> outside of any child elements are
-     * included.</li>
-     * </ul>
-     * <p>
-     * This behavior is particularly useful when working with models that output segmented content using tags such as {@code <think>} or
-     * {@code <response>}, and when you need to distinguish between top-level text and text inside nested tags.
-     * <p>
-     * The input should contain only the tag names (e.g., {@code "think"}, {@code "response"}), not the angle brackets.
+     * This requires that {@link ChatRequest.Builder#thinking()} was enabled when creating the request. Otherwise, {@code null} will always be
+     * returned.
      *
-     * <p>
-     * <b>Example usage:</b>
-     * </p>
-     *
-     * <pre>{@code
-     * var tags = Set.of("think", "response", "root");
-     * var parts = chatResponse.toTextByTags(tags);
-     * String think = parts.get("think");   // text inside <think>...</think>
-     * String resp = parts.get("response"); // text inside <response>...</response>
-     * String rootText = parts.get("root"); // only direct text outside child tags
-     * }</pre>
-     *
-     * @param tags a set of tag names to extract content from, without angle brackets
-     * @return a map where each key is a tag name and its value is the corresponding extracted text
+     * @return the reasoning text, or {@code null} if not available
      */
-    public Map<String, String> toTextByTags(Set<String> tags) {
-        requireNonNull(tags, "tags cannot be null");
-
-        var wrappedXml = "<root>" + toText() + "</root>";
-
-        Document doc = XmlUtils.parse(wrappedXml);
-        Element root = doc.getDocumentElement();
-        Map<String, String> result = new HashMap<>();
-
-        for (String tag : tags) {
-
-            NodeList nodes = doc.getElementsByTagName(tag);
-
-            for (int i = 0; i < nodes.getLength(); i++) {
-                Element element = (Element) nodes.item(i);
-                String textContent;
-                if (element == root) {
-                    StringBuilder sb = new StringBuilder();
-                    NodeList children = element.getChildNodes();
-                    for (int j = 0; j < children.getLength(); j++) {
-                        Node child = children.item(j);
-
-                        if (child.getNodeType() != Node.TEXT_NODE)
-                            continue;
-
-                        String text = child.getTextContent().trim();
-                        if (!text.isEmpty())
-                            sb.append(text);
-                    }
-                    textContent = sb.isEmpty() ? null : sb.toString();
-                } else {
-                    textContent = element.getTextContent().trim();
-                }
-
-                result.put(tag, textContent);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Extracts the textual content enclosed within a single specified XML-like tag from the assistant's response.
-     * <p>
-     * Behaves like {@link #toTextByTags(Set)} but for a single tag. If the specified tag is the synthetic {@code root} element, only the direct text
-     * nodes outside of child tags are included.
-     * <p>
-     * The input should contain only the tag name (e.g., {@code "think"}), not the angle brackets.
-     *
-     * <p>
-     * <b>Example usage:</b>
-     * </p>
-     *
-     * <pre>{@code
-     * String think = instance.toTextByTag("think");
-     * }</pre>
-     *
-     * @param tag the tag name to extract content from, without angle brackets
-     * @return the textual content inside the specified tag
-     */
-    public String toTextByTag(String tag) {
-        return toTextByTags(Set.of(tag)).get(tag);
+    public String extractThinking() {
+        var resultMessage = choices.get(0).getMessage();
+        return isNull(extractionTags)
+            ? null
+            : extractionTags.extractThinking(resultMessage.content());
     }
 
     /**
      * Deserializes the textual content of the chat response into a Java object.
      * <p>
-     * This method relies on {@link #toText()} to retrieve the textual content of the response and attempts to convert it into an instance of the
-     * specified class.
+     * This method relies on {@link #extractContent()} to retrieve the textual content of the response and attempts to convert it into an instance of
+     * the specified class.
      * <p>
      * Note: This method assumes the content is a valid JSON string matching the structure of the given class. If the content is not valid JSON or
      * does not match the structure of {@code clazz}, a parsing exception may be thrown.
@@ -330,20 +261,24 @@ public final class ChatResponse {
      */
     public <T> T toText(Class<T> clazz) {
         requireNonNull(clazz);
-        return Json.fromJson(toText(), clazz);
+        return Json.fromJson(extractContent(), clazz);
     }
 
     /**
-     * Converts the content of the response into an {@link AssistantMessage}.
+     * Converts this {@code ChatResponse} into an {@link AssistantMessage}.
+     * <p>
+     * The returned message contains only the assistant's response content. Any reasoning part (if {@link ChatRequest.Builder#thinking()} was enabled)
+     * is always excluded.
      *
-     * @return an {@code AssistantMessage} representing the assistant's reply
+     * @return an {@code AssistantMessage} containing the assistant's reply content
      */
     public AssistantMessage toAssistantMessage() {
-        if (isNull(choices) || choices.isEmpty())
-            throw new RuntimeException("The \"choices\" field is null or empty");
-
         var resultMessage = choices.get(0).getMessage();
-        return new AssistantMessage(AssistantMessage.ROLE, resultMessage.content(), null, resultMessage.refusal(),
+        var content = isNull(extractionTags)
+            ? resultMessage.content()
+            : extractionTags.extractResponse(resultMessage.content());
+
+        return new AssistantMessage(AssistantMessage.ROLE, content, null, resultMessage.refusal(),
             resultMessage.toolCalls());
     }
 
@@ -353,9 +288,6 @@ public final class ChatResponse {
      * @return a {@code String} representing the reason why the response generation finished d
      */
     public FinishReason finishReason() {
-        if (isNull(choices) || choices.isEmpty())
-            throw new RuntimeException("The \"choices\" field is null or empty");
-
         var resultMessage = choices.get(0);
         return FinishReason.fromValue(resultMessage.getFinishReason());
     }
