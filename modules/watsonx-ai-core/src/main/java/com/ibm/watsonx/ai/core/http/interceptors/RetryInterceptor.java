@@ -186,8 +186,9 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     });
 
                 if (!shouldRetry || attempt >= maxRetries) {
+                    if (shouldRetry)
+                        logger.debug("Max retries reached for request \"{}\"", requestId);
                     CompletableFuture<HttpResponse<T>> failed = new CompletableFuture<>();
-                    logger.debug("Max retries reached for request \"{}\"", requestId);
                     failed.completeExceptionally(cause);
                     return failed;
                 }
