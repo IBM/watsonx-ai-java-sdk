@@ -5,7 +5,6 @@
 package com.ibm.chatbot;
 
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
-import static java.util.Objects.isNull;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -16,7 +15,6 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -95,11 +93,7 @@ public class AiService {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                var response = completeResponse.toTextByTag("response");
-                if (isNull(response))
-                    memory.addMessage(AssistantMessage.text(completeResponse.toText()));
-                else
-                    memory.addMessage(AssistantMessage.text(response));
+                memory.addMessage(completeResponse.toAssistantMessage());
             }
 
             @Override

@@ -39,7 +39,7 @@ public class App {
                     %s
                     </think>
                     ------------------
-                    %s""".formatted(response.get("think"), response.get("response")));
+                    %s""".formatted(response.extractThinking(), response.extractContent()));
                 System.out.println();
             }
         }

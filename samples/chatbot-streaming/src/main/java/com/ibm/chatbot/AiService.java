@@ -14,7 +14,6 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
@@ -81,7 +80,7 @@ public class AiService {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                memory.addMessage(AssistantMessage.text(completeResponse.toText()));
+                memory.addMessage(completeResponse.toAssistantMessage());
             }
 
             @Override
