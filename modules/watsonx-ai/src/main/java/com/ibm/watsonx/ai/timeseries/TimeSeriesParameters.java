@@ -72,6 +72,8 @@ public final class TimeSeriesParameters extends WatsonxModelParameters {
         private Integer predictionLength;
         private ForecastData futureData;
 
+        private Builder() {}
+
         /**
          * Sets the prediction length for the forecast.
          *

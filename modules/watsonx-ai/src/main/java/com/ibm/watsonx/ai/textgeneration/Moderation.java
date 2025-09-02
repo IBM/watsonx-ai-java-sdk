@@ -165,6 +165,8 @@ public final class Moderation {
         private GraniteGuardian graniteGuardian;
         private List<InputRanges> inputRanges;
 
+        private Builder() {}
+
         /**
          * Sets the Hate and Profanity (HAP) moderation configuration.
          *

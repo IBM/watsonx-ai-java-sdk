@@ -121,6 +121,8 @@ public class ChatRequest {
         private ChatParameters parameters;
         private ExtractionTags extractionTags;
 
+        private Builder() {}
+
         /**
          * Sets the conversation messages for the request.
          *

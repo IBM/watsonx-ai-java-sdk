@@ -48,6 +48,8 @@ public final class TextExtractionFetchParameters extends WatsonxParameters {
      */
     public static class Builder extends WatsonxParameters.Builder<Builder> {
 
+        private Builder() {}
+
         /**
          * Builds a {@link TextExtractionFetchParameters} instance using the configured parameters.
          *

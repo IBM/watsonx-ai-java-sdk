@@ -126,6 +126,8 @@ public record TextExtractionRequest(String projectId, String spaceId, DataRefere
             private Boolean enableGenericKvp;
             private List<Schema> schemas;
 
+            private Builder() {}
+
             /**
              * Sets the target image width for downscaling.
              *
@@ -244,6 +246,8 @@ public record TextExtractionRequest(String projectId, String spaceId, DataRefere
             private Boolean enableTextHints;
             private Boolean enableGenericKvp;
             private KvpField fields;
+
+            private Builder() {}
 
             /**
              * Sets the document type for the schema.

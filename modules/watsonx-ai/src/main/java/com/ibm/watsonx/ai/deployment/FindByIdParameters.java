@@ -55,6 +55,8 @@ public class FindByIdParameters extends WatsonxParameters {
     public static class Builder extends WatsonxParameters.Builder<Builder> {
         private String deployment;
 
+        private Builder() {}
+
         public Builder deployment(String deployment) {
             this.deployment = deployment;
             return this;

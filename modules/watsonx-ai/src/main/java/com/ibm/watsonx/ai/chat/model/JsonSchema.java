@@ -80,6 +80,8 @@ public sealed interface JsonSchema
             private Map<String, JsonSchema> properties = new LinkedHashMap<>();
             private List<String> required;
 
+            private Builder() {}
+
             public Builder addStringProperty(String name) {
                 return addStringProperty(name, null);
             }

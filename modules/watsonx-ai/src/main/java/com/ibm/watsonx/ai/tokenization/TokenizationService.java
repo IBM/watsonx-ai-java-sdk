@@ -169,6 +169,8 @@ public final class TokenizationService extends ModelService {
      */
     public static class Builder extends ModelService.Builder<Builder> {
 
+        private Builder() {}
+
         /**
          * Builds a {@link TokenizationService} instance using the configured parameters.
          *

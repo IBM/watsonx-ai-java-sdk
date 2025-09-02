@@ -195,6 +195,8 @@ public final class ChatParameters extends WatsonxModelParameters {
         private JsonSchemaObject jsonSchema;
         private String context;
 
+        private Builder() {}
+
         /**
          * Specifies the tool selection strategy.
          * <p>

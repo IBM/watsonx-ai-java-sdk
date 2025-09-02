@@ -93,6 +93,8 @@ public final class RerankParameters extends WatsonxModelParameters {
         private Boolean inputs;
         private Boolean query;
 
+        private Builder() {}
+
         /**
          * The maximum number of tokens allowed per input.
          * <p>

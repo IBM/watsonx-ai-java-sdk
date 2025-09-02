@@ -219,6 +219,8 @@ public final class ToolService extends WatsonxService {
      */
     public static class Builder extends WatsonxService.Builder<Builder> {
 
+        private Builder() {}
+
         @Override
         public Builder url(CloudRegion url) {
             return super.url(url.getWxEndpoint());

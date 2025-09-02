@@ -54,6 +54,8 @@ public class ToolParameters {
     public static class Builder {
         private String transactionId;
 
+        private Builder() {}
+
         /**
          * Sets the transaction id for request tracking.
          *

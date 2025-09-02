@@ -66,6 +66,8 @@ public final class TokenizationParameters extends WatsonxModelParameters {
     public static final class Builder extends WatsonxModelParameters.Builder<Builder> {
         private Boolean returnTokens;
 
+        private Builder() {}
+
         /**
          * Indicating if the response will include the actual tokens produced.
          *

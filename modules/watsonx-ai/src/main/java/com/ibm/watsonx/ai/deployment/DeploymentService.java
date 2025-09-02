@@ -370,6 +370,8 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     public static class Builder extends WatsonxService.Builder<Builder> {
         private String deployment;
 
+        private Builder() {}
+
         public Builder deployment(String deployment) {
             this.deployment = deployment;
             return this;

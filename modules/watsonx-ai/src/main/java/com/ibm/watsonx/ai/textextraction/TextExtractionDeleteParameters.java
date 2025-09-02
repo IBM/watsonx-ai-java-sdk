@@ -58,6 +58,8 @@ public final class TextExtractionDeleteParameters extends WatsonxParameters {
     public static class Builder extends WatsonxParameters.Builder<Builder> {
         private Boolean hardDelete;
 
+        private Builder() {}
+
         /**
          * Sets the hard delete option.
          *
