@@ -42,6 +42,10 @@ public record AssistantMessage(
         }
     }
 
+    public AssistantMessage(String content, String name, String refusal, List<ToolCall> toolCalls) {
+        this(ROLE, content, name, refusal, toolCalls);
+    }
+
     /**
      * Creates a new {@link AssistantMessage}.
      *

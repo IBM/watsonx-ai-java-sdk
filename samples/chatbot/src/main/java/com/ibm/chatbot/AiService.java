@@ -65,7 +65,7 @@ public class AiService {
             .maxCompletionTokens(0)
             .build();
 
-        var response = chatService.chat(memory.getMemory(), parameters).toText();
+        var response = chatService.chat(memory.getMemory(), parameters).extractContent();
         memory.addMessage(AssistantMessage.text(response));
         return response;
     }

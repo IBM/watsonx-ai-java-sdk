@@ -180,6 +180,8 @@ public final class TextChatRequest {
         private JsonSchemaObject jsonSchema;
         private String context;
 
+        private Builder() {}
+
         public Builder modelId(String modelId) {
             this.modelId = modelId;
             return this;

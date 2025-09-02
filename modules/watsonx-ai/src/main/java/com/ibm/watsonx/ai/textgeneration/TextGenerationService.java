@@ -163,6 +163,8 @@ public final class TextGenerationService extends ModelService implements TextGen
      */
     public static class Builder extends ModelService.Builder<Builder> {
 
+        private Builder() {}
+
         /**
          * Builds a {@link TextGenerationService} instance using the configured parameters.
          *

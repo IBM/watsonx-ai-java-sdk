@@ -215,6 +215,8 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
         private Boolean includeStopSequence;
         private Map<String, String> promptVariables;
 
+        private Builder() {}
+
         /**
          * Sets the decoding strategy to use during text generation.
          * <p>
@@ -498,6 +500,8 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
             private Boolean tokenLogprobs;
             private Boolean tokenRanks;
             private Integer topNTokens;
+
+            private Builder() {}
 
             /**
              * Specifies whether to include the original input text in the output.

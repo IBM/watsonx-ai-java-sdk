@@ -168,6 +168,8 @@ public final class EmbeddingService extends ModelService {
      */
     public static class Builder extends ModelService.Builder<Builder> {
 
+        private Builder() {}
+
         /**
          * Builds a {@link EmbeddingService} instance using the configured parameters.
          *

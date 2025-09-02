@@ -331,12 +331,12 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .outputTokensAndBbox(true)
             .kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)
             .semanticConfig(
-                new SemanticConfig.Builder()
+                SemanticConfig.builder()
                     .targetImageWidth(1024)
                     .enableTextHints(true)
                     .enableGenericKvp(true)
                     .schemas(List.of(
-                        new Schema.Builder()
+                        Schema.builder()
                             .documentType("Invoice")
                             .documentDescription("Invoice with totals and billing details")
                             .targetImageWidth(1024)
@@ -1258,7 +1258,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                 .resultReference("<connection_id>", BUCKET_NAME)
                 .build();
 
-            var parameters = new TextExtractionParameters.Builder()
+            var parameters = TextExtractionParameters.builder()
                 .cosUrl(CosUrl.JP_OSA)
                 .build();
 

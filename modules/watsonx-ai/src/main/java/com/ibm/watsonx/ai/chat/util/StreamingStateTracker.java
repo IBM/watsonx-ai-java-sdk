@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.chat.util;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -45,8 +47,8 @@ public class StreamingStateTracker {
         textBuffer = new StringBuilder();
         THINKING_START_TAG = "<" + extractionTags.think() + ">";
         THINKING_CLOSE_TAG = "</" + extractionTags.think() + ">";
-        RESPONSE_START_TAG = "<" + extractionTags.response() + ">";
-        RESPONSE_CLOSE_TAG = "</" + extractionTags.response() + ">";
+        RESPONSE_START_TAG = isNull(extractionTags.response()) ? null : "<" + extractionTags.response() + ">";
+        RESPONSE_CLOSE_TAG = isNull(extractionTags.response()) ? null : "</" + extractionTags.response() + ">";
     }
 
     /**
@@ -89,19 +91,21 @@ public class StreamingStateTracker {
                 }
                 case CLOSE_TAG_START, TAG_NAME -> {
                     tagBuffer.append(c);
+                    String partialTag = tagBuffer.toString();
+
+                    boolean matchesAnyPrefix = switch(currentState) {
+                        case NO_THINKING, START, UNKNOWN ->
+                            startsWithAny(partialTag, THINKING_START_TAG, THINKING_CLOSE_TAG,
+                                RESPONSE_START_TAG, RESPONSE_CLOSE_TAG);
+                        case RESPONSE -> startsWithAny(partialTag, RESPONSE_CLOSE_TAG);
+                        case THINKING -> startsWithAny(partialTag, THINKING_CLOSE_TAG);
+                    };
 
                     // Verify whether the current partial tag matches the start of any known tags
-                    boolean matchesAnyPrefix = THINKING_START_TAG.startsWith(tagBuffer.toString()) ||
-                        THINKING_CLOSE_TAG.startsWith(tagBuffer.toString()) ||
-                        RESPONSE_START_TAG.startsWith(tagBuffer.toString()) ||
-                        RESPONSE_CLOSE_TAG.startsWith(tagBuffer.toString());
-
-                    // If the tag cannot possibly match any known tag, treat it as plain text
                     if (!matchesAnyPrefix) {
-
-                        if (currentState == State.START)
+                        if (currentState == State.START) {
                             currentState = State.NO_THINKING;
-
+                        }
                         parseState = TagParseState.CONTENT;
                         textBuffer.append(tagBuffer);
                         tagBuffer.setLength(0);
@@ -136,14 +140,14 @@ public class StreamingStateTracker {
         if (tag.equals(THINKING_START_TAG)) {
             currentState = State.THINKING;
         } else if (tag.equals(THINKING_CLOSE_TAG)) {
-            if ("root".equals(extractionTags.response())) {
+            if (isNull(extractionTags.response())) {
                 currentState = State.RESPONSE;
             } else {
                 currentState = State.UNKNOWN;
             }
-        } else if (tag.equals(RESPONSE_START_TAG)) {
+        } else if (isNull(RESPONSE_START_TAG) || tag.equals(RESPONSE_START_TAG)) {
             currentState = State.RESPONSE;
-        } else if (tag.equals(RESPONSE_CLOSE_TAG)) {
+        } else if (nonNull(RESPONSE_CLOSE_TAG) && tag.equals(RESPONSE_CLOSE_TAG)) {
             currentState = State.UNKNOWN;
         }
     }
@@ -151,6 +155,17 @@ public class StreamingStateTracker {
     private String decodeUnicodeSymbols(String s) {
         return s.replace("\\u003c", "<")
             .replace("\\u003e", ">");
+    }
+
+    private boolean startsWithAny(String prefix, String... candidates) {
+        if (prefix == null)
+            return false;
+        for (String candidate : candidates) {
+            if (candidate != null && candidate.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

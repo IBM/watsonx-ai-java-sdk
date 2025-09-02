@@ -155,6 +155,8 @@ public final class RerankService extends ModelService {
      */
     public static class Builder extends ModelService.Builder<Builder> {
 
+        private Builder() {}
+
         /**
          * Builds a {@link RerankService} instance using the configured parameters.
          *

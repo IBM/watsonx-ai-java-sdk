@@ -484,6 +484,7 @@ public interface ChatProvider {
 
                     synchronized (chatResponse) {
                         chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
+                        chatResponse.setExtractionTags(extractionTags);
                     }
 
                     synchronized (handler) {

@@ -78,6 +78,8 @@ public final class EmbeddingParameters extends WatsonxModelParameters {
         private Integer truncateInputTokens;
         private Boolean inputText;
 
+        private Builder() {}
+
         /**
          * Represents the maximum number of tokens accepted per input.
          *

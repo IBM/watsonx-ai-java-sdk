@@ -17,6 +17,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpHeaders;
@@ -42,7 +44,6 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -893,7 +894,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-            var ex = assertThrows(RuntimeException.class, () -> chatResponse.toText());
+            var ex = assertThrows(RuntimeException.class, () -> chatResponse.extractContent());
             assertEquals("The response is of the type \"tool_calls\" and contains no text", ex.getMessage());
         });
     }
@@ -1095,6 +1096,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     void test_image_content_user_message() throws Exception {
 
         var bytes = getClass().getClassLoader().getResourceAsStream("IBM.svg").readAllBytes();
+        var file = new File(getClass().getClassLoader().getResource("IBM.svg").toURI());
 
         final String REQUEST = """
             {
@@ -1108,7 +1110,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 }, {
                   "type" : "image_url",
                   "image_url" : {
-                    "url" : "data:image/svg;base64,%s",
+                    "url" : "data:image/svg+xml;base64,%s",
                     "detail" : "auto"
                   }
                 } ]
@@ -1159,12 +1161,15 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             var message = UserMessage.of(
                 TextContent.of("Tell me more about this image"),
-                ImageContent.of("image/svg", Base64.getEncoder().encodeToString(bytes))
+                ImageContent.of("image/svg+xml", Base64.getEncoder().encodeToString(bytes))
             );
 
             var chatResponse = chatService.chat(message);
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            assertEquals(
+                ImageContent.of("image/svg+xml", Base64.getEncoder().encodeToString(bytes)),
+                assertDoesNotThrow(() -> ImageContent.from(file)));
         });
     }
 
@@ -1312,16 +1317,20 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 UserMessage.text("What is the result of 1 + 1")
             );
 
-            var chatResponse = chatService.chat(messages, ChatParameters.builder().transactionId("my-transaction-id").build());
+            var chatRequest = ChatRequest.builder()
+                .messages(messages)
+                .parameters(ChatParameters.builder().transactionId("my-transaction-id").build())
+                .thinking(ExtractionTags.of("think", "response"))
+                .build();
+
+            var chatResponse = chatService.chat(chatRequest);
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-            var parts = chatResponse.toTextByTags(Set.of("think", "response"));
-            assertEquals("Think", parts.get("think"));
-            assertEquals("Result", parts.get("response"));
-            assertNull(parts.get("root"));
-            assertEquals("Result", chatResponse.toTextByTag("response"));
-            assertNull(chatResponse.toTextByTag("root"));
+            var thinking = chatResponse.extractThinking();
+            var response = chatResponse.extractContent();
+            assertEquals("Think", thinking);
+            assertEquals("Result", response);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
         });
     }
@@ -1396,14 +1405,20 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 UserMessage.text("What is the result of 1 + 1")
             );
 
-            var chatResponse = chatService.chat(messages, ChatParameters.builder().transactionId("my-transaction-id").build());
+            var chatRequest = ChatRequest.builder()
+                .messages(messages)
+                .parameters(ChatParameters.builder().transactionId("my-transaction-id").build())
+                .thinking(ExtractionTags.of("think"))
+                .build();
+
+            var chatResponse = chatService.chat(chatRequest);
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-            var parts = chatResponse.toTextByTags(Set.of("think", "root"));
-            assertEquals("Think", parts.get("think"));
-            assertEquals("Result", parts.get("root"));
-            assertEquals("Result", chatResponse.toTextByTag("root"));
+            var thinking = chatResponse.extractThinking();
+            var response = chatResponse.extractContent();
+            assertEquals("Think", thinking);
+            assertEquals("Result", response);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
         });
     }
@@ -1529,7 +1544,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         assertEquals("stop", response.getChoices().get(0).getFinishReason());
         assertEquals(0, response.getChoices().get(0).getIndex());
         assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
-        assertEquals("Ciao", response.toText());
+        assertEquals("Ciao", response.extractContent());
         assertNotNull(response.getCreated());
         assertNotNull(response.getCreatedAt());
         assertNotNull(response.getId());
@@ -1697,7 +1712,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        ChatResponse response = assertDoesNotThrow(() -> result.get(300, TimeUnit.SECONDS));
         assertNotNull(response);
         assertEquals(1749764735, response.getCreated());
         assertEquals("2025-06-12T21:45:35.150Z", response.getCreatedAt());
@@ -2289,7 +2304,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         inOrder.verify(mockChatHandler).onCompleteResponse(any());
 
         assertEquals(3, counter.get());
-        assertEquals("Ciao", response.toText());
+        assertEquals("Ciao", response.extractContent());
 
     }
 
@@ -2445,12 +2460,15 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         var EXPECTED_RESPONSE =
             "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response.";
 
-        assertTrue(chatResponse.toText().contains("<think>"));
-        assertTrue(chatResponse.toText().contains("</think>"));
-        assertTrue(chatResponse.toText().contains("<response>"));
-        assertTrue(chatResponse.toText().contains("</response>"));
-        assertTrue(chatResponse.toText().contains(EXEPECTED_THINKING));
-        assertTrue(chatResponse.toText().contains(EXPECTED_RESPONSE));
+        var chatResponseText = chatResponse.getChoices().get(0).getMessage().content();
+        assertTrue(chatResponseText.contains("<think>"));
+        assertTrue(chatResponseText.contains("</think>"));
+        assertTrue(chatResponseText.contains("<response>"));
+        assertTrue(chatResponseText.contains("</response>"));
+        assertTrue(chatResponseText.contains(EXEPECTED_THINKING));
+        assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));
+        assertTrue(chatResponse.extractContent().contains(EXPECTED_RESPONSE));
+        assertEquals(EXEPECTED_THINKING, chatResponse.extractThinking());
 
         assertEquals(
             EXEPECTED_THINKING,
@@ -2458,6 +2476,10 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         );
 
         assertTrue(response.toString().contains(EXPECTED_RESPONSE));
+
+        var assistantMessage = chatResponse.toAssistantMessage();
+        assertTrue(assistantMessage.content().contains(EXPECTED_RESPONSE));
+        assertFalse(assistantMessage.content().contains(EXEPECTED_THINKING));
     }
 
     @Test
@@ -3068,37 +3090,42 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .modelId("model-id")
                 .build();
 
+            var chatRequest = ChatRequest.builder()
+                .messages(
+                    ControlMessage.of("thinking"),
+                    UserMessage.text("Hello"))
+                .thinking(ExtractionTags.of("think", "response"))
+                .build();
+
             CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-            chatService.chatStreaming(List.of(
-                ControlMessage.of("thinking"),
-                UserMessage.text("Hello")), new ChatHandler() {
+            chatService.chatStreaming(chatRequest, new ChatHandler() {
 
-                    @Override
-                    public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                        assertEquals("my-thread", Thread.currentThread().getName());
-                        assertNotNull(partialResponse);
-                        assertNotNull(partialChatResponse);
-                    }
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    assertEquals("my-thread", Thread.currentThread().getName());
+                    assertNotNull(partialResponse);
+                    assertNotNull(partialChatResponse);
+                }
 
-                    @Override
-                    public void onCompleteResponse(ChatResponse completeResponse) {
-                        assertEquals("my-thread", Thread.currentThread().getName());
-                        result.complete(completeResponse);
-                    }
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    assertEquals("my-thread", Thread.currentThread().getName());
+                    result.complete(completeResponse);
+                }
 
-                    @Override
-                    public void onError(Throwable error) {
-                        assertEquals("my-thread", Thread.currentThread().getName());
-                        assertInstanceOf(JsonParseException.class, error.getCause());
-                    }
+                @Override
+                public void onError(Throwable error) {
+                    assertEquals("my-thread", Thread.currentThread().getName());
+                    assertInstanceOf(JsonParseException.class, error.getCause());
+                }
 
-                    @Override
-                    public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
-                        assertEquals("my-thread", Thread.currentThread().getName());
-                        assertNotNull(partialThinking);
-                        assertNotNull(partialChatResponse);
-                    }
-                });
+                @Override
+                public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                    assertEquals("my-thread", Thread.currentThread().getName());
+                    assertNotNull(partialThinking);
+                    assertNotNull(partialChatResponse);
+                }
+            });
 
             result.get(3, TimeUnit.SECONDS);
             assertEquals(1, threadNames.size());
@@ -3121,6 +3148,37 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .build();
 
             assertThrows(RuntimeException.class, () -> chatService.chat(UserMessage.text("test")), "IOException");
+        });
+    }
+
+    @Test
+    void test_thinking_without_extraction_tags() {
+
+        withWatsonxServiceMock(() -> {
+
+            var chatService = ChatService.builder()
+                .url("http://localhost:%d".formatted(wireMock.getPort()))
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("model-id")
+                .projectId("project-id")
+                .build();
+
+            ChatRequest chatRequest = ChatRequest.builder()
+                .messages(
+                    SystemMessage.of("You are a helpful assistant"),
+                    ControlMessage.of("thinking"),
+                    UserMessage.text("Why the sky is blue?"))
+                .build();
+
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> chatService.chat(chatRequest),
+                "Extraction tags are required when using control messages");
+
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> chatService.chatStreaming(chatRequest, mock(ChatHandler.class)),
+                "Extraction tags are required when using control messages");
         });
     }
 }

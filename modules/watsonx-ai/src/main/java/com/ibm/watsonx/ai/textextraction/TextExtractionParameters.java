@@ -211,6 +211,8 @@ public final class TextExtractionParameters extends WatsonxParameters {
         private Map<String, Object> custom;
         private Duration timeout;
 
+        private Builder() {}
+
         /**
          * Sets the Cloud Object Storage url.
          *

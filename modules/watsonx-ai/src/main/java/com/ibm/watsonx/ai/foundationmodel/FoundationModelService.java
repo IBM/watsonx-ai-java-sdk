@@ -235,6 +235,8 @@ public final class FoundationModelService extends WatsonxService {
     public static class Builder extends WatsonxService.Builder<Builder> {
         private Boolean techPreview;
 
+        private Builder() {}
+
         /**
          * See all the Tech Preview models if entitled.
          *

@@ -783,6 +783,8 @@ public final class TextExtractionService extends ProjectService {
         private CosReference documentReference;
         private CosReference resultReference;
 
+        private Builder() {}
+
         public Builder cosUrl(String cosUrl) {
             this.cosUrl = cosUrl;
             return this;

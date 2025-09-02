@@ -7,14 +7,14 @@ package com.ibm.chatbot;
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Map;
-import java.util.Set;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import com.ibm.watsonx.ai.chat.ChatRequest;
+import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
@@ -60,15 +60,21 @@ public class AiService {
         memory.addMessage(ControlMessage.of("thinking"));
     }
 
-    public Map<String, String> chat(String message) {
+    public ChatResponse chat(String message) {
         memory.addMessage(UserMessage.text(message));
 
         var parameters = ChatParameters.builder()
             .maxCompletionTokens(0)
             .build();
 
-        var response = chatService.chat(memory.getMemory(), parameters).toTextByTags(Set.of("think", "response"));
-        memory.addMessage(AssistantMessage.text(response.get("response")));
+        ChatRequest chatRequest = ChatRequest.builder()
+            .messages(memory.getMemory())
+            .parameters(parameters)
+            .thinking(ExtractionTags.of("think", "response"))
+            .build();
+
+        var response = chatService.chat(chatRequest);
+        memory.addMessage(response.toAssistantMessage());
         return response;
     }
 

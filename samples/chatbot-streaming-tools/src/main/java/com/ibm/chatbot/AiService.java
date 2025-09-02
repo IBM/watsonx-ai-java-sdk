@@ -106,11 +106,10 @@ public class AiService {
                 if (nonNull(assistantMessage.toolCalls())) {
                     handleToolCalls(assistantMessage, this)
                         .whenComplete((res, err) -> {
-                            if (err != null) {
+                            if (err != null)
                                 future.completeExceptionally(err);
-                            } else {
+                            else
                                 future.complete(assistantMessage);
-                            }
                         });
                 } else {
                     future.complete(assistantMessage);

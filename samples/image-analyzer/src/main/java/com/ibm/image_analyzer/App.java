@@ -5,19 +5,16 @@
 package com.ibm.image_analyzer;
 
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Base64;
 import java.util.List;
 import java.util.stream.Stream;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
-import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
@@ -56,17 +53,11 @@ public class App {
 
             for (Path path : paths) {
 
-                var bytes = Files.readAllBytes(path);
-                var mimeType = Files.probeContentType(path);
-                var base64Data = Base64.getEncoder().encodeToString(bytes);
-
-                var messages = List.<ChatMessage>of(
-                    SystemMessage
-                        .of("You are a helpful assistant. Your task is to provide the user with a description of the image."),
-                    UserMessage.of(ImageContent.of(mimeType, base64Data))
-                );
-
-                var imageDescription = chatService.chat(messages).toText();
+                var imageDescription = chatService.chat(
+                    UserMessage.of(
+                        TextContent.of("Write a short description of the image"),
+                        ImageContent.from(path)
+                    )).extractContent();
 
                 System.out.println("""
                     ----------------------------------------------------
