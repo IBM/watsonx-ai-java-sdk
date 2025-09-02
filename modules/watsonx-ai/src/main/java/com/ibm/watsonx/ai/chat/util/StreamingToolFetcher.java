@@ -14,8 +14,6 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
  */
 public final class StreamingToolFetcher {
 
-    public record PartialToolCall(int index, String id, String name, String arguments) {}
-
     private volatile int index;
     private StringBuffer arguments;
     private volatile String id, name;

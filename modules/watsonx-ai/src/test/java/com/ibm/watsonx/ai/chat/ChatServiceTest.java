@@ -66,6 +66,7 @@ import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
+import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
@@ -78,6 +79,7 @@ import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
+import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.TextContent;
@@ -87,7 +89,6 @@ import com.ibm.watsonx.ai.chat.model.ToolMessage;
 import com.ibm.watsonx.ai.chat.model.UserContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.VideoContent;
-import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
@@ -1532,7 +1533,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             }
 
             @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
                 fail("Unexpected complete tool call");
             }
         });
@@ -1683,7 +1684,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         );
 
         List<PartialToolCall> toolFetchers = new ArrayList<>();
-        List<ToolCall> toolCalls = new ArrayList<>();
+        List<CompletedToolCall> toolCalls = new ArrayList<>();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         chatService.chatStreaming(messages, tools, new ChatHandler() {
@@ -1707,7 +1708,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             }
 
             @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
                 toolCalls.add(completeToolCall);
             }
         });
@@ -1752,25 +1753,29 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         assertEquals(2, toolFetchers.size());
         assertEquals(
-            "{\"index\":0,\"id\":\"chatcmpl-tool-af37032523934f019aa7258469580a7a\",\"name\":\"sum\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
+            "{\"completion_id\":\"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602\",\"index\":0,\"id\":\"chatcmpl-tool-af37032523934f019aa7258469580a7a\",\"name\":\"sum\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
             toJson(toolFetchers.get(0)));
         assertEquals(
-            "{\"index\":1,\"id\":\"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b\",\"name\":\"subtraction\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
+            "{\"completion_id\":\"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602\",\"index\":1,\"id\":\"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b\",\"name\":\"subtraction\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
             toJson(toolFetchers.get(1)));
 
         assertEquals(2, toolCalls.size());
+
+        assertEquals("chatcmpl-cc34b5ea3120fa9e07b18c5125d66602", toolCalls.get(0).completionId());
         assertEquals(new ToolCall(
             0,
             "chatcmpl-tool-af37032523934f019aa7258469580a7a",
             "function",
             new FunctionCall("sum", "{\"firstNumber\": 2, \"secondNumber\": 2}")
-        ), toolCalls.get(0));
+        ), toolCalls.get(0).toolCall());
+
+        assertEquals("chatcmpl-cc34b5ea3120fa9e07b18c5125d66602", toolCalls.get(1).completionId());
         assertEquals(new ToolCall(
             1,
             "chatcmpl-tool-f762db03c60f441dba57bab09552bb7b",
             "function",
             new FunctionCall("subtraction", "{\"firstNumber\": 2, \"secondNumber\": 2}")
-        ), toolCalls.get(1));
+        ), toolCalls.get(1).toolCall());
     }
 
     @Test
@@ -1997,7 +2002,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         );
 
         List<PartialToolCall> toolFetchers = new ArrayList<>();
-        List<ToolCall> toolCalls = new ArrayList<>();
+        List<CompletedToolCall> toolCalls = new ArrayList<>();
 
         var chatParameters = ChatParameters.builder()
             .transactionId("my-transaction-id")
@@ -2032,7 +2037,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             }
 
             @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
                 toolCalls.add(completeToolCall);
             }
         });
@@ -2076,158 +2081,158 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         assertEquals(28, toolFetchers.size());
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "{\"")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "{\"")),
             toJson(toolFetchers.get(0)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "first")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "first")),
             toJson(toolFetchers.get(1)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "Number")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "Number")),
             toJson(toolFetchers.get(2)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "\":")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "\":")),
             toJson(toolFetchers.get(3)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", " ")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", " ")),
             toJson(toolFetchers.get(4)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "2")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "2")),
             toJson(toolFetchers.get(5)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", ",")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", ",")),
             toJson(toolFetchers.get(6)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", " \"")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", " \"")),
             toJson(toolFetchers.get(7)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "second")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "second")),
             toJson(toolFetchers.get(8)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "Number")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "Number")),
             toJson(toolFetchers.get(9)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "\":")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "\":")),
             toJson(toolFetchers.get(10)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", " ")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", " ")),
             toJson(toolFetchers.get(11)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "2")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "2")),
             toJson(toolFetchers.get(12)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(0, null, "sum", "}")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "}")),
             toJson(toolFetchers.get(13)),
             true
         );
 
 
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "{\"")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "{\"")),
             toJson(toolFetchers.get(14)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "first")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "first")),
             toJson(toolFetchers.get(15)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "Number")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "Number")),
             toJson(toolFetchers.get(16)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "\":")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "\":")),
             toJson(toolFetchers.get(17)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", " ")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", " ")),
             toJson(toolFetchers.get(18)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "4")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "4")),
             toJson(toolFetchers.get(19)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", ",")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", ",")),
             toJson(toolFetchers.get(20)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", " \"")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", " \"")),
             toJson(toolFetchers.get(21)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "second")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "second")),
             toJson(toolFetchers.get(22)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "Number")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "Number")),
             toJson(toolFetchers.get(23)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "\":")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "\":")),
             toJson(toolFetchers.get(24)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", " ")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", " ")),
             toJson(toolFetchers.get(25)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "2")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "2")),
             toJson(toolFetchers.get(26)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall(1, null, "subtraction", "}")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "}")),
             toJson(toolFetchers.get(27)),
             true
         );
 
         assertEquals(2, toolCalls.size());
-        assertEquals(0, toolCalls.get(0).index());
-        assertNotNull(toolCalls.get(0).id());
-        assertEquals("function", toolCalls.get(0).type());
-        assertEquals(new FunctionCall("sum", "{\"firstNumber\": 2, \"secondNumber\": 2}"), toolCalls.get(0).function());
+        assertEquals(0, toolCalls.get(0).toolCall().index());
+        assertNotNull(toolCalls.get(0).toolCall().id());
+        assertEquals("function", toolCalls.get(0).toolCall().type());
+        assertEquals(new FunctionCall("sum", "{\"firstNumber\": 2, \"secondNumber\": 2}"), toolCalls.get(0).toolCall().function());
 
-        assertEquals(1, toolCalls.get(1).index());
-        assertNotNull(toolCalls.get(1).id());
-        assertEquals("function", toolCalls.get(1).type());
-        assertEquals(new FunctionCall("subtraction", "{\"firstNumber\": 4, \"secondNumber\": 2}"), toolCalls.get(1).function());
+        assertEquals(1, toolCalls.get(1).toolCall().index());
+        assertNotNull(toolCalls.get(1).toolCall().id());
+        assertEquals("function", toolCalls.get(1).toolCall().type());
+        assertEquals(new FunctionCall("subtraction", "{\"firstNumber\": 4, \"secondNumber\": 2}"), toolCalls.get(1).toolCall().function());
     }
 
     @Test
@@ -2355,7 +2360,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             }
 
             @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
                 fail();
             }
         });
@@ -2447,7 +2452,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             }
 
             @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
                 fail();
             }
         });
@@ -2559,7 +2564,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             public void onPartialToolCall(PartialToolCall partialToolCall) {}
 
             @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {}
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {}
         };
 
         var ex = assertThrows(NullPointerException.class, () -> AssistantMessage.text(null));

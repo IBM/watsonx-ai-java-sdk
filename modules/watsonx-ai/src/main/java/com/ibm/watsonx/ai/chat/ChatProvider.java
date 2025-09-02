@@ -18,15 +18,16 @@ import java.util.concurrent.Flow.Subscription;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
+import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher;
-import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
@@ -279,6 +280,7 @@ public interface ChatProvider {
         ChatHandler handler) {
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
+            private volatile String completionId;
             private volatile String finishReason;
             private volatile String role;
             private volatile String refusal;
@@ -339,8 +341,10 @@ public interface ChatProvider {
                         if (isNull(chatResponse.getCreatedAt()) && nonNull(chunk.createdAt()))
                             chatResponse.setCreatedAt(chunk.createdAt());
 
-                        if (isNull(chatResponse.getId()) && nonNull(chunk.id()))
+                        if (isNull(chatResponse.getId()) && nonNull(chunk.id())) {
                             chatResponse.setId(chunk.id());
+                            completionId = chunk.id();
+                        }
 
                         if (isNull(chatResponse.getModelId()) && nonNull(chunk.modelId()))
                             chatResponse.setModelId(chunk.modelId());
@@ -387,7 +391,7 @@ public interface ChatProvider {
                             if (index - 1 >= 0) {
                                 var tool = tools.get(index - 1).build();
                                 synchronized (handler) {
-                                    handler.onCompleteToolCall(tool);
+                                    handler.onCompleteToolCall(new CompletedToolCall(completionId, tool));
                                 }
                             }
 
@@ -409,7 +413,7 @@ public interface ChatProvider {
 
                             if (!arguments.isEmpty()) {
                                 var partialToolCall =
-                                    new PartialToolCall(toolFetcher.getIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
+                                    new PartialToolCall(completionId, toolFetcher.getIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
                                 synchronized (handler) {
                                     handler.onPartialToolCall(partialToolCall);
                                 }
@@ -476,7 +480,7 @@ public interface ChatProvider {
                             .map(StreamingToolFetcher::build)
                             .toList();
                         synchronized (handler) {
-                            handler.onCompleteToolCall(toolCalls.get(toolCalls.size() - 1));
+                            handler.onCompleteToolCall(new CompletedToolCall(completionId, toolCalls.get(toolCalls.size() - 1)));
                         }
                     }
 

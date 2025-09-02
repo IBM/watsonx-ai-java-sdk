@@ -4,10 +4,10 @@
  */
 package com.ibm.watsonx.ai.chat;
 
+import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
-import com.ibm.watsonx.ai.chat.model.ToolCall;
-import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
+import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 
 /**
  * Interface for handling streaming chat responses.
@@ -41,21 +41,23 @@ public interface ChatHandler {
     void onError(Throwable error);
 
     /**
-     * Called whenever a partial tool call is detected during the chat streaming process. This method may be invoked multiple times if the model
-     * streams tool call arguments or metadata in chunks.
+     * This callback is invoked each time the model generates a partial tool call, which may contain a fragment (token) of the tool's arguments.
+     * <p>
+     * It is typically invoked multiple times for a single tool call until {@link #onCompleteToolCall(CompletedToolCall)} is invoked, indicating that
+     * the tool call is fully assembled.
      *
-     * @param partialToolCall the partial chunk of the tool call received
+     * @param partialToolCall A partial tool call fragment containing index, tool ID, tool name, and partial arguments.
      */
     default void onPartialToolCall(PartialToolCall partialToolCall) {
         // Invoked whenever a partial tool call is detected during the streaming process
     }
 
     /**
-     * Called once a tool call has been fully received.
+     * Invoked once the model has finished streaming a single tool call and the arguments are fully assembled.
      *
-     * @param completeToolCall the fully constructed tool call
+     * @param completeToolCall The completed tool call.
      */
-    default void onCompleteToolCall(ToolCall completeToolCall) {
+    default void onCompleteToolCall(CompletedToolCall completeToolCall) {
         // Allows triggering actions as soon as the complete tool call is available, without necessarily waiting for the full assistant response to
         // finish streaming.
     }

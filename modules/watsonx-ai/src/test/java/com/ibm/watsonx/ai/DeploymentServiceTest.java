@@ -54,14 +54,14 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
+import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
+import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
-import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher.PartialToolCall;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdParameters;
@@ -561,7 +561,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
 
             @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
                 fail();
             }
         };
@@ -688,7 +688,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
 
             @Override
-            public void onCompleteToolCall(ToolCall completeToolCall) {
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
                 fail();
             }
         }).get(3, TimeUnit.SECONDS);
