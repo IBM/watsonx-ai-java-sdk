@@ -176,25 +176,17 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
                 Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
 
-                var shouldRetry =
-                    retryOn.stream().anyMatch(retryOn -> {
-                        if (!retryOn.clazz().equals(cause.getClass()))
-                            return false;
-                        return retryOn.predicate()
-                            .map(p -> p.test(cause))
-                            .orElse(true);
-                    });
+                var shouldRetry = retryOn.stream().anyMatch(retry -> retry.clazz().equals(cause.getClass()) &&
+                    retry.predicate().map(p -> p.test(cause)).orElse(true)
+                );
 
-                var shouldFail = false;
-
-                if (!shouldRetry) {
-                    shouldFail = true;
-                } else if (attempt >= maxRetries) {
-                    logger.debug("Max retries ({}) reached for request \"{}\"", maxRetries, requestId);
-                    shouldFail = true;
-                }
+                var shouldFail = !shouldRetry || attempt >= maxRetries;
 
                 if (shouldFail) {
+
+                    if (attempt >= maxRetries)
+                        logger.debug("Max retries ({}) reached for request \"{}\"", maxRetries, requestId);
+
                     CompletableFuture<HttpResponse<T>> failed = new CompletableFuture<>();
                     failed.completeExceptionally(cause);
                     return failed;

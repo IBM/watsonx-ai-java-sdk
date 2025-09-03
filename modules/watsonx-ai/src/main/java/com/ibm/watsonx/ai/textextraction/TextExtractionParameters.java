@@ -33,8 +33,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
  * }</pre>
  *
  * For more information, see the
- * <a href=" https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction-params.html?context=wx&audience=wdp" target=
- * "_blank"> documentation</a>.
+ * <a href=" https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction-params.html?context=wx">documentation</a>.
  */
 public final class TextExtractionParameters extends WatsonxParameters {
     private final String cosUrl;

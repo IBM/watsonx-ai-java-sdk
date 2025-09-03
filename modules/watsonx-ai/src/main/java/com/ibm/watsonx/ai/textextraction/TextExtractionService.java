@@ -89,8 +89,7 @@ public final class TextExtractionService extends ProjectService {
      * }
      * </pre>
      *
-     * Refer to the
-     * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx&audience=wdp">official
+     * Refer to the <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx">official
      * documentation</a> for more details on the supported formats, features, and limitations of the text extraction service.
      * <p>
      * <b>Note:</b> This method does not return the extracted value, use {@code extractAndFetch} to extract the text immediately.
@@ -103,10 +102,12 @@ public final class TextExtractionService extends ProjectService {
     }
 
     /**
-     * Starts the text extraction process for a document. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename
-     * but using the {@code .md} extension. Output behavior can be customized using the {@link TextExtractionParameters} parameter. Refer to the
-     * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx&audience=wdp">official
-     * documentation</a> for more details on the supported formats, features, and limitations of the text extraction service.
+     * Starts the text extraction process for a document.
+     * <p>
+     * The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension. Output
+     * behavior can be customized using the {@link TextExtractionParameters} parameter. Refer to the
+     * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx">official documentation</a>
+     * for more details on the supported formats, features, and limitations of the text extraction service.
      * <p>
      * <b>Note:</b> This method does not return the extracted value, use {@code extractAndFetch} to extract the text immediately.
      *
