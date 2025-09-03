@@ -8,11 +8,14 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -90,12 +93,11 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             .runAsync(() -> logRequest(request), executor)
             .thenComposeAsync(v -> chain.proceed(request, bodyHandler, executor), executor)
             .whenCompleteAsync((respose, exception) -> {
+                var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
                 if (isNull(exception))
-                    logResponse(request, respose);
-                else {
-                    var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
+                    logResponse(watsonxSDKRequestId, respose);
+                else
                     logResponse(watsonxSDKRequestId, exception);
-                }
             }, executor);
     }
 
@@ -103,12 +105,12 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
         throws WatsonxException, IOException, InterruptedException {
         logRequest(request);
+        var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
         try {
             var response = chain.proceed(request, bodyHandler);
-            logResponse(request, response);
+            logResponse(watsonxSDKRequestId, response);
             return response;
         } catch (RuntimeException e) {
-            var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
             logResponse(watsonxSDKRequestId, e);
             throw e;
         }
@@ -118,49 +120,59 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         if (!logRequest)
             return;
 
-        request.bodyPublisher().ifPresentOrElse(
-            publisher -> publisher.subscribe(new Subscriber<>() {
-                private StringBuilder builder;
-                private Boolean isImageDetected;
+        Optional<BodyPublisher> maybePublisher = request.bodyPublisher();
+        if (maybePublisher.isEmpty()) {
+            printRequest(request, null);
+            return;
+        }
 
-                @Override
-                public void onSubscribe(Subscription subscription) {
-                    subscription.request(Long.MAX_VALUE);
-                }
+        BodyPublisher publisher = maybePublisher.get();
 
-                @Override
-                public void onNext(ByteBuffer item) {
-                    String body = StandardCharsets.UTF_8.decode(item).toString();
+        if (isNonRepeatablePublisher(publisher)) {
+            printRequest(request, "[non-repeatable body skipped]");
+            return;
+        }
 
-                    if (isNull(isImageDetected)) {
-                        isImageDetected = BASE64_IMAGE_PATTERN.matcher(body).find();
-                        if (isImageDetected) {
-                            builder = new StringBuilder();
-                            builder.append(body);
-                            return;
-                        } else {
-                            printRequest(request, body);
-                            return;
-                        }
-                    }
+        publisher.subscribe(new Subscriber<>() {
+            private StringBuilder builder;
+            private Boolean isImageDetected;
 
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                subscription.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(ByteBuffer item) {
+                String body = StandardCharsets.UTF_8.decode(item).toString();
+
+                if (isNull(isImageDetected)) {
+                    isImageDetected = BASE64_IMAGE_PATTERN.matcher(body).find();
                     if (isImageDetected) {
+                        builder = new StringBuilder();
                         builder.append(body);
+                        return;
+                    } else {
+                        printRequest(request, body);
+                        return;
                     }
                 }
 
-                @Override
-                public void onError(Throwable throwable) {}
-
-                @Override
-                public void onComplete() {
-                    if (nonNull(isImageDetected) && isImageDetected) {
-                        printRequest(request, builder.toString());
-                    }
+                if (isImageDetected) {
+                    builder.append(body);
                 }
-            }),
-            () -> printRequest(request, null)
-        );
+            }
+
+            @Override
+            public void onError(Throwable throwable) {}
+
+            @Override
+            public void onComplete() {
+                if (nonNull(isImageDetected) && isImageDetected) {
+                    printRequest(request, builder.toString());
+                }
+            }
+        });
     }
 
 
@@ -181,32 +193,41 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         logger.info(joiner.toString());
     }
 
-    private <T> void logResponse(HttpRequest request, HttpResponse<T> response) {
+    private <T> void logResponse(String watsonxAISDKRequestId, HttpResponse<T> response) {
         if (!logResponse)
             return;
 
         try {
 
+            String body = null;
             String headers = null;
             boolean prettyPrint = false;
-            String body = HttpUtils.extractBodyAsString(response).orElse(null);
+
+            T responseBody = response.body();
+            boolean isStream = responseBody instanceof InputStream;
+
+            if (!isStream)
+                body = HttpUtils.extractBodyAsString(response).orElse(null);
 
             StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
-            joiner.add("- Watsonx-AI-SDK-Request-Id: " + request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse(""));
+            joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
             joiner.add("- url: " + response.uri());
             joiner.add("- status code: " + response.statusCode());
 
             if (nonNull(response.headers())) {
                 headers = HttpUtils.inOneLine(response.headers().map());
                 joiner.add("- headers: " + headers);
-            }
 
-            if (!prettyPrint && nonNull(response.headers())) {
-                headers = HttpUtils.inOneLine(response.headers().map());
-                var accept = request.headers().firstValue("Accept");
-                if (accept.isPresent() && accept.get().contains("application/json")) {
+                var headersMap = response.headers().map();
+                var contentType = Optional.<String>empty();
+
+                if (headersMap.containsKey("Content-Type"))
+                    contentType = response.headers().firstValue("Content-Type");
+                else if (headersMap.containsKey("content-type"))
+                    contentType = response.headers().firstValue("content-type");
+
+                if (contentType.isPresent() && contentType.get().contains("application/json"))
                     prettyPrint = true;
-                }
             }
 
             if (nonNull(body)) {
@@ -232,15 +253,30 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             joiner.add("- headers: " + headers);
             if (nonNull(body)) {
                 body = formatBase64ImageForLogging(body);
-                var contentType = request.headers().firstValue("Content-Type");
-                if (contentType.isPresent() && contentType.get().contains("application/json")) {
+                var headersMap = request.headers().map();
+                var contentType = Optional.<String>empty();
+
+                if (headersMap.containsKey("Content-Type"))
+                    contentType = request.headers().firstValue("Content-Type");
+                else if (headersMap.containsKey("content-type"))
+                    contentType = request.headers().firstValue("content-type");
+
+                if (contentType.isPresent() && contentType.get().contains("application/json"))
                     body = Json.prettyPrint(body);
-                }
+
                 joiner.add("- body: " + body);
             }
         }
 
         logger.info(joiner.toString());
+    }
+
+    private boolean isNonRepeatablePublisher(HttpRequest.BodyPublisher publisher) {
+        String className = publisher.getClass().getName();
+        return className.contains("StreamPublisher") ||
+            className.contains("FilePublisher") ||
+            className.contains("InputStream") ||
+            className.contains("BufferedInputStream");
     }
 
     private String formatBase64ImageForLogging(String body) {
