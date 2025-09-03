@@ -64,14 +64,16 @@ import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
-import com.ibm.watsonx.ai.deployment.FindByIdParameters;
+import com.ibm.watsonx.ai.deployment.FindByIdRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
+import com.ibm.watsonx.ai.textgeneration.TextRequest;
 import com.ibm.watsonx.ai.timeseries.ForecastData;
 import com.ibm.watsonx.ai.timeseries.InputSchema;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -96,7 +98,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             DeploymentService deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
                 .build();
 
             TextGenerationParameters parameters = TextGenerationParameters.builder()
@@ -107,8 +108,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .build();
 
             String input = "how far is paris from bangalore:";
-            TextGenerationRequest EXPECTED_BODY =
-                new TextGenerationRequest(null, null, null, input, parameters.toSanitized(), null);
+            TextRequest EXPECTED_BODY =
+                new TextRequest(null, null, null, input, parameters.toSanitized(), null);
 
             when(mockHttpResponse.statusCode()).thenReturn(200);
             when(mockHttpResponse.body()).thenReturn("""
@@ -127,7 +128,13 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var response = deploymentService.generate(input, parameters);
+            var request = TextGenerationRequest.builder()
+                .input(input)
+                .parameters(parameters)
+                .deploymentId("my-deployment-id")
+                .build();
+
+            var response = deploymentService.generate(request);
             assertEquals("google/flan-ul2", response.modelId());
             assertEquals("2023-07-21T16:52:32.190Z", response.createdAt());
             assertEquals("4,000 km", response.results().get(0).generatedText());
@@ -152,7 +159,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             DeploymentService deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
                 .build();
 
             TextGenerationParameters parameters = TextGenerationParameters.builder()
@@ -161,8 +167,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .timeLimit(Duration.ofSeconds(10))
                 .build();
 
-            TextGenerationRequest EXPECTED_BODY =
-                new TextGenerationRequest(null, null, null, null, parameters.toSanitized(), null);
+            TextRequest EXPECTED_BODY =
+                new TextRequest(null, null, null, null, parameters.toSanitized(), null);
 
             when(mockHttpResponse.statusCode()).thenReturn(200);
             when(mockHttpResponse.body()).thenReturn("""
@@ -181,7 +187,12 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var response = deploymentService.generate(null, parameters);
+            var request = TextGenerationRequest.builder()
+                .parameters(parameters)
+                .deploymentId("my-deployment-id")
+                .build();
+
+            var response = deploymentService.generate(request);
             assertEquals("google/flan-ul2", response.modelId());
             assertEquals("2023-07-21T16:52:32.190Z", response.createdAt());
             assertEquals("4,000 km", response.results().get(0).generatedText());
@@ -205,7 +216,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         DeploymentService deploymentService = DeploymentService.builder()
             .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
-            .deployment("my-deployment-id")
             .build();
 
         TextGenerationParameters parameters = TextGenerationParameters.builder()
@@ -220,11 +230,9 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson(
                 """
-                      {
+                    {
                       "input": "how far is paris from bangalore:",
-                      "parameters": {
-                            "time_limit": 10000
-                      }
+                      "parameters": {}
                     }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -248,8 +256,14 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                         """)));
 
 
+        var request = TextGenerationRequest.builder()
+            .input("how far is paris from bangalore:")
+            .parameters(parameters)
+            .deploymentId("my-deployment-id")
+            .build();
+
         CompletableFuture<TextGenerationResponse> result = new CompletableFuture<>();
-        deploymentService.generateStreaming("how far is paris from bangalore:", parameters,
+        deploymentService.generateStreaming(request,
             new TextGenerationHandler() {
 
                 @Override
@@ -282,7 +296,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         DeploymentService deploymentService = DeploymentService.builder()
             .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
-            .deployment("my-deployment-id")
             .build();
 
         TextGenerationParameters parameters = TextGenerationParameters.builder()
@@ -298,8 +311,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                       "parameters": {
                             "prompt_variables": {
                                 "city": "paris"
-                            },
-                            "time_limit": 10000
+                            }
                       }
                     }"""))
             .willReturn(aResponse()
@@ -324,8 +336,14 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                         """)));
 
 
+        var request = TextGenerationRequest.builder()
+            .input("how far is paris from bangalore:")
+            .parameters(parameters)
+            .deploymentId("my-deployment-id")
+            .build();
+
         CompletableFuture<TextGenerationResponse> result = new CompletableFuture<>();
-        deploymentService.generateStreaming("how far is paris from bangalore:", parameters,
+        deploymentService.generateStreaming(request,
             new TextGenerationHandler() {
 
                 @Override
@@ -354,12 +372,11 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         deploymentService = DeploymentService.builder()
             .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
-            .deployment("my-deployment-id")
             .logResponses(true)
             .build();
 
 
-        deploymentService.generateStreaming("how far is paris from bangalore:", parameters,
+        deploymentService.generateStreaming(request,
             new TextGenerationHandler() {
 
                 @Override
@@ -394,7 +411,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             DeploymentService deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
                 .build();
 
             ChatParameters parameters = ChatParameters.builder()
@@ -407,7 +423,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             TextChatRequest EXPECTED_BODY = TextChatRequest.builder()
                 .messages(List.of(UserMessage.text("Hello")))
                 .parameters(parameters)
-                .timeLimit(10000l)
                 .build();
 
             when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -436,7 +451,13 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var response = deploymentService.chat(List.of(UserMessage.text("Hello")), parameters);
+            var request = ChatRequest.builder()
+                .messages(List.of(UserMessage.text("Hello")))
+                .parameters(parameters)
+                .deploymentId("my-deployment-id")
+                .build();
+
+            var response = deploymentService.chat(request);
             assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.getId());
             assertEquals("ibm/granite-3-2b-instruct", response.getModelId());
             assertEquals("2023-07-21T16:52:32.190Z", response.getCreatedAt());
@@ -456,8 +477,11 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 mockHttpRequest.getValue().uri()
             );
 
-            deploymentService.chat(List.of(UserMessage.text("Hello")));
-            response = deploymentService.chat(List.of(UserMessage.text("Hello")), parameters);
+            request = ChatRequest.builder()
+                .messages(List.of(UserMessage.text("Hello")))
+                .deploymentId("my-deployment-id")
+                .build();
+
             assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.getId());
         });
     }
@@ -468,7 +492,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         DeploymentService deploymentService = DeploymentService.builder()
             .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
-            .deployment("my-deployment-id")
             .build();
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -492,7 +515,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                         }
                     ],
                     "max_completion_tokens": 0,
-                    "time_limit": 10000,
                     "temperature": 0,
                     "context": "test"
                 }"""))
@@ -566,7 +588,13 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
         };
 
-        deploymentService.chatStreaming(messages, chatParameters, chatHandler);
+        var request = ChatRequest.builder()
+            .messages(messages)
+            .parameters(chatParameters)
+            .deploymentId("my-deployment-id")
+            .build();
+
+        deploymentService.chatStreaming(request, chatHandler);
         ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
         assertNotNull(response.getChoices());
@@ -590,7 +618,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         deploymentService = DeploymentService.builder()
             .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
-            .deployment("my-deployment-id")
             .logResponses(true)
             .build();
 
@@ -604,7 +631,13 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .transactionId("my-transaction-id")
             .build();
 
-        deploymentService.chatStreaming(messages, chatParameters, chatHandler);
+        request = ChatRequest.builder()
+            .messages(messages)
+            .parameters(chatParameters)
+            .deploymentId("my-deployment-id")
+            .build();
+
+        deploymentService.chatStreaming(request, chatHandler);
         response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
         Thread.sleep(50);
@@ -618,7 +651,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         DeploymentService deploymentService = DeploymentService.builder()
             .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
-            .deployment("my-deployment-id")
             .build();
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -639,8 +671,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                                 }
                             ]
                         }
-                    ],
-                    "time_limit": 10000
+                    ]
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -655,6 +686,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 ControlMessage.of("thinking"),
                 UserMessage.text("Translate \"Hello\" in Italian"))
             .thinking(ExtractionTags.of("think", "response"))
+            .deploymentId("my-deployment-id")
             .build();
 
         StringBuilder thinkingResponse = new StringBuilder();
@@ -735,7 +767,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         DeploymentService deploymentService = DeploymentService.builder()
             .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
-            .deployment("my-deployment-id")
             .build();
 
         InputSchema inputSchema = InputSchema.builder()
@@ -807,7 +838,14 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .withStatus(200)
                 .withBody(EXPECTED)));
 
-        var result = deploymentService.forecast(inputSchema, data, parameters);
+        var request = TimeSeriesRequest.builder()
+            .inputSchema(inputSchema)
+            .data(data)
+            .parameters(parameters)
+            .deploymentId("my-deployment-id")
+            .build();
+
+        var result = deploymentService.forecast(request);
         JSONAssert.assertEquals(EXPECTED, toJson(result), true);
     }
 
@@ -861,12 +899,12 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             DeploymentService deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("mysuperdeployment")
                 .build();
 
             var response = deploymentService.findById(
-                FindByIdParameters.builder()
+                FindByIdRequest.builder()
                     .projectId("my-project-id")
+                    .deploymentId("mysuperdeployment")
                     .build()
             );
 
@@ -925,12 +963,12 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             DeploymentService deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
                 .build();
 
             var response = deploymentService.findById(
-                FindByIdParameters.builder()
+                FindByIdRequest.builder()
                     .spaceId("my-space-id")
+                    .deploymentId("my-deployment-id")
                     .build()
             );
 
@@ -998,12 +1036,11 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             DeploymentService deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
                 .build();
 
             var response = deploymentService.findById(
-                FindByIdParameters.builder()
-                    .deployment("override-deployment")
+                FindByIdRequest.builder()
+                    .deploymentId("override-deployment")
                     .spaceId("my-space-id")
                     .build()
             );
@@ -1014,14 +1051,14 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             assertTrue(mockHttpRequest.getValue().uri().getQuery().contains("my-space-id"));
 
             assertThrows(IllegalArgumentException.class, () -> deploymentService.findById(
-                FindByIdParameters.builder()
-                    .deployment("override-deployment")
+                FindByIdRequest.builder()
+                    .deploymentId("override-deployment")
                     .build()
             ), "Either projectId or spaceId must be provided");
 
             deploymentService.findById(
-                FindByIdParameters.builder()
-                    .deployment("override-deployment")
+                FindByIdRequest.builder()
+                    .deploymentId("override-deployment")
                     .spaceId("my-space-id")
                     .transactionId("my-transaction-id")
                     .build()
@@ -1132,12 +1169,11 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             DeploymentService deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
                 .build();
 
             var response = deploymentService.findById(
-                FindByIdParameters.builder()
-                    .deployment("override-deployment")
+                FindByIdRequest.builder()
+                    .deploymentId("override-deployment")
                     .spaceId("my-space-id")
                     .build()
             );
@@ -1194,14 +1230,19 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             var deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
                 .build();
 
             var parameters = ChatParameters.builder()
                 .toolChoiceOption(ToolChoice.REQUIRED)
                 .build();
 
-            var response = deploymentService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
+            var request = ChatRequest.builder()
+                .messages(List.of(UserMessage.text("Show me the weather in Munich")))
+                .parameters(parameters)
+                .deploymentId("my-deployment-id")
+                .build();
+
+            var response = deploymentService.chat(request);
             assertEquals("tool_calls", response.finishReason().value());
         });
     }
@@ -1249,11 +1290,15 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             var deploymentService = DeploymentService.builder()
                 .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
+                .build();
+
+            var request = ChatRequest.builder()
+                .messages(List.of(UserMessage.text("Hello")))
+                .deploymentId("my-deployment-id")
                 .build();
 
             CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-            deploymentService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
+            deploymentService.chatStreaming(request, new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -1281,6 +1326,41 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void test_no_deployment_input() throws Exception {
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .build();
+
+
+            var textGenerationRequest = TextGenerationRequest.builder()
+                .input("test")
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(UserMessage.text("test"))
+                .build();
+
+            var forecastRequest = TimeSeriesRequest.builder()
+                .inputSchema(InputSchema.builder().timestampColumn("test").build())
+                .data(ForecastData.create())
+                .build();
+
+            var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate(textGenerationRequest));
+            assertEquals(ex.getMessage(), "deploymentId must be provided");
+            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(chatRequest));
+            assertEquals(ex.getMessage(), "deploymentId must be provided");
+            ex = assertThrows(RuntimeException.class,
+                () -> deploymentService.forecast(forecastRequest));
+            assertEquals(ex.getMessage(), "deploymentId must be provided");
+            ex = assertThrows(RuntimeException.class,
+                () -> deploymentService.findById(FindByIdRequest.builder().build()));
+            assertEquals(ex.getMessage(), "deploymentId must be provided");
+        });
+    }
+
+    @Test
     void test_exception() throws Exception {
 
         when(mockHttpClient.send(any(), any()))
@@ -1291,18 +1371,39 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             DeploymentService deploymentService = DeploymentService.builder()
                 .url(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-                .deployment("my-deployment-id")
                 .build();
 
-            var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate("test"));
+            var textGenerationRequest = TextGenerationRequest.builder()
+                .deploymentId("my-deployment-id")
+                .input("test")
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .deploymentId("my-deployment-id")
+                .messages(UserMessage.text("test"))
+                .build();
+
+            var forecastRequest = TimeSeriesRequest.builder()
+                .deploymentId("my-deployment-id")
+                .inputSchema(InputSchema.builder().timestampColumn("test").build())
+                .data(ForecastData.create())
+                .build();
+
+            var findByIdRequest = FindByIdRequest.builder()
+                .deploymentId("my-deployment")
+                .projectId("project-id")
+                .build();
+
+            var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate(textGenerationRequest));
             assertEquals(ex.getCause().getMessage(), "IOException");
-            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(UserMessage.text("test")));
+            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(chatRequest));
             assertEquals(ex.getCause().getMessage(), "InterruptedException");
             ex = assertThrows(RuntimeException.class,
-                () -> deploymentService.forecast(InputSchema.builder().timestampColumn("test").build(), ForecastData.create()));
+                () -> deploymentService.forecast(forecastRequest));
             assertEquals(ex.getCause().getMessage(), "InterruptedException");
             ex = assertThrows(RuntimeException.class,
-                () -> deploymentService.findById(FindByIdParameters.builder().projectId("project-id").build()), "InterruptedException");
+                () -> deploymentService.findById(findByIdRequest), "InterruptedException");
+            assertEquals(ex.getCause().getMessage(), "InterruptedException");
         });
     }
 }

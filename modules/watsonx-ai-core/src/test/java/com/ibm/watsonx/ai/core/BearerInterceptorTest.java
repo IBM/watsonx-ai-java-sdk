@@ -205,7 +205,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
                 assertDoesNotThrow(() -> client.send(HttpRequest.newBuilder()
                     .uri(URI.create("https://test.com"))
                     .GET().build(), BodyHandlers.ofString())
-                    .thenRun(() -> threadNames.add(Thread.currentThread().getName()))
+                    .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
                     .get(3, TimeUnit.SECONDS));
 
                 assertEquals(4, threadNames.size());

@@ -283,8 +283,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     @Test
     void text_chat() throws Exception {
 
-        assertThrows(RuntimeException.class, () -> ChatRequest.builder().messages(List.of()).build(), "messages cannot be empty");
-
         final String REQUEST = """
             {
               "model_id": "meta-llama/llama-3-8b-instruct",

@@ -14,22 +14,23 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * FindByIdParameters.builder()
+ * FindByIdRequest.builder()
+ *     .deploymentId("...")
  *     .spaceId("...")
  *     .build();
  * }</pre>
  *
  */
-public class FindByIdParameters extends WatsonxParameters {
-    private final String deployment;
+public class FindByIdRequest extends WatsonxParameters {
+    private final String deploymentId;
 
-    public FindByIdParameters(Builder builder) {
+    public FindByIdRequest(Builder builder) {
         super(builder);
-        deployment = builder.deployment;
+        deploymentId = builder.deploymentId;
     }
 
-    public String getDeployment() {
-        return deployment;
+    public String getDeploymentId() {
+        return deploymentId;
     }
 
     /**
@@ -38,7 +39,8 @@ public class FindByIdParameters extends WatsonxParameters {
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * FindByIdParameters.builder()
+     * FindByIdRequest.builder()
+     *     .deploymentId("...")
      *     .spaceId("...")
      *     .build();
      * }</pre>
@@ -50,20 +52,20 @@ public class FindByIdParameters extends WatsonxParameters {
     }
 
     /**
-     * Builder class for constructing {@link FindByIdParameters} instances.
+     * Builder class for constructing {@link FindByIdRequest} instances.
      */
     public static class Builder extends WatsonxParameters.Builder<Builder> {
-        private String deployment;
+        private String deploymentId;
 
         private Builder() {}
 
-        public Builder deployment(String deployment) {
-            this.deployment = deployment;
+        public Builder deploymentId(String deploymentId) {
+            this.deploymentId = deploymentId;
             return this;
         }
 
-        public FindByIdParameters build() {
-            return new FindByIdParameters(this);
+        public FindByIdRequest build() {
+            return new FindByIdRequest(this);
         }
     }
 }

@@ -15,23 +15,10 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
 public interface TimeSeriesProvider {
 
     /**
-     * Generates a forecast using the provided schema and data.
+     * Generates a forecast using the provided {@link TimeSeriesRequest}.
      *
-     * @param inputSchema the schema describing the time series
-     * @param data the historical data payload to use for prediction
+     * @param request a {@link TimeSeriesRequest} containing the input schema, data, and parameters
      * @return a {@link ForecastResponse} containing the forecasted time series values
      */
-    public default ForecastResponse forecast(InputSchema inputSchema, ForecastData data) {
-        return forecast(inputSchema, data, null);
-    }
-
-    /**
-     * Generates a forecast using the provided schema, data, and parameters.
-     *
-     * @param inputSchema the schema describing the time series
-     * @param data the historical data payload to use for prediction
-     * @param parameters additional forecasting configuration
-     * @return a {@link ForecastResponse} containing the forecasted time series values
-     */
-    public ForecastResponse forecast(InputSchema inputSchema, ForecastData data, TimeSeriesParameters parameters);
+    ForecastResponse forecast(TimeSeriesRequest request);
 }
