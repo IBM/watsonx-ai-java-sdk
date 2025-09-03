@@ -6,7 +6,6 @@ package com.ibm.watsonx.ai.textgeneration;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
@@ -56,12 +55,15 @@ public final class TextGenerationService extends ModelService implements TextGen
     }
 
     @Override
-    public TextGenerationResponse generate(String input, Moderation moderation, TextGenerationParameters parameters) {
+    public TextGenerationResponse generate(TextGenerationRequest textGenerationRequest) {
+        requireNonNull(textGenerationRequest, "textGenerationRequest cannot be null");
 
-        if (isNull(input) || input.isBlank())
-            throw new IllegalArgumentException("The input can not be null or empty");
+        if (nonNull(textGenerationRequest.getDeploymentId()))
+            logger.info("The deploymentId parameter can not be used with the TextGenerationService. Use the DeploymentService instead");
 
-        parameters = requireNonNullElse(parameters, TextGenerationParameters.builder().build());
+        var input = requireNonNull(textGenerationRequest.getInput(), "input cannot be null");
+        var moderation = textGenerationRequest.getModeration();
+        var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
 
         if (nonNull(parameters.getPromptVariables())) {
             parameters.setPromptVariables(null);
@@ -74,8 +76,8 @@ public final class TextGenerationService extends ModelService implements TextGen
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
-        var textGenerationRequest =
-            new TextGenerationRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), moderation);
+        var textGenRequest =
+            new TextRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), moderation);
 
         var httpRequest =
             HttpRequest
@@ -83,7 +85,7 @@ public final class TextGenerationService extends ModelService implements TextGen
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .timeout(Duration.ofMillis(timeout))
-                .POST(BodyPublishers.ofString(toJson(textGenerationRequest)));
+                .POST(BodyPublishers.ofString(toJson(textGenRequest)));
 
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
@@ -99,10 +101,14 @@ public final class TextGenerationService extends ModelService implements TextGen
     }
 
     @Override
-    public CompletableFuture<Void> generateStreaming(String input, TextGenerationParameters parameters, TextGenerationHandler handler) {
+    public CompletableFuture<Void> generateStreaming(TextGenerationRequest textGenerationRequest, TextGenerationHandler handler) {
+        requireNonNull(textGenerationRequest, "textGenerationRequest cannot be null");
 
-        requireNonNull(input, "input cannot be null");
-        parameters = requireNonNullElse(parameters, TextGenerationParameters.builder().build());
+        if (nonNull(textGenerationRequest.getDeploymentId()))
+            logger.info("The deploymentId parameter can not be used with the TextGenerationService. Use the DeploymentService instead");
+
+        var input = requireNonNull(textGenerationRequest.getInput(), "input cannot be null");
+        var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
 
         if (nonNull(parameters.getPromptVariables())) {
             parameters.setPromptVariables(null);
@@ -115,14 +121,14 @@ public final class TextGenerationService extends ModelService implements TextGen
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
-        var textGenerationRequest =
-            new TextGenerationRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), null);
+        var textGenRequest =
+            new TextRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), null);
 
         var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/generation_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .timeout(Duration.ofMillis(timeout))
-            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)));
+            .POST(BodyPublishers.ofString(toJson(textGenRequest)));
 
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
@@ -133,6 +139,81 @@ public final class TextGenerationService extends ModelService implements TextGen
             : BodySubscribers.fromLineSubscriber(subscriber))
             .thenAccept(r -> {})
             .exceptionally(t -> handlerError(t, handler));
+    }
+
+    /**
+     * Generates text based on the given input string.
+     *
+     * @param input the input text to generate from
+     * @return a {@link TextGenerationResponse} containing the generated text and metadata
+     */
+    public TextGenerationResponse generate(String input) {
+        return generate(input, TextGenerationParameters.builder().build());
+    }
+
+
+    /**
+     * Generates text based on the given input and parameters.
+     *
+     * @param input the input text to generate from
+     * @param parameters the parameters to configure text generation behavior
+     * @return a {@link TextGenerationResponse} containing the generated text and metadata
+     */
+    public TextGenerationResponse generate(String input, TextGenerationParameters parameters) {
+        return generate(
+            TextGenerationRequest.builder()
+                .input(input)
+                .parameters(parameters)
+                .build());
+    }
+
+    /**
+     * Generates text based on the given input.
+     *
+     * @param input the input text to generate from
+     * @param moderation the moderation settings.
+     * @return a {@link TextGenerationResponse} containing the generated text and metadata
+     */
+    public TextGenerationResponse generate(String input, Moderation moderation) {
+        return generate(
+            TextGenerationRequest.builder()
+                .input(input)
+                .moderation(moderation)
+                .build());
+    }
+
+    /**
+     * Sends a streaming text generation request using the provided messages
+     * <p>
+     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
+     * {@link TextGenerationHandler}.
+     *
+     * @param input the input prompt to send to the model
+     * @param handler the handler that will receive streamed generation events
+     * @return a {@link CompletableFuture} that completes when the generation is done
+     */
+    public CompletableFuture<Void> generateStreaming(String input, TextGenerationHandler handler) {
+        return generateStreaming(input, null, handler);
+    }
+
+    /**
+     * Sends a streaming text generation request using the provided messages
+     * <p>
+     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
+     * {@link TextGenerationHandler}.
+     *
+     * @param input the input prompt to send to the model
+     * @param parameters the parameters to configure text generation behavior
+     * @param handler the handler that will receive streamed generation events
+     * @return a {@link CompletableFuture} that completes when the generation is done
+     */
+    public CompletableFuture<Void> generateStreaming(String input, TextGenerationParameters parameters, TextGenerationHandler handler) {
+        return generateStreaming(
+            TextGenerationRequest.builder()
+                .input(input)
+                .parameters(parameters)
+                .build(),
+            handler);
     }
 
     /**

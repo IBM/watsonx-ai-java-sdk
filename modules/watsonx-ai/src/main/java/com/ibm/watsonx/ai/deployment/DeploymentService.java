@@ -29,26 +29,22 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
-import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.textgeneration.Moderation;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationProvider;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
-import com.ibm.watsonx.ai.timeseries.ForecastData;
+import com.ibm.watsonx.ai.textgeneration.TextRequest;
 import com.ibm.watsonx.ai.timeseries.ForecastRequest;
 import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
 import com.ibm.watsonx.ai.timeseries.ForecastResponse;
-import com.ibm.watsonx.ai.timeseries.InputSchema;
-import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesProvider;
+import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
 
 /**
  * Service class to interact with IBM watsonx.ai Deployment APIs.
@@ -58,13 +54,9 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesProvider;
  * <pre>{@code
  * DeploymentService deploymentService = DeploymentService.builder()
  *     .url("https://...") // or use CloudRegion
- *     .deployment("...")
  *     .authenticationProvider(authProvider)
  *     .build();
  *
- * ChatResponse response = deploymentService.chat(
- *     UserMessage.text("Tell me a joke")
- * );
  * }</pre>
  *
  * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#deployments-text-chat" target="_blank"> official documentation</a>.
@@ -74,23 +66,21 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesProvider;
 public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
-    private final String deployment;
 
     protected DeploymentService(Builder builder) {
         super(builder);
-        deployment = requireNonNull(builder.deployment, "deployment cannot be null");
     }
 
     /**
      * Retrieves deployment details with the specified parameters.
      *
-     * @param parameters the {@link FindByIdParameters} specifying a different deployment, project or space ID, and other options
+     * @param parameters the {@link FindByIdRequest} specifying a different deployment, project or space ID, and other options
      * @return the {@link DeploymentResource} with the retrieved deployment details
      */
-    public DeploymentResource findById(FindByIdParameters parameters) {
+    public DeploymentResource findById(FindByIdRequest parameters) {
 
-        parameters = requireNonNullElse(parameters, FindByIdParameters.builder().build());
-        var deploymentId = requireNonNullElse(parameters.getDeployment(), deployment);
+        parameters = requireNonNullElse(parameters, FindByIdRequest.builder().build());
+        var deploymentId = requireNonNull(parameters.getDeploymentId(), "deploymentId must be provided");
 
         StringJoiner queryParameters = new StringJoiner("&", "?", "");
 
@@ -125,25 +115,28 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public TextGenerationResponse generate(String input, Moderation moderation, TextGenerationParameters parameters) {
+    public TextGenerationResponse generate(TextGenerationRequest textGenerationRequest) {
+        requireNonNull(textGenerationRequest, "textGenerationRequest cannot be null");
 
         // The input parameter can be null, if the prompt_template is used.
 
-        parameters = requireNonNullElse(parameters, TextGenerationParameters.builder().build());
+        var input = textGenerationRequest.getInput();
+        var moderation = textGenerationRequest.getModeration();
+        var deploymentId = requireNonNull(textGenerationRequest.getDeploymentId(), "deploymentId must be provided");
+        var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
-        parameters.setTimeLimit(timeout);
 
         logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
-        var textGenerationRequest =
-            new TextGenerationRequest(null, null, null, input, parameters.toSanitized(), moderation);
+        var request =
+            new TextRequest(null, null, null, input, parameters.toSanitized(), moderation);
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(url.toString() + "%s/deployments/%s/text/generation?version=%s".formatted(ML_API_PATH, deployment, version)))
+            .newBuilder(URI.create(url.toString() + "%s/deployments/%s/text/generation?version=%s".formatted(ML_API_PATH, deploymentId, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .timeout(Duration.ofMillis(timeout))
-            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)));
+            .POST(BodyPublishers.ofString(toJson(request)));
 
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
@@ -159,27 +152,28 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public CompletableFuture<Void> generateStreaming(String input, TextGenerationParameters parameters, TextGenerationHandler handler) {
+    public CompletableFuture<Void> generateStreaming(TextGenerationRequest textGenerationRequest, TextGenerationHandler handler) {
+        requireNonNull(textGenerationRequest, "textGenerationRequest cannot be null");
 
         // The input parameter can be null, if the prompt_template is used.
 
-        parameters = requireNonNullElse(parameters, TextGenerationParameters.builder().build());
-
+        var input = textGenerationRequest.getInput();
+        var deploymentId = requireNonNull(textGenerationRequest.getDeploymentId(), "deploymentId must be provided");
+        var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
-        parameters.setTimeLimit(timeout);
 
         logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
-        var textGenerationRequest =
-            new TextGenerationRequest(null, null, null, input, parameters.toSanitized(), null);
+        var textGenRequest =
+            new TextRequest(null, null, null, input, parameters.toSanitized(), null);
 
         var httpRequest = HttpRequest
             .newBuilder(
-                URI.create(url.toString() + "%s/deployments/%s/text/generation_stream?version=%s".formatted(ML_API_PATH, deployment, version)))
+                URI.create(url.toString() + "%s/deployments/%s/text/generation_stream?version=%s".formatted(ML_API_PATH, deploymentId, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .timeout(Duration.ofMillis(timeout))
-            .POST(BodyPublishers.ofString(toJson(textGenerationRequest)));
+            .POST(BodyPublishers.ofString(toJson(textGenRequest)));
 
         if (nonNull(parameters.getTransactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
@@ -194,10 +188,12 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
     @Override
     public ChatResponse chat(ChatRequest chatRequest) {
+        requireNonNull(chatRequest, "chatRequest cannot be null");
 
-        List<ChatMessage> messages = chatRequest.getMessages();
-        List<Tool> tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
-        ChatParameters parameters = chatRequest.getParameters();
+        var deploymentId = requireNonNull(chatRequest.getDeploymentId(), "deploymentId must be provided");
+        var messages = chatRequest.getMessages();
+        var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
+        var parameters = chatRequest.getParameters();
 
         parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
@@ -208,11 +204,11 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .timeLimit(timeout)
             .build();
 
         var httpRequest =
-            HttpRequest.newBuilder(URI.create(url.toString() + "%s/deployments/%s/text/chat?version=%s".formatted(ML_API_PATH, deployment, version)))
+            HttpRequest
+                .newBuilder(URI.create(url.toString() + "%s/deployments/%s/text/chat?version=%s".formatted(ML_API_PATH, deploymentId, version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(textChatRequest)))
@@ -242,7 +238,9 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
     @Override
     public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
+        requireNonNull(chatRequest, "chatRequest cannot be null");
 
+        var deploymentId = requireNonNull(chatRequest.getDeploymentId(), "deploymentId must be provided");
         var messages = chatRequest.getMessages();
         var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
         var parameters = chatRequest.getParameters();
@@ -257,12 +255,12 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .timeLimit(timeout)
             .build();
 
         var httpRequest =
             HttpRequest
-                .newBuilder(URI.create(url.toString() + "%s/deployments/%s/text/chat_stream?version=%s".formatted(ML_API_PATH, deployment, version)))
+                .newBuilder(
+                    URI.create(url.toString() + "%s/deployments/%s/text/chat_stream?version=%s".formatted(ML_API_PATH, deploymentId, version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
                 .POST(BodyPublishers.ofString(toJson(textChatRequest)))
@@ -284,10 +282,13 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public ForecastResponse forecast(InputSchema inputSchema, ForecastData data, TimeSeriesParameters parameters) {
+    public ForecastResponse forecast(TimeSeriesRequest timeSeriesRequest) {
+        requireNonNull(timeSeriesRequest, "timeSeriesRequest cannot be null");
 
-        requireNonNull(inputSchema, "InputSchema cannot be null");
-        requireNonNull(data, "Data cannot be null");
+        var deploymentId = requireNonNull(timeSeriesRequest.getDeploymentId(), "deploymentId must be provided");
+        var inputSchema = timeSeriesRequest.getInputSchema();
+        var data = timeSeriesRequest.getData();
+        var parameters = timeSeriesRequest.getParameters();
 
         Parameters requestParameters = null;
         Map<String, List<Object>> futureData = null;
@@ -303,7 +304,8 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var forecastRequest = new ForecastRequest(null, null, null, data.asMap(), inputSchema, futureData, requestParameters);
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(url.toString() + "%s/deployments/%s/time_series/forecast?version=%s".formatted(ML_API_PATH, deployment, version)))
+            .newBuilder(
+                URI.create(url.toString() + "%s/deployments/%s/time_series/forecast?version=%s".formatted(ML_API_PATH, deploymentId, version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .timeout(timeout)
@@ -321,6 +323,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             throw new RuntimeException(e);
         }
     }
+
 
     /**
      * Returns a new {@link Builder} instance.
@@ -355,27 +358,21 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      */
     private void logIgnoredParameters(String modelId, String projectId, String spaceId) {
         if (nonNull(modelId))
-            logger.info("The modelId parameter is ignored for the deployment service");
+            logger.info("The modelId parameter is ignored for the DeploymentService");
 
         if (nonNull(projectId))
-            logger.info("The projectId parameter is ignored for the deployment service");
+            logger.info("The projectId parameter is ignored for the DeploymentService");
 
         if (nonNull(spaceId))
-            logger.info("The spaceId parameter is ignored for the deployment service");
+            logger.info("The spaceId parameter is ignored for the DeploymentService");
     }
 
     /**
      * Builder class for constructing {@link DeploymentService} instances with configurable parameters.
      */
     public static class Builder extends WatsonxService.Builder<Builder> {
-        private String deployment;
 
         private Builder() {}
-
-        public Builder deployment(String deployment) {
-            this.deployment = deployment;
-            return this;
-        }
 
         public DeploymentService build() {
             return new DeploymentService(this);

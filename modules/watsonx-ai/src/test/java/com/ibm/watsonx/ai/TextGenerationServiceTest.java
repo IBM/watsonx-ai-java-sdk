@@ -59,6 +59,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.TokenInfo;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.TopTokenInfo;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.textgeneration.TextRequest;
 import com.ibm.watsonx.ai.utils.Utils;
 
 @SuppressWarnings("unchecked")
@@ -344,7 +345,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             var response = textGenerationService.generate("Hello!");
             assertNotNull(response);
 
-            var expected = new TextGenerationRequest("model", "space-id", "project-id", "Hello!",
+            var expected = new TextRequest("model", "space-id", "project-id", "Hello!",
                 TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), null);
 
             JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), true);
@@ -358,7 +359,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                 .promptVariables(Map.of("test", "test")) // this field must be ignored
                 .build());
 
-            expected = new TextGenerationRequest("new-model", "new-space-id", "new-project-id", "Hello!",
+            expected = new TextRequest("new-model", "new-space-id", "new-project-id", "Hello!",
                 TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(2)).build(), null);
 
             JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), false);
@@ -395,7 +396,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             var response = textGenerationService.generate("Hello!", moderation);
             assertNotNull(response);
 
-            var expected = new TextGenerationRequest("model", "space-id", "project-id", "Hello!",
+            var expected = new TextRequest("model", "space-id", "project-id", "Hello!",
                 TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), moderation);
 
             JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), true);
@@ -414,11 +415,8 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             .url(CloudRegion.DALLAS)
             .build();
 
-        var ex = assertThrows(IllegalArgumentException.class, () -> textGenerationService.generate(null));
-        assertEquals(ex.getMessage(), "The input can not be null or empty");
-
-        ex = assertThrows(IllegalArgumentException.class, () -> textGenerationService.generate(""));
-        assertEquals(ex.getMessage(), "The input can not be null or empty");
+        var ex = assertThrows(NullPointerException.class, () -> textGenerationService.generate(TextGenerationRequest.builder().build()));
+        assertEquals(ex.getMessage(), "input cannot be null");
 
         when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenThrow(IOException.class);

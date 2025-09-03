@@ -13,6 +13,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow.Subscriber;
@@ -87,20 +88,30 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         Executor executor, int index, AsyncChain chain) {
         return CompletableFuture
             .runAsync(() -> logRequest(request), executor)
-            .thenCompose(v -> chain.proceed(request, bodyHandler, executor))
-            .whenComplete((respose, exception) -> {
+            .thenComposeAsync(v -> chain.proceed(request, bodyHandler, executor), executor)
+            .whenCompleteAsync((respose, exception) -> {
                 if (isNull(exception))
                     logResponse(request, respose);
-            });
+                else {
+                    var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
+                    logResponse(watsonxSDKRequestId, exception);
+                }
+            }, executor);
     }
 
     @Override
     public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
         throws WatsonxException, IOException, InterruptedException {
         logRequest(request);
-        var response = chain.proceed(request, bodyHandler);
-        logResponse(request, response);
-        return response;
+        try {
+            var response = chain.proceed(request, bodyHandler);
+            logResponse(request, response);
+            return response;
+        } catch (RuntimeException e) {
+            var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
+            logResponse(watsonxSDKRequestId, e);
+            throw e;
+        }
     }
 
     private void logRequest(HttpRequest request) {
@@ -153,6 +164,23 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
 
+    private <T> void logResponse(String watsonxAISDKRequestId, Throwable exception) {
+        if (!logResponse)
+            return;
+
+        StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
+        joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
+
+        if (exception instanceof WatsonxException e) {
+            joiner.add("- status code: " + e.statusCode());
+            joiner.add("- body: " + Json.prettyPrint(exception.getMessage()));
+        } else {
+            joiner.add("- body: " + exception.getMessage());
+        }
+
+        logger.info(joiner.toString());
+    }
+
     private <T> void logResponse(HttpRequest request, HttpResponse<T> response) {
         if (!logResponse)
             return;
@@ -163,8 +191,15 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             boolean prettyPrint = false;
             String body = HttpUtils.extractBodyAsString(response).orElse(null);
 
-            if (nonNull(response.headers()))
+            StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
+            joiner.add("- Watsonx-AI-SDK-Request-Id: " + request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse(""));
+            joiner.add("- url: " + response.uri());
+            joiner.add("- status code: " + response.statusCode());
+
+            if (nonNull(response.headers())) {
                 headers = HttpUtils.inOneLine(response.headers().map());
+                joiner.add("- headers: " + headers);
+            }
 
             if (!prettyPrint && nonNull(response.headers())) {
                 headers = HttpUtils.inOneLine(response.headers().map());
@@ -174,14 +209,12 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
                 }
             }
 
-            if (prettyPrint)
-                body = Json.prettyPrint(body);
+            if (nonNull(body)) {
+                body = prettyPrint ? Json.prettyPrint(body) : body;
+                joiner.add("- body: " + body);
+            }
 
-            logger.info(
-                "Response:\n- status code: {}\n- headers: {}\n- body: {}",
-                response.statusCode(),
-                headers,
-                body);
+            logger.info(joiner.toString());
 
         } catch (Exception e) {
             logger.warn("Failed to log response", e);
@@ -190,22 +223,24 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
     private void printRequest(HttpRequest request, String body) {
         String headers = null;
+        StringJoiner joiner = new StringJoiner("\n", "Request:\n", "");
+        joiner.add("- method: " + request.method());
+        joiner.add("- url: " + request.uri());
 
         if (nonNull(request.headers())) {
-            body = formatBase64ImageForLogging(body);
             headers = HttpUtils.inOneLine(request.headers().map());
-            var contentType = request.headers().firstValue("Content-Type");
-            if (contentType.isPresent() && contentType.get().contains("application/json")) {
-                body = Json.prettyPrint(body);
+            joiner.add("- headers: " + headers);
+            if (nonNull(body)) {
+                body = formatBase64ImageForLogging(body);
+                var contentType = request.headers().firstValue("Content-Type");
+                if (contentType.isPresent() && contentType.get().contains("application/json")) {
+                    body = Json.prettyPrint(body);
+                }
+                joiner.add("- body: " + body);
             }
         }
 
-        logger.info(
-            "Request:\n- method: {}\n- url: {}\n- headers: {}\n- body: {}",
-            request.method(),
-            request.uri(),
-            headers,
-            body);
+        logger.info(joiner.toString());
     }
 
     private String formatBase64ImageForLogging(String body) {

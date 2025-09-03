@@ -25,73 +25,24 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
 public interface TextGenerationProvider {
 
     /**
-     * Generates text based on the given input string.
+     * Generates text based on the provided {@link TextGenerationRequest}.
      *
-     * @param input the input text to generate from
-     * @return a {@link TextGenerationResponse} containing the generated text and metadata
+     * @param request the {@link TextGenerationRequest} containing input, moderation, parameters.
+     * @return a {@link TextGenerationResponse} containing the generated text and associated metadata
      */
-    public default TextGenerationResponse generate(String input) {
-        return generate(input, null, null);
-    }
+    public TextGenerationResponse generate(TextGenerationRequest request);
 
     /**
-     * Generates text based on the given input string parameters.
-     *
-     * @param input the input text to generate from
-     * @param parameters the parameters to configure text generation behavior
-     * @return a {@link TextGenerationResponse} containing the generated text and metadata
-     */
-    public default TextGenerationResponse generate(String input, TextGenerationParameters parameters) {
-        return generate(input, null, parameters);
-    }
-
-    /**
-     * Generates text based on the given input string with moderation applied.
-     *
-     * @param input the input text to generate from
-     * @param moderation the moderation settings to apply during generation
-     * @return a {@link TextGenerationResponse} containing the generated text and metadata
-     */
-    public default TextGenerationResponse generate(String input, Moderation moderation) {
-        return generate(input, moderation, null);
-    }
-
-    /**
-     * Generates text based on the given input string, moderation and parameters.
-     *
-     * @param input the input text to generate from
-     * @param moderation the moderation settings to apply during generation
-     * @param parameters the parameters to configure text generation behavior
-     * @return a {@link TextGenerationResponse} containing the generated text and metadata
-     */
-    public TextGenerationResponse generate(String input, Moderation moderation, TextGenerationParameters parameters);
-
-    /**
-     * Sends a streaming text generation request using the provided messages
+     * Sends a streaming text generation request based on the provided {@link TextGenerationRequest}.
      * <p>
-     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
+     * This method initiates an asynchronous text generation operation where partial responses are delivered incrementally through the provided
      * {@link TextGenerationHandler}.
      *
-     * @param input the input prompt to send to the model
+     * @param request the {@link TextGenerationRequest} containing input, moderation, parameters, and optional deployment ID
      * @param handler the handler that will receive streamed generation events
-     * @return a {@link CompletableFuture} that completes when the generation is done
+     * @return a {@link CompletableFuture} that completes when the streaming generation is finished
      */
-    public default CompletableFuture<Void> generateStreaming(String input, TextGenerationHandler handler) {
-        return generateStreaming(input, null, handler);
-    }
-
-    /**
-     * Sends a streaming text generation request using the provided messages
-     * <p>
-     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
-     * {@link TextGenerationHandler}.
-     *
-     * @param input the input prompt to send to the model
-     * @param parameters the parameters to control the generation behavior
-     * @param handler the handler that will receive streamed generation events
-     * @return a {@link CompletableFuture} that completes when the generation is done
-     */
-    public CompletableFuture<Void> generateStreaming(String input, TextGenerationParameters parameters, TextGenerationHandler handler);
+    public CompletableFuture<Void> generateStreaming(TextGenerationRequest request, TextGenerationHandler handler);
 
     /**
      * Handles an error by invoking the {@link ChatHandler}'s {@code onError} callback if the given throwable is non-null.

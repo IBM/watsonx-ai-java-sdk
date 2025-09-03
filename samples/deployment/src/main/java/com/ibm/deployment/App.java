@@ -8,11 +8,12 @@ import java.net.URI;
 import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
-import com.ibm.watsonx.ai.deployment.FindByIdParameters;
+import com.ibm.watsonx.ai.deployment.FindByIdRequest;
 
 public class App {
 
@@ -33,14 +34,13 @@ public class App {
 
             DeploymentService deploymentService = DeploymentService.builder()
                 .authenticationProvider(authProvider)
-                .timeout(Duration.ofSeconds(60))
-                .deployment(deployment)
                 .url(url)
                 .build();
 
             var deploymentInfo = deploymentService.findById(
-                FindByIdParameters.builder()
+                FindByIdRequest.builder()
                     .spaceId(spaceId)
+                    .deploymentId(deployment)
                     .build()
             );
 
@@ -53,11 +53,16 @@ public class App {
                 deploymentInfo.metadata().name(), deploymentInfo.entity().deployedAssetType(), deploymentInfo.entity().status().state()));
 
             var message = "How are you?";
+            var chatRequest = ChatRequest.builder()
+                .deploymentId(deployment)
+                .messages(UserMessage.text(message))
+                .build();
+
             System.out.println("USER: ".concat(message));
-            System.out.println("ASSISTANT: ".concat(deploymentService.chat(UserMessage.text(message)).extractContent()));
+            System.out.println("ASSISTANT: ".concat(deploymentService.chat(chatRequest).extractContent()));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         } finally {
             System.exit(0);
         }

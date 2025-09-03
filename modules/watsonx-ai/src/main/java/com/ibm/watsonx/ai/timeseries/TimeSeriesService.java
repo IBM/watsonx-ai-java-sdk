@@ -15,6 +15,8 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
@@ -44,8 +46,12 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *     .add("ID1", "D1", 3)
  *     .addAll("TARGET1", 1.46, 2.34, 4.55);
  *
- * ForecastResponse response =
- *     tsService.forecast(inputSchema, data);
+ * TimeSeriesRequest request = TimeSeriesRequest.builder()
+ *     .inputSchema(inputSchema)
+ *     .data(data)
+ *     .build();
+ *
+ * ForecastResponse response = tsService.forecast(request);
  * }</pre>
  *
  * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#time-series-forecast" target="_blank"> official documentation</a>.
@@ -54,15 +60,22 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  */
 public final class TimeSeriesService extends ModelService implements TimeSeriesProvider {
 
+    public static final Logger logger = LoggerFactory.getLogger(TimeSeriesService.class);
+
     protected TimeSeriesService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
     }
 
     @Override
-    public ForecastResponse forecast(InputSchema inputSchema, ForecastData data, TimeSeriesParameters parameters) {
-        requireNonNull(inputSchema, "InputSchema cannot be null");
-        requireNonNull(data, "Data cannot be null");
+    public ForecastResponse forecast(TimeSeriesRequest request) {
+
+        if (nonNull(request.getDeploymentId()))
+            logger.info("The deploymentId parameter can not be used with the TimeSeriesService. Use the DeploymentService instead");
+
+        var inputSchema = request.getInputSchema();
+        var data = request.getData();
+        var parameters = request.getParameters();
 
         String modelId = this.modelId;
         String projectId = this.projectId;
@@ -101,6 +114,35 @@ public final class TimeSeriesService extends ModelService implements TimeSeriesP
     }
 
     /**
+     * Generates a forecast using the provided schema and data.
+     *
+     * @param inputSchema the schema describing the time series
+     * @param data the historical data payload to use for prediction
+     * @return a {@link ForecastResponse} containing the forecasted time series values
+     */
+    public ForecastResponse forecast(InputSchema inputSchema, ForecastData data) {
+        return forecast(inputSchema, data, null);
+    }
+
+    /**
+     * Generates a forecast using the provided schema and data.
+     *
+     * @param inputSchema the schema describing the time series
+     * @param data the historical data payload to use for prediction
+     * @param parameters the parameters to configure time series behavior
+     *
+     * @return a {@link ForecastResponse} containing the forecasted time series values
+     */
+    public ForecastResponse forecast(InputSchema inputSchema, ForecastData data, TimeSeriesParameters parameters) {
+        return forecast(
+            TimeSeriesRequest.builder()
+                .inputSchema(inputSchema)
+                .data(data)
+                .parameters(parameters)
+                .build());
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>
@@ -125,8 +167,12 @@ public final class TimeSeriesService extends ModelService implements TimeSeriesP
      *     .add("ID1", "D1", 3)
      *     .addAll("TARGET1", 1.46, 2.34, 4.55);
      *
-     * ForecastResponse response =
-     *     tsService.forecast(inputSchema, data);
+     * TimeSeriesRequest request = TimeSeriesRequest.builder()
+     *     .inputSchema(inputSchema)
+     *     .data(data)
+     *     .build();
+     *
+     * ForecastResponse response = tsService.forecast(request);
      * }</pre>
      *
      * @see AuthenticationProvider

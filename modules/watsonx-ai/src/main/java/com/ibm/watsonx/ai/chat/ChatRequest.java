@@ -10,9 +10,10 @@ import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 /**
- * Represents a chat request sent to the model.
+ * Represents a chat request.
  * <p>
  * Instances are created using the {@link Builder} pattern:
  * <p>
@@ -37,26 +38,29 @@ import com.ibm.watsonx.ai.chat.model.Tool;
  * ChatRequest request = ChatRequest.builder()
  *     .messages(
  *         SystemMessage.of("You are a helpful assistant"),
- *         UserMessage.text("Tell me a joke")
- *     )
+ *         UserMessage.text("Tell me a joke"))
  *     .tools(tool)
  *     .parameters(parameters)
  *     .build();
  * }</pre>
  */
 public class ChatRequest {
+    private final String deploymentId;
     private final List<ChatMessage> messages;
     private final List<Tool> tools;
     private final ChatParameters parameters;
     private final ExtractionTags extractionTags;
 
     protected ChatRequest(Builder builder) {
-        this.messages = requireNonNull(builder.messages, "messages cannot be null");
-        if (this.messages.isEmpty())
-            throw new RuntimeException("messages cannot be empty");
-        this.tools = builder.tools;
-        this.parameters = builder.parameters;
-        this.extractionTags = builder.extractionTags;
+        messages = requireNonNull(builder.messages, "messages cannot be null");
+        tools = builder.tools;
+        parameters = builder.parameters;
+        extractionTags = builder.extractionTags;
+        deploymentId = builder.deploymentId;
+    }
+
+    public String getDeploymentId() {
+        return deploymentId;
     }
 
     public List<ChatMessage> getMessages() {
@@ -99,8 +103,7 @@ public class ChatRequest {
      * ChatRequest request = ChatRequest.builder()
      *     .messages(
      *         SystemMessage.of("You are a helpful assistant"),
-     *         UserMessage.text("Tell me a joke")
-     *     )
+     *         UserMessage.text("Tell me a joke"))
      *     .tools(tool)
      *     .parameters(parameters)
      *     .build();
@@ -116,12 +119,25 @@ public class ChatRequest {
      * Builder class for constructing {@link ChatRequest} instances.
      */
     public static class Builder {
+        private String deploymentId;
         private List<ChatMessage> messages;
         private List<Tool> tools;
         private ChatParameters parameters;
         private ExtractionTags extractionTags;
 
         private Builder() {}
+
+        /**
+         * Sets the deployment identifier for the chat request.
+         * <p>
+         * This value is required if the request will be sent via a {@link DeploymentService}. For other services, this value may be ignored.
+         *
+         * @param deploymentId the unique identifier of the deployment
+         */
+        public Builder deploymentId(String deploymentId) {
+            this.deploymentId = deploymentId;
+            return this;
+        }
 
         /**
          * Sets the conversation messages for the request.

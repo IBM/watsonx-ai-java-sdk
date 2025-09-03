@@ -229,6 +229,7 @@ public final class TextChatRequest {
             this.responseFormat = parameters.getResponseFormat();
             this.jsonSchema = parameters.getJsonSchema();
             this.context = parameters.getContext();
+            this.timeLimit = parameters.getTimeLimit();
             return this;
         }
 
