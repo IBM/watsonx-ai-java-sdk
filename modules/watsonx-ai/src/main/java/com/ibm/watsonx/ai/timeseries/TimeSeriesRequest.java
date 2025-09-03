@@ -127,7 +127,7 @@ public class TimeSeriesRequest {
         /**
          * Builds a {@link TimeSeriesRequest} instance using the configured parameters.
          *
-         * @return a new instance of {@link ChatReTimeSeriesRequestquest}
+         * @return a new instance of {@link TimeSeriesRequest}
          */
         public TimeSeriesRequest build() {
             return new TimeSeriesRequest(this);

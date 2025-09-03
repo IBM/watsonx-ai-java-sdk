@@ -20,8 +20,8 @@ import com.ibm.watsonx.ai.core.Json;
  * <p>
  * This class provides methods to access both the assistant's plain response and (optionally) its reasoning process.
  * <p>
- * If {@link ChatRequest.Builder#thinking(boolean)} is enabled, the {@link ExtractionTags} will be used to separate the reasoning ("thinking") part
- * from the assistant's final response.
+ * If {@link ChatRequest.Builder#thinking(ExtractionTags tags)} is enabled, the {@link ExtractionTags} will be used to separate the reasoning
+ * ("thinking") part from the assistant's final response.
  * <p>
  * In that case:
  * <ul>
@@ -215,8 +215,8 @@ public final class ChatResponse {
     /**
      * Extracts the assistant's response text from the chat completion.
      * <p>
-     * If {@link ChatRequest.Builder#thinking()} was enabled when creating the request, {@link ExtractionTags} will be applied to ensure that only the
-     * response part is returned, excluding any reasoning content.
+     * If {@link ChatRequest.Builder#thinking(ExtractionTags extractionTags)} was enabled when creating the request, {@link ExtractionTags} will be
+     * applied to ensure that only the response part is returned, excluding any reasoning content.
      *
      * @return the assistant's response text as plain content
      * @throws RuntimeException if the response is of type "tool_calls" and contains no textual content
@@ -234,8 +234,8 @@ public final class ChatResponse {
     /**
      * Extracts the assistant's reasoning text (if present) from the chat completion.
      * <p>
-     * This requires that {@link ChatRequest.Builder#thinking()} was enabled when creating the request. Otherwise, {@code null} will always be
-     * returned.
+     * This requires that {@link ChatRequest.Builder#thinking(ExtrationTags tags)} was enabled when creating the request. Otherwise, {@code null} will
+     * always be returned.
      *
      * @return the reasoning text, or {@code null} if not available
      */
@@ -267,8 +267,8 @@ public final class ChatResponse {
     /**
      * Converts this {@code ChatResponse} into an {@link AssistantMessage}.
      * <p>
-     * The returned message contains only the assistant's response content. Any reasoning part (if {@link ChatRequest.Builder#thinking()} was enabled)
-     * is always excluded.
+     * The returned message contains only the assistant's response content. Any reasoning part (if
+     * {@link ChatRequest.Builder#thinking(ExtractionTags tags)} was enabled) is always excluded.
      *
      * @return an {@code AssistantMessage} containing the assistant's reply content
      */
