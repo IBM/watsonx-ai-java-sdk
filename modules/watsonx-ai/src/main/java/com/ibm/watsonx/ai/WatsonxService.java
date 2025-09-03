@@ -86,7 +86,7 @@ public abstract class WatsonxService {
 
         if (logRequests || logResponses) {
             syncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
-            asyncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, false));
+            asyncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
         }
 
         syncHttpClient = syncHttpClientBuilder.build();
