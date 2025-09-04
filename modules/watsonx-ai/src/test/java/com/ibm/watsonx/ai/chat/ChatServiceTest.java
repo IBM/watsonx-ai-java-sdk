@@ -2835,7 +2835,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             ))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withChunkedDribbleDelay(3, 200)
+                .withChunkedDribbleDelay(3, 510)
                 .withBody(
                     """
                         id: 1
@@ -2871,7 +2871,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             ))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withChunkedDribbleDelay(3, 200)
+                .withChunkedDribbleDelay(3, 10)
                 .withBody(
                     """
                         id: 1
