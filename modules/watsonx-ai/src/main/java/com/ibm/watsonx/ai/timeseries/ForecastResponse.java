@@ -18,6 +18,7 @@ import java.util.Map;
  */
 public record ForecastResponse(
     String modelId,
+    String modelVersion,
     String createdAt,
     List<Map<String, Object>> results,
     int inputDataPoints,

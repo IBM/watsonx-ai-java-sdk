@@ -6,6 +6,8 @@ package com.ibm.watsonx.ai.textextraction;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
+import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
+import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.MD;
 import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.PAGE_IMAGES;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -30,6 +32,7 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
@@ -116,7 +119,7 @@ public final class TextExtractionService extends ProjectService {
      * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
      */
     public TextExtractionResponse startExtraction(String absolutePath, TextExtractionParameters parameters) throws TextExtractionException {
-        return startExtraction(absolutePath, parameters, false);
+        return startExtraction(UUID.randomUUID().toString(), absolutePath, parameters, false);
     }
 
     /**
@@ -156,9 +159,11 @@ public final class TextExtractionService extends ProjectService {
         if (file.isDirectory())
             throw new TextExtractionException("directory_not_allowed", "The file can not be a directory");
 
+        var requestId = UUID.randomUUID().toString();
+
         try {
-            upload(new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, false);
-            return startExtraction(file.getName(), parameters);
+            upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, false);
+            return startExtraction(requestId, file.getName(), parameters, false);
         } catch (FileNotFoundException e) {
             throw new TextExtractionException("file_not_found", e.getMessage(), e);
         }
@@ -199,8 +204,9 @@ public final class TextExtractionService extends ProjectService {
      */
     public TextExtractionResponse uploadAndStartExtraction(InputStream is, String fileName, TextExtractionParameters parameters)
         throws TextExtractionException {
-        upload(is, fileName, parameters, false);
-        return startExtraction(fileName, parameters);
+        var requestId = UUID.randomUUID().toString();
+        upload(requestId, is, fileName, parameters, false);
+        return startExtraction(requestId, fileName, parameters, false);
     }
 
     /**
@@ -236,26 +242,7 @@ public final class TextExtractionService extends ProjectService {
      * @return The text extracted.
      */
     public String extractAndFetch(String absolutePath, TextExtractionParameters parameters) throws TextExtractionException {
-
-        if (nonNull(parameters)) {
-            if (parameters.getRequestedOutputs().size() > 1) {
-                throw new TextExtractionException("fetch_operation_not_allowed",
-                    "The fetch operation cannot be executed if more than one file is to be generated");
-            }
-            if (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
-                throw new TextExtractionException("fetch_operation_not_allowed",
-                    "The fetch operation cannot be executed for the type \"page_images\"");
-            }
-        }
-
-        var textExtractionResponse = startExtraction(absolutePath, parameters, true);
-        var is = getExtractedText(textExtractionResponse, parameters);
-
-        try {
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new TextExtractionException("fetch_operation_failed", "Failed to fetch the extracted text", e);
-        }
+        return extractAndFetch(UUID.randomUUID().toString(), absolutePath, parameters);
     }
 
     /**
@@ -303,12 +290,14 @@ public final class TextExtractionService extends ProjectService {
             }
         }
 
+        var requestId = UUID.randomUUID().toString();
+
         try {
-            upload(new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, true);
+            upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, true);
         } catch (FileNotFoundException e) {
             throw new TextExtractionException("file_not_found", e.getMessage(), e);
         }
-        return extractAndFetch(file.getName(), parameters);
+        return extractAndFetch(requestId, file.getName(), parameters);
     }
 
     /**
@@ -359,8 +348,9 @@ public final class TextExtractionService extends ProjectService {
             }
         }
 
-        upload(is, fileName, parameters, true);
-        return extractAndFetch(fileName, parameters);
+        var requestId = UUID.randomUUID().toString();
+        upload(requestId, is, fileName, parameters, true);
+        return extractAndFetch(requestId, fileName, parameters);
     }
 
     /**
@@ -387,29 +377,35 @@ public final class TextExtractionService extends ProjectService {
      * @return A {@link TextExtractionResponse} containing the results of the request.
      */
     public TextExtractionResponse fetchExtractionRequest(String id, TextExtractionFetchParameters parameters) {
-        requireNonNull(id, "The id can not be null");
+        return fetchExtractionRequest(UUID.randomUUID().toString(), id, parameters);
+    }
 
-        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
-        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
-        var queryParameters = getQueryParameters(projectId, spaceId);
-        var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_TEXT_PATH, id, queryParameters));
-
-        var httpRequest = HttpRequest.newBuilder(uri)
-            .header("Accept", "application/json")
-            .timeout(timeout)
-            .GET();
-
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
+    /**
+     * Uploads a file to Cloud Object Storage.
+     *
+     * @param file the file to be uploaded
+     * @return {@code true} if the upload request was successfully sent
+     * @throws TextExtractionException if the file cannot be found or an error occurs during upload
+     */
+    public boolean uploadFile(File file) throws TextExtractionException {
         try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TextExtractionResponse.class);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            return uploadFile(new BufferedInputStream(new FileInputStream(file)), file.getName());
+        } catch (FileNotFoundException e) {
+            throw new TextExtractionException("file_not_found", e.getMessage(), e);
         }
+    }
+
+    /**
+     * Uploads an input stream to Cloud Object Storage.
+     *
+     * @param inputStream the input stream to be uploaded
+     * @param fileName the name of the file associated with the input stream
+     * @return {@code true} if the upload request was successfully sent
+     */
+    public boolean uploadFile(InputStream inputStream, String fileName) {
+        var requestId = UUID.randomUUID().toString();
+        upload(requestId, inputStream, fileName, null, false);
+        return true;
     }
 
     /**
@@ -447,6 +443,7 @@ public final class TextExtractionService extends ProjectService {
             throw new RuntimeException(e);
         }
     }
+
 
     /**
      * Deletes a text extraction request.
@@ -509,9 +506,68 @@ public final class TextExtractionService extends ProjectService {
     }
 
     //
+    // Retrieves the results of a text extraction request by its unique identifier.
+    //
+    private TextExtractionResponse fetchExtractionRequest(String requestId, String id, TextExtractionFetchParameters parameters) {
+        requireNonNull(requestId, "The requestId can not be null");
+        requireNonNull(id, "The id can not be null");
+
+        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
+        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
+        var queryParameters = getQueryParameters(projectId, spaceId);
+        var uri = URI.create(url.toString() + "%s/extractions/%s?%s".formatted(ML_API_TEXT_PATH, id, queryParameters));
+
+        var httpRequest = HttpRequest.newBuilder(uri)
+            .header("Accept", "application/json")
+            .header(REQUEST_ID_HEADER, requestId)
+            .timeout(timeout)
+            .GET();
+
+        if (nonNull(parameters.getTransactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
+
+        try {
+
+            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpReponse.body(), TextExtractionResponse.class);
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //
+    // Start the text extraction and wait until the result is ready.
+    //
+    private String extractAndFetch(String requestId, String absolutePath, TextExtractionParameters parameters) throws TextExtractionException {
+        requireNonNull(requestId, "requestId cannot be null");
+
+        if (nonNull(parameters)) {
+            if (parameters.getRequestedOutputs().size() > 1) {
+                throw new TextExtractionException("fetch_operation_not_allowed",
+                    "The fetch operation cannot be executed if more than one file is to be generated");
+            }
+            if (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
+                throw new TextExtractionException("fetch_operation_not_allowed",
+                    "The fetch operation cannot be executed for the type \"page_images\"");
+            }
+        }
+
+        var textExtractionResponse = startExtraction(requestId, absolutePath, parameters, true);
+        var is = getExtractedText(requestId, textExtractionResponse, parameters);
+
+        try {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new TextExtractionException("fetch_operation_failed", "Failed to fetch the extracted text", e);
+        }
+    }
+
+    //
     // Uploads an inputstream to the Cloud Object Storage.
     //
-    private void upload(InputStream is, String fileName, TextExtractionParameters parameters, boolean waitForExtraction) {
+    private void upload(String requestId, InputStream is, String fileName, TextExtractionParameters parameters, boolean waitForExtraction) {
+        requireNonNull(requestId, "requestId value cannot be null");
         requireNonNull(is, "is value cannot be null");
         requireNonNull(fileName, "fileName value cannot be null");
 
@@ -534,6 +590,7 @@ public final class TextExtractionService extends ProjectService {
             var uri = URI.create(cosUrl + "/%s/%s".formatted(documentReference.bucket(), encodedFileName));
             var httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(uri.toASCIIString()))
+                .header(REQUEST_ID_HEADER, requestId)
                 .PUT(BodyPublishers.ofInputStream(() -> is))
                 .timeout(timeout)
                 .build();
@@ -547,16 +604,17 @@ public final class TextExtractionService extends ProjectService {
     //
     // Starts the text extraction process.
     //
-    private TextExtractionResponse startExtraction(String path, TextExtractionParameters parameters, boolean waitUntilJobIsDone)
+    private TextExtractionResponse startExtraction(String requestId, String path, TextExtractionParameters parameters, boolean waitUntilJobIsDone)
         throws TextExtractionException {
         requireNonNull(path);
+        requireNonNull(requestId);
 
         String outputFileName = null;
         String projectId = this.projectId;
         String spaceId = this.spaceId;
         boolean removeOutputFile = false;
         boolean removeUploadedFile = false;
-        List<String> requestedOutputs = List.of("plain_text");
+        List<String> requestedOutputs = List.of(MD.value());
         CosReference documentReference = this.documentReference;
         CosReference resultReference = this.resultReference;
         Parameters params = null;
@@ -577,6 +635,8 @@ public final class TextExtractionService extends ProjectService {
             custom = parameters.getCustom();
             timeout = requireNonNullElse(parameters.getTimeout(), Duration.ofSeconds(60));
             transactionId = parameters.getTransactionId();
+        } else {
+            params = Parameters.of(requestedOutputs);
         }
 
         if (!waitUntilJobIsDone && (removeOutputFile || removeUploadedFile))
@@ -612,6 +672,7 @@ public final class TextExtractionService extends ProjectService {
             HttpRequest.newBuilder(URI.create(url.toString() + "%s/extractions?version=%s".formatted(ML_API_TEXT_PATH, version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
+                .header(REQUEST_ID_HEADER, requestId)
                 .POST(BodyPublishers.ofString(toJson(request)))
                 .timeout(timeout);
 
@@ -648,7 +709,7 @@ public final class TextExtractionService extends ProjectService {
                 }
 
                 var processId = response.metadata().id();
-                response = fetchExtractionRequest(processId, TextExtractionFetchParameters.builder()
+                response = fetchExtractionRequest(requestId, processId, TextExtractionFetchParameters.builder()
                     .projectId(projectId)
                     .spaceId(spaceId)
                     .build());
@@ -670,8 +731,10 @@ public final class TextExtractionService extends ProjectService {
     //
     // Retrieves the extracted text from a specified Cloud Object Storage file.
     //
-    private InputStream getExtractedText(TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
+    private InputStream getExtractedText(String requestId, TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
         throws TextExtractionException {
+
+        requireNonNull(requestId);
 
         String cosUrl = this.cosUrl;
         String uploadedPath = textExtractionResponse.entity().documentReference().location().fileName();
@@ -702,6 +765,7 @@ public final class TextExtractionService extends ProjectService {
                         var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, encodedFileName));
                         var httpRequest = HttpRequest.newBuilder()
                             .uri(URI.create(uri.toASCIIString()))
+                            .header(REQUEST_ID_HEADER, requestId)
                             .timeout(timeout)
                             .GET().build();
 
@@ -723,6 +787,7 @@ public final class TextExtractionService extends ProjectService {
                     var encodedFileName = new URI(null, null, outputPath, null).toASCIIString();
                     var uri = URI.create(cosUrl + "/%s/%s".formatted(resultsBucketName, encodedFileName));
                     var httpRequest = HttpRequest.newBuilder(URI.create(uri.toASCIIString()))
+                        .header(REQUEST_ID_HEADER, requestId)
                         .timeout(timeout)
                         .DELETE();
 
@@ -740,6 +805,7 @@ public final class TextExtractionService extends ProjectService {
                     var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
                     var uri = URI.create(cosUrl + "/%s/%s".formatted(documentBucketName, encodedFileName));
                     var httpRequest = HttpRequest.newBuilder(URI.create(uri.toASCIIString()))
+                        .header(REQUEST_ID_HEADER, requestId)
                         .timeout(timeout)
                         .DELETE();
 

@@ -50,34 +50,31 @@ public record AssistantMessage(
      * Creates a new {@link AssistantMessage}.
      *
      * @param content the assistant's message content
-     * @param name optional name for the assistant
-     * @param refusal optional refusal message
      * @return a new {@link AssistantMessage}
      */
-    public static AssistantMessage text(String content, String name, String refusal) {
-        return new AssistantMessage(ROLE, content, name, refusal, null);
+    public static AssistantMessage text(String content) {
+        return text(content, null);
     }
 
     /**
      * Creates a new {@link AssistantMessage}.
      *
-     * @param name optional name for the assistant
-     * @param refusal optional refusal message
-     * @param toolCalls tool calls (nullable)
+     * @param content the assistant's message content
+     * @param name An optional name for the participant. Provides the model information to differentiate between participants of the same role.
      * @return a new {@link AssistantMessage}
      */
-    public static AssistantMessage tools(String name, String refusal, List<ToolCall> toolCalls) {
-        return new AssistantMessage(ROLE, null, name, refusal, toolCalls);
+    public static AssistantMessage text(String content, String name) {
+        return new AssistantMessage(ROLE, content, name, null, null);
     }
 
     /**
-     * Creates a new {@link AssistantMessage} containing only content.
+     * Creates a new {@link AssistantMessage} from one or more {@link ToolCall} instances.
      *
-     * @param content the assistant's message content
+     * @param toolCalls the assistant's tool calls
      * @return a new {@link AssistantMessage}
      */
-    public static AssistantMessage text(String content) {
-        return text(content, null, null);
+    public static AssistantMessage tools(ToolCall... toolCalls) {
+        return tools(Arrays.asList(toolCalls));
     }
 
     /**
@@ -87,16 +84,17 @@ public record AssistantMessage(
      * @return a new {@link AssistantMessage}
      */
     public static AssistantMessage tools(List<ToolCall> toolCalls) {
-        return tools(null, null, toolCalls);
+        return tools(null, toolCalls);
     }
 
     /**
-     * Creates a new {@link AssistantMessage} from one or more {@link ToolCall} instances.
+     * Creates a new {@link AssistantMessage}.
      *
+     * @param name An optional name for the participant. Provides the model information to differentiate between participants of the same role.
      * @param toolCalls the assistant's tool calls
      * @return a new {@link AssistantMessage}
      */
-    public static AssistantMessage of(ToolCall... toolCalls) {
-        return tools(Arrays.asList(toolCalls));
+    public static AssistantMessage tools(String name, List<ToolCall> toolCalls) {
+        return new AssistantMessage(ROLE, null, name, null, toolCalls);
     }
 }

@@ -2,15 +2,32 @@ name: Prepare release
 
 on:
   pull_request:
-    types: [ closed ]
+    types: [closed]
     paths:
-      - '.github/project.yml'
+      - ".github/project.yml"
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
 
 jobs:
+  integration-tests:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Run Integration Tests
+        run: ./mvnw verify -Pintegration-tests -B -ntp
+
   pre-release:
     name: Prepare release
     runs-on: ubuntu-latest

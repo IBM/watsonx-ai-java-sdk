@@ -7,9 +7,6 @@ package com.ibm.watsonx.ai.foundationmodel;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.jsonResponse;
-import static com.ibm.watsonx.ai.WatsonxService.API_VERSION;
-import static com.ibm.watsonx.ai.WatsonxService.ML_API_PATH;
-import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +27,11 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelResponse.Pagination;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 public class FoundationModelServiceTest extends AbstractWatsonxTest {
+
+    protected static final String ML_API_PATH = "/ml/v1";
+    protected static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
+    protected static final String API_VERSION = "2025-04-23";
+    protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
 
     @Test
     void test_get_models_without_parameters() throws Exception {
