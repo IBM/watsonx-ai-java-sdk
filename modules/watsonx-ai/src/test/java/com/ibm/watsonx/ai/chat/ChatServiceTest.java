@@ -30,6 +30,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
@@ -3285,6 +3286,36 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 IllegalArgumentException.class,
                 () -> chatService.chatStreaming(chatRequest, mock(ChatHandler.class)),
                 "Extraction tags are required when using control messages");
+        });
+    }
+
+    @Test
+    void test_builder_with_api_key() {
+
+        withWatsonxServiceMock(() -> {
+
+            var chatServiceBuilder = ChatService.builder()
+                .apiKey("my-api-key");
+
+            assertNotNull(chatServiceBuilder.getAuthenticationProvider());
+            var spyAuthenticator = spy(chatServiceBuilder.getAuthenticationProvider());
+
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn(
+                """
+                    {
+                        "access_token": "my-super-token",
+                        "refresh_token": "not_supported",
+                        "ims_user_id": 14364907,
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                        "expiration": 1757106813,
+                        "scope": "ibm openid"
+                    }""");
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+            spyAuthenticator.token();
+            assertEquals("grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&apikey=my-api-key", bodyPublisherToString(mockHttpRequest));
         });
     }
 }

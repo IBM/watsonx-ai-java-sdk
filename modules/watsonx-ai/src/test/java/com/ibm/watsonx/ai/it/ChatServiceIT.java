@@ -72,9 +72,9 @@ public class ChatServiceIT {
 
             var chatService = ChatService.builder()
                 .url(URL)
+                .apiKey(API_KEY)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
-                .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();

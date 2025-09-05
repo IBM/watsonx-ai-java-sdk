@@ -53,13 +53,13 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
  *
  * <pre>{@code
  * DeploymentService deploymentService = DeploymentService.builder()
- *     .url("https://...") // or use CloudRegion
- *     .authenticationProvider(authProvider)
+ *     .url("https://...")      // or use CloudRegion
+ *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .build();
  *
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#deployments-text-chat" target="_blank"> official documentation</a>.
+ * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}. *
  *
  * @see AuthenticationProvider
  */
@@ -332,17 +332,11 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      *
      * <pre>{@code
      * DeploymentService deploymentService = DeploymentService.builder()
-     *     .url("https://...") // or use CloudRegion
-     *     .deployment("...")
-     *     .authenticationProvider(authProvider)
+     *     .url("https://...")      // or use CloudRegion
+     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .build();
-     *
-     * ChatResponse response = deploymentService.chat(
-     *     UserMessage.text("Tell me a joke")
-     * );
      * }</pre>
      *
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

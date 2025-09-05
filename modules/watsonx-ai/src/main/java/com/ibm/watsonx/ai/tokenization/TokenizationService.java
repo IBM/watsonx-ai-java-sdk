@@ -28,8 +28,8 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  *
  * <pre>{@code
  * TokenizationService tokenizationService = TokenizationService.builder()
- *     .url("https://...") // or use CloudRegion
- *     .authenticationProvider(authProvider)
+ *     .url("https://...")      // or use CloudRegion
+ *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-3-8b-instruct")
  *     .build();
@@ -37,7 +37,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * TokenizationResponse response = tokenizationService.tokenize("Tell me a joke");
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-tokenization" target="_blank"> official documentation</a>.
+ * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */
@@ -148,8 +148,8 @@ public final class TokenizationService extends ModelService {
      *
      * <pre>{@code
      * TokenizationService tokenizationService = TokenizationService.builder()
-     *     .url("https://...") // or use CloudRegion
-     *     .authenticationProvider(authProvider)
+     *     .url("https://...")      // or use CloudRegion
+     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-3-8b-instruct")
      *     .build();
@@ -157,7 +157,6 @@ public final class TokenizationService extends ModelService {
      * TokenizationResponse response = tokenizationService.tokenize("Tell me a joke");
      * }</pre>
      *
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

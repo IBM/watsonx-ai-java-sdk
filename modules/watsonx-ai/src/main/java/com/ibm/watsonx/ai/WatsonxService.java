@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
@@ -172,9 +173,26 @@ public abstract class WatsonxService {
         }
 
         /**
-         * Sets the {@link AuthenticationProvider} used for authenticating requests.
+         * Sets an {@link IAMAuthenticator}-based {@link AuthenticationProvider}, initialized from the provided IBM Cloud API key.
+         * <p>
+         * For alternative authentication mechanisms, use {@link #authenticationProvider(AuthenticationProvider)}.
          *
-         * @param authenticationProvider {@link AuthenticationProvider} instance
+         * @param apiKey IBM Cloud API key
+         */
+        public T apiKey(String apiKey) {
+            requireNonNull(apiKey, "The apiKey must be provided");
+            authenticationProvider = IAMAuthenticator.builder().apiKey(apiKey).build();
+            return (T) this;
+        }
+
+        /**
+         * Sets the {@link AuthenticationProvider} used to authenticate requests.
+         * <p>
+         * Use this method to specify a custom or non-IAM implementation.
+         * <p>
+         * For IBM Cloud IAM authentication, {@link #apiKey(String)} provides a simpler alternative.
+         *
+         * @param authenticationProvider non-null {@link AuthenticationProvider} instance
          */
         public T authenticationProvider(AuthenticationProvider authenticationProvider) {
             this.authenticationProvider = authenticationProvider;

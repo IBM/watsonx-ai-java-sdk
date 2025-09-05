@@ -51,9 +51,9 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
  *
  * <pre>{@code
  * TextExtractionService textExtractionService = TextExtractionService.builder()
- *   .url("https://...") // or use CloudRegion
- *   .cosUrl("https://...") // or use CosUrl
- *   .authenticationProvider(authProvider)
+ *   .url("https://...")        // or use CloudRegion
+ *   .cosUrl("https://...")     // or use CosUrl
+ *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
  *   .projectId("my-project-id")
  *   .documentReference("<connection_id>", "<bucket-name")
  *   .resultReference("<connection_id>", "<bucket-name")
@@ -62,7 +62,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
  * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-extraction" target="_blank"> official documentation</a>.
+ * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */
@@ -824,9 +824,9 @@ public final class TextExtractionService extends ProjectService {
      *
      * <pre>{@code
      * TextExtractionService textExtractionService = TextExtractionService.builder()
-     *   .url("https://...") // or use CloudRegion
-     *   .cosUrl("https://...") // or use CosUrl
-     *   .authenticationProvider(authProvider)
+     *   .url("https://...")        // or use CloudRegion
+     *   .cosUrl("https://...")     // or use CosUrl
+     *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
      *   .projectId("my-project-id")
      *   .documentReference("<connection_id>", "<bucket-name")
      *   .resultReference("<connection_id>", "<bucket-name")
@@ -835,7 +835,6 @@ public final class TextExtractionService extends ProjectService {
      * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
      * }</pre>
      *
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

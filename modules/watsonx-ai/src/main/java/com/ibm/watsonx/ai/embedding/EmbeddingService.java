@@ -29,8 +29,8 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  *
  * <pre>{@code
  * EmbeddingService embeddingService = EmbeddingService.builder()
- *     .url("https://...") // or use CloudRegion
- *     .authenticationProvider(authProvider)
+ *     .url("https://...")      // or use CloudRegion
+ *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-embedding-278m-multilingual")
  *     .build();
@@ -41,7 +41,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  * );
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-embeddings" target="_blank"> official documentation</a>.
+ * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */
@@ -144,8 +144,8 @@ public final class EmbeddingService extends ModelService {
      *
      * <pre>{@code
      * EmbeddingService embeddingService = EmbeddingService.builder()
-     *     .url("https://...") // or use CloudRegion
-     *     .authenticationProvider(authProvider)
+     *     .url("https://...")      // or use CloudRegion
+     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-embedding-278m-multilingual")
      *     .build();
@@ -156,7 +156,6 @@ public final class EmbeddingService extends ModelService {
      * );
      * }</pre>
      *
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {
