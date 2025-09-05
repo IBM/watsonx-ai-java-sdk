@@ -12,6 +12,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
+import static java.util.Objects.nonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -2909,10 +2910,13 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             var chatHandler = new ChatHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                    var nextTimeout = partialResponse.equals("C") ? Duration.ofMillis(500) : Duration.ofMillis(0);
-                    futures.add(CompletableFuture.supplyAsync(
-                        () -> listResult.add(partialResponse),
-                        CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, executor)));
+                    var nextTimeout = partialResponse.equals("C") ? Duration.ofMillis(500) : null;
+                    if (nonNull(nextTimeout))
+                        futures.add(CompletableFuture.supplyAsync(
+                            () -> listResult.add(partialResponse),
+                            CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, executor)));
+                    else
+                        futures.add(CompletableFuture.completedFuture(listResult.add(partialResponse)));
                 }
 
                 @Override

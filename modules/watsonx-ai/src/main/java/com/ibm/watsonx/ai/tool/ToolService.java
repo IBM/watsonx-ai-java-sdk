@@ -46,7 +46,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * var result = toolService.run(input);
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
  *
  * @see GoogleSearchTool
  * @see TavilySearchTool
