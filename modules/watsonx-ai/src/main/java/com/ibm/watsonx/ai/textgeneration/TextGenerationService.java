@@ -32,8 +32,8 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *
  * <pre>{@code
  * TextGenerationService textGenerationService = TextGenerationService.builder()
- *     .url("https://...") // or use CloudRegion
- *     .authenticationProvider(authProvider)
+ *     .url("https://...")      // or use CloudRegion
+ *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-13b-instruct-v2")
  *     .build();
@@ -41,7 +41,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * TextGenerationResponse response = textGenerationService.generate("Hello!");
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-generation" target="_blank"> official documentation</a>.
+ * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */
@@ -223,8 +223,8 @@ public final class TextGenerationService extends ModelService implements TextGen
      *
      * <pre>{@code
      * TextGenerationService textGenerationService = TextGenerationService.builder()
-     *     .url("https://...") // or use CloudRegion
-     *     .authenticationProvider(authProvider)
+     *     .url("https://...")      // or use CloudRegion
+     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-13b-instruct-v2")
      *     .build();
@@ -232,7 +232,6 @@ public final class TextGenerationService extends ModelService implements TextGen
      * TextGenerationResponse response = textGenerationService.generate("Hello!");
      * }</pre>
      *
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

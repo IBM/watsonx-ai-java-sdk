@@ -28,8 +28,8 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *
  * <pre>{@code
  * TimeSeriesService tsService = TimeSeriesService.builder()
- *     .url("https://...") // or use CloudRegion
- *     .authenticationProvider(authProvider)
+ *     .url("https://...")      // or use CloudRegion
+ *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-ttm-1536-96-r2")
  *     .build();
@@ -54,7 +54,7 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  * ForecastResponse response = tsService.forecast(request);
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#time-series-forecast" target="_blank"> official documentation</a>.
+ * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */
@@ -149,8 +149,8 @@ public final class TimeSeriesService extends ModelService implements TimeSeriesP
      *
      * <pre>{@code
      * TimeSeriesService tsService = TimeSeriesService.builder()
-     *     .url("https://...") // or use CloudRegion
-     *     .authenticationProvider(authProvider)
+     *     .url("https://...")      // or use CloudRegion
+     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-ttm-1536-96-r2")
      *     .build();
@@ -175,7 +175,6 @@ public final class TimeSeriesService extends ModelService implements TimeSeriesP
      * ForecastResponse response = tsService.forecast(request);
      * }</pre>
      *
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

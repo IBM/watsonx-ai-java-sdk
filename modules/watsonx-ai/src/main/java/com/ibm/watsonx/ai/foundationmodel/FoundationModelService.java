@@ -36,9 +36,6 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  * var maxSequenceLength = result.maxSequenceLength();
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#list-foundation-model-specs" target="_blank"> official
- * documentation</a>.
- *
  * @see AuthenticationProvider
  */
 public final class FoundationModelService extends WatsonxService {
@@ -222,7 +219,6 @@ public final class FoundationModelService extends WatsonxService {
      * var maxSequenceLength = result.maxSequenceLength();
      * }</pre>
      *
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

@@ -29,8 +29,8 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  *
  * <pre>{@code
  * RerankService rerankService = RerankService.builder()
- *     .url("https://...") // or use CloudRegion
- *     .authenticationProvider(authProvider)
+ *     .url("https://...")      // or use CloudRegion
+ *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
  *     .build();
@@ -44,7 +44,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  * );
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#text-rerank" target="_blank"> official documentation</a>.
+ * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */
@@ -128,8 +128,8 @@ public final class RerankService extends ModelService {
      *
      * <pre>{@code
      * RerankService rerankService = RerankService.builder()
-     *     .url("https://...") // or use CloudRegion
-     *     .authenticationProvider(authProvider)
+     *     .url("https://...")      // or use CloudRegion
+     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
      *     .build();
@@ -143,7 +143,6 @@ public final class RerankService extends ModelService {
      * );
      * }</pre>
      *
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {

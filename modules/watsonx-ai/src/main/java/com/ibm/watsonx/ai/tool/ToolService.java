@@ -36,8 +36,8 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  *
  * <pre>{@code
  * ToolService service = ToolService.builder()
- *     .url("https://...") // or use CloudRegion
- *     .authenticationProvider(authProvider)
+ *     .url("https://...")  // or use CloudRegion
+ *     .apiKey("api-key")   // creates an IAM-based AuthenticationProvider
  *     .build();
  *
  * var structuredInput = Map.<String, Object>of("q", input);
@@ -46,8 +46,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * var result = toolService.run(input);
  * }</pre>
  *
- * For more information, see the <a href="https://cloud.ibm.com/apidocs/watsonx-ai#get-utility-agent-tools" target="_blank">official
- * documentation</a>.
+ * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
  *
  * @see GoogleSearchTool
  * @see TavilySearchTool
@@ -198,16 +197,20 @@ public final class ToolService extends WatsonxService {
      *
      * <pre>{@code
      * ToolService service = ToolService.builder()
-     *     .url("https://...") // or use CloudRegion
-     *     .authenticationProvider(authProvider)
+     *     .url("https://...")  // or use CloudRegion
+     *     .apiKey("api-key")   // creates an IAM-based AuthenticationProvider
      *     .build();
+     *
+     * var structuredInput = Map.<String, Object>of("q", input);
+     * var config = Map.<String, Object>of("maxResults", maxResults);
+     * var input = ToolRequest.structuredInput("GoogleSearch", structuredInput, config);
+     * var result = toolService.run(input);
      * }</pre>
      *
      * @see GoogleSearchTool
      * @see WeatherTool
      * @see WebCrawlerTool
      * @see WikipediaTool
-     * @see AuthenticationProvider
      * @return {@link Builder} instance.
      */
     public static Builder builder() {
