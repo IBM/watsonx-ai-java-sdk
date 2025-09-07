@@ -18,7 +18,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.HTML;
 import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.JSON;
@@ -949,7 +948,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
         mockServers(outputFileName, false, false);
 
         String textExtracted = textExtractionService.extractAndFetch(FILE_NAME);
@@ -969,7 +968,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         var inputStream = TextExtractionTest.class.getClassLoader().getResourceAsStream(FILE_NAME);
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
 
         mockServers(outputFileName, false, false);
 
@@ -1032,7 +1031,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
         mockServers(outputFileName, false, false);
 
         var result = textExtractionService.startExtraction(FILE_NAME);
@@ -1094,7 +1093,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
         InputStream inputStream = TextExtractionTest.class.getClassLoader().getResourceAsStream(FILE_NAME);
-        String outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        String outputFileName = FILE_NAME.replace(".pdf", ".md");
 
         mockServers(outputFileName, false, false);
 
@@ -1257,7 +1256,6 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     @Test
     void overrideParametersTest() throws Exception {
 
-
         when(mockHttpResponse.body())
             .thenReturn(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, "test.txt", BUCKET_NAME, "submitted"))
             .thenReturn(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, "test.txt", BUCKET_NAME, "completed"));
@@ -1304,6 +1302,50 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         });
     }
 
+    @Test
+    void startExtractionWithOutputFolderName() throws Exception {
+
+        var outputFolderName = "myFolder/";
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+
+        var outputFileName = outputFolderName + FILE_NAME.replace(".pdf", ".md");
+        mockServers(outputFileName, false, false);
+
+        var parameters = TextExtractionParameters.builder().outputFileName(outputFolderName).build();
+        var result = textExtractionService.startExtraction(FILE_NAME, parameters);
+        assertEquals(PROCESS_EXTRACTION_ID, result.metadata().id());
+
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+        cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(0, getRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
+        cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
+    }
+
+    @Test
+    void startExtractionWithOutputFolderNameAndMultipleTypes() throws Exception {
+
+        var outputFolderName = "myFolder/";
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+
+        mockServers(outputFolderName, false, false);
+
+        var parameters = TextExtractionParameters.builder()
+            .requestedOutputs(Type.MD, Type.PLAIN_TEXT)
+            .outputFileName(outputFolderName)
+            .build();
+
+        var result = textExtractionService.startExtraction(FILE_NAME, parameters);
+        assertEquals(PROCESS_EXTRACTION_ID, result.metadata().id());
+
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+        cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(0, getRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFolderName))));
+        cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFolderName))));
+    }
 
     @Test
     void fetchWithMultipleTypes() throws URISyntaxException {
@@ -1423,7 +1465,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void simulateLongResponseTest() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
 
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
             .inScenario("long_response")
@@ -1476,7 +1518,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void simulateTimeoutResponseTest() {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
 
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
             .inScenario("long_response")
@@ -1617,7 +1659,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
 
         cosServer.stubFor(put("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
@@ -1667,7 +1709,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
 
         cosServer.stubFor(put("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
@@ -1768,7 +1810,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void checkExtractionStatusTest() throws TextExtractionException {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
         var EXPECTED = TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME, "completed");
 
         watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
@@ -1788,7 +1830,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
-        var outputFileName = FILE_NAME.replace(".pdf", ".txt");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
 
         String NEW_CONNECTION_ID = "my-new-connection-id";

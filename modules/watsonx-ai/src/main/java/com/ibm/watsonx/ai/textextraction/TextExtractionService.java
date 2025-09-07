@@ -615,10 +615,10 @@ public final class TextExtractionService extends ProjectService {
             throw new IllegalArgumentException(
                 "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
 
-        if (isNull(outputFileName)) {
+        var isMultiOutput =
+            requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value()) ? true : false;
 
-            var isMultiOutput =
-                requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value()) ? true : false;
+        if (isNull(outputFileName)) {
 
             if (isMultiOutput) {
 
@@ -628,6 +628,14 @@ public final class TextExtractionService extends ProjectService {
 
                 var type = Type.fromValue(requestedOutputs.get(0));
                 outputFileName = TextExtractionUtils.addExtension(path, type);
+            }
+
+        } else {
+
+            var isDirectory = outputFileName.endsWith("/");
+            if (isDirectory && !isMultiOutput) {
+                var type = Type.fromValue(requestedOutputs.get(0));
+                outputFileName = outputFileName + TextExtractionUtils.addExtension(path, type);
             }
         }
 
