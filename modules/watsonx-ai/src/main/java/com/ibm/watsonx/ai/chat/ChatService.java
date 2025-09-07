@@ -55,7 +55,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * );
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */

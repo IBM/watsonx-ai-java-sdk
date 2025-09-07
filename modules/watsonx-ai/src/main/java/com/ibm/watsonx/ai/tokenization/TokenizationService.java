@@ -37,7 +37,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * TokenizationResponse response = tokenizationService.tokenize("Tell me a joke");
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */

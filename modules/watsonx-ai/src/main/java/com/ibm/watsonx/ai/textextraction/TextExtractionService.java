@@ -55,14 +55,14 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
  *   .cosUrl("https://...")     // or use CosUrl
  *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
  *   .projectId("my-project-id")
- *   .documentReference("<connection_id>", "<bucket-name")
- *   .resultReference("<connection_id>", "<bucket-name")
+ *   .documentReference("<connection_id>", "<bucket-name>")
+ *   .resultReference("<connection_id>", "<bucket-name>")
  *   .build();
  *
  * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@link #authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */
@@ -83,75 +83,79 @@ public final class TextExtractionService extends ProjectService {
     }
 
     /**
-     * Starts the text extraction process for a document. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename
-     * but using the {@code .md} extension. To customize the output behavior, use the method with the {@link TextExtractionParameters} class.
-     *
-     * <pre>
-     * {@code
-     * String startExtraction(String absolutePath, TextExtractionParameters parameters)
-     * }
-     * </pre>
-     *
-     * Refer to the <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx">official
-     * documentation</a> for more details on the supported formats, features, and limitations of the text extraction service.
+     * Starts the text extraction process for a document that already exists in the configured {@link #documentReference document reference}.
      * <p>
-     * <b>Note:</b> This method does not return the extracted value, use {@code extractAndFetch} to extract the text immediately.
+     * The {@code absolutePath} parameter identifies the location of the file <b>inside the document reference</b> (not a local filesystem path). The
+     * extracted text is saved as a new <b>Markdown</b> file in the configured {@link #resultReference result reference}, preserving the original
+     * filename but using the {@code .md} extension. To customize the output behavior, use the overloaded method with
+     * {@link TextExtractionParameters}.
+     * <p>
+     * If you want to process a <b>local file</b>, use {@link #uploadAndStartExtraction(File)} instead.
+     * <p>
+     * <b>Note:</b> This method does not return the extracted text content. Use {@link #extractAndFetch(String)} to run the extraction and fetch the
+     * result immediately.
      *
      * @param absolutePath The location of the document to be processed.
      * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
+     *
+     * @see #uploadAndStartExtraction(File)
+     * @see #extractAndFetch(String)
      */
     public TextExtractionResponse startExtraction(String absolutePath) throws TextExtractionException {
         return startExtraction(absolutePath, null);
     }
 
     /**
-     * Starts the text extraction process for a document.
+     * Starts the text extraction process for a document that already exists in the configured {@link #documentReference document reference}.
      * <p>
-     * The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension. Output
-     * behavior can be customized using the {@link TextExtractionParameters} parameter. Refer to the
-     * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html?context=wx">official documentation</a>
-     * for more details on the supported formats, features, and limitations of the text extraction service.
+     * The {@code absolutePath} parameter identifies the location of the file <b>inside the document reference</b> (not a local filesystem path). The
+     * extracted text is saved as a new <b>Markdown</b> file in the configured {@link #resultReference result reference}, preserving the original
+     * filename but using the {@code .md} extension.
      * <p>
-     * <b>Note:</b> This method does not return the extracted value, use {@code extractAndFetch} to extract the text immediately.
+     * If you want to process a <b>local file</b>, use {@link #uploadAndStartExtraction(File, TextExtractionParameters)} instead.
+     * <p>
+     * <b>Note:</b> This method does not return the extracted text content. Use {@link #extractAndFetch(String, String, TextExtractionParameters)} to
+     * run the extraction and fetch the result immediately.
      *
      * @param absolutePath The location of the document to be processed.
      * @param parameters The configuration parameters for text extraction.
      * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
+     *
+     * @see #uploadAndStartExtraction(File, TextExtractionParameters)
+     * @see #extractAndFetch(String, TextExtractionParameters)
      */
     public TextExtractionResponse startExtraction(String absolutePath, TextExtractionParameters parameters) throws TextExtractionException {
         return startExtraction(UUID.randomUUID().toString(), absolutePath, parameters, false);
     }
 
     /**
-     * Uploads a local file and starts the text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original
-     * filename but using the {@code .md} extension by default. To customize the output behavior you can use the {@link TextExtractionParameters}
-     * class.
-     *
-     * <pre>
-     * {@code
-     * String uploadAndStartExtraction(File file, TextExtractionParameters parameters);
-     * }
-     * </pre>
-     *
-     * <b>Note:</b> This method does not return the extracted text. Use {@code uploadExtractAndFetch} to extract the text immediately.
+     * Uploads a local file in the configured {@link #documentReference document reference} and starts the text extraction process. The extracted text
+     * is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by default. To customize the
+     * output behavior, use the overloaded method with {@link TextExtractionParameters}.
+     * <p>
+     * <b>Note:</b> This method does not return the extracted text. Use {@link #uploadExtractAndFetch(File)} to extract the text immediately.
      *
      * @param file The local file to be uploaded and processed.
      * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
+     *
+     * @see #uploadAndStartExtraction(File, TextExtractionParameters)
+     * @see #uploadExtractAndFetch(File)
      */
     public TextExtractionResponse uploadAndStartExtraction(File file) throws TextExtractionException {
         return uploadAndStartExtraction(file, null);
     }
 
     /**
-     * Uploads a local file and starts the text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original
-     * filename but using the {@code .md} extension by default. Output behavior can be customized using the {@link TextExtractionParameters}
-     * parameter.
+     * Uploads a local file in the configured {@link #documentReference document reference} and starts the text extraction process. The extracted text
+     * is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by default.
      * <p>
-     * <b>Note:</b> This method does not return the extracted text. Use {@code uploadExtractAndFetch} to extract the text immediately.
+     * <b>Note:</b> This method does not return the extracted text. Use {@link #uploadExtractAndFetch(File, TextExtractionParameters)} to extract the
+     * text immediately.
      *
      * @param file The local file to be uploaded and processed.
      * @param parameters The configuration parameters for text extraction.
      * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
+     * @see #uploadExtractAndFetch(File, TextExtractionParameters)
      */
     public TextExtractionResponse uploadAndStartExtraction(File file, TextExtractionParameters parameters) throws TextExtractionException {
         requireNonNull(file);
@@ -170,37 +174,36 @@ public final class TextExtractionService extends ProjectService {
     }
 
     /**
-     * Uploads an InputStream and starts the asynchronous text extraction process. The extracted text is saved as a new <b>Markdown</b> file,
-     * preserving the original filename but using the {@code .md} extension by default. To customize the output behavior you can use the
-     * {@link TextExtractionParameters} class.
-     *
-     * <pre>
-     * {@code
-     * String uploadAndStartExtraction(InputStream is, String fileName, TextExtractionParameters parameters);
-     * }
-     * </pre>
-     *
-     * <b>Note:</b> This method does not return the extracted text. Use {@code uploadExtractAndFetch} to extract the text immediately.
+     * Uploads an {@code InputStream} in the configured {@link #documentReference document reference} and starts the asynchronous text extraction
+     * process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by
+     * default. To customize the output behavior, use the overloaded method with {@link TextExtractionParameters}.
+     * <p>
+     * <b>Note:</b> This method does not return the extracted text. Use {@link #uploadExtractAndFetch(InputStream, String)} to extract the text
+     * immediately.
      *
      * @param is The input stream of the file to be uploaded and processed.
      * @param fileName The name of the file to be uploaded and processed.
      * @return The unique identifier of the text extraction process.
+     * @see #uploadAndStartExtraction(InputStream, String, TextExtractionParameters)
+     * @see #uploadExtractAndFetch(InputStream, String)
      */
     public TextExtractionResponse uploadAndStartExtraction(InputStream is, String fileName) throws TextExtractionException {
         return uploadAndStartExtraction(is, fileName, null);
     }
 
     /**
-     * Uploads an InputStream and starts the asynchronous text extraction process. The extracted text is saved as a new <b>Markdown</b> file,
-     * preserving the original filename but using the {@code .md} extension by default. Output behavior can be customized using the
-     * {@link TextExtractionParameters} class.
+     * Uploads an {@code InputStream} in the configured {@link #documentReference document reference} and starts the asynchronous text extraction
+     * process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by
+     * default.
      * <p>
-     * <b>Note:</b> This method does not return the extracted text. Use {@code uploadExtractAndFetch} to extract the text immediately.
+     * <b>Note:</b> This method does not return the extracted text. Use {@link #uploadExtractAndFetch(InputStream, String, TextExtractionParameters)}
+     * to extract the text immediately.
      *
      * @param is The input stream of the file to be uploaded and processed.
      * @param fileName The name of the file to be uploaded and processed.
      * @param parameters The configuration parameters for text extraction.
      * @return The unique identifier of the text extraction process.
+     * @see #uploadExtractAndFetch(InputStream, String, TextExtractionParameters)
      */
     public TextExtractionResponse uploadAndStartExtraction(InputStream is, String fileName, TextExtractionParameters parameters)
         throws TextExtractionException {
@@ -210,32 +213,22 @@ public final class TextExtractionService extends ProjectService {
     }
 
     /**
-     * Starts the text extraction process for a file that is already present and returns the extracted text value. The extracted text is saved as a
-     * new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by default. To customize the output behavior,
-     * use the method with the {@link TextExtractionParameters} parameter.
-     *
-     * <pre>
-     * {@code
-     * String extractAndFetch(String absolutePath, TextExtractionParameters parameters);
-     * }
-     * </pre>
-     *
-     * <b>Note:</b> The default timeout value is set to 60 seconds.
+     * Starts the text extraction process for a file that is already present in the configured {@link #documentReference document reference} and
+     * returns the extracted text value. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the
+     * {@code .md} extension by default. To customize the output behavior, use the overloaded method with {@link TextExtractionParameters}.
      *
      * @param absolutePath The absolute path of the file.
      * @return The text extracted.
+     * @see #extractAndFetch(String, String, TextExtractionParameters)
      */
     public String extractAndFetch(String absolutePath) throws TextExtractionException {
         return extractAndFetch(absolutePath, null);
     }
 
     /**
-     * Starts the text extraction process for a file that is already present and returns the extracted text value. The extracted text is saved as a
-     * new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by default. Output behavior can be customized
-     * using the {@link TextExtractionParameters} class.
-     * <p>
-     * <b>Note:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to 60
-     * seconds.
+     * Starts the text extraction process for a file that is already present in the configured {@link #documentReference document reference} and
+     * returns the extracted text value. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the
+     * {@code .md} extension by default.
      *
      * @param absolutePath The path of the document to extract text from.
      * @param parameters The configuration parameters for text extraction.
@@ -246,32 +239,22 @@ public final class TextExtractionService extends ProjectService {
     }
 
     /**
-     * Uploads a local file, starts text extraction process and returns the extracted text value. The extracted text is saved as a new <b>Markdown</b>
-     * file, preserving the original filename but using the {@code .md} extension by default. To customize the output behavior, use the method with
-     * the {@link Parameters} class.
-     *
-     * <pre>
-     * {@code
-     * String uploadExtractAndFetch(File file, TextExtractionParameters parameters);
-     * }
-     * </pre>
-     *
-     * <b>Note:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to 60
-     * seconds.
+     * Uploads a local file in the configured {@link #documentReference document reference}, starts text extraction process and returns the extracted
+     * text value. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by
+     * default. To customize the output behavior, use the overloaded method with {@link TextExtractionParameters}.
      *
      * @param file The local file to be uploaded and processed.
      * @return The text extracted.
+     * @see #uploadExtractAndFetch(File, TextExtractionParameters)
      */
     public String uploadExtractAndFetch(File file) throws TextExtractionException {
         return uploadExtractAndFetch(file, null);
     }
 
     /**
-     * Uploads a local file and starts the text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving the original
-     * filename but using the {@code .md} extension by default. Output behavior can be customized using the {@link TextExtractionParameters} class.
-     * <p>
-     * <b>Notes:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to
-     * 60 seconds.
+     * Uploads a local file in the configured {@link #documentReference document reference}, starts text extraction process and returns the extracted
+     * text value. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by
+     * default.
      *
      * @param file The local file to be uploaded and processed.
      * @param parameters The configuration parameters for text extraction.
@@ -301,34 +284,23 @@ public final class TextExtractionService extends ProjectService {
     }
 
     /**
-     * Uploads an InputStream, starts text extraction process and returns the extracted text value. The extracted text is saved as a new
-     * <b>Markdown</b> file, preserving the original filename but using the {@code .md} extension by default. To customize the output behavior, use
-     * the method with the {@link Parameters} class.
-     *
-     * <pre>
-     * {@code
-     * String uploadExtractAndFetch(InputStream is, String fileName, TextExtractionParameters parameters);
-     * }
-     * </pre>
-     *
-     * <li><b>Note:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set
-     * to 60 seconds.
+     * Uploads an {@code InputStream} in the configured {@link #documentReference document reference}, starts text extraction process and returns the
+     * extracted text value. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md}
+     * extension by default. To customize the output behavior, use the overloaded method with {@link TextExtractionParameters}.
      *
      * @param is The input stream of the file to be uploaded and processed.
      * @param fileName The name of the file to be uploaded and processed.
      * @return The text extracted.
+     * @see #uploadExtractAndFetch(InputStream, String, TextExtractionParameters)
      */
     public String uploadExtractAndFetch(InputStream is, String fileName) throws TextExtractionException {
         return uploadExtractAndFetch(is, fileName, null);
     }
 
     /**
-     * Uploads an InputStream and starts the text extraction process. The extracted text is saved as a new <b>Markdown</b> file, preserving the
-     * original filename but using the {@code .md} extension by default. Output behavior can be customized using the {@link TextExtractionParameters}
-     * class.
-     * <p>
-     * <b>Note:</b> This method waits until the extraction process is complete and returns the extracted value. The default timeout value is set to 60
-     * seconds.
+     * Uploads an {@code InputStream} in the configured {@link #documentReference document reference}, starts text extraction process and returns the
+     * extracted text value. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the {@code .md}
+     * extension by default.
      *
      * @param is The input stream of the file to be uploaded and processed.
      * @param fileName The name of the file to be uploaded and processed.
@@ -381,7 +353,7 @@ public final class TextExtractionService extends ProjectService {
     }
 
     /**
-     * Uploads a file to Cloud Object Storage.
+     * Uploads a file in the configured {@link #documentReference document reference}.
      *
      * @param file the file to be uploaded
      * @return {@code true} if the upload request was successfully sent
@@ -396,7 +368,7 @@ public final class TextExtractionService extends ProjectService {
     }
 
     /**
-     * Uploads an input stream to Cloud Object Storage.
+     * Uploads an input stream in the configured {@link #documentReference document reference}.
      *
      * @param inputStream the input stream to be uploaded
      * @param fileName the name of the file associated with the input stream
@@ -643,10 +615,10 @@ public final class TextExtractionService extends ProjectService {
             throw new IllegalArgumentException(
                 "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
 
-        if (isNull(outputFileName)) {
+        var isMultiOutput =
+            requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value()) ? true : false;
 
-            var isMultiOutput =
-                requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value()) ? true : false;
+        if (isNull(outputFileName)) {
 
             if (isMultiOutput) {
 
@@ -656,6 +628,14 @@ public final class TextExtractionService extends ProjectService {
 
                 var type = Type.fromValue(requestedOutputs.get(0));
                 outputFileName = TextExtractionUtils.addExtension(path, type);
+            }
+
+        } else {
+
+            var isDirectory = outputFileName.endsWith("/");
+            if (isDirectory && !isMultiOutput) {
+                var type = Type.fromValue(requestedOutputs.get(0));
+                outputFileName = outputFileName + TextExtractionUtils.addExtension(path, type);
             }
         }
 
@@ -828,8 +808,8 @@ public final class TextExtractionService extends ProjectService {
      *   .cosUrl("https://...")     // or use CosUrl
      *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
      *   .projectId("my-project-id")
-     *   .documentReference("<connection_id>", "<bucket-name")
-     *   .resultReference("<connection_id>", "<bucket-name")
+     *   .documentReference("<connection_id>", "<bucket-name>")
+     *   .resultReference("<connection_id>", "<bucket-name>")
      *   .build();
      *
      * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
