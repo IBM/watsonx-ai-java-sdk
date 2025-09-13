@@ -3155,6 +3155,10 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         id: 3
                         event: message
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"llo"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+
+                        id: 4
+                        event: close
+                        data: {}
                         """)));
 
         var chatService = ChatService.builder()
