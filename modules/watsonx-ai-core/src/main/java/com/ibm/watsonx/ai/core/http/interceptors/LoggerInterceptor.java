@@ -268,12 +268,10 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             return body;
 
         Matcher matcher = BASE64_IMAGE_PATTERN.matcher(body);
-
         StringBuilder sb = new StringBuilder();
-        while (matcher.find()) {
-            matcher.appendReplacement(sb,
-                matcher.group(1) + matcher.group(2) + "...");
-        }
+
+        while (matcher.find())
+            matcher.appendReplacement(sb, matcher.group(1) + matcher.group(2) + "...");
 
         matcher.appendTail(sb);
         return sb.toString();

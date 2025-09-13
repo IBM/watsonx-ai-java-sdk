@@ -127,6 +127,9 @@ public interface ChatProvider {
                         return;
                     }
 
+                    if (partialMessage.startsWith("event: close"))
+                        return;
+
                     if (!partialMessage.startsWith("data:"))
                         return;
 
@@ -226,7 +229,7 @@ public interface ChatProvider {
                             // There is a bug in the Streaming API: it does not return an empty object for tools without arguments.
                             // Open an issue.
                             var toolHasParameter = toolHasParameters.get(toolFetcher.getName());
-                            var arguments = toolHasParameter ? deltaTool.function().arguments() : "{}";
+                            var arguments = isNull(toolHasParameter) || toolHasParameter ? deltaTool.function().arguments() : "{}";
 
                             if (!arguments.isEmpty()) {
                                 var partialToolCall =
