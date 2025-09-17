@@ -103,7 +103,8 @@ public interface ChatProvider {
             private volatile String refusal;
             private volatile boolean success = true;
             private volatile boolean pendingSSEError = false;
-            private final StringBuffer buffer = new StringBuffer();
+            private final StringBuffer contentBuffer = new StringBuffer();
+            private final StringBuffer thinkingBuffer = new StringBuffer();
             private final ChatResponse chatResponse = new ChatResponse();
             private final List<StreamingToolFetcher> tools = Collections.synchronizedList(new ArrayList<>());
             private final StreamingStateTracker stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
@@ -248,16 +249,20 @@ public interface ChatProvider {
                         if (token.isEmpty())
                             return;
 
-                        buffer.append(token);
+                        contentBuffer.append(token);
 
                         if (nonNull(stateTracker)) {
                             var r = stateTracker.update(token);
                             var content = r.content();
                             synchronized (handler) {
                                 switch(r.state()) {
-                                    case RESPONSE -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
-                                    case THINKING -> content.ifPresent(c -> handler.onPartialThinking(c, chunk));
-                                    case NO_THINKING -> content.ifPresent(c -> handler.onPartialResponse(c, chunk));
+                                    case RESPONSE, NO_THINKING -> content.ifPresent(c -> {
+                                        handler.onPartialResponse(c, chunk);
+                                    });
+                                    case THINKING -> content.ifPresent(c -> {
+                                        thinkingBuffer.append(c);
+                                        handler.onPartialThinking(c, chunk);
+                                    });
                                     case START, UNKNOWN -> {}
                                 }
                             }
@@ -266,6 +271,17 @@ public interface ChatProvider {
                                 handler.onPartialResponse(token, chunk);
                             }
                         }
+                    }
+
+                    if (nonNull(message.delta().reasoningContent())) {
+
+                        String token = message.delta().reasoningContent();
+
+                        if (token.isEmpty())
+                            return;
+
+                        thinkingBuffer.append(token);
+                        handler.onPartialThinking(token, chunk);
                     }
 
                 } catch (RuntimeException e) {
@@ -292,7 +308,8 @@ public interface ChatProvider {
                 try {
 
                     List<ToolCall> toolCalls = null;
-                    String content = buffer.toString();
+                    String content = contentBuffer.toString();
+                    String thinking = thinkingBuffer.toString();
 
                     if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
                         content = null;
@@ -304,11 +321,11 @@ public interface ChatProvider {
                         }
                     }
 
-                    var resultMessage = new ResultMessage(role, content, refusal, toolCalls);
+                    var resultMessage = new ResultMessage(role, content, thinking, refusal, toolCalls);
 
                     synchronized (chatResponse) {
-                        chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
                         chatResponse.setExtractionTags(extractionTags);
+                        chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
                     }
 
                     synchronized (handler) {

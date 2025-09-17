@@ -41,7 +41,7 @@ public final class ChatResponse {
     private String modelVersion;
     private String createdAt;
     private ChatUsage usage;
-    private transient ExtractionTags extractionTags;
+    private ExtractionTags extractionTags;
 
     /**
      * Sets the unique identifier of the chat response.
@@ -214,9 +214,6 @@ public final class ChatResponse {
 
     /**
      * Extracts the assistant's response text from the chat completion.
-     * <p>
-     * If {@link ChatRequest.Builder#thinking(ExtractionTags extractionTags)} was enabled when creating the request, {@link ExtractionTags} will be
-     * applied to ensure that only the response part is returned, excluding any reasoning content.
      *
      * @return the assistant's response text as plain content
      * @throws RuntimeException if the response is of type "tool_calls" and contains no textual content
@@ -226,24 +223,24 @@ public final class ChatResponse {
         if (nonNull(resultMessage.toolCalls()))
             throw new RuntimeException("The response is of the type \"tool_calls\" and contains no text");
 
-        return isNull(extractionTags)
-            ? resultMessage.content()
-            : extractionTags.extractResponse(resultMessage.content());
+        if (isNull(extractionTags))
+            return resultMessage.content();
+        else
+            return extractionTags.extractResponse(resultMessage.content());
     }
 
     /**
      * Extracts the assistant's reasoning text (if present) from the chat completion.
-     * <p>
-     * This requires that {@link ChatRequest.Builder#thinking(ExtrationTags tags)} was enabled when creating the request. Otherwise, {@code null} will
-     * always be returned.
      *
      * @return the reasoning text, or {@code null} if not available
      */
     public String extractThinking() {
         var resultMessage = choices.get(0).getMessage();
-        return isNull(extractionTags)
-            ? null
-            : extractionTags.extractThinking(resultMessage.content());
+
+        if (isNull(extractionTags))
+            return resultMessage.reasoningContent();
+        else
+            return extractionTags.extractThinking(resultMessage.content());
     }
 
     /**
@@ -266,19 +263,27 @@ public final class ChatResponse {
 
     /**
      * Converts this {@code ChatResponse} into an {@link AssistantMessage}.
-     * <p>
-     * The returned message contains only the assistant's response content. Any reasoning part (if
-     * {@link ChatRequest.Builder#thinking(ExtractionTags tags)} was enabled) is always excluded.
      *
      * @return an {@code AssistantMessage} containing the assistant's reply content
      */
     public AssistantMessage toAssistantMessage() {
         var resultMessage = choices.get(0).getMessage();
-        var content = isNull(extractionTags)
-            ? resultMessage.content()
-            : extractionTags.extractResponse(resultMessage.content());
 
-        return new AssistantMessage(AssistantMessage.ROLE, content, null, resultMessage.refusal(),
+        String content;
+        String thinking;
+        if (isNull(extractionTags)) {
+            content = resultMessage.content();
+            thinking = resultMessage.reasoningContent();
+        } else {
+            content = extractionTags.extractResponse(resultMessage.content());
+            thinking = extractionTags.extractThinking(resultMessage.content());
+        }
+
+        return new AssistantMessage(
+            content,
+            thinking,
+            null,
+            resultMessage.refusal(),
             resultMessage.toolCalls());
     }
 

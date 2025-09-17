@@ -9,6 +9,7 @@ import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
+import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
@@ -21,50 +22,43 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        try {
-            var url = URI.create(config.getValue("WATSONX_URL", String.class));
-            var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-            var deployment = config.getValue("WATSONX_DEPLOYMENT", String.class);
-            var spaceId = config.getValue("WATSONX_SPACE_ID", String.class);
+        var url = URI.create(config.getValue("WATSONX_URL", String.class));
+        var apiKey = config.getValue("WATSONX_API_KEY", String.class);
+        var deployment = config.getValue("WATSONX_DEPLOYMENT_ID", String.class);
+        var spaceId = config.getValue("WATSONX_SPACE_ID", String.class);
 
-            AuthenticationProvider authProvider = IAMAuthenticator.builder()
-                .apiKey(apiKey)
-                .timeout(Duration.ofSeconds(60))
-                .build();
+        AuthenticationProvider authProvider = IAMAuthenticator.builder()
+            .apiKey(apiKey)
+            .timeout(Duration.ofSeconds(60))
+            .build();
 
-            DeploymentService deploymentService = DeploymentService.builder()
-                .authenticationProvider(authProvider)
-                .url(url)
-                .build();
+        DeploymentService deploymentService = DeploymentService.builder()
+            .authenticationProvider(authProvider)
+            .url(url)
+            .build();
 
-            var deploymentInfo = deploymentService.findById(
-                FindByIdRequest.builder()
-                    .spaceId(spaceId)
-                    .deploymentId(deployment)
-                    .build()
-            );
-
-            System.out.println("""
-                ---------------------------------------------
-                Model: %s
-                Deployment Asset Type: %s
-                Deployment Status: %s
-                ---------------------------------------------""".formatted(
-                deploymentInfo.metadata().name(), deploymentInfo.entity().deployedAssetType(), deploymentInfo.entity().status().state()));
-
-            var message = "How are you?";
-            var chatRequest = ChatRequest.builder()
+        var deploymentInfo = deploymentService.findById(
+            FindByIdRequest.builder()
+                .spaceId(spaceId)
                 .deploymentId(deployment)
-                .messages(UserMessage.text(message))
-                .build();
+                .build()
+        );
 
-            System.out.println("USER: ".concat(message));
-            System.out.println("ASSISTANT: ".concat(deploymentService.chat(chatRequest).extractContent()));
+        System.out.println("""
+            ---------------------------------------------
+            Model: %s
+            Deployment Asset Type: %s
+            Deployment Status: %s
+            ---------------------------------------------""".formatted(
+            deploymentInfo.metadata().name(), deploymentInfo.entity().deployedAssetType(), deploymentInfo.entity().status().state()));
 
-        } catch (Exception e) {
-            // e.printStackTrace();
-        } finally {
-            System.exit(0);
-        }
+        var message = "How are you?";
+        var chatRequest = ChatRequest.builder()
+            .deploymentId(deployment)
+            .messages(UserMessage.text(message))
+            .build();
+
+        System.out.println("USER: ".concat(message));
+        System.out.println("ASSISTANT: ".concat(deploymentService.chat(chatRequest).extractContent()));
     }
 }

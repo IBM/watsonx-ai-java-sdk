@@ -26,7 +26,7 @@ public final class JacksonProvider implements JsonProvider {
     public JacksonProvider() {
         this.objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .setSerializationInclusion(Include.NON_NULL)
+            .setDefaultPropertyInclusion(Include.NON_NULL)
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .findAndRegisterModules();
     }
