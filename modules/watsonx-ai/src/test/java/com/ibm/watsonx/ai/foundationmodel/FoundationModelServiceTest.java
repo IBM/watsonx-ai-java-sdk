@@ -28,11 +28,6 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
-    protected static final String ML_API_PATH = "/ml/v1";
-    protected static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
-    protected static final String API_VERSION = "2025-04-23";
-    protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
-
     @Test
     void test_get_models_without_parameters() throws Exception {
 
@@ -113,7 +108,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
         var result = service.getModels(parameters);
         assertEquals(100, result.limit());
-        assertEquals(new Pagination("https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_specs?version=2025-04-23"), result.first());
+        assertEquals(new Pagination("https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_specs?version=%s".formatted(API_VERSION)), result.first());
         assertEquals(35, result.totalCount());
         assertEquals(35, result.resources().size());
 
@@ -189,7 +184,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
         var result = service.getTasks(parameters);
         assertEquals(100, result.limit());
-        assertEquals(new Pagination("https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_tasks?version=2025-04-23"), result.first());
+        assertEquals(new Pagination("https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_tasks?version=%s".formatted(API_VERSION)), result.first());
         assertEquals(12, result.totalCount());
         assertEquals(12, result.resources().size());
 

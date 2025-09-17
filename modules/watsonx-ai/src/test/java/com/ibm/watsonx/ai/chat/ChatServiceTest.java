@@ -259,7 +259,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             chatService.chat(messages);
             HttpRequest actualRequest = mockHttpRequest.getValue();
-            assertEquals("https://eu-de.ml.cloud.ibm.com/ml/v1/text/chat?version=2025-04-23",
+            assertEquals("https://eu-de.ml.cloud.ibm.com/ml/v1/text/chat?version=%s".formatted(API_VERSION),
                 actualRequest.uri().toString());
             assertEquals("Bearer my-super-token", actualRequest.headers().firstValue("Authorization").orElse(""));
             assertEquals("application/json", actualRequest.headers().firstValue("Accept").orElse(""));
@@ -1648,7 +1648,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         var httpPort = wireMock.getPort();
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withRequestBody(equalToJson("""
                 {
@@ -1867,7 +1867,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         var httpPort = wireMock.getPort();
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson("""
@@ -2324,7 +2324,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         var httpPort = wireMock.getPort();
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withChunkedDribbleDelay(4, 200)
@@ -2402,7 +2402,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         var httpPort = wireMock.getPort();
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withBody(
@@ -2459,7 +2459,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         var httpPort = wireMock.getPort();
         String BODY = new String(ClassLoader.getSystemResourceAsStream("thinking_streaming_response.txt").readAllBytes());
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withRequestBody(equalToJson("""
                 {
@@ -2710,7 +2710,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     @Test
     void test_chat_streaming_model_not_supported_exception() throws Exception {
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .willReturn(aResponse()
                 .withStatus(404)
@@ -2769,7 +2769,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     @Test
     void test_chat_streaming_error_event() {
 
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withChunkedDribbleDelay(2, 10)

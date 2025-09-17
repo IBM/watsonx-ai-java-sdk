@@ -87,7 +87,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
             .addAll("ID1", Arrays.asList("D1", "D1", "D1"))
             .addAll("TARGET1", Arrays.asList(1.46, 2.34, 4.55));
 
-        wireMock.stubFor(post("/ml/v1/time_series/forecast?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/time_series/forecast?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -207,7 +207,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
             .add("ID1", "D1", 3)
             .addAll("TARGET1", 1.46, 2.34, 4.55);
 
-        wireMock.stubFor(post("/ml/v1/time_series/forecast?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/time_series/forecast?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))

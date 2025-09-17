@@ -2,7 +2,7 @@
     "total_count": 12,
     "limit": 100,
     "first": {
-        "href": "https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_tasks?version=2025-04-23"
+        "href": "https://eu-de.ml.cloud.ibm.com/ml/v1/foundation_model_tasks?version=2025-09-03"
     },
     "resources": [
         {
