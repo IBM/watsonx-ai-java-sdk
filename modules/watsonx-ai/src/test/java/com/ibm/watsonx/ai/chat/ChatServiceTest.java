@@ -1797,7 +1797,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(300, TimeUnit.SECONDS));
+        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
         assertEquals(1749764735, response.getCreated());
         assertEquals("2025-06-12T21:45:35.150Z", response.getCreatedAt());
@@ -2815,7 +2815,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         });
 
         try {
-            futureEx.get(300, TimeUnit.SECONDS);
+            futureEx.get(3, TimeUnit.SECONDS);
         } catch (Exception e) {
             var ex = assertInstanceOf(RuntimeException.class, e.getCause());
             assertEquals("error", ex.getMessage());

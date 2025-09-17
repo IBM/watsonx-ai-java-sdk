@@ -693,7 +693,7 @@ public class DeploymentServiceIT {
                 }
             });
 
-            var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(300, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(3, TimeUnit.SECONDS));
             var toolCall = assertDoesNotThrow(() -> toolCallFuture.get(3, TimeUnit.SECONDS));
             var fromPartialTool = assertDoesNotThrow(() -> fromPartialToolCallFuture.get(3, TimeUnit.SECONDS));
             assertThrows(TimeoutException.class, () -> throwableFuture.get(1, TimeUnit.SECONDS));
