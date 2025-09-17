@@ -39,6 +39,8 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     private static final Logger logger = LoggerFactory.getLogger(LoggerInterceptor.class);
     private static final Pattern BASE64_IMAGE_PATTERN =
         Pattern.compile("(data:[\\w\\/+]+;base64,)(.{15})([^\"]+)");
+    private static final Pattern API_KEY_PATTERN =
+        Pattern.compile("\"(api-key|apiKey)\"\\s*:\\s*\"([^\"]+\")", Pattern.CASE_INSENSITIVE);
 
     private final boolean logRequest;
     private final boolean logResponse;
@@ -235,7 +237,9 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             headers = HttpUtils.inOneLine(request.headers().map());
             joiner.add("- headers: " + headers);
             if (nonNull(body)) {
-                body = formatBase64ImageForLogging(body);
+                body = formatBase64Image(body);
+                body = maskApiKeysInJsonBody(body);
+
                 var headersMap = request.headers().map();
                 var contentType = Optional.<String>empty();
 
@@ -262,7 +266,22 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             className.contains("BufferedInputStream");
     }
 
-    private String formatBase64ImageForLogging(String body) {
+    private String maskApiKeysInJsonBody(String body) {
+
+        if (body == null || body.isBlank())
+            return body;
+
+        Matcher matcher = API_KEY_PATTERN.matcher(body);
+
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find())
+            matcher.appendReplacement(sb, "\"" + matcher.group(1) + "\": \"***\"");
+
+        matcher.appendTail(sb);
+        return sb.isEmpty() ? body : sb.toString();
+    }
+
+    private String formatBase64Image(String body) {
 
         if (body == null || body.isBlank())
             return body;
