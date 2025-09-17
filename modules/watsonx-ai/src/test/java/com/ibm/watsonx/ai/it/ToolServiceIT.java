@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.it;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -18,6 +19,7 @@ import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool.GoogleSearchResult;
+import com.ibm.watsonx.ai.tool.builtin.PythonInterpreterTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool.TavilySearchResult;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
@@ -119,5 +121,15 @@ public class ToolServiceIT {
         assertNotNull(results.get(0).url());
         assertNotNull(results.get(0).title());
         assertNotNull(results.get(0).score());
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "PYTHON_INTERPRETER_DEPLOYMENT_ID", matches = ".+")
+    void test_python_interpreter_tool() {
+        String deploymentId = System.getenv("PYTHON_INTERPRETER_DEPLOYMENT_ID");
+        PythonInterpreterTool pythonInterpreterTool = new PythonInterpreterTool(toolService, deploymentId);
+        String result = pythonInterpreterTool.execute("print(\"Hello World!\")");
+        assertNotNull(result);
+        assertEquals("Hello World!", result);
     }
 }
