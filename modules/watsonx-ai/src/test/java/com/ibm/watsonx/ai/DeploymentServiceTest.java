@@ -798,7 +798,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             )
             .build();
 
-        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/time_series/forecast?version=2025-04-23")
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/time_series/forecast?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))

@@ -413,7 +413,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                 }
             }""";
 
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -471,7 +471,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void test_start_extraction_with_parameters() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -542,7 +542,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void test_text_extraction_page_images() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -601,7 +601,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void test_text_extraction_multiple_outputs() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -717,8 +717,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id="
-            + URLEncoder.encode("<project_id>", Charset.defaultCharset()))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=%s&project_id=%s"
+            .formatted(API_VERSION, URLEncoder.encode("<project_id>", Charset.defaultCharset())))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
@@ -744,7 +744,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var spaceId = URLEncoder.encode("new-space-id", Charset.defaultCharset());
 
         watsonxServer
-            .stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id=%s".formatted(projectId))
+            .stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=%s&project_id=%s".formatted(API_VERSION, projectId))
                 .withHeader("Authorization", equalTo("Bearer my-super-token"))
                 .withHeader("Accept", equalTo("application/json"))
                 .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
@@ -772,13 +772,14 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .logResponses(true)
             .build();
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&space_id=%s".formatted(spaceId))
-            .withHeader("Authorization", equalTo("Bearer my-super-token"))
-            .withHeader("Accept", equalTo("application/json"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBody("{}")
-            ));
+        watsonxServer
+            .stubFor(get("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=%s&space_id=%s".formatted(API_VERSION, spaceId))
+                .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                .withHeader("Accept", equalTo("application/json"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody("{}")
+                ));
 
         parameters = TextExtractionFetchParameters.builder()
             .spaceId("new-space-id")
@@ -794,11 +795,12 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var projectId = URLEncoder.encode("<project_id>", Charset.defaultCharset());
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
-        watsonxServer.stubFor(delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id=" + projectId)
-            .withHeader("Authorization", equalTo("Bearer my-super-token"))
-            .willReturn(aResponse()
-                .withStatus(204)
-            ));
+        watsonxServer
+            .stubFor(delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=%s&project_id=%s".formatted(API_VERSION, projectId))
+                .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                .willReturn(aResponse()
+                    .withStatus(204)
+                ));
 
         var textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
@@ -813,21 +815,22 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         assertTrue(textExtractionService.deleteRequest("b3b85a66-7324-470c-b62e-75579eecf045"));
 
-        watsonxServer.stubFor(delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id=" + projectId)
-            .withHeader("Authorization", equalTo("Bearer my-super-token"))
-            .willReturn(aResponse()
-                .withStatus(404)
-                .withBody("""
-                    {
-                        "trace": "db2821f494a629c614616e458c85de36",
-                        "errors": [
-                            {
-                                "code": "text_extraction_event_does_not_exist",
-                                "message": "Text extraction request does not exist."
-                            }
-                        ]
-                    }""")
-            ));
+        watsonxServer
+            .stubFor(delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=%s&project_id=%s".formatted(API_VERSION, projectId))
+                .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                .willReturn(aResponse()
+                    .withStatus(404)
+                    .withBody("""
+                        {
+                            "trace": "db2821f494a629c614616e458c85de36",
+                            "errors": [
+                                {
+                                    "code": "text_extraction_event_does_not_exist",
+                                    "message": "Text extraction request does not exist."
+                                }
+                            ]
+                        }""")
+                ));
 
         assertFalse(textExtractionService.deleteRequest("b3b85a66-7324-470c-b62e-75579eecf045"));
 
@@ -837,7 +840,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         watsonxServer
             .stubFor(
-                delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&project_id=" + projectId
+                delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=%s&project_id=%s".formatted(API_VERSION, projectId)
                     + "&hard_delete=true")
                     .withHeader("Authorization", equalTo("Bearer my-super-token"))
                     .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
@@ -864,11 +867,12 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .logResponses(true)
             .build();
 
-        watsonxServer.stubFor(delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=2025-04-23&space_id=%s".formatted(spaceId))
-            .withHeader("Authorization", equalTo("Bearer my-super-token"))
-            .willReturn(aResponse()
-                .withStatus(204)
-            ));
+        watsonxServer
+            .stubFor(delete("/ml/v1/text/extractions/b3b85a66-7324-470c-b62e-75579eecf045?version=%s&space_id=%s".formatted(API_VERSION, spaceId))
+                .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                .willReturn(aResponse()
+                    .withStatus(204)
+                ));
 
         parameters = TextExtractionDeleteParameters.builder()
             .spaceId("new-space-id")
@@ -1467,7 +1471,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
 
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .inScenario("long_response")
             .whenScenarioStateIs(Scenario.STARTED)
             .willSetStateTo("firstIteration")
@@ -1480,7 +1484,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "submitted"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .inScenario("long_response")
             .whenScenarioStateIs("firstIteration")
             .willSetStateTo("secondIteration")
@@ -1492,7 +1496,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "running"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .inScenario("long_response")
             .whenScenarioStateIs("secondIteration")
             .willSetStateTo(Scenario.STARTED)
@@ -1520,7 +1524,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
 
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .inScenario("long_response")
             .whenScenarioStateIs(Scenario.STARTED)
             .willSetStateTo("firstIteration")
@@ -1533,7 +1537,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "submitted"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .inScenario("long_response")
             .whenScenarioStateIs("firstIteration")
             .willSetStateTo("secondIteration")
@@ -1545,7 +1549,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "running"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .inScenario("long_response")
             .whenScenarioStateIs("secondIteration")
             .willSetStateTo(Scenario.STARTED)
@@ -1598,7 +1602,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .willReturn(aResponse().withStatus(200)));
 
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -1608,7 +1612,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "submitted"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .inScenario("simulate_failed")
             .whenScenarioStateIs(Scenario.STARTED)
             .willSetStateTo("failed")
@@ -1620,7 +1624,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "running"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .inScenario("simulate_failed")
             .whenScenarioStateIs("failed")
             .willSetStateTo(Scenario.STARTED)
@@ -1731,7 +1735,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                         <httpStatusCode>404</httpStatusCode>
                     </Error>""")));
 
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -1741,7 +1745,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "submitted"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
@@ -1781,7 +1785,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
@@ -1813,7 +1817,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
         var EXPECTED = TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME, "completed");
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
@@ -1849,7 +1853,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .willReturn(aResponse().withStatus(200).withBody("Hello")));
 
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -1894,7 +1898,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     outputFileName, BUCKET_NAME))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
@@ -2010,7 +2014,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         }
 
         // Mock start extraction.
-        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=2025-04-23")
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -2021,7 +2025,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             ));
 
         // Mock result extraction.
-        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=2025-04-23&project_id=%s".formatted(PROCESS_EXTRACTION_ID, "projectid"))
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
