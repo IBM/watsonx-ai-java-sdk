@@ -56,7 +56,6 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
  *     .url("https://...")      // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .build();
- *
  * }</pre>
  *
  * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}. *

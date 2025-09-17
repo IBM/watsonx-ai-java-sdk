@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai;
 
-import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;

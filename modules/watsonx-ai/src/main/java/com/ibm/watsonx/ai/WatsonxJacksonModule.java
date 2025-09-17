@@ -5,8 +5,10 @@
 package com.ibm.watsonx.ai;
 
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 
@@ -29,6 +31,7 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(FoundationModel.GradientCheckpointing.class, DefaultValueMixin.class);
         setMixInAnnotation(FoundationModel.TargetModules.class, DefaultValueMixin.class);
         setMixInAnnotation(FoundationModel.DeploymentParameter.class, DefaultValueMixin.class);
+        setMixInAnnotation(AssistantMessage.class, AssistantMessageMixIn.class);
     }
 
     /**
@@ -46,5 +49,14 @@ public class WatsonxJacksonModule extends SimpleModule {
     public abstract class DefaultValueMixin {
         @JsonProperty("default")
         abstract Object defaultValue();
+    }
+
+    /**
+     * Mix-in abstract class for supporting serialization/deserialization of {@link AssistantMessage} without exposing the internal {@code thinking}
+     * field.
+     */
+    public abstract class AssistantMessageMixIn {
+        @JsonIgnore
+        abstract String thinking();
     }
 }

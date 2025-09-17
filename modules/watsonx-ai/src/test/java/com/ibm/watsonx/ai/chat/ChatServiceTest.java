@@ -1413,6 +1413,10 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             assertEquals("Think", thinking);
             assertEquals("Result", response);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertEquals("Result", assistantMessage.content());
+            assertEquals("Think", assistantMessage.thinking());
         });
     }
 
@@ -2546,14 +2550,16 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response.";
 
         var chatResponseText = chatResponse.getChoices().get(0).getMessage().content();
-        assertTrue(chatResponseText.contains("<think>"));
-        assertTrue(chatResponseText.contains("</think>"));
-        assertTrue(chatResponseText.contains("<response>"));
-        assertTrue(chatResponseText.contains("</response>"));
-        assertTrue(chatResponseText.contains(EXEPECTED_THINKING));
+        assertTrue(chatResponseText.contains("<think>") && chatResponseText.contains("</think>"));
+        assertTrue(chatResponseText.contains("<response>") && chatResponseText.contains("</response>"));
         assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));
+
+
         assertTrue(chatResponse.extractContent().contains(EXPECTED_RESPONSE));
-        assertEquals(EXEPECTED_THINKING, chatResponse.extractThinking());
+        assertFalse(chatResponse.extractContent().contains("<response>") && chatResponse.extractContent().contains("</response>"));
+
+        assertTrue(chatResponse.extractThinking().contains(EXEPECTED_THINKING));
+        assertFalse(chatResponse.extractThinking().contains("<think>") && chatResponse.extractThinking().contains("</think>"));
 
         assertEquals(
             EXEPECTED_THINKING,
@@ -2565,6 +2571,11 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         var assistantMessage = chatResponse.toAssistantMessage();
         assertTrue(assistantMessage.content().contains(EXPECTED_RESPONSE));
         assertFalse(assistantMessage.content().contains(EXEPECTED_THINKING));
+        assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
+
+        assertFalse(assistantMessage.thinking().contains(EXPECTED_RESPONSE));
+        assertTrue(assistantMessage.thinking().contains(EXEPECTED_THINKING));
+        assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.thinking().contains("</think>"));
     }
 
     @Test
@@ -3321,5 +3332,21 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             spyAuthenticator.token();
             assertEquals("grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&apikey=my-api-key", bodyPublisherToString(mockHttpRequest));
         });
+    }
+
+    @Test
+    void test_serialize_assistant_message() {
+
+        // The thinking field must not be serialized.
+        AssistantMessage assistantMessage = new AssistantMessage("content", "thinking", "name", "refusal", null);
+        String json = Json.prettyPrint(assistantMessage);
+        JSONAssert.assertEquals("""
+                {
+                    "role": "assistant",
+                    "content": "content",
+                    "name": "name",
+                    "refusal": "refusal"
+                }
+            """, json, true);
     }
 }

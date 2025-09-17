@@ -230,6 +230,7 @@ public class ChatServiceIT {
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
+                .timeout(Duration.ofSeconds(30))
                 .build();
 
             ChatRequest request = ChatRequest.builder()
@@ -257,8 +258,15 @@ public class ChatServiceIT {
             assertFalse(contentMessage.isBlank());
 
             var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.content());
+            assertFalse(assistantMessage.content().isBlank());
             assertFalse(assistantMessage.content().contains("<think>") && assistantMessage.content().contains("</think>"));
             assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
+
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().isBlank());
+            assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
         }
 
         @Test
@@ -586,6 +594,7 @@ public class ChatServiceIT {
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
+                .timeout(Duration.ofSeconds(30))
                 .build();
 
             var parameters = ChatParameters.builder()
@@ -632,7 +641,7 @@ public class ChatServiceIT {
 
             });
 
-            var chatResponse = assertDoesNotThrow(() -> futureChatResponse.get(10, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> futureChatResponse.get(30, TimeUnit.SECONDS));
             var text = chatResponse.getChoices().get(0).getMessage().content();
             assertNotNull(chatResponse);
             assertNotNull(text);
@@ -643,16 +652,30 @@ public class ChatServiceIT {
             var thinkingMessage = chatResponse.extractThinking();
             assertNotNull(thinkingMessage);
             assertFalse(thinkingMessage.isBlank());
+            assertFalse(thinkingMessage.contains("<think>") && text.contains("</think>"));
 
             var contentMessage = chatResponse.extractContent();
             assertNotNull(contentMessage);
             assertFalse(contentMessage.isBlank());
+            assertFalse(contentMessage.contains("<response>") && text.contains("</response>"));
 
             var thinking = assertDoesNotThrow(() -> futureThinking.get(3, TimeUnit.SECONDS));
+            var content = assertDoesNotThrow(() -> futureContent.get(3, TimeUnit.SECONDS));
+
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.content());
+            assertFalse(assistantMessage.content().isBlank());
+            assertFalse(assistantMessage.content().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
+            assertEquals(content, assistantMessage.content());
+
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().isBlank());
+            assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
+            assertEquals(thinking, assistantMessage.thinking());
             assertEquals(thinkingMessage, thinking);
 
-            var content = assertDoesNotThrow(() -> futureContent.get(3, TimeUnit.SECONDS));
-            assertEquals(contentMessage, content);
         }
 
         @Test

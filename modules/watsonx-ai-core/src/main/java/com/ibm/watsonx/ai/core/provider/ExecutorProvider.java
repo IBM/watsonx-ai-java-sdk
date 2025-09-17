@@ -83,9 +83,6 @@ public class ExecutorProvider {
                 return thread;
             });
 
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                defaultExecutor.shutdown();
-            }));
             ioExecutor = defaultExecutor;
         }
         return ioExecutor;

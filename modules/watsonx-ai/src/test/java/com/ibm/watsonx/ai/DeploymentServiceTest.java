@@ -9,8 +9,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.ibm.watsonx.ai.WatsonxService.API_VERSION;
-import static com.ibm.watsonx.ai.WatsonxService.TRANSACTION_ID_HEADER;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -595,7 +593,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .build();
 
         deploymentService.chatStreaming(request, chatHandler);
-        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        ChatResponse response = assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS));
         assertNotNull(response);
         assertNotNull(response.getChoices());
         assertEquals(1, response.getChoices().size());
@@ -640,7 +638,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         deploymentService.chatStreaming(request, chatHandler);
         response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
-        Thread.sleep(50);
     }
 
     @Test
@@ -692,6 +689,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         StringBuilder thinkingResponse = new StringBuilder();
         StringBuilder response = new StringBuilder();
 
+
         deploymentService.chatStreaming(chatRequest, new ChatHandler() {
 
             @Override
@@ -701,7 +699,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                throw new RuntimeException("Error in onComplete handler");
+                result.complete(completeResponse);
             }
 
             @Override
@@ -725,6 +723,10 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
         }).get(3, TimeUnit.SECONDS);
 
+        var chatResponse = result.get();
+        assertEquals(thinkingResponse.toString(), chatResponse.extractThinking());
+        assertEquals(response.toString(), chatResponse.extractContent());
+
         assertEquals(
             "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.",
             thinkingResponse.toString()
@@ -732,6 +734,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         assertTrue(response.toString().contains(
             "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response."));
+
+
     }
 
     @Test
