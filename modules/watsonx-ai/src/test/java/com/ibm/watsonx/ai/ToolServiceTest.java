@@ -29,6 +29,7 @@ import com.ibm.watsonx.ai.tool.ToolParameters;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
+import com.ibm.watsonx.ai.tool.builtin.PythonInterpreterTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
@@ -438,6 +439,41 @@ public class ToolServiceTest extends AbstractWatsonxTest {
                 toJson(ToolRequest.structuredInput(
                     "Wikipedia",
                     Map.of("query", "pc")
+                )),
+                bodyPublisherToString(mockHttpRequest),
+                true
+            );
+        });
+    }
+
+    @Test
+    void test_python_interpreter_tool() {
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(
+            """
+                {
+                  "output": "Hello World!"
+                }""");
+
+        withWatsonxServiceMock(() -> {
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var toolService = ToolService.builder()
+                .url(CloudRegion.DALLAS)
+                .authenticationProvider(mockAuthenticationProvider)
+                .build();
+
+            var python = new PythonInterpreterTool(toolService, "my-deployment-id");
+
+            var result = python.execute("print(\"Hello World\")");
+            assertEquals("Hello World!", result);
+
+            JSONAssert.assertEquals(
+                toJson(ToolRequest.structuredInput(
+                    "PythonInterpreter",
+                    Map.of("code", "print(\"Hello World\")"),
+                    Map.of("deploymentId", "my-deployment-id")
                 )),
                 bodyPublisherToString(mockHttpRequest),
                 true
