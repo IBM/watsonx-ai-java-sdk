@@ -10,7 +10,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
 import java.time.Duration;
-import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
@@ -19,7 +18,6 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
@@ -59,7 +57,6 @@ public abstract class WatsonxService {
     protected final boolean logRequests, logResponses;
     protected final SyncHttpClient syncHttpClient;
     protected final AsyncHttpClient asyncHttpClient;
-    protected final Executor computationExecutor;
 
     protected WatsonxService(Builder<?> builder) {
         url = requireNonNull(builder.url, "The url must be provided");
@@ -92,7 +89,6 @@ public abstract class WatsonxService {
 
         syncHttpClient = syncHttpClientBuilder.build();
         asyncHttpClient = asyncHttpClientBuilder.build();
-        computationExecutor = ExecutorProvider.cpuExecutor();
     }
 
     @SuppressWarnings("unchecked")

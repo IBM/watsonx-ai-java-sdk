@@ -20,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
@@ -31,10 +30,8 @@ import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 /**
  * The {@code IAMAuthenticator} class is an implementation of the {@link AuthenticationProvider} interface, responsible for authenticating with IBM
- * Cloud Identity and Access Management (IAM) using an API key.
- * <p>
- * It manages token acquisition and caching, and handles automatic refresh if the token expires. This authenticator is suitable for use in services
- * that require secure access to IBM Cloud resources.
+ * Cloud Identity and Access Management (IAM) using an API key. It manages token acquisition and caching, and handles automatic refresh if the token
+ * expires.
  * <p>
  * <b>Example usage:</b>
  *
@@ -60,7 +57,6 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
     private final AtomicReference<IdentityTokenResponse> token;
-    private final Executor computationExecutor;
 
     /**
      * Constructs an IAMAuthenticator instance using the provided builder.
@@ -76,7 +72,6 @@ public final class IAMAuthenticator implements AuthenticationProvider {
         var httpClient = HttpClientProvider.httpClient();
         syncHttpClient = SyncHttpClient.builder().httpClient(httpClient).build();
         asyncHttpClient = AsyncHttpClient.builder().httpClient(httpClient).build();
-        computationExecutor = requireNonNullElse(builder.computationExecutor, ExecutorProvider.cpuExecutor());
     }
 
     @Override
@@ -128,8 +123,8 @@ public final class IAMAuthenticator implements AuthenticationProvider {
 
                 // The status code is not 2xx.
                 throw new RuntimeException(response.body());
-            }, computationExecutor)
-            .thenApplyAsync(r -> r, asyncHttpClient.executor());
+            }, ExecutorProvider.cpuExecutor())
+            .thenApplyAsync(r -> r, ExecutorProvider.ioExecutor());
     }
 
     /**
@@ -197,7 +192,6 @@ public final class IAMAuthenticator implements AuthenticationProvider {
         private String apiKey;
         private String grantType;
         private Duration timeout;
-        private Executor computationExecutor;
 
         /**
          * Prevents direct instantiation of the {@code Builder}.
@@ -245,18 +239,6 @@ public final class IAMAuthenticator implements AuthenticationProvider {
          */
         public Builder timeout(Duration timeout) {
             this.timeout = timeout;
-            return this;
-        }
-
-        /**
-         * Sets the {@link Executor} to be used for CPU-bound asynchronous operations.
-         * <p>
-         * If not provided, a default executor will be used internally by the SDK.
-         *
-         * @param computationExecutor the {@link Executor} instance to use for CPU-bound tasks
-         */
-        public Builder computationExecutor(Executor computationExecutor) {
-            this.computationExecutor = computationExecutor;
             return this;
         }
 

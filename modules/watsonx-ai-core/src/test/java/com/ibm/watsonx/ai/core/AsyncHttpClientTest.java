@@ -28,7 +28,6 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -40,6 +39,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -48,6 +48,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
+import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -221,13 +223,10 @@ public class AsyncHttpClientTest {
 
         Executor executor = Executors.newCachedThreadPool();
 
-        when(httpClient.executor()).thenReturn(Optional.of(executor));
-
-        AsyncHttpClient client = AsyncHttpClient.builder()
-            .httpClient(httpClient)
-            .build();
-
-        assertEquals(executor, client.executor());
+        try (var executorProviderMock = Mockito.mockStatic(ExecutorProvider.class)) {
+            executorProviderMock.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+            assertEquals(executor, HttpClientProvider.httpClient().executor().orElse(null));
+        }
     }
 
     @Test

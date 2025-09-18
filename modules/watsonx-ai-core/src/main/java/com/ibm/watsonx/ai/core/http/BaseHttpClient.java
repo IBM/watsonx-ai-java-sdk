@@ -27,7 +27,7 @@ public abstract class BaseHttpClient {
      *
      * @param httpClient {@link HttpClient} instance.
      */
-    public BaseHttpClient(HttpClient httpClient) {
+    protected BaseHttpClient(HttpClient httpClient) {
         this.delegate = httpClient;
     }
 
@@ -36,7 +36,7 @@ public abstract class BaseHttpClient {
      *
      * @return {@link Executor}
      */
-    public Executor executor() {
+    protected Executor executor() {
         return delegate.executor().orElse(ExecutorProvider.ioExecutor());
     }
 

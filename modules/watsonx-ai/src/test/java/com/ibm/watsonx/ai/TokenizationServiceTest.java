@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -273,14 +272,12 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
             mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
+            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
             withWatsonxServiceMock(() -> {
 
                 when(mockHttpClient.sendAsync(any(), any(BodyHandler.class)))
                     .thenReturn(completedFuture(mockHttpResponse));
-
-
-                when(mockHttpClient.executor()).thenReturn(Optional.of(ioExecutor));
 
                 var tokenizationService = TokenizationService.builder()
                     .url(CloudRegion.LONDON)

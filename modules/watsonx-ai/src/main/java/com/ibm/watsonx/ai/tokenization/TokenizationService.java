@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
 
 /**
@@ -98,8 +99,8 @@ public final class TokenizationService extends ModelService {
     public CompletableFuture<TokenizationResponse> asyncTokenize(String input, TokenizationParameters parameters) {
         var httpRequest = buildHttpRequest(input, parameters);
         return asyncHttpClient.send(httpRequest, BodyHandlers.ofString())
-            .thenApplyAsync(r -> Json.fromJson(r.body(), TokenizationResponse.class), computationExecutor)
-            .thenApplyAsync(r -> r, asyncHttpClient.executor());
+            .thenApplyAsync(r -> Json.fromJson(r.body(), TokenizationResponse.class), ExecutorProvider.cpuExecutor())
+            .thenApplyAsync(r -> r, ExecutorProvider.ioExecutor());
     }
 
     /**
