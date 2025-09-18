@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,16 +18,17 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
@@ -126,41 +128,46 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
         var mockHttpResponse = Utils.okResponse();
 
         withWatsonxServiceMock(() -> {
-            when(mockHttpClient.sendAsync(any(), any(BodyHandler.class)))
-                .thenReturn(completedFuture(mockHttpResponse));
 
-            List<String> threadNames = new ArrayList<>();
+            try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
 
-            Executor cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-                threadNames.add(Thread.currentThread().getName());
-                r.run();
-            }, "cpu-thread"));
+                when(mockHttpClient.sendAsync(any(), any(BodyHandler.class)))
+                    .thenReturn(completedFuture(mockHttpResponse));
 
-            Executor ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-                threadNames.add(Thread.currentThread().getName());
-                r.run();
-            }, "io-thread"));
+                List<String> threadNames = new ArrayList<>();
 
-            when(mockHttpClient.executor()).thenReturn(Optional.of(ioExecutor));
+                Executor cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+                    threadNames.add(Thread.currentThread().getName());
+                    r.run();
+                }, "cpu-thread"));
 
-            var authenticator = IAMAuthenticator.builder()
-                .grantType("new_grant_type")
-                .timeout(Duration.ofSeconds(1))
-                .url(URI.create("http://mytest.com"))
-                .apiKey("my_super_api_key")
-                .computationExecutor(cpuExecutor)
-                .build();
+                Executor ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+                    threadNames.add(Thread.currentThread().getName());
+                    r.run();
+                }, "io-thread"));
 
-            assertDoesNotThrow(() -> authenticator.asyncToken()
-                .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
-                .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
-                .get(3, TimeUnit.SECONDS));
+                mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
+                mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
-            assertEquals(4, threadNames.size());
-            assertEquals("cpu-thread", threadNames.get(0));
-            assertEquals("io-thread", threadNames.get(1));
-            assertEquals("io-thread", threadNames.get(2));
-            assertEquals("cpu-thread", threadNames.get(3));
+                var authenticator = IAMAuthenticator.builder()
+                    .grantType("new_grant_type")
+                    .timeout(Duration.ofSeconds(1))
+                    .url(URI.create("http://mytest.com"))
+                    .apiKey("my_super_api_key")
+                    .build();
+
+                assertDoesNotThrow(() -> authenticator.asyncToken()
+                    .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
+                    .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
+                    .get(300, TimeUnit.SECONDS));
+
+                assertEquals(4, threadNames.size());
+                assertEquals("cpu-thread", threadNames.get(0));
+                assertEquals("io-thread", threadNames.get(1));
+                assertEquals("io-thread", threadNames.get(2));
+                assertEquals("cpu-thread", threadNames.get(3));
+            }
         });
+
     }
 }

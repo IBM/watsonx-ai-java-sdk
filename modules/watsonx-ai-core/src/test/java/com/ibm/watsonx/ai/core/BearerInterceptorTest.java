@@ -19,7 +19,6 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
@@ -178,11 +177,11 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             when(mockHttpResponse.body()).thenReturn(Utils.OK_RESPONSE.formatted(12456));
             when(mockHttpResponse.statusCode()).thenReturn(200);
-            when(mockHttpClient.executor()).thenReturn(Optional.of(ioExecutor));
             when(mockHttpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
 
             try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
                 mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
+                mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
                 AuthenticationProvider authenticator = IAMAuthenticator.builder()
                     .apiKey("my_super_api_key")

@@ -181,8 +181,8 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))
-            .thenAcceptAsync(r -> {}, asyncHttpClient.executor())
-            .exceptionallyAsync(t -> handlerError(t, handler), asyncHttpClient.executor());
+            .thenAccept(r -> {})
+            .exceptionally(t -> handlerError(t, handler));
     }
 
     @Override
@@ -276,8 +276,8 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))
-            .thenAcceptAsync(r -> {}, asyncHttpClient.executor())
-            .exceptionallyAsync(t -> handlerError(t, handler), asyncHttpClient.executor());
+            .thenAccept(r -> {})
+            .exceptionally(t -> handlerError(t, handler));
     }
 
     @Override
