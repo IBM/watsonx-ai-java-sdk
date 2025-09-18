@@ -6,9 +6,9 @@ package com.ibm.watsonx.ai.core;
 
 import static java.util.Objects.requireNonNull;
 import java.util.ServiceLoader;
+import com.ibm.watsonx.ai.core.provider.JacksonProvider;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
-import com.ibm.watsonx.ai.core.spi.json.jackson.JacksonProvider;
 
 /**
  * The Json class provides utility methods for JSON serialization and deserialization. It uses a {@link JsonProvider} to handle the actual conversion
