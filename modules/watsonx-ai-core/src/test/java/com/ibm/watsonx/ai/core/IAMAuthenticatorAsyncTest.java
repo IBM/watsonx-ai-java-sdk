@@ -159,7 +159,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
                 assertDoesNotThrow(() -> authenticator.asyncToken()
                     .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
                     .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
-                    .get(300, TimeUnit.SECONDS));
+                    .get(3, TimeUnit.SECONDS));
 
                 assertEquals(4, threadNames.size());
                 assertEquals("cpu-thread", threadNames.get(0));

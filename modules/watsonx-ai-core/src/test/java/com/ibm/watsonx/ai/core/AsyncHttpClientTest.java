@@ -89,9 +89,8 @@ public class AsyncHttpClientTest {
     static final Answer<CompletableFuture<HttpResponse<String>>> CHAIN_MOCK = invocation -> {
         HttpRequest req = invocation.getArgument(0);
         BodyHandler<String> bh = invocation.getArgument(1);
-        Executor executor = invocation.getArgument(2);
-        AsyncHttpInterceptor.AsyncChain chain = invocation.getArgument(4);
-        return chain.proceed(req, bh, executor);
+        AsyncHttpInterceptor.AsyncChain chain = invocation.getArgument(3);
+        return chain.proceed(req, bh);
     };
 
     @Test
@@ -103,10 +102,10 @@ public class AsyncHttpClientTest {
             .interceptor(interceptor2)
             .build();
 
-        when(interceptor1.intercept(any(), eq(handler), any(), anyInt(), any()))
+        when(interceptor1.intercept(any(), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(interceptor2.intercept(any(), eq(handler), any(), anyInt(), any()))
+        when(interceptor2.intercept(any(), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
         when(httpClient.sendAsync(any(), any(BodyHandler.class)))
@@ -117,8 +116,8 @@ public class AsyncHttpClientTest {
         assertEquals(httpResponse, result.get());
 
         InOrder inOrder = inOrder(interceptor1, interceptor2);
-        inOrder.verify(interceptor1).intercept(any(), eq(handler), any(), anyInt(), any());
-        inOrder.verify(interceptor2).intercept(any(), eq(handler), any(), anyInt(), any());
+        inOrder.verify(interceptor1).intercept(any(), eq(handler), anyInt(), any());
+        inOrder.verify(interceptor2).intercept(any(), eq(handler), anyInt(), any());
     }
 
     @Test
@@ -129,10 +128,10 @@ public class AsyncHttpClientTest {
             .interceptors(List.of(interceptor1, interceptor2))
             .build();
 
-        when(interceptor1.intercept(any(), eq(handler), any(), anyInt(), any()))
+        when(interceptor1.intercept(any(), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
-        when(interceptor2.intercept(any(), eq(handler), any(), anyInt(), any()))
+        when(interceptor2.intercept(any(), eq(handler), anyInt(), any()))
             .thenAnswer(CHAIN_MOCK);
 
         when(httpClient.sendAsync(any(), any(BodyHandler.class)))
@@ -143,8 +142,8 @@ public class AsyncHttpClientTest {
         assertEquals(httpResponse, result.get());
 
         InOrder inOrder = inOrder(interceptor1, interceptor2);
-        inOrder.verify(interceptor1).intercept(any(), eq(handler), any(), anyInt(), any());
-        inOrder.verify(interceptor2).intercept(any(), eq(handler), any(), anyInt(), any());
+        inOrder.verify(interceptor1).intercept(any(), eq(handler), anyInt(), any());
+        inOrder.verify(interceptor2).intercept(any(), eq(handler), anyInt(), any());
     }
 
     @Test

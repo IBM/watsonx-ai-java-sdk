@@ -9,7 +9,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
@@ -32,10 +31,9 @@ public final class BearerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
     @Override
-    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-        Executor executor, int index, AsyncChain chain) {
+    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
         return authenticator.asyncToken()
-            .thenComposeAsync(token -> chain.proceed(requestWithBearer(request, token), bodyHandler, executor), executor);
+            .thenCompose(token -> chain.proceed(requestWithBearer(request, token), bodyHandler));
     }
 
     @Override

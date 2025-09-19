@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
@@ -59,20 +58,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
      * @return a {@link CompletableFuture} of the HTTP response
      */
     public <T> CompletableFuture<HttpResponse<T>> send(HttpRequest request, BodyHandler<T> handler) {
-        return send(addRequestIdHeaderIfNotPresent(request), handler, executor());
-    }
-
-    /**
-     * Sends an asynchronous HTTP request.
-     *
-     * @param request the HTTP request to send
-     * @param handler the body handler for the response
-     * @param executor the executor that is used for executing asynchronous and dependent tasks.
-     * @param <T> the type of the response body
-     * @return a {@link CompletableFuture} of the HTTP response
-     */
-    public <T> CompletableFuture<HttpResponse<T>> send(HttpRequest request, BodyHandler<T> handler, Executor executor) {
-        return new InterceptorChain(delegate, interceptors).proceed(request, handler, executor);
+        return new InterceptorChain(delegate, interceptors).proceed(addRequestIdHeaderIfNotPresent(request), handler);
     }
 
     /**
@@ -99,10 +85,10 @@ public final class AsyncHttpClient extends BaseHttpClient {
         }
 
         @Override
-        public <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler, Executor executor) {
+        public <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler) {
             if (index < interceptors.size()) {
                 var interceptorIndex = index++;
-                return interceptors.get(interceptorIndex).intercept(request, handler, executor, interceptorIndex, this);
+                return interceptors.get(interceptorIndex).intercept(request, handler, interceptorIndex, this);
             } else {
                 return httpClient.sendAsync(request, responseInfo -> {
 

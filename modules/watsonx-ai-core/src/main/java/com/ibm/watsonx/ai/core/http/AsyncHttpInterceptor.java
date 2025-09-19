@@ -9,7 +9,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 
@@ -25,7 +24,6 @@ public interface AsyncHttpInterceptor {
      *
      * @param request the HTTP request to intercept
      * @param bodyHandler the body handler for processing the response
-     * @param executor the executor that is used for executing asynchronous tasks
      * @param chain the chain used to proceed with the execution of the request
      * @param index the current index in the interceptor chain
      * @param <T> the type of the response body
@@ -34,8 +32,7 @@ public interface AsyncHttpInterceptor {
      * @throws IOException if an I/O error occurs during interception or execution
      * @throws InterruptedException if the operation is interrupted
      */
-    <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-        Executor executor, int index, AsyncChain chain);
+    <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain);
 
     /**
      * Chain interface for proceeding with the asynchronous HTTP request.
@@ -47,14 +44,13 @@ public interface AsyncHttpInterceptor {
          *
          * @param request the HTTP request to execute
          * @param handler the body handler for processing the response
-         * @param executor the executor that is used for executing asynchronous tasks
          * @param <T> the type of the response body
          * @return the {@link CompletableFuture} of the HTTP response
          * @throws WatsonxException if an error occurs during the request api
          * @throws IOException if an I/O error occurs during execution
          * @throws InterruptedException if the operation is interrupted
          */
-        <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler, Executor executor);
+        <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler);
 
         /**
          * Resets the interceptor chain to a specific index.

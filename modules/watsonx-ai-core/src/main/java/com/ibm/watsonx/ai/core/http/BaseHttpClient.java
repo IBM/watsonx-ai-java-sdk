@@ -7,8 +7,6 @@ package com.ibm.watsonx.ai.core.http;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.util.UUID;
-import java.util.concurrent.Executor;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
  * The abstract base class for all HTTP client
@@ -29,15 +27,6 @@ public abstract class BaseHttpClient {
      */
     protected BaseHttpClient(HttpClient httpClient) {
         this.delegate = httpClient;
-    }
-
-    /**
-     * Returns the {@code Executor} of the HttpClient.
-     *
-     * @return {@link Executor}
-     */
-    protected Executor executor() {
-        return delegate.executor().orElse(ExecutorProvider.ioExecutor());
     }
 
     /**

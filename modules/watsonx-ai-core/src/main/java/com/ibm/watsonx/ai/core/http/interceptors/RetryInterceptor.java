@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -27,6 +26,7 @@ import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
  * An HTTP interceptor that performs automatic retries.
@@ -158,16 +158,15 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
     }
 
     @Override
-    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-        Executor executor, int index, AsyncChain chain) {
-        return executeWithRetry(request, bodyHandler, executor, index, 0, Duration.from(retryInterval), chain);
+    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
+        return executeWithRetry(request, bodyHandler, index, 0, Duration.from(retryInterval), chain);
     }
 
 
-    private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler,
-        Executor executor, int index, int attempt, Duration timeout, AsyncChain chain) {
+    private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler, int index, int attempt,
+        Duration timeout, AsyncChain chain) {
 
-        return chain.proceed(request, bodyHandler, executor)
+        return chain.proceed(request, bodyHandler)
             .exceptionallyComposeAsync(throwable -> {
 
                 String requestId = request.headers()
@@ -201,11 +200,11 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     () -> {
                         logger.debug("Retrying request \"{}\" ({}/{}) after failure: {}", requestId, attempt + 1, maxRetries, cause.getMessage());
                         chain.resetToIndex(index + 1);
-                        return executeWithRetry(request, bodyHandler, executor, index, attempt + 1, nextTimeout, chain);
+                        return executeWithRetry(request, bodyHandler, index, attempt + 1, nextTimeout, chain);
                     },
-                    CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, executor)
-                ).thenComposeAsync(Function.identity(), executor);
-            }, executor);
+                    CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, ExecutorProvider.ioExecutor())
+                ).thenCompose(Function.identity());
+            }, ExecutorProvider.ioExecutor());
     }
 
     /**

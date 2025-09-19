@@ -8,6 +8,7 @@ import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -50,6 +52,7 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
@@ -423,6 +426,27 @@ public class ChatServiceIT {
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
             assertEquals(1, assistantMessage.toolCalls().size());
+        }
+
+        @Test
+        void test_chat_with_invalid_api_key() {
+
+            var chatService = ChatService.builder()
+                .url(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .apiKey("invalid_api_key")
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Hello!"))
+                .build();
+
+            var ex = assertThrows(WatsonxException.class, () -> chatService.chat(request));
+            assertTrue(ex.getMessage().contains("Provided API key could not be found."));
         }
     }
 
@@ -940,6 +964,43 @@ public class ChatServiceIT {
             assertEquals(10, ids.size());
             for (var future : results.values())
                 assertEquals("0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20", future.get());
+        }
+
+        @Test
+        void test_chat_streaming_with_invalid_api_key() {
+
+            var chatService = ChatService.builder()
+                .url(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .apiKey("invalid_api_key")
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Hello!"))
+                .build();
+
+            CompletableFuture<Throwable> future = new CompletableFuture<>();
+            chatService.chatStreaming(request, new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {}
+
+                @Override
+                public void onError(Throwable error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            var ex = assertThrows(ExecutionException.class, () -> future.get(300, TimeUnit.SECONDS));
+            var wex = assertInstanceOf(WatsonxException.class, ex.getCause());
+            assertTrue(wex.getMessage().contains("Provided API key could not be found."));
         }
 
         @Test

@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 import java.util.regex.Matcher;
@@ -30,6 +29,7 @@ import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
  * Interceptor that logs HTTP requests and responses.
@@ -89,18 +89,17 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
     @Override
-    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-        Executor executor, int index, AsyncChain chain) {
+    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
         return CompletableFuture
-            .runAsync(() -> logRequest(request), executor)
-            .thenComposeAsync(v -> chain.proceed(request, bodyHandler, executor), executor)
-            .whenCompleteAsync((respose, exception) -> {
+            .runAsync(() -> logRequest(request), ExecutorProvider.ioExecutor())
+            .thenCompose(v -> chain.proceed(request, bodyHandler))
+            .whenComplete((respose, exception) -> {
                 var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
                 if (isNull(exception))
                     logResponse(watsonxSDKRequestId, respose);
                 else
                     logResponse(watsonxSDKRequestId, exception);
-            }, executor);
+            });
     }
 
     @Override

@@ -2756,14 +2756,15 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onError(Throwable error) {
-                assertTrue(WatsonxException.class.isInstance(error));
-                WatsonxException e = (WatsonxException) error;
-                assertTrue(e.details().isPresent());
-                assertEquals("model_not_supported", e.details().get().errors().get(0).code());
                 result.completeExceptionally(error);
             }
-        }).get(3, TimeUnit.SECONDS);
+        });
 
+        var ex = assertThrows(ExecutionException.class, () -> result.get(3, TimeUnit.SECONDS));
+        assertTrue(WatsonxException.class.isInstance(ex.getCause()));
+        WatsonxException e = (WatsonxException) ex.getCause();
+        assertTrue(e.details().isPresent());
+        assertEquals("model_not_supported", e.details().get().errors().get(0).code());
     }
 
     @Test
