@@ -51,7 +51,7 @@ public abstract class WatsonxService {
     protected static final String API_VERSION = "2025-09-03";
     protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
 
-    protected final URI url;
+    protected final String baseUrl;
     protected final String version;
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
@@ -59,7 +59,7 @@ public abstract class WatsonxService {
     protected final AsyncHttpClient asyncHttpClient;
 
     protected WatsonxService(Builder<?> builder) {
-        url = requireNonNull(builder.url, "The url must be provided");
+        baseUrl = requireNonNull(builder.baseUrl, "The baseUrl must be provided");
         version = requireNonNullElse(builder.version, API_VERSION);
         timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
 
@@ -93,7 +93,7 @@ public abstract class WatsonxService {
 
     @SuppressWarnings("unchecked")
     protected static abstract class Builder<T extends Builder<T>> {
-        private URI url;
+        private String baseUrl;
         private String version;
         private Duration timeout;
         private Boolean logRequests;
@@ -103,29 +103,29 @@ public abstract class WatsonxService {
         /**
          * Sets the endpoint URL to which the chat request will be sent.
          *
-         * @param url the endpoint URL as a string
+         * @param baseUrl the endpoint URL as a string
          */
-        public T url(URI url) {
-            this.url = url;
+        public T baseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
             return (T) this;
         }
 
         /**
          * Sets the endpoint URL to which the chat request will be sent.
          *
-         * @param url the endpoint URL as a string
+         * @param baseUrl the endpoint URL as a string
          */
-        public T url(String url) {
-            return url(URI.create(url));
+        public T baseUrl(URI baseUrl) {
+            return baseUrl(baseUrl.toString());
         }
 
         /**
          * Sets the endpoint URL to which the chat request will be sent.
          *
-         * @param url the endpoint URL as a string
+         * @param baseUrl the endpoint URL as a string
          */
-        public T url(CloudRegion url) {
-            return url(URI.create(url.getMlEndpoint()));
+        public T baseUrl(CloudRegion baseUrl) {
+            return baseUrl(baseUrl.getMlEndpoint());
         }
 
         /**

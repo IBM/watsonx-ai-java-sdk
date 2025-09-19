@@ -144,7 +144,7 @@ public final class HttpUtils {
      * @return An instance of WatsonxError parsed from the body.
      */
 
-    public static WatsonxError parseToolError(String body) {
+    private static WatsonxError parseToolError(String body) {
         var parseToolError = fromJson(body, Map.class);
 
         var statusCode = (Integer) parseToolError.get("code");
@@ -166,7 +166,7 @@ public final class HttpUtils {
      * @param body The XML error response body as a String.
      * @return An instance of WatsonxError parsed from the XML body.
      */
-    public static WatsonxError parseXmlError(String body) {
+    private static WatsonxError parseXmlError(String body) {
         Document doc = XmlUtils.parse(body);
 
         doc.getDocumentElement().normalize();

@@ -4,17 +4,10 @@
  */
 package com.ibm.watsonx.ai.rerank;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
@@ -29,7 +22,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  *
  * <pre>{@code
  * RerankService rerankService = RerankService.builder()
- *     .url("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")      // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
@@ -50,9 +43,19 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  */
 public final class RerankService extends ModelService {
 
-    protected RerankService(Builder builder) {
+    private final RerankRestClient client;
+
+    private RerankService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        client = RerankRestClient.builder()
+            .baseUrl(baseUrl)
+            .version(version)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(timeout)
+            .authenticationProvider(builder.getAuthenticationProvider())
+            .build();
     }
 
     /**
@@ -102,23 +105,7 @@ public final class RerankService extends ModelService {
             requestParameters
         );
 
-        var httpRequest = HttpRequest
-            .newBuilder(URI.create(url.toString() + "%s/rerank?version=%s".formatted(ML_API_TEXT_PATH, version)))
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .POST(BodyPublishers.ofString(toJson(rerankRequest)));
-
-        if (nonNull(transactionId))
-            httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
-
-        try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), RerankResponse.class);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return client.rerank(transactionId, rerankRequest);
     }
 
     /**
@@ -128,7 +115,7 @@ public final class RerankService extends ModelService {
      *
      * <pre>{@code
      * RerankService rerankService = RerankService.builder()
-     *     .url("https://...")      // or use CloudRegion
+     *     .baseUrl("https://...")      // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")

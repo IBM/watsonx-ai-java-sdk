@@ -338,7 +338,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                 .projectId("project-id")
                 .spaceId("space-id")
                 .timeout(Duration.ofSeconds(1))
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             var response = textGenerationService.generate("Hello!");
@@ -382,7 +382,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                 .projectId("project-id")
                 .spaceId("space-id")
                 .timeout(Duration.ofSeconds(1))
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             var moderation = Moderation.builder()
@@ -411,7 +411,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             .projectId("project-id")
             .spaceId("space-id")
             .timeout(Duration.ofSeconds(1))
-            .url(CloudRegion.DALLAS)
+            .baseUrl(CloudRegion.DALLAS)
             .build();
 
         var ex = assertThrows(NullPointerException.class, () -> textGenerationService.generate(TextGenerationRequest.builder().build()));
@@ -493,7 +493,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             .modelId("ibm/granite-13b-instruct-v2")
             .logResponses(true)
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(URI.create("http://localhost:%s".formatted(httpPort)))
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .version(VERSION)
             .build();
 
@@ -591,7 +591,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("ibm/granite-13b-instruct-v2")
                 .projectId("project-id")
-                .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+                .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
                 .build();
 
             CompletableFuture<TextGenerationResponse> result = new CompletableFuture<>();

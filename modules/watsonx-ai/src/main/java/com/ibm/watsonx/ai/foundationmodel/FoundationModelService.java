@@ -4,20 +4,10 @@
  */
 package com.ibm.watsonx.ai.foundationmodel;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.StandardCharsets;
-import java.util.StringJoiner;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 /**
@@ -27,7 +17,7 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  *
  * <pre>{@code
  * FoundationModelService service = FoundationModelService.builder()
- *     .url("https://...") // or use CloudRegion
+ *     .baseUrl("https://...") // or use CloudRegion
  *     .build();
  *
  * var result =
@@ -40,10 +30,18 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  */
 public final class FoundationModelService extends WatsonxService {
     private final boolean techPreview;
+    private final FoundationModelRestClient client;
 
-    protected FoundationModelService(Builder builder) {
+    private FoundationModelService(Builder builder) {
         super(builder);
         this.techPreview = requireNonNullElse(builder.techPreview, false);
+        client = FoundationModelRestClient.builder()
+            .baseUrl(baseUrl)
+            .version(version)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(timeout)
+            .build();
     }
 
     /**
@@ -123,40 +121,7 @@ public final class FoundationModelService extends WatsonxService {
      */
     protected FoundationModelResponse<FoundationModel> getModels(Integer start, Integer limit, String transactionId, Boolean techPreview,
         String filters) {
-        try {
-
-            var queryParameters = new StringJoiner("&", "", "");
-            queryParameters.add("version=" + version);
-
-            if (nonNull(start))
-                queryParameters.add("start=" + start);
-
-            if (nonNull(limit))
-                queryParameters.add("limit=" + limit);
-
-            if (techPreview)
-                queryParameters.add("tech_preview=" + techPreview);
-
-            if (nonNull(filters))
-                queryParameters.add("filters=" + URLEncoder.encode(filters.toString(), StandardCharsets.UTF_8));
-
-            var uri =
-                URI.create(url.toString() + "%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters));
-
-            var httpRequest = HttpRequest.newBuilder(uri)
-                .header("Accept", "application/json")
-                .timeout(timeout)
-                .GET();
-
-            if (nonNull(transactionId))
-                httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
-
-            var response = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(response.body(), new TypeToken<FoundationModelResponse<FoundationModel>>() {});
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return client.getModels(start, limit, transactionId, techPreview, filters);
     }
 
     /**
@@ -175,32 +140,7 @@ public final class FoundationModelService extends WatsonxService {
      * @return a {@link FoundationModelResponse} containing the list of tasks.
      */
     public FoundationModelResponse<FoundationModelTask> getTasks(FoundationModelParameters parameters) {
-
-        StringJoiner queryParameters = new StringJoiner("&", "", "");
-        queryParameters.add("version=" + version);
-
-        if (nonNull(parameters.getStart()))
-            queryParameters.add("start=" + parameters.getStart());
-
-        if (nonNull(parameters.getLimit()))
-            queryParameters.add("limit=" + parameters.getLimit());
-
-        var uri =
-            URI.create(url.toString() + "%s/foundation_model_tasks?%s".formatted(ML_API_PATH, queryParameters));
-
-        var httpRequest = HttpRequest.newBuilder(uri).GET();
-
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
-        try {
-
-            var response = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(response.body(), new TypeToken<FoundationModelResponse<FoundationModelTask>>() {});
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return client.getTasks(parameters);
     }
 
     /**
@@ -210,7 +150,7 @@ public final class FoundationModelService extends WatsonxService {
      *
      * <pre>{@code
      * FoundationModelService service = FoundationModelService.builder()
-     *     .url("https://...") // or use CloudRegion
+     *     .baseUrl("https://...") // or use CloudRegion
      *     .build();
      *
      * var result =

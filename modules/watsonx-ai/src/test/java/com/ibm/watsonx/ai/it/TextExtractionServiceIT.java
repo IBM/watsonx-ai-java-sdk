@@ -38,7 +38,7 @@ public class TextExtractionServiceIT {
         .build();
 
     static final TextExtractionService textExtractionService = TextExtractionService.builder()
-        .url(URL)
+        .baseUrl(URL)
         .cosUrl(CLOUD_OBJECT_STORAGE_URL)
         .projectId(PROJECT_ID)
         .documentReference(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET)

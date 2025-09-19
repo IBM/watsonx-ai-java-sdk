@@ -72,7 +72,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
@@ -150,7 +150,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
@@ -243,7 +243,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
@@ -278,7 +278,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")

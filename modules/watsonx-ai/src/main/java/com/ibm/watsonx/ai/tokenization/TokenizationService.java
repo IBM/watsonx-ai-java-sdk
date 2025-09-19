@@ -4,22 +4,13 @@
  */
 package com.ibm.watsonx.ai.tokenization;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
-import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
 
 /**
@@ -29,7 +20,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  *
  * <pre>{@code
  * TokenizationService tokenizationService = TokenizationService.builder()
- *     .url("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")      // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-3-8b-instruct")
@@ -44,9 +35,19 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  */
 public final class TokenizationService extends ModelService {
 
-    protected TokenizationService(Builder builder) {
+    private final TokenizationRestClient client;
+
+    private TokenizationService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        client = TokenizationRestClient.builder()
+            .baseUrl(baseUrl)
+            .version(version)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(timeout)
+            .authenticationProvider(builder.getAuthenticationProvider())
+            .build();
     }
 
     /**
@@ -77,16 +78,9 @@ public final class TokenizationService extends ModelService {
      * @return The tokenization response.
      */
     public TokenizationResponse tokenize(String input, TokenizationParameters parameters) {
-
-        try {
-
-            var httpRequest = buildHttpRequest(input, parameters);
-            var httpReponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TokenizationResponse.class);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        var tokenizationRequest = buildTokenizationRequest(input, parameters);
+        var transactionId = nonNull(parameters) ? parameters.getTransactionId() : null;
+        return client.tokenize(transactionId, tokenizationRequest);
     }
 
     /**
@@ -97,49 +91,34 @@ public final class TokenizationService extends ModelService {
      * @return The tokenization response.
      */
     public CompletableFuture<TokenizationResponse> asyncTokenize(String input, TokenizationParameters parameters) {
-        var httpRequest = buildHttpRequest(input, parameters);
-        return asyncHttpClient.send(httpRequest, BodyHandlers.ofString())
-            .thenApplyAsync(r -> Json.fromJson(r.body(), TokenizationResponse.class), ExecutorProvider.cpuExecutor())
-            .thenApplyAsync(r -> r, ExecutorProvider.ioExecutor());
+        var tokenizationRequest = buildTokenizationRequest(input, parameters);
+        var transactionId = nonNull(parameters) ? parameters.getTransactionId() : null;
+        return client.asyncTokenize(transactionId, tokenizationRequest);
     }
 
     /**
-     * Builds an HTTP request for tokenization.
+     * Builds the TokenizationRequest.
      *
      * @param input The input string to be tokenized.
      * @param parameters Tokenization parameters.
-     * @return A built HttpRequest object for tokenization.
+     * @return A built TokenizationRequest.
      */
-    private HttpRequest buildHttpRequest(String input, TokenizationParameters parameters) {
+    private TokenizationRequest buildTokenizationRequest(String input, TokenizationParameters parameters) {
         requireNonNull(input, "Input cannot be null");
 
         String modelId = this.modelId;
         String projectId = this.projectId;
         String spaceId = this.spaceId;
-        String transactionId = null;
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
             modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
             projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
             spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
-            transactionId = parameters.getTransactionId();
             requestParameters = parameters.toTokenizationRequestParameters();
         }
 
-        var tokenizationRequest = new TokenizationRequest(modelId, input, projectId, spaceId, requestParameters);
-
-        var httpRequest = HttpRequest
-            .newBuilder(URI.create(url.toString() + "%s/tokenization?version=%s".formatted(ML_API_TEXT_PATH, version)))
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .POST(BodyPublishers.ofString(toJson(tokenizationRequest)))
-            .timeout(timeout);
-
-        if (nonNull(transactionId))
-            httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
-
-        return httpRequest.build();
+        return new TokenizationRequest(modelId, input, projectId, spaceId, requestParameters);
     }
 
     /**
@@ -149,7 +128,7 @@ public final class TokenizationService extends ModelService {
      *
      * <pre>{@code
      * TokenizationService tokenizationService = TokenizationService.builder()
-     *     .url("https://...")      // or use CloudRegion
+     *     .baseUrl("https://...")      // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-3-8b-instruct")

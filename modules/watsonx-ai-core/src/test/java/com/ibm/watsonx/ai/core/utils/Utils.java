@@ -77,7 +77,6 @@ public class Utils {
         return baos.toString(StandardCharsets.UTF_8);
     }
 
-
     @SuppressWarnings("unchecked")
     public static HttpResponse<String> okResponse() {
         HttpResponse<String> response = mock(HttpResponse.class);

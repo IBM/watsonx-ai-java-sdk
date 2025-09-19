@@ -24,19 +24,17 @@ import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.JS
 import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.MD;
 import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.PAGE_IMAGES;
 import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.PLAIN_TEXT;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -45,11 +43,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -190,7 +185,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     @BeforeEach
     void beforeAll() {
         textExtractionService = TextExtractionService.builder()
-            .url("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
             .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("projectid")
@@ -455,7 +450,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("<project-id>")
-            .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.AU_SYD)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
@@ -516,7 +511,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("<project-id>")
-            .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.BR_SAO)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
@@ -582,7 +577,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("<project-id>")
             .cosUrl(CosUrl.CA_MON)
-            .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
             .logRequests(true)
@@ -640,7 +635,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("<project-id>")
-            .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.CA_TOR)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
@@ -729,7 +724,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("<project_id>")
-            .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.EU_DE)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
@@ -764,7 +759,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .spaceId("<space_id>")
-            .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.JP_OSA)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
@@ -805,7 +800,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("<project_id>")
-            .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.EU_ES)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
@@ -859,7 +854,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         textExtractionService = TextExtractionService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .spaceId("<space_id>")
-            .url(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.JP_TOK)
             .documentReference("<connection_id>", "bucket")
             .resultReference("<connection_id>", "bucket")
@@ -892,7 +887,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             var textExtractionService = TextExtractionService.builder()
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("<project_id>")
-                .url(URI.create("http://localhost"))
+                .baseUrl(URI.create("http://localhost"))
                 .cosUrl(CosUrl.EU_GB)
                 .logRequests(true)
                 .logResponses(true)
@@ -1255,55 +1250,6 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         cosServer.verify(0, getRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFolderName))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFolderName))));
-    }
-
-    @Test
-    void overrideParametersTest() throws Exception {
-
-        when(mockHttpResponse.body())
-            .thenReturn(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, "test.txt", BUCKET_NAME, "submitted"))
-            .thenReturn(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, "test.txt", BUCKET_NAME, "completed"));
-
-        HttpResponse<InputStream> response2 = mock(HttpResponse.class);
-        when(response2.body()).thenReturn(new ByteArrayInputStream("Test".getBytes(StandardCharsets.UTF_8)));
-
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(response2.statusCode()).thenReturn(200);
-
-        when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-            .thenReturn(mockHttpResponse)
-            .thenReturn(mockHttpResponse)
-            .thenReturn(response2);
-
-        withWatsonxServiceMock(() -> {
-            var service = TextExtractionService.builder()
-                .url("http://localhost:%s".formatted(watsonxServer.getPort()))
-                .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
-                .authenticationProvider(mockAuthenticationProvider)
-                .projectId("projectid")
-                .documentReference("<connection_id>", BUCKET_NAME)
-                .resultReference("<connection_id>", BUCKET_NAME)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
-
-            var parameters = TextExtractionParameters.builder()
-                .cosUrl(CosUrl.JP_OSA)
-                .build();
-
-            try {
-                service.extractAndFetch("test.pdf", parameters);
-                verify(mockHttpClient, times(3)).send(mockHttpRequest.capture(), any());
-            } catch (Exception e) {
-                fail(e);
-            }
-
-
-            List<HttpRequest> allRequests = mockHttpRequest.getAllValues();
-            HttpRequest lastRequest = allRequests.get(2);
-
-            assertEquals("https://s3.jp-osa.cloud-object-storage.appdomain.cloud/my-bucket/test.txt", lastRequest.uri().toString());
-        });
     }
 
     @Test
@@ -1951,7 +1897,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     @Test
     void deleteFileTest() {
 
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         cosServer.resetAll();
 
@@ -1982,7 +1928,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         assertTrue(textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME));
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
-        verify(mockAuthenticationProvider, times(2)).token();
+        verify(mockAuthenticationProvider, times(2)).asyncToken();
     }
 
 

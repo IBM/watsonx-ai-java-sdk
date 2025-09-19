@@ -4,17 +4,10 @@
  */
 package com.ibm.watsonx.ai.embedding;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +22,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  *
  * <pre>{@code
  * EmbeddingService embeddingService = EmbeddingService.builder()
- *     .url("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")      // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-embedding-278m-multilingual")
@@ -48,10 +41,19 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 public final class EmbeddingService extends ModelService {
 
     private static final int MAX_SIZE = 1000;
+    private final EmbeddingRestClient client;
 
-    protected EmbeddingService(Builder builder) {
+    private EmbeddingService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        client = EmbeddingRestClient.builder()
+            .baseUrl(baseUrl)
+            .version(version)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(timeout)
+            .authenticationProvider(builder.getAuthenticationProvider())
+            .build();
     }
 
     /**
@@ -111,27 +113,10 @@ public final class EmbeddingService extends ModelService {
             var embeddingRequest =
                 new EmbeddingRequest(modelId, spaceId, projectId, subList, requestParameters);
 
-            var httpRequest = HttpRequest
-                .newBuilder(URI.create(url.toString() + "%s/embeddings?version=%s".formatted(ML_API_TEXT_PATH, version)))
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .POST(BodyPublishers.ofString(toJson(embeddingRequest)))
-                .timeout(timeout);
-
-            if (nonNull(transactionId))
-                httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
-
-            try {
-
-                var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-                var response = fromJson(httpReponse.body(), EmbeddingResponse.class);
-                results.addAll(response.results());
-                inputTokenCount += response.inputTokenCount();
-                createdAt = response.createdAt();
-
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            var response = client.embedding(transactionId, embeddingRequest);
+            results.addAll(response.results());
+            inputTokenCount += response.inputTokenCount();
+            createdAt = response.createdAt();
         }
 
         return new EmbeddingResponse(modelId, createdAt, results, inputTokenCount);
@@ -144,7 +129,7 @@ public final class EmbeddingService extends ModelService {
      *
      * <pre>{@code
      * EmbeddingService embeddingService = EmbeddingService.builder()
-     *     .url("https://...")      // or use CloudRegion
+     *     .baseUrl("https://...")      // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-embedding-278m-multilingual")

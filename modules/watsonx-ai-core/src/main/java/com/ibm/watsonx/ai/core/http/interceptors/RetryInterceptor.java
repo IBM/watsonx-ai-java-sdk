@@ -35,7 +35,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
     private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
 
-    private record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
+    public record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
 
     private final Duration retryInterval;
     private final List<RetryOn> retryOn;
@@ -162,7 +162,6 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         return executeWithRetry(request, bodyHandler, index, 0, Duration.from(retryInterval), chain);
     }
 
-
     private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler, int index, int attempt,
         Duration timeout, AsyncChain chain) {
 
@@ -205,6 +204,10 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, ExecutorProvider.ioExecutor())
                 ).thenCompose(Function.identity());
             }, ExecutorProvider.ioExecutor());
+    }
+
+    public List<RetryOn> retryOn() {
+        return retryOn;
     }
 
     /**

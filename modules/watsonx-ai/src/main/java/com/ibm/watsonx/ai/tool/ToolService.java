@@ -4,17 +4,9 @@
  */
 package com.ibm.watsonx.ai.tool;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
-import java.util.Map;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.Experimental;
@@ -37,7 +29,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  *
  * <pre>{@code
  * ToolService service = ToolService.builder()
- *     .url("https://...")  // or use CloudRegion
+ *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("api-key")   // creates an IAM-based AuthenticationProvider
  *     .build();
  *
@@ -60,13 +52,21 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
 @Experimental
 public final class ToolService extends WatsonxService {
 
-    private static final String API_PATH = "/v1-beta/utility_agent_tools";
-
     public record Resources(List<UtilityTool> resources) {}
+
+    private final ToolRestClient client;
 
     public ToolService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        client = ToolRestClient.builder()
+            .baseUrl(baseUrl)
+            .version(version)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(timeout)
+            .authenticationProvider(builder.getAuthenticationProvider())
+            .build();
     }
 
     /**
@@ -85,24 +85,7 @@ public final class ToolService extends WatsonxService {
      * @return a list of {@link UtilityTool} instances representing all available tools
      */
     public Resources getAll(ToolParameters parameters) {
-
-        var httpRequest =
-            HttpRequest.newBuilder(URI.create(url.toString().concat(API_PATH)))
-                .header("Accept", "application/json")
-                .timeout(timeout)
-                .GET();
-
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
-        try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), Resources.class);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return client.getAll(nonNull(parameters) ? parameters.getTransactionId() : null);
     }
 
     /**
@@ -123,26 +106,9 @@ public final class ToolService extends WatsonxService {
      * @return a {@link UtilityTool} instance representing the requested tool.
      */
     public UtilityTool getByName(String name, ToolParameters parameters) {
-
         requireNonNull(name, "The name of the tool must be provided");
-
-        var httpRequest =
-            HttpRequest.newBuilder(URI.create(url.toString() + "%s/%s".formatted(API_PATH, name)))
-                .header("Accept", "application/json")
-                .timeout(timeout)
-                .GET();
-
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
-        try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), UtilityTool.class);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        var transactionId = nonNull(parameters) ? parameters.getTransactionId() : null;
+        return client.getByName(transactionId, name);
     }
 
     /**
@@ -170,26 +136,8 @@ public final class ToolService extends WatsonxService {
         requireNonNull(toolRequest, "The tool run request must be provided");
         requireNonNull(toolRequest.toolName(), "The name of the tool must be provided");
         requireNonNull(toolRequest.input(), "The input of the tool must be provided");
-
-        var httpRequest =
-            HttpRequest.newBuilder(URI.create(url.toString() + "%s/run".formatted(API_PATH)))
-                .header("Accept", "application/json")
-                .header("Content-Type", "application/json")
-                .timeout(timeout)
-                .POST(BodyPublishers.ofString(toJson(toolRequest)));
-
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
-        try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            var result = fromJson(httpReponse.body(), Map.class);
-            return (String) result.get("output");
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        var transactionId = nonNull(parameters) ? parameters.getTransactionId() : null;
+        return client.run(transactionId, toolRequest);
     }
 
     /**
@@ -199,7 +147,7 @@ public final class ToolService extends WatsonxService {
      *
      * <pre>{@code
      * ToolService service = ToolService.builder()
-     *     .url("https://...")  // or use CloudRegion
+     *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("api-key")   // creates an IAM-based AuthenticationProvider
      *     .build();
      *
@@ -227,8 +175,8 @@ public final class ToolService extends WatsonxService {
         private Builder() {}
 
         @Override
-        public Builder url(CloudRegion url) {
-            return super.url(url.getWxEndpoint());
+        public Builder baseUrl(CloudRegion url) {
+            return super.baseUrl(url.getWxEndpoint());
         }
 
         /**

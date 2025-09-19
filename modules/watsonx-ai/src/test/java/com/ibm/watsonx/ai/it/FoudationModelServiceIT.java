@@ -26,7 +26,7 @@ public class FoudationModelServiceIT {
         .build();
 
     static final FoundationModelService foundationModelService = FoundationModelService.builder()
-        .url(URL)
+        .baseUrl(URL)
         .authenticationProvider(authentication)
         .logRequests(true)
         .logResponses(true)

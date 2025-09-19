@@ -36,7 +36,6 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
  * <a href=" https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction-params.html?context=wx">documentation</a>.
  */
 public final class TextExtractionParameters extends WatsonxParameters {
-    private final String cosUrl;
     private final List<String> requestedOutputs;
     private final String mode;
     private final String ocrMode;
@@ -57,7 +56,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
 
     public TextExtractionParameters(Builder builder) {
         super(builder);
-        this.cosUrl = builder.cosUrl;
         this.requestedOutputs = requireNonNullElse(builder.requestedOutputs, List.of(Type.MD.value));
         this.mode = builder.mode;
         this.ocrMode = builder.ocrMode;
@@ -145,10 +143,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
         return timeout;
     }
 
-    public String getCosUrl() {
-        return cosUrl;
-    }
-
     /**
      * Converts the {@link TextExtractionParameters} into a new {@link Parameters} object.
      */
@@ -191,7 +185,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
      * Builder class for constructing {@link TextExtractionParameters} instances with configurable parameters.
      */
     public static class Builder extends WatsonxParameters.Builder<Builder> {
-        private String cosUrl;
         private List<String> requestedOutputs;
         private String mode;
         private String ocrMode;
@@ -211,26 +204,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
         private Duration timeout;
 
         private Builder() {}
-
-        /**
-         * Sets the Cloud Object Storage url.
-         *
-         * @param cosUrl the COS url
-         */
-        public Builder cosUrl(String cosUrl) {
-            this.cosUrl = cosUrl;
-            return this;
-        }
-
-        /**
-         * Sets the Cloud Object Storage url.
-         *
-         * @param cosUrl the COS url
-         */
-        public Builder cosUrl(CosUrl cosUrl) {
-            requireNonNull(cosUrl, "cosUrl cannot be null");
-            return cosUrl(cosUrl.value());
-        }
 
         /**
          * Sets the list of requested output types.

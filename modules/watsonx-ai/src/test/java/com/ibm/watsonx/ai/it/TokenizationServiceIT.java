@@ -28,7 +28,7 @@ public class TokenizationServiceIT {
         .build();
 
     static final TokenizationService tokenizationService = TokenizationService.builder()
-        .url(URL)
+        .baseUrl(URL)
         .projectId(PROJECT_ID)
         .authenticationProvider(authentication)
         .modelId("ibm/granite-3-8b-instruct")
