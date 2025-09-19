@@ -21,7 +21,6 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -192,12 +191,11 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
                     .interceptor(new BearerInterceptor(authenticator))
                     .interceptor(new AsyncHttpInterceptor() {
                         @Override
-                        public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, Executor executor,
-                            int index, AsyncChain chain) {
+                        public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
+                            AsyncChain chain) {
                             assertEquals("io-thread", Thread.currentThread().getName());
-                            assertEquals(ioExecutor, executor);
                             threadNames.add(Thread.currentThread().getName());
-                            return chain.proceed(request, bodyHandler, executor);
+                            return chain.proceed(request, bodyHandler);
                         }
                     }).build();
 

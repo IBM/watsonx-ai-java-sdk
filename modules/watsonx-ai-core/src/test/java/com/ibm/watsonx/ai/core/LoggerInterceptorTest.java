@@ -29,11 +29,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
@@ -319,11 +316,11 @@ public class LoggerInterceptorTest {
             when(response.body()).thenReturn("response");
             when(response.statusCode()).thenReturn(200);
             when(response.headers()).thenReturn(null);
-            when(chain.proceed(eq(request), eq(BodyHandlers.ofString()), any())).thenReturn(completedFuture(response));
+            when(chain.proceed(eq(request), eq(BodyHandlers.ofString()))).thenReturn(completedFuture(response));
 
             assertDoesNotThrow(() -> interceptor
-                .intercept(request, HttpResponse.BodyHandlers.ofString(), ForkJoinPool.commonPool(), 0, chain).get());
-            verify(chain).proceed(any(), any(), any());
+                .intercept(request, HttpResponse.BodyHandlers.ofString(), 0, chain).get());
+            verify(chain).proceed(any(), any());
         }
     }
 
@@ -344,11 +341,11 @@ public class LoggerInterceptorTest {
         }, "io-thread"));
 
         var mockHttpResponse = mock(HttpResponse.class);
-        when(httpClient.executor()).thenReturn(Optional.of(ioExecutor));
         when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
 
         try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
             mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
+            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
             LoggerInterceptor interceptor = new LoggerInterceptor();
 
@@ -357,12 +354,11 @@ public class LoggerInterceptorTest {
                 .interceptor(interceptor)
                 .interceptor(new AsyncHttpInterceptor() {
                     @Override
-                    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, Executor executor,
+                    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
                         int index, AsyncChain chain) {
                         assertEquals("io-thread", Thread.currentThread().getName());
-                        assertEquals(ioExecutor, executor);
                         threadNames.add(Thread.currentThread().getName());
-                        return chain.proceed(request, bodyHandler, executor)
+                        return chain.proceed(request, bodyHandler)
                             .thenApplyAsync(r -> r, cpuExecutor)
                             .thenApplyAsync(r -> {
                                 threadNames.add(Thread.currentThread().getName());

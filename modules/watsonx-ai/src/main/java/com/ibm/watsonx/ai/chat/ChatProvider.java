@@ -141,7 +141,6 @@ public interface ChatProvider {
                         throw new RuntimeException(messageData);
                     }
 
-                    // TODO: Use the ExecutorProvider.cpuExecutor().
                     var chunk = Json.fromJson(messageData, PartialChatResponse.class);
 
                     synchronized (chatResponse) {
