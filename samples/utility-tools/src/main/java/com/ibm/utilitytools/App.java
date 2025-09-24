@@ -8,8 +8,6 @@ import java.net.URI;
 import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
@@ -29,15 +27,10 @@ public class App {
             var watsonxApiKey = config.getValue("WATSONX_API_KEY", String.class);
             var tavilyApiKey = config.getOptionalValue("TAVILY_SEARCH_API_KEY", String.class);
 
-            AuthenticationProvider authProvider = IAMAuthenticator.builder()
+            ToolService toolService = ToolService.builder()
                 .apiKey(watsonxApiKey)
                 .timeout(Duration.ofSeconds(60))
-                .build();
-
-            ToolService toolService = ToolService.builder()
-                .authenticationProvider(authProvider)
-                .timeout(Duration.ofSeconds(60))
-                .url(url)
+                .baseUrl(url)
                 .build();
 
             GoogleSearchTool googleSearchTool = new GoogleSearchTool(toolService);

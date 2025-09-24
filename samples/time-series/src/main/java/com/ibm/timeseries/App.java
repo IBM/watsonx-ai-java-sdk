@@ -6,7 +6,6 @@ package com.ibm.timeseries;
 
 import static com.ibm.watsonx.ai.core.Json.prettyPrint;
 import java.net.URI;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
@@ -14,8 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.timeseries.ForecastData;
 import com.ibm.watsonx.ai.timeseries.InputSchema;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
@@ -33,15 +30,10 @@ public class App {
             var apiKey = config.getValue("WATSONX_API_KEY", String.class);
             var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-            AuthenticationProvider authProvider = IAMAuthenticator.builder()
-                .apiKey(apiKey)
-                .timeout(Duration.ofSeconds(60))
-                .build();
-
             TimeSeriesService tsService = TimeSeriesService.builder()
-                .authenticationProvider(authProvider)
+                .apiKey(apiKey)
                 .projectId(projectId)
-                .url(url)
+                .baseUrl(url)
                 .modelId("ibm/granite-ttm-512-96-r2")
                 .logRequests(true)
                 .logResponses(true)

@@ -10,8 +10,6 @@ import java.time.Duration;
 import java.util.Scanner;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.textextraction.CosReference;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters;
 import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
@@ -52,16 +50,11 @@ public class App {
 
                 var file = new File(inputPath);
 
-                AuthenticationProvider authProvider = IAMAuthenticator.builder()
+                TextExtractionService textExtractionService = TextExtractionService.builder()
                     .apiKey(apiKey)
                     .timeout(Duration.ofSeconds(60))
-                    .build();
-
-                TextExtractionService textExtractionService = TextExtractionService.builder()
-                    .authenticationProvider(authProvider)
-                    .timeout(Duration.ofSeconds(60))
                     .projectId(projectId)
-                    .url(url)
+                    .baseUrl(url)
                     .cosUrl(cosUrl)
                     .documentReference(documentReference)
                     .resultReference(resultsReference)

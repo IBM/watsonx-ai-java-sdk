@@ -14,8 +14,6 @@ import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
@@ -35,22 +33,17 @@ public class AiService {
         final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
         modelId = config.getOptionalValue("WATSONX_MODEL_ID", String.class).orElse("mistralai/mistral-medium-2505");
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
-
         chatService = ChatService.builder()
-            .authenticationProvider(authProvider)
+            .apiKey(apiKey)
             .projectId(projectId)
             .timeout(Duration.ofSeconds(60))
             .modelId(modelId)
-            .url(url)
+            .baseUrl(url)
             .build();
 
         foundationModelService = FoundationModelService.builder()
-            .authenticationProvider(authProvider)
-            .url(url)
+            .apiKey(apiKey)
+            .baseUrl(url)
             .timeout(Duration.ofSeconds(60))
             .build();
 

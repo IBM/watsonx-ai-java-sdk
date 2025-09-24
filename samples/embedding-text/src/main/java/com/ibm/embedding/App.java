@@ -9,8 +9,6 @@ import java.time.Duration;
 import java.util.List;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.embedding.EmbeddingParameters;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 
@@ -26,17 +24,12 @@ public class App {
             var apiKey = config.getValue("WATSONX_API_KEY", String.class);
             var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-            AuthenticationProvider authProvider = IAMAuthenticator.builder()
-                .apiKey(apiKey)
-                .timeout(Duration.ofSeconds(60))
-                .build();
-
             EmbeddingService embeddingService = EmbeddingService.builder()
-                .authenticationProvider(authProvider)
+                .apiKey(apiKey)
                 .projectId(projectId)
                 .timeout(Duration.ofSeconds(60))
                 .modelId("ibm/granite-embedding-278m-multilingual")
-                .url(url)
+                .baseUrl(url)
                 .build();
 
             var response = embeddingService.embedding(
