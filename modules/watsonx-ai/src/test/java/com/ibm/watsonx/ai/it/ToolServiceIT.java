@@ -39,7 +39,7 @@ public class ToolServiceIT {
         .build();
 
     static final ToolService toolService = ToolService.builder()
-        .url(CloudRegion.FRANKFURT)
+        .baseUrl(CloudRegion.FRANKFURT)
         .authenticationProvider(authentication)
         .logRequests(true)
         .logResponses(true)

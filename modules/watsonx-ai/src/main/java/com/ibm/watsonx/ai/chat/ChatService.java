@@ -4,24 +4,13 @@
  */
 package com.ibm.watsonx.ai.chat;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.net.http.HttpResponse.BodySubscribers;
-import java.time.Duration;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +22,6 @@ import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 
 /**
@@ -43,7 +31,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *
  * <pre>{@code
  * ChatService chatService = ChatService.builder()
- *     .url("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-3-8b-instruct")
@@ -62,10 +50,19 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 public final class ChatService extends ModelService implements ChatProvider {
 
     public static final Logger logger = LoggerFactory.getLogger(ChatService.class);
+    private final ChatRestClient client;
 
-    protected ChatService(Builder builder) {
+    private ChatService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        client = ChatRestClient.builder()
+            .baseUrl(baseUrl)
+            .version(version)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(timeout)
+            .authenticationProvider(builder.getAuthenticationProvider())
+            .build();
     }
 
     @Override
@@ -99,34 +96,18 @@ public final class ChatService extends ModelService implements ChatProvider {
             .timeLimit(timeout)
             .build();
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat?version=%s".formatted(ML_API_TEXT_PATH, version)))
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .POST(BodyPublishers.ofString(toJson(textChatRequest)))
-            .timeout(Duration.ofMillis(timeout));
+        var chatResponse = client.chat(parameters.getTransactionId(), textChatRequest);
 
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
-        try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            var chatResponse = fromJson(httpReponse.body(), ChatResponse.class);
-
-            // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
-            // Open an issue.
-            if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoice.REQUIRED.type())) {
-                var assistantMessage = chatResponse.toAssistantMessage();
-                if (nonNull(assistantMessage.toolCalls()) && !assistantMessage.toolCalls().isEmpty())
-                    chatResponse.getChoices().get(0).setFinishReason("tool_calls");
-            }
-
-            chatResponse.setExtractionTags(chatRequest.getExtractionTags());
-            return chatResponse;
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+        // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
+        // Open an issue.
+        if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoice.REQUIRED.type())) {
+            var assistantMessage = chatResponse.toAssistantMessage();
+            if (nonNull(assistantMessage.toolCalls()) && !assistantMessage.toolCalls().isEmpty())
+                chatResponse.getChoices().get(0).setFinishReason("tool_calls");
         }
+
+        chatResponse.setExtractionTags(chatRequest.getExtractionTags());
+        return chatResponse;
     }
 
     @Override
@@ -160,25 +141,7 @@ public final class ChatService extends ModelService implements ChatProvider {
             .timeLimit(timeout)
             .build();
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/chat_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
-            .header("Content-Type", "application/json")
-            .header("Accept", "text/event-stream")
-            .POST(BodyPublishers.ofString(toJson(textChatRequest)))
-            .timeout(Duration.ofMillis(timeout));
-
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
-        Map<String, Boolean> toolHasParameters = new HashMap<>();
-        if (nonNull(tools))
-            tools.stream().forEach(tool -> toolHasParameters.put(tool.function().name(), tool.hasParameters()));
-
-        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), toolHasParameters, chatRequest.getExtractionTags(), handler);
-        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
-            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-            : BodySubscribers.fromLineSubscriber(subscriber))
-            .thenAccept(r -> {})
-            .exceptionally(t -> handlerError(t, handler));
+        return client.chatStreaming(parameters.getTransactionId(), chatRequest.getExtractionTags(), textChatRequest, handler);
     }
 
     /**
@@ -369,7 +332,7 @@ public final class ChatService extends ModelService implements ChatProvider {
      *
      * <pre>{@code
      * ChatService chatService = ChatService.builder()
-     *     .url("https://...")      // or use CloudRegion
+     *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-3-8b-instruct")

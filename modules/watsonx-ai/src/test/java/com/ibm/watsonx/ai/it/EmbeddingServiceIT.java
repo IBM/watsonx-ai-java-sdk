@@ -27,7 +27,7 @@ public class EmbeddingServiceIT {
         .build();
 
     static final EmbeddingService embeddingService = EmbeddingService.builder()
-        .url(URL)
+        .baseUrl(URL)
         .projectId(PROJECT_ID)
         .authenticationProvider(authentication)
         .modelId("ibm/granite-embedding-278m-multilingual")

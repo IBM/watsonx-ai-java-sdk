@@ -72,7 +72,7 @@ public class DeploymentServiceIT {
         String SPACE_ID = System.getenv("WATSONX_SPACE_ID");
 
         var deploymentService = DeploymentService.builder()
-            .url(URL)
+            .baseUrl(URL)
             .authenticationProvider(authentication)
             .logRequests(true)
             .logResponses(true)
@@ -93,7 +93,7 @@ public class DeploymentServiceIT {
         void test_chat() {
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -116,7 +116,7 @@ public class DeploymentServiceIT {
         void test_chat_messages() {
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -151,7 +151,7 @@ public class DeploymentServiceIT {
             record Poem(String content, String topic) {}
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -189,7 +189,7 @@ public class DeploymentServiceIT {
             record Poem(String content, String topic) {}
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -225,7 +225,7 @@ public class DeploymentServiceIT {
         void test_chat_thinking() {
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -268,7 +268,7 @@ public class DeploymentServiceIT {
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -292,7 +292,7 @@ public class DeploymentServiceIT {
         void test_chat_tool() {
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -327,7 +327,7 @@ public class DeploymentServiceIT {
         void test_chat_tool_choice_option() {
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -363,7 +363,7 @@ public class DeploymentServiceIT {
         void test_chat_streaming() throws Exception {
 
             var chatService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -391,7 +391,7 @@ public class DeploymentServiceIT {
             record Poem(String content, String topic) {}
 
             var chatService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -444,7 +444,7 @@ public class DeploymentServiceIT {
             record Poem(String content, String topic) {}
 
             var chatService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -495,7 +495,7 @@ public class DeploymentServiceIT {
         void test_chat_streaming_thinking() {
 
             var chatService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -575,7 +575,7 @@ public class DeploymentServiceIT {
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
             var chatService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -629,7 +629,7 @@ public class DeploymentServiceIT {
         void test_chat_streaming_tool() {
 
             var chatService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -712,7 +712,7 @@ public class DeploymentServiceIT {
         void test_chat_streaming_shared_handler() throws Exception {
 
             var chatService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -761,7 +761,7 @@ public class DeploymentServiceIT {
         void test_chat_streaming_tool_choice_option() {
 
             var deploymentService = DeploymentService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)

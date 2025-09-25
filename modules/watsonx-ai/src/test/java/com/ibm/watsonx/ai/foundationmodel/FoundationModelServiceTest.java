@@ -40,7 +40,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
         );
 
         var service = FoundationModelService.builder()
-            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, toJson(service.getModels()), true);
@@ -62,7 +62,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
         );
 
         var service = FoundationModelService.builder()
-            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
             .build();
 
         var result = service.getModels(Filter.of(modelId("test")));
@@ -91,7 +91,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
         );
 
         var service = FoundationModelService.builder()
-            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
             .techPreview(true)
             .logRequests(true)
             .logResponses(true)
@@ -150,7 +150,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
         );
 
         var service = FoundationModelService.builder()
-            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, toJson(service.getTasks()), true);
@@ -173,7 +173,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
         );
 
         var service = FoundationModelService.builder()
-            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
             .build();
 
         var parameters = FoundationModelParameters.builder()
@@ -211,7 +211,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var service = FoundationModelService.builder()
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .version("2025-12-12")
 
                 .build();
@@ -233,7 +233,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
 
                 var service = FoundationModelService.builder()
-                    .url(CloudRegion.DALLAS)
+                    .baseUrl(CloudRegion.DALLAS)
                     .build();
 
                 assertThrows(RuntimeException.class, () -> service.getModels());

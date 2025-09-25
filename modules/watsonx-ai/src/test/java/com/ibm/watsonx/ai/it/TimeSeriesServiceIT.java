@@ -33,7 +33,7 @@ public class TimeSeriesServiceIT {
         .build();
 
     static final TimeSeriesService timeSeriesService = TimeSeriesService.builder()
-        .url(URL)
+        .baseUrl(URL)
         .authenticationProvider(authentication)
         .projectId(PROJECT_ID)
         .modelId("ibm/granite-ttm-512-96-r2")

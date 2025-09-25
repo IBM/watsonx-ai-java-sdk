@@ -225,8 +225,10 @@ public final class ChatResponse {
 
         if (isNull(extractionTags))
             return resultMessage.content();
-        else
-            return extractionTags.extractResponse(resultMessage.content());
+        else {
+            var content = extractionTags.extractResponse(resultMessage.content());
+            return isNull(content) ? resultMessage.content() : content;
+        }
     }
 
     /**
@@ -276,6 +278,7 @@ public final class ChatResponse {
             thinking = resultMessage.reasoningContent();
         } else {
             content = extractionTags.extractResponse(resultMessage.content());
+            content = isNull(content) ? resultMessage.content() : content;
             thinking = extractionTags.extractThinking(resultMessage.content());
         }
 

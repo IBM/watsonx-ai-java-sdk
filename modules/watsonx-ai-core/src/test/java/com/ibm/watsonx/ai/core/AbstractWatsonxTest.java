@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.core;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -50,6 +51,14 @@ public abstract class AbstractWatsonxTest {
     protected void mockHttpClientSend(HttpRequest request, HttpResponse.BodyHandler<String> responseBodyHandler) {
         try {
             when(mockHttpClient.send(request, responseBodyHandler)).thenReturn(mockHttpResponse);
+        } catch (Exception e) {
+            fail(e);
+        }
+    }
+
+    protected void mockHttpClientAsyncSend(HttpRequest request, HttpResponse.BodyHandler<String> responseBodyHandler) {
+        try {
+            when(mockHttpClient.sendAsync(request, responseBodyHandler)).thenReturn(completedFuture(mockHttpResponse));
         } catch (Exception e) {
             fail(e);
         }

@@ -134,7 +134,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .spaceId("default-space-id")
                 // ------------------------------------------------------
                 .timeout(Duration.ofSeconds(60))
-                .url(URI.create("http://my-cloud-instance.com"))
+                .baseUrl(URI.create("http://my-cloud-instance.com"))
                 .version(("1988-03-23"))
                 .build();
 
@@ -223,7 +223,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .modelId("my-default-model")
                 .projectId("default-project-id")
                 .spaceId("default-space-id")
-                .url(CloudRegion.FRANKFURT)
+                .baseUrl(CloudRegion.FRANKFURT)
                 .build();
 
             var messages = List.<ChatMessage>of(UserMessage.text("Hello"));
@@ -350,7 +350,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("meta-llama/llama-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .build();
 
             var messages = List.<ChatMessage>of(
@@ -462,7 +462,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("meta-llama/llama-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -549,7 +549,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("meta-llama/llama-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -623,7 +623,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("meta-llama/llama-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -747,7 +747,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .logRequests(true)
                 .modelId("meta-llama/llama-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -873,7 +873,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("ibm/granite-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -962,7 +962,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .modelId("ibm/granite-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
                 .logRequests(true)
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1063,7 +1063,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("ibm/granite-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1160,7 +1160,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("ibm/granite-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.TOKYO)
+                .baseUrl(CloudRegion.TOKYO)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1235,7 +1235,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.TORONTO)
+                .baseUrl(CloudRegion.TORONTO)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1312,7 +1312,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1388,7 +1388,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.SYDNEY)
+                .baseUrl(CloudRegion.SYDNEY)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1480,7 +1480,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .url(CloudRegion.SYDNEY)
+                .baseUrl(CloudRegion.SYDNEY)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1574,7 +1574,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(URI.create("http://localhost:%s".formatted(httpPort)))
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .version(VERSION)
             .build();
 
@@ -1740,7 +1740,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .modelId("ibm/granite-3-3-8b-instruct")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
             .logResponses(true)
-            .url(URI.create("http://localhost:%s".formatted(httpPort)))
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .build();
 
 
@@ -2058,7 +2058,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(URI.create("http://localhost:%s".formatted(httpPort)))
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .build();
 
 
@@ -2353,7 +2353,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(URI.create("http://localhost:%s".formatted(httpPort)))
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .logResponses(true)
             .build();
 
@@ -2418,7 +2418,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(URI.create("http://localhost:%s".formatted(httpPort)))
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .logResponses(true)
             .build();
 
@@ -2493,7 +2493,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("ibm/granite-3-3-8b-instruct")
             .projectId("project-id")
-            .url(URI.create("http://localhost:%s".formatted(httpPort)))
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
@@ -2579,6 +2579,137 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void test_chat_streaming_thinking_without_think_result() throws Exception {
+
+        var httpPort = wireMock.getPort();
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .withRequestBody(equalToJson("""
+                {
+                    "model_id": "ibm/granite-3-3-8b-instruct",
+                    "project_id": "project-id",
+                    "messages": [
+                        {
+                            "role": "control",
+                            "content": "thinking"
+                        },
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Translate \\"Hello\\" in Italian"
+                                }
+                            ]
+                        }
+                    ],
+                    "time_limit": 10000
+                }"""))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(159, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.563Z"}
+
+                        id: 5
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.564Z","usage":{"completion_tokens":3,"prompt_tokens":38,"total_tokens":41}}
+                        """)));
+
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("ibm/granite-3-3-8b-instruct")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
+            .build();
+
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        ChatRequest chatRequest = ChatRequest.builder()
+            .messages(
+                ControlMessage.of("thinking"),
+                UserMessage.text("Translate \"Hello\" in Italian"))
+            .thinking(ExtractionTags.of("think", "response"))
+            .build();
+
+
+        StringBuilder thinkingResponse = new StringBuilder();
+        StringBuilder response = new StringBuilder();
+
+        chatService.chatStreaming(chatRequest, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                response.append(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                thinkingResponse.append(partialThinking);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                fail();
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                fail();
+            }
+        });
+
+        var chatResponse = result.get(3, TimeUnit.SECONDS);
+
+        var EXPECTED_RESPONSE = "Ciao";
+
+        var chatResponseText = chatResponse.getChoices().get(0).getMessage().content();
+        assertFalse(chatResponseText.contains("<think>") && chatResponseText.contains("</think>"));
+        assertFalse(chatResponseText.contains("<response>") && chatResponseText.contains("</response>"));
+        assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));
+
+
+        assertTrue(chatResponse.extractContent().contains(EXPECTED_RESPONSE));
+        assertFalse(chatResponse.extractContent().contains("<response>") && chatResponse.extractContent().contains("</response>"));
+
+        assertNull(chatResponse.extractThinking());
+        assertTrue(response.toString().contains(EXPECTED_RESPONSE));
+
+        var assistantMessage = chatResponse.toAssistantMessage();
+        assertTrue(assistantMessage.content().contains(EXPECTED_RESPONSE));
+        assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
+
+        assertNull(assistantMessage.thinking());
+    }
+
+    @Test
     void chat_tool_choice_option_required() throws Exception {
 
         // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
@@ -2626,7 +2757,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .projectId("project-id")
-                .url(CloudRegion.FRANKFURT)
+                .baseUrl(CloudRegion.FRANKFURT)
                 .build();
 
             var parameters = ChatParameters.builder()
@@ -2677,7 +2808,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         ex = assertThrows(NullPointerException.class, () -> ChatService.builder()
             .projectId("test")
             .authenticationProvider(mockAuthenticationProvider)
-            .url(URI.create("http://localhost:8080"))
+            .baseUrl(URI.create("http://localhost:8080"))
             .build());
         assertEquals("The modelId must be provided", ex.getMessage());
 
@@ -2685,7 +2816,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         ex = assertThrows(NullPointerException.class, () -> ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("test")
-            .url(URI.create("http://localhost:8080"))
+            .baseUrl(URI.create("http://localhost:8080"))
             .build());
         assertEquals("Either projectId or spaceId must be provided", ex.getMessage());
 
@@ -2694,7 +2825,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("model-id")
                 .projectId("project-id")
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             var chatParameters = ChatParameters.builder().build();
@@ -2734,7 +2865,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("notExist")
             .projectId("project-id")
-            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
@@ -2791,7 +2922,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .build();
 
         CompletableFuture<Throwable> futureEx = new CompletableFuture<>();
@@ -2911,7 +3042,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-token"));
 
             var chatService = ChatService.builder()
-                .url("http://localhost:%s".formatted(wireMock.getPort()))
+                .baseUrl("http://localhost:%s".formatted(wireMock.getPort()))
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("project-id")
                 .modelId("model-id")
@@ -3016,7 +3147,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         """)));
 
         var chatService = ChatService.builder()
-            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("model-id")
             .projectId("project-id")
@@ -3174,7 +3305,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         """)));
 
         var chatService = ChatService.builder()
-            .url("http://localhost:%d".formatted(wireMock.getPort()))
+            .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
             .authenticationProvider(mockAuthenticationProvider)
             .modelId("model-id")
             .projectId("project-id")
@@ -3211,7 +3342,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
             mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
             var chatService = ChatService.builder()
-                .url("http://localhost:%s".formatted(wireMock.getPort()))
+                .baseUrl("http://localhost:%s".formatted(wireMock.getPort()))
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("project-id")
                 .modelId("model-id")
@@ -3267,7 +3398,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var chatService = ChatService.builder()
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
 
                 .projectId("project-id")
@@ -3284,7 +3415,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
 
             var chatService = ChatService.builder()
-                .url("http://localhost:%d".formatted(wireMock.getPort()))
+                .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
                 .authenticationProvider(mockAuthenticationProvider)
                 .modelId("model-id")
                 .projectId("project-id")

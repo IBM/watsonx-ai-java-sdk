@@ -26,7 +26,7 @@ public class RerankServiceIT {
         .build();
 
     static final RerankService rerankService = RerankService.builder()
-        .url(URL)
+        .baseUrl(URL)
         .projectId(PROJECT_ID)
         .authenticationProvider(authentication)
         .modelId("cross-encoder/ms-marco-minilm-l-12-v2")

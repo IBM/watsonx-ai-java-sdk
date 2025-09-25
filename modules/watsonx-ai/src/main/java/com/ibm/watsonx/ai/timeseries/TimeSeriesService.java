@@ -4,17 +4,10 @@
  */
 package com.ibm.watsonx.ai.timeseries;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
@@ -28,7 +21,7 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *
  * <pre>{@code
  * TimeSeriesService tsService = TimeSeriesService.builder()
- *     .url("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")      // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-ttm-1536-96-r2")
@@ -60,11 +53,20 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  */
 public final class TimeSeriesService extends ModelService implements TimeSeriesProvider {
 
-    public static final Logger logger = LoggerFactory.getLogger(TimeSeriesService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TimeSeriesService.class);
+    private final TimeSeriesRestClient client;
 
-    protected TimeSeriesService(Builder builder) {
+    private TimeSeriesService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        client = TimeSeriesRestClient.builder()
+            .baseUrl(baseUrl)
+            .version(version)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(timeout)
+            .authenticationProvider(builder.getAuthenticationProvider())
+            .build();
     }
 
     @Override
@@ -92,25 +94,7 @@ public final class TimeSeriesService extends ModelService implements TimeSeriesP
         }
 
         var forecastRequest = new ForecastRequest(modelId, spaceId, projectId, data.asMap(), inputSchema, null, requestParameters);
-
-        var httpRequest = HttpRequest
-            .newBuilder(URI.create(url.toString() + "%s/time_series/forecast?version=%s".formatted(ML_API_PATH, version)))
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .timeout(timeout)
-            .POST(BodyPublishers.ofString(toJson(forecastRequest)));
-
-        if (nonNull(transactionId))
-            httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
-
-        try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), ForecastResponse.class);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return client.forecast(transactionId, forecastRequest);
     }
 
     /**
@@ -149,7 +133,7 @@ public final class TimeSeriesService extends ModelService implements TimeSeriesP
      *
      * <pre>{@code
      * TimeSeriesService tsService = TimeSeriesService.builder()
-     *     .url("https://...")      // or use CloudRegion
+     *     .baseUrl("https://...")      // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-ttm-1536-96-r2")

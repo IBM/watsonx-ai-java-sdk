@@ -81,7 +81,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 .modelId(MODEL_ID)
                 .logRequests(true)
                 .projectId(PROJECT_ID)
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             var response = embeddingService.embedding(
@@ -160,7 +160,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 .modelId(MODEL_ID)
                 .logRequests(true)
                 .projectId(PROJECT_ID)
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             var parameters = EmbeddingParameters.builder()
@@ -208,7 +208,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 .modelId(MODEL_ID)
                 .logRequests(true)
                 .projectId(PROJECT_ID)
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .build();
 
             var ex = assertThrows(RuntimeException.class, () -> embeddingService.embedding("Hello"));
@@ -222,7 +222,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 
         var chatService = EmbeddingService.builder()
-            .url(CloudRegion.DALLAS)
+            .baseUrl(CloudRegion.DALLAS)
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("project-id")
             .modelId("model-id")

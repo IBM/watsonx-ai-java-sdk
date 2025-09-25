@@ -74,7 +74,7 @@ public class ChatServiceIT {
         void test_chat() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .apiKey(API_KEY)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
@@ -115,7 +115,7 @@ public class ChatServiceIT {
         void test_chat_messages() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .authenticationProvider(authentication)
@@ -152,7 +152,7 @@ public class ChatServiceIT {
             record Poem(String content, String topic) {}
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -191,7 +191,7 @@ public class ChatServiceIT {
             record Poem(String content, String topic) {}
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -227,7 +227,7 @@ public class ChatServiceIT {
         void test_chat_thinking() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .authenticationProvider(authentication)
@@ -278,7 +278,7 @@ public class ChatServiceIT {
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-medium-2505")
                 .authenticationProvider(authentication)
@@ -309,7 +309,7 @@ public class ChatServiceIT {
         void test_chat_tool() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -370,7 +370,7 @@ public class ChatServiceIT {
         void test_chat_tool_without_params() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -398,7 +398,7 @@ public class ChatServiceIT {
         void test_chat_tool_choice_option() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -432,7 +432,7 @@ public class ChatServiceIT {
         void test_chat_with_invalid_api_key() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .apiKey("invalid_api_key")
@@ -456,7 +456,7 @@ public class ChatServiceIT {
         void test_chat_streaming() throws Exception {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -486,7 +486,7 @@ public class ChatServiceIT {
             record Poem(String content, String topic) {}
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -540,7 +540,7 @@ public class ChatServiceIT {
             record Poem(String content, String topic) {}
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -612,7 +612,7 @@ public class ChatServiceIT {
         void test_chat_streaming_thinking() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .authenticationProvider(authentication)
@@ -708,7 +708,7 @@ public class ChatServiceIT {
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-medium-2505")
                 .authenticationProvider(authentication)
@@ -763,7 +763,7 @@ public class ChatServiceIT {
         void test_chat_streaming_tool() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -875,7 +875,7 @@ public class ChatServiceIT {
         void test_chat_streaming_tool_without_params() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -920,7 +920,7 @@ public class ChatServiceIT {
         void test_chat_streaming_shared_handler() throws Exception {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)
@@ -970,7 +970,7 @@ public class ChatServiceIT {
         void test_chat_streaming_with_invalid_api_key() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .apiKey("invalid_api_key")
@@ -1007,7 +1007,7 @@ public class ChatServiceIT {
         void test_chat_streaming_tool_choice_option() {
 
             var chatService = ChatService.builder()
-                .url(URL)
+                .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticationProvider(authentication)

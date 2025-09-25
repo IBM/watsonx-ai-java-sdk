@@ -20,8 +20,6 @@ import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
@@ -41,22 +39,17 @@ public class AiService {
         final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
         modelId = "ibm/granite-3-3-8b-instruct";
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
-
         chatService = ChatService.builder()
-            .authenticationProvider(authProvider)
+            .apiKey(apiKey)
             .projectId(projectId)
             .timeout(Duration.ofSeconds(60))
             .modelId(modelId)
-            .url(url)
+            .baseUrl(url)
             .build();
 
         foundationModelService = FoundationModelService.builder()
-            .authenticationProvider(authProvider)
-            .url(url)
+            .apiKey(apiKey)
+            .baseUrl(url)
             .timeout(Duration.ofSeconds(60))
             .build();
 
@@ -84,8 +77,8 @@ public class AiService {
 
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                if (firstResponseChunk) {
-                    thinking.accept("\n<Thinking>\n");
+                if (firstResponseChunk && !firstReasoningChunk) {
+                    thinking.accept("\n</Thinking>\n");
                     firstResponseChunk = false;
                 }
                 response.accept(partialResponse);

@@ -69,7 +69,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
             }""";
 
         TimeSeriesService tsService = TimeSeriesService.builder()
-            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("my-project-id")
             .modelId("ibm/granite-ttm-1536-96-r2")
@@ -189,7 +189,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
             }""";
 
         TimeSeriesService tsService = TimeSeriesService.builder()
-            .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("my-project-id")
             .modelId("ibm/granite-ttm-1536-96-r2")
@@ -300,7 +300,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             TimeSeriesService tsService = TimeSeriesService.builder()
-                .url(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+                .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("my-project-id")
                 .modelId("ibm/granite-ttm-1536-96-r2")

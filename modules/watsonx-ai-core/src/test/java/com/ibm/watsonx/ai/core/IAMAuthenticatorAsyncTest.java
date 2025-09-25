@@ -109,12 +109,12 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
             AuthenticationProvider authenticator = IAMAuthenticator.builder()
                 .grantType("new_grant_type")
                 .timeout(Duration.ofSeconds(1))
-                .url(URI.create("http://mytest.com"))
+                .baseUrl(URI.create("http://mytest.com"))
                 .apiKey("my_super_api_key")
                 .build();
 
             assertEquals("my_super_token", assertDoesNotThrow(() -> authenticator.asyncToken().get()));
-            assertEquals("http://mytest.com", mockHttpRequest.getValue().uri().toString());
+            assertEquals("http://mytest.com/identity/token", mockHttpRequest.getValue().uri().toString());
             assertEquals("application/x-www-form-urlencoded",
                 mockHttpRequest.getValue().headers().firstValue("Content-Type").get());
             assertEquals("grant_type=new_grant_type&apikey=my_super_api_key", Utils.bodyPublisherToString(mockHttpRequest));
@@ -152,7 +152,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
                 var authenticator = IAMAuthenticator.builder()
                     .grantType("new_grant_type")
                     .timeout(Duration.ofSeconds(1))
-                    .url(URI.create("http://mytest.com"))
+                    .baseUrl(URI.create("http://mytest.com"))
                     .apiKey("my_super_api_key")
                     .build();
 

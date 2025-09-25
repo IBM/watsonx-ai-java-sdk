@@ -16,8 +16,6 @@ import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
 import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 
 public class App {
 
@@ -38,17 +36,12 @@ public class App {
             var apiKey = config.getValue("WATSONX_API_KEY", String.class);
             var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-            AuthenticationProvider authProvider = IAMAuthenticator.builder()
-                .apiKey(apiKey)
-                .timeout(Duration.ofSeconds(60))
-                .build();
-
             ChatService chatService = ChatService.builder()
-                .authenticationProvider(authProvider)
+                .apiKey(apiKey)
                 .projectId(projectId)
                 .timeout(Duration.ofSeconds(60))
                 .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
-                .url(url)
+                .baseUrl(url)
                 .build();
 
             for (Path path : paths) {

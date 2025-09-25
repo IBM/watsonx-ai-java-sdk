@@ -92,11 +92,11 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
         return CompletableFuture
             .runAsync(() -> logRequest(request), ExecutorProvider.ioExecutor())
-            .thenCompose(v -> chain.proceed(request, bodyHandler))
-            .whenComplete((respose, exception) -> {
+            .thenComposeAsync(v -> chain.proceed(request, bodyHandler), ExecutorProvider.ioExecutor())
+            .whenComplete((response, exception) -> {
                 var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
                 if (isNull(exception))
-                    logResponse(watsonxSDKRequestId, respose);
+                    logResponse(watsonxSDKRequestId, response);
                 else
                     logResponse(watsonxSDKRequestId, exception);
             });
@@ -123,14 +123,14 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
         Optional<BodyPublisher> maybePublisher = request.bodyPublisher();
         if (maybePublisher.isEmpty()) {
-            printRequest(request, null);
+            logRequest(request, null);
             return;
         }
 
         BodyPublisher publisher = maybePublisher.get();
 
         if (isNonRepeatablePublisher(publisher)) {
-            printRequest(request, "[non-repeatable body skipped]");
+            logRequest(request, "[non-repeatable body skipped]");
             return;
         }
 
@@ -154,11 +154,10 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
             @Override
             public void onComplete() {
-                printRequest(request, builder.toString());
+                logRequest(request, builder.toString());
             }
         });
     }
-
 
     private <T> void logResponse(String watsonxAISDKRequestId, Throwable exception) {
         if (!logResponse)
@@ -226,7 +225,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         }
     }
 
-    private void printRequest(HttpRequest request, String body) {
+    private void logRequest(HttpRequest request, String body) {
         String headers = null;
         StringJoiner joiner = new StringJoiner("\n", "Request:\n", "");
         joiner.add("- method: " + request.method());
@@ -301,6 +300,11 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     public enum LogMode {
 
         /**
+         * No log.
+         */
+        DISABLED,
+
+        /**
          * Log only the HTTP request.
          */
         REQUEST,
@@ -313,7 +317,26 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         /**
          * Log both the HTTP request and the HTTP response.
          */
-        BOTH
-    }
+        BOTH;
 
+        /**
+         * Creates a LogMode enum value based on the given logRequest and logResponse booleans.
+         *
+         * @param logRequest true if request logging is desired, false otherwise
+         * @param logResponse true if response logging is desired, false otherwise
+         * @return The appropriate LogMode enum value based on the input booleans
+         */
+        public static LogMode of(boolean logRequest, boolean logResponse) {
+            if (logRequest && logResponse)
+                return BOTH;
+
+            if (logRequest)
+                return REQUEST;
+
+            if (logResponse)
+                return RESPONSE;
+
+            return DISABLED;
+        }
+    }
 }

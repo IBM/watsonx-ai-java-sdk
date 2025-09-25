@@ -136,12 +136,12 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
                 AuthenticationProvider authenticator = IAMAuthenticator.builder()
                     .grantType("new_grant_type")
                     .timeout(Duration.ofSeconds(1))
-                    .url(URI.create("http://mytest.com"))
+                    .baseUrl(URI.create("http://mytest.com"))
                     .apiKey("my_super_api_key")
                     .build();
 
                 assertEquals("my_super_token", authenticator.token());
-                assertEquals("http://mytest.com", httpRequest.getValue().uri().toString());
+                assertEquals("http://mytest.com/identity/token", httpRequest.getValue().uri().toString());
                 assertEquals("application/x-www-form-urlencoded",
                     httpRequest.getValue().headers().firstValue("Content-Type").get());
                 assertEquals("grant_type=new_grant_type&apikey=my_super_api_key", Utils.bodyPublisherToString(httpRequest));
@@ -158,7 +158,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
             .apiKey("test")
             .grantType("test")
             .timeout(Duration.ofSeconds(3))
-            .url(URI.create("http://test"))
+            .baseUrl(URI.create("http://test"))
             .build();
 
 
@@ -174,7 +174,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
         timeout.setAccessible(true);
         assertEquals(Duration.ofSeconds(3), (Duration) timeout.get(authenticator));
 
-        Field url = IAMAuthenticator.class.getDeclaredField("url");
+        Field url = IAMAuthenticator.class.getDeclaredField("baseUrl");
         url.setAccessible(true);
         assertEquals(URI.create("http://test"), (URI) url.get(authenticator));
     }

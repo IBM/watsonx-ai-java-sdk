@@ -4,25 +4,15 @@
  */
 package com.ibm.watsonx.ai.textgeneration;
 
-import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.net.http.HttpResponse.BodySubscribers;
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 
 /**
@@ -32,7 +22,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *
  * <pre>{@code
  * TextGenerationService textGenerationService = TextGenerationService.builder()
- *     .url("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")      // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-13b-instruct-v2")
@@ -48,10 +38,19 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 public final class TextGenerationService extends ModelService implements TextGenerationProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(TextGenerationService.class);
+    private final TextGenerationRestClient client;
 
-    protected TextGenerationService(Builder builder) {
+    private TextGenerationService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        client = TextGenerationRestClient.builder()
+            .baseUrl(baseUrl)
+            .version(version)
+            .logRequests(logRequests)
+            .logResponses(logResponses)
+            .timeout(timeout)
+            .authenticationProvider(builder.getAuthenticationProvider())
+            .build();
     }
 
     @Override
@@ -79,25 +78,7 @@ public final class TextGenerationService extends ModelService implements TextGen
         var textGenRequest =
             new TextRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), moderation);
 
-        var httpRequest =
-            HttpRequest
-                .newBuilder(URI.create(url.toString() + "%s/generation?version=%s".formatted(ML_API_TEXT_PATH, version)))
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .timeout(Duration.ofMillis(timeout))
-                .POST(BodyPublishers.ofString(toJson(textGenRequest)));
-
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
-        try {
-
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TextGenerationResponse.class);
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return client.generate(parameters.getTransactionId(), textGenRequest);
     }
 
     @Override
@@ -124,21 +105,7 @@ public final class TextGenerationService extends ModelService implements TextGen
         var textGenRequest =
             new TextRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), null);
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(url.toString() + "%s/generation_stream?version=%s".formatted(ML_API_TEXT_PATH, version)))
-            .header("Content-Type", "application/json")
-            .header("Accept", "text/event-stream")
-            .timeout(Duration.ofMillis(timeout))
-            .POST(BodyPublishers.ofString(toJson(textGenRequest)));
-
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
-
-        var subscriber = subscriber(handler);
-        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
-            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-            : BodySubscribers.fromLineSubscriber(subscriber))
-            .thenAccept(r -> {})
-            .exceptionally(t -> handlerError(t, handler));
+        return client.generateStreaming(parameters.getTransactionId(), textGenRequest, handler);
     }
 
     /**
@@ -223,7 +190,7 @@ public final class TextGenerationService extends ModelService implements TextGen
      *
      * <pre>{@code
      * TextGenerationService textGenerationService = TextGenerationService.builder()
-     *     .url("https://...")      // or use CloudRegion
+     *     .baseUrl("https://...")      // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-13b-instruct-v2")

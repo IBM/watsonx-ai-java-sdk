@@ -67,7 +67,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("google/flan-ul2")
@@ -104,7 +104,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("google/flan-ul2")
@@ -160,7 +160,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("google/flan-ul2")
@@ -209,7 +209,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("google/flan-ul2")
@@ -237,7 +237,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
 
         var tokenizationService = TokenizationService.builder()
-            .url(CloudRegion.LONDON)
+            .baseUrl(CloudRegion.LONDON)
             .authenticationProvider(mockAuthenticationProvider)
             .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
             .modelId("google/flan-ul2")
@@ -280,7 +280,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
                     .thenReturn(completedFuture(mockHttpResponse));
 
                 var tokenizationService = TokenizationService.builder()
-                    .url(CloudRegion.LONDON)
+                    .baseUrl(CloudRegion.LONDON)
                     .authenticationProvider(mockAuthenticationProvider)
                     .projectId("project-id")
                     .modelId("model-id")

@@ -78,7 +78,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var toolService = ToolService.builder()
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
                 .logRequests(true)
                 .logResponses(true)
@@ -131,7 +131,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var toolService = ToolService.builder()
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
                 .build();
 
@@ -162,7 +162,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var toolService = ToolService.builder()
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
                 .build();
 
@@ -203,7 +203,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
                     .thenThrow(new InterruptedException());
 
                 var toolService = ToolService.builder()
-                    .url(CloudRegion.FRANKFURT)
+                    .baseUrl(CloudRegion.FRANKFURT)
                     .authenticationProvider(mockAuthenticationProvider)
                     .build();
 
@@ -233,7 +233,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var toolService = ToolService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .build();
 
@@ -284,7 +284,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var toolService = ToolService.builder()
-                .url(CloudRegion.LONDON)
+                .baseUrl(CloudRegion.LONDON)
                 .authenticationProvider(mockAuthenticationProvider)
                 .build();
 
@@ -344,7 +344,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var toolService = ToolService.builder()
-                .url(CloudRegion.MUMBAI)
+                .baseUrl(CloudRegion.MUMBAI)
                 .authenticationProvider(mockAuthenticationProvider)
                 .build();
 
@@ -380,7 +380,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var toolService = ToolService.builder()
-                .url(CloudRegion.SYDNEY)
+                .baseUrl(CloudRegion.SYDNEY)
                 .authenticationProvider(mockAuthenticationProvider)
                 .build();
 
@@ -426,7 +426,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var toolService = ToolService.builder()
-                .url(CloudRegion.TOKYO)
+                .baseUrl(CloudRegion.TOKYO)
                 .authenticationProvider(mockAuthenticationProvider)
                 .build();
 
@@ -460,7 +460,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var toolService = ToolService.builder()
-                .url(CloudRegion.DALLAS)
+                .baseUrl(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
                 .build();
 

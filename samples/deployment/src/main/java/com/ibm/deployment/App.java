@@ -5,14 +5,10 @@
 package com.ibm.deployment;
 
 import java.net.URI;
-import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
-import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
 
@@ -27,14 +23,9 @@ public class App {
         var deployment = config.getValue("WATSONX_DEPLOYMENT_ID", String.class);
         var spaceId = config.getValue("WATSONX_SPACE_ID", String.class);
 
-        AuthenticationProvider authProvider = IAMAuthenticator.builder()
-            .apiKey(apiKey)
-            .timeout(Duration.ofSeconds(60))
-            .build();
-
         DeploymentService deploymentService = DeploymentService.builder()
-            .authenticationProvider(authProvider)
-            .url(url)
+            .apiKey(apiKey)
+            .baseUrl(url)
             .build();
 
         var deploymentInfo = deploymentService.findById(

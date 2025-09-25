@@ -10,8 +10,6 @@ import java.util.List;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.rerank.RerankParameters;
 import com.ibm.watsonx.ai.rerank.RerankService;
 
@@ -27,17 +25,12 @@ public class App {
             var apiKey = config.getValue("WATSONX_API_KEY", String.class);
             var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
 
-            AuthenticationProvider authProvider = IAMAuthenticator.builder()
-                .apiKey(apiKey)
-                .timeout(Duration.ofSeconds(60))
-                .build();
-
             RerankService rerankService = RerankService.builder()
-                .authenticationProvider(authProvider)
+                .apiKey(apiKey)
                 .projectId(projectId)
                 .timeout(Duration.ofSeconds(60))
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
-                .url(url)
+                .baseUrl(url)
                 .build();
 
             RerankParameters parameters = RerankParameters.builder()
