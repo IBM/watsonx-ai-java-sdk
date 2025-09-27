@@ -15,11 +15,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
@@ -405,11 +403,7 @@ public final class TextExtractionService extends ProjectService {
     * @param fileName The name of the file to read.
     */
     public String readFile(String bucketName, String fileName) {
-        try {
-            return new String(client.readFile(ReadFileRequest.of(bucketName, fileName)).readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return client.readFile(ReadFileRequest.of(bucketName, fileName));
     }
 
     /**
@@ -487,13 +481,7 @@ public final class TextExtractionService extends ProjectService {
         }
 
         var textExtractionResponse = startExtraction(requestId, absolutePath, parameters, true);
-        var is = getExtractedText(requestId, textExtractionResponse, parameters);
-
-        try {
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new TextExtractionException("fetch_operation_failed", "Failed to fetch the extracted text", e);
-        }
+        return getExtractedText(requestId, textExtractionResponse, parameters);
     }
 
     //
@@ -641,7 +629,7 @@ public final class TextExtractionService extends ProjectService {
     //
     // Retrieves the extracted text from a specified Cloud Object Storage file.
     //
-    private InputStream getExtractedText(String requestId, TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
+    private String getExtractedText(String requestId, TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
         throws TextExtractionException {
 
         requireNonNull(requestId);
@@ -666,7 +654,7 @@ public final class TextExtractionService extends ProjectService {
 
         try {
 
-            InputStream extractedFile = switch(status) {
+            String extractedFile = switch(status) {
                 case COMPLETED -> {
                     var request = ReadFileRequest.of(requestId, documentBucketName, outputPath);
                     yield client.readFile(request);

@@ -10,7 +10,6 @@ import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -19,6 +18,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.Charset;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -38,6 +38,20 @@ final class DefaultRestClient extends TextExtractionRestClient {
         requireNonNull(authenticationProvider, "authenticationProvider is mandatory");
         syncHttpClient = HttpClientFactory.createSync(authenticationProvider, LogMode.of(logRequests, logResponses));
         asyncHttpClient = HttpClientFactory.createAsync(authenticationProvider, LogMode.of(logRequests, logResponses));
+    }
+
+    @Override
+    public boolean deleteFile(DeleteFileRequest request) {
+        try {
+            return asyncDeleteFile(request).get();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof WatsonxException ex)
+                throw ex;
+            else
+                throw new RuntimeException(e.getCause());
+        }
     }
 
     @Override
@@ -65,7 +79,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
     }
 
     @Override
-    public InputStream readFile(ReadFileRequest request) {
+    public String readFile(ReadFileRequest request) {
         try {
 
             var fileName = request.fileName();
@@ -80,7 +94,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
             if (nonNull(request.requestTrackingId()))
                 httpRequest.header(REQUEST_ID_HEADER, request.requestTrackingId());
 
-            return syncHttpClient.send(httpRequest.build(), BodyHandlers.ofInputStream()).body();
+            return syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString()).body();
 
         } catch (IOException | InterruptedException | URISyntaxException e) {
             throw new RuntimeException(e);

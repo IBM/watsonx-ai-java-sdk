@@ -8,10 +8,8 @@ import static java.util.Objects.requireNonNull;
 import java.io.InputStream;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
-import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 
 
 /**
@@ -32,18 +30,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param request The {@link DeleteFileRequest} containing bucket and file information.
      * @return {@code true} if the file was successfully deleted, {@code false} otherwise.
      */
-    public boolean deleteFile(DeleteFileRequest request) {
-        try {
-            return asyncDeleteFile(request).get();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof WatsonxException ex)
-                throw ex;
-            else
-                throw new RuntimeException(e.getCause());
-        }
-    }
+    public abstract boolean deleteFile(DeleteFileRequest request);
 
     /**
      * Deletes a file from the specified COS bucket.
@@ -59,7 +46,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param request The {@link ReadFileRequest} containing bucket and file information.
      * @return The file content as a string.
      */
-    public abstract InputStream readFile(ReadFileRequest request);
+    public abstract String readFile(ReadFileRequest request);
 
     /**
      * Uploads a file stream to the specified COS bucket.
