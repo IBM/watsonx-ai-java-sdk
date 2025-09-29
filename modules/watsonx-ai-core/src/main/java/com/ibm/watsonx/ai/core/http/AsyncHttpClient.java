@@ -106,7 +106,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
                             String contentType = responseInfo.headers().firstValue("Content-Type")
                                 .orElseThrow(() -> new WatsonxException(body, statusCode, null));
 
-                            WatsonxError details = HttpUtils.parseErrorBody(body, contentType);
+                            WatsonxError details = HttpUtils.parseErrorBody(statusCode, body, contentType);
                             throw new WatsonxException(body, statusCode, details);
                         }
                     );

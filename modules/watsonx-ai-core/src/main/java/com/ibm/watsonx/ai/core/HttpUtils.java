@@ -107,11 +107,12 @@ public final class HttpUtils {
     /**
      * Parses error body based on content type.
      *
+     * @param statusCode status code of the http response.
      * @param body The error response body as a String.
      * @param contentType The content type of the error response.
      * @return An instance of WatsonxError parsed from the body.
      */
-    public static WatsonxError parseErrorBody(String body, String contentType) {
+    public static WatsonxError parseErrorBody(int statusCode, String body, String contentType) {
         if (isNull(contentType))
             throw new IllegalArgumentException("Missing content type");
 
@@ -121,8 +122,13 @@ public final class HttpUtils {
             // Check if the behavior is present even after the APIs are no longer in beta.
 
             var error = fromJson(body, WatsonxError.class);
+
             if (isNull(error.trace())) {
-                return parseToolError(body);
+                var genericError = fromJson(body, Map.class);
+                if (genericError.containsKey("errorCode"))
+                    return parseIAMError(statusCode, genericError);
+                else if (genericError.containsKey("code"))
+                    return parseToolError(genericError);
             } else
                 return error;
         }
@@ -134,22 +140,32 @@ public final class HttpUtils {
     }
 
     /**
-     * Parses an error response from the beta Agent Tool APIs into a {@link WatsonxError} with a standardized format.
-     * <p>
-     * This method is used when the API does not return a full {@link WatsonxError} structure. It extracts the {@code code}, {@code message}, and
-     * {@code description} fields from the JSON body and maps them to a {@link WatsonxError} with a predefined
-     * {@link WatsonxError.Code#AUTHENTICATION_TOKEN_EXPIRED} error code.
+     * Parses an error response from the IAM Authentication API into a {@link WatsonxError} with a standardized format.
      *
      * @param body the raw JSON error response as a String.
      * @return An instance of WatsonxError parsed from the body.
      */
+    private static WatsonxError parseIAMError(Integer statusCode, Map<?, ?> body) {
 
-    private static WatsonxError parseToolError(String body) {
-        var parseToolError = fromJson(body, Map.class);
+        var errorCode = (String) body.get("errorCode");
+        var errorMessage = (String) body.get("errorMessage");
+        var errorDetails = body.containsKey("errorDetails") ? (String) body.get("errorDetails") : null;
 
-        var statusCode = (Integer) parseToolError.get("code");
-        var message = (String) parseToolError.get("message");
-        var description = (String) parseToolError.get("description");
+        Error error = new Error(errorCode, errorMessage, errorDetails);
+        return new WatsonxError(statusCode, "", List.of(error));
+    }
+
+    /**
+     * Parses an error response from the beta Agent Tool APIs into a {@link WatsonxError} with a standardized format.
+     *
+     * @param body the raw JSON error response as a String.
+     * @return An instance of WatsonxError parsed from the body.
+     */
+    private static WatsonxError parseToolError(Map<?, ?> body) {
+
+        var statusCode = (Integer) body.get("code");
+        var message = (String) body.get("message");
+        var description = (String) body.get("description");
 
         Error error;
         if (nonNull(description) && description.contains("jwt expired"))

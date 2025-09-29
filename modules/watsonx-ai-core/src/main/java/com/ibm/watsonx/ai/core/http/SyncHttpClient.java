@@ -108,7 +108,7 @@ public final class SyncHttpClient extends BaseHttpClient {
             String contentType = httpResponse.headers().firstValue("Content-Type")
                 .orElseThrow(() -> new WatsonxException(body, statusCode, null));
 
-            WatsonxError details = HttpUtils.parseErrorBody(body, contentType);
+            WatsonxError details = HttpUtils.parseErrorBody(statusCode, body, contentType);
             throw new WatsonxException(body, statusCode, details);
         }
 
