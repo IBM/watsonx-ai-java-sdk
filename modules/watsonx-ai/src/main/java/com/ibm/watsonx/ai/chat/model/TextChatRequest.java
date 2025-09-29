@@ -37,7 +37,7 @@ public final class TextChatRequest {
     private final Map<String, Object> responseFormat;
     private final String context;
 
-    public TextChatRequest(Builder builder) {
+    private TextChatRequest(Builder builder) {
         this.modelId = builder.modelId;
         this.spaceId = builder.spaceId;
         this.projectId = builder.projectId;

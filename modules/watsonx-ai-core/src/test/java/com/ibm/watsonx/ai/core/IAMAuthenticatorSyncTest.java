@@ -8,20 +8,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
@@ -145,6 +151,51 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
                 assertEquals("application/x-www-form-urlencoded",
                     httpRequest.getValue().headers().firstValue("Content-Type").get());
                 assertEquals("grant_type=new_grant_type&apikey=my_super_api_key", Utils.bodyPublisherToString(httpRequest));
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void test_error_response() throws Exception {
+
+        var response = mock(HttpResponse.class);
+        var httpRequest = ArgumentCaptor.forClass(HttpRequest.class);
+        var errorMessage = """
+            {
+                "errorCode": "BXNIM0415E",
+                "errorMessage": "Provided API key could not be found.",
+                "errorDetails": "More details",
+                "context": {
+                    "requestId": "xxx"
+                }
+            }""";
+
+        when(response.body()).thenReturn(errorMessage);
+        when(response.statusCode()).thenReturn(400);
+        when(response.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (k, v) -> true));
+
+        withWatsonxServiceMock(() -> {
+            try {
+                when(mockHttpClient.<String>send(httpRequest.capture(), any())).thenReturn(response);
+
+                AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                    .grantType("new_grant_type")
+                    .timeout(Duration.ofSeconds(1))
+                    .baseUrl(URI.create("http://mytest.com"))
+                    .apiKey("my_super_api_key")
+                    .build();
+
+                var ex = assertThrows(WatsonxException.class, () -> authenticator.token());
+                assertEquals(400, ex.statusCode());
+                assertEquals(errorMessage, ex.getMessage());
+                var detail = ex.details().orElseThrow().errors().get(0);
+                assertEquals("BXNIM0415E", detail.code());
+                assertEquals("Provided API key could not be found.", detail.message());
+                assertEquals("More details", detail.moreInfo());
+
             } catch (Exception e) {
                 fail(e);
             }

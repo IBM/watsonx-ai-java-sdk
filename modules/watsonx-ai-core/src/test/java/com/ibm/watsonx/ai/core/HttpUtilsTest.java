@@ -111,7 +111,7 @@ public class HttpUtilsTest {
     void test_parse_error_body_json() {
         WatsonxError watsonxError = new WatsonxError(400, "Internal Server Error", List.of(new Error("ERROR", "error", "error")));
         String jsonBody = Json.toJson(watsonxError);
-        WatsonxError result = HttpUtils.parseErrorBody(jsonBody, "application/json");
+        WatsonxError result = HttpUtils.parseErrorBody(400, jsonBody, "application/json");
         JSONAssert.assertEquals(jsonBody, Json.toJson(result), true);
     }
 
@@ -128,14 +128,14 @@ public class HttpUtilsTest {
             </Error>""";
         Error error = new WatsonxError.Error("NoSuchBucket", "The specified bucket does not exist.", "/my-bucket-name/test.pdf");
         WatsonxError expected = new WatsonxError(404, "my-request-id", List.of(error));
-        WatsonxError result = HttpUtils.parseErrorBody(xmlBody, "application/xml");
+        WatsonxError result = HttpUtils.parseErrorBody(404, xmlBody, "application/xml");
         assertEquals(expected, result);
     }
 
     @Test
     void testParseErrorBody_UnsupportedContentType() {
         assertThrows(RuntimeException.class, () -> {
-            HttpUtils.parseErrorBody("test body", "text/plain");
+            HttpUtils.parseErrorBody(500, "test body", "text/plain");
         });
     }
 }
