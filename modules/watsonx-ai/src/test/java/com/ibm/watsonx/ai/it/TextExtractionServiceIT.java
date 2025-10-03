@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
@@ -22,6 +23,14 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
 import com.ibm.watsonx.ai.textextraction.TextExtractionService;
 
 
+@EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_CONNECTION_ID", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_BUCKET", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_CONNECTION_ID", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_BUCKET", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "CLOUD_OBJECT_STORAGE_URL", matches = ".+")
 public class TextExtractionServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
