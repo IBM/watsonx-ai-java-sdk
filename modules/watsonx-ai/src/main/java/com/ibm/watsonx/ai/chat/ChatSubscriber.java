@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -101,6 +102,7 @@ public interface ChatSubscriber {
             private final ChatResponse chatResponse = new ChatResponse();
             private final List<StreamingToolFetcher> tools = Collections.synchronizedList(new ArrayList<>());
             private final StreamingStateTracker stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
+            private final ReentrantLock callbackLock = new ReentrantLock();
 
             @Override
             public void onNext(String partialMessage) {
@@ -195,8 +197,11 @@ public interface ChatSubscriber {
 
                         if (index - 1 >= 0) {
                             var tool = tools.get(index - 1).build();
-                            synchronized (handler) {
+                            try {
+                                callbackLock.lock();
                                 handler.onCompleteToolCall(new CompletedToolCall(completionId, tool));
+                            } finally {
+                                callbackLock.unlock();
                             }
                         }
 
@@ -219,8 +224,11 @@ public interface ChatSubscriber {
                         if (!arguments.isEmpty()) {
                             var partialToolCall =
                                 new PartialToolCall(completionId, toolFetcher.getIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
-                            synchronized (handler) {
+                            try {
+                                callbackLock.lock();
                                 handler.onPartialToolCall(partialToolCall);
+                            } finally {
+                                callbackLock.unlock();
                             }
                         }
                     }
@@ -235,24 +243,37 @@ public interface ChatSubscriber {
 
                     contentBuffer.append(token);
 
+
                     if (nonNull(stateTracker)) {
                         var r = stateTracker.update(token);
                         var content = r.content();
-                        synchronized (handler) {
-                            switch(r.state()) {
-                                case RESPONSE, NO_THINKING -> content.ifPresent(c -> {
+
+                        switch(r.state()) {
+                            case RESPONSE, NO_THINKING -> content.ifPresent(c -> {
+                                try {
+                                    callbackLock.lock();
                                     handler.onPartialResponse(c, chunk);
-                                });
-                                case THINKING -> content.ifPresent(c -> {
-                                    thinkingBuffer.append(c);
+                                } finally {
+                                    callbackLock.unlock();
+                                }
+                            });
+                            case THINKING -> content.ifPresent(c -> {
+                                thinkingBuffer.append(c);
+                                try {
+                                    callbackLock.lock();
                                     handler.onPartialThinking(c, chunk);
-                                });
-                                case START, UNKNOWN -> {}
-                            }
+                                } finally {
+                                    callbackLock.unlock();
+                                }
+                            });
+                            case START, UNKNOWN -> {}
                         }
                     } else {
-                        synchronized (handler) {
+                        try {
+                            callbackLock.lock();
                             handler.onPartialResponse(token, chunk);
+                        } finally {
+                            callbackLock.unlock();
                         }
                     }
                 }
@@ -265,14 +286,23 @@ public interface ChatSubscriber {
                         return;
 
                     thinkingBuffer.append(token);
-                    handler.onPartialThinking(token, chunk);
+
+                    try {
+                        callbackLock.lock();
+                        handler.onPartialThinking(token, chunk);
+                    } finally {
+                        callbackLock.unlock();
+                    }
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
-                synchronized (handler) {
+                try {
+                    callbackLock.lock();
                     handler.onError(throwable);
+                } finally {
+                    callbackLock.unlock();
                 }
             }
 
@@ -289,8 +319,12 @@ public interface ChatSubscriber {
                         toolCalls = tools.stream()
                             .map(StreamingToolFetcher::build)
                             .toList();
-                        synchronized (handler) {
+
+                        try {
+                            callbackLock.lock();
                             handler.onCompleteToolCall(new CompletedToolCall(completionId, toolCalls.get(toolCalls.size() - 1)));
+                        } finally {
+                            callbackLock.unlock();
                         }
                     }
 
@@ -301,8 +335,11 @@ public interface ChatSubscriber {
                         chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
                     }
 
-                    synchronized (handler) {
+                    try {
+                        callbackLock.lock();
                         handler.onCompleteResponse(chatResponse);
+                    } finally {
+                        callbackLock.unlock();
                     }
 
                 } catch (RuntimeException e) {
