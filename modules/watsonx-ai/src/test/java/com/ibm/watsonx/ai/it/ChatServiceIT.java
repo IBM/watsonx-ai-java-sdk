@@ -429,6 +429,39 @@ public class ChatServiceIT {
         }
 
         @Test
+        void test_chat_tool_choice_option_none() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .authenticationProvider(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatParameters parameters = ChatParameters.builder()
+                .toolChoiceOption(ToolChoice.NONE)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Hello!"))
+                .tools(Tool.of("send_email", "Send an email",
+                    JsonSchema.builder()
+                        .addStringProperty("to")
+                        .addStringProperty("subject")
+                        .addStringProperty("body")
+                        .required("to", "body")))
+                .parameters(parameters)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertTrue(nonNull(assistantMessage.content()) || !assistantMessage.content().isBlank());
+            assertNull(assistantMessage.toolCalls());
+        }
+
+        @Test
         void test_chat_with_invalid_api_key() {
 
             var chatService = ChatService.builder()

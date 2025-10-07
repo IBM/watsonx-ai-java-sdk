@@ -198,13 +198,15 @@ public final class ChatParameters extends WatsonxModelParameters {
         private Builder() {}
 
         /**
-         * Specifies the tool selection strategy.
+         * Specifies the tool selection strategy for the model.
          * <p>
-         * When set to {@code ToolChoice.AUTO}, the model decides whether to invoke tools.
+         * When set to {@code ToolChoice.AUTO}, the model automatically decides whether to invoke any tool.
          * <p>
-         * If set to {@code ToolChoice.REQUIRED}, the model is forced to invoke a specific tool.
+         * When set to {@code ToolChoice.REQUIRED}, the model is forced to invoke a specific tool.
+         * <p>
+         * When set to {@code ToolChoice.NONE}, the model is not allowed to invoke any tools.
          *
-         * @param toolChoiceOption a {@link ToolChoice} enum indicating the tool selection strategy
+         * @param toolChoiceOption the {@link ToolChoice} that determines how the model selects tools
          */
         public Builder toolChoiceOption(ToolChoice toolChoiceOption) {
             this.toolChoiceOption = toolChoiceOption;
@@ -481,7 +483,12 @@ public final class ChatParameters extends WatsonxModelParameters {
         /**
          * The model is required to invoke a specific tool and cannot choose freely.
          */
-        REQUIRED("required");
+        REQUIRED("required"),
+
+        /**
+         * The model can not invoke tools.
+         */
+        NONE("none");
 
         private final String type;
 
