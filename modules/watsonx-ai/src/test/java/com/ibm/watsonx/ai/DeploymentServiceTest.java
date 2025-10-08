@@ -51,7 +51,7 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -1237,7 +1237,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .build();
 
             var parameters = ChatParameters.builder()
-                .toolChoiceOption(ToolChoice.REQUIRED)
+                .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
             var request = ChatRequest.builder()

@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
@@ -100,7 +100,7 @@ public final class ChatService extends ModelService implements ChatProvider {
 
         // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
         // Open an issue.
-        if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoice.REQUIRED.type())) {
+        if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoiceOption.REQUIRED.type())) {
             var assistantMessage = chatResponse.toAssistantMessage();
             if (nonNull(assistantMessage.toolCalls()) && !assistantMessage.toolCalls().isEmpty())
                 chatResponse.getChoices().get(0).setFinishReason("tool_calls");
