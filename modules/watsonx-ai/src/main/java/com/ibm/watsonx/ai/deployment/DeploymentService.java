@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentRestClient.ChatStreamingRequest;
@@ -160,7 +160,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var chatResponse = client.chat(request);
 
         // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
-        if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoice.REQUIRED.type())) {
+        if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoiceOption.REQUIRED.type())) {
             var assistantMessage = chatResponse.toAssistantMessage();
             if (nonNull(assistantMessage.toolCalls()) && !assistantMessage.toolCalls().isEmpty())
                 chatResponse.getChoices().get(0).setFinishReason("tool_calls");

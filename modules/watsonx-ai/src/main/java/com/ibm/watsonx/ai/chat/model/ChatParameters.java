@@ -177,7 +177,7 @@ public final class ChatParameters extends WatsonxModelParameters {
      * Builder class for constructing {@link ChatParameters} instances with configurable parameters.
      */
     public static class Builder extends WatsonxModelParameters.Builder<Builder> {
-        private ToolChoice toolChoiceOption;
+        private ToolChoiceOption toolChoiceOption;
         private String toolChoice;
         private Double frequencyPenalty;
         private Map<String, Integer> logitBias;
@@ -200,15 +200,15 @@ public final class ChatParameters extends WatsonxModelParameters {
         /**
          * Specifies the tool selection strategy for the model.
          * <p>
-         * When set to {@code ToolChoice.AUTO}, the model automatically decides whether to invoke any tool.
+         * When set to {@code ToolChoiceOption.AUTO}, the model automatically decides whether to invoke any tool.
          * <p>
-         * When set to {@code ToolChoice.REQUIRED}, the model is forced to invoke a specific tool.
+         * When set to {@code ToolChoiceOption.REQUIRED}, the model is forced to invoke a specific tool.
          * <p>
-         * When set to {@code ToolChoice.NONE}, the model is not allowed to invoke any tools.
+         * When set to {@code ToolChoiceOption.NONE}, the model is not allowed to invoke any tools.
          *
-         * @param toolChoiceOption the {@link ToolChoice} that determines how the model selects tools
+         * @param toolChoiceOption the {@link ToolChoiceOption} that determines how the model selects tools
          */
-        public Builder toolChoiceOption(ToolChoice toolChoiceOption) {
+        public Builder toolChoiceOption(ToolChoiceOption toolChoiceOption) {
             this.toolChoiceOption = toolChoiceOption;
             return this;
         }
@@ -474,7 +474,7 @@ public final class ChatParameters extends WatsonxModelParameters {
     /**
      * Specifies how the model should decide whether to use a tool during generation.
      */
-    public static enum ToolChoice {
+    public static enum ToolChoiceOption {
         /**
          * The model will automatically decide whether to generate a message or invoke a tool.
          */
@@ -492,7 +492,7 @@ public final class ChatParameters extends WatsonxModelParameters {
 
         private final String type;
 
-        ToolChoice(String type) {
+        ToolChoiceOption(String type) {
             this.type = type;
         }
 

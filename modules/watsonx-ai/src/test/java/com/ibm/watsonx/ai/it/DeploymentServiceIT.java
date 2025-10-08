@@ -33,7 +33,7 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -334,7 +334,7 @@ public class DeploymentServiceIT {
                 .build();
 
             ChatParameters parameters = ChatParameters.builder()
-                .toolChoiceOption(ToolChoice.REQUIRED)
+                .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
             ChatRequest request = ChatRequest.builder()
@@ -768,7 +768,7 @@ public class DeploymentServiceIT {
                 .build();
 
             ChatParameters parameters = ChatParameters.builder()
-                .toolChoiceOption(ToolChoice.REQUIRED)
+                .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
             ChatRequest request = ChatRequest.builder()

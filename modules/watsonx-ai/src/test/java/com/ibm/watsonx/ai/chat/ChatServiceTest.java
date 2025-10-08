@@ -64,7 +64,7 @@ import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoice;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -118,7 +118,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .temperature(1.0)
                 .timeLimit(Duration.ofSeconds(60))
                 .toolChoice("my-tool")
-                .toolChoiceOption(ToolChoice.REQUIRED)
+                .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .topLogprobs(10)
                 .topP(1.2)
                 .withJsonSchemaResponse("test", Map.of(), false)
@@ -2090,7 +2090,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         var chatParameters = ChatParameters.builder()
             .transactionId("my-transaction-id")
-            .toolChoiceOption(ToolChoice.REQUIRED)
+            .toolChoiceOption(ToolChoiceOption.REQUIRED)
             .build();
 
         var chatRequest = ChatRequest.builder()
@@ -2761,7 +2761,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .build();
 
             var parameters = ChatParameters.builder()
-                .toolChoiceOption(ToolChoice.REQUIRED)
+                .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
             var response = chatService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
