@@ -61,7 +61,7 @@ public record TextExtractionRequest(String projectId, String spaceId, DataRefere
         Boolean autoRotationCorrection,
         String createEmbeddedImages,
         Integer outputDpi,
-        Boolean outputTokensAndBbox,
+        Boolean outputTokens,
         String kvpMode,
         SemanticConfig semanticConfig) {
 

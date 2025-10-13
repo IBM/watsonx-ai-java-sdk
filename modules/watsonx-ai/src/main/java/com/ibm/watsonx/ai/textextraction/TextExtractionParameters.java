@@ -43,7 +43,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
     private final Boolean autoRotationCorrection;
     private final String createEmbeddedImages;
     private final Integer outputDpi;
-    private final Boolean outputTokensAndBbox;
+    private final Boolean outputTokens;
     private final String kvpMode;
     private final SemanticConfig semanticConfig;
     private final boolean removeUploadedFile;
@@ -63,7 +63,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
         this.autoRotationCorrection = builder.autoRotationCorrection;
         this.createEmbeddedImages = builder.createEmbeddedImages;
         this.outputDpi = builder.outputDpi;
-        this.outputTokensAndBbox = builder.outputTokensAndBbox;
+        this.outputTokens = builder.outputTokens;
         this.kvpMode = builder.kvpMode;
         this.semanticConfig = builder.semanticConfig;
         this.removeUploadedFile = builder.removeUploadedFile;
@@ -103,8 +103,8 @@ public final class TextExtractionParameters extends WatsonxParameters {
         return outputDpi;
     }
 
-    public Boolean getOutputTokensAndBbox() {
-        return outputTokensAndBbox;
+    public Boolean getOutputTokens() {
+        return outputTokens;
     }
 
     public String getKvpMode() {
@@ -155,7 +155,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
             getAutoRotationCorrection(),
             getCreateEmbeddedImages(),
             getOutputDpi(),
-            getOutputTokensAndBbox(),
+            getOutputTokens(),
             getKvpMode(),
             getSemanticConfig()
         );
@@ -192,7 +192,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
         private Boolean autoRotationCorrection;
         private String createEmbeddedImages;
         private Integer outputDpi;
-        private Boolean outputTokensAndBbox;
+        private Boolean outputTokens;
         private String kvpMode;
         private SemanticConfig semanticConfig;
         private boolean removeUploadedFile = false;
@@ -309,10 +309,10 @@ public final class TextExtractionParameters extends WatsonxParameters {
         /**
          * Enables or disables output of tokens and bounding boxes.
          *
-         * @param outputTokensAndBbox true to output tokens and bounding boxes, false otherwise
+         * @param outputTokens true to output tokens and bounding boxes, false otherwise
          */
-        public Builder outputTokensAndBbox(boolean outputTokensAndBbox) {
-            this.outputTokensAndBbox = outputTokensAndBbox;
+        public Builder outputTokens(boolean outputTokens) {
+            this.outputTokens = outputTokens;
             return this;
         }
 

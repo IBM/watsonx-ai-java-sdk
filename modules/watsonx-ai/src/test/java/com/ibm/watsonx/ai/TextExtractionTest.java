@@ -252,7 +252,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                         "auto_rotation_correction": true,
                         "create_embedded_images": "enabled_text",
                         "output_dpi": 150,
-                        "output_tokens_and_bbox": true,
+                        "output_tokens": true,
                         "kvp_mode": "generic_with_semantic",
                         "semantic_config": {
                             "target_image_width": 1024,
@@ -324,7 +324,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .autoRotationCorrection(true)
             .createEmbeddedImages(EmbeddedImageMode.ENABLED_TEXT)
             .outputDpi(150)
-            .outputTokensAndBbox(true)
+            .outputTokens(true)
             .kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)
             .semanticConfig(
                 SemanticConfig.builder()
@@ -399,7 +399,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                         ],
                         "create_embedded_images": "disabled",
                         "output_dpi": 72,
-                        "output_tokens_and_bbox": true
+                        "output_tokens": true
                     },
                     "results": {
                         "status": "submitted",
@@ -675,7 +675,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                               ],
                               "mode": "standard",
                               "output_dpi": 72,
-                              "output_tokens_and_bbox": true,
+                              "output_tokens": true,
                               "requested_outputs": [
                                   "md",
                                   "assembly"
@@ -1314,7 +1314,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .autoRotationCorrection(false)
                     .createEmbeddedImages(EmbeddedImageMode.DISABLED)
                     .outputDpi(16)
-                    .outputTokensAndBbox(false)
+                    .outputTokens(false)
                     .build());
         });
 
@@ -1334,7 +1334,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .autoRotationCorrection(false)
                     .createEmbeddedImages(EmbeddedImageMode.DISABLED)
                     .outputDpi(16)
-                    .outputTokensAndBbox(false)
+                    .outputTokens(false)
                     .build());
         });
 
@@ -1356,7 +1356,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .autoRotationCorrection(false)
                     .createEmbeddedImages(EmbeddedImageMode.DISABLED)
                     .outputDpi(16)
-                    .outputTokensAndBbox(false)
+                    .outputTokens(false)
                     .build());
         });
         assertEquals("fetch_operation_not_allowed", ex.getCode());
