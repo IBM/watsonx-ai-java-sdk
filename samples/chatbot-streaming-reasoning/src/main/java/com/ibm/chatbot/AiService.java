@@ -16,7 +16,6 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -54,7 +53,6 @@ public class AiService {
             .build();
 
         memory = new ChatMemory();
-        memory.addMessage(ControlMessage.of("thinking"));
     }
 
     public CompletableFuture<Void> chat(String message, Consumer<String> response, Consumer<String> thinking) {
