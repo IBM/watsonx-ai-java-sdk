@@ -48,7 +48,7 @@ public abstract class WatsonxService {
 
     protected static final String ML_API_PATH = "/ml/v1";
     protected static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
-    protected static final String API_VERSION = "2025-09-03";
+    protected static final String API_VERSION = "2025-10-01";
     protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
 
     protected final String baseUrl;
