@@ -1,0 +1,24 @@
+{
+    "id": "chatcmpl-b41f77704b96499dbafed2aed7374bf0",
+    "object": "chat.completion",
+    "model_id": "openai/gpt-oss-120b-curated",
+    "model": "openai/gpt-oss-120b-curated",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "Aries Daily Horoscope",
+                "reasoning_content": "Need to give horoscope for Aries."
+            },
+            "finish_reason": "stop"
+        }
+    ],
+    "created": 1760258491,
+    "created_at": "2025-10-12T08:41:34.366Z",
+    "usage": {
+        "completion_tokens": 522,
+        "prompt_tokens": 89,
+        "total_tokens": 611
+    }
+}

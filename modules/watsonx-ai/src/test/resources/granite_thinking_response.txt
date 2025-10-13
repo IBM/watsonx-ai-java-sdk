@@ -1,0 +1,24 @@
+{
+    "id": "chatcmpl-326dc89051c826dd8d3c690a2d716e77",
+    "object": "chat.completion",
+    "model_id": "ibm/granite-3-3-8b-instruct",
+    "model": "ibm/granite-3-3-8b-instruct",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "<think>Think</think><response>Result</response>"
+            },
+            "finish_reason": "stop"
+        }
+    ],
+    "created": 1749323488,
+    "model_version": "3.3.0",
+    "created_at": "2025-06-07T19:11:29.419Z",
+    "usage": {
+        "completion_tokens": 162,
+        "prompt_tokens": 198,
+        "total_tokens": 360
+    }
+}

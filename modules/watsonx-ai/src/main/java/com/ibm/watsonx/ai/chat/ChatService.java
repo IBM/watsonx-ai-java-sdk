@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -72,19 +74,30 @@ public final class ChatService extends ModelService implements ChatProvider {
         if (nonNull(chatRequest.getDeploymentId()))
             logger.info("The deploymentId parameter can not be used with the ChatService. Use the DeploymentService instead");
 
-        List<ChatMessage> messages = chatRequest.getMessages();
-        List<Tool> tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
-        ChatParameters parameters = chatRequest.getParameters();
+        var messages = chatRequest.getMessages();
+        var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
+        var parameters = requireNonNullElse(chatRequest.getParameters(), ChatParameters.builder().build());
 
         if (messages.stream().anyMatch(ControlMessage.class::isInstance)
-            && isNull(chatRequest.getExtractionTags()))
+            && (isNull(chatRequest.getThinking()) || isNull(chatRequest.getThinking().getExtractionTags())))
             throw new IllegalArgumentException("Extraction tags are required when using control messages");
 
-        parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
         var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
+
+        Boolean includeReasoning = null;
+        String thinkingEffort = null;
+        ExtractionTags extractionTags = null;
+        Map<String, Object> chatTemplateKwargs = null;
+        if (nonNull(chatRequest.getThinking())) {
+            var thinking = chatRequest.getThinking();
+            chatTemplateKwargs = Map.of("thinking", true);
+            extractionTags = thinking.getExtractionTags();
+            includeReasoning = thinking.getIncludeReasoning();
+            thinkingEffort = nonNull(thinking.getThinkingEffort()) ? thinking.getThinkingEffort().getValue() : null;
+        }
 
         var textChatRequest = TextChatRequest.builder()
             .modelId(modelId)
@@ -94,6 +107,9 @@ public final class ChatService extends ModelService implements ChatProvider {
             .tools(tools)
             .parameters(parameters)
             .timeLimit(timeout)
+            .includeReasoning(includeReasoning)
+            .reasoningEffort(thinkingEffort)
+            .chatTemplateKwargs(chatTemplateKwargs)
             .build();
 
         var chatResponse = client.chat(parameters.getTransactionId(), textChatRequest);
@@ -106,7 +122,7 @@ public final class ChatService extends ModelService implements ChatProvider {
                 chatResponse.getChoices().get(0).setFinishReason("tool_calls");
         }
 
-        chatResponse.setExtractionTags(chatRequest.getExtractionTags());
+        chatResponse.setExtractionTags(extractionTags);
         return chatResponse;
     }
 
@@ -123,13 +139,25 @@ public final class ChatService extends ModelService implements ChatProvider {
         var parameters = requireNonNullElse(chatRequest.getParameters(), ChatParameters.builder().build());
 
         if (messages.stream().anyMatch(ControlMessage.class::isInstance)
-            && isNull(chatRequest.getExtractionTags()))
+            && (isNull(chatRequest.getThinking()) || isNull(chatRequest.getThinking().getExtractionTags())))
             throw new IllegalArgumentException("Extraction tags are required when using control messages");
 
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
         var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
         var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
+
+        Boolean includeReasoning = null;
+        String thinkingEffort = null;
+        ExtractionTags extractionTags = null;
+        Map<String, Object> chatTemplateKwargs = null;
+        if (nonNull(chatRequest.getThinking())) {
+            var thinking = chatRequest.getThinking();
+            chatTemplateKwargs = Map.of("thinking", true);
+            extractionTags = thinking.getExtractionTags();
+            includeReasoning = thinking.getIncludeReasoning();
+            thinkingEffort = nonNull(thinking.getThinkingEffort()) ? thinking.getThinkingEffort().getValue() : null;
+        }
 
         var textChatRequest = TextChatRequest.builder()
             .modelId(modelId)
@@ -139,9 +167,12 @@ public final class ChatService extends ModelService implements ChatProvider {
             .tools(tools)
             .parameters(parameters)
             .timeLimit(timeout)
+            .includeReasoning(includeReasoning)
+            .reasoningEffort(thinkingEffort)
+            .chatTemplateKwargs(chatTemplateKwargs)
             .build();
 
-        return client.chatStreaming(parameters.getTransactionId(), chatRequest.getExtractionTags(), textChatRequest, handler);
+        return client.chatStreaming(parameters.getTransactionId(), extractionTags, textChatRequest, handler);
     }
 
     /**

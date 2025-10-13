@@ -237,6 +237,53 @@ public class ChatServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Why the sky is blue?"))
+                .thinking(ExtractionTags.of("think", "response"))
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
+            var text = chatResponse.getChoices().get(0).getMessage().content();
+
+            assertNotNull(chatResponse);
+            assertNotNull(text);
+            assertFalse(text.isBlank());
+            assertTrue(text.contains("<think>") && text.contains("</think>"));
+            assertTrue(text.contains("<response>") && text.contains("</response>"));
+
+            var thinkingMessage = chatResponse.extractThinking();
+            assertNotNull(thinkingMessage);
+            assertFalse(thinkingMessage.isBlank());
+
+            var contentMessage = chatResponse.extractContent();
+            assertNotNull(contentMessage);
+            assertFalse(contentMessage.isBlank());
+
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.content());
+            assertFalse(assistantMessage.content().isBlank());
+            assertFalse(assistantMessage.content().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
+
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().isBlank());
+            assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
+        }
+
+        @Test
+        void test_chat_thinking_with_control_message() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("ibm/granite-3-3-8b-instruct")
+                .authenticationProvider(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .timeout(Duration.ofSeconds(30))
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
                 .messages(
                     ControlMessage.of("thinking"),
                     UserMessage.text("Why the sky is blue?"))
@@ -271,6 +318,7 @@ public class ChatServiceIT {
             assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
             assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
         }
+
 
         @Test
         void test_chat_image() throws Exception {
@@ -659,11 +707,9 @@ public class ChatServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
-                .messages(
-                    ControlMessage.of("thinking"),
-                    UserMessage.text("Why the sky is blue?"))
-                .parameters(parameters)
+                .messages(UserMessage.text("Why the sky is blue?"))
                 .thinking(ExtractionTags.of("think", "response"))
+                .parameters(parameters)
                 .build();
 
             CompletableFuture<String> futureThinking = new CompletableFuture<>();
@@ -910,7 +956,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .modelId("ibm/granite-4-h-small")
                 .authenticationProvider(authentication)
                 .logRequests(true)
                 .logResponses(true)
