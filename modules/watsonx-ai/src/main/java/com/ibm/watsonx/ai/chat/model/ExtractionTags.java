@@ -13,10 +13,12 @@ import java.util.regex.Pattern;
 /**
  * Represents XML-like tag names used to segment an assistant's output into two logical parts:
  * <ul>
- * <li><b>think</b>: defines the tag that wraps the assistant's internal reasoning</li>
- * <li><b>response</b>: defines the tag that wraps the final answer</li>
+ * <li><b>think</b>: the tag that wraps the assistant's internal reasoning</li>
+ * <li><b>response</b>: the tag that wraps the final answer (optional)</li>
  * </ul>
- *
+ * <p>
+ * This class is intended for models that return both reasoning and response content within a single text string. It allows manual extraction of the
+ * reasoning and response segments based on the provided tags.
  * <p>
  * <b>Example:</b>
  *
@@ -24,14 +26,13 @@ import java.util.regex.Pattern;
  * // Explicitly setting both tags
  * ExtractionTags tags = ExtractionTags.of("think", "response");
  *
- * // Setting only the reasoning tag — response will default to "root"
+ * // Setting only the reasoning tag — the response will be considered as all content outside the <think>...</think> section
  * ExtractionTags tagsDefaultResponse = ExtractionTags.of("think");
  * }</pre>
- * <p>
- * If the <b>response</b> tag is not defined, the response is considered to be all the content outside the <b>think</b> (reasoning) tag.
  *
  * @param think the XML-like tag name representing the reasoning section (required, without angle brackets)
  * @param response the XML-like tag name representing the final response section (optional, without angle brackets)
+ *
  */
 public record ExtractionTags(String think, String response) {
 

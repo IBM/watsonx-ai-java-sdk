@@ -17,7 +17,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -82,6 +81,7 @@ import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.TextContent;
+import com.ibm.watsonx.ai.chat.model.Thinking;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.ToolMessage;
@@ -1400,7 +1400,10 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             var chatRequest = ChatRequest.builder()
                 .messages(messages)
-                .parameters(ChatParameters.builder().transactionId("my-transaction-id").build())
+                .parameters(
+                    ChatParameters.builder()
+                        .transactionId("my-transaction-id")
+                        .build())
                 .thinking(ExtractionTags.of("think", "response"))
                 .build();
 
@@ -1492,7 +1495,10 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             var chatRequest = ChatRequest.builder()
                 .messages(messages)
-                .parameters(ChatParameters.builder().transactionId("my-transaction-id").build())
+                .parameters(
+                    ChatParameters.builder()
+                        .transactionId("my-transaction-id")
+                        .build())
                 .thinking(ExtractionTags.of("think"))
                 .build();
 
@@ -2454,262 +2460,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_chat_streaming_thinking() throws Exception {
-
-        var httpPort = wireMock.getPort();
-        String BODY = new String(ClassLoader.getSystemResourceAsStream("thinking_streaming_response.txt").readAllBytes());
-
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
-            .withHeader("Authorization", equalTo("Bearer my-super-token"))
-            .withRequestBody(equalToJson("""
-                {
-                    "model_id": "ibm/granite-3-3-8b-instruct",
-                    "project_id": "project-id",
-                    "messages": [
-                        {
-                            "role": "control",
-                            "content": "thinking"
-                        },
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": "Translate \\"Hello\\" in Italian"
-                                }
-                            ]
-                        }
-                    ],
-                    "time_limit": 10000
-                }"""))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withChunkedDribbleDelay(159, 200)
-                .withBody(BODY)));
-
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
-
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .modelId("ibm/granite-3-3-8b-instruct")
-            .projectId("project-id")
-            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
-            .build();
-
-        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        ChatRequest chatRequest = ChatRequest.builder()
-            .messages(
-                ControlMessage.of("thinking"),
-                UserMessage.text("Translate \"Hello\" in Italian"))
-            .thinking(ExtractionTags.of("think", "response"))
-            .build();
-
-
-        StringBuilder thinkingResponse = new StringBuilder();
-        StringBuilder response = new StringBuilder();
-
-        chatService.chatStreaming(chatRequest, new ChatHandler() {
-
-            @Override
-            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                response.append(partialResponse);
-            }
-
-            @Override
-            public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                result.completeExceptionally(error);
-            }
-
-            @Override
-            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
-                thinkingResponse.append(partialThinking);
-            }
-
-            @Override
-            public void onPartialToolCall(PartialToolCall partialToolCall) {
-                fail();
-            }
-
-            @Override
-            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
-                fail();
-            }
-        });
-
-        var chatResponse = result.get(3, TimeUnit.SECONDS);
-
-        var EXEPECTED_THINKING =
-            "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.";
-
-        var EXPECTED_RESPONSE =
-            "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response.";
-
-        var chatResponseText = chatResponse.getChoices().get(0).getMessage().content();
-        assertTrue(chatResponseText.contains("<think>") && chatResponseText.contains("</think>"));
-        assertTrue(chatResponseText.contains("<response>") && chatResponseText.contains("</response>"));
-        assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));
-
-
-        assertTrue(chatResponse.extractContent().contains(EXPECTED_RESPONSE));
-        assertFalse(chatResponse.extractContent().contains("<response>") && chatResponse.extractContent().contains("</response>"));
-
-        assertTrue(chatResponse.extractThinking().contains(EXEPECTED_THINKING));
-        assertFalse(chatResponse.extractThinking().contains("<think>") && chatResponse.extractThinking().contains("</think>"));
-
-        assertEquals(
-            EXEPECTED_THINKING,
-            thinkingResponse.toString()
-        );
-
-        assertTrue(response.toString().contains(EXPECTED_RESPONSE));
-
-        var assistantMessage = chatResponse.toAssistantMessage();
-        assertTrue(assistantMessage.content().contains(EXPECTED_RESPONSE));
-        assertFalse(assistantMessage.content().contains(EXEPECTED_THINKING));
-        assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
-
-        assertFalse(assistantMessage.thinking().contains(EXPECTED_RESPONSE));
-        assertTrue(assistantMessage.thinking().contains(EXEPECTED_THINKING));
-        assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.thinking().contains("</think>"));
-    }
-
-    @Test
-    void test_chat_streaming_thinking_without_think_result() throws Exception {
-
-        var httpPort = wireMock.getPort();
-
-        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
-            .withHeader("Authorization", equalTo("Bearer my-super-token"))
-            .withRequestBody(equalToJson("""
-                {
-                    "model_id": "ibm/granite-3-3-8b-instruct",
-                    "project_id": "project-id",
-                    "messages": [
-                        {
-                            "role": "control",
-                            "content": "thinking"
-                        },
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": "Translate \\"Hello\\" in Italian"
-                                }
-                            ]
-                        }
-                    ],
-                    "time_limit": 10000
-                }"""))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withChunkedDribbleDelay(159, 200)
-                .withBody(
-                    """
-                        id: 1
-                        event: message
-                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
-
-                        id: 2
-                        event: message
-                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
-
-                        id: 3
-                        event: message
-                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
-
-                        id: 4
-                        event: message
-                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.563Z"}
-
-                        id: 5
-                        event: message
-                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.564Z","usage":{"completion_tokens":3,"prompt_tokens":38,"total_tokens":41}}
-                        """)));
-
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
-
-        var chatService = ChatService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
-            .modelId("ibm/granite-3-3-8b-instruct")
-            .projectId("project-id")
-            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
-            .build();
-
-        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        ChatRequest chatRequest = ChatRequest.builder()
-            .messages(
-                ControlMessage.of("thinking"),
-                UserMessage.text("Translate \"Hello\" in Italian"))
-            .thinking(ExtractionTags.of("think", "response"))
-            .build();
-
-
-        StringBuilder thinkingResponse = new StringBuilder();
-        StringBuilder response = new StringBuilder();
-
-        chatService.chatStreaming(chatRequest, new ChatHandler() {
-
-            @Override
-            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                response.append(partialResponse);
-            }
-
-            @Override
-            public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                result.completeExceptionally(error);
-            }
-
-            @Override
-            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
-                thinkingResponse.append(partialThinking);
-            }
-
-            @Override
-            public void onPartialToolCall(PartialToolCall partialToolCall) {
-                fail();
-            }
-
-            @Override
-            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
-                fail();
-            }
-        });
-
-        var chatResponse = result.get(3, TimeUnit.SECONDS);
-
-        var EXPECTED_RESPONSE = "Ciao";
-
-        var chatResponseText = chatResponse.getChoices().get(0).getMessage().content();
-        assertFalse(chatResponseText.contains("<think>") && chatResponseText.contains("</think>"));
-        assertFalse(chatResponseText.contains("<response>") && chatResponseText.contains("</response>"));
-        assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));
-
-
-        assertTrue(chatResponse.extractContent().contains(EXPECTED_RESPONSE));
-        assertFalse(chatResponse.extractContent().contains("<response>") && chatResponse.extractContent().contains("</response>"));
-
-        assertNull(chatResponse.extractThinking());
-        assertTrue(response.toString().contains(EXPECTED_RESPONSE));
-
-        var assistantMessage = chatResponse.toAssistantMessage();
-        assertTrue(assistantMessage.content().contains(EXPECTED_RESPONSE));
-        assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
-
-        assertNull(assistantMessage.thinking());
-    }
-
-    @Test
     void chat_tool_choice_option_required() throws Exception {
 
         // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
@@ -3322,7 +3072,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     @Test
     void test_executor() throws Exception {
 
-        String BODY = new String(ClassLoader.getSystemResourceAsStream("thinking_streaming_response.txt").readAllBytes());
+        String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_streaming_response.txt").readAllBytes());
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
@@ -3349,10 +3099,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .build();
 
             var chatRequest = ChatRequest.builder()
-                .messages(
-                    ControlMessage.of("thinking"),
-                    UserMessage.text("Hello"))
-                .thinking(ExtractionTags.of("think", "response"))
+                .messages(ControlMessage.of("thinking"), UserMessage.text("Hello"))
+                .thinking(Thinking.of(ExtractionTags.of("think", "response")))
                 .build();
 
             CompletableFuture<ChatResponse> result = new CompletableFuture<>();
@@ -3406,37 +3154,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .build();
 
             assertThrows(RuntimeException.class, () -> chatService.chat(UserMessage.text("test")), "IOException");
-        });
-    }
-
-    @Test
-    void test_thinking_without_extraction_tags() {
-
-        withWatsonxServiceMock(() -> {
-
-            var chatService = ChatService.builder()
-                .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
-                .authenticationProvider(mockAuthenticationProvider)
-                .modelId("model-id")
-                .projectId("project-id")
-                .build();
-
-            ChatRequest chatRequest = ChatRequest.builder()
-                .messages(
-                    SystemMessage.of("You are a helpful assistant"),
-                    ControlMessage.of("thinking"),
-                    UserMessage.text("Why the sky is blue?"))
-                .build();
-
-            assertThrows(
-                IllegalArgumentException.class,
-                () -> chatService.chat(chatRequest),
-                "Extraction tags are required when using control messages");
-
-            assertThrows(
-                IllegalArgumentException.class,
-                () -> chatService.chatStreaming(chatRequest, mock(ChatHandler.class)),
-                "Extraction tags are required when using control messages");
         });
     }
 

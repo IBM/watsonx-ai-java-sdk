@@ -53,7 +53,6 @@ import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
-import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
@@ -643,7 +642,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     @Test
     void test_chat_streaming_thinking() throws Exception {
 
-        String BODY = new String(ClassLoader.getSystemResourceAsStream("thinking_streaming_response.txt").readAllBytes());
+        String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_streaming_response.txt").readAllBytes());
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -656,10 +655,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 {
                     "messages": [
                         {
-                            "role": "control",
-                            "content": "thinking"
-                        },
-                        {
                             "role": "user",
                             "content": [
                                 {
@@ -668,7 +663,10 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    "chat_template_kwargs" : {
+                        "thinking" : true
+                    }
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -679,9 +677,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         ChatRequest chatRequest = ChatRequest.builder()
-            .messages(
-                ControlMessage.of("thinking"),
-                UserMessage.text("Translate \"Hello\" in Italian"))
+            .messages(UserMessage.text("Translate \"Hello\" in Italian"))
             .thinking(ExtractionTags.of("think", "response"))
             .deploymentId("my-deployment-id")
             .build();

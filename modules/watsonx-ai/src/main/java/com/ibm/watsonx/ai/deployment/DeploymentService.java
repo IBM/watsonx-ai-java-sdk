@@ -22,6 +22,7 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentRestClient.ChatStreamingRequest;
@@ -172,16 +173,25 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     @Override
     public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
+        requireNonNull(handler, "The chatHandler parameter can not be null");
 
         var deploymentId = requireNonNull(chatRequest.getDeploymentId(), "deploymentId must be provided");
         var messages = chatRequest.getMessages();
         var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
-        var parameters = chatRequest.getParameters();
-        var extractionTags = chatRequest.getExtractionTags();
-
-        requireNonNull(handler, "The chatHandler parameter can not be null");
-        parameters = requireNonNullElse(parameters, ChatParameters.builder().build());
+        var parameters = requireNonNullElse(chatRequest.getParameters(), ChatParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis()));
+
+        Boolean includeReasoning = null;
+        String thinkingEffort = null;
+        ExtractionTags extractionTags = null;
+        Map<String, Object> chatTemplateKwargs = null;
+        if (nonNull(chatRequest.getThinking())) {
+            var thinking = chatRequest.getThinking();
+            chatTemplateKwargs = Map.of("thinking", true);
+            extractionTags = thinking.getExtractionTags();
+            includeReasoning = thinking.getIncludeReasoning();
+            thinkingEffort = nonNull(thinking.getThinkingEffort()) ? thinking.getThinkingEffort().getValue() : null;
+        }
 
         logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
 
@@ -189,6 +199,9 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
+            .includeReasoning(includeReasoning)
+            .reasoningEffort(thinkingEffort)
+            .chatTemplateKwargs(chatTemplateKwargs)
             .build();
 
         var request = new ChatStreamingRequest(parameters.getTransactionId(), deploymentId, timeout, extractionTags, textChatRequest, handler);

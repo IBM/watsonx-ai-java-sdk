@@ -7,7 +7,6 @@ package com.ibm.chatbot;
 import java.util.LinkedList;
 import java.util.List;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
-import com.ibm.watsonx.ai.chat.model.ControlMessage;
 
 public class ChatMemory {
 
@@ -21,8 +20,6 @@ public class ChatMemory {
     public void addMessage(ChatMessage message) {
         if (memory.size() >= MAX_SIZE) {
             var index = 0;
-            if (memory.get(0) instanceof ControlMessage)
-                index = 1;
             memory.remove(index);
         }
 

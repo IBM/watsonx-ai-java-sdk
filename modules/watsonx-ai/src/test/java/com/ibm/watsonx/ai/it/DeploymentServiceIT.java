@@ -35,8 +35,6 @@ import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
-import com.ibm.watsonx.ai.chat.model.ControlMessage;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
 import com.ibm.watsonx.ai.chat.model.JsonSchema;
@@ -44,6 +42,7 @@ import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextContent;
+import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -221,7 +220,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void test_chat_thinking() {
 
             var deploymentService = DeploymentService.builder()
@@ -233,10 +231,9 @@ public class DeploymentServiceIT {
 
             ChatRequest chatRequest = ChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
-                .messages(
-                    ControlMessage.of("thinking"),
-                    UserMessage.text("Why the sky is blue?"))
-                .thinking(ExtractionTags.of("think", "response"))
+                .parameters(ChatParameters.builder().maxCompletionTokens(0).build())
+                .messages(UserMessage.text("Why the sky is blue?"))
+                .thinking(true)
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(chatRequest));
@@ -245,8 +242,6 @@ public class DeploymentServiceIT {
             assertNotNull(chatResponse);
             assertNotNull(text);
             assertFalse(text.isBlank());
-            assertTrue(text.contains("<think>") && text.contains("</think>"));
-            assertTrue(text.contains("<response>") && text.contains("</response>"));
 
             var thinkingMessage = chatResponse.extractThinking();
             assertNotNull(thinkingMessage);
@@ -255,10 +250,6 @@ public class DeploymentServiceIT {
             var contentMessage = chatResponse.extractContent();
             assertNotNull(contentMessage);
             assertFalse(contentMessage.isBlank());
-
-            var assistantMessage = chatResponse.toAssistantMessage();
-            assertFalse(assistantMessage.content().contains("<think>") && assistantMessage.content().contains("</think>"));
-            assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
         }
 
         @Test
@@ -491,7 +482,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void test_chat_streaming_thinking() {
 
             var chatService = DeploymentService.builder()
@@ -506,11 +496,10 @@ public class DeploymentServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
-                .messages(
-                    ControlMessage.of("thinking"),
-                    UserMessage.text("Why the sky is blue?"))
+                .deploymentId(DEPLOYMENT_ID)
+                .messages(UserMessage.text("Why the sky is blue?"))
+                .thinking(ThinkingEffort.MEDIUM)
                 .parameters(parameters)
-                .thinking(ExtractionTags.of("think", "response"))
                 .build();
 
             CompletableFuture<String> futureThinking = new CompletableFuture<>();
@@ -550,8 +539,6 @@ public class DeploymentServiceIT {
             assertNotNull(chatResponse);
             assertNotNull(text);
             assertFalse(text.isBlank());
-            assertTrue(text.contains("<think>") && text.contains("</think>"));
-            assertTrue(text.contains("<response>") && text.contains("</response>"));
 
             var thinkingMessage = chatResponse.extractThinking();
             assertNotNull(thinkingMessage);

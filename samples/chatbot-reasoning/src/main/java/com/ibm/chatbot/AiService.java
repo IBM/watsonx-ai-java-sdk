@@ -13,7 +13,6 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
@@ -50,7 +49,6 @@ public class AiService {
             .build();
 
         memory = new ChatMemory();
-        memory.addMessage(ControlMessage.of("thinking"));
     }
 
     public ChatResponse chat(String message) {

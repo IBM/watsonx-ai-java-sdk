@@ -9,6 +9,8 @@ import java.util.List;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.Thinking;
+import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
@@ -49,14 +51,14 @@ public class ChatRequest {
     private final List<ChatMessage> messages;
     private final List<Tool> tools;
     private final ChatParameters parameters;
-    private final ExtractionTags extractionTags;
+    private final Thinking thinking;
 
     protected ChatRequest(Builder builder) {
         messages = requireNonNull(builder.messages, "messages cannot be null");
         tools = builder.tools;
         parameters = builder.parameters;
-        extractionTags = builder.extractionTags;
         deploymentId = builder.deploymentId;
+        thinking = builder.thinking;
     }
 
     public String getDeploymentId() {
@@ -75,8 +77,8 @@ public class ChatRequest {
         return parameters;
     }
 
-    public ExtractionTags getExtractionTags() {
-        return extractionTags;
+    public Thinking getThinking() {
+        return thinking;
     }
 
     /**
@@ -123,7 +125,7 @@ public class ChatRequest {
         private List<ChatMessage> messages;
         private List<Tool> tools;
         private ChatParameters parameters;
-        private ExtractionTags extractionTags;
+        private Thinking thinking;
 
         private Builder() {}
 
@@ -188,29 +190,76 @@ public class ChatRequest {
         }
 
         /**
-         * Sets the tag names used to extract segmented content from the assistant's output.
+         * Enables or disables reasoning for the chat request.
          * <p>
-         * The provided {@link ExtractionTags} define which XML-like tags (such as {@code <think>} and {@code <response>}) will be used to separate
-         * the reasoning portion from the final response.
+         * This method provides a simple way to toggle reasoning behavior without specifying any particular configuration. When {@code true},
+         * reasoning is enabled using the default {@link Thinking} settings. When {@code false}, reasoning is disabled entirely.
+         *
+         * @param enabled {@code true} to enable reasoning with default settings, {@code false} to disable reasoning
+         */
+        public Builder thinking(boolean enabled) {
+            if (enabled) {
+                return thinking(Thinking.builder().build());
+            } else {
+                thinking = null;
+                return this;
+            }
+        }
+
+        /**
+         * Sets the reasoning extraction tags for the chat request.
          * <p>
-         * If the {@code response} tag is not specified in {@link ExtractionTags}, the final response will be considered as all the content outside
-         * the {@code reasoning} tag.
+         * This method is intended for models that return reasoning and response content within the same text string. The provided
+         * {@link ExtractionTags} define which XML-like tags (for example, {@code <think>} and {@code <response>}) should be used to automatically
+         * extract the reasoning and response segments.
+         *
          * <p>
-         * <b>Example</b>
+         * Equivalent to calling:
          *
          * <pre>{@code
-         * // Explicitly set both tags
-         * builder.thinking(ExtractionTags.of("think", "response")).build();
-         *
-         * // Only set reasoning tag:
-         * // the response will be everything outside <think>...</think>
-         * builder.thinking(ExtractionTags.of("think")).build();
+         * builder.thinking(Thinking.of(tags));
          * }</pre>
          *
-         * @param extractionTags an {@link ExtractionTags} instance containing the reasoning tag and, optionally, the response tag
+         * @param tags an {@link ExtractionTags} instance defining the reasoning and response tags
          */
-        public Builder thinking(ExtractionTags extractionTags) {
-            this.extractionTags = extractionTags;
+        public Builder thinking(ExtractionTags tags) {
+            return thinking(Thinking.of(tags));
+        }
+
+        /**
+         * Sets the reasoning effort for the chat request.
+         * <p>
+         * The provided {@link ThinkingEffort} controls how much reasoning the model applies when generating a response. This method should be used
+         * with models that already separate reasoning and response automatically.
+         *
+         * <p>
+         * Equivalent to calling:
+         *
+         * <pre>{@code
+         * builder.thinking(Thinking.of(ThinkingEffort));
+         * }</pre>
+         *
+         * @param thinkingEffort the desired {@link ThinkingEffort} level
+         */
+        public Builder thinking(ThinkingEffort thinkingEffort) {
+            return thinking(Thinking.of(thinkingEffort));
+        }
+
+        /**
+         * Sets the reasoning configuration for the chat request.
+         * <p>
+         * The provided {@link Thinking} instance defines how the LLM should handle reasoning output.
+         * <p>
+         * If the {@link Thinking} instance includes {@link ExtractionTags}, they will be used to automatically extract reasoning and response
+         * segments from models that return both parts within a single text string (for example, models in the <b>ibm/granite-3-3-8b-instruct</b>).
+         * <p>
+         * If {@link ExtractionTags} are omitted, the model is assumed to already provide reasoning and response as separate fields.
+         *
+         * @param thinking a {@link Thinking} configuration defining how reasoning output is extracted and the level of reasoning effort
+         *
+         */
+        public Builder thinking(Thinking thinking) {
+            this.thinking = thinking;
             return this;
         }
 

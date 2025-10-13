@@ -29,9 +29,6 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  *     .withJsonResponse()
  *     .build();
  * }</pre>
- *
- * The parameters encapsulated in this class control aspects such as output randomness, token limits, tool invocation, stopping criteria, and
- * reproducibility.
  */
 public final class ChatParameters extends WatsonxModelParameters {
 

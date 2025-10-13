@@ -35,36 +35,42 @@ public final class TextChatRequest {
     private final Double topP;
     private final Long timeLimit;
     private final Map<String, Object> responseFormat;
+    private final Map<String, Object> chatTemplateKwargs;
+    private final Boolean includeReasoning;
+    private final String reasoningEffort;
     private final String context;
 
     private TextChatRequest(Builder builder) {
-        this.modelId = builder.modelId;
-        this.spaceId = builder.spaceId;
-        this.projectId = builder.projectId;
-        this.messages = builder.messages;
-        this.tools = builder.tools;
-        this.toolChoiceOption = builder.toolChoiceOption;
-        this.toolChoice = builder.toolChoice;
-        this.frequencyPenalty = builder.frequencyPenalty;
-        this.logitBias = builder.logitBias;
-        this.logprobs = builder.logprobs;
-        this.topLogprobs = builder.topLogprobs;
-        this.maxCompletionTokens = builder.maxCompletionTokens;
-        this.n = builder.n;
-        this.presencePenalty = builder.presencePenalty;
-        this.seed = builder.seed;
-        this.stop = builder.stop;
-        this.temperature = builder.temperature;
-        this.topP = builder.topP;
-        this.timeLimit = builder.timeLimit;
-        this.context = builder.context;
+        modelId = builder.modelId;
+        spaceId = builder.spaceId;
+        projectId = builder.projectId;
+        messages = builder.messages;
+        tools = builder.tools;
+        toolChoiceOption = builder.toolChoiceOption;
+        toolChoice = builder.toolChoice;
+        frequencyPenalty = builder.frequencyPenalty;
+        logitBias = builder.logitBias;
+        logprobs = builder.logprobs;
+        topLogprobs = builder.topLogprobs;
+        maxCompletionTokens = builder.maxCompletionTokens;
+        n = builder.n;
+        presencePenalty = builder.presencePenalty;
+        seed = builder.seed;
+        stop = builder.stop;
+        temperature = builder.temperature;
+        topP = builder.topP;
+        timeLimit = builder.timeLimit;
+        context = builder.context;
+        chatTemplateKwargs = builder.chatTemplateKwargs;
+        includeReasoning = builder.includeReasoning;
+        reasoningEffort = builder.reasoningEffort;
 
         if (nonNull(builder.responseFormat)) {
-            this.responseFormat = builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.type())
+            responseFormat = builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.type())
                 ? Map.of("type", builder.responseFormat, "json_schema", builder.jsonSchema)
                 : Map.of("type", builder.responseFormat);
         } else {
-            this.responseFormat = null;
+            responseFormat = null;
         }
     }
 
@@ -152,6 +158,18 @@ public final class TextChatRequest {
         return context;
     }
 
+    public Map<String, Object> getChatTemplateKwargs() {
+        return chatTemplateKwargs;
+    }
+
+    public Boolean getIncludeReasoning() {
+        return includeReasoning;
+    }
+
+    public String getReasoningEffort() {
+        return reasoningEffort;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -177,6 +195,9 @@ public final class TextChatRequest {
         private Double topP;
         private Long timeLimit;
         private String responseFormat;
+        private Map<String, Object> chatTemplateKwargs;
+        private Boolean includeReasoning;
+        private String reasoningEffort;
         private JsonSchemaObject jsonSchema;
         private String context;
 
@@ -212,24 +233,39 @@ public final class TextChatRequest {
             return this;
         }
 
+        public Builder includeReasoning(Boolean includeReasoning) {
+            this.includeReasoning = includeReasoning;
+            return this;
+        }
+
+        public Builder reasoningEffort(String reasoningEffort) {
+            this.reasoningEffort = reasoningEffort;
+            return this;
+        }
+
+        public Builder chatTemplateKwargs(Map<String, Object> chatTemplateKwargs) {
+            this.chatTemplateKwargs = chatTemplateKwargs;
+            return this;
+        }
+
         public Builder parameters(ChatParameters parameters) {
-            this.toolChoiceOption = parameters.getToolChoiceOption();
-            this.toolChoice = parameters.getToolChoice();
-            this.frequencyPenalty = parameters.getFrequencyPenalty();
-            this.logitBias = parameters.getLogitBias();
-            this.logprobs = parameters.getLogprobs();
-            this.topLogprobs = parameters.getTopLogprobs();
-            this.maxCompletionTokens = parameters.getMaxCompletionTokens();
-            this.n = parameters.getN();
-            this.presencePenalty = parameters.getPresencePenalty();
-            this.seed = parameters.getSeed();
-            this.stop = parameters.getStop();
-            this.temperature = parameters.getTemperature();
-            this.topP = parameters.getTopP();
-            this.responseFormat = parameters.getResponseFormat();
-            this.jsonSchema = parameters.getJsonSchema();
-            this.context = parameters.getContext();
-            this.timeLimit = parameters.getTimeLimit();
+            toolChoiceOption = parameters.getToolChoiceOption();
+            toolChoice = parameters.getToolChoice();
+            frequencyPenalty = parameters.getFrequencyPenalty();
+            logitBias = parameters.getLogitBias();
+            logprobs = parameters.getLogprobs();
+            topLogprobs = parameters.getTopLogprobs();
+            maxCompletionTokens = parameters.getMaxCompletionTokens();
+            n = parameters.getN();
+            presencePenalty = parameters.getPresencePenalty();
+            seed = parameters.getSeed();
+            stop = parameters.getStop();
+            temperature = parameters.getTemperature();
+            topP = parameters.getTopP();
+            responseFormat = parameters.getResponseFormat();
+            jsonSchema = parameters.getJsonSchema();
+            context = parameters.getContext();
+            timeLimit = parameters.getTimeLimit();
             return this;
         }
 
