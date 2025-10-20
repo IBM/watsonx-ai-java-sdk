@@ -5,7 +5,6 @@
 package com.ibm.watsonx.ai;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
@@ -13,12 +12,6 @@ import java.time.Duration;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
-import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
-import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
-import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
-import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
-import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
@@ -54,40 +47,13 @@ public abstract class WatsonxService {
     protected final String version;
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
-    protected final SyncHttpClient syncHttpClient;
-    protected final AsyncHttpClient asyncHttpClient;
 
     protected WatsonxService(Builder<?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl must be provided");
         version = requireNonNullElse(builder.version, API_VERSION);
         timeout = requireNonNullElse(builder.timeout, TIME_OUT);
-
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
-
-        var httpClient = HttpClientProvider.httpClient();
-        var syncHttpClientBuilder = SyncHttpClient.builder().httpClient(httpClient);
-        var asyncHttpClientBuilder = AsyncHttpClient.builder().httpClient(httpClient);
-
-        syncHttpClientBuilder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
-        asyncHttpClientBuilder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
-
-        if (nonNull(builder.authenticationProvider)) {
-            var bearerInterceptor = new BearerInterceptor(builder.authenticationProvider);
-            syncHttpClientBuilder.interceptor(bearerInterceptor);
-            asyncHttpClientBuilder.interceptor(bearerInterceptor);
-        }
-
-        syncHttpClientBuilder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
-        asyncHttpClientBuilder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
-
-        if (logRequests || logResponses) {
-            syncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
-            asyncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
-        }
-
-        syncHttpClient = syncHttpClientBuilder.build();
-        asyncHttpClient = asyncHttpClientBuilder.build();
     }
 
     @SuppressWarnings("unchecked")
