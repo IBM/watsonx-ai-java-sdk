@@ -46,10 +46,9 @@ import com.ibm.watsonx.ai.tool.ToolService;
  */
 public abstract class WatsonxService {
 
-    protected static final String ML_API_PATH = "/ml/v1";
-    protected static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
     protected static final String API_VERSION = "2025-10-01";
     protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
+    protected static final Duration TIME_OUT = Duration.ofSeconds(60);
 
     protected final String baseUrl;
     protected final String version;
@@ -61,7 +60,7 @@ public abstract class WatsonxService {
     protected WatsonxService(Builder<?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl must be provided");
         version = requireNonNullElse(builder.version, API_VERSION);
-        timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
+        timeout = requireNonNullElse(builder.timeout, TIME_OUT);
 
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);

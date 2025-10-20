@@ -139,7 +139,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
             .map(nullable -> getQueryParameters(projectId, spaceId).concat("&hard_delete=true"))
             .orElse(getQueryParameters(projectId, spaceId));
 
-        var uri = URI.create(baseUrl + "%s/text/extractions/%s?%s".formatted(ML_API_PATH, id, queryParameters));
+        var uri = URI.create(baseUrl + "/ml/v1/text/extractions/%s?%s".formatted(id, queryParameters));
         var httpRequest = HttpRequest.newBuilder(uri).timeout(timeout).DELETE();
 
         if (nonNull(request.requestTrackingId()))
@@ -171,7 +171,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
         var spaceId = parameters.getSpaceId();
 
         var queryParameters = getQueryParameters(projectId, spaceId);
-        var uri = URI.create(baseUrl + "%s/text/extractions/%s?%s".formatted(ML_API_PATH, id, queryParameters));
+        var uri = URI.create(baseUrl + "/ml/v1/text/extractions/%s?%s".formatted(id, queryParameters));
 
         var httpRequest = HttpRequest.newBuilder(uri)
             .header("Accept", "application/json")
@@ -198,7 +198,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
     public TextExtractionResponse startExtraction(StartExtractionRequest request) {
 
         var httpRequest =
-            HttpRequest.newBuilder(URI.create(baseUrl + "%s/text/extractions?version=%s".formatted(ML_API_PATH, version)))
+            HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/extractions?version=%s".formatted(version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .POST(BodyPublishers.ofString(toJson(request.textExtractionRequest())))

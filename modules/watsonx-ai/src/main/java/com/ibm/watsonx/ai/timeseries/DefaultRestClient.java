@@ -34,7 +34,7 @@ final class DefaultRestClient extends TimeSeriesRestClient {
     public ForecastResponse forecast(String transactionId, ForecastRequest request) {
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(baseUrl + "%s/time_series/forecast?version=%s".formatted(ML_API_PATH, version)))
+            .newBuilder(URI.create(baseUrl + "/ml/v1/time_series/forecast?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .timeout(timeout)

@@ -48,7 +48,7 @@ final class DefaultRestClient extends ChatRestClient {
     @Override
     public ChatResponse chat(String transactionId, TextChatRequest textChatRequest) {
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "%s/text/chat?version=%s".formatted(ML_API_PATH, version)))
+        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/chat?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(textChatRequest)))
@@ -71,7 +71,7 @@ final class DefaultRestClient extends ChatRestClient {
     public CompletableFuture<Void> chatStreaming(String transactionId, ExtractionTags extractionTags, TextChatRequest textChatRequest,
         ChatHandler handler) {
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "%s/text/chat_stream?version=%s".formatted(ML_API_PATH, version)))
+        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/chat_stream?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .POST(BodyPublishers.ofString(toJson(textChatRequest)))

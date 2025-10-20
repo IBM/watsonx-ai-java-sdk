@@ -48,7 +48,7 @@ final class DefaultRestClient extends TextGenerationRestClient {
 
         var httpRequest =
             HttpRequest
-                .newBuilder(URI.create(baseUrl + "%s/text/generation?version=%s".formatted(ML_API_PATH, version)))
+                .newBuilder(URI.create(baseUrl + "/ml/v1/text/generation?version=%s".formatted(version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .timeout(Duration.ofMillis(timeout))
@@ -72,7 +72,7 @@ final class DefaultRestClient extends TextGenerationRestClient {
 
         var timeout = textRequest.parameters().getTimeLimit();
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "%s/text/generation_stream?version=%s".formatted(ML_API_PATH, version)))
+        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/generation_stream?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .timeout(Duration.ofMillis(timeout))

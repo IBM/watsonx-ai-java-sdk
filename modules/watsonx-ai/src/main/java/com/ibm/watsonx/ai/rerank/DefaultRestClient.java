@@ -34,7 +34,7 @@ final class DefaultRestClient extends RerankRestClient {
     public RerankResponse rerank(String transactionId, RerankRequest request) {
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(baseUrl + "%s/text/rerank?version=%s".formatted(ML_API_PATH, version)))
+            .newBuilder(URI.create(baseUrl + "/ml/v1/text/rerank?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(request)));
