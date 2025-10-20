@@ -347,7 +347,7 @@ final class DefaultRestClient extends DeploymentRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends DeploymentRestClient.Builder {
+    public final static class Builder extends DeploymentRestClient.Builder {
 
         private Builder() {}
 

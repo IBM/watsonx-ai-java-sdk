@@ -149,7 +149,7 @@ final class DefaultRestClient extends ChatRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends ChatRestClient.Builder {
+    public final static class Builder extends ChatRestClient.Builder {
 
         private Builder() {}
 

@@ -149,7 +149,7 @@ final class DefaultRestClient extends TextGenerationRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends TextGenerationRestClient.Builder {
+    public final static class Builder extends TextGenerationRestClient.Builder {
 
         private Builder() {}
 

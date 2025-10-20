@@ -63,7 +63,7 @@ final class DefaultRestClient extends EmbeddingRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends EmbeddingRestClient.Builder {
+    public final static class Builder extends EmbeddingRestClient.Builder {
 
         private Builder() {}
 

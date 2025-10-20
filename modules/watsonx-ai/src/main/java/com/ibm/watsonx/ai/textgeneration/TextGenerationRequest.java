@@ -26,7 +26,7 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  *     .build();
  * }</pre>
  */
-public class TextGenerationRequest {
+public final class TextGenerationRequest {
     private final String deploymentId;
     private final String input;
     private final Moderation moderation;
@@ -82,7 +82,7 @@ public class TextGenerationRequest {
     /**
      * Builder class for constructing {@link TextGenerationRequest} instances.
      */
-    public static class Builder {
+    public final static class Builder {
         private String deploymentId;
         private String input;
         private Moderation moderation;

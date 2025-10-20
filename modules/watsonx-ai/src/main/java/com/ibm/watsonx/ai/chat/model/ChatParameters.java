@@ -173,7 +173,7 @@ public final class ChatParameters extends WatsonxModelParameters {
     /**
      * Builder class for constructing {@link ChatParameters} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxModelParameters.Builder<Builder> {
+    public final static class Builder extends WatsonxModelParameters.Builder<Builder> {
         private ToolChoiceOption toolChoiceOption;
         private String toolChoice;
         private Double frequencyPenalty;

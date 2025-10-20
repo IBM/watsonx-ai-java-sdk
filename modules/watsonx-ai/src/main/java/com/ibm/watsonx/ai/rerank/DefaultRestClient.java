@@ -62,7 +62,7 @@ final class DefaultRestClient extends RerankRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends RerankRestClient.Builder {
+    public final static class Builder extends RerankRestClient.Builder {
 
         private Builder() {}
 

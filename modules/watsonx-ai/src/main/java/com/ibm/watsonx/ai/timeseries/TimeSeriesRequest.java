@@ -33,7 +33,7 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  *     .build();
  * }</pre>
  */
-public class TimeSeriesRequest {
+public final class TimeSeriesRequest {
     private String deploymentId;
     private InputSchema inputSchema;
     private ForecastData data;
@@ -69,7 +69,7 @@ public class TimeSeriesRequest {
     /**
      * Builder class for constructing {@link TimeSeriesRequest} instances.
      */
-    public static class Builder {
+    public final static class Builder {
         private String deploymentId;
         private InputSchema inputSchema;
         private ForecastData data;

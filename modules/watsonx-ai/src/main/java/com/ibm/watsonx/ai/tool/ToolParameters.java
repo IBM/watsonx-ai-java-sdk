@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelParameters;
  * }</pre>
  *
  */
-public class ToolParameters {
+public final class ToolParameters {
     private final String transactionId;
 
     protected ToolParameters(Builder builder) {
@@ -51,7 +51,7 @@ public class ToolParameters {
     /**
      * Builder class for constructing {@link FoundationModelParameters} instances.
      */
-    public static class Builder {
+    public final static class Builder {
         private String transactionId;
 
         private Builder() {}

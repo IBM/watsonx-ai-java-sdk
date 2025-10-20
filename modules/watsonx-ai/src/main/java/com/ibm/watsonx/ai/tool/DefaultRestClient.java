@@ -111,7 +111,7 @@ final class DefaultRestClient extends ToolRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends ToolRestClient.Builder {
+    public final static class Builder extends ToolRestClient.Builder {
 
         private Builder() {}
 

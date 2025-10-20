@@ -10,7 +10,7 @@ import java.net.http.HttpClient;
 /**
  * Provides a instance of {@link HttpClient}.
  */
-public class HttpClientProvider {
+public final class HttpClientProvider {
 
     private static volatile HttpClient httpClient;
 

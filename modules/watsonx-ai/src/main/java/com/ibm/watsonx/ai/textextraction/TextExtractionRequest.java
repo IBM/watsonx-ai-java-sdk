@@ -53,6 +53,9 @@ public record TextExtractionRequest(String projectId, String spaceId, DataRefere
         }
     }
 
+    /**
+     * Parameters to configure the behavior of the Text Extraction Api
+     */
     public record Parameters(
         List<String> requestedOutputs,
         String mode,

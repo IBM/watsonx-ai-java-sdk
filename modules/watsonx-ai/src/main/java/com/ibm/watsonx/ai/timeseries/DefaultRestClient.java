@@ -63,7 +63,7 @@ final class DefaultRestClient extends TimeSeriesRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends TimeSeriesRestClient.Builder {
+    public final static class Builder extends TimeSeriesRestClient.Builder {
 
         private Builder() {}
 

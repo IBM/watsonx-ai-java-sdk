@@ -150,7 +150,7 @@ public final class EmbeddingService extends ModelService {
     /**
      * Builder class for constructing {@link EmbeddingService} instances with configurable parameters.
      */
-    public static class Builder extends ModelService.Builder<Builder> {
+    public final static class Builder extends ModelService.Builder<Builder> {
 
         private Builder() {}
 

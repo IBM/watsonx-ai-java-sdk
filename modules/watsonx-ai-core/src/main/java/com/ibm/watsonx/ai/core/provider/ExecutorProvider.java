@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.core.spi.executor.IOExecutorProvider;
  * <p>
  * Provides separate executors for CPU-bound tasks and I/O-bound tasks.
  */
-public class ExecutorProvider {
+public final class ExecutorProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutorProvider.class);
     private static final CpuExecutorProvider cpuExecutorProvider = loadCpuExecutorProvider();

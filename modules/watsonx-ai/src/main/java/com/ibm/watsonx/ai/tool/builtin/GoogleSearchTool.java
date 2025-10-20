@@ -18,7 +18,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * Tool to search online for trends, news, current events, real-time information, or research topics.
  */
 @Experimental
-public class GoogleSearchTool {
+public final class GoogleSearchTool {
 
     public record GoogleSearchResult(String title, String description, String url) {}
 

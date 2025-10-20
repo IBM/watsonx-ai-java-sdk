@@ -174,7 +174,7 @@ public final class TextChatRequest {
         return new Builder();
     }
 
-    public static class Builder {
+    public final static class Builder {
         private String modelId;
         private String spaceId;
         private String projectId;

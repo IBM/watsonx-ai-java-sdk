@@ -117,7 +117,7 @@ final class DefaultRestClient extends FoundationModelRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends FoundationModelRestClient.Builder {
+    public final static class Builder extends FoundationModelRestClient.Builder {
 
         private Builder() {}
 

@@ -384,7 +384,7 @@ public final class ChatService extends ModelService implements ChatProvider {
     /**
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
-    public static class Builder extends ModelService.Builder<Builder> {
+    public final static class Builder extends ModelService.Builder<Builder> {
 
         private Builder() {}
 

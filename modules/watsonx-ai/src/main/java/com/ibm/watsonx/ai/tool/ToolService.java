@@ -170,7 +170,7 @@ public final class ToolService extends WatsonxService {
     /**
      * Builder class for constructing {@link ToolService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public final static class Builder extends WatsonxService.Builder<Builder> {
 
         private Builder() {}
 

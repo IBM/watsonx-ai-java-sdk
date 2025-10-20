@@ -87,7 +87,7 @@ final class DefaultRestClient extends TokenizationRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends TokenizationRestClient.Builder {
+    public final static class Builder extends TokenizationRestClient.Builder {
 
         private Builder() {}
 

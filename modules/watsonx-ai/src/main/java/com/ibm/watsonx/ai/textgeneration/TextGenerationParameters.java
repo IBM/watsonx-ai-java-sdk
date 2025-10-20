@@ -198,7 +198,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
     /**
      * Builder class for constructing {@link TextGenerationParameters} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxModelParameters.Builder<Builder> {
+    public final static class Builder extends WatsonxModelParameters.Builder<Builder> {
         private String decodingMethod;
         private LengthPenalty lengthPenalty;
         private Integer maxNewTokens;
