@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textextraction;
+package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import static java.util.Objects.requireNonNull;
 import java.io.InputStream;
@@ -158,9 +158,6 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param fileName The name of the file to store in the bucket.
      */
     public record UploadRequest(String requestTrackingId, String bucketName, InputStream is, String fileName) {
-        public static UploadRequest of(String bucketName, InputStream is, String fileName) {
-            return of(null, bucketName, is, fileName);
-        }
 
         public static UploadRequest of(String requestTrackingId, String bucketName, InputStream is, String fileName) {
             return new UploadRequest(requestTrackingId, bucketName, is, fileName);
@@ -175,9 +172,6 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param parameters Additional parameters controlling the delete operation.
      */
     public record DeleteExtractionRequest(String requestTrackingId, String extractionId, TextExtractionDeleteParameters parameters) {
-        public static DeleteExtractionRequest of(String extractionId, TextExtractionDeleteParameters parameters) {
-            return of(null, extractionId, parameters);
-        }
 
         public static DeleteExtractionRequest of(String requestTrackingId, String extractionId, TextExtractionDeleteParameters parameters) {
             return new DeleteExtractionRequest(requestTrackingId, extractionId, parameters);
@@ -192,9 +186,6 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param parameters Additional parameters specifying the fetch operation.
      */
     public record FetchExtractionDetailsRequest(String requestTrackingId, String extractionId, TextExtractionFetchParameters parameters) {
-        public static FetchExtractionDetailsRequest of(String extractionId, TextExtractionFetchParameters parameters) {
-            return of(null, extractionId, parameters);
-        }
 
         public static FetchExtractionDetailsRequest of(String requestTrackingId, String extractionId, TextExtractionFetchParameters parameters) {
             return new FetchExtractionDetailsRequest(requestTrackingId, extractionId, parameters);
@@ -209,17 +200,6 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param textExtractionRequest The request body containing input/output references and extraction parameters.
      */
     public record StartExtractionRequest(String requestTrackingId, String transactionId, TextExtractionRequest textExtractionRequest) {
-        public static StartExtractionRequest of(TextExtractionRequest textExtractionRequest) {
-            return of(null, null, textExtractionRequest);
-        }
-
-        public static StartExtractionRequest withTransactionId(String transactionId, TextExtractionRequest textExtractionRequest) {
-            return of(null, transactionId, textExtractionRequest);
-        }
-
-        public static StartExtractionRequest withRequestTrackingId(String requestTrackingId, TextExtractionRequest textExtractionRequest) {
-            return of(requestTrackingId, null, textExtractionRequest);
-        }
 
         public static StartExtractionRequest of(String requestTrackingId, String transactionId, TextExtractionRequest textExtractionRequest) {
             return new StartExtractionRequest(requestTrackingId, transactionId, textExtractionRequest);

@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textextraction;
+package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import java.util.Optional;
 import com.ibm.watsonx.ai.WatsonxParameters;
@@ -16,7 +16,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *
  * <pre>{@code
  * TextExtractionDeleteParameters.builder()
- *     .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+ *     .projectId("project-id")
  *     .hardDelete(true)
  *     .build();
  * }</pre>
@@ -41,7 +41,7 @@ public final class TextExtractionDeleteParameters extends WatsonxParameters {
      *
      * <pre>{@code
      * TextExtractionDeleteParameters.builder()
-     *     .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+     *     .projectId("project-id")
      *     .hardDelete(true)
      *     .build();
      * }</pre>

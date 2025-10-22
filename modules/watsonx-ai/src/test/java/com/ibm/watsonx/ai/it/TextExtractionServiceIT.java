@@ -15,12 +15,12 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
-import com.ibm.watsonx.ai.textextraction.TextExtractionDeleteParameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Language;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Mode;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
-import com.ibm.watsonx.ai.textextraction.TextExtractionService;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionDeleteParameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Language;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Mode;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")

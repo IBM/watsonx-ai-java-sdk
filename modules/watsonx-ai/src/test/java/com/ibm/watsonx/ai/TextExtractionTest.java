@@ -19,11 +19,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.core.Json.toJson;
-import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.HTML;
-import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.JSON;
-import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.MD;
-import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.PAGE_IMAGES;
-import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.PLAIN_TEXT;
+import static com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type.HTML;
+import static com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type.JSON;
+import static com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type.MD;
+import static com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type.PAGE_IMAGES;
+import static com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type.PLAIN_TEXT;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -60,32 +60,35 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
-import com.ibm.watsonx.ai.textextraction.CosReference;
-import com.ibm.watsonx.ai.textextraction.TextExtractionDeleteParameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionException;
-import com.ibm.watsonx.ai.textextraction.TextExtractionFetchParameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.EmbeddedImageMode;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.KvpMode;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Language;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Mode;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.OcrMode;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.CosDataConnection;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.CosDataLocation;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.DataReference;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.KvpField;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Schema;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
-import com.ibm.watsonx.ai.textextraction.TextExtractionResponse;
-import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Entity;
-import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Error;
-import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.ExtractionResult;
-import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Metadata;
-import com.ibm.watsonx.ai.textextraction.TextExtractionService;
-import com.ibm.watsonx.ai.textextraction.TextExtractionUtils;
+import com.ibm.watsonx.ai.textprocessing.KvpFields;
+import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
+import com.ibm.watsonx.ai.textprocessing.KvpPage;
+import com.ibm.watsonx.ai.textprocessing.KvpSlice;
+import com.ibm.watsonx.ai.textprocessing.Schema;
+import com.ibm.watsonx.ai.textprocessing.textextraction.CosReference;
+import com.ibm.watsonx.ai.textprocessing.textextraction.Parameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionDeleteParameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionException;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionFetchParameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.CosUrl;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.EmbeddedImageMode;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.KvpMode;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Language;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Mode;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.OcrMode;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.CosDataConnection;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.CosDataLocation;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.DataReference;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Entity;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Error;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.ExtractionResult;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Metadata;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticConfig;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionUtils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -258,19 +261,51 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                             "target_image_width": 1024,
                             "enable_text_hints": true,
                             "enable_generic_kvp": true,
+                            "enable_schema_kvp": true,
+                            "grounding_mode": "fast",
+                            "schemas_merge_strategy": "merge",
+                            "force_schema_name": "None",
+                            "default_model_name": "defaultModelName",
                             "schemas": [
                                 {
                                     "document_type": "Invoice",
                                     "document_description": "Invoice with totals and billing details",
-                                    "target_image_width": 1024,
-                                    "enable_text_hints": true,
-                                    "enable_generic_kvp": true,
                                     "fields": {
-                                      "description": "description",
-                                      "example": "example"
-                                    }
+                                        "my_field": {
+                                                "description": "description",
+                                                "example": "example",
+                                                "available_options": [ "value" ]
+                                        },
+                                        "my_field_2": {
+                                                "description": "description",
+                                                "example": "example"
+                                        }
+                                    },
+                                    "pages": {
+                                        "page_description": "page description",
+                                        "slices": [
+                                            {
+                                                "fields": {
+                                                    "my_field": {
+                                                            "description": "description",
+                                                            "example": "example",
+                                                            "available_options": [ "value" ]
+                                                    },
+                                                    "my_field_2": {
+                                                            "description": "description",
+                                                            "example": "example"
+                                                    }
+                                                },
+                                                "normalized_bbox": [0.0, 0.0, 1.0, 1.0]
+                                            }
+                                        ]
+                                    },
+                                    "additional_prompt_instructions": "additional instructions"
                                 }
-                            ]
+                            ],
+                            "task_model_name_override": {
+                                "test": "test"
+                            }
                         }
                     },
                     "custom": {
@@ -293,20 +328,32 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             List.of("cos://my-results-bucket/results/output1.txt", "cos://my-results-bucket/results/output2.txt"),
             new Error("NONE", "No error", "more info"));
 
+        KvpFields kvpFields = KvpFields.builder()
+            .add("my_field", KvpField.of("description", "example", List.of("value")))
+            .add("my_field_2", KvpField.of("description", "example"))
+            .build();
+
         Schema schema = Schema.builder()
             .documentType("Invoice")
             .documentDescription("Invoice with totals and billing details")
-            .targetImageWidth(1024)
-            .enableGenericKvp(true)
-            .enableTextHints(true)
-            .fields(new KvpField("description", "example"))
+            .fields(kvpFields)
+            .pages(KvpPage.of(
+                "page description",
+                KvpSlice.of(kvpFields, List.of(0.0, 0.0, 1.0, 1.0))))
+            .additionalPromptInstructions("additional instructions")
             .build();
 
-        SemanticConfig semanticConfig = SemanticConfig.builder()
+        TextExtractionSemanticConfig semanticConfig = TextExtractionSemanticConfig.builder()
             .targetImageWidth(1024)
             .enableGenericKvp(true)
             .enableTextHints(true)
+            .enableSchemaKvp(true)
+            .groundingMode("fast")
+            .schemasMergeStrategy("merge")
+            .forceSchemaName("None")
             .schemas(List.of(schema))
+            .defaultModelName("defaultModelName")
+            .taskModelNameOverride(Map.of("test", "test"))
             .build();
 
         Parameters parameters = new Parameters(List.of("plain_text", "html"), "standard", "enabled", List.of("en", "it"), true, "enabled_text", 150,
@@ -326,21 +373,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .outputDpi(150)
             .outputTokens(true)
             .kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)
-            .semanticConfig(
-                SemanticConfig.builder()
-                    .targetImageWidth(1024)
-                    .enableTextHints(true)
-                    .enableGenericKvp(true)
-                    .schemas(List.of(
-                        Schema.builder()
-                            .documentType("Invoice")
-                            .documentDescription("Invoice with totals and billing details")
-                            .targetImageWidth(1024)
-                            .enableTextHints(true)
-                            .enableGenericKvp(true)
-                            .fields(new KvpField("description", "example"))
-                            .build()
-                    )))
+            .semanticConfig(semanticConfig)
             .outputFileName("newfile")
             .removeOutputFile(true)
             .removeUploadedFile(true)
