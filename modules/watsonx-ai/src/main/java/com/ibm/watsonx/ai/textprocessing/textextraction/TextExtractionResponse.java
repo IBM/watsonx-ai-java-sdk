@@ -2,13 +2,12 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textextraction;
+package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.DataReference;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.DataReference;
 
 /**
  * Represents a response for the text extraction api.

@@ -208,7 +208,7 @@ public final class TextGenerationService extends ModelService implements TextGen
     /**
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
-    public static class Builder extends ModelService.Builder<Builder> {
+    public final static class Builder extends ModelService.Builder<Builder> {
 
         private Builder() {}
 

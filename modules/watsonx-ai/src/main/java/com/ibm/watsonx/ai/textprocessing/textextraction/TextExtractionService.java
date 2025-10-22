@@ -2,10 +2,10 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textextraction;
+package com.ibm.watsonx.ai.textprocessing.textextraction;
 
-import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.MD;
-import static com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type.PAGE_IMAGES;
+import static com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type.MD;
+import static com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type.PAGE_IMAGES;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -27,17 +27,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.CosUrl;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Error;
-import com.ibm.watsonx.ai.textextraction.TextExtractionResponse.Status;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRestClient.DeleteExtractionRequest;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRestClient.DeleteFileRequest;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRestClient.FetchExtractionDetailsRequest;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRestClient.ReadFileRequest;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRestClient.StartExtractionRequest;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRestClient.UploadRequest;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.CosUrl;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Error;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Status;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.DeleteExtractionRequest;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.DeleteFileRequest;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.FetchExtractionDetailsRequest;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.ReadFileRequest;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.StartExtractionRequest;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.UploadRequest;
 
 /**
  * Service class to interact with IBM watsonx.ai Text Extraction APIs.
@@ -46,7 +45,7 @@ import com.ibm.watsonx.ai.textextraction.TextExtractionRestClient.UploadRequest;
  *
  * <pre>{@code
  * TextExtractionService textExtractionService = TextExtractionService.builder()
- *   .baseUrl("https://...")        // or use CloudRegion
+ *   .baseUrl("https://...")    // or use CloudRegion
  *   .cosUrl("https://...")     // or use CosUrl
  *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
  *   .projectId("my-project-id")
@@ -699,7 +698,7 @@ public final class TextExtractionService extends ProjectService {
      *
      * <pre>{@code
      * TextExtractionService textExtractionService = TextExtractionService.builder()
-     *   .baseUrl("https://...")        // or use CloudRegion
+     *   .baseUrl("https://...")    // or use CloudRegion
      *   .cosUrl("https://...")     // or use CosUrl
      *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
      *   .projectId("my-project-id")

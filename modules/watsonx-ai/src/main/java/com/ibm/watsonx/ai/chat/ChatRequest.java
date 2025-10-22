@@ -46,7 +46,7 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  *     .build();
  * }</pre>
  */
-public class ChatRequest {
+public final class ChatRequest {
     private final String deploymentId;
     private final List<ChatMessage> messages;
     private final List<Tool> tools;
@@ -120,7 +120,7 @@ public class ChatRequest {
     /**
      * Builder class for constructing {@link ChatRequest} instances.
      */
-    public static class Builder {
+    public final static class Builder {
         private String deploymentId;
         private List<ChatMessage> messages;
         private List<Tool> tools;

@@ -36,7 +36,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * deployment in which the Python code will be executed.
  */
 @Experimental
-public class PythonInterpreterTool {
+public final class PythonInterpreterTool {
 
     private final ToolService toolService;
     private final String deploymentId;

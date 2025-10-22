@@ -65,7 +65,7 @@ public abstract class ChatRestClient extends WatsonxRestClient {
     /**
      * Service Provider Interface for supplying custom {@link Builder} implementations.
      * <p>
-     * This allows frameworks (e.g., Quarkus, Spring) to provide their own client implementations.
+     * This allows frameworks to provide their own client implementations.
      */
     public interface ChatRestClientBuilderFactory extends Supplier<ChatRestClient.Builder> {}
 }

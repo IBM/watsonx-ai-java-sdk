@@ -40,7 +40,7 @@ final class DefaultRestClient extends TokenizationRestClient {
     public TokenizationResponse tokenize(String transactionId, TokenizationRequest request) {
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(baseUrl + "%s/text/tokenization?version=%s".formatted(ML_API_PATH, version)))
+            .newBuilder(URI.create(baseUrl + "/ml/v1/text/tokenization?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(request)))
@@ -63,7 +63,7 @@ final class DefaultRestClient extends TokenizationRestClient {
     public CompletableFuture<TokenizationResponse> asyncTokenize(String transactionId, TokenizationRequest request) {
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(baseUrl + "%s/text/tokenization?version=%s".formatted(ML_API_PATH, version)))
+            .newBuilder(URI.create(baseUrl + "/ml/v1/text/tokenization?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(request)))
@@ -87,7 +87,7 @@ final class DefaultRestClient extends TokenizationRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends TokenizationRestClient.Builder {
+    public final static class Builder extends TokenizationRestClient.Builder {
 
         private Builder() {}
 

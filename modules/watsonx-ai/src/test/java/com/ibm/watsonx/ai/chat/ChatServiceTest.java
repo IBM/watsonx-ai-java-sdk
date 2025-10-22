@@ -272,7 +272,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .projectId("default-project-id")
                     .spaceId("default-space-id")
                     .messages(messages)
-                    .timeLimit(10000L)
+                    .timeLimit(60000L)
                     .build());
 
             assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
@@ -918,7 +918,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                   "description" : "Get the current time"
                 }
               } ],
-              "time_limit": 10000
+              "time_limit": 60000
             }""";
 
         final String RESPONSE = """
@@ -1124,7 +1124,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 } ],
                 "name" : "Alan"
               } ],
-              "time_limit" : 10000
+              "time_limit" : 60000
             }""";
 
         final String RESPONSE = """
@@ -1196,7 +1196,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                   }
                 } ]
               } ],
-              "time_limit" : 10000
+              "time_limit" : 60000
             }""".formatted(Base64.getEncoder().encodeToString(bytes));
 
         final String RESPONSE =
@@ -1273,7 +1273,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                   }
                 } ]
               } ],
-              "time_limit" : 10000
+              "time_limit" : 60000
             }""";
 
         final String RESPONSE =
@@ -1544,7 +1544,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         }
                     ],
                     "max_completion_tokens": 0,
-                    "time_limit": 10000,
+                    "time_limit": 60000,
                     "temperature": 0
                 }"""))
             .willReturn(aResponse()
@@ -1702,7 +1702,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                       }
                     }
                   } ],
-                  "time_limit" : 10000
+                  "time_limit" : 60000
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -1930,7 +1930,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         }
                     ],
                     "tool_choice_option": "required",
-                    "time_limit": 10000
+                    "time_limit": 60000
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -2725,7 +2725,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                           }]
                         }
                       ],
-                      "time_limit": 10000
+                      "time_limit": 60000
                     }"""
             ))
             .willReturn(aResponse()
@@ -2761,7 +2761,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                           }]
                         }
                       ],
-                      "time_limit": 10000
+                      "time_limit": 60000
                     }"""
             ))
             .willReturn(aResponse()
@@ -2929,7 +2929,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                   "text" : "Hello 1"
                 } ]
               } ],
-              "time_limit" : 10000
+              "time_limit" : 60000
             }""";
 
         String SECOND_CALL = """
@@ -2943,7 +2943,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                   "text" : "Hello 2"
                 } ]
               } ],
-              "time_limit" : 10000
+              "time_limit" : 60000
             }""";
 
         when(mockAuthenticationProvider.asyncToken())

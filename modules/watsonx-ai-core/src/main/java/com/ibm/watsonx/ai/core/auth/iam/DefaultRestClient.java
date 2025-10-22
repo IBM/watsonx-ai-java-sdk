@@ -15,10 +15,10 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.auth.IdentityTokenResponse;
+import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
-import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 /**
  * Default implementation of the {@link IAMRestClient}.
@@ -30,9 +30,8 @@ final class DefaultRestClient extends IAMRestClient {
 
     DefaultRestClient(Builder builder) {
         super(builder);
-        var httpClient = HttpClientProvider.httpClient();
-        syncHttpClient = SyncHttpClient.builder().httpClient(httpClient).build();
-        asyncHttpClient = AsyncHttpClient.builder().httpClient(httpClient).build();
+        syncHttpClient = HttpClientFactory.createSync(null, null);
+        asyncHttpClient = HttpClientFactory.createAsync(null, null);
     }
 
     @Override

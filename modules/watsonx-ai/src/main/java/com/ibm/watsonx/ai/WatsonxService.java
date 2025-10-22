@@ -5,7 +5,6 @@
 package com.ibm.watsonx.ai;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
@@ -13,18 +12,12 @@ import java.time.Duration;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
-import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
-import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
-import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
-import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
-import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
-import com.ibm.watsonx.ai.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
@@ -46,49 +39,21 @@ import com.ibm.watsonx.ai.tool.ToolService;
  */
 public abstract class WatsonxService {
 
-    protected static final String ML_API_PATH = "/ml/v1";
-    protected static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
     protected static final String API_VERSION = "2025-10-01";
     protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
+    protected static final Duration TIME_OUT = Duration.ofSeconds(60);
 
     protected final String baseUrl;
     protected final String version;
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
-    protected final SyncHttpClient syncHttpClient;
-    protected final AsyncHttpClient asyncHttpClient;
 
     protected WatsonxService(Builder<?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl must be provided");
         version = requireNonNullElse(builder.version, API_VERSION);
-        timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-
+        timeout = requireNonNullElse(builder.timeout, TIME_OUT);
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
-
-        var httpClient = HttpClientProvider.httpClient();
-        var syncHttpClientBuilder = SyncHttpClient.builder().httpClient(httpClient);
-        var asyncHttpClientBuilder = AsyncHttpClient.builder().httpClient(httpClient);
-
-        syncHttpClientBuilder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
-        asyncHttpClientBuilder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
-
-        if (nonNull(builder.authenticationProvider)) {
-            var bearerInterceptor = new BearerInterceptor(builder.authenticationProvider);
-            syncHttpClientBuilder.interceptor(bearerInterceptor);
-            asyncHttpClientBuilder.interceptor(bearerInterceptor);
-        }
-
-        syncHttpClientBuilder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
-        asyncHttpClientBuilder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
-
-        if (logRequests || logResponses) {
-            syncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
-            asyncHttpClientBuilder.interceptor(new LoggerInterceptor(logRequests, logResponses));
-        }
-
-        syncHttpClient = syncHttpClientBuilder.build();
-        asyncHttpClient = asyncHttpClientBuilder.build();
     }
 
     @SuppressWarnings("unchecked")

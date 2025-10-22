@@ -78,7 +78,7 @@ public final class InputSchema {
     /**
      * The builder class for constructing InputSchema instances.
      */
-    public static class Builder {
+    public final static class Builder {
         private String timestampColumn;
         private List<String> idColumns;
         private String freq;

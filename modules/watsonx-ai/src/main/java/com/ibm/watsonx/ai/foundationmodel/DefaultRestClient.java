@@ -57,7 +57,7 @@ final class DefaultRestClient extends FoundationModelRestClient {
                 queryParameters.add("filters=" + URLEncoder.encode(filters.toString(), StandardCharsets.UTF_8));
 
             var uri =
-                URI.create(baseUrl + "%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters));
+                URI.create(baseUrl + "/ml/v1/foundation_model_specs?%s".formatted(queryParameters));
 
             var httpRequest = HttpRequest.newBuilder(uri)
                 .header("Accept", "application/json")
@@ -90,7 +90,7 @@ final class DefaultRestClient extends FoundationModelRestClient {
             queryParameters.add("limit=" + parameters.getLimit());
 
         var uri =
-            URI.create(baseUrl + "%s/foundation_model_tasks?%s".formatted(ML_API_PATH, queryParameters));
+            URI.create(baseUrl + "/ml/v1/foundation_model_tasks?%s".formatted(queryParameters));
 
         var httpRequest = HttpRequest.newBuilder(uri).GET();
 
@@ -117,7 +117,7 @@ final class DefaultRestClient extends FoundationModelRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends FoundationModelRestClient.Builder {
+    public final static class Builder extends FoundationModelRestClient.Builder {
 
         private Builder() {}
 

@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  * }</pre>
  *
  */
-public class FindByIdRequest extends WatsonxParameters {
+public final class FindByIdRequest extends WatsonxParameters {
     private final String deploymentId;
 
     public FindByIdRequest(Builder builder) {
@@ -54,7 +54,7 @@ public class FindByIdRequest extends WatsonxParameters {
     /**
      * Builder class for constructing {@link FindByIdRequest} instances.
      */
-    public static class Builder extends WatsonxParameters.Builder<Builder> {
+    public final static class Builder extends WatsonxParameters.Builder<Builder> {
         private String deploymentId;
 
         private Builder() {}

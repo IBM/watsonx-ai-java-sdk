@@ -159,7 +159,7 @@ public final class Moderation {
     /**
      * Builder class for constructing {@link Moderation} instances with configurable parameters.
      */
-    public static class Builder {
+    public final static class Builder {
         private Hap hap;
         private Pii pii;
         private GraniteGuardian graniteGuardian;

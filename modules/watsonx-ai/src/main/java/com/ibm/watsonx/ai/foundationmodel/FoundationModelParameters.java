@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  * }</pre>
  *
  */
-public class FoundationModelParameters {
+public final class FoundationModelParameters {
     private final Integer start;
     private final Integer limit;
     private final Filter filter;
@@ -78,7 +78,7 @@ public class FoundationModelParameters {
     /**
      * Builder class for constructing {@link FoundationModelParameters} instances.
      */
-    public static class Builder {
+    public final static class Builder {
         private Integer start;
         private Integer limit;
         private Filter filter;

@@ -130,7 +130,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     /**
      * The builder class for constructing IAMAuthenticator instances.
      */
-    public static class Builder {
+    public final static class Builder {
         private URI baseUrl;
         private String apiKey;
         private String grantType;

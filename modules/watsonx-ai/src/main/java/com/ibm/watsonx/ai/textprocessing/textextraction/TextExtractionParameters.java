@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textextraction;
+package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import com.ibm.watsonx.ai.WatsonxParameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.Parameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionRequest.SemanticConfig;
 
 /**
  * Represents a set of parameters used to control the behavior of a text extraction operation.
@@ -45,7 +43,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
     private final Integer outputDpi;
     private final Boolean outputTokens;
     private final String kvpMode;
-    private final SemanticConfig semanticConfig;
+    private final TextExtractionSemanticConfig semanticConfig;
     private final boolean removeUploadedFile;
     private final boolean removeOutputFile;
     private final String outputFileName;
@@ -111,7 +109,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
         return kvpMode;
     }
 
-    public SemanticConfig getSemanticConfig() {
+    public TextExtractionSemanticConfig getSemanticConfig() {
         return semanticConfig;
     }
 
@@ -194,7 +192,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
         private Integer outputDpi;
         private Boolean outputTokens;
         private String kvpMode;
-        private SemanticConfig semanticConfig;
+        private TextExtractionSemanticConfig semanticConfig;
         private boolean removeUploadedFile = false;
         private boolean removeOutputFile = false;
         private String outputFileName;
@@ -332,7 +330,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
          *
          * @param semanticConfig the semantic configuration instance
          */
-        public Builder semanticConfig(SemanticConfig semanticConfig) {
+        public Builder semanticConfig(TextExtractionSemanticConfig semanticConfig) {
             this.semanticConfig = semanticConfig;
             return this;
         }
@@ -342,7 +340,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
          *
          * @param semanticConfig the semantic configuration instance
          */
-        public Builder semanticConfig(SemanticConfig.Builder semanticConfig) {
+        public Builder semanticConfig(TextExtractionSemanticConfig.Builder semanticConfig) {
             requireNonNull(semanticConfig, "semanticConfig cannot be null");
             return semanticConfig(semanticConfig.build());
         }
@@ -407,11 +405,18 @@ public final class TextExtractionParameters extends WatsonxParameters {
          * @param value the value of the custom property.
          */
         public Builder addCustomProperty(String key, Object value) {
+            requireNonNull(key, "key cannot be null");
+            requireNonNull(value, "value cannot be null");
             custom = requireNonNullElse(custom, new HashMap<String, Object>());
             custom.put(key, value);
             return this;
         }
 
+        /**
+         * Sets the timeout.
+         *
+         * @param timeout timeout
+         */
         public Builder timeout(Duration timeout) {
             this.timeout = timeout;
             return this;

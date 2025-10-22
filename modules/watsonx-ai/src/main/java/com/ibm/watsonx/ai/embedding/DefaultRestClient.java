@@ -34,7 +34,7 @@ final class DefaultRestClient extends EmbeddingRestClient {
     public EmbeddingResponse embedding(String transactionId, EmbeddingRequest embeddingRequest) {
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(baseUrl + "%s/text/embeddings?version=%s".formatted(ML_API_PATH, version)))
+            .newBuilder(URI.create(baseUrl + "/ml/v1/text/embeddings?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(embeddingRequest)))
@@ -63,7 +63,7 @@ final class DefaultRestClient extends EmbeddingRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends EmbeddingRestClient.Builder {
+    public final static class Builder extends EmbeddingRestClient.Builder {
 
         private Builder() {}
 

@@ -168,7 +168,7 @@ public final class TimeSeriesService extends ModelService implements TimeSeriesP
     /**
      * Builder class for constructing {@link TimeSeriesService} instances with configurable parameters.
      */
-    public static class Builder extends ModelService.Builder<Builder> {
+    public final static class Builder extends ModelService.Builder<Builder> {
 
         private Builder() {}
 

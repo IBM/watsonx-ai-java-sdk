@@ -300,7 +300,7 @@ public final class ChatResponse {
         return FinishReason.fromValue(resultMessage.getFinishReason());
     }
 
-    public static class ResultChoice {
+    public final static class ResultChoice {
         private Integer index;
         private ResultMessage message;
         private String finishReason;

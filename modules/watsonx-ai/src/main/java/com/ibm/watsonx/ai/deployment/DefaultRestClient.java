@@ -90,7 +90,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         var timeout = generateRequest.timeout();
         var textRequest = generateRequest.textRequest();
         var transactionId = generateRequest.transactionId();
-        var url = URI.create(baseUrl + "%s/deployments/%s/text/generation?version=%s".formatted(ML_API_PATH, deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/generation?version=%s".formatted(deploymentId, version));
 
         var httpRequest = HttpRequest
             .newBuilder(url)
@@ -120,7 +120,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         var timeout = request.timeout();
         var textRequest = request.textRequest();
         var handler = request.handler();
-        var url = URI.create(baseUrl + "%s/deployments/%s/text/generation_stream?version=%s".formatted(ML_API_PATH, deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/generation_stream?version=%s".formatted(deploymentId, version));
 
         var httpRequest = HttpRequest
             .newBuilder(url)
@@ -147,7 +147,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         var timeout = request.timeout();
         var textChatRequest = request.textChatRequest();
         var transactionId = request.transactionId();
-        var url = URI.create(baseUrl + "%s/deployments/%s/text/chat?version=%s".formatted(ML_API_PATH, deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat?version=%s".formatted(deploymentId, version));
 
         var httpRequest =
             HttpRequest
@@ -179,7 +179,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         var textChatRequest = request.textChatRequest();
         var extractionTags = request.extractionTags();
         var handler = request.handler();
-        var url = URI.create(baseUrl + "%s/deployments/%s/text/chat_stream?version=%s".formatted(ML_API_PATH, deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat_stream?version=%s".formatted(deploymentId, version));
 
         var httpRequest =
             HttpRequest.newBuilder(url)
@@ -207,7 +207,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         var timeout = request.timeout();
         var forecastRequest = request.forecastRequest();
         var transactionId = request.transactionId();
-        var url = URI.create(baseUrl + "%s/deployments/%s/time_series/forecast?version=%s".formatted(ML_API_PATH, deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/time_series/forecast?version=%s".formatted(deploymentId, version));
 
         var httpRequest = HttpRequest
             .newBuilder(url)
@@ -347,7 +347,7 @@ final class DefaultRestClient extends DeploymentRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static class Builder extends DeploymentRestClient.Builder {
+    public final static class Builder extends DeploymentRestClient.Builder {
 
         private Builder() {}
 

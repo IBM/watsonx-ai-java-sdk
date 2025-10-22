@@ -2,10 +2,10 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textextraction;
+package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import static java.util.Objects.requireNonNull;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
 
 /**
  * Utility class for text extraction operations.

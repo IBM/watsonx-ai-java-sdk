@@ -15,7 +15,7 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags;
  * or outside any known tags. It processes incoming text chunks, identifies opening and closing XML-like tags, and updates the current state
  * accordingly.
  */
-public class StreamingStateTracker {
+public final class StreamingStateTracker {
 
     /**
      * Represents the output of a single {@code StreamingStateTracker.update(String)} call.

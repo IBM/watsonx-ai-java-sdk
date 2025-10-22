@@ -168,7 +168,7 @@ public final class FoundationModelService extends WatsonxService {
     /**
      * Builder class for constructing {@link FoundationModelService} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxService.Builder<Builder> {
+    public final static class Builder extends WatsonxService.Builder<Builder> {
         private Boolean techPreview;
 
         private Builder() {}

@@ -444,7 +444,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                       "input": "<|system|>\\nYou are a translation assistant. Your job is to translate any input from the user into English. Do not explain the translation. Just output the translated text.<|user|>\\nTraduci in inglese: \\"Oggi è una bella giornata\\"<|assistant|>\\n",
                       "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
                       "parameters": {
-                          "time_limit": 10000
+                          "time_limit": 60000
                       }
                     }"""))
             .willReturn(aResponse()
@@ -537,7 +537,8 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     @Test
     void test_executor() throws Exception {
 
-        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=%s".formatted(WatsonxService.API_VERSION))
+        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=2025-10-01")
+
             .willReturn(aResponse()
                 .withStatus(200)
                 .withChunkedDribbleDelay(8, 200)

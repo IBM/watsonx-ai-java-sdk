@@ -14,7 +14,7 @@ import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool.GoogleSearchResult;
 /**
  * Tool to search a query on Wikipedia.
  */
-public class WikipediaTool {
+public final class WikipediaTool {
 
     private final ToolService toolService;
 

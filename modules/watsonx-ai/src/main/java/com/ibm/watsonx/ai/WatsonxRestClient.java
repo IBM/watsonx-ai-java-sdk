@@ -11,9 +11,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 
 public abstract class WatsonxRestClient {
 
-    public static final String ML_API_PATH = "/ml/v1";
-    public static final String API_VERSION = "2025-09-03";
-    public static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
+    protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
 
     protected final String baseUrl;
     protected final String version;
@@ -23,8 +21,8 @@ public abstract class WatsonxRestClient {
 
     protected WatsonxRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The url must be provided");
-        version = requireNonNullElse(builder.version, API_VERSION);
-        timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
+        version = requireNonNull(builder.version, "The version must be provided");
+        timeout = requireNonNull(builder.timeout, "The timeout must be provided");
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
         authenticationProvider = builder.authenticationProvider;

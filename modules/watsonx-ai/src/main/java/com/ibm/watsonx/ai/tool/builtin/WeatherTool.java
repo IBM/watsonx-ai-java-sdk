@@ -15,7 +15,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * Tool to fetch weather information.
  */
 @Experimental
-public class WeatherTool {
+public final class WeatherTool {
 
     private final ToolService toolService;
 

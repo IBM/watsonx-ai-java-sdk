@@ -33,7 +33,7 @@ package com.ibm.watsonx.ai.chat.model;
  * @see ExtractionTags
  * @see ThinkingEffort
  */
-public class Thinking {
+public final class Thinking {
 
     private final Boolean includeReasoning;
     private final ExtractionTags extractionTags;
@@ -74,7 +74,7 @@ public class Thinking {
         return new Builder();
     }
 
-    public static class Builder {
+    public final static class Builder {
         private Boolean includeReasoning;
         private ExtractionTags extractionTags;
         private ThinkingEffort thinkingEffort;
