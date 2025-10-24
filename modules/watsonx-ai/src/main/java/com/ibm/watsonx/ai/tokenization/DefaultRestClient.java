@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
- * Default implementation of the {@link TokenizationRestClient} interface.
+ * Default implementation of the {@link TokenizationRestClient} abstract class.
  */
 final class DefaultRestClient extends TokenizationRestClient {
 

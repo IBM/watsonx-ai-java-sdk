@@ -17,6 +17,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
@@ -33,6 +34,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see RerankService
  * @see TokenizationService
  * @see TextExtractionService
+ * @see TextClassificationService
  * @see TimeSeriesService
  * @see FoundationModelService
  * @see ToolService

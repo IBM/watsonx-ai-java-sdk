@@ -27,16 +27,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.CosUrl;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
+import com.ibm.watsonx.ai.textprocessing.CosUrl;
+import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
+import com.ibm.watsonx.ai.textprocessing.Error;
+import com.ibm.watsonx.ai.textprocessing.ReadFileRequest;
+import com.ibm.watsonx.ai.textprocessing.Status;
+import com.ibm.watsonx.ai.textprocessing.UploadRequest;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Error;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Status;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.DeleteExtractionRequest;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.DeleteFileRequest;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.FetchExtractionDetailsRequest;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.ReadFileRequest;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.StartExtractionRequest;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.UploadRequest;
 
 /**
  * Service class to interact with IBM watsonx.ai Text Extraction APIs.
@@ -426,17 +427,20 @@ public final class TextExtractionService extends ProjectService {
      * @return {@code true} if the request was successfully deleted; {@code false} otherwise.
      */
     public boolean deleteRequest(String id, TextExtractionDeleteParameters parameters) {
+
         requireNonNull(id, "The id can not be null");
 
-        var p = TextExtractionDeleteParameters.builder()
-            .projectId(ofNullable(parameters.getProjectId()).orElse(projectId))
-            .spaceId(ofNullable(parameters.getSpaceId()).orElse(spaceId))
+        var builder = TextExtractionDeleteParameters.builder();
+        ofNullable(parameters.getProjectId()).ifPresent(builder::projectId);
+        ofNullable(parameters.getSpaceId()).ifPresent(builder::spaceId);
+
+        if (isNull(parameters.getProjectId()) && isNull(parameters.getSpaceId()))
+            builder.projectId(projectId).spaceId(spaceId);
+
+        var p = builder
             .transactionId(parameters.getTransactionId())
             .hardDelete(parameters.getHardDelete().orElse(null))
             .build();
-
-        if (isNull(p.getProjectId()) && isNull(p.getSpaceId()))
-            throw new IllegalArgumentException("Either projectId or spaceId must be provided");
 
         var request = DeleteExtractionRequest.of(parameters.getTransactionId(), id, p);
         return client.deleteExtraction(request);
@@ -449,14 +453,16 @@ public final class TextExtractionService extends ProjectService {
         requireNonNull(requestId, "The requestId can not be null");
         requireNonNull(id, "The id can not be null");
 
-        var p = TextExtractionFetchParameters.builder()
-            .projectId(ofNullable(parameters.getProjectId()).orElse(projectId))
-            .spaceId(ofNullable(parameters.getSpaceId()).orElse(spaceId))
+        var builder = TextExtractionFetchParameters.builder();
+        ofNullable(parameters.getProjectId()).ifPresent(builder::projectId);
+        ofNullable(parameters.getSpaceId()).ifPresent(builder::spaceId);
+
+        if (isNull(parameters.getProjectId()) && isNull(parameters.getSpaceId()))
+            builder.projectId(projectId).spaceId(spaceId);
+
+        var p = builder
             .transactionId(parameters.getTransactionId())
             .build();
-
-        if (isNull(p.getProjectId()) && isNull(p.getSpaceId()))
-            throw new IllegalArgumentException("Either projectId or spaceId must be provided");
 
         var request = FetchExtractionDetailsRequest.of(requestId, id, p);
         return client.fetchExtractionDetails(request);
@@ -517,8 +523,8 @@ public final class TextExtractionService extends ProjectService {
         requireNonNull(requestId);
 
         String outputFileName = null;
-        String projectId = this.projectId;
-        String spaceId = this.spaceId;
+        String projectId = null;
+        String spaceId = null;
         boolean removeOutputFile = false;
         boolean removeUploadedFile = false;
         List<String> requestedOutputs = List.of(MD.value());
@@ -533,8 +539,8 @@ public final class TextExtractionService extends ProjectService {
             removeOutputFile = parameters.isRemoveOutputFile();
             removeUploadedFile = parameters.isRemoveUploadedFile();
             outputFileName = parameters.getOutputFileName();
-            projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
-            spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
+            projectId = parameters.getProjectId();
+            spaceId = parameters.getSpaceId();
             requestedOutputs = requireNonNullElse(parameters.getRequestedOutputs(), requestedOutputs);
             documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
             resultReference = requireNonNullElse(parameters.getResultReference(), this.resultReference);
@@ -544,6 +550,11 @@ public final class TextExtractionService extends ProjectService {
             transactionId = parameters.getTransactionId();
         } else {
             params = Parameters.of(requestedOutputs);
+        }
+
+        if (isNull(projectId) && isNull(spaceId)) {
+            projectId = this.projectId;
+            spaceId = this.spaceId;
         }
 
         if (!waitUntilJobIsDone && (removeOutputFile || removeUploadedFile))

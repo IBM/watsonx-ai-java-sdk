@@ -5,6 +5,8 @@
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import java.util.List;
+import java.util.Map;
+import com.ibm.watsonx.ai.textprocessing.Schema;
 
 /**
  * Represents the configuration parameters used by the Text Extraction API.
@@ -19,9 +21,21 @@ public record Parameters(
     Integer outputDpi,
     Boolean outputTokens,
     String kvpMode,
-    TextExtractionSemanticConfig semanticConfig) {
+    SemanticConfig semanticConfig) {
 
     public static Parameters of(List<String> requestedOutputs) {
         return new Parameters(requestedOutputs, null, null, null, null, null, null, null, null, null);
     }
+
+    public record SemanticConfig(
+        Integer targetImageWidth,
+        Boolean enableTextHints,
+        Boolean enableGenericKvp,
+        Boolean enableSchemaKvp,
+        String groundingMode,
+        String forceSchemaName,
+        String defaultModelName,
+        Map<String, Object> taskModelNameOverride,
+        String schemasMergeStrategy,
+        List<Schema> schemas) {}
 }

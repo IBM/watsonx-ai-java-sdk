@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
@@ -13,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
+import com.ibm.watsonx.ai.textprocessing.Language;
+import com.ibm.watsonx.ai.textprocessing.OcrMode;
 
 /**
  * Represents a set of parameters used to control the behavior of a text extraction operation.
@@ -145,6 +149,20 @@ public final class TextExtractionParameters extends WatsonxParameters {
      * Converts the {@link TextExtractionParameters} into a new {@link Parameters} object.
      */
     public Parameters toParameters() {
+        var semanticConfig = isNull(getSemanticConfig())
+            ? null
+            : new Parameters.SemanticConfig(
+                this.semanticConfig.getTargetImageWidth(),
+                this.semanticConfig.getEnableTextHints(),
+                this.semanticConfig.getEnableGenericKvp(),
+                this.semanticConfig.getEnableSchemaKvp(),
+                this.semanticConfig.getGroundingMode(),
+                this.semanticConfig.getForceSchemaName(),
+                this.semanticConfig.getDefaultModelName(),
+                this.semanticConfig.getTaskModelNameOverride(),
+                this.semanticConfig.getSchemasMergeStrategy(),
+                this.semanticConfig.getSchemas());
+
         return new Parameters(
             getRequestedOutputs(),
             getMode(),
@@ -155,7 +173,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
             getOutputDpi(),
             getOutputTokens(),
             getKvpMode(),
-            getSemanticConfig()
+            semanticConfig
         );
     }
 
@@ -258,15 +276,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
         /**
          * Sets the list of languages expected in the document.
          *
-         * @param languages the list of language codes (ISO 639)
-         */
-        public Builder languages(String... languages) {
-            return languages(Arrays.asList(languages));
-        }
-
-        /**
-         * Sets the list of languages expected in the document.
-         *
          * @param languages the list of language
          */
         public Builder languages(Language... languages) {
@@ -333,16 +342,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
         public Builder semanticConfig(TextExtractionSemanticConfig semanticConfig) {
             this.semanticConfig = semanticConfig;
             return this;
-        }
-
-        /**
-         * Sets properties related to semantic config.
-         *
-         * @param semanticConfig the semantic configuration instance
-         */
-        public Builder semanticConfig(TextExtractionSemanticConfig.Builder semanticConfig) {
-            requireNonNull(semanticConfig, "semanticConfig cannot be null");
-            return semanticConfig(semanticConfig.build());
         }
 
         /**
@@ -479,26 +478,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
     }
 
     /**
-     * Enum representing the OCR modes to be used during text extraction.
-     */
-    public static enum OcrMode {
-        DISABLED("disabled"),
-        ENABLED("enabled"),
-        FORCED("forced"),
-        AUTO("");
-
-        private final String value;
-
-        OcrMode(String value) {
-            this.value = value;
-        }
-
-        public String value() {
-            return value;
-        }
-    }
-
-    /**
      * Enum representing the modes for returning embedded images in the output.
      */
     public static enum EmbeddedImageMode {
@@ -536,116 +515,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
 
         public String value() {
             return value;
-        }
-    }
-
-    /**
-     * Enum representing the Cloud Object Storage (COS) service URLs for different IBM Cloud regions.
-     */
-    public static enum CosUrl {
-        US_SOUTH("https://s3.us-south.cloud-object-storage.appdomain.cloud"),
-        US_EAST("https://s3.us-east.cloud-object-storage.appdomain.cloud"),
-        EU_GB("https://s3.eu-gb.cloud-object-storage.appdomain.cloud"),
-        EU_DE("https://s3.eu-de.cloud-object-storage.appdomain.cloud"),
-        AU_SYD("https://s3.au-syd.cloud-object-storage.appdomain.cloud"),
-        JP_TOK("https://s3.jp-tok.cloud-object-storage.appdomain.cloud"),
-        JP_OSA("https://s3.jp-osa.cloud-object-storage.appdomain.cloud"),
-        CA_TOR("https://s3.ca-tor.cloud-object-storage.appdomain.cloud"),
-        BR_SAO("https://s3.br-sao.cloud-object-storage.appdomain.cloud"),
-        EU_ES("https://s3.eu-es.cloud-object-storage.appdomain.cloud"),
-        CA_MON("https://s3.ca-mon.cloud-object-storage.appdomain.cloud");
-
-        private final String url;
-
-        CosUrl(String url) {
-            this.url = url;
-        }
-
-        public String value() {
-            return url;
-        }
-    }
-
-    /**
-     * Enum representing supported languages with their corresponding ISO 639 language codes.
-     */
-    public static enum Language {
-        AFRIKAANS("af"),
-        ALBANIAN("sq"),
-        AYMARA("ay"),
-        BASQUE("eu"),
-        BELARUSIAN("be"),
-        BISLAMA("bi"),
-        BULGARIAN("bg"),
-        CATALAN("ca"),
-        CREE("cr"),
-        DANISH("da"),
-        DUTCH("nl"),
-        ENGLISH("en"),
-        ESTONIAN("et"),
-        FIJIAN("fj"),
-        FILIPINO("fil"),
-        FINNISH("fi"),
-        FRENCH("fr"),
-        GALICIAN("gl"),
-        GERMAN("de"),
-        GREEK("el"),
-        HAITIAN_CREOLE("ht"),
-        HEBREW("he"),
-        HINDI("hi"),
-        INDONESIAN("id"),
-        IRISH("ga"),
-        ITALIAN("it"),
-        JAPANESE("ja"),
-        JAVANESE("jv"),
-        KALAALLISUT("kl"),
-        KINYARWANDA("rw"),
-        KONGO("kg"),
-        KOREAN("ko"),
-        KUANYAMA("kj"),
-        LATIN("la"),
-        MALAGASY("mg"),
-        MANX("gv"),
-        MARATHI("mr"),
-        MACEDONIAN("mk"),
-        NDONGA("ng"),
-        NEPALI("ne"),
-        NORTH_NDEBELE("nd"),
-        NORWEGIAN("no"),
-        OCCITAN("oc"),
-        OJIBWA("oj"),
-        POLISH("pl"),
-        PORTUGUESE("pt"),
-        QUECHUA("qu"),
-        ROMANSH("rm"),
-        RUNDI("rn"),
-        RUSSIAN("ru"),
-        SANGO("sg"),
-        SANSKRIT("sa"),
-        SERBIAN("sr"),
-        SHONA("sn"),
-        SPANISH("es"),
-        SUNDANESE("su"),
-        SWAHILI("sw"),
-        SWATI("ss"),
-        SWEDISH("sv"),
-        TAMIL("ta"),
-        TELUGU("te"),
-        TSONGA("ts"),
-        TSWANA("tn"),
-        UKRAINIAN("uk"),
-        UZBEK("uz"),
-        XHOSA("xh"),
-        ZULU("zu");
-
-        private final String isoCode;
-
-        Language(String isoCode) {
-            this.isoCode = isoCode;
-        }
-
-        public String isoCode() {
-            return isoCode;
         }
     }
 }
