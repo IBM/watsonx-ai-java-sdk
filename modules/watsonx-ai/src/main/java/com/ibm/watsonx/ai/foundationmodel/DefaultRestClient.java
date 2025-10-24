@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
- * Default implementation of the {@link FoundationModelRestClient} interface.
+ * Default implementation of the {@link FoundationModelRestClient} abstract class.
  */
 final class DefaultRestClient extends FoundationModelRestClient {
 

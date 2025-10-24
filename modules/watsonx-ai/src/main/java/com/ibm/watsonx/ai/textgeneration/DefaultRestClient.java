@@ -27,7 +27,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 
 /**
- * Default implementation of the {@link TextGenerationRestClient} interface.
+ * Default implementation of the {@link TextGenerationRestClient} abstract class.
  */
 final class DefaultRestClient extends TextGenerationRestClient {
 

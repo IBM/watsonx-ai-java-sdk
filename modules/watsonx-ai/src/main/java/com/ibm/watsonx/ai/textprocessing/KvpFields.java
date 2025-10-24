@@ -9,6 +9,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 
 /**
@@ -108,5 +109,35 @@ public final class KvpFields {
         public KvpFields build() {
             return new KvpFields(this);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((fieldMap == null) ? 0 : fieldMap.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        KvpFields other = (KvpFields) obj;
+        if (fieldMap == null) {
+            if (other.fieldMap != null)
+                return false;
+        } else if (!fieldMap.equals(other.fieldMap))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "KvpFields [fieldMap=" + fieldMap + "]";
     }
 }

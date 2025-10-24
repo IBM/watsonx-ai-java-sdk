@@ -18,7 +18,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 
 /**
- * Default implementation of the {@link EmbeddingRestClient} interface.
+ * Default implementation of the {@link EmbeddingRestClient} abstract class.
  */
 final class DefaultRestClient extends EmbeddingRestClient {
 

@@ -71,6 +71,9 @@ public record WatsonxError(Integer statusCode, String trace, List<Error> errors)
         /** Text extraction event does not exist. */
         TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST("text_extraction_event_does_not_exist"),
 
+        /** Text classification event does not exist. */
+        TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST("text_classification_event_does_not_exist"),
+
         /** Access to Cloud Object Storage was denied. */
         COS_ACCESS_DENIED("AccessDenied"),
 

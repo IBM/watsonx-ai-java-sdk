@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.tool.ToolService.Resources;
 
 /**
- * Default implementation of the {@link ToolRestClient} interface.
+ * Default implementation of the {@link ToolRestClient} abstract class.
  */
 final class DefaultRestClient extends ToolRestClient {
 

@@ -24,9 +24,12 @@ import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
+import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
+import com.ibm.watsonx.ai.textprocessing.ReadFileRequest;
+import com.ibm.watsonx.ai.textprocessing.UploadRequest;
 
 /**
- * Default implementation of the {@link TextExtractionRestClient} interface.
+ * Default implementation of the {@link TextExtractionRestClient} abstract class.
  */
 final class DefaultRestClient extends TextExtractionRestClient {
 
@@ -129,6 +132,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
 
     @Override
     public boolean deleteExtraction(DeleteExtractionRequest request) {
+
         var id = request.extractionId();
         var parameters = request.parameters();
 
