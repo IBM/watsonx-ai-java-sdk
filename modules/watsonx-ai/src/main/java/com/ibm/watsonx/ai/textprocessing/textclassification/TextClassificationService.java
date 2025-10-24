@@ -536,7 +536,7 @@ public final class TextClassificationService extends ProjectService {
     }
 
     //
-    // Retrieves the classification result from a specified Cloud Object Storage file.
+    // Retrieves the classification result.
     //
     private ClassificationResult getClassificationResult(String requestId, TextClassificationResponse textClassificationResponse,
         TextClassificationParameters parameters)
