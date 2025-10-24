@@ -10,10 +10,10 @@ import java.time.Duration;
 import java.util.Scanner;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.ai.textextraction.CosReference;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters;
-import com.ibm.watsonx.ai.textextraction.TextExtractionParameters.Type;
-import com.ibm.watsonx.ai.textextraction.TextExtractionService;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 
 public class App {
 

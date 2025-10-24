@@ -15,9 +15,9 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
+import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionDeleteParameters;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Language;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Mode;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
@@ -29,7 +29,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 @EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_CONNECTION_ID", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_BUCKET", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_CONNECTION_ID", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_BUCKET", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_BUCKET", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "CLOUD_OBJECT_STORAGE_URL", matches = ".+")
 public class TextExtractionServiceIT {
 
@@ -60,7 +60,7 @@ public class TextExtractionServiceIT {
     @Test
     void test_upload_and_start_extraction_with_file() throws Exception {
 
-        var file = Path.of(getClass().getClassLoader().getResource("test.pdf").toURI()).toFile();
+        var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
         var parameters = TextExtractionParameters.builder()
             .languages(Language.ENGLISH)
@@ -119,7 +119,7 @@ public class TextExtractionServiceIT {
     @Test
     void test_upload_extract_and_fetch_with_file() throws Exception {
 
-        var file = Path.of(getClass().getClassLoader().getResource("test.pdf").toURI()).toFile();
+        var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
         var parameters = TextExtractionParameters.builder()
             .languages(Language.ENGLISH)
@@ -151,8 +151,7 @@ public class TextExtractionServiceIT {
     @Test
     void test_delete_request() throws Exception {
 
-
-        var file = Path.of(getClass().getClassLoader().getResource("test.pdf").toURI()).toFile();
+        var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
         var parameters = TextExtractionParameters.builder()
             .languages(Language.ENGLISH)
@@ -176,7 +175,7 @@ public class TextExtractionServiceIT {
     void test_upload_extract_and_fetch_with_inputstream() throws Exception {
 
         var filename = "test.pdf";
-        var inputstream = getClass().getClassLoader().getResourceAsStream(filename);
+        var inputstream = ClassLoader.getSystemResourceAsStream(filename);
 
         var parameters = TextExtractionParameters.builder()
             .languages(Language.ENGLISH)
@@ -196,7 +195,7 @@ public class TextExtractionServiceIT {
             .removeOutputFile(true)
             .build();
 
-        inputstream = getClass().getClassLoader().getResourceAsStream(filename);
+        inputstream = ClassLoader.getSystemResourceAsStream(filename);
         text = textExtractionService.uploadExtractAndFetch(inputstream, filename, parameters);
         assertEquals("PDF TEST", text);
 
@@ -209,7 +208,7 @@ public class TextExtractionServiceIT {
     @Test
     void test_multiple_outputs() throws Exception {
 
-        var file = Path.of(getClass().getClassLoader().getResource("test.pdf").toURI()).toFile();
+        var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
         var parameters = TextExtractionParameters.builder()
             .requestedOutputs(Type.PLAIN_TEXT, Type.JSON, Type.HTML)
@@ -238,7 +237,7 @@ public class TextExtractionServiceIT {
     @Test
     void test_ocr() throws Exception {
 
-        var file = Path.of(getClass().getClassLoader().getResource("ocr.jpg").toURI()).toFile();
+        var file = Path.of(ClassLoader.getSystemResource("ocr.jpg").toURI()).toFile();
         var parameters = TextExtractionParameters.builder()
             .mode(Mode.HIGH_QUALITY)
             .requestedOutputs(Type.PLAIN_TEXT)
