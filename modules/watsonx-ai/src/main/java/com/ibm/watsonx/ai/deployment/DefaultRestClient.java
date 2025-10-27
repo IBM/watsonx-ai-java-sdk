@@ -35,7 +35,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationSubscriber;
 import com.ibm.watsonx.ai.timeseries.ForecastResponse;
 
 /**
- * Default implementation of the {@link DeploymentRestClient} interface.
+ * Default implementation of the {@link DeploymentRestClient} abstract class.
  */
 final class DefaultRestClient extends DeploymentRestClient {
 

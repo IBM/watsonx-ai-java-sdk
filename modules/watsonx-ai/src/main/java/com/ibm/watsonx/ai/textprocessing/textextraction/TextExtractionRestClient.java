@@ -5,11 +5,13 @@
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import static java.util.Objects.requireNonNull;
-import java.io.InputStream;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
+import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
+import com.ibm.watsonx.ai.textprocessing.ReadFileRequest;
+import com.ibm.watsonx.ai.textprocessing.UploadRequest;
 
 
 /**
@@ -33,10 +35,10 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
     public abstract boolean deleteFile(DeleteFileRequest request);
 
     /**
-     * Deletes a file from the specified COS bucket.
+     * Asynchronously deletes a file from the specified COS bucket.
      *
-     * @param request The {@link DeleteFileRequest} containing bucket and file information.
-     * @return {@code true} if the file was successfully deleted, {@code false} otherwise.
+     * @param request the {@link DeleteFileRequest} containing bucket and file information.
+     * @return a {@link CompletableFuture} that resolves to {@code true} if the file was successfully deleted, {@code false} otherwise.
      */
     public abstract CompletableFuture<Boolean> asyncDeleteFile(DeleteFileRequest request);
 
@@ -65,7 +67,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
     public abstract boolean deleteExtraction(DeleteExtractionRequest request);
 
     /**
-     * Fetches the details and results of a previously submitted text extraction job.
+     * Retrieves the details and results of a previously submitted text extraction job.
      *
      * @param request The {@link FetchExtractionDetailsRequest} containing extraction id and fetch parameters.
      * @return A {@link TextExtractionResponse} containing the job status and results.
@@ -116,91 +118,66 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
     public interface TextExtractionRestClientBuilderFactory extends Supplier<TextExtractionRestClient.Builder> {}
 
     /**
-     * Request wrapper for deleting a file from Cloud Object Storage.
+     * Represents a request to delete a previously submitted text extraction job.
      *
-     * @param requestTrackingId Optional identifier used internally by the SDK to trace requests
-     * @param bucketName The name of the COS bucket containing the file.
-     * @param fileName The name of the file to delete.
-     */
-    public record DeleteFileRequest(String requestTrackingId, String bucketName, String fileName) {
-        public static DeleteFileRequest of(String bucketName, String fileName) {
-            return of(null, bucketName, fileName);
-        }
-
-        public static DeleteFileRequest of(String requestTrackingId, String bucketName, String fileName) {
-            return new DeleteFileRequest(requestTrackingId, bucketName, fileName);
-        }
-    }
-
-    /**
-     * Request wrapper for reading a file from Cloud Object Storage.
-     *
-     * @param requestTrackingId Optional identifier used internally by the SDK to trace requests.
-     * @param bucketName The name of the COS bucket containing the file.
-     * @param fileName The name of the file to read.
-     */
-    public record ReadFileRequest(String requestTrackingId, String bucketName, String fileName) {
-        public static ReadFileRequest of(String bucketName, String fileName) {
-            return of(null, bucketName, fileName);
-        }
-
-        public static ReadFileRequest of(String requestTrackingId, String bucketName, String fileName) {
-            return new ReadFileRequest(requestTrackingId, bucketName, fileName);
-        }
-    }
-
-    /**
-     * Request wrapper for uploading a file to Cloud Object Storage.
-     *
-     * @param requestTrackingId Optional identifier used internally by the SDK to trace requests.
-     * @param bucketName The name of the COS bucket where the file will be uploaded.
-     * @param is The {@link InputStream} containing the file content.
-     * @param fileName The name of the file to store in the bucket.
-     */
-    public record UploadRequest(String requestTrackingId, String bucketName, InputStream is, String fileName) {
-
-        public static UploadRequest of(String requestTrackingId, String bucketName, InputStream is, String fileName) {
-            return new UploadRequest(requestTrackingId, bucketName, is, fileName);
-        }
-    }
-
-    /**
-     * Request wrapper for deleting a previously submitted text extraction job.
-     *
-     * @param requestTrackingId Optional identifier used internally by the SDK to trace requests.
-     * @param extractionId The unique identifier of the extraction job to delete.
-     * @param parameters Additional parameters controlling the delete operation.
+     * @param requestTrackingId optional identifier used internally by the SDK to trace requests.
+     * @param extractionId the unique identifier of the extraction job to delete.
+     * @param parameters additional parameters controlling the delete operation.
      */
     public record DeleteExtractionRequest(String requestTrackingId, String extractionId, TextExtractionDeleteParameters parameters) {
 
+        /**
+         * Creates a new {@link DeleteExtractionRequest} instance.
+         *
+         * @param requestTrackingId optional identifier used internally by the SDK to trace requests.
+         * @param extractionId the unique identifier of the extraction job to delete.
+         * @param parameters additional parameters controlling the delete operation.
+         * @return a new {@link DeleteExtractionRequest} instance.
+         */
         public static DeleteExtractionRequest of(String requestTrackingId, String extractionId, TextExtractionDeleteParameters parameters) {
             return new DeleteExtractionRequest(requestTrackingId, extractionId, parameters);
         }
     }
 
     /**
-     * Request wrapper for fetching details and results of a text extraction job.
+     * Represents a request to fetch the details and results of a text extraction job.
      *
-     * @param requestTrackingId Optional identifier used internally by the SDK to trace requests.
-     * @param extractionId The unique identifier of the extraction job to fetch.
-     * @param parameters Additional parameters specifying the fetch operation.
+     * @param requestTrackingId optional identifier used internally by the SDK to trace requests.
+     * @param extractionId the unique identifier of the extraction job to fetch.
+     * @param parameters additional parameters specifying the fetch operation.
      */
     public record FetchExtractionDetailsRequest(String requestTrackingId, String extractionId, TextExtractionFetchParameters parameters) {
 
+        /**
+         * Creates a new {@link FetchExtractionDetailsRequest} instance.
+         *
+         * @param requestTrackingId optional identifier used internally by the SDK to trace requests.
+         * @param extractionId the unique identifier of the extraction job to fetch.
+         * @param parameters additional parameters specifying the fetch operation.
+         * @return a new {@link FetchExtractionDetailsRequest} instance.
+         */
         public static FetchExtractionDetailsRequest of(String requestTrackingId, String extractionId, TextExtractionFetchParameters parameters) {
             return new FetchExtractionDetailsRequest(requestTrackingId, extractionId, parameters);
         }
     }
 
     /**
-     * Request wrapper for starting a new text extraction job.
+     * Represents a request to start a new text extraction job.
      *
-     * @param requestTrackingId Optional identifier used internally by the SDK to trace requests.
-     * @param transactionId Optional transaction identifier for correlating multiple related operations.
-     * @param textExtractionRequest The request body containing input/output references and extraction parameters.
+     * @param requestTrackingId optional identifier used internally by the SDK to trace requests.
+     * @param transactionId optional transaction identifier for correlating multiple related operations.
+     * @param textExtractionRequest the request body containing input/output references and extraction parameters.
      */
     public record StartExtractionRequest(String requestTrackingId, String transactionId, TextExtractionRequest textExtractionRequest) {
 
+        /**
+         * Creates a new {@link StartExtractionRequest} instance.
+         *
+         * @param requestTrackingId optional identifier used internally by the SDK to trace requests.
+         * @param transactionId optional transaction identifier for correlating multiple related operations.
+         * @param textExtractionRequest the request body containing input/output references and extraction parameters.
+         * @return a new {@link StartExtractionRequest} instance.
+         */
         public static StartExtractionRequest of(String requestTrackingId, String transactionId, TextExtractionRequest textExtractionRequest) {
             return new StartExtractionRequest(requestTrackingId, transactionId, textExtractionRequest);
         }

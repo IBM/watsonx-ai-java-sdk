@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error;;
+import com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error;
 
 public class WatsonxErrorTest {
 

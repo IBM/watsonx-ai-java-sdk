@@ -2,12 +2,9 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textprocessing.textextraction;
+package com.ibm.watsonx.ai.textprocessing;
 
 import static java.util.Objects.requireNonNull;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.CosDataConnection;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.CosDataLocation;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.DataReference;
 
 /**
  * Represents a reference to a Cloud Object Storage (COS) resource, defined by a connection identifier and a bucket name.

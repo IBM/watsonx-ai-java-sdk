@@ -31,7 +31,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 
 /**
- * Default implementation of the {@link ChatRestClient} interface.
+ * Default implementation of the {@link ChatRestClient} abstract class.
  */
 final class DefaultRestClient extends ChatRestClient {
 

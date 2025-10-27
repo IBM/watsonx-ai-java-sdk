@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai;
+package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
@@ -54,41 +54,36 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
+import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exeception.WatsonxException;
 import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
+import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
+import com.ibm.watsonx.ai.textprocessing.CosDataLocation;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
+import com.ibm.watsonx.ai.textprocessing.CosUrl;
+import com.ibm.watsonx.ai.textprocessing.DataReference;
+import com.ibm.watsonx.ai.textprocessing.Error;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
 import com.ibm.watsonx.ai.textprocessing.KvpPage;
 import com.ibm.watsonx.ai.textprocessing.KvpSlice;
+import com.ibm.watsonx.ai.textprocessing.Language;
+import com.ibm.watsonx.ai.textprocessing.Metadata;
+import com.ibm.watsonx.ai.textprocessing.OcrMode;
 import com.ibm.watsonx.ai.textprocessing.Schema;
-import com.ibm.watsonx.ai.textprocessing.textextraction.CosReference;
-import com.ibm.watsonx.ai.textprocessing.textextraction.Parameters;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionDeleteParameters;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionException;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionFetchParameters;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.CosUrl;
+import com.ibm.watsonx.ai.textprocessing.SemanticConfig.SchemaMergeStrategy;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.EmbeddedImageMode;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.KvpMode;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Language;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Mode;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.OcrMode;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.CosDataConnection;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.CosDataLocation;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest.DataReference;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Entity;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Error;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.ExtractionResult;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.Metadata;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticConfig;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
-import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionUtils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -202,7 +197,72 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     @Test
     void test_text_extraction_parameters() throws Exception {
 
-        var EXPECTED = """
+        when(mockAuthenticationProvider.token()).thenReturn("token");
+
+        var PARAMETERS = """
+            "parameters": {
+                    "requested_outputs": ["plain_text"],
+                    "mode": "standard",
+                    "ocr_mode": "enabled",
+                    "languages": ["en", "it"],
+                    "auto_rotation_correction": true,
+                    "create_embedded_images": "enabled_text",
+                    "output_dpi": 150,
+                    "output_tokens": true,
+                    "kvp_mode": "generic_with_semantic",
+                    "semantic_config": {
+                        "target_image_width": 1024,
+                        "enable_text_hints": true,
+                        "enable_generic_kvp": true,
+                        "enable_schema_kvp": true,
+                        "grounding_mode": "fast",
+                        "schemas_merge_strategy": "merge",
+                        "force_schema_name": "None",
+                        "default_model_name": "defaultModelName",
+                        "schemas": [
+                            {
+                                "document_type": "Invoice",
+                                "document_description": "Invoice with totals and billing details",
+                                "fields": {
+                                    "my_field": {
+                                            "description": "description",
+                                            "example": "example",
+                                            "available_options": [ "value" ]
+                                    },
+                                    "my_field_2": {
+                                            "description": "description",
+                                            "example": "example"
+                                    }
+                                },
+                                "pages": {
+                                    "page_description": "page description",
+                                    "slices": [
+                                        {
+                                            "fields": {
+                                                "my_field": {
+                                                        "description": "description",
+                                                        "example": "example",
+                                                        "available_options": [ "value" ]
+                                                },
+                                                "my_field_2": {
+                                                        "description": "description",
+                                                        "example": "example"
+                                                }
+                                            },
+                                            "normalized_bbox": [0.0, 0.0, 1.0, 1.0]
+                                        }
+                                    ]
+                                },
+                                "additional_prompt_instructions": "additional instructions"
+                            }
+                        ],
+                        "task_model_name_override": {
+                            "test": "test"
+                        }
+                    }
+                }""";
+
+        var RESULT = """
             {
                 "metadata": {
                     "id": "abc123",
@@ -247,73 +307,13 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                             "more_info": "more info"
                         }
                     },
-                    "parameters": {
-                        "requested_outputs": ["plain_text", "html"],
-                        "mode": "standard",
-                        "ocr_mode": "enabled",
-                        "languages": ["en", "it"],
-                        "auto_rotation_correction": true,
-                        "create_embedded_images": "enabled_text",
-                        "output_dpi": 150,
-                        "output_tokens": true,
-                        "kvp_mode": "generic_with_semantic",
-                        "semantic_config": {
-                            "target_image_width": 1024,
-                            "enable_text_hints": true,
-                            "enable_generic_kvp": true,
-                            "enable_schema_kvp": true,
-                            "grounding_mode": "fast",
-                            "schemas_merge_strategy": "merge",
-                            "force_schema_name": "None",
-                            "default_model_name": "defaultModelName",
-                            "schemas": [
-                                {
-                                    "document_type": "Invoice",
-                                    "document_description": "Invoice with totals and billing details",
-                                    "fields": {
-                                        "my_field": {
-                                                "description": "description",
-                                                "example": "example",
-                                                "available_options": [ "value" ]
-                                        },
-                                        "my_field_2": {
-                                                "description": "description",
-                                                "example": "example"
-                                        }
-                                    },
-                                    "pages": {
-                                        "page_description": "page description",
-                                        "slices": [
-                                            {
-                                                "fields": {
-                                                    "my_field": {
-                                                            "description": "description",
-                                                            "example": "example",
-                                                            "available_options": [ "value" ]
-                                                    },
-                                                    "my_field_2": {
-                                                            "description": "description",
-                                                            "example": "example"
-                                                    }
-                                                },
-                                                "normalized_bbox": [0.0, 0.0, 1.0, 1.0]
-                                            }
-                                        ]
-                                    },
-                                    "additional_prompt_instructions": "additional instructions"
-                                }
-                            ],
-                            "task_model_name_override": {
-                                "test": "test"
-                            }
-                        }
-                    },
+                    %s,
                     "custom": {
                         "name": "model",
                         "size": 2
                     }
                 }
-            }""";
+            }""".formatted(PARAMETERS);
 
         Metadata metadata =
             new Metadata("abc123", "2025-06-25T10:15:30Z", null, "3fc54cf1-252f-424b-b52d-5cdd9814987f", "3fc54cf1-252f-424b-b52d-5cdd9814987f");
@@ -324,7 +324,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         DataReference resultReference =
             new DataReference("connection_asset", new CosDataConnection("conn-456"), new CosDataLocation("/results/", "my-results-bucket"));
 
-        ExtractionResult result = new ExtractionResult("completed", 5, "2025-06-25T10:16:00Z", "2025-06-25T10:18:00Z", 5,
+        ExtractionResult extractionResult = new ExtractionResult("completed", 5, "2025-06-25T10:16:00Z", "2025-06-25T10:18:00Z", 5,
             List.of("cos://my-results-bucket/results/output1.txt", "cos://my-results-bucket/results/output2.txt"),
             new Error("NONE", "No error", "more info"));
 
@@ -349,22 +349,16 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .enableTextHints(true)
             .enableSchemaKvp(true)
             .groundingMode("fast")
-            .schemasMergeStrategy("merge")
+            .schemasMergeStrategy(SchemaMergeStrategy.MERGE)
             .forceSchemaName("None")
             .schemas(List.of(schema))
             .defaultModelName("defaultModelName")
             .taskModelNameOverride(Map.of("test", "test"))
             .build();
 
-        Parameters parameters = new Parameters(List.of("plain_text", "html"), "standard", "enabled", List.of("en", "it"), true, "enabled_text", 150,
-            true, "generic_with_semantic", semanticConfig);
-
-        Entity entity = new Entity(documentReference, resultReference, result, parameters, Map.of("name", "model", "size", 2));
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(new TextExtractionResponse(metadata, entity)), true);
-
         TextExtractionParameters params = TextExtractionParameters.builder()
             .transactionId("my-transaction-id")
-            .requestedOutputs(Type.PLAIN_TEXT, Type.HTML)
+            .requestedOutputs(Type.PLAIN_TEXT)
             .mode(Mode.STANDARD)
             .ocrMode(OcrMode.ENABLED)
             .languages(Language.ENGLISH, Language.ITALIAN)
@@ -383,12 +377,78 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .addCustomProperty("size", 2)
             .build();
 
+        Parameters parameters = params.toParameters();
+
+        Entity entity = new Entity(documentReference, resultReference, extractionResult, parameters, Map.of("name", "model", "size", 2));
+        JSONAssert.assertEquals(RESULT, Json.toJson(new TextExtractionResponse(metadata, entity)), true);
+
         JSONAssert.assertEquals(Json.toJson(parameters), Json.toJson(params.toParameters()), true);
         assertEquals("newfile", params.getOutputFileName());
         assertTrue(params.isRemoveOutputFile());
         assertTrue(params.isRemoveUploadedFile());
         assertEquals(CosReference.of("connection", "bucket"), params.getDocumentReference());
         assertEquals(CosReference.of("connection2", "bucket2"), params.getResultReference());
+
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .withHeader("Content-Type", equalTo("application/json"))
+            .withHeader("Accept", equalTo("application/json"))
+            .withRequestBody(equalToJson("""
+                {
+                    "project_id": "projectid",
+                    "document_reference": {
+                        "type": "connection_asset",
+                        "connection": {
+                            "id": "connection"
+                        },
+                        "location": {
+                            "file_name": "file.pdf",
+                            "bucket": "bucket"
+                        }
+                    },
+                    "results_reference": {
+                        "type": "connection_asset",
+                        "connection": {
+                            "id": "connection2"
+                        },
+                        "location": {
+                            "file_name": "newfile",
+                            "bucket": "bucket2"
+                        }
+                    },
+                    %s,
+                    "custom": {
+                        "name": "model",
+                        "size": 2
+                    }
+                }""".formatted(PARAMETERS)))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(RESULT)
+            ));
+
+        params = TextExtractionParameters.builder()
+            .transactionId("my-transaction-id")
+            .requestedOutputs(Type.PLAIN_TEXT)
+            .mode(Mode.STANDARD)
+            .ocrMode(OcrMode.ENABLED)
+            .languages(Language.ENGLISH, Language.ITALIAN)
+            .autoRotationCorrection(true)
+            .createEmbeddedImages(EmbeddedImageMode.ENABLED_TEXT)
+            .outputDpi(150)
+            .outputTokens(true)
+            .kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)
+            .semanticConfig(semanticConfig)
+            .outputFileName("newfile")
+            .documentReference(CosReference.of("connection", "bucket"))
+            .resultReference(CosReference.of("connection2", "bucket2"))
+            .addCustomProperty("name", "model")
+            .addCustomProperty("size", 2)
+            .build();
+
+        var result = textExtractionService.startExtraction("file.pdf", params);
+        assertEquals(metadata, result.metadata());
+        assertEquals(entity, result.entity());
     }
 
     @Test
@@ -685,7 +745,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void text_text_extraction_fetch() {
+    void test_text_extraction_fetch() {
 
         var RESULT =
             """
@@ -818,7 +878,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void text_text_extraction_delete() {
+    void test_text_extraction_delete() {
 
         var projectId = URLEncoder.encode("<project_id>", Charset.defaultCharset());
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
@@ -960,7 +1020,6 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-
     void test_read_file() {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
@@ -1964,6 +2023,33 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         verify(mockAuthenticationProvider, times(2)).asyncToken();
     }
 
+    @Test
+    void test_upload_file() throws Exception {
+
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+        cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        assertTrue(textExtractionService.uploadFile(file));
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void test_upload_file_doesnt_exist() throws Exception {
+
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        var file = new File("doesnotexist.pdf");
+        cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        TextExtractionException ex = assertThrows(TextExtractionException.class,
+            () -> textExtractionService.uploadFile(file));
+        assertEquals(ex.getCode(), "file_not_found");
+        assertTrue(ex.getCause() instanceof FileNotFoundException);
+    }
 
     private void mockServers(String outputFileName, boolean deleteUploadedFile, boolean deleteOutputFile) {
 
