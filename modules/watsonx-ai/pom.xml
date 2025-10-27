@@ -7,7 +7,7 @@
   <name>watsonx-ai</name>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai</artifactId>
-  <version>999-SNAPSHOT</version>
+  <version>0.12.0</version>
 
   <description>
   Service layer implementation of the watsonx.ai SDK. This module contains the service 
@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>watsonx-ai-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>0.12.0</version>
     <relativePath>../..</relativePath>
   </parent>
 
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai-core</artifactId>
-      <version>999-SNAPSHOT</version>
+      <version>0.12.0</version>
     </dependency>
   </dependencies>
 </project>
