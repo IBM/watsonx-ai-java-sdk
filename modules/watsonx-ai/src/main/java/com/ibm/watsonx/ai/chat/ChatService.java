@@ -93,10 +93,11 @@ public final class ChatService extends ModelService implements ChatProvider {
         Map<String, Object> chatTemplateKwargs = null;
         if (nonNull(chatRequest.getThinking())) {
             var thinking = chatRequest.getThinking();
-            chatTemplateKwargs = Map.of("thinking", true);
             extractionTags = thinking.getExtractionTags();
             includeReasoning = thinking.getIncludeReasoning();
             thinkingEffort = nonNull(thinking.getThinkingEffort()) ? thinking.getThinkingEffort().getValue() : null;
+            if (nonNull(thinking.getEnabled()))
+                chatTemplateKwargs = Map.of("thinking", thinking.getEnabled());
         }
 
         var textChatRequest = TextChatRequest.builder()
@@ -153,10 +154,11 @@ public final class ChatService extends ModelService implements ChatProvider {
         Map<String, Object> chatTemplateKwargs = null;
         if (nonNull(chatRequest.getThinking())) {
             var thinking = chatRequest.getThinking();
-            chatTemplateKwargs = Map.of("thinking", true);
             extractionTags = thinking.getExtractionTags();
             includeReasoning = thinking.getIncludeReasoning();
             thinkingEffort = nonNull(thinking.getThinkingEffort()) ? thinking.getThinkingEffort().getValue() : null;
+            if (nonNull(thinking.getEnabled()))
+                chatTemplateKwargs = Map.of("thinking", thinking.getEnabled());
         }
 
         var textChatRequest = TextChatRequest.builder()
