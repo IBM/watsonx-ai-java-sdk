@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 /**
  * Represents the reasoning configuration used by the LLM.
  * <p>
@@ -35,14 +38,23 @@ package com.ibm.watsonx.ai.chat.model;
  */
 public final class Thinking {
 
+    private final Boolean enabled;
     private final Boolean includeReasoning;
     private final ExtractionTags extractionTags;
     private final ThinkingEffort thinkingEffort;
 
     private Thinking(Builder builder) {
+        enabled = builder.enabled;
         includeReasoning = builder.includeReasoning;
         extractionTags = builder.extractionTags;
         thinkingEffort = builder.thinkingEffort;
+    }
+
+    public Boolean getEnabled() {
+        if (isNull(enabled) && (nonNull(includeReasoning) || nonNull(extractionTags) || nonNull(thinkingEffort)))
+            return true;
+
+        return enabled;
     }
 
     public Boolean getIncludeReasoning() {
@@ -75,11 +87,18 @@ public final class Thinking {
     }
 
     public final static class Builder {
+        private Boolean enabled;
         private Boolean includeReasoning;
         private ExtractionTags extractionTags;
         private ThinkingEffort thinkingEffort;
 
         private Builder() {}
+
+
+        public Builder enabled(Boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
 
         /**
          * Sets whether reasoning should be included in the LLM response.

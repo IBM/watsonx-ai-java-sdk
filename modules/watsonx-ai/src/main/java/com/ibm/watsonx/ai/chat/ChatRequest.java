@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import java.util.List;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -198,12 +199,7 @@ public final class ChatRequest {
          * @param enabled {@code true} to enable reasoning with default settings, {@code false} to disable reasoning
          */
         public Builder thinking(boolean enabled) {
-            if (enabled) {
-                return thinking(Thinking.builder().build());
-            } else {
-                thinking = null;
-                return this;
-            }
+            return thinking(Thinking.builder().enabled(enabled).build());
         }
 
         /**
@@ -223,6 +219,11 @@ public final class ChatRequest {
          * @param tags an {@link ExtractionTags} instance defining the reasoning and response tags
          */
         public Builder thinking(ExtractionTags tags) {
+            if (isNull(tags)) {
+                thinking = null;
+                return this;
+            }
+
             return thinking(Thinking.of(tags));
         }
 
@@ -242,6 +243,11 @@ public final class ChatRequest {
          * @param thinkingEffort the desired {@link ThinkingEffort} level
          */
         public Builder thinking(ThinkingEffort thinkingEffort) {
+            if (isNull(thinkingEffort)) {
+                thinking = null;
+                return this;
+            }
+
             return thinking(Thinking.of(thinkingEffort));
         }
 

@@ -249,7 +249,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_without_thinking() throws Exception {
+        void test_thinking_with_enabled_false() throws Exception {
 
             wireMock.stubFor(post("/ml/v1/text/chat?version=%s".formatted(API_VERSION))
                 .withHeader("Authorization", equalTo("Bearer my-token"))
@@ -268,7 +268,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000
+                        "time_limit": 60000,
+                        "chat_template_kwargs" : {
+                            "thinking": false
+                        }
                     }"""))
                 .willReturn(aResponse()
                     .withStatus(200)
@@ -798,7 +801,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_without_thinking() throws Exception {
+        void test_thinking_with_enabled_false() throws Exception {
 
             wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
                 .withHeader("Authorization", equalTo("Bearer my-token"))
@@ -898,7 +901,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .build();
 
             var chatRequest = ChatRequest.builder()
-                .thinking(false)
                 .messages(UserMessage.text("Translate 'Hello' to Italian"))
                 .build();
 
