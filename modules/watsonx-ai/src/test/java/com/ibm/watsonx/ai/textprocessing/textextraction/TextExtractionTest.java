@@ -61,8 +61,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.exeception.WatsonxException;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
 import com.ibm.watsonx.ai.textprocessing.CosDataLocation;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
@@ -970,7 +970,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_execeptions() throws Exception {
+    void test_exceptions() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpClient.send(any(), any(BodyHandler.class)))
@@ -1720,7 +1720,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     </Error>""")));
 
 
-        var detail = new com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error("NoSuchBucket", "The specified bucket does not exist.",
+        var detail = new com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error("NoSuchBucket", "The specified bucket does not exist.",
             "/my-bucket-name/test.pdf");
         WatsonxError error = new WatsonxError(404, "my-request-id", List.of(detail));
 
@@ -1792,7 +1792,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "completed"))
             ));
 
-        var detail = new com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error("NoSuchKey", "The specified key does not exist.",
+        var detail = new com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error("NoSuchKey", "The specified key does not exist.",
             "/my-bucket-name/test.pdf");
         WatsonxError error = new WatsonxError(404, "my-request-id", List.of(detail));
 

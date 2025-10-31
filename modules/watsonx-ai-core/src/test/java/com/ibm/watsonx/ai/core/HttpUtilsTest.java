@@ -25,8 +25,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)

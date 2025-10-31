@@ -23,9 +23,8 @@ import java.util.stream.Stream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error;
-
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 
 /**
  * Utility class for working with Http objects.

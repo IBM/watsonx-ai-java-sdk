@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import com.ibm.watsonx.ai.core.HttpUtils;
-import com.ibm.watsonx.ai.core.exeception.WatsonxException;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 /**
  * Synchronous HTTP client.

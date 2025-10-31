@@ -89,8 +89,8 @@ import com.ibm.watsonx.ai.chat.model.UserContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.VideoContent;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.exeception.WatsonxException;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 @ExtendWith(MockitoExtension.class)
