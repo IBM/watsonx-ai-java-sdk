@@ -84,7 +84,7 @@ public final class TextClassificationService extends ProjectService {
      * Starts the text classification process for a document that already exists in the configured {@link #documentReference document reference}.
      * <p>
      * The {@code absolutePath} parameter identifies the location of the file <b>inside the document reference</b> (not a local filesystem path). To
-     * customize the output behavior, use the overloaded method with {@link TextClassicationParameters}.
+     * customize the output behavior, use the overloaded method with {@link TextClassificationParameters}.
      * <p>
      * If you want to process a <b>local file</b>, use {@link #uploadAndStartClassification(File)} instead.
      * <p>

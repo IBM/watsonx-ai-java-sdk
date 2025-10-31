@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.textprocessing;
 
 import static java.util.Objects.requireNonNull;
 import java.util.List;
+import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 
 /**
@@ -14,6 +15,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
  * @param pageDescription a long-form description of the page corresponding to the schema in the included slices. Typically one or two sentences
  *            providing the model with context about the page layout and content
  * @param slices the list of {@link KvpSlice} instances defining the regions of interest (page slices) for extraction
+ *
  * @see TextExtractionService
  * @see TextClassificationService
  */

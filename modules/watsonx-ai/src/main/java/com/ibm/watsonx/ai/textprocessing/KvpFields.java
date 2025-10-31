@@ -104,7 +104,7 @@ public final class KvpFields {
         /**
          * Builds a {@link KvpFields} instance.
          *
-         * @return a new instance of {@link SeKvpFieldsmanticConfig}
+         * @return a new instance of {@link KvpFields}
          */
         public KvpFields build() {
             return new KvpFields(this);

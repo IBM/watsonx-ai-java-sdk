@@ -41,10 +41,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
-import com.ibm.watsonx.ai.textgeneration.Moderation.GraniteGuardian;
-import com.ibm.watsonx.ai.textgeneration.Moderation.Hap;
 import com.ibm.watsonx.ai.textgeneration.Moderation.InputRanges;
-import com.ibm.watsonx.ai.textgeneration.Moderation.Pii;
 import com.ibm.watsonx.ai.textgeneration.Moderation.TextModeration;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
@@ -186,9 +183,9 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             }""";
 
         var moderation = Moderation.builder()
-            .hap(Hap.of(TextModeration.of(0.8f), TextModeration.of(0.9f), true))
-            .pii(Pii.of(true, false, false))
-            .graniteGuardian(GraniteGuardian.of(TextModeration.of(0.85f), true))
+            .hap(TextModeration.of(0.8f), TextModeration.of(0.9f), true)
+            .pii(true, false, false)
+            .graniteGuardian(TextModeration.of(0.85f), true)
             .inputRanges(List.of(InputRanges.of(0, 50), InputRanges.of(100, 150)))
             .build();
 
@@ -386,9 +383,9 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                 .build();
 
             var moderation = Moderation.builder()
-                .hap(Hap.of(TextModeration.of(0.85f), TextModeration.of(0.9f), true))
-                .pii(Pii.of(true, false, false))
-                .graniteGuardian(GraniteGuardian.of(TextModeration.of(0.95f), true))
+                .hap(TextModeration.of(0.85f), TextModeration.of(0.9f), true)
+                .pii(true, false, false)
+                .graniteGuardian(TextModeration.of(0.95f), true)
                 .inputRanges(List.of(InputRanges.of(0, 100)))
                 .build();
 

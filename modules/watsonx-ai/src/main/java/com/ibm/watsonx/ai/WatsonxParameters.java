@@ -52,9 +52,9 @@ public abstract class WatsonxParameters {
      */
     @SuppressWarnings("unchecked")
     public static abstract class Builder<T extends Builder<T>> {
-        private String projectId;
-        private String spaceId;
-        private String transactionId;
+        protected String projectId;
+        protected String spaceId;
+        protected String transactionId;
 
         /**
          * Sets the project id.
@@ -114,7 +114,7 @@ public abstract class WatsonxParameters {
          */
         @SuppressWarnings("unchecked")
         public static abstract class Builder<T extends Builder<T>> extends WatsonxParameters.Builder<T> {
-            private String modelId;
+            protected String modelId;
 
             /**
              * Sets the model id.

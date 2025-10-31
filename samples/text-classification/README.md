@@ -1,4 +1,4 @@
-# Watsonx Embedding Example
+# Watsonx Text Classification Example
 
 This example demonstrates how to use IBM watsonx.ai to perform text classification from documents stored in IBM Cloud Object Storage (COS).
 

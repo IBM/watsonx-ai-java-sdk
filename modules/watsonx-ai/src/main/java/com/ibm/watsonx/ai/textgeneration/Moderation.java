@@ -52,12 +52,7 @@ public final class Moderation {
      * @param output moderation properties applied to the output text
      * @param mask masking properties applied when moderation detects content
      */
-    public record Hap(TextModeration input, TextModeration output, MaskProperties mask) {
-
-        public static Hap of(TextModeration input, TextModeration output, boolean mask) {
-            return new Hap(input, output, new MaskProperties(mask));
-        }
-    }
+    private record Hap(TextModeration input, TextModeration output, MaskProperties mask) {}
 
     /**
      * Moderation properties without threshold, used for PII filtering.
@@ -73,14 +68,8 @@ public final class Moderation {
      * @param output moderation properties applied to the output text
      * @param mask masking properties applied when PII is detected
      */
-    public record Pii(TextModerationWithoutThreshold input, TextModerationWithoutThreshold output,
-        MaskProperties mask) {
-
-        public static Pii of(boolean input, boolean output, boolean mask) {
-            return new Pii(new TextModerationWithoutThreshold(input), new TextModerationWithoutThreshold(output),
-                new MaskProperties(mask));
-        }
-    }
+    record Pii(TextModerationWithoutThreshold input, TextModerationWithoutThreshold output,
+        MaskProperties mask) {}
 
     /**
      * Properties specific to the Granite Guardian moderation detector. This detector is in beta and may change in future versions.
@@ -88,12 +77,7 @@ public final class Moderation {
      * @param input moderation properties applied to the input text
      * @param mask masking properties applied when Granite Guardian detects content
      */
-    public record GraniteGuardian(TextModeration input, MaskProperties mask) {
-
-        public static GraniteGuardian of(TextModeration input, boolean mask) {
-            return new GraniteGuardian(input, new MaskProperties(mask));
-        }
-    }
+    record GraniteGuardian(TextModeration input, MaskProperties mask) {}
 
     /**
      * Represents a range within the input text to which moderation is applied. The end index is exclusive.
@@ -169,31 +153,26 @@ public final class Moderation {
 
         /**
          * Sets the Hate and Profanity (HAP) moderation configuration.
-         *
-         * @param hap the HAP moderation configuration
          */
-        public Builder hap(Hap hap) {
-            this.hap = hap;
+        public Builder hap(TextModeration input, TextModeration output, boolean mask) {
+            this.hap = new Hap(input, output, new MaskProperties(mask));
             return this;
         }
 
         /**
          * Sets the Personally Identifiable Information (PII) moderation configuration.
-         *
-         * @param pii the PII moderation configuration
          */
-        public Builder pii(Pii pii) {
-            this.pii = pii;
+        public Builder pii(boolean input, boolean output, boolean mask) {
+            this.pii = new Pii(new TextModerationWithoutThreshold(input), new TextModerationWithoutThreshold(output),
+                new MaskProperties(mask));
             return this;
         }
 
         /**
          * Sets the Granite Guardian moderation configuration.
-         *
-         * @param graniteGuardian the Granite Guardian moderation configuration
          */
-        public Builder graniteGuardian(GraniteGuardian graniteGuardian) {
-            this.graniteGuardian = graniteGuardian;
+        public Builder graniteGuardian(TextModeration input, boolean mask) {
+            this.graniteGuardian = new GraniteGuardian(input, new MaskProperties(mask));
             return this;
         }
 
