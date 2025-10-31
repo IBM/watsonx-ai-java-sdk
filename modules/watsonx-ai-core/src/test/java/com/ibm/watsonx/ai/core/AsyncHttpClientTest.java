@@ -45,7 +45,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.ibm.watsonx.ai.core.exeception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;

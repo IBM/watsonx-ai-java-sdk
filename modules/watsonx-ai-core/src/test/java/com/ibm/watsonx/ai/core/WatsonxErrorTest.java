@@ -8,8 +8,8 @@ import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError.Error;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 
 public class WatsonxErrorTest {
 

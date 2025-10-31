@@ -272,7 +272,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_rerank_exeception() throws Exception {
+    void test_rerank_exception() throws Exception {
 
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
 

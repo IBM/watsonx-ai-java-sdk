@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.ibm.watsonx.ai.core.exeception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.detection.DetectionTextRequest;
 import com.ibm.watsonx.ai.detection.DetectionTextResponse;
@@ -225,7 +225,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_catch_io_exeception() throws Exception {
+    void should_catch_io_exception() throws Exception {
 
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 
@@ -246,7 +246,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_catch_watsonx_exeception() throws Exception {
+    void should_catch_watsonx_exception() throws Exception {
 
         var EXCEPTION = """
             {

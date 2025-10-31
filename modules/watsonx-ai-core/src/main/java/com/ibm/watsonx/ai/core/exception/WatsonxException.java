@@ -2,10 +2,10 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core.exeception;
+package com.ibm.watsonx.ai.core.exception;
 
 import java.util.Optional;
-import com.ibm.watsonx.ai.core.exeception.model.WatsonxError;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 /**
  * Exception thrown when a watsonx api request results in an error response.
