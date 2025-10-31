@@ -24,6 +24,7 @@
     <module>time-series</module>
     <module>utility-tools</module>
     <module>deployment</module>
+    <module>detection</module>
   </modules>
 
   <licenses>
@@ -41,7 +42,7 @@
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai</artifactId>
-      <version>0.12.0</version>
+      <version>999-SNAPSHOT</version>
     </dependency>
 
     <dependency>
