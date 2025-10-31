@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
@@ -13,6 +14,7 @@ import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
+import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
@@ -38,6 +40,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see TimeSeriesService
  * @see FoundationModelService
  * @see ToolService
+ * @see DetectionService
  */
 public abstract class WatsonxService {
 
@@ -176,6 +179,9 @@ public abstract class WatsonxService {
      * Abstract base class for watsonx services that require a project or space context.
      */
     public static abstract class ProjectService extends WatsonxService {
+
+        protected record ProjectSpace(String projectId, String spaceId) {}
+
         protected final String projectId;
         protected final String spaceId;
 
@@ -186,6 +192,12 @@ public abstract class WatsonxService {
 
             if (isNull(projectId) && isNull(spaceId))
                 throw new NullPointerException("Either projectId or spaceId must be provided");
+        }
+
+        protected ProjectSpace resolveProjectSpace(WatsonxParameters parameters) {
+            return nonNull(parameters.getProjectId()) || nonNull(parameters.getSpaceId())
+                ? new ProjectSpace(parameters.getProjectId(), parameters.getSpaceId())
+                : new ProjectSpace(projectId, spaceId);
         }
 
         @SuppressWarnings("unchecked")
