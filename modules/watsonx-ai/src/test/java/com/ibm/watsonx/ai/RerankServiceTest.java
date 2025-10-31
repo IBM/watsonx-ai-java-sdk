@@ -19,7 +19,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.rerank.RerankParameters;
 import com.ibm.watsonx.ai.rerank.RerankService;
-import com.ibm.watsonx.ai.utils.Utils;
+import com.ibm.watsonx.ai.utils.HttpUtils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -86,7 +86,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
                 )
             );
 
-            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
         });
     }
@@ -181,7 +181,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
                 parameters
             );
 
-            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
         });
@@ -266,7 +266,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
                 parameters
             );
 
-            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
         });
     }

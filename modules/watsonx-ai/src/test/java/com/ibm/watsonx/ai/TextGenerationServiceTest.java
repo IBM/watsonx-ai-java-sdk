@@ -56,7 +56,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.TokenInfo;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.TopTokenInfo;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textgeneration.TextRequest;
-import com.ibm.watsonx.ai.utils.Utils;
+import com.ibm.watsonx.ai.utils.HttpUtils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -344,7 +344,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             var expected = new TextRequest("model", "space-id", "project-id", "Hello!",
                 TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), null);
 
-            JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(Json.toJson(expected), HttpUtils.bodyPublisherToString(mockHttpRequest), true);
 
             response = textGenerationService.generate("Hello!", TextGenerationParameters.builder()
                 .modelId("new-model")
@@ -358,8 +358,8 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             expected = new TextRequest("new-model", "new-space-id", "new-project-id", "Hello!",
                 TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(2)).build(), null);
 
-            JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), false);
-            assertFalse(Utils.bodyPublisherToString(mockHttpRequest).contains("prompt_variables"));
+            JSONAssert.assertEquals(Json.toJson(expected), HttpUtils.bodyPublisherToString(mockHttpRequest), false);
+            assertFalse(HttpUtils.bodyPublisherToString(mockHttpRequest).contains("prompt_variables"));
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
         });
     }
@@ -395,7 +395,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             var expected = new TextRequest("model", "space-id", "project-id", "Hello!",
                 TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), moderation);
 
-            JSONAssert.assertEquals(Json.toJson(expected), Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(Json.toJson(expected), HttpUtils.bodyPublisherToString(mockHttpRequest), true);
         });
     }
 
