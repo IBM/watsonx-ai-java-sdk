@@ -6,7 +6,7 @@ package com.ibm.watsonx.ai;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
-import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
+import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;

@@ -7,7 +7,7 @@ package com.ibm.watsonx.ai;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
+import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;

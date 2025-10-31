@@ -30,7 +30,7 @@ import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.tokenization.TokenizationParameters;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
-import com.ibm.watsonx.ai.utils.Utils;
+import com.ibm.watsonx.ai.utils.HttpUtils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -75,7 +75,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
             var response = tokenizationService.tokenize("Write a tagline for an alumni association: Together we");
 
-            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
         });
     }
@@ -112,7 +112,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
             try {
                 var response = tokenizationService.asyncTokenize("Write a tagline for an alumni association: Together we").get();
-                JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+                JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
                 JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
             } catch (Exception e) {
                 fail(e);
@@ -178,7 +178,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
                 parameters
             );
 
-            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
         });
@@ -226,7 +226,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
                 parameters
             );
 
-            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
         });
     }

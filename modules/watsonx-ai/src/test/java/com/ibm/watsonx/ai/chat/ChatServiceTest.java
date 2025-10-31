@@ -11,7 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.ibm.watsonx.ai.core.Json.toJson;
-import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
+import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
 import static java.util.Objects.nonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;

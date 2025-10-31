@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Represents a request for text content detection.
  */
-final class TextDetectionContentDetectors extends BaseDetectionRequest {
+public final class TextDetectionContentDetectors extends BaseDetectionRequest {
     private final String input;
 
     public TextDetectionContentDetectors(String input, Map<String, Map<String, Object>> detectors, String projectId, String spaceId) {

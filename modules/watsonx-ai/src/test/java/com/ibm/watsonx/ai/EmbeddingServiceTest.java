@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 import com.ibm.watsonx.ai.embedding.EmbeddingParameters;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
-import com.ibm.watsonx.ai.utils.Utils;
+import com.ibm.watsonx.ai.utils.HttpUtils;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -90,7 +90,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 "Dreams chased in youth while goals pursued in adulthood."
             );
 
-            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
         });
     }
@@ -182,7 +182,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
             );
 
             var response = embeddingService.embedding(inputs, parameters);
-            JSONAssert.assertEquals(REQUEST, Utils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
         });

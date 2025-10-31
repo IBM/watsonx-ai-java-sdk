@@ -10,7 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.core.Json.toJson;
-import static com.ibm.watsonx.ai.utils.Utils.bodyPublisherToString;
+import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Flow;
 import org.mockito.ArgumentCaptor;
 
-public final class Utils {
+public final class HttpUtils {
 
     public static String bodyPublisherToString(ArgumentCaptor<HttpRequest> request) {
         HttpRequest.BodyPublisher bodyPublisher = request.getValue().bodyPublisher().orElseThrow();
