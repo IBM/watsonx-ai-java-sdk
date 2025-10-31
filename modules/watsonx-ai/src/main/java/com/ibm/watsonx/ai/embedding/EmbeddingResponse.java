@@ -8,11 +8,6 @@ import java.util.List;
 
 /**
  * Represents the response body containing the embeddings for a given text.
- *
- * @param modelId The id of the model used for the request. It identifies which model generated the embeddings.
- * @param createdAt The timestamp when the response was created, in ISO 8601 format.
- * @param results A list of embedding results for the given input text. It contains the actual embedding values.
- * @param inputTokenCount The number of input tokens that were consumed for this request.
  */
 public record EmbeddingResponse(
     String modelId,

@@ -3148,7 +3148,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             var chatService = ChatService.builder()
                 .baseUrl(CloudRegion.DALLAS)
                 .authenticationProvider(mockAuthenticationProvider)
-
                 .projectId("project-id")
                 .modelId("model-id")
                 .build();
