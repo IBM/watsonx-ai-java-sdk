@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.embedding;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
-import static java.util.Optional.ofNullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -87,16 +86,15 @@ public final class EmbeddingService extends ModelService {
 
         requireNonNull(inputs, "Inputs cannot be null");
 
+        ProjectSpace projectSpace = resolveProjectSpace(parameters);
+        String projectId = projectSpace.projectId();
+        String spaceId = projectSpace.spaceId();
         String modelId = this.modelId;
-        String projectId = this.projectId;
-        String spaceId = this.spaceId;
         String transactionId = null;
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
             modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-            projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
-            spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
             transactionId = parameters.getTransactionId();
             requestParameters = parameters.toEmbeddingRequestParameters();
         }

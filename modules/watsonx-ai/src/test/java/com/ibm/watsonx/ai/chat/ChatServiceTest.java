@@ -285,7 +285,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         final String REQUEST = """
             {
               "model_id": "meta-llama/llama-3-8b-instruct",
-              "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+              "space_id": "space_id",
               "messages": [
                 {
                   "role": "system",
@@ -363,6 +363,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .timeLimit(Duration.ofMillis(1000))
                 .maxCompletionTokens(100)
                 .temperature(0.0)
+                .spaceId("space_id")
                 .build();
 
             var chatResponse = chatService.chat(messages, parameters);

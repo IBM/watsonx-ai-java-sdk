@@ -8,7 +8,6 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
-import static java.util.Optional.ofNullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -82,9 +81,10 @@ public final class ChatService extends ModelService implements ChatProvider {
             && (isNull(chatRequest.getThinking()) || isNull(chatRequest.getThinking().getExtractionTags())))
             throw new IllegalArgumentException("Extraction tags are required when using control messages");
 
+        var projectSpace = resolveProjectSpace(parameters);
+        var projectId = projectSpace.projectId();
+        var spaceId = projectSpace.spaceId();
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
-        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
         Boolean includeReasoning = null;
@@ -143,9 +143,10 @@ public final class ChatService extends ModelService implements ChatProvider {
             && (isNull(chatRequest.getThinking()) || isNull(chatRequest.getThinking().getExtractionTags())))
             throw new IllegalArgumentException("Extraction tags are required when using control messages");
 
+        var projectSpace = resolveProjectSpace(parameters);
+        var projectId = projectSpace.projectId();
+        var spaceId = projectSpace.spaceId();
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
-        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
 
         Boolean includeReasoning = null;

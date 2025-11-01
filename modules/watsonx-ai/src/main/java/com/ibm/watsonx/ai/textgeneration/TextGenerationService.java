@@ -69,9 +69,10 @@ public final class TextGenerationService extends ModelService implements TextGen
             logger.warn("Prompt variables are not supported in Text Generation service");
         }
 
+        var projectSpace = resolveProjectSpace(parameters);
+        var projectId = projectSpace.projectId();
+        var spaceId = projectSpace.spaceId();
         var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
-        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 

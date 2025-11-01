@@ -195,6 +195,9 @@ public abstract class WatsonxService {
         }
 
         protected ProjectSpace resolveProjectSpace(WatsonxParameters parameters) {
+            if (isNull(parameters))
+                return new ProjectSpace(projectId, spaceId);
+
             return nonNull(parameters.getProjectId()) || nonNull(parameters.getSpaceId())
                 ? new ProjectSpace(parameters.getProjectId(), parameters.getSpaceId())
                 : new ProjectSpace(projectId, spaceId);
