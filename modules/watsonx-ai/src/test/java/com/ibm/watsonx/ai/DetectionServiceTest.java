@@ -124,7 +124,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                 .input("input")
                 .spaceId("new-space-id")
                 .transactionId("transaction-id")
-                .detectors(Pii.builder().build())
+                .detectors(Pii.ofDefaults(), Hap.ofDefaults(), GraniteGuardian.ofDefaults())
                 .build();
 
             service.detect(request);
@@ -138,6 +138,8 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                         "space_id": "new-space-id",
                         "detectors": {
                             "pii": {},
+                            "hap": {},
+                            "granite_guardian": {},
                         }
                     }
                     """,

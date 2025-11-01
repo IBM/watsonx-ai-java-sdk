@@ -10,9 +10,7 @@ package com.ibm.watsonx.ai.detection.detector;
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * Pii detector = Pii.builder()
- *     .threshold(0.5)
- *     .build();
+ * Pii detector = Pii.ofDefaults();
  * }</pre>
  */
 public final class Pii extends BaseDetector {
@@ -22,11 +20,17 @@ public final class Pii extends BaseDetector {
     }
 
     /**
-     * Creates a new instance of Pii.
+     * Returns an empty {@link Pii} detector instance with no properties configured.
+     * <p>
+     * This is equivalent to:
      *
-     * @return new {@link Pii} instance.
+     * <pre>{@code
+     * Pii detector = Pii.builder().build();
+     * }</pre>
+     *
+     * @return an empty {@link Pii} instance.
      */
-    public static Pii create() {
+    public static Pii ofDefaults() {
         return builder().build();
     }
 
@@ -36,9 +40,7 @@ public final class Pii extends BaseDetector {
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * Pii detector = Pii.builder()
-     *     .threshold(0.5)
-     *     .build();
+     * Pii detector = Pii.ofDefaults();
      * }</pre>
      *
      * @return {@link Builder} instance.

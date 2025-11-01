@@ -14,6 +14,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -74,7 +75,7 @@ final class DefaultRestClient extends TokenizationRestClient {
 
         return asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
             .thenApplyAsync(r -> Json.fromJson(r.body(), TokenizationResponse.class), ExecutorProvider.cpuExecutor())
-            .thenApplyAsync(r -> r, ExecutorProvider.ioExecutor());
+            .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
     }
 
     /**

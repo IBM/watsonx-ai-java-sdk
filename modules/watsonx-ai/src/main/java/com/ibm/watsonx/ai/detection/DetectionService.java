@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * DetectionResponse<DetectionTextResponse> response = detectionService.detect(
  *     DetectionTextRequest.builder()
  *         .input("...")
- *         .detectors(Pii.create(), Hap.builder().threshold(0.3).build())
+ *         .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3).build())
  *         .build()
  * );
  * }</pre>
@@ -72,7 +72,7 @@ public final class DetectionService extends ProjectService {
      * DetectionResponse<DetectionTextResponse> response = detectionService.detect(
      *     DetectionTextRequest.builder()
      *         .input("...")
-     *         .detectors(Pii.create(), Hap.builder().threshold(0.3).build())
+     *         .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3).build())
      *         .build()
      * );
      * }</pre>

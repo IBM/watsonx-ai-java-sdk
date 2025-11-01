@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -359,7 +360,7 @@ public class LoggerInterceptorTest {
                         assertEquals("io-thread", Thread.currentThread().getName());
                         threadNames.add(Thread.currentThread().getName());
                         return chain.proceed(request, bodyHandler)
-                            .thenApplyAsync(r -> r, cpuExecutor)
+                            .thenApplyAsync(Function.identity(), cpuExecutor)
                             .thenApplyAsync(r -> {
                                 threadNames.add(Thread.currentThread().getName());
                                 return r;

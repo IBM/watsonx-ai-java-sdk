@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.detection.detector.BaseDetector;
  * DetectionTextRequest request =
  *     DetectionTextRequest.builder()
  *         .input("...")
- *         .detectors(Pii.create(), Hap.builder().threshold(0.3).build())
+ *         .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3).build())
  *         .build();
  * }</pre>
  */
@@ -52,7 +52,7 @@ public final class DetectionTextRequest extends WatsonxParameters {
      * DetectionTextRequest request =
      *     DetectionTextRequest.builder()
      *         .input("...")
-     *         .detectors(Pii.create(), Hap.builder().threshold(0.3).build())
+     *         .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3).build())
      *         .build();
      * }</pre>
      *
@@ -108,5 +108,11 @@ public final class DetectionTextRequest extends WatsonxParameters {
         public DetectionTextRequest build() {
             return new DetectionTextRequest(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "DetectionTextRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", input=" + input
+            + ", detectors=" + detectors + "]";
     }
 }

@@ -35,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -625,8 +626,8 @@ public class RetryInterceptorTest {
                     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
                         int index, AsyncChain chain) {
                         return chain.proceed(request, bodyHandler)
-                            .thenApplyAsync(r -> r, cpuExecutor)
-                            .thenApplyAsync(r -> r, ioExecutor);
+                            .thenApplyAsync(Function.identity(), cpuExecutor)
+                            .thenApplyAsync(Function.identity(), ioExecutor);
                     }
                 }).build();
 

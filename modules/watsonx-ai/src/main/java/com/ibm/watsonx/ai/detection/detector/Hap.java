@@ -22,6 +22,21 @@ public final class Hap extends BaseDetector {
     }
 
     /**
+     * Returns an empty {@link Hap} detector instance with no properties configured.
+     * <p>
+     * This is equivalent to:
+     *
+     * <pre>{@code
+     * Hap detector = Hap.builder().build();
+     * }</pre>
+     *
+     * @return an empty {@link Hap} instance.
+     */
+    public static Hap ofDefaults() {
+        return builder().build();
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>
