@@ -152,4 +152,10 @@ public final class Thinking {
             return new Thinking(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "Thinking [enabled=" + enabled + ", includeReasoning=" + includeReasoning + ", extractionTags=" + extractionTags + ", thinkingEffort="
+            + thinkingEffort + "]";
+    }
 }

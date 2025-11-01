@@ -35,8 +35,8 @@ public class App {
                 .build();
 
             DetectionTextRequest request = DetectionTextRequest.builder()
-                .input("I kill you with my phone number 1234567890")
-                .detectors(Pii.create(), Hap.builder().threshold(0.3f).build())
+                .input("I hate you with my phone number 1234567890")
+                .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3f).build())
                 .build();
 
             List<DetectionTextResponse> response = detectionService.detect(request).detections();

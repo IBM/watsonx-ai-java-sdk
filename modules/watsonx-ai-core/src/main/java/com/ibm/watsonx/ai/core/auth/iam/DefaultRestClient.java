@@ -14,6 +14,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import com.ibm.watsonx.ai.core.auth.IdentityTokenResponse;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -71,7 +72,7 @@ final class DefaultRestClient extends IAMRestClient {
                 throw new RuntimeException(response.body());
 
             }, ExecutorProvider.cpuExecutor())
-            .thenApplyAsync(r -> r, ExecutorProvider.ioExecutor());
+            .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
     }
 
     /*

@@ -10,7 +10,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Abstract class for all detectors.
+ * Represents a configurable content detector used by the detection service.
+ * <p>
+ * This is an abstract base class, one of its concrete implementations should be used instead:
+ * <ul>
+ * <li>{@link Pii} — detects personally identifiable information (PII)</li>
+ * <li>{@link Hap} — detects hate or profanity content</li>
+ * <li>{@link GraniteGuardian} — performs general content moderation</li>
+ * </ul>
+ * <p>
+ * Each detector exposes a builder for fluent configuration of parameters.
+ * <p>
+ * Detectors are used in a {@code DetectionService} request to specify which kinds of content analysis to perform.
  *
  * @see Pii
  * @see Hap

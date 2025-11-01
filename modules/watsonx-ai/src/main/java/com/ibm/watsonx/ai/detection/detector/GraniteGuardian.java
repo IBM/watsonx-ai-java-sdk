@@ -22,6 +22,21 @@ public final class GraniteGuardian extends BaseDetector {
     }
 
     /**
+     * Returns an empty {@link GraniteGuardian} detector instance with no properties configured.
+     * <p>
+     * This is equivalent to:
+     *
+     * <pre>{@code
+     * GraniteGuardian detector = GraniteGuardian.builder().build();
+     * }</pre>
+     *
+     * @return an empty {@link GraniteGuardian} instance.
+     */
+    public static GraniteGuardian ofDefaults() {
+        return builder().build();
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>

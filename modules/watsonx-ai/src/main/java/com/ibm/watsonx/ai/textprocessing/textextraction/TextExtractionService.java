@@ -729,7 +729,7 @@ public final class TextExtractionService extends ProjectService {
     /**
      * Builder class for constructing {@link TextExtractionService} instances with configurable parameters.
      */
-    public static class Builder extends ProjectService.Builder<Builder> {
+    public final static class Builder extends ProjectService.Builder<Builder> {
         private String cosUrl;
         private CosReference documentReference;
         private CosReference resultReference;
