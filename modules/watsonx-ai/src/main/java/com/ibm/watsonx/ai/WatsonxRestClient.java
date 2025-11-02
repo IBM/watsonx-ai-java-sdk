@@ -11,7 +11,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 
 public abstract class WatsonxRestClient {
 
-    protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
+    public static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
 
     protected final String baseUrl;
     protected final String version;
