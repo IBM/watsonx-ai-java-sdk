@@ -24,6 +24,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
+import com.ibm.watsonx.ai.transcription.TranscriptionRestClient;
 
 /**
  * This class provides common functionality and shared configuration used across various service-specific clients (e.g., {@code ChatService},
@@ -41,6 +42,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see FoundationModelService
  * @see ToolService
  * @see DetectionService
+ * @see TranscriptionRestClient
  */
 public abstract class WatsonxService {
 
