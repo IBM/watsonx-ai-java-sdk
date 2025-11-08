@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.transcription;
@@ -54,6 +54,7 @@ public final class TranscriptionService extends ModelService {
             .logResponses(logResponses)
             .timeout(timeout)
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .authenticator(builder.authenticator())
             .build();
     }
