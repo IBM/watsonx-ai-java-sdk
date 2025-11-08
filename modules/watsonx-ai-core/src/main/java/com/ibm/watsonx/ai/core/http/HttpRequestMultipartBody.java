@@ -76,7 +76,7 @@ public final class HttpRequestMultipartBody {
 
         public Builder addInputStream(String name, InputStream is) {
             try {
-                parts.add(new Part(name, "audio-file", "application/octet-stream", is.readAllBytes()));
+                parts.add(new Part(name, null, "application/octet-stream", is.readAllBytes()));
                 return this;
             } catch (IOException e) {
                 throw new RuntimeException(e);

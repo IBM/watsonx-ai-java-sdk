@@ -116,10 +116,9 @@ public final class TranscriptionRequest extends WatsonxParameters {
          * Sets the input audio to be transcribed.
          *
          * @param file the input stream containing the audio data
-         * @return this builder instance for method chaining
          */
-        public Builder file(InputStream is) {
-            this.file = is;
+        public Builder file(InputStream file) {
+            this.file = file;
             return this;
         }
 
