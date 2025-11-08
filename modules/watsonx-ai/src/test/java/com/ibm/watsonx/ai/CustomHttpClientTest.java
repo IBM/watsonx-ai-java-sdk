@@ -22,6 +22,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
+import com.ibm.watsonx.ai.transcription.TranscriptionService;
 
 public class CustomHttpClientTest {
 
@@ -553,6 +554,47 @@ public class CustomHttpClientTest {
         Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
         assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
         assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(syncHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_custom_http_client_for_transcription_service() throws Exception {
+
+        HttpClient customClient = HttpClient.newHttpClient();
+        TranscriptionService transcriptionService = TranscriptionService.builder()
+            .baseUrl("https://localhost")
+            .modelId("modelId")
+            .apiKey("apiKey")
+            .projectId("projectId")
+            .httpClient(customClient)
+            .build();
+
+        Object restclient = getFieldValue(transcriptionService, "client");
+        assertEquals(customClient, getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(restclient, "httpClient"));
+
+        Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+        assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(syncHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_default_http_client_for_transcription_service() throws Exception {
+
+        HttpClient customClient = HttpClient.newHttpClient();
+        TranscriptionService transcriptionService = TranscriptionService.builder()
+            .baseUrl("https://localhost")
+            .modelId("modelId")
+            .apiKey("apiKey")
+            .projectId("projectId")
+            .build();
+
+        Object restclient = getFieldValue(transcriptionService, "client");
+        assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
+        assertEquals(HttpClientProvider.httpClient(), getFieldValue(restclient, "httpClient"));
+
+        Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+        assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+        assertEquals(HttpClientProvider.httpClient(), getFieldValue(syncHttpClient, "delegate"));
     }
 
     @Test
