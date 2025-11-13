@@ -77,6 +77,9 @@ public record WatsonxError(Integer statusCode, String trace, List<Error> errors)
         /** Access to Cloud Object Storage was denied. */
         COS_ACCESS_DENIED("AccessDenied"),
 
+        /** File not found in Cloud Object Storage */
+        COS_FILE_NOT_FOUND("NoSuchKey"),
+
         /** Unclassified. */
         UNCLASSIFIED("Unclassified");
 

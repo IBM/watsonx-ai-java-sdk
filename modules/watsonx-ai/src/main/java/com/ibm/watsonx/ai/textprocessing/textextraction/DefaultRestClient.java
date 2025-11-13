@@ -9,6 +9,7 @@ import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,16 +45,21 @@ final class DefaultRestClient extends TextExtractionRestClient {
     }
 
     @Override
-    public boolean deleteFile(DeleteFileRequest request) {
+    public boolean deleteFile(DeleteFileRequest request) throws FileNotFoundException {
         try {
             return asyncDeleteFile(request).get();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof WatsonxException ex)
-                throw ex;
-            else
+            if (e.getCause() instanceof WatsonxException ex) {
+                Exception mapped = mapIfCosFileNotFound(ex);
+                if (mapped instanceof FileNotFoundException fnf)
+                    throw fnf;
+                else
+                    throw ex;
+            } else {
                 throw new RuntimeException(e.getCause());
+            }
         }
     }
 
@@ -82,7 +88,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
     }
 
     @Override
-    public String readFile(ReadFileRequest request) {
+    public String readFile(ReadFileRequest request) throws FileNotFoundException {
         try {
 
             var fileName = request.fileName();
@@ -101,6 +107,12 @@ final class DefaultRestClient extends TextExtractionRestClient {
 
         } catch (IOException | InterruptedException | URISyntaxException e) {
             throw new RuntimeException(e);
+        } catch (WatsonxException e) {
+            Exception mapped = mapIfCosFileNotFound(e);
+            if (mapped instanceof FileNotFoundException fnf)
+                throw fnf;
+            else
+                throw e;
         }
     }
 

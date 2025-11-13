@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Represents a JSON Schema of type {@code array}.
  * <p>
- * Use {@link JsonSchema#array(JsonSchema.Builder)} to create an instance.
+ * Use {@link JsonSchema#array()} to create an instance.
  * <p>
  * <b>Example usage:</b>
  *
@@ -61,7 +61,7 @@ public final class ArraySchema extends JsonSchema {
     /**
      * Returns a new {@link Builder} instance.
      * <p>
-     * Use {@link JsonSchema#array(JsonSchema.Builder)} to create an instance.
+     * Use {@link JsonSchema#array()} to create an instance.
      * <p>
      * <b>Example usage:</b>
      *

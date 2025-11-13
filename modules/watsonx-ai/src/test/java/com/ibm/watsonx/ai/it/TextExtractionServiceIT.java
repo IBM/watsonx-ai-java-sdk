@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -130,8 +131,8 @@ public class TextExtractionServiceIT {
         assertEquals("PDF TEST", textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
         assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
         assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
 
         parameters = TextExtractionParameters.builder()
             .mode(Mode.HIGH_QUALITY)
@@ -144,8 +145,8 @@ public class TextExtractionServiceIT {
 
         // Wait for async deletion
         Thread.sleep(500);
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
     }
 
     @Test
@@ -186,8 +187,8 @@ public class TextExtractionServiceIT {
         assertEquals("PDF TEST", textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
         assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
         assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
 
         parameters = TextExtractionParameters.builder()
             .mode(Mode.HIGH_QUALITY)
@@ -201,8 +202,8 @@ public class TextExtractionServiceIT {
 
         // Wait for async deletion
         Thread.sleep(500);
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
     }
 
     @Test
@@ -251,7 +252,7 @@ public class TextExtractionServiceIT {
 
         // Wait for async deletion
         Thread.sleep(500);
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "ocr.jpg"));
-        assertThrows(WatsonxException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test_ocr.txt"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "ocr.jpg"));
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test_ocr.txt"));
     }
 }
