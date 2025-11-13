@@ -226,7 +226,7 @@ public final class TextExtractionService extends ProjectService {
      * @return The text extracted.
      * @see #extractAndFetch(String, String, TextExtractionParameters)
      */
-    public String extractAndFetch(String absolutePath) throws TextExtractionException {
+    public String extractAndFetch(String absolutePath) throws TextExtractionException, FileNotFoundException {
         return extractAndFetch(absolutePath, null);
     }
 
@@ -239,7 +239,7 @@ public final class TextExtractionService extends ProjectService {
      * @param parameters The configuration parameters for text extraction.
      * @return The text extracted.
      */
-    public String extractAndFetch(String absolutePath, TextExtractionParameters parameters) throws TextExtractionException {
+    public String extractAndFetch(String absolutePath, TextExtractionParameters parameters) throws TextExtractionException, FileNotFoundException {
         return extractAndFetch(UUID.randomUUID().toString(), absolutePath, parameters);
     }
 
@@ -252,7 +252,7 @@ public final class TextExtractionService extends ProjectService {
      * @return The text extracted.
      * @see #uploadExtractAndFetch(File, TextExtractionParameters)
      */
-    public String uploadExtractAndFetch(File file) throws TextExtractionException {
+    public String uploadExtractAndFetch(File file) throws TextExtractionException, FileNotFoundException {
         return uploadExtractAndFetch(file, null);
     }
 
@@ -265,7 +265,7 @@ public final class TextExtractionService extends ProjectService {
      * @param parameters The configuration parameters for text extraction.
      * @return The text extracted.
      */
-    public String uploadExtractAndFetch(File file, TextExtractionParameters parameters) throws TextExtractionException {
+    public String uploadExtractAndFetch(File file, TextExtractionParameters parameters) throws TextExtractionException, FileNotFoundException {
 
         if (nonNull(parameters)) {
             if (parameters.getRequestedOutputs().size() > 1) {
@@ -280,11 +280,7 @@ public final class TextExtractionService extends ProjectService {
 
         var requestId = UUID.randomUUID().toString();
 
-        try {
-            upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, true);
-        } catch (FileNotFoundException e) {
-            throw new TextExtractionException("file_not_found", e.getMessage(), e);
-        }
+        upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, true);
         return extractAndFetch(requestId, file.getName(), parameters);
     }
 
@@ -327,7 +323,13 @@ public final class TextExtractionService extends ProjectService {
 
         var requestId = UUID.randomUUID().toString();
         upload(requestId, is, fileName, parameters, true);
-        return extractAndFetch(requestId, fileName, parameters);
+
+        try {
+            return extractAndFetch(requestId, fileName, parameters);
+        } catch (FileNotFoundException e) {
+            // This should never happen.
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -392,7 +394,7 @@ public final class TextExtractionService extends ProjectService {
      * @param fileName The name of the file to delete.
      * @return true if the file was successfully deleted, false otherwise.
      */
-    public boolean deleteFile(String bucketName, String fileName) {
+    public boolean deleteFile(String bucketName, String fileName) throws FileNotFoundException {
         return client.deleteFile(DeleteFileRequest.of(bucketName, fileName));
     }
 
@@ -402,7 +404,7 @@ public final class TextExtractionService extends ProjectService {
     * @param bucketName The name of the bucket.
     * @param fileName The name of the file to read.
     */
-    public String readFile(String bucketName, String fileName) {
+    public String readFile(String bucketName, String fileName) throws FileNotFoundException {
         return client.readFile(ReadFileRequest.of(bucketName, fileName));
     }
 
@@ -471,7 +473,8 @@ public final class TextExtractionService extends ProjectService {
     //
     // Start the text extraction and wait until the result is ready.
     //
-    private String extractAndFetch(String requestId, String absolutePath, TextExtractionParameters parameters) throws TextExtractionException {
+    private String extractAndFetch(String requestId, String absolutePath, TextExtractionParameters parameters)
+        throws TextExtractionException, FileNotFoundException {
         requireNonNull(requestId, "requestId cannot be null");
 
         if (nonNull(parameters)) {
@@ -640,7 +643,7 @@ public final class TextExtractionService extends ProjectService {
     // Retrieves the extracted text from a specified Cloud Object Storage file.
     //
     private String getExtractedText(String requestId, TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
-        throws TextExtractionException {
+        throws TextExtractionException, FileNotFoundException {
 
         requireNonNull(requestId);
 

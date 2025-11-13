@@ -5,10 +5,14 @@
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import static java.util.Objects.requireNonNull;
+import java.io.FileNotFoundException;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Code;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 import com.ibm.watsonx.ai.textprocessing.ReadFileRequest;
 import com.ibm.watsonx.ai.textprocessing.UploadRequest;
@@ -32,7 +36,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param request The {@link DeleteFileRequest} containing bucket and file information.
      * @return {@code true} if the file was successfully deleted, {@code false} otherwise.
      */
-    public abstract boolean deleteFile(DeleteFileRequest request);
+    public abstract boolean deleteFile(DeleteFileRequest request) throws FileNotFoundException;
 
     /**
      * Asynchronously deletes a file from the specified COS bucket.
@@ -48,7 +52,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param request The {@link ReadFileRequest} containing bucket and file information.
      * @return The file content as a string.
      */
-    public abstract String readFile(ReadFileRequest request);
+    public abstract String readFile(ReadFileRequest request) throws FileNotFoundException;
 
     /**
      * Uploads a file stream to the specified COS bucket.
@@ -91,6 +95,29 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
         return ServiceLoader.load(TextExtractionRestClientBuilderFactory.class).findFirst()
             .map(Supplier::get)
             .orElse(DefaultRestClient.builder());
+    }
+
+    /**
+     * Inspects the given {@link WatsonxException} and maps it to a {@link FileNotFoundException} if it corresponds to a {@code COS_FILE_NOT_FOUND}
+     * error.
+     * <p>
+     * If the exception does not represent a file-not-found condition, the original {@link WatsonxException} is returned.
+     *
+     * @param e the {@link WatsonxException} to inspect
+     * @return a {@link FileNotFoundException} if the exception indicates a missing COS file, otherwise the original {@link WatsonxException}
+     */
+    protected Exception mapIfCosFileNotFound(WatsonxException e) {
+        if (e.statusCode() == 404 && e.details().isPresent()) {
+            var details = e.details().get();
+            var fileNotFound = details.errors().stream()
+                .filter(error -> error.is(Code.COS_FILE_NOT_FOUND))
+                .findFirst()
+                .map(Error::message)
+                .orElse(e.getMessage());
+            return new FileNotFoundException(fileNotFound);
+        }
+
+        return e;
     }
 
     /**

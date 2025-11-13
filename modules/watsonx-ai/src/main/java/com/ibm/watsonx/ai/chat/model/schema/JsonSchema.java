@@ -16,7 +16,7 @@ import java.util.Arrays;
  * <b>Creation methods:</b>
  * <ul>
  * <li>{@link #object()} — creates an {@link ObjectSchema}</li>
- * <li>{@link #array(JsonSchema.Builder)} — creates an {@link ArraySchema}</li>
+ * <li>{@link #array()} — creates an {@link ArraySchema}</li>
  * <li>{@link #string()} — creates a {@link StringSchema}</li>
  * <li>{@link #number()} — creates a {@link NumberSchema}</li>
  * <li>{@link #integer()} — creates an {@link IntegerSchema}</li>
@@ -184,7 +184,6 @@ public abstract class JsonSchema {
      * JsonSchema.array().items(userSchema).description("A list of user objects");
      * }</pre>
      *
-     * @param itemsSchema the schema that each element in the array must satisfy
      * @return a builder for {@link ArraySchema}
      */
     public static ArraySchema.Builder array() {

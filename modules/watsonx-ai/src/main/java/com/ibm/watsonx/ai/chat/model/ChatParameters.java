@@ -250,7 +250,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          * <p>
          * When this parameter is set, the model is constrained to return exactly one of the provided choices.
          *
-         * @param guidedChoice a variable number of allowed output strings
+         * @param guidedChoices a variable number of allowed output strings
          */
         public Builder guidedChoice(Set<String> guidedChoices) {
             this.guidedChoice = guidedChoices;

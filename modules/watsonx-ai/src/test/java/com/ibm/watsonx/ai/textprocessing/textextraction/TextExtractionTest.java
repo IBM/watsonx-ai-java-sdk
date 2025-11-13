@@ -1031,7 +1031,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .withBody("test")
             ));
 
-        assertEquals("test", textExtractionService.readFile(BUCKET_NAME, FILE_NAME));
+        assertEquals("test", assertDoesNotThrow(() -> textExtractionService.readFile(BUCKET_NAME, FILE_NAME)));
     }
 
     @Test
@@ -1103,11 +1103,9 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         mockServers(outputFileName, false, false);
 
-        TextExtractionException ex = assertThrows(TextExtractionException.class,
+        FileNotFoundException ex = assertThrows(FileNotFoundException.class,
             () -> textExtractionService.uploadExtractAndFetch(file));
-        assertEquals(ex.getCode(), "file_not_found");
-        assertTrue(ex.getCause() instanceof FileNotFoundException);
-        assertEquals("TextExtractionException [code=file_not_found, message=doesnotexist.pdf (No such file or directory)]", ex.toString());
+        assertEquals("doesnotexist.pdf (No such file or directory)", ex.getMessage());
 
         watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
@@ -1792,23 +1790,16 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "completed"))
             ));
 
-        var detail = new com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error("NoSuchKey", "The specified key does not exist.",
-            "/my-bucket-name/test.pdf");
-        WatsonxError error = new WatsonxError(404, "my-request-id", List.of(detail));
-
-        var ex = assertThrows(
-            WatsonxException.class,
+        assertThrows(
+            FileNotFoundException.class,
             () -> textExtractionService.extractAndFetch(FILE_NAME),
             "The specified key does not exist.");
 
-        assertEquals(error, ex.details().orElseThrow());
 
-        ex = assertThrows(
-            WatsonxException.class,
+        assertThrows(
+            FileNotFoundException.class,
             () -> textExtractionService.uploadExtractAndFetch(file),
             "The specified key does not exist.");
-
-        assertEquals(error, ex.details().orElseThrow());
 
         watsonxServer.verify(2, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(2, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
@@ -2018,9 +2009,34 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .willSetStateTo(Scenario.STARTED)
             .willReturn(aResponse().withStatus(204)));
 
-        assertTrue(textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME));
+        assertTrue(assertDoesNotThrow(() -> textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME)));
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
         verify(mockAuthenticationProvider, times(2)).asyncToken();
+    }
+
+    @Test
+    void test_delete_file_file_not_found() {
+
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse()
+                .withStatus(404)
+                .withHeader("Content-Type", "application/xml")
+                .withBody("""
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Error>
+                        <Code>NoSuchBucket</Code>
+                        <Message>The specified bucket does not exist.</Message>
+                        <Resource>/my-bucket-name/test.pdf</Resource>
+                        <RequestId>my-request-id</RequestId>
+                        <httpStatusCode>404</httpStatusCode>
+                    </Error>""")));
+
+        assertThrows(FileNotFoundException.class, () -> textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        verify(mockAuthenticationProvider, times(1)).asyncToken();
     }
 
     @Test
