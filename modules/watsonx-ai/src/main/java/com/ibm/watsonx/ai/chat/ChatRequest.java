@@ -26,10 +26,10 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  * var tool = Tool.of(
  *     "send_email",
  *     "Send an email",
- *     JsonSchema.builder()
- *         .addStringProperty("email")
- *         .addStringProperty("subject")
- *         .addStringProperty("body")
+ *     JsonSchema.object()
+ *         .property("email", JsonSchema.string())
+ *         .property("subject", JsonSchema.string())
+ *         .property("body", JsonSchema.string())
  *         .required("email", "subject", "body")
  * );
  *
@@ -39,12 +39,12 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  *     .build();
  *
  * ChatRequest request = ChatRequest.builder()
- *     .messages(
- *         SystemMessage.of("You are a helpful assistant"),
- *         UserMessage.text("Tell me a joke"))
  *     .tools(tool)
  *     .parameters(parameters)
- *     .build();
+ *     .messages(
+ *         SystemMessage.of("You are a helpful assistant"),
+ *         UserMessage.text("Tell me a joke")
+ *     ).build();
  * }</pre>
  */
 public final class ChatRequest {
@@ -91,10 +91,10 @@ public final class ChatRequest {
      * var tool = Tool.of(
      *     "send_email",
      *     "Send an email",
-     *     JsonSchema.builder()
-     *         .addStringProperty("email")
-     *         .addStringProperty("subject")
-     *         .addStringProperty("body")
+     *     JsonSchema.object()
+     *         .property("email", JsonSchema.string())
+     *         .property("subject", JsonSchema.string())
+     *         .property("body", JsonSchema.string())
      *         .required("email", "subject", "body")
      * );
      *
@@ -104,12 +104,12 @@ public final class ChatRequest {
      *     .build();
      *
      * ChatRequest request = ChatRequest.builder()
-     *     .messages(
-     *         SystemMessage.of("You are a helpful assistant"),
-     *         UserMessage.text("Tell me a joke"))
      *     .tools(tool)
      *     .parameters(parameters)
-     *     .build();
+     *     .messages(
+     *         SystemMessage.of("You are a helpful assistant"),
+     *         UserMessage.text("Tell me a joke")
+     *     ).build();
      * }</pre>
      *
      * @return {@link Builder} instance.

@@ -20,12 +20,12 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
-import com.ibm.watsonx.ai.chat.model.JsonSchema;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolMessage;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
@@ -41,10 +41,10 @@ public class AiService {
     private static final Tool EMAIL_TOOL = Tool.of(
         "send_email",
         "Send an email",
-        JsonSchema.builder()
-            .addStringProperty("email")
-            .addStringProperty("subject")
-            .addStringProperty("body")
+        JsonSchema.object()
+            .property("email", JsonSchema.string())
+            .property("subject", JsonSchema.string())
+            .property("body", JsonSchema.string())
             .required("email", "subject", "body")
     );
 

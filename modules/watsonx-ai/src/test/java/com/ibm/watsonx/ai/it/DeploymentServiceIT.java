@@ -37,7 +37,6 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
-import com.ibm.watsonx.ai.chat.model.JsonSchema;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
@@ -46,6 +45,7 @@ import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
@@ -158,7 +158,7 @@ public class DeploymentServiceIT {
 
             var parameters = ChatParameters.builder()
                 .temperature(0.0)
-                .withJsonResponse()
+                .responseAsJson()
                 .build();
 
             ChatRequest chatRequest = ChatRequest.builder()
@@ -196,10 +196,10 @@ public class DeploymentServiceIT {
 
             var parameters = ChatParameters.builder()
                 .temperature(0.0)
-                .withJsonSchemaResponse(
-                    JsonSchema.builder()
-                        .addStringProperty("content")
-                        .addEnumProperty("topic", "dog", "cat")
+                .responseAsJsonSchema(
+                    JsonSchema.object()
+                        .property("content", JsonSchema.string())
+                        .property("topic", JsonSchema.enumeration("dog", "cat"))
                         .required("content", "topic")
                         .build())
                 .build();
@@ -293,10 +293,10 @@ public class DeploymentServiceIT {
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"Test\" and body \"Hello\""))
                 .tools(Tool.of("send_email", "Send an email",
-                    JsonSchema.builder()
-                        .addStringProperty("to")
-                        .addStringProperty("subject")
-                        .addStringProperty("body")
+                    JsonSchema.object()
+                        .property("to", JsonSchema.string())
+                        .property("subject", JsonSchema.string())
+                        .property("body", JsonSchema.string())
                         .required("to", "body")))
                 .build();
 
@@ -332,10 +332,10 @@ public class DeploymentServiceIT {
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
-                    JsonSchema.builder()
-                        .addStringProperty("to")
-                        .addStringProperty("subject")
-                        .addStringProperty("body")
+                    JsonSchema.object()
+                        .property("to", JsonSchema.string())
+                        .property("subject", JsonSchema.string())
+                        .property("body", JsonSchema.string())
                         .required("to", "body")))
                 .parameters(parameters)
                 .build();
@@ -390,7 +390,7 @@ public class DeploymentServiceIT {
 
             var parameters = ChatParameters.builder()
                 .temperature(0.0)
-                .withJsonResponse()
+                .responseAsJson()
                 .build();
 
             ChatRequest request = ChatRequest.builder()
@@ -443,10 +443,10 @@ public class DeploymentServiceIT {
 
             var parameters = ChatParameters.builder()
                 .temperature(0.0)
-                .withJsonSchemaResponse(
-                    JsonSchema.builder()
-                        .addStringProperty("content")
-                        .addEnumProperty("topic", "dog", "cat")
+                .responseAsJsonSchema(
+                    JsonSchema.object()
+                        .property("content", JsonSchema.string())
+                        .property("topic", JsonSchema.enumeration("dog", "cat"))
                         .required("content", "topic")
                         .build())
                 .build();
@@ -625,10 +625,10 @@ public class DeploymentServiceIT {
             ChatRequest request = ChatRequest.builder()
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"Test\" and body \"Hello\""))
                 .tools(Tool.of("send_email", "Send an email",
-                    JsonSchema.builder()
-                        .addStringProperty("to")
-                        .addStringProperty("subject")
-                        .addStringProperty("body")
+                    JsonSchema.object()
+                        .property("to", JsonSchema.string())
+                        .property("subject", JsonSchema.string())
+                        .property("body", JsonSchema.string())
                         .required("to", "body")))
                 .build();
 
@@ -762,10 +762,10 @@ public class DeploymentServiceIT {
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
-                    JsonSchema.builder()
-                        .addStringProperty("to")
-                        .addStringProperty("subject")
-                        .addStringProperty("body")
+                    JsonSchema.object()
+                        .property("to", JsonSchema.string())
+                        .property("subject", JsonSchema.string())
+                        .property("body", JsonSchema.string())
                         .required("to", "body")))
                 .parameters(parameters)
                 .build();
