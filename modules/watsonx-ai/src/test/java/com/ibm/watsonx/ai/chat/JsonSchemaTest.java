@@ -4,16 +4,11 @@
  */
 package com.ibm.watsonx.ai.chat;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.ibm.watsonx.ai.chat.model.JsonSchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.ArraySchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.BooleanSchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.NumberSchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
 
 
@@ -27,24 +22,25 @@ public class JsonSchemaTest {
               "type": "object",
               "properties": {
                 "name": {
-                  "type": "string"
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 68
                 },
                 "age": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": 18,
+                  "maximum": 60
                 }
               }
             }""";
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.of())
-            .addProperty("age", IntegerSchema.of())
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addStringProperty("name")
-            .addIntegerProperty("age")
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string()
+                .minLength(12)
+                .maxLength(68))
+            .property("age", JsonSchema.integer()
+                .minimum(18)
+                .maximum(60))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
@@ -61,7 +57,8 @@ public class JsonSchemaTest {
                       "type": "object",
                       "properties": {
                         "firstName": {
-                          "type": "string"
+                          "type": "string",
+                          "pattern": "^[a-zA-Z]+$"
                         },
                         "lastName": {
                           "type": "string"
@@ -73,34 +70,24 @@ public class JsonSchemaTest {
                       "required": [ "firstName", "lastName" ]
                     },
                     "age": {
-                      "type": "integer"
+                      "type": "integer",
+                      "exclusiveMinimum": 18,
+                      "exclusiveMaximum": 60
                     }
                   }
             }""";
 
-        var schema = JsonSchema.builder()
-            .addProperty("name",
-                JsonSchema.builder()
-                    .addProperty("firstName", StringSchema.of())
-                    .addProperty("lastName", StringSchema.of())
-                    .addProperty("middleName", StringSchema.of())
+        var schema = JsonSchema.object()
+            .property("name",
+                JsonSchema.object()
+                    .property("firstName", JsonSchema.string().pattern("^[a-zA-Z]+$"))
+                    .property("lastName", JsonSchema.string())
+                    .property("middleName", JsonSchema.string())
                     .required(List.of("firstName", "lastName"))
-                    .build()
             )
-            .addProperty("age", IntegerSchema.of())
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addObjectProperty("name", JsonSchema.builder()
-                .addStringProperty("firstName")
-                .addStringProperty("lastName")
-                .addStringProperty("middleName")
-                .required("firstName", "lastName")
-                .build()
-            )
-            .addIntegerProperty("age")
+            .property("age", JsonSchema.integer()
+                .exclusiveMinimum(18)
+                .exclusiveMaximum(60))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
@@ -120,23 +107,41 @@ public class JsonSchemaTest {
                   "type": "integer"
                 },
                 "performanceRating": {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": 18,
+                  "maximum": 60
                 }
               }
             }""";
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.of())
-            .addProperty("age", IntegerSchema.of())
-            .addProperty("performanceRating", NumberSchema.of())
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("age", JsonSchema.integer())
+            .property("performanceRating", JsonSchema.number()
+                .minimum(18)
+                .maximum(60))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
+    }
 
-        schema = JsonSchema.builder()
-            .addStringProperty("name")
-            .addIntegerProperty("age")
-            .addNumberProperty("performanceRating")
+    @Test
+    void test_generic_object_() {
+
+        final String EXPECTED = """
+            {
+              "type": "object",
+              "minProperties": 2,
+              "maxProperties": 5,
+              "additionalProperties": {
+                "type": "string"
+              }
+            }""";
+
+        var schema = JsonSchema.object()
+            .additionalProperties(JsonSchema.string())
+            .minProperties(2)
+            .maxProperties(5)
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
@@ -174,20 +179,11 @@ public class JsonSchemaTest {
               }
             }""";
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.of())
-            .addProperty("age", IntegerSchema.of())
-            .addProperty("hobbies", EnumSchema.of("reading", "writing", "painting"))
-            .addProperty("department", EnumSchema.of("engineering", "marketing", "sales", "HR", "finance"))
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addStringProperty("name")
-            .addIntegerProperty("age")
-            .addEnumProperty("hobbies", "reading", "writing", "painting")
-            .addEnumProperty("department", "engineering", "marketing", "sales", "HR", "finance")
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("age", JsonSchema.integer())
+            .property("hobbies", JsonSchema.enumeration("reading", "writing", "painting"))
+            .property("department", JsonSchema.enumeration("engineering", "marketing", "sales", "HR", "finance"))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
@@ -219,18 +215,10 @@ public class JsonSchemaTest {
               }
             }""";
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.of())
-            .addProperty("age", IntegerSchema.of())
-            .addProperty("performanceRating", EnumSchema.of(1, 2, 3, 4, 5, null))
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addStringProperty("name")
-            .addIntegerProperty("age")
-            .addEnumProperty("performanceRating", 1, 2, 3, 4, 5, null)
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("age", JsonSchema.integer())
+            .property("performanceRating", JsonSchema.enumeration(1, 2, 3, 4, 5, null))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
@@ -263,19 +251,10 @@ public class JsonSchemaTest {
               ]
             }""";
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.of())
-            .addProperty("age", IntegerSchema.of())
-            .addProperty("hobbies", ArraySchema.of(StringSchema.of()))
-            .required(List.of("name", "age", "hobbies"))
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addStringProperty("name")
-            .addIntegerProperty("age")
-            .addArrayProperty("hobbies", StringSchema.of())
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("age", JsonSchema.integer())
+            .property("hobbies", JsonSchema.array().items(JsonSchema.string()))
             .required("name", "age", "hobbies")
             .build();
 
@@ -307,34 +286,67 @@ public class JsonSchemaTest {
                         "type": "string"
                       }
                     }
+                  },
+                  "minItems": 1,
+                  "maxItems": 2
+                }
+              }
+            }""";
+
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("age", JsonSchema.integer())
+            .property("skills", JsonSchema.array()
+                .minItems(1)
+                .maxItems(2)
+                .items(
+                    JsonSchema.object()
+                        .property("name", JsonSchema.string())
+                        .property("level", JsonSchema.string())
+                ))
+            .build();
+
+        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
+    }
+
+    @Test
+    void test_array_object_schema_with_contains() {
+
+        final String EXPECTED = """
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "age": {
+                  "type": "integer"
+                },
+                "skills": {
+                  "type": ["array", "null"],
+                  "items": {
+                    "type": "string"
                   }
                 }
               }
             }""";
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.of())
-            .addProperty("age", IntegerSchema.of())
-            .addProperty("skills", ArraySchema.of(
-                JsonSchema.builder()
-                    .addProperty("name", StringSchema.of())
-                    .addProperty("level", StringSchema.of())
-                    .build()
-            ))
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("age", JsonSchema.integer())
+            .property("skills", JsonSchema.array().items(JsonSchema.string()).nullable())
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
+    }
 
-        schema = JsonSchema.builder()
-            .addStringProperty("name")
-            .addIntegerProperty("age")
-            .addArrayProperty("skills",
-                JsonSchema.builder()
-                    .addStringProperty("name")
-                    .addStringProperty("level")
-            ).build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
+    @Test
+    void test_array_schema_without_mandatory_parameters() {
+        assertThrows(IllegalArgumentException.class, () -> JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("age", JsonSchema.integer())
+            .property("skills", JsonSchema.array())
+            .build());
     }
 
     @Test
@@ -356,18 +368,10 @@ public class JsonSchemaTest {
               }
             }""";
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.of())
-            .addProperty("age", IntegerSchema.of())
-            .addProperty("hasAgreedToTerms", BooleanSchema.of())
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addStringProperty("name")
-            .addIntegerProperty("age")
-            .addBooleanProperty("hasAgreedToTerms")
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("age", JsonSchema.integer())
+            .property("hasAgreedToTerms", JsonSchema.bool())
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
@@ -385,7 +389,7 @@ public class JsonSchemaTest {
                     "description": "description"
                   },
                   "age": {
-                     "type": ["integer", "null"],
+                    "type": ["integer", "null"],
                     "description": "description"
                   },
                   "score": {
@@ -393,34 +397,25 @@ public class JsonSchemaTest {
                     "description": "description"
                   },
                   "hasAgreedToTerms": {
-                     "type": ["boolean", "null"],
+                    "type": ["boolean", "null"],
                     "description": "description"
                   }
                 }
               }
             """;
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.ofNullable("description"))
-            .addProperty("age", IntegerSchema.ofNullable("description"))
-            .addProperty("score", NumberSchema.ofNullable("description"))
-            .addProperty("hasAgreedToTerms", BooleanSchema.ofNullable("description"))
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addNullableStringProperty("name", "description")
-            .addNullableIntegerProperty("age", "description")
-            .addNullableNumberProperty("score", "description")
-            .addNullableBooleanProperty("hasAgreedToTerms", "description")
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string().nullable().description("description"))
+            .property("age", JsonSchema.integer().nullable().description("description"))
+            .property("score", JsonSchema.number().nullable().description("description"))
+            .property("hasAgreedToTerms", JsonSchema.bool().nullable().description("description"))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
     }
 
     @Test
-    void test__description_schema() {
+    void test_description_schema() {
 
         final String EXPECTED = """
             {
@@ -431,12 +426,14 @@ public class JsonSchemaTest {
                     "description": "description"
                   },
                   "age": {
-                     "type": "integer",
+                    "type": "integer",
                     "description": "description"
                   },
                   "score": {
                      "type": "number",
-                    "description": "description"
+                    "description": "description",
+                    "exclusiveMinimum": 0,
+                    "exclusiveMaximum": 10
                   },
                   "hasAgreedToTerms": {
                      "type": "boolean",
@@ -446,20 +443,14 @@ public class JsonSchemaTest {
               }
             """;
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.of("description"))
-            .addProperty("age", IntegerSchema.of("description"))
-            .addProperty("score", NumberSchema.of("description"))
-            .addProperty("hasAgreedToTerms", BooleanSchema.of("description"))
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addStringProperty("name", "description")
-            .addIntegerProperty("age", "description")
-            .addNumberProperty("score", "description")
-            .addBooleanProperty("hasAgreedToTerms", "description")
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string().description("description"))
+            .property("age", JsonSchema.integer().description("description"))
+            .property("score", JsonSchema.number()
+                .description("description")
+                .exclusiveMinimum(0)
+                .exclusiveMaximum(10))
+            .property("hasAgreedToTerms", JsonSchema.bool().description("description"))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
@@ -476,32 +467,34 @@ public class JsonSchemaTest {
                     "type": ["string", "null"]
                   },
                   "age": {
-                     "type": ["integer", "null"]
+                    "type": ["integer", "null"]
                   },
                   "score": {
-                     "type": ["number", "null"]
+                    "type": ["number", "null"]
                   },
                   "hasAgreedToTerms": {
-                     "type": ["boolean", "null"]
+                    "type": ["boolean", "null"]
+                  },
+                  "skills": {
+                    "type": ["array", "null"],
+                    "items": {
+                        "type": "string"
+                    }
+                  },
+                  "object": {
+                    "type": ["object", "null"]
                   }
                 }
-              }
+            }
             """;
 
-        var schema = JsonSchema.builder()
-            .addProperty("name", StringSchema.ofNullable())
-            .addProperty("age", IntegerSchema.ofNullable())
-            .addProperty("score", NumberSchema.ofNullable())
-            .addProperty("hasAgreedToTerms", BooleanSchema.ofNullable())
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-
-        schema = JsonSchema.builder()
-            .addNullableStringProperty("name")
-            .addNullableIntegerProperty("age")
-            .addNullableNumberProperty("score")
-            .addNullableBooleanProperty("hasAgreedToTerms")
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string().nullable())
+            .property("age", JsonSchema.integer().nullable())
+            .property("score", JsonSchema.number().nullable())
+            .property("hasAgreedToTerms", JsonSchema.bool().nullable())
+            .property("skills", JsonSchema.array().nullable().items(JsonSchema.string()))
+            .property("object", JsonSchema.object().nullable())
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);

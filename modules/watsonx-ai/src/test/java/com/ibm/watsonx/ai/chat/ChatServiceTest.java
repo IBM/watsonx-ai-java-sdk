@@ -72,10 +72,6 @@ import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.Image;
 import com.ibm.watsonx.ai.chat.model.Image.Detail;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
-import com.ibm.watsonx.ai.chat.model.JsonSchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.IntegerSchema;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.StringSchema;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
@@ -88,6 +84,7 @@ import com.ibm.watsonx.ai.chat.model.ToolMessage;
 import com.ibm.watsonx.ai.chat.model.UserContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.VideoContent;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
@@ -111,7 +108,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .n(10)
                 .presencePenalty(1.0)
                 .projectId("project-id")
-                .withJsonResponse()
+                .responseAsJson()
                 .seed(10)
                 .spaceId("space-id")
                 .stop(List.of("stop"))
@@ -121,7 +118,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .topLogprobs(10)
                 .topP(1.2)
-                .withJsonSchemaResponse("test", Map.of(), false)
+                .responseAsJsonSchema("test", Map.of(), false)
                 .build();
 
             var chatService = ChatService.builder()
@@ -477,9 +474,9 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .messages(UserMessage.text("What is the weather like in Boston today?"))
                     .tools(Tool.of(
                         "get_current_weather",
-                        JsonSchema.builder()
-                            .addProperty("location", StringSchema.of("The city, e.g. San Francisco, CA"))
-                            .addProperty("unit", EnumSchema.of("celsius", "fahrenheit"))
+                        JsonSchema.object()
+                            .property("location", JsonSchema.string().description("The city, e.g. San Francisco, CA"))
+                            .property("unit", JsonSchema.enumeration("celsius", "fahrenheit"))
                             .required("location")))
                     .parameters(parameters)
                     .build()
@@ -559,7 +556,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 SystemMessage.of("You are a helpful assistant designed to output JSON."),
                 UserMessage.text("Who won the world series in 2020?"));
 
-            var parameters = ChatParameters.builder().withTextResponse().build();
+            var parameters = ChatParameters.builder().responseAsText().build();
             var chatResponse = chatService.chat(messages, parameters);
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
@@ -633,7 +630,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 SystemMessage.of("You are a helpful assistant designed to output JSON."),
                 UserMessage.text("Who won the world series in 2020?"));
 
-            var parameters = ChatParameters.builder().withJsonResponse().build();
+            var parameters = ChatParameters.builder().responseAsJson().build();
             var chatResponse = chatService.chat(messages, parameters);
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
@@ -757,22 +754,21 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 SystemMessage.of("Given a region return the information"),
                 UserMessage.text("Campania"));
 
-            var jsonSchema = JsonSchema.builder()
-                .addStringProperty("name")
-                .addArrayProperty("provinces",
-                    JsonSchema.builder()
-                        .addStringProperty("name")
-                        .addObjectProperty("population",
-                            JsonSchema.builder()
-                                .addNumberProperty("value")
-                                .addEnumProperty("density", "LOW", "MEDIUM", "HIGH")
+            var jsonSchema = JsonSchema.object()
+                .property("name", JsonSchema.string())
+                .property("provinces", JsonSchema.array()
+                    .items(JsonSchema.object()
+                        .property("name", JsonSchema.string())
+                        .property("population",
+                            JsonSchema.object()
+                                .property("value", JsonSchema.number())
+                                .property("density", JsonSchema.enumeration("LOW", "MEDIUM", "HIGH"))
                                 .required("value", "density")
-                                .build()
-                        )
+                        ))
                 ).build();
 
             var parameters = ChatParameters.builder()
-                .withJsonSchemaResponse("test", jsonSchema, true)
+                .responseAsJsonSchema("test", jsonSchema, true)
                 .build();
 
             var chatResponse = chatService.chat(messages, parameters);
@@ -791,7 +787,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             assertEquals(new Province("Salerno", new Population(1108369, "MEDIUM")), response.provinces.get(4));
 
             parameters = ChatParameters.builder()
-                .withJsonSchemaResponse(jsonSchema)
+                .responseAsJsonSchema(jsonSchema)
                 .build();
 
             chatResponse = chatService.chat(messages, parameters);
@@ -883,9 +879,9 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             var tools = Tool.of(
                 "sum",
                 "Execute the sum of two numbers",
-                JsonSchema.builder()
-                    .addProperty("first_number", IntegerSchema.of())
-                    .addProperty("second_number", IntegerSchema.of())
+                JsonSchema.object()
+                    .property("first_number", JsonSchema.integer())
+                    .property("second_number", JsonSchema.integer())
                     .required(List.of("first_number", "second_number")));
 
             var chatResponse = chatService.chat(messages, List.of(tools));
@@ -1078,9 +1074,9 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             var tools = Tool.of(
                 "sum",
                 "Execute the sum of two numbers",
-                JsonSchema.builder()
-                    .addProperty("first_number", IntegerSchema.of())
-                    .addProperty("second_number", IntegerSchema.of())
+                JsonSchema.object()
+                    .property("first_number", JsonSchema.integer())
+                    .property("second_number", JsonSchema.integer())
                     .required(List.of("first_number", "second_number"))
                     .build());
 
@@ -1759,17 +1755,17 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             Tool.of(
                 "sum",
                 "execute the sum of two number",
-                JsonSchema.builder()
-                    .addProperty("firstNumber", IntegerSchema.of())
-                    .addProperty("secondNumber", IntegerSchema.of())
+                JsonSchema.object()
+                    .property("firstNumber", JsonSchema.integer())
+                    .property("secondNumber", JsonSchema.integer())
                     .build()
             ),
             Tool.of(
                 "subtraction",
                 "execute the subtraction of two number",
-                JsonSchema.builder()
-                    .addProperty("firstNumber", IntegerSchema.of())
-                    .addProperty("secondNumber", IntegerSchema.of())
+                JsonSchema.object()
+                    .property("firstNumber", JsonSchema.integer())
+                    .property("secondNumber", JsonSchema.integer())
                     .build()
             )
         );
@@ -2077,17 +2073,17 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             Tool.of(
                 "sum",
                 "execute the sum of two number",
-                JsonSchema.builder()
-                    .addProperty("firstNumber", IntegerSchema.of())
-                    .addProperty("secondNumber", IntegerSchema.of())
+                JsonSchema.object()
+                    .property("firstNumber", JsonSchema.integer())
+                    .property("secondNumber", JsonSchema.integer())
                     .build()
             ),
             Tool.of(
                 "subtraction",
                 "execute the subtraction of two number",
-                JsonSchema.builder()
-                    .addProperty("firstNumber", IntegerSchema.of())
-                    .addProperty("secondNumber", IntegerSchema.of())
+                JsonSchema.object()
+                    .property("firstNumber", JsonSchema.integer())
+                    .property("secondNumber", JsonSchema.integer())
                     .build()
             )
         );

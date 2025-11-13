@@ -8,11 +8,14 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
-import com.ibm.watsonx.ai.chat.model.JsonSchema.EnumSchema;
+import com.ibm.watsonx.ai.chat.model.schema.EnumSchema;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.Schema;
@@ -24,6 +27,7 @@ public class WatsonxJacksonModule extends SimpleModule {
 
     public WatsonxJacksonModule() {
         super("watsonx-ai-jackson-module");
+        setMixInAnnotation(JsonSchema.class, JsonSchemaMixin.class);
         setMixInAnnotation(EnumSchema.class, EnumSchemaMixin.class);
         setMixInAnnotation(FoundationModel.DefaultValue.class, DefaultValueMixin.class);
         setMixInAnnotation(FoundationModel.NumGpus.class, DefaultValueMixin.class);
@@ -44,11 +48,20 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     /**
+     * Mix-in interface for JsonSchema class.
+     */
+    @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
+    public abstract static class JsonSchemaMixin {
+        @JsonProperty("const")
+        abstract String getConstant();
+    }
+
+    /**
      * Mix-in interface to support enum deserialization where the enum values should be listed under the JSON property "enum".
      */
     public abstract static class EnumSchemaMixin {
         @JsonProperty("enum")
-        abstract List<String> enumValues();
+        abstract List<String> getEnumValues();
     }
 
     /**

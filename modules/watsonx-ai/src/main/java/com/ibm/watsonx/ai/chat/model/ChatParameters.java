@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 /**
@@ -26,7 +27,7 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  *     .temperature(0.7)
  *     .maxCompletionTokens(0)
  *     .toolChoiceOption(ToolChoice.AUTO)
- *     .withJsonResponse()
+ *     .responseAsJson()
  *     .build();
  * }</pre>
  */
@@ -160,7 +161,7 @@ public final class ChatParameters extends WatsonxModelParameters {
      *     .temperature(0.7)
      *     .maxCompletionTokens(0)
      *     .toolChoiceOption(ToolChoice.AUTO)
-     *     .withJsonResponse()
+     *     .responseAsJson()
      *     .build();
      * }</pre>
      *
@@ -336,7 +337,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          * <p>
          * No JSON structure will be enforced, and the response will be treated as plain text.
          */
-        public Builder withTextResponse() {
+        public Builder responseAsText() {
             this.responseFormat = ResponseFormat.TEXT;
             return this;
         }
@@ -346,7 +347,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          * <p>
          * The output will be in JSON format, but no schema will be enforced or validated.
          */
-        public Builder withJsonResponse() {
+        public Builder responseAsJson() {
             this.responseFormat = ResponseFormat.JSON;
             return this;
         }
@@ -356,8 +357,8 @@ public final class ChatParameters extends WatsonxModelParameters {
          *
          * @param schema the JSON Schema describing the expected output structure
          */
-        public Builder withJsonSchemaResponse(JsonSchema schema) {
-            return withJsonSchemaResponse(UUID.randomUUID().toString(), schema, true);
+        public Builder responseAsJsonSchema(JsonSchema schema) {
+            return responseAsJsonSchema(UUID.randomUUID().toString(), schema, true);
         }
 
         /**
@@ -373,7 +374,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          * @param schema the JSON Schema describing the expected output structure
          * @param strict whether to enforce strict schema validation
          */
-        public Builder withJsonSchemaResponse(String name, JsonSchema schema, boolean strict) {
+        public Builder responseAsJsonSchema(String name, JsonSchema schema, boolean strict) {
             this.responseFormat = ResponseFormat.JSON_SCHEMA;
             this.jsonSchema = new JsonSchemaObject(name, schema, strict);
             return this;
@@ -392,7 +393,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          * @param schema the JSON Schema describing the expected output structure
          * @param strict whether to enforce strict schema validation
          */
-        public Builder withJsonSchemaResponse(String name, Map<String, Object> schema, boolean strict) {
+        public Builder responseAsJsonSchema(String name, Map<String, Object> schema, boolean strict) {
             this.responseFormat = ResponseFormat.JSON_SCHEMA;
             this.jsonSchema = new JsonSchemaObject(name, schema, strict);
             return this;
