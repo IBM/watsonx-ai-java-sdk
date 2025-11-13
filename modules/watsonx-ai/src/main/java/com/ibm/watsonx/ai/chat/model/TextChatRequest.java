@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.chat.model;
 import static java.util.Objects.nonNull;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.JsonSchemaObject;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ResponseFormat;
 
@@ -38,6 +39,9 @@ public final class TextChatRequest {
     private final Map<String, Object> chatTemplateKwargs;
     private final Boolean includeReasoning;
     private final String reasoningEffort;
+    private final Set<String> guidedChoice;
+    private final String guidedRegex;
+    private final String guidedGrammar;
     private final String context;
 
     private TextChatRequest(Builder builder) {
@@ -72,6 +76,10 @@ public final class TextChatRequest {
         } else {
             responseFormat = null;
         }
+
+        guidedChoice = builder.guidedChoice;
+        guidedRegex = builder.guidedRegex;
+        guidedGrammar = builder.guidedGrammar;
     }
 
     public String getModelId() {
@@ -170,6 +178,18 @@ public final class TextChatRequest {
         return reasoningEffort;
     }
 
+    public Set<String> getGuidedChoice() {
+        return guidedChoice;
+    }
+
+    public String getGuidedRegex() {
+        return guidedRegex;
+    }
+
+    public String getGuidedGrammar() {
+        return guidedGrammar;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -199,6 +219,10 @@ public final class TextChatRequest {
         private Boolean includeReasoning;
         private String reasoningEffort;
         private JsonSchemaObject jsonSchema;
+        private Set<String> guidedChoice;
+        private String guidedRegex;
+        private String guidedGrammar;
+
         private String context;
 
         private Builder() {}
@@ -266,6 +290,9 @@ public final class TextChatRequest {
             jsonSchema = parameters.getJsonSchema();
             context = parameters.getContext();
             timeLimit = parameters.getTimeLimit();
+            guidedChoice = parameters.getGuidedChoice();
+            guidedRegex = parameters.getGuidedRegex();
+            guidedGrammar = parameters.getGuidedGrammar();
             return this;
         }
 

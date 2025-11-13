@@ -118,6 +118,9 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .topLogprobs(10)
                 .topP(1.2)
+                .guidedChoice("guidedChoice")
+                .guidedGrammar("guidedGrammar")
+                .guidedRegex("guidedRegex")
                 .responseAsJsonSchema("test", Map.of(), false)
                 .build();
 
@@ -196,17 +199,63 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             assertEquals("application/json", actualRequest.headers().firstValue("Content-Type").orElse(""));
             assertEquals("POST", actualRequest.method());
 
-            String expectedBody = Json.toJson(
-                TextChatRequest.builder()
-                    .modelId("my-super-model")
-                    .projectId("project-id")
-                    .spaceId("space-id")
-                    .messages(messages)
-                    .parameters(chatParameters)
-                    .timeLimit(chatParameters.getTimeLimit())
-                    .build());
+            String expectedBody = """
+                {
+                   "model_id":"my-super-model",
+                   "space_id":"space-id",
+                   "project_id":"project-id",
+                   "messages":[
+                      {
+                         "role":"user",
+                         "content":[
+                            {
+                               "type":"text",
+                               "text":"Hello"
+                            }
+                         ]
+                      }
+                   ],
+                   "tool_choice_option":"required",
+                   "tool_choice":{
+                      "function":{
+                         "name":"my-tool"
+                      },
+                      "type":"function"
+                   },
+                   "frequency_penalty":2.0,
+                   "logit_bias":{
+                      "test":-10
+                   },
+                   "logprobs":true,
+                   "top_logprobs":10,
+                   "max_completion_tokens":0,
+                   "n":10,
+                   "presence_penalty":1.0,
+                   "seed":10,
+                   "stop":[
+                      "stop"
+                   ],
+                   "temperature":1.0,
+                   "top_p":1.2,
+                   "time_limit":60000,
+                   "response_format":{
+                      "json_schema":{
+                         "name":"test",
+                         "schema":{
 
-            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+                         },
+                         "strict":false
+                      },
+                      "type":"json_schema"
+                   },
+                   "guided_choice":[
+                      "guidedChoice"
+                   ],
+                   "guided_regex":"guidedRegex",
+                   "guided_grammar":"guidedGrammar"
+                }""";
+
+            JSONAssert.assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest), true);
         });
     }
 

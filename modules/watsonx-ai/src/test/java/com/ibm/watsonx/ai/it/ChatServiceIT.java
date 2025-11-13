@@ -529,6 +529,26 @@ public class ChatServiceIT {
             var ex = assertThrows(WatsonxException.class, () -> chatService.chat(request));
             assertTrue(ex.getMessage().contains("Provided API key could not be found."));
         }
+
+        @Test
+        void test_chat_guided_choice() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .apiKey(API_KEY)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("2 + 2 is equal to 5"))
+                .parameters(ChatParameters.builder().guidedChoice("Yes", "No").build())
+                .build();
+
+            assertEquals("No", chatService.chat(request).extractContent());
+        }
     }
 
     @Nested
@@ -1129,6 +1149,42 @@ public class ChatServiceIT {
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
             assertEquals(1, assistantMessage.toolCalls().size());
+        }
+
+        @Test
+        void test_chat_guided_choice() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .apiKey(API_KEY)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("2 + 2 is equal to 5"))
+                .parameters(ChatParameters.builder().guidedChoice("Yes", "No").build())
+                .build();
+
+            CompletableFuture<String> future = new CompletableFuture<>();
+            assertDoesNotThrow(() -> chatService.chatStreaming(request, new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    future.complete(completeResponse.extractContent());
+                }
+
+                @Override
+                public void onError(Throwable error) {}
+            }));
+
+            var response = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+            assertEquals("No", response);
         }
 
         private ChatHandler createChatHandler(CompletableFuture<String> future) {
