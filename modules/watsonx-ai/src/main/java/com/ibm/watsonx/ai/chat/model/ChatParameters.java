@@ -10,6 +10,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
@@ -37,6 +38,9 @@ public final class ChatParameters extends WatsonxModelParameters {
 
     private final String toolChoiceOption;
     private final Map<String, Object> toolChoice;
+    private final Set<String> guidedChoice;
+    private final String guidedRegex;
+    private final String guidedGrammar;
     private final Double frequencyPenalty;
     private final Map<String, Integer> logitBias;
     private final Boolean logprobs;
@@ -81,6 +85,10 @@ public final class ChatParameters extends WatsonxModelParameters {
         this.toolChoice = nonNull(builder.toolChoice)
             ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
             : null;
+
+        this.guidedChoice = builder.guidedChoice;
+        this.guidedRegex = builder.guidedRegex;
+        this.guidedGrammar = builder.guidedGrammar;
     }
 
     public String getToolChoiceOption() {
@@ -147,6 +155,18 @@ public final class ChatParameters extends WatsonxModelParameters {
         return jsonSchema;
     }
 
+    public Set<String> getGuidedChoice() {
+        return guidedChoice;
+    }
+
+    public String getGuidedRegex() {
+        return guidedRegex;
+    }
+
+    public String getGuidedGrammar() {
+        return guidedGrammar;
+    }
+
     public String getContext() {
         return context;
     }
@@ -177,6 +197,9 @@ public final class ChatParameters extends WatsonxModelParameters {
     public final static class Builder extends WatsonxModelParameters.Builder<Builder> {
         private ToolChoiceOption toolChoiceOption;
         private String toolChoice;
+        private Set<String> guidedChoice;
+        private String guidedRegex;
+        private String guidedGrammar;
         private Double frequencyPenalty;
         private Map<String, Integer> logitBias;
         private Boolean logprobs;
@@ -208,6 +231,53 @@ public final class ChatParameters extends WatsonxModelParameters {
          */
         public Builder toolChoiceOption(ToolChoiceOption toolChoiceOption) {
             this.toolChoiceOption = toolChoiceOption;
+            return this;
+        }
+
+        /**
+         * Specifies a set of allowed output choices.
+         * <p>
+         * When this parameter is set, the model is constrained to return exactly one of the provided choices.
+         *
+         * @param guidedChoice a variable number of allowed output strings
+         */
+        public Builder guidedChoice(String... guidedChoice) {
+            return guidedChoice(Set.of(guidedChoice));
+        }
+
+        /**
+         * Specifies a set of allowed output choices.
+         * <p>
+         * When this parameter is set, the model is constrained to return exactly one of the provided choices.
+         *
+         * @param guidedChoice a variable number of allowed output strings
+         */
+        public Builder guidedChoice(Set<String> guidedChoices) {
+            this.guidedChoice = guidedChoices;
+            return this;
+        }
+
+        /**
+         * Constrains the model output to match a regular expression pattern.
+         * <p>
+         * If specified, the generated output must conform to the provided regex.
+         *
+         * @param guidedRegex the regex pattern that the output must match
+         */
+        public Builder guidedRegex(String guidedRegex) {
+            this.guidedRegex = guidedRegex;
+            return this;
+        }
+
+        /**
+         * Constrains the model output to follow a context-free grammar.
+         * <p>
+         * If specified, the generated output will conform to the defined grammar.
+         *
+         * @param guidedGrammar the context-free grammar string that the output must follow
+         */
+        public Builder guidedGrammar(String guidedGrammar) {
+            this.guidedGrammar = guidedGrammar;
             return this;
         }
 
