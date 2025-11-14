@@ -152,7 +152,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
         var semanticConfig = isNull(getSemanticConfig())
             ? null
             : new Parameters.SemanticConfig(
-                this.semanticConfig.getTargetImageWidth(),
                 this.semanticConfig.getEnableTextHints(),
                 this.semanticConfig.getEnableGenericKvp(),
                 this.semanticConfig.getEnableSchemaKvp(),

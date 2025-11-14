@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.textprocessing.textclassification;
 
 import java.util.List;
+import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 
 /**
@@ -16,5 +17,14 @@ public record Parameters(
     Boolean autoRotationCorrection,
     List<String> languages,
     SemanticConfig semanticConfig) {
-    public record SemanticConfig(String schemasMergeStrategy, List<Schema> schemas) {}
+    public record SemanticConfig(
+        Boolean enableTextHints,
+        Boolean enableGenericKvp,
+        Boolean enableSchemaKvp,
+        String groundingMode,
+        String forceSchemaName,
+        String defaultModelName,
+        Map<String, Object> taskModelNameOverride,
+        String schemasMergeStrategy,
+        List<Schema> schemas) {}
 }

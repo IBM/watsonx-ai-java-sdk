@@ -102,7 +102,16 @@ public final class TextClassificationParameters extends WatsonxParameters {
     public Parameters toParameters() {
         var semanticConfig = isNull(getSemanticConfig())
             ? null
-            : new Parameters.SemanticConfig(this.semanticConfig.getSchemasMergeStrategy(), this.semanticConfig.getSchemas());
+            : new Parameters.SemanticConfig(
+                this.semanticConfig.getEnableTextHints(),
+                this.semanticConfig.getEnableGenericKvp(),
+                this.semanticConfig.getEnableSchemaKvp(),
+                this.semanticConfig.getGroundingMode(),
+                this.semanticConfig.getForceSchemaName(),
+                this.semanticConfig.getDefaultModelName(),
+                this.semanticConfig.getTaskModelNameOverride(),
+                this.semanticConfig.getSchemasMergeStrategy(),
+                this.semanticConfig.getSchemas());
 
         return new Parameters(
             getOcrMode(),

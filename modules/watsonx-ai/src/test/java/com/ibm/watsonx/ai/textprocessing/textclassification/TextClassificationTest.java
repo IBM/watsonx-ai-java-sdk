@@ -111,7 +111,13 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                         "en"
                     ],
                     "semantic_config": {
+                        "enable_text_hints": true,
+                        "enable_generic_kvp": true,
+                        "enable_schema_kvp": true,
+                        "grounding_mode": "fast",
                         "schemas_merge_strategy": "replace",
+                        "force_schema_name": "None",
+                        "default_model_name": "defaultModelName",
                         "schemas": [
                             {
                                 "document_description": "A vendor-issued invoice listing purchased items, prices, and payment information.",
@@ -158,7 +164,10 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                                 "document_description": "A legal document outlining terms and conditions between two parties.",
                                 "document_type": "Contract"
                             }
-                        ]
+                        ],
+                        "task_model_name_override": {
+                            "test": "test"
+                        }
                     }
             }""";
 
@@ -216,6 +225,13 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         KvpPage pages = KvpPage.of("Invoice page", KvpSlice.of(fields, List.of(0.0, 0.0, 1.0, 1.0)));
 
         TextClassificationSemanticConfig semanticConfig = TextClassificationSemanticConfig.builder()
+            .enableGenericKvp(true)
+            .enableTextHints(true)
+            .enableSchemaKvp(true)
+            .groundingMode("fast")
+            .forceSchemaName("None")
+            .defaultModelName("defaultModelName")
+            .taskModelNameOverride(Map.of("test", "test"))
             .schemasMergeStrategy(SchemaMergeStrategy.REPLACE)
             .schemas(
                 Schema.builder()
