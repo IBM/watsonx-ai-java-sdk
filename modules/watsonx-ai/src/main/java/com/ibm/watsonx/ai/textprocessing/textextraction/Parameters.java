@@ -28,7 +28,6 @@ public record Parameters(
     }
 
     public record SemanticConfig(
-        Integer targetImageWidth,
         Boolean enableTextHints,
         Boolean enableGenericKvp,
         Boolean enableSchemaKvp,

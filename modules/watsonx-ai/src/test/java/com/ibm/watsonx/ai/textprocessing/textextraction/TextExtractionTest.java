@@ -211,7 +211,6 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "output_tokens": true,
                     "kvp_mode": "generic_with_semantic",
                     "semantic_config": {
-                        "target_image_width": 1024,
                         "enable_text_hints": true,
                         "enable_generic_kvp": true,
                         "enable_schema_kvp": true,
@@ -344,7 +343,6 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .build();
 
         TextExtractionSemanticConfig semanticConfig = TextExtractionSemanticConfig.builder()
-            .targetImageWidth(1024)
             .enableGenericKvp(true)
             .enableTextHints(true)
             .enableSchemaKvp(true)
