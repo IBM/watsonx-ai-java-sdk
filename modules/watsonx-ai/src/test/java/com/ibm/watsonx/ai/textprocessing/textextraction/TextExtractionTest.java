@@ -195,7 +195,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_extraction_parameters() throws Exception {
+    void should_build_text_extraction_parameters_and_start_extraction() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("token");
 
@@ -450,7 +450,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_start_extraction_without_parameters() throws Exception {
+    void should_start_extraction() throws Exception {
 
         var EXPECTED = """
               {
@@ -554,7 +554,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_start_extraction_with_parameters() throws Exception {
+    void should_start_extraction_with_parameters() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
@@ -625,7 +625,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_extraction_page_images() throws Exception {
+    void should_start_extraction_with_page_images_output() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
@@ -684,7 +684,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_extraction_multiple_outputs() throws Exception {
+    void should_start_extraction_with_multiple_outputs() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
@@ -743,7 +743,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_extraction_fetch() {
+    void should_fetch_extraction_request() {
 
         var RESULT =
             """
@@ -876,7 +876,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_extraction_delete() {
+    void should_delete_extraction_request() {
 
         var projectId = URLEncoder.encode("<project_id>", Charset.defaultCharset());
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
@@ -968,7 +968,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_exceptions() throws Exception {
+    void should_throw_exception_when_http_request_fails() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockHttpClient.send(any(), any(BodyHandler.class)))
@@ -1011,14 +1011,14 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_file_utils() {
+    void should_add_correct_extension_based_on_output_type() {
         assertEquals("file.json", TextExtractionUtils.addExtension("file.json", Type.JSON));
         assertEquals("file.html", TextExtractionUtils.addExtension("file.json", Type.HTML));
         assertEquals("/", TextExtractionUtils.addExtension("/", Type.PAGE_IMAGES));
     }
 
     @Test
-    void test_read_file() {
+    void should_read_file() {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1033,7 +1033,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void extractAndFetchTest() throws Exception {
+    void should_extract_and_fetch_text_from_existing_file() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1052,7 +1052,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void uploadExtractAndFetchInputStreamTest() throws Exception {
+    void should_upload_extract_and_fetch_using_input_stream() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1073,7 +1073,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void uploadExtractAndFetchTest() throws Exception {
+    void should_upload_extract_and_fetch_using_file() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1094,7 +1094,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void uploadExtractAndFetchFileNotFoundTest() throws Exception {
+    void should_throw_exception_when_uploading_non_existent_file() throws Exception {
 
         var file = new File("doesnotexist.pdf");
         var outputFileName = file.getName().replace(".pdf", ".txt");
@@ -1114,7 +1114,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void startExtractionTest() throws Exception {
+    void should_start_extraction_for_existing_file() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1133,7 +1133,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void uploadAndStartExtractionTest() throws Exception {
+    void should_upload_and_start_extraction_using_file() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1154,7 +1154,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void uploadAndStartExtractionFileNotFoundTest() throws Exception {
+    void should_throw_exception_when_uploading_and_starting_with_non_existent_file() throws Exception {
 
         var file = new File("doesnotexist.pdf");
         var outputFileName = file.getName().replace(".pdf", ".txt");
@@ -1175,7 +1175,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void uploadAndStartExtractionInputStreamTest() throws Exception {
+    void should_upload_and_start_extraction_using_input_stream() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1196,7 +1196,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void forceRemoveOutputAndUploadedFiles() throws Exception {
+    void should_remove_uploaded_and_output_files_after_extraction() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
@@ -1255,7 +1255,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void mdOutputFileNameTest() throws Exception {
+    void should_use_md_extension_when_output_type_is_md() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1272,7 +1272,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void jsonOutputFileNameTest() throws Exception {
+    void should_use_json_extension_when_output_type_is_json() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = "test.json";
@@ -1289,7 +1289,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void textPlainOutputFileNameTest() throws Exception {
+    void should_use_txt_extension_when_output_type_is_plain_text() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = "test.txt";
@@ -1306,7 +1306,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void pageImagesOutputFolderTest() throws Exception {
+    void should_use_folder_when_output_type_is_page_images() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFolderName = "/";
@@ -1323,7 +1323,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void multipleTypeOutputFolderTest() throws Exception {
+    void should_use_folder_when_multiple_output_types_are_requested() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFolderName = "/";
@@ -1341,7 +1341,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void startExtractionWithOutputFolderName() throws Exception {
+    void should_start_extraction_with_custom_output_folder() throws Exception {
 
         var outputFolderName = "myFolder/";
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
@@ -1362,7 +1362,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void startExtractionWithOutputFolderNameAndMultipleTypes() throws Exception {
+    void should_start_extraction_with_custom_folder_and_multiple_outputs() throws Exception {
 
         var outputFolderName = "myFolder/";
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
@@ -1386,7 +1386,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void fetchWithMultipleTypes() throws URISyntaxException {
+    void should_throw_exception_when_fetching_multiple_output_files() throws URISyntaxException {
 
         var outputFolderName = "myFolder/";
 
@@ -1454,7 +1454,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
 
     @Test
-    void fetchPageImages() throws URISyntaxException {
+    void should_throw_exception_when_fetching_page_images_output() throws URISyntaxException {
 
         var outputFolderName = "myFolder/";
         var inputStream = TextExtractionTest.class.getClassLoader().getResourceAsStream(FILE_NAME);
@@ -1500,7 +1500,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void simulateLongResponseTest() throws Exception {
+    void should_handle_long_running_extraction_with_retries() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
@@ -1553,7 +1553,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void simulateTimeoutResponseTest() {
+    void should_throw_exception_when_extraction_timeout_exceeded() {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
@@ -1615,7 +1615,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void simulateFailedStatusOnResponseTest() throws Exception {
+    void should_throw_exception_when_extraction_job_fails() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
@@ -1693,7 +1693,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void noSuchBucketTest() throws Exception {
+    void should_throw_exception_when_bucket_does_not_exist() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1743,7 +1743,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void noSuchKeyTest() throws Exception {
+    void should_throw_exception_when_output_file_not_found() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1808,7 +1808,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void textExtractionEventDoesntExistTest() {
+    void should_throw_exception_when_extraction_event_not_found() {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1838,7 +1838,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void checkExtractionStatusTest() throws TextExtractionException {
+    void should_check_extraction_status_successfully() throws TextExtractionException {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
@@ -1857,7 +1857,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void overrideConnectionIdAndBucket() throws Exception {
+    void should_override_connection_and_bucket_parameters() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -1976,7 +1976,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void deleteFileTest() {
+    void should_delete_file_from_cos_with_retry_on_failure() {
 
         when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
@@ -2013,7 +2013,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_delete_file_file_not_found() {
+    void should_throw_exception_when_deleting_non_existent_file() {
 
         when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
@@ -2038,7 +2038,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_upload_file() throws Exception {
+    void should_upload_file_successfully() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
@@ -2051,7 +2051,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
     @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
-    void test_upload_file_doesnt_exist() throws Exception {
+    void should_throw_exception_when_uploading_non_existent_file_to_cos() throws Exception {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
         var file = new File("doesnotexist.pdf");

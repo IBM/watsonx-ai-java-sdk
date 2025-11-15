@@ -42,7 +42,7 @@ public class TimeSeriesServiceIT {
         .build();
 
     @Test
-    void test_forecast() {
+    void should_return_forecast_results_with_valid_metadata_and_output() {
 
         var inputSchema = InputSchema.builder()
             .timestampColumn("date")

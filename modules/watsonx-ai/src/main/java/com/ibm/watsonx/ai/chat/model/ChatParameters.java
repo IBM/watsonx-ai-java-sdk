@@ -5,8 +5,8 @@
 package com.ibm.watsonx.ai.chat.model;
 
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -392,13 +392,12 @@ public final class ChatParameters extends WatsonxModelParameters {
         }
 
         /**
-         * Sets a maximum time limit for the completion generation. If this time is exceeded, the generation halts and returns what's generated so
-         * far.
+         * Sets a maximum time limit for the completion generation.
          *
          * @param timeLimit {@link Duration} time limit.
          */
         public Builder timeLimit(Duration timeLimit) {
-            this.timeLimit = requireNonNullElse(timeLimit, Duration.ofSeconds(10)).toMillis();
+            this.timeLimit = isNull(timeLimit) ? null : timeLimit.toMillis();
             return this;
         }
 

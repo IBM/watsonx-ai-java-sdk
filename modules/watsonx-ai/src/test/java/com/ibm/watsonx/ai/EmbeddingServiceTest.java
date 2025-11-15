@@ -41,7 +41,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_embedding() throws Exception {
+    void should_return_embeddings_for_multiple_inputs() throws Exception {
 
         final String REQUEST = """
             {
@@ -96,7 +96,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_embedding_parameters() throws Exception {
+    void should_return_embeddings_with_parameters() throws Exception {
 
         final String REQUEST = """
             {
@@ -189,7 +189,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_embedding_exception() throws Exception {
+    void should_throw_runtime_exception_on_embedding_error() throws Exception {
 
         var error = new WatsonxError(
             400, "error", List.of(new Error("X", "X", "X")));
@@ -217,7 +217,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_exception() throws Exception {
+    void should_throw_runtime_exception_on_http_client_error() throws Exception {
 
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 

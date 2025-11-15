@@ -47,7 +47,7 @@ public class ToolServiceIT {
         .build();
 
     @Test
-    void test() {
+    void should_return_all_tools_with_valid_metadata() {
         var response = toolService.getAll();
         assertNotNull(response);
         assertNotNull(response.resources());
@@ -60,7 +60,7 @@ public class ToolServiceIT {
     }
 
     @Test
-    void test_get_by_name() {
+    void should_return_tool_by_name_with_valid_metadata() {
         var response = toolService.getByName("GoogleSearch");
         assertNotNull(response);
         assertNotNull(response.name());
@@ -71,7 +71,7 @@ public class ToolServiceIT {
     }
 
     @Test
-    void test_run() {
+    void should_execute_tool_and_return_non_blank_result() {
         ToolRequest request = ToolRequest.structuredInput("WebCrawler", Map.of("url", "https://github.com/IBM/watsonx-ai-java-sdk"));
         var result = toolService.run(request);
         assertNotNull(toolService.run(request));
@@ -79,7 +79,7 @@ public class ToolServiceIT {
     }
 
     @Test
-    void test_google_search_tool() {
+    void should_return_google_search_results_for_query() {
         GoogleSearchTool googleSearchTool = new GoogleSearchTool(toolService);
         List<GoogleSearchResult> results = googleSearchTool.search("watsonx.ai java sdk", 1);
         assertNotNull(results);
@@ -90,7 +90,7 @@ public class ToolServiceIT {
     }
 
     @Test
-    void test_wikipedia_tool() {
+    void should_return_wikipedia_search_result_for_query() {
         WikipediaTool wikipediaTool = new WikipediaTool(toolService);
         String result = wikipediaTool.search("watsonx.ai");
         assertNotNull(result);
@@ -98,7 +98,7 @@ public class ToolServiceIT {
     }
 
     @Test
-    void test_weather_tool() {
+    void should_return_weather_information_for_location() {
         WeatherTool weatherTool = new WeatherTool(toolService);
         String result = weatherTool.find("Rome");
         assertNotNull(result);
@@ -106,7 +106,7 @@ public class ToolServiceIT {
     }
 
     @Test
-    void test_web_crawler_tool() {
+    void should_process_web_page_and_return_content() {
         WebCrawlerTool webCrawlerTool = new WebCrawlerTool(toolService);
         String result = webCrawlerTool.process("https://github.com/IBM/watsonx-ai-java-sdk");
         assertNotNull(result);
@@ -114,7 +114,7 @@ public class ToolServiceIT {
 
     @Test
     @EnabledIfEnvironmentVariable(named = "TAVILY_SEARCH_API_KEY", matches = ".+")
-    void test_tavily_search_tool() {
+    void test_tashould_return_tavily_search_results_for_queryvily_search_tool() {
         String tavilyApiKey = System.getenv("TAVILY_SEARCH_API_KEY");
         TavilySearchTool tavilySearchTool = new TavilySearchTool(toolService, tavilyApiKey);
         List<TavilySearchResult> results = tavilySearchTool.search("watsonx.ai java sdk", 1);
@@ -127,7 +127,7 @@ public class ToolServiceIT {
 
     @Test
     @EnabledIfEnvironmentVariable(named = "PYTHON_INTERPRETER_DEPLOYMENT_ID", matches = ".+")
-    void test_python_interpreter_tool() {
+    void should_execute_python_code_and_return_output() {
         String deploymentId = System.getenv("PYTHON_INTERPRETER_DEPLOYMENT_ID");
         PythonInterpreterTool pythonInterpreterTool = new PythonInterpreterTool(toolService, deploymentId);
         String result = pythonInterpreterTool.execute("print(\"Hello World!\")");

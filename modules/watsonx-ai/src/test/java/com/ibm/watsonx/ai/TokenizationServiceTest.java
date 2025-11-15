@@ -44,7 +44,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_tokenization() throws Exception {
+    void should_tokenize_text_synchronously() throws Exception {
 
         final String REQUEST = """
             {
@@ -81,7 +81,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_async_tokenization() throws Exception {
+    void should_tokenize_text_asynchronously() throws Exception {
 
         final String REQUEST = """
             {
@@ -121,7 +121,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_tokenization_with_parameters() throws Exception {
+    void should_tokenize_text_with_parameter() throws Exception {
 
         final String REQUEST = """
             {
@@ -185,7 +185,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_tokenization_override_default_parameters() throws Exception {
+    void should_override_default_parameters() throws Exception {
 
         final String REQUEST = """
             {
@@ -232,7 +232,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_tokenization_exception() throws Exception {
+    void should_throw_runtime_exception_when_tokenization_fails() throws Exception {
 
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
 
@@ -247,7 +247,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_executor() throws Exception {
+    void should_use_correct_executors() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("""

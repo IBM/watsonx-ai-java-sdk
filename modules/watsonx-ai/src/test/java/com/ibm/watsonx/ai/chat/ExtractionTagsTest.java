@@ -12,7 +12,7 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 public class ExtractionTagsTest {
 
     @Test
-    void test_extraction_tags_1() {
+    void should_extract_thinking_and_response_with_single_tag() {
 
         var text = """
             <think>I'm thinking</think>
@@ -28,7 +28,7 @@ public class ExtractionTagsTest {
     }
 
     @Test
-    void test_extraction_tags_2() {
+    void should_extract_thinking_and_response_with_both_tags() {
 
         var text = """
             <think>I'm thinking</think>
@@ -44,7 +44,7 @@ public class ExtractionTagsTest {
     }
 
     @Test
-    void test_extraction_tags_3() {
+    void should_extract_thinking_and_response_with_nested_tags() {
 
         var text = """
             <think>I'm thinking</think>
@@ -56,7 +56,7 @@ public class ExtractionTagsTest {
     }
 
     @Test
-    void test_extraction_tags_4() {
+    void should_extract_thinking_and_response_without_whitespace() {
 
         var text = """
             <think>I'm thinking</think>This is the response""";
@@ -67,7 +67,7 @@ public class ExtractionTagsTest {
     }
 
     @Test
-    void test_extraction_tags_5() {
+    void should_extract_thinking_and_response_from_complex_multiline_text() {
 
         var text =
             """
@@ -200,7 +200,7 @@ public class ExtractionTagsTest {
     }
 
     @Test
-    void test_extraction_tags_6() {
+    void should_return_null_when_no_tags_present() {
         var extractionTags = ExtractionTags.of("<think>", "<response>");
         assertNull(extractionTags.extractThinking("Hello!"));
         assertNull(extractionTags.extractResponse("Hello!"));

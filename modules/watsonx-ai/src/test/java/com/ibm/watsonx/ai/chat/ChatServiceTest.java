@@ -95,7 +95,7 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 public class ChatServiceTest extends AbstractWatsonxTest {
 
     @Test
-    void try_all_chat_parameters() {
+    void should_send_all_chat_parameters_correctly_and_receive_response() {
 
         withWatsonxServiceMock(() -> {
 
@@ -260,7 +260,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void try_default_chat_parameters() throws Exception {
+    void should_use_default_chat_parameters_and_send_request_correctly() throws Exception {
 
         withWatsonxServiceMock(() -> {
 
@@ -326,7 +326,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void text_chat() throws Exception {
+    void should_send_text_chat_messages_with_parameters() throws Exception {
 
         final String REQUEST = """
             {
@@ -419,7 +419,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void tool_call() throws Exception {
+    void should_call_tool_and_parse_tool_response_correctly() throws Exception {
 
         final String REQUEST = """
             {
@@ -539,7 +539,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void text_mode() throws Exception {
+    void should_return_text_response_when_response_mode_is_text() throws Exception {
 
         final String REQUEST = """
             {
@@ -613,7 +613,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void json_mode() throws Exception {
+    void should_return_json_response_when_response_mode_is_json() throws Exception {
 
         final String REQUEST = """
             {
@@ -691,7 +691,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     record Population(int value, String density) {}
 
     @Test
-    void json_schema() throws Exception {
+    void should_return_json_schema_response_and_parse_it_correctly() throws Exception {
 
         final String REQUEST = """
               {
@@ -845,7 +845,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_tool_calls() throws Exception {
+    void should_throw_exception_when_tool_call_response_contains_no_text() throws Exception {
 
         final String REQUEST = """
             {
@@ -944,7 +944,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_tool_call_without_parameters() throws Exception {
+    void should_throw_exception_when_tool_call_without_parameters_contains_no_text() throws Exception {
 
         final String REQUEST = """
             {
@@ -1027,7 +1027,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_tool_calls_with_result() throws Exception {
+    void should_return_text_result_after_tool_call_with_output() throws Exception {
 
         final String REQUEST = """
                  {
@@ -1156,7 +1156,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_content_user_message() throws Exception {
+    void should_send_text_content_in_user_message() throws Exception {
 
         final String REQUEST = """
             {
@@ -1220,7 +1220,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_image_content_user_message() throws Exception {
+    void should_send_image_content_in_user_message() throws Exception {
 
         var bytes = getClass().getClassLoader().getResourceAsStream("IBM.svg").readAllBytes();
         var file = new File(getClass().getClassLoader().getResource("IBM.svg").toURI());
@@ -1301,7 +1301,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_video_content_user_message() throws Exception {
+    void should_send_video_content_in_user_message() throws Exception {
 
         final String REQUEST = """
             {
@@ -1375,7 +1375,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_control_message() throws Exception {
+    void should_send_control_message_and_extract_thinking_and_response() throws Exception {
 
         final String REQUEST = """
               {
@@ -1470,7 +1470,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_control_message_with_single_tag() throws Exception {
+    void should_extract_thinking_and_response_from_control_message_with_single_tag() throws Exception {
 
         final String REQUEST = """
               {
@@ -1562,7 +1562,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
 
     @Test
-    void chat_streaming_test() throws Exception {
+    void should_stream_chat_response_in_chunks_correctly() throws Exception {
 
         final String VERSION = "2020-03-15";
         var httpPort = wireMock.getPort();
@@ -1696,7 +1696,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void chat_streaming_tool_test() throws Exception {
+    void should_stream_tool_calls_and_capture_partial_and_complete_tool_responses() throws Exception {
 
         var httpPort = wireMock.getPort();
 
@@ -1915,7 +1915,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void chat_streaming_tool_choice_required_test() throws Exception {
+    void should_stream_chat_response_and_handle_required_tool_choice_correctly() throws Exception {
 
         var httpPort = wireMock.getPort();
 
@@ -2372,7 +2372,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void chat_streaming_on_error() throws Exception {
+    void should_handle_error_in_chat_streaming() throws Exception {
 
         var httpPort = wireMock.getPort();
 
@@ -2450,7 +2450,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void chat_streaming_on_complete_exception() throws Exception {
+    void should_throw_exception_when_on_complete_handler_fails() throws Exception {
 
         var httpPort = wireMock.getPort();
 
@@ -2506,7 +2506,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void chat_tool_choice_option_required() throws Exception {
+    void should_return_tool_calls_when_tool_choice_option_is_required() throws Exception {
 
         // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
         // In this case, the SDK forces the finish response.
@@ -2566,7 +2566,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void parameters_test() {
+    void should_validate_chat_service_parameters_and_throw_exceptions() {
 
         var chatHandler = new ChatHandler() {
             @Override
@@ -2635,7 +2635,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_chat_streaming_model_not_supported_exception() throws Exception {
+    void should_throw_model_not_supported_exception_for_invalid_model_in_chat_streaming() throws Exception {
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -2695,7 +2695,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_chat_streaming_error_event() {
+    void should_handle_error_event_and_continue_chat_streaming() {
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
@@ -2754,7 +2754,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_chat_streaming_non_blocking_io_thread() {
+    void should_process_chat_streaming_non_blocking_on_io_thread() {
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withRequestBody(equalToJson(
@@ -2878,7 +2878,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_sync_interceptors() {
+    void should_retry_sync_interceptors_until_success() {
 
         List<WatsonxError.Error> errors =
             List.of(new WatsonxError.Error("authentication_token_expired", "Failed to authenticate the request due to an expired token", ""));
@@ -2958,7 +2958,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_async_interceptors() {
+    void should_retry_async_interceptors_until_success() {
 
         List<WatsonxError.Error> errors =
             List.of(new WatsonxError.Error("authentication_token_expired", "Failed to authenticate the request due to an expired token", ""));
@@ -3116,7 +3116,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_executor() throws Exception {
+    void should_use_correct_executors() throws Exception {
 
         String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_streaming_response.txt").readAllBytes());
 
@@ -3186,7 +3186,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_exception() throws Exception {
+    void should_throw_runtime_exception_on_io_exception() throws Exception {
 
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 
@@ -3203,7 +3203,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_builder_with_api_key() {
+    void should_build_chat_service_with_api_key() {
 
         withWatsonxServiceMock(() -> {
 
@@ -3233,7 +3233,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_serialize_assistant_message() {
+    void should_serialize_assistant_message_without_thinking_field() {
 
         // The thinking field must not be serialized.
         AssistantMessage assistantMessage = new AssistantMessage("content", "thinking", "name", "refusal", null);

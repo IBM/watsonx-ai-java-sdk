@@ -19,7 +19,7 @@ import com.ibm.watsonx.ai.chat.util.StreamingStateTracker.Result;
 public class StreamingStateTrackerTest {
 
     @Test
-    public void streaming_state_tracker_test_1() {
+    public void should_track_state_transitions_with_both_tags_sequential_updates() {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think", "response"));
         assertEquals(new Result(START, Optional.empty()), tracker.update("<think"));
         assertEquals(new Result(THINKING, Optional.of("I")), tracker.update(">I"));
@@ -39,7 +39,7 @@ public class StreamingStateTrackerTest {
     }
 
     @Test
-    public void streaming_state_tracker_test_2() {
+    public void should_track_state_transitions_with_single_thinking_tag() {
         StreamingStateTracker tracker = new StreamingStateTracker(ExtractionTags.of("think"));
         assertEquals(new Result(START, Optional.empty()), tracker.update("<"));
         assertEquals(new Result(START, Optional.empty()), tracker.update("think"));
@@ -55,7 +55,7 @@ public class StreamingStateTrackerTest {
     }
 
     @Test
-    public void streaming_state_tracker_test_3() {
+    public void should_track_state_with_nested_tags_in_thinking_content() {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think"));
         assertEquals(new Result(START, Optional.empty()), tracker.update("<think"));
         assertEquals(new Result(THINKING, Optional.of("I")), tracker.update(">I"));
@@ -71,7 +71,7 @@ public class StreamingStateTrackerTest {
     }
 
     @Test
-    public void streaming_state_tracker_test_4() {
+    public void should_track_state_with_complex_nested_thinking_content() {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think"));
         assertEquals(new Result(START, Optional.empty()), tracker.update("<think"));
         assertEquals(new Result(THINKING, Optional.of("I")), tracker.update(">I"));
@@ -88,7 +88,7 @@ public class StreamingStateTrackerTest {
     }
 
     @Test
-    public void streaming_state_tracker_test_5() {
+    public void should_track_state_with_unicode_escape_sequences() {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think", "response"));
         assertEquals(new Result(START, Optional.empty()), tracker.update(""));
         assertEquals(new Result(START, Optional.empty()), tracker.update("\\u003c"));
@@ -114,7 +114,7 @@ public class StreamingStateTrackerTest {
     }
 
     @Test
-    public void streaming_state_tracker_test_6() {
+    public void should_track_state_with_unicode_escapes_and_no_thinking_detected() {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think", "response"));
         assertEquals(new Result(START, Optional.empty()), tracker.update(""));
         assertEquals(new Result(START, Optional.empty()), tracker.update("\\u003c"));
@@ -140,14 +140,14 @@ public class StreamingStateTrackerTest {
     }
 
     @Test
-    public void streaming_state_tracker_test_7() {
+    public void should_track_state_with_direct_response_and_no_thinking() {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think", "response"));
         assertEquals(new Result(NO_THINKING, Optional.of("He")), tracker.update("He"));
         assertEquals(new Result(NO_THINKING, Optional.of("llo")), tracker.update("llo"));
     }
 
     @Test
-    public void streaming_state_tracker_test_8() {
+    public void should_track_state_with_partial_closing_tags_in_thinking() {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think"));
         assertEquals(new Result(THINKING, Optional.empty()), tracker.update("<think>"));
         assertEquals(new Result(THINKING, Optional.of("The value ")), tracker.update("The value </"));
@@ -161,7 +161,7 @@ public class StreamingStateTrackerTest {
     }
 
     @Test
-    public void streaming_state_tracker_test_9() {
+    public void should_track_state_with_nested_tags_in_thinking_and_response() {
         StreamingStateTracker tracker = new StreamingStateTracker(new ExtractionTags("think", "response"));
         assertEquals(new Result(THINKING, Optional.empty()), tracker.update("<think>"));
         assertEquals(new Result(THINKING, Optional.of("I <think> that the <response>")), tracker.update("I <think> that the <response>"));

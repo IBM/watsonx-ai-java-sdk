@@ -70,7 +70,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_generation_parameters() throws Exception {
+    void should_serialize_parameters_correctly() throws Exception {
 
         var EXPECTED = """
             {
@@ -133,7 +133,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_moderation_parameters() throws Exception {
+    void should_serialize_moderation_parameters_correctly() throws Exception {
 
         var EXPECTED = """
             {
@@ -193,7 +193,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_generation_response() throws Exception {
+    void should_serialize_response_correctly() throws Exception {
 
         var EXPECTED = """
             {
@@ -320,7 +320,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_override_parameters() throws Exception {
+    void should_override_parameters_correctly() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("{}");
@@ -365,7 +365,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_moderation_request() throws Exception {
+    void should_send_moderation_request_correctly() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("{}");
@@ -400,7 +400,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_exception() throws Exception {
+    void should_throw_exceptions_for_invalid_requests() throws Exception {
 
         var textGenerationService = TextGenerationService.builder()
             .authenticationProvider(mockAuthenticationProvider)
@@ -426,7 +426,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void text_generation_streaming_test() throws Exception {
+    void should_stream_text_generation_correctly() throws Exception {
 
         final String VERSION = "2020-03-15";
         var httpPort = wireMock.getPort();
@@ -532,7 +532,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_executor() throws Exception {
+    void should_use_correct_executors() throws Exception {
 
         wireMock.stubFor(post("/ml/v1/text/generation_stream?version=2025-10-01")
 

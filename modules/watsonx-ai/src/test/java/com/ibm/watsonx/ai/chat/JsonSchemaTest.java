@@ -15,7 +15,7 @@ import com.ibm.watsonx.ai.core.Json;
 public class JsonSchemaTest {
 
     @Test
-    void test_object_schema_1() {
+    void should_create_object_schema_with_string_and_integer_constraints() {
 
         final String EXPECTED = """
             {
@@ -47,7 +47,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_object_schema_2() {
+    void should_create_nested_object_schema_with_required_properties() {
 
         final String EXPECTED = """
               {
@@ -94,7 +94,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_object_schema_3() {
+    void should_create_object_schema_with_number_property_and_constraints() {
 
         final String EXPECTED = """
             {
@@ -126,7 +126,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_generic_object_() {
+    void should_create_generic_object_schema_with_additional_properties() {
 
         final String EXPECTED = """
             {
@@ -148,7 +148,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_enum_schema_1() {
+    void should_create_object_schema_with_enum_properties() {
 
         final String EXPECTED = """
             {
@@ -190,7 +190,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_enum_schema_2() {
+    void should_create_object_schema_with_enum_including_null() {
 
         final String EXPECTED = """
             {
@@ -225,7 +225,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_array_schema() {
+    void should_create_object_schema_with_array_property_and_required_fields() {
 
         final String EXPECTED = """
             {
@@ -262,7 +262,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_array_object_schema() {
+    void should_create_object_schema_with_array_of_objects_and_size_constraints() {
 
         final String EXPECTED = """
             {
@@ -310,7 +310,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_array_object_schema_with_contains() {
+    void should_create_object_schema_with_nullable_array_property() {
 
         final String EXPECTED = """
             {
@@ -341,7 +341,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_array_schema_without_mandatory_parameters() {
+    void should_throw_exception_when_array_schema_has_no_items_defined() {
         assertThrows(IllegalArgumentException.class, () -> JsonSchema.object()
             .property("name", JsonSchema.string())
             .property("age", JsonSchema.integer())
@@ -350,7 +350,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_boolean_schema() {
+    void should_create_object_schema_with_boolean_property() {
 
         final String EXPECTED = """
             {
@@ -378,7 +378,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_nullable_description_schema() {
+    void should_create_object_schema_with_nullable_and_described_properties() {
 
         final String EXPECTED = """
             {
@@ -415,7 +415,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_description_schema() {
+    void should_create_object_schema_with_described_properties_and_number_constraints() {
 
         final String EXPECTED = """
             {
@@ -457,7 +457,7 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void test_nullable_schema() {
+    void should_create_object_schema_with_all_nullable_property_types() {
 
         final String EXPECTED = """
             {

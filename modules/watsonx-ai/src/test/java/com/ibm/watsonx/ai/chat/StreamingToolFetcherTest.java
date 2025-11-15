@@ -11,7 +11,7 @@ import com.ibm.watsonx.ai.chat.util.StreamingToolFetcher;
 public class StreamingToolFetcherTest {
 
     @Test
-    void test_streaming_tool_fetcher() {
+    void should_retain_tool_properties_once_set_and_ignore_null_or_empty_updates() {
 
         StreamingToolFetcher fetcher = new StreamingToolFetcher(0);
 

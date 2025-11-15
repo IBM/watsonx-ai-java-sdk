@@ -22,30 +22,30 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression;
 public class FilterTest {
 
     @Test
-    void test_and_filter() {
+    void should_create_and_filter_with_multiple_expressions() {
         var filter = Filter.and(modelId("testModel"), task("summarization"));
         assertEquals("modelid_testModel,task_summarization:and", filter.toString());
     }
 
     @Test
-    void test_or_filter() {
+    void should_create_or_filter_with_multiple_expressions() {
         var filter = Filter.or(modelId("testModel"), task("summarization"));
         assertEquals("modelid_testModel,task_summarization:or", filter.expression());
     }
 
     @Test
-    void test_not_filter() {
+    void should_create_not_filter_with_expression() {
         var filter = Filter.of(not(modelId("testModel")));
         assertEquals("!modelid_testModel", filter.toString());
     }
 
     @Test
-    void test_null_expression_in_not_filter() {
+    void should_throw_exception_when_creating_not_filter_with_null_expression() {
         assertThrows(NullPointerException.class, () -> Expression.not(null));
     }
 
     @Test
-    void test_empty_in_filter() {
+    void should_throw_exception_when_creating_filter_with_empty_value() {
         assertThrows(IllegalArgumentException.class, () -> modelId(""));
         assertThrows(IllegalArgumentException.class, () -> provider(""));
         assertThrows(IllegalArgumentException.class, () -> source(""));
@@ -57,7 +57,7 @@ public class FilterTest {
     }
 
     @Test
-    void test_filters() {
+    void should_create_filter_for_each_expression_type() {
         assertEquals("modelid_test", Filter.of(modelId("test")).toString());
         assertEquals("provider_test", Filter.of(provider("test")).toString());
         assertEquals("source_test", Filter.of(source("test")).toString());

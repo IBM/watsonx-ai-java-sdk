@@ -71,7 +71,7 @@ public class ChatServiceIT {
     class Chat {
 
         @Test
-        void test_chat() {
+        void should_return_valid_chat_response_when_chat_is_invoked() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -112,7 +112,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_messages() {
+        void should_return_answer_containing_user_name_when_chat_messages_are_sent() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -147,7 +147,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_json() {
+        void should_return_valid_poem_json_response() {
 
             record Poem(String content, String topic) {}
 
@@ -186,7 +186,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_json_schema() {
+        void should_return_valid_poem_json_schema() {
 
             record Poem(String content, String topic) {}
 
@@ -224,7 +224,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_thinking() {
+        void should_return_valid_response_when_thinking_is_enabled() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -271,7 +271,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_thinking_with_control_message() {
+        void should_extract_thinking_and_content_when_control_message_is_sent() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -319,9 +319,8 @@ public class ChatServiceIT {
             assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
         }
 
-
         @Test
-        void test_chat_image() throws Exception {
+        void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
@@ -354,7 +353,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_tool() {
+        void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -415,7 +414,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_tool_without_params() {
+        void should_call_tool_without_parameters_when_chat_contains_tool_message() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -443,7 +442,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_tool_choice_option() {
+        void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -477,7 +476,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_tool_choice_option_none() {
+        void should_not_force_tool_execution_when_tool_choice_option_is_set_to_none() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -493,7 +492,7 @@ public class ChatServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
-                .messages(UserMessage.text("Hello!"))
+                .messages(UserMessage.text("Send an email to a@a.it with subject \"a\" and body \"b\""))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
                         .property("to", JsonSchema.string())
@@ -510,7 +509,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_with_invalid_api_key() {
+        void should_throw_exception_when_api_key_is_invalid() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -531,7 +530,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_guided_choice() {
+        void should_return_correct_guided_choice_when_options_are_provided() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -549,12 +548,47 @@ public class ChatServiceIT {
 
             assertEquals("No", chatService.chat(request).extractContent());
         }
+
+        @Test
+        void should_force_tool_call_when_tool_choice_option_is_set() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .authenticationProvider(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatParameters parameters = ChatParameters.builder()
+                .toolChoice("send_email")
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Hello!"))
+                .tools(Tool.of("send_email", "Send an email",
+                    JsonSchema.object()
+                        .property("to", JsonSchema.string())
+                        .property("subject", JsonSchema.string())
+                        .property("body", JsonSchema.string())
+                        .required("to", "body")))
+                .parameters(parameters)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
+            assertNotNull(assistantMessage.toolCalls());
+            assertEquals(1, assistantMessage.toolCalls().size());
+        }
     }
 
     @Nested
     class ChatStreaming {
+
         @Test
-        void test_chat_streaming() throws Exception {
+        void should_return_valid_chat_response_when_chat_streaming_is_invoked() throws Exception {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -582,7 +616,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_json() {
+        void should_return_valid_poem_json_response() {
 
             record Poem(String content, String topic) {}
 
@@ -636,7 +670,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_json_schema() {
+        void should_return_valid_poem_json_schema() {
 
             record Poem(String content, String topic) {}
 
@@ -710,7 +744,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_thinking() {
+        void should_return_valid_response_when_thinking_is_enabled() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -802,7 +836,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_image() throws Exception {
+        void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
@@ -859,7 +893,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_tool() {
+        void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -971,7 +1005,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_tool_without_params() {
+        void should_call_tool_without_parameters_when_chat_contains_tool_message() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -1016,7 +1050,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_shared_handler() throws Exception {
+        void should_handle_multiple_streaming_responses_correctly_when_shared_handler_is_used() throws Exception {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -1066,7 +1100,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_with_invalid_api_key() {
+        void should_throw_exception_when_api_key_is_invalid() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -1103,7 +1137,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_streaming_tool_choice_option() {
+        void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -1152,7 +1186,7 @@ public class ChatServiceIT {
         }
 
         @Test
-        void test_chat_guided_choice() {
+        void should_return_correct_guided_choice_when_options_are_provided() {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)

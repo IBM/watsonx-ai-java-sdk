@@ -31,7 +31,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_rerank() throws Exception {
+    void should_rerank_texts_correctly() throws Exception {
 
         final String REQUEST =
             """
@@ -92,7 +92,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_rerank_parameters() throws Exception {
+    void should_rerank_texts_with_parameters() throws Exception {
 
         final String REQUEST =
             """
@@ -188,7 +188,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_rerank_parameters_2() throws Exception {
+    void should_rerank_texts_with_minimal_parameters() throws Exception {
 
         final String REQUEST =
             """
@@ -272,7 +272,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_rerank_exception() throws Exception {
+    void should_throw_exception_when_rerank_fails() throws Exception {
 
         when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
 

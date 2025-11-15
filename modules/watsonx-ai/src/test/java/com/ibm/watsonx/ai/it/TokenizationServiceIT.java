@@ -37,7 +37,7 @@ public class TokenizationServiceIT {
         .build();
 
     @Test
-    void test_tokenization_sync() {
+    void should_return_tokens_synchronously_when_text_is_provided() {
 
         var response = tokenizationService.tokenize(
             "Tokenize this!",
@@ -54,7 +54,7 @@ public class TokenizationServiceIT {
     }
 
     @Test
-    void test_tokenization_async() throws Exception {
+    void should_return_tokens_asynchronously_when_text_is_provided() throws Exception {
 
         var response = tokenizationService.asyncTokenize(
             "Tokenize this!",

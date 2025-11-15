@@ -51,7 +51,7 @@ public class ClassificationServiceIT {
         .build();
 
     @Test
-    void test_upload_and_start_classification_with_file() throws Exception {
+    void should_upload_file_and_complete_classification_successfully() throws Exception {
 
         var file = Path.of(ClassLoader.getSystemResource("invoice.pdf").toURI()).toFile();
 
@@ -105,7 +105,7 @@ public class ClassificationServiceIT {
     }
 
     @Test
-    void test_upload_extract_and_fetch_with_file() throws Exception {
+    void should_upload_classify_and_fetch_file_successfully() throws Exception {
 
         var file = Path.of(ClassLoader.getSystemResource("invoice.pdf").toURI()).toFile();
 
@@ -134,7 +134,7 @@ public class ClassificationServiceIT {
     }
 
     @Test
-    void test_delete_request() throws Exception {
+    void should_delete_classification_request() throws Exception {
 
         var file = Path.of(ClassLoader.getSystemResource("invoice.pdf").toURI()).toFile();
 
@@ -157,7 +157,7 @@ public class ClassificationServiceIT {
     }
 
     @Test
-    void test_upload_classify_and_fetch_with_inputstream() throws Exception {
+    void should_upload_classify_and_fetch_file_from_inputstream_successfully() throws Exception {
 
         var filename = "invoice.pdf";
         var inputstream = ClassLoader.getSystemResourceAsStream(filename);
@@ -183,7 +183,7 @@ public class ClassificationServiceIT {
     }
 
     @Test
-    void test_classification_with_semantic_config() throws Exception {
+    void should_classify_documents_according_to_semantic_config() throws Exception {
 
         var invoice = Path.of(ClassLoader.getSystemResource("invoice.pdf").toURI()).toFile();
         var unclassified = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
