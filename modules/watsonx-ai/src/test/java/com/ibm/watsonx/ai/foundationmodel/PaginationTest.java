@@ -13,7 +13,7 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelResponse.Pagination;
 public class PaginationTest extends AbstractWatsonxTest {
 
     @Test
-    void test_pagination() {
+    void should_parse_limit_and_start_from_url() {
         var pagination = new Pagination("https://localhost:8080/ml/v1/foundation_model_tasks?version=%s&limit=10".formatted(API_VERSION));
         assertEquals(10, pagination.limit().orElseThrow());
 

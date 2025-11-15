@@ -59,7 +59,7 @@ public class TextExtractionServiceIT {
         .build();
 
     @Test
-    void test_upload_and_start_extraction_with_file() throws Exception {
+    void should_upload_file_and_complete_extraction_successfully() throws Exception {
 
         var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
@@ -118,7 +118,7 @@ public class TextExtractionServiceIT {
 
 
     @Test
-    void test_upload_extract_and_fetch_with_file() throws Exception {
+    void should_upload_extract_and_fetch_text_from_file_correctly() throws Exception {
 
         var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
@@ -150,7 +150,7 @@ public class TextExtractionServiceIT {
     }
 
     @Test
-    void test_delete_request() throws Exception {
+    void should_delete_extraction_request_successfully() throws Exception {
 
         var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
@@ -173,7 +173,7 @@ public class TextExtractionServiceIT {
     }
 
     @Test
-    void test_upload_extract_and_fetch_with_inputstream() throws Exception {
+    void should_upload_extract_and_fetch_text_from_inputstream_correctly() throws Exception {
 
         var filename = "test.pdf";
         var inputstream = ClassLoader.getSystemResourceAsStream(filename);
@@ -207,7 +207,7 @@ public class TextExtractionServiceIT {
     }
 
     @Test
-    void test_multiple_outputs() throws Exception {
+    void should_generate_multiple_output_formats_for_extraction_request() throws Exception {
 
         var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
@@ -236,7 +236,7 @@ public class TextExtractionServiceIT {
     }
 
     @Test
-    void test_ocr() throws Exception {
+    void should_perform_ocr_and_return_text() throws Exception {
 
         var file = Path.of(ClassLoader.getSystemResource("ocr.jpg").toURI()).toFile();
         var parameters = TextExtractionParameters.builder()

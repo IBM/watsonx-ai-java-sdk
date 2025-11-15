@@ -12,7 +12,7 @@ import com.ibm.watsonx.ai.chat.model.FinishReason;
 public class FinishReasonTest {
 
     @Test
-    void test_finish_reason() {
+    void should_return_correct_values_and_handle_from_value_mappings() {
         assertEquals("cancelled", FinishReason.CANCELLED.value());
         assertEquals("error", FinishReason.ERROR.value());
         assertEquals(null, FinishReason.INCOMPLETE.value());

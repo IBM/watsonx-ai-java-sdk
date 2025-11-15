@@ -41,7 +41,7 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
     @Test
-    void test_thinking_without_extraction_tags() {
+    void should_throw_exception_when_thinking_without_extraction_tags() {
 
         withWatsonxServiceMock(() -> {
 
@@ -74,7 +74,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
     class Chat {
 
         @Test
-        void test_thinking_with_extraction_tags() throws Exception {
+        void should_extract_content_and_thinking_with_extraction_tags() throws Exception {
 
             String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_response.txt").readAllBytes());
 
@@ -139,7 +139,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_without_configuration() throws Exception {
+        void should_extract_thinking_without_configuration() throws Exception {
 
             String BODY = new String(ClassLoader.getSystemResourceAsStream("gpt_oss_thinking_response.txt").readAllBytes());
 
@@ -192,7 +192,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_with_efforts() throws Exception {
+        void should_handle_various_thinking_efforts_correctly() throws Exception {
 
             String BODY = new String(ClassLoader.getSystemResourceAsStream("gpt_oss_thinking_response.txt").readAllBytes());
 
@@ -249,7 +249,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_with_enabled_false() throws Exception {
+        void should_not_extract_thinking_when_disabled() throws Exception {
 
             wireMock.stubFor(post("/ml/v1/text/chat?version=%s".formatted(API_VERSION))
                 .withHeader("Authorization", equalTo("Bearer my-token"))
@@ -323,7 +323,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_with_builder() throws Exception {
+        void should_extract_thinking_with_builder() throws Exception {
 
             String BODY = new String(ClassLoader.getSystemResourceAsStream("gpt_oss_thinking_response.txt").readAllBytes());
 
@@ -387,7 +387,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
     class ChatStreaming {
 
         @Test
-        void test_chat_streaming_thinking() throws Exception {
+        void should_stream_partial_thinking_and_content_correctly() throws Exception {
 
             var httpPort = wireMock.getPort();
             String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_streaming_response.txt").readAllBytes());
@@ -508,7 +508,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_chat_streaming_thinking_without_think_result() throws Exception {
+        void should_handle_streaming_without_thinking_result() throws Exception {
 
             wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
                 .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -633,7 +633,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_without_configuration() throws Exception {
+        void should_extract_thinking_without_configuration() throws Exception {
 
             String BODY = new String(ClassLoader.getSystemResourceAsStream("gpt_oss_thinking_streaming_response.txt").readAllBytes());
 
@@ -715,7 +715,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_with_efforts() throws Exception {
+        void should_handle_thinking_efforts() throws Exception {
 
             String BODY = new String(ClassLoader.getSystemResourceAsStream("gpt_oss_thinking_streaming_response.txt").readAllBytes());
 
@@ -801,7 +801,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_with_enabled_false() throws Exception {
+        void should_not_extract_thinking_when_disabled() throws Exception {
 
             wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
                 .withHeader("Authorization", equalTo("Bearer my-token"))
@@ -942,7 +942,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void test_thinking_with_builder() throws Exception {
+        void should_extract_thinking_with_builder() throws Exception {
 
             String BODY = new String(ClassLoader.getSystemResourceAsStream("gpt_oss_thinking_streaming_response.txt").readAllBytes());
 

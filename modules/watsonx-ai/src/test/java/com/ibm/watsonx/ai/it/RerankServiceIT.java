@@ -35,7 +35,7 @@ public class RerankServiceIT {
         .build();
 
     @Test
-    void test_rerank() {
+    void should_return_valid_rerank_response_when_text_and_candidates_are_provided() {
         var response = rerankService.rerank("Rerank this!", List.of("Test to rerank 1", "Test to rerank 2"));
         assertNotNull(response);
         assertNotNull(response.createdAt());

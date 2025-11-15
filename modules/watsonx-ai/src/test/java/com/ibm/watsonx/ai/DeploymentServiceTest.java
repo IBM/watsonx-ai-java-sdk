@@ -89,7 +89,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_generate() throws Exception {
+    void should_generate_text_with_deployment_id_and_parameters() throws Exception {
 
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
@@ -149,7 +149,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_generate_prompt_template() throws Exception {
+    void should_generate_text_with_prompt_template_variables() throws Exception {
 
         withWatsonxServiceMock(() -> {
 
@@ -208,7 +208,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_generate_streaming() throws Exception {
+    void should_stream_text_generation_response() throws Exception {
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -288,7 +288,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_generate_streaming_prompt_template() throws Exception {
+    void should_stream_text_generation_with_prompt_template() throws Exception {
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -402,7 +402,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_chat() throws Exception {
+    void should_chat_with_deployment_and_return_response() throws Exception {
 
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
@@ -484,7 +484,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_chat_streaming() throws Exception {
+    void should_stream_chat_response() throws Exception {
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -640,7 +640,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_chat_streaming_thinking() throws Exception {
+    void should_stream_chat_response_with_thinking() throws Exception {
 
         String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_streaming_response.txt").readAllBytes());
 
@@ -735,7 +735,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_forecast() throws Exception {
+    void should_forecast_time_series_with_deployment() throws Exception {
 
         var EXPECTED = """
             {
@@ -850,7 +850,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_find_by_id_prompt_tune() throws Exception {
+    void should_find_deployment_by_id_for_prompt_tune() throws Exception {
 
         var EXPECTED_RESPONSE = """
             {
@@ -915,7 +915,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_find_by_id_prompt_template() throws Exception {
+    void should_find_deployment_by_id_for_prompt_template() throws Exception {
 
         var EXPECTED_RESPONSE = """
             {
@@ -979,7 +979,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_find_by_id_foundation_model() throws Exception {
+    void should_find_deployment_by_id_for_foundation_model() throws Exception {
 
         var EXPECTED_RESPONSE = """
             {
@@ -1068,7 +1068,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_deployment_resource_conversion() throws Exception {
+    void should_convert_deployment_resource_with_all_fields() throws Exception {
 
         var EXPECTED_RESPONSE = """
             {
@@ -1183,7 +1183,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void chat_tool_choice_option_required() throws Exception {
+    void should_handle_tool_choice_required_in_chat() throws Exception {
 
         // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
         // In this case, the SDK forces the finish response.
@@ -1248,7 +1248,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_executor() throws Exception {
+    void should_use_correct_executors() throws Exception {
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
@@ -1326,7 +1326,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_no_deployment_input() throws Exception {
+    void should_throw_exception_when_deployment_id_not_provided() throws Exception {
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
@@ -1361,7 +1361,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_exception() throws Exception {
+    void should_throw_exception_when_http_request_fails() throws Exception {
 
         when(mockHttpClient.send(any(), any()))
             .thenThrow(new IOException("IOException"))

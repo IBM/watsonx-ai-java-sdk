@@ -29,7 +29,7 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
     @Test
-    void test_get_models_without_parameters() throws Exception {
+    void should_return_models_when_no_parameters_provided() throws Exception {
 
         String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
 
@@ -47,7 +47,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_get_models_with_only_filter_parameter() throws Exception {
+    void should_return_models_when_only_filter_parameter_provided() throws Exception {
 
         String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
 
@@ -73,7 +73,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_get_models_with_parameters() throws Exception {
+    void should_return_models_with_complete_metadata_when_all_parameters_provided() throws Exception {
 
         String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
 
@@ -140,7 +140,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_get_tasks_without_parameters() throws Exception {
+    void should_return_tasks_when_no_parameters_provided() throws Exception {
 
         String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_tasks_response.json").readAllBytes());
 
@@ -157,7 +157,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_get_tasks_with_parameters() throws Exception {
+    void should_return_tasks_with_complete_metadata_when_parameters_provided() throws Exception {
 
         String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_tasks_response.json").readAllBytes());
 
@@ -199,7 +199,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void test_override_parameters() throws Exception {
+    void should_override_version_parameter_in_request() throws Exception {
 
         String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_tasks_response.json").readAllBytes());
 
@@ -213,7 +213,6 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
             var service = FoundationModelService.builder()
                 .baseUrl(CloudRegion.DALLAS)
                 .version("2025-12-12")
-
                 .build();
 
             service.getTasks();
@@ -224,7 +223,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void test_exceptions() throws Exception {
+    void should_throw_runtime_exception_when_http_request_fails() throws Exception {
 
         withWatsonxServiceMock(() -> {
             try {

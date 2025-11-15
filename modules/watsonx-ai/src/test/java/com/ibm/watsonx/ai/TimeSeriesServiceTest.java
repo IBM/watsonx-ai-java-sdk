@@ -37,7 +37,7 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
     @Test
-    void test_forecast_without_parameters() {
+    void should_forecast_without_parameters() {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -126,7 +126,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_forecast_with_parameters() {
+    void should_forecast_with_parameters() {
 
         when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
 
@@ -256,7 +256,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_input_schema() {
+    void should_build_correct_input_schema() {
 
         var EXPECTED = """
             {
@@ -279,7 +279,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_parameters() {
+    void should_serialize_time_series_parameters_correctly() {
 
         var parameters = TimeSeriesParameters.builder()
             .modelId("test")
@@ -296,7 +296,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void test_exception() throws Exception {
+    void should_throw_exception_for_invalid_input_or_http_errors() throws Exception {
 
         withWatsonxServiceMock(() -> {
             TimeSeriesService tsService = TimeSeriesService.builder()

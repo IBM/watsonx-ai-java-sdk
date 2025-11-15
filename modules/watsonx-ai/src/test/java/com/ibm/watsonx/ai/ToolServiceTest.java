@@ -45,7 +45,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_get_all() throws Exception {
+    void should_fetch_all_tools() throws Exception {
 
         var response = """
             {
@@ -101,7 +101,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_get_by_name() throws Exception {
+    void should_fetch_tool_by_name() throws Exception {
 
         var response = """
             {
@@ -149,7 +149,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_run() throws Exception {
+    void should_run_tool_with_various_input_types() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(
@@ -194,7 +194,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_exceptions() throws Exception {
+    void should_throw_runtime_exception_on_http_errors() throws Exception {
 
         withWatsonxServiceMock(() -> {
             try {
@@ -220,7 +220,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_google_search_tool() throws Exception {
+    void should_return_expected_google_search_results() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(
@@ -271,7 +271,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_tavily_search_tool() throws Exception {
+    void should_return_expected_tavily_search_results() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(
@@ -330,7 +330,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_web_crawler_tool() throws Exception {
+    void should_return_expected_web_crawler_output() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(
@@ -366,7 +366,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_weather_tool() throws Exception {
+    void should_return_expected_web_waether_output() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(
@@ -412,7 +412,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_wikipedia_tool() throws Exception {
+    void should_return_expected_wikipedia_search_results() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(
@@ -447,7 +447,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_python_interpreter_tool() {
+    void should_execute_python_code_and_return_output() {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(

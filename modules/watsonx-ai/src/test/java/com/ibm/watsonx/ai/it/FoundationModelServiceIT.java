@@ -27,7 +27,7 @@ public class FoundationModelServiceIT {
         .build();
 
     @Test
-    void test_get_models() {
+    void should_return_all_models_with_valid_metadata() {
         var response = foundationModelService.getModels();
         assertNotNull(response.totalCount());
         assertNotNull(response.limit());
@@ -38,7 +38,7 @@ public class FoundationModelServiceIT {
     }
 
     @Test
-    void test_get_models_with_filter() {
+    void should_return_filtered_model_when_filter_is_applied() {
         var response = foundationModelService.getModels(Filter.of(modelId("ibm/granite-4-h-small")));
         assertEquals(1, response.totalCount());
         assertNotNull(response.resources());
@@ -46,7 +46,7 @@ public class FoundationModelServiceIT {
     }
 
     @Test
-    void test_get_tasks() {
+    void should_return_all_tasks_with_valid_metadata() {
         var response = foundationModelService.getTasks();
         assertNotNull(response.totalCount());
         assertNotNull(response.limit());

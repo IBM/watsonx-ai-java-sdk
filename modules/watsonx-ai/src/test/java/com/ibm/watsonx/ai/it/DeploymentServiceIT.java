@@ -66,7 +66,7 @@ public class DeploymentServiceIT {
 
     @Test
     @EnabledIfEnvironmentVariable(named = "WATSONX_SPACE_ID", matches = ".+")
-    void test_find_by_id() {
+    void should_find_deployment_by_id_when_space_id_is_set() {
 
         String SPACE_ID = System.getenv("WATSONX_SPACE_ID");
 
@@ -89,7 +89,7 @@ public class DeploymentServiceIT {
     class Chat {
 
         @Test
-        void test_chat() {
+        void should_return_valid_chat_response_when_chat_is_invoked() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -112,7 +112,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void test_chat_messages() {
+        void should_return_response_containing_user_name_when_chat_messages_are_sent() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -145,7 +145,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void test_chat_json() {
+        void should_return_valid_poem_json_response() {
 
             record Poem(String content, String topic) {}
 
@@ -183,7 +183,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void test_chat_json_schema() {
+        void should_return_valid_poem_json_schema() {
 
             record Poem(String content, String topic) {}
 
@@ -220,7 +220,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void test_chat_thinking() {
+        void should_extract_thinking_and_content_when_thinking_is_enabled_in_chat() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -254,7 +254,7 @@ public class DeploymentServiceIT {
 
         @Test
         @Disabled("deployment doesn't allow image function")
-        void test_chat_image() throws Exception {
+        void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
@@ -280,7 +280,7 @@ public class DeploymentServiceIT {
 
         @Test
         @Disabled
-        void test_chat_tool() {
+        void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -315,7 +315,7 @@ public class DeploymentServiceIT {
 
         @Test
         @Disabled
-        void test_chat_tool_choice_option() {
+        void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -350,8 +350,9 @@ public class DeploymentServiceIT {
 
     @Nested
     class ChatStreaming {
+
         @Test
-        void test_chat_streaming() throws Exception {
+        void should_return_valid_chat_response_when_chat_is_invoked() throws Exception {
 
             var chatService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -377,7 +378,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void test_chat_streaming_json() {
+        void should_return_valid_poem_json_response() {
 
             record Poem(String content, String topic) {}
 
@@ -430,7 +431,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void test_chat_streaming_json_schema() {
+        void should_return_valid_poem_json_schema() {
 
             record Poem(String content, String topic) {}
 
@@ -482,7 +483,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void test_chat_streaming_thinking() {
+        void should_extract_thinking_and_content_when_thinking_is_enabled_in_chat() {
 
             var chatService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -557,7 +558,7 @@ public class DeploymentServiceIT {
 
         @Test
         @Disabled
-        void test_chat_streaming_image() throws Exception {
+        void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
@@ -613,7 +614,7 @@ public class DeploymentServiceIT {
 
         @Test
         @Disabled
-        void test_chat_streaming_tool() {
+        void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
             var chatService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -696,7 +697,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void test_chat_streaming_shared_handler() throws Exception {
+        void should_handle_multiple_streaming_responses_correctly_when_shared_handler_is_used() throws Exception {
 
             var chatService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -745,7 +746,7 @@ public class DeploymentServiceIT {
 
         @Test
         @Disabled
-        void test_chat_streaming_tool_choice_option() {
+        void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)

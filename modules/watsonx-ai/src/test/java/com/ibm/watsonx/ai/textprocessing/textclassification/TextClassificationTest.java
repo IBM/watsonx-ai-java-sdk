@@ -100,7 +100,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_classification_parameters() throws Exception {
+    void should_build_text_classification_parameters_and_start_classification() throws Exception {
 
         var PARAMETERS = """
             "parameters": {
@@ -306,7 +306,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_start_classification_without_parameters() throws Exception {
+    void should_start_classification() throws Exception {
 
         var RESULT = Files.readString(Path.of(ClassLoader.getSystemResource("classification_response.json").toURI()));
 
@@ -338,7 +338,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_classification_fetch() throws Exception {
+    void should_fetch_classification_request() throws Exception {
 
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
 
@@ -400,7 +400,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_classification_delete() {
+    void should_delete_classification_request() {
 
         var projectId = URLEncoder.encode("project-id", Charset.defaultCharset());
 
@@ -469,7 +469,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_classify_and_fetch() throws Exception {
+    void should_classify_and_fetch_result_for_existing_file() throws Exception {
 
         mockServers(false);
         ClassificationResult result = classificationService.classifyAndFetch("test.pdf");
@@ -487,7 +487,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_upload_classify_and_fetch_with_input_stream() throws Exception {
+    void should_upload_classify_and_fetch_using_input_stream() throws Exception {
 
         mockServers(false);
         var inputStream = ClassLoader.getSystemResourceAsStream("test.pdf");
@@ -506,7 +506,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_upload_classify_and_fetch() throws Exception {
+    void should_upload_classify_and_fetch_using_file() throws Exception {
 
         mockServers(false);
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
@@ -527,7 +527,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
     @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
-    void test_upload_classify_and_fetch_file_not_found() throws Exception {
+    void should_throw_exception_when_uploading_non_existent_file() throws Exception {
 
         mockServers(false);
         var file = new File("doesnotexist.pdf");
@@ -545,7 +545,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_upload_and_start_classification() throws Exception {
+    void should_upload_and_start_classification_using_file() throws Exception {
 
         mockServers(false);
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
@@ -560,7 +560,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
     @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
-    void test_upload_and_start_classification_file_not_found() throws Exception {
+    void should_throw_exception_when_uploading_and_starting_with_non_existent_file() throws Exception {
 
         mockServers(false);
         var file = new File("doesnotexist.pdf");
@@ -577,7 +577,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_upload_and_start_classification_with_input_stream() throws Exception {
+    void should_upload_and_start_classification_using_input_stream() throws Exception {
 
         mockServers(false);
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("test.pdf");
@@ -592,7 +592,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_remove_upload_file() throws Exception {
+    void should_remove_uploaded_file_after_classification() throws Exception {
 
         when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
         mockServers(true);
@@ -638,7 +638,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_simulate_long_response() throws Exception {
+    void should_handle_long_running_classification_with_retries() throws Exception {
 
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
         var RESPONSE = Files.readString(Path.of(ClassLoader.getSystemResource("classification_response.json").toURI()));
@@ -685,7 +685,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_simulate_timeout_response() throws Exception {
+    void should_throw_exception_when_classification_timeout_exceeded() throws Exception {
 
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
 
@@ -740,7 +740,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_error_status_on_response() throws Exception {
+    void should_throw_exception_when_classification_job_fails() throws Exception {
 
         when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
@@ -812,7 +812,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_bucket_not_exist_error() throws Exception {
+    void should_throw_exception_when_bucket_does_not_exist() throws Exception {
 
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
 
@@ -857,7 +857,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_text_classification_event_doesnt_exist() {
+    void should_throw_exception_when_classification_event_not_found() {
 
         watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .withHeader("Authorization", equalTo("Bearer token"))
@@ -886,7 +886,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
     @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
-    void test_delete_file() throws Exception {
+    void should_delete_file() throws Exception {
 
         when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
         cosServer.resetAll();
@@ -922,7 +922,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_upload_file() throws Exception {
+    void should_upload_file() throws Exception {
 
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
         cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
@@ -934,7 +934,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
     @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
-    void test_upload_file_doesnt_exist() throws Exception {
+    void should_throw_exception_when_uploading_a_non_existent_file() throws Exception {
 
         var file = new File("doesnotexist.pdf");
         cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
@@ -949,7 +949,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
     @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
-    void test_objects() {
+    void should_compare_kvp_fields_objects_for_equality() {
 
         KvpFields f1 = KvpFields.builder()
             .add("invoice_date", KvpField.of("The date when the invoice was issued.", "2024-07-10"))
