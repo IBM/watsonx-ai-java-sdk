@@ -36,7 +36,6 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * @see AuthenticationProvider
  */
 public final class TextGenerationService extends ModelService implements TextGenerationProvider {
-
     private static final Logger logger = LoggerFactory.getLogger(TextGenerationService.class);
     private final TextGenerationRestClient client;
 

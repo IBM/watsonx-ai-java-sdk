@@ -33,7 +33,6 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * @see AuthenticationProvider
  */
 public final class TokenizationService extends ModelService {
-
     private final TokenizationRestClient client;
 
     private TokenizationService(Builder builder) {

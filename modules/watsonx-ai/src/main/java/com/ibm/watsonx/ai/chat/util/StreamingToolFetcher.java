@@ -52,9 +52,9 @@ public final class StreamingToolFetcher {
 
     public ToolCall build() {
         // Watsonx doesn't return "id" if the option tool-choice is set to REQUIRED.
-        if (isNull(id)) {
-            this.id = UUID.randomUUID().toString();
-        }
+        if (isNull(id))
+            id = UUID.randomUUID().toString();
+
         return ToolCall.of(index, id, name, arguments.toString().isBlank() ? "{}" : arguments.toString());
     }
 }
