@@ -121,6 +121,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .guidedChoice("guidedChoice")
                 .guidedGrammar("guidedGrammar")
                 .guidedRegex("guidedRegex")
+                .repetitionPenalty(2f)
+                .lengthPenalty(2f)
                 .responseAsJsonSchema("test", Map.of(), false)
                 .build();
 
@@ -252,7 +254,9 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                       "guidedChoice"
                    ],
                    "guided_regex":"guidedRegex",
-                   "guided_grammar":"guidedGrammar"
+                   "guided_grammar":"guidedGrammar",
+                   "repetition_penalty":2.0,
+                   "length_penalty":2.0
                 }""";
 
             JSONAssert.assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest), true);

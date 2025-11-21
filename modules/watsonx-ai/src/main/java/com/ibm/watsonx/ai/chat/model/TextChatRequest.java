@@ -42,6 +42,8 @@ public final class TextChatRequest {
     private final Set<String> guidedChoice;
     private final String guidedRegex;
     private final String guidedGrammar;
+    private final Float repetitionPenalty;
+    private final Float lengthPenalty;
     private final String context;
 
     private TextChatRequest(Builder builder) {
@@ -80,6 +82,8 @@ public final class TextChatRequest {
         guidedChoice = builder.guidedChoice;
         guidedRegex = builder.guidedRegex;
         guidedGrammar = builder.guidedGrammar;
+        repetitionPenalty = builder.repetitionPenalty;
+        lengthPenalty = builder.lengthPenalty;
     }
 
     public String getModelId() {
@@ -190,6 +194,14 @@ public final class TextChatRequest {
         return guidedGrammar;
     }
 
+    public Float getRepetitionPenalty() {
+        return repetitionPenalty;
+    }
+
+    public Float getLengthPenalty() {
+        return lengthPenalty;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -222,7 +234,8 @@ public final class TextChatRequest {
         private Set<String> guidedChoice;
         private String guidedRegex;
         private String guidedGrammar;
-
+        private Float repetitionPenalty;
+        private Float lengthPenalty;
         private String context;
 
         private Builder() {}
@@ -293,6 +306,8 @@ public final class TextChatRequest {
             guidedChoice = parameters.getGuidedChoice();
             guidedRegex = parameters.getGuidedRegex();
             guidedGrammar = parameters.getGuidedGrammar();
+            repetitionPenalty = parameters.getRepetitionPenalty();
+            lengthPenalty = parameters.getLengthPenalty();
             return this;
         }
 

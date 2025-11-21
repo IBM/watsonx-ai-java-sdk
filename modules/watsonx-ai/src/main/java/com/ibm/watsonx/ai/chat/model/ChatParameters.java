@@ -55,6 +55,8 @@ public final class ChatParameters extends WatsonxModelParameters {
     private final Long timeLimit;
     private final String responseFormat;
     private final JsonSchemaObject jsonSchema;
+    private final Float repetitionPenalty;
+    private final Float lengthPenalty;
     private final String context;
 
     public ChatParameters(Builder builder) {
@@ -89,6 +91,8 @@ public final class ChatParameters extends WatsonxModelParameters {
         this.guidedChoice = builder.guidedChoice;
         this.guidedRegex = builder.guidedRegex;
         this.guidedGrammar = builder.guidedGrammar;
+        this.repetitionPenalty = builder.repetitionPenalty;
+        this.lengthPenalty = builder.lengthPenalty;
     }
 
     public String getToolChoiceOption() {
@@ -167,6 +171,14 @@ public final class ChatParameters extends WatsonxModelParameters {
         return guidedGrammar;
     }
 
+    public Float getRepetitionPenalty() {
+        return repetitionPenalty;
+    }
+
+    public Float getLengthPenalty() {
+        return lengthPenalty;
+    }
+
     public String getContext() {
         return context;
     }
@@ -214,6 +226,8 @@ public final class ChatParameters extends WatsonxModelParameters {
         private Double topP;
         private Long timeLimit;
         private JsonSchemaObject jsonSchema;
+        private Float repetitionPenalty;
+        private Float lengthPenalty;
         private String context;
 
         private Builder() {}
@@ -485,6 +499,36 @@ public final class ChatParameters extends WatsonxModelParameters {
          */
         public Builder stop(List<String> stop) {
             this.stop = stop;
+            return this;
+        }
+
+        /**
+         * Sets the repetition penalty to be applied during text generation. This penalty helps to discourage the model from repeating the same words
+         * or phrases too often.
+         * <p>
+         * The penalty value should be greater than 1.0 for repetition discouragement. A value of 1.0 means no penalty, and values above 1.0 increase
+         * the strength of the penalty.
+         *
+         * @param repetitionPenalty the repetition penalty value.
+         */
+        public Builder repetitionPenalty(Float repetitionPenalty) {
+            this.repetitionPenalty = repetitionPenalty;
+            return this;
+        }
+
+        /**
+         * Sets the length penalty to be applied during text generation. This penalty influences the length of the generated text. A length penalty
+         * discourages the model from generating overly long responses, or conversely, it can encourage more extended outputs.
+         * <p>
+         * When the penalty value is greater than 1.0, it discourages generating longer responses. Conversely, a value less than 1.0 incentivizes the
+         * model to generate longer text. A value of 1.0 means no penalty, and the length of the output will be determined by other factors, such as
+         * the input prompt and model's natural completion behavior.
+         *
+         * @param lengthPenalty the length penalty value.
+         * @return the builder instance with the length penalty set.
+         */
+        public Builder lengthPenalty(Float lengthPenalty) {
+            this.lengthPenalty = lengthPenalty;
             return this;
         }
 
