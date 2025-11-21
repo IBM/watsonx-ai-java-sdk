@@ -51,12 +51,11 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  */
 @Experimental
 public final class ToolService extends WatsonxService {
-
     public record Resources(List<UtilityTool> resources) {}
 
     private final ToolRestClient client;
 
-    public ToolService(Builder builder) {
+    private ToolService(Builder builder) {
         super(builder);
         requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
         client = ToolRestClient.builder()

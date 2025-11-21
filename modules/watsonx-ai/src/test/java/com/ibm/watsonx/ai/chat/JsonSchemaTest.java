@@ -126,28 +126,6 @@ public class JsonSchemaTest {
     }
 
     @Test
-    void should_create_generic_object_schema_with_additional_properties() {
-
-        final String EXPECTED = """
-            {
-              "type": "object",
-              "minProperties": 2,
-              "maxProperties": 5,
-              "additionalProperties": {
-                "type": "string"
-              }
-            }""";
-
-        var schema = JsonSchema.object()
-            .additionalProperties(JsonSchema.string())
-            .minProperties(2)
-            .maxProperties(5)
-            .build();
-
-        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
-    }
-
-    @Test
     void should_create_object_schema_with_enum_properties() {
 
         final String EXPECTED = """

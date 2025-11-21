@@ -126,16 +126,6 @@ public final class ObjectSchema extends JsonSchema {
         }
 
         /**
-         * Defines the schema for additional properties not explicitly listed in the {@link #property(String, JsonSchema.Builder)} definitions.
-         *
-         * @param additionalProperties the schema that all extra properties must satisfy
-         */
-        public Builder additionalProperties(JsonSchema.Builder<?, ?> additionalProperties) {
-            this.additionalProperties = additionalProperties.build();
-            return this;
-        }
-
-        /**
          * Marks one or more properties as required.
          *
          * @param required the names of the required properties

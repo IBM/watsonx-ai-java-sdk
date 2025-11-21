@@ -52,16 +52,15 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
  *     .build();
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}. *
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
  *
  * @see AuthenticationProvider
  */
 public final class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
-
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
     private final DeploymentRestClient client;
 
-    protected DeploymentService(Builder builder) {
+    private DeploymentService(Builder builder) {
         super(builder);
         client = DeploymentRestClient.builder()
             .baseUrl(baseUrl)
@@ -242,7 +241,7 @@ public final class DeploymentService extends WatsonxService implements ChatProvi
      *
      * <pre>{@code
      * DeploymentService deploymentService = DeploymentService.builder()
-     *     .baseUrl("https://...")      // or use CloudRegion
+     *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .build();
      * }</pre>

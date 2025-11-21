@@ -38,7 +38,6 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  * @see AuthenticationProvider
  */
 public final class EmbeddingService extends ModelService {
-
     private static final int MAX_SIZE = 1000;
     private final EmbeddingRestClient client;
 
@@ -127,7 +126,7 @@ public final class EmbeddingService extends ModelService {
      *
      * <pre>{@code
      * EmbeddingService embeddingService = EmbeddingService.builder()
-     *     .baseUrl("https://...")      // or use CloudRegion
+     *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-embedding-278m-multilingual")

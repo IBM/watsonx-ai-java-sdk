@@ -33,7 +33,6 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * @see AuthenticationProvider
  */
 public final class DetectionService extends ProjectService {
-
     private final DetectionRestClient client;
 
     private DetectionService(Builder builder) {
