@@ -81,6 +81,9 @@ public final class ObjectSchema extends JsonSchema {
         return new Builder();
     }
 
+    /**
+     * Builder class for constructing {@link ObjectSchema} instances with configurable parameters.
+     */
     public static final class Builder extends JsonSchema.Builder<Builder, ObjectSchema> {
         private Map<String, JsonSchema> properties;
         private Integer minProperties;
@@ -144,6 +147,12 @@ public final class ObjectSchema extends JsonSchema {
             return this;
         }
 
+        /**
+         * Builds a {@link ObjectSchema} instance using the configured parameters.
+         *
+         * @return a new instance of {@link ObjectSchema}
+         */
+        @Override
         public ObjectSchema build() {
             return new ObjectSchema(this);
         }

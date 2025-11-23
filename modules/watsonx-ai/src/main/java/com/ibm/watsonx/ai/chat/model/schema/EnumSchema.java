@@ -47,6 +47,9 @@ public final class EnumSchema extends JsonSchema {
         return new Builder();
     }
 
+    /**
+     * Builder class for constructing {@link EnumSchema} instances with configurable parameters.
+     */
     public static final class Builder extends JsonSchema.Builder<Builder, EnumSchema> {
         private List<?> values;
 
@@ -57,6 +60,12 @@ public final class EnumSchema extends JsonSchema {
             return this;
         }
 
+        /**
+         * Builds a {@link EnumSchema} instance using the configured parameters.
+         *
+         * @return a new instance of {@link EnumSchema}
+         */
+        @Override
         public EnumSchema build() {
             return new EnumSchema(this);
         }

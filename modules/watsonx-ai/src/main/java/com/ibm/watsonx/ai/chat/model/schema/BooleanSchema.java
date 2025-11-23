@@ -45,10 +45,18 @@ public final class BooleanSchema extends JsonSchema {
         return new Builder();
     }
 
+    /**
+     * Builder class for constructing {@link BooleanSchema} instances with configurable parameters.
+     */
     public static final class Builder extends JsonSchema.Builder<Builder, BooleanSchema> {
 
         private Builder() {}
 
+        /**
+         * Builds a {@link BooleanSchema} instance using the configured parameters.
+         *
+         * @return a new instance of {@link BooleanSchema}
+         */
         @Override
         public BooleanSchema build() {
             return new BooleanSchema(this);

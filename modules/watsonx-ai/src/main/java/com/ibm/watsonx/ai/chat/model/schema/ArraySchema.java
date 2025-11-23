@@ -82,6 +82,9 @@ public final class ArraySchema extends JsonSchema {
         return new Builder();
     }
 
+    /**
+     * Builder class for constructing {@link ArraySchema} instances with configurable parameters.
+     */
     public static final class Builder extends JsonSchema.Builder<Builder, ArraySchema> {
         private JsonSchema items;
         private JsonSchema contains;
@@ -130,6 +133,12 @@ public final class ArraySchema extends JsonSchema {
             return this;
         }
 
+        /**
+         * Builds a {@link ArraySchema} instance using the configured parameters.
+         *
+         * @return a new instance of {@link ArraySchema}
+         */
+        @Override
         public ArraySchema build() {
             return new ArraySchema(this);
         }

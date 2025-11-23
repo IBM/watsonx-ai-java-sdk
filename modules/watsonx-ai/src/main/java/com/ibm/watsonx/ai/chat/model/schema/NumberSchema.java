@@ -69,6 +69,9 @@ public final class NumberSchema extends JsonSchema {
         return new Builder();
     }
 
+    /**
+     * Builder class for constructing {@link NumberSchema} instances with configurable parameters.
+     */
     public static final class Builder extends JsonSchema.Builder<Builder, NumberSchema> {
         private Integer minimum;
         private Integer maximum;
@@ -117,6 +120,11 @@ public final class NumberSchema extends JsonSchema {
             return this;
         }
 
+        /**
+         * Builds a {@link NumberSchema} instance using the configured parameters.
+         *
+         * @return a new instance of {@link NumberSchema}
+         */
         @Override
         public NumberSchema build() {
             return new NumberSchema(this);

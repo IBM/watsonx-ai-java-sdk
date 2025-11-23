@@ -69,6 +69,9 @@ public final class IntegerSchema extends JsonSchema {
         return new Builder();
     }
 
+    /**
+     * Builder class for constructing {@link IntegerSchema} instances with configurable parameters.
+     */
     public static final class Builder extends JsonSchema.Builder<Builder, IntegerSchema> {
         private Integer minimum;
         private Integer maximum;
@@ -117,6 +120,11 @@ public final class IntegerSchema extends JsonSchema {
             return this;
         }
 
+        /**
+         * Builds a {@link IntegerSchema} instance using the configured parameters.
+         *
+         * @return a new instance of {@link IntegerSchema}
+         */
         @Override
         public IntegerSchema build() {
             return new IntegerSchema(this);
