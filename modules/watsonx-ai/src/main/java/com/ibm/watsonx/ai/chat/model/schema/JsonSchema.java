@@ -125,7 +125,8 @@ public abstract class JsonSchema {
      * <pre>{@code
      * JsonSchema.number()
      *     .description("The price of the item")
-     *     .nullable();
+     *     .maximum(9999)
+     *     .minimum(0);
      * }</pre>
      *
      * @return a builder for {@link NumberSchema}
@@ -142,7 +143,7 @@ public abstract class JsonSchema {
      * <pre>{@code
      * JsonSchema.integer()
      *     .description("The age of the user")
-     *     .nullable();
+     *     .minimum(18);
      * }</pre>
      *
      * @return a builder for {@link IntegerSchema}
@@ -193,8 +194,6 @@ public abstract class JsonSchema {
     /**
      * Represents a JSON Schema of type {@code enum}.
      * <p>
-     * Use {@link JsonSchema#enumeration(Object...)} to create an instance.
-     * <p>
      * <b>Example usage:</b>
      *
      * <pre>{@code
@@ -211,6 +210,9 @@ public abstract class JsonSchema {
         return EnumSchema.builder().values(Arrays.asList(values));
     }
 
+    /**
+     * Builder class for constructing {@link JsonSchema} instances with configurable parameters.
+     */
     @SuppressWarnings("unchecked")
     public static abstract class Builder<B, O extends JsonSchema> {
         protected String description;
@@ -254,6 +256,14 @@ public abstract class JsonSchema {
             return (B) this;
         }
 
+        /**
+         * Builds and returns the concrete {@link JsonSchema} instance configured by this builder.
+         * <p>
+         * Each subclass of {@code JsonSchema} provides its own implementation of this method, assembling a fully-initialized and immutable schema
+         * object based on the parameters supplied to the builder.
+         *
+         * @return the constructed schema instance of type {@code O}
+         */
         public abstract O build();
     }
 }

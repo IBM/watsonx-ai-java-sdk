@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
+import com.ibm.watsonx.ai.chat.model.schema.Format;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
 
@@ -473,6 +474,68 @@ public class JsonSchemaTest {
             .property("hasAgreedToTerms", JsonSchema.bool().nullable())
             .property("skills", JsonSchema.array().nullable().items(JsonSchema.string()))
             .property("object", JsonSchema.object().nullable())
+            .build();
+
+        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
+    }
+
+    @Test
+    void should_use_the_correct_format() {
+
+        final String EXPECTED = """
+            {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "date-time": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "time": {
+                    "type": "string",
+                    "format": "time"
+                  },
+                  "duration": {
+                    "type": "string",
+                    "format": "duration"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "hostname": {
+                    "type": "string",
+                    "format": "hostname"
+                  },
+                  "ipv4": {
+                    "type": "string",
+                    "format": "ipv4"
+                  },
+                  "ipv6": {
+                    "type": "string",
+                    "format": "ipv6"
+                  },
+                  "uuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+            }
+            """;
+
+        var schema = JsonSchema.object()
+            .property("date", JsonSchema.string().format(Format.DATE))
+            .property("date-time", JsonSchema.string().format(Format.DATE_TIME))
+            .property("time", JsonSchema.string().format(Format.TIME))
+            .property("duration", JsonSchema.string().format(Format.DURATION))
+            .property("email", JsonSchema.string().format(Format.EMAIL))
+            .property("hostname", JsonSchema.string().format(Format.HOSTNAME))
+            .property("ipv4", JsonSchema.string().format(Format.IPV4))
+            .property("ipv6", JsonSchema.string().format(Format.IPV6))
+            .property("uuid", JsonSchema.string().format(Format.UUID))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
