@@ -50,8 +50,7 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *
  * @see AuthenticationProvider
  */
-public final class TimeSeriesService extends ModelService implements TimeSeriesProvider {
-
+public class TimeSeriesService extends ModelService implements TimeSeriesProvider {
     private static final Logger logger = LoggerFactory.getLogger(TimeSeriesService.class);
     private final TimeSeriesRestClient client;
 

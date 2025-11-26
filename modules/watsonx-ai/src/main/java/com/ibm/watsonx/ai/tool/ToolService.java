@@ -50,7 +50,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * @see AuthenticationProvider
  */
 @Experimental
-public final class ToolService extends WatsonxService {
+public class ToolService extends WatsonxService {
     public record Resources(List<UtilityTool> resources) {}
 
     private final ToolRestClient client;

@@ -56,7 +56,7 @@ import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRe
  *
  * @see AuthenticationProvider
  */
-public final class TextClassificationService extends ProjectService {
+public class TextClassificationService extends ProjectService {
     private static final Logger logger = LoggerFactory.getLogger(TextClassificationService.class);
     private final String cosUrl;
     private final CosReference documentReference;

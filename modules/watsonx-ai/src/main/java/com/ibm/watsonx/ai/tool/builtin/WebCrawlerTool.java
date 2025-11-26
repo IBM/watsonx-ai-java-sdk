@@ -15,7 +15,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * Tool for fetching the content of web pages.
  */
 @Experimental
-public final class WebCrawlerTool {
+public class WebCrawlerTool {
 
     private final ToolService toolService;
 

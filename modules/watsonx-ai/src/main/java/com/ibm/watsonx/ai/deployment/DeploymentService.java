@@ -56,7 +56,7 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
  *
  * @see AuthenticationProvider
  */
-public final class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
+public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
     private final DeploymentRestClient client;
 
