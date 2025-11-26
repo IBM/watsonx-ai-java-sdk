@@ -41,7 +41,7 @@ public class DetectionServiceIT {
         var response = detectionService.detect(
             DetectionTextRequest.builder()
                 .input("I kill you")
-                .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3f).build())
+                .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3).build())
                 .build()
         );
 
@@ -59,7 +59,7 @@ public class DetectionServiceIT {
         var response = detectionService.detect(
             DetectionTextRequest.builder()
                 .input("My name is George and my phone number is 1234567890")
-                .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3f).build())
+                .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3).build())
                 .build()
         );
 
@@ -77,7 +77,7 @@ public class DetectionServiceIT {
         var response = detectionService.detect(
             DetectionTextRequest.builder()
                 .input("I kill you with my phone number 1234567890")
-                .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3f).build())
+                .detectors(Pii.ofDefaults(), Hap.builder().threshold(0.3).build())
                 .build()
         );
 

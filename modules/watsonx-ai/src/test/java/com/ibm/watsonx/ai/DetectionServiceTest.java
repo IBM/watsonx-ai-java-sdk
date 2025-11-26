@@ -93,8 +93,8 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                 .spaceId("new-space-id")
                 .detectors(
                     Pii.builder().build(),
-                    Hap.builder().threshold(0.1f).build(),
-                    GraniteGuardian.builder().threshold(0.2f).addProperty("val", "test").build())
+                    Hap.builder().threshold(0.1).build(),
+                    GraniteGuardian.builder().threshold(0.2).addProperty("val", "test").build())
                 .build();
 
             service.detect(request);
@@ -162,6 +162,9 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                     "pii": {},
                     "hap": {
                         "threshold": 0.4
+                    },
+                    "granite_guardian": {
+                        "threshold": 2.4567
                     }
                   }
                 }"""))
@@ -202,7 +205,9 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
             .transactionId("transaction-id")
             .detectors(
                 Pii.builder().build(),
-                Hap.builder().threshold(0.4f).build())
+                Hap.builder().threshold(0.4).build(),
+                GraniteGuardian.builder().threshold(2.4567).build()
+            )
             .build();
 
         List<DetectionTextResponse> response = service.detect(request).detections();
