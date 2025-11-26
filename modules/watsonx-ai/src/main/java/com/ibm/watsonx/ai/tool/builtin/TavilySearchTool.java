@@ -19,7 +19,7 @@ import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool.GoogleSearchResult;
  * Tool to search for online trends, news, current events, real-time information, or research topics.
  */
 @Experimental
-public final class TavilySearchTool {
+public class TavilySearchTool {
 
     public record TavilySearchResult(String title, String url, String content, Double score) {}
 

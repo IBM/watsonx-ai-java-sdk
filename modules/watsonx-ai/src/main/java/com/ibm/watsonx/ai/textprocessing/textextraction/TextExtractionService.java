@@ -61,8 +61,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient
  *
  * @see AuthenticationProvider
  */
-public final class TextExtractionService extends ProjectService {
-
+public class TextExtractionService extends ProjectService {
     private static final Logger logger = LoggerFactory.getLogger(TextExtractionService.class);
     private final String cosUrl;
     private final CosReference documentReference;

@@ -40,7 +40,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  *
  * @see AuthenticationProvider
  */
-public final class RerankService extends ModelService {
+public class RerankService extends ModelService {
     private final RerankRestClient client;
 
     private RerankService(Builder builder) {

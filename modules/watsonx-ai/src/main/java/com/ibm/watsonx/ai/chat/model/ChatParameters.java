@@ -525,7 +525,6 @@ public final class ChatParameters extends WatsonxModelParameters {
          * the input prompt and model's natural completion behavior.
          *
          * @param lengthPenalty the length penalty value.
-         * @return the builder instance with the length penalty set.
          */
         public Builder lengthPenalty(Float lengthPenalty) {
             this.lengthPenalty = lengthPenalty;

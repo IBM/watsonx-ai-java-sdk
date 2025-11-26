@@ -37,7 +37,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  *
  * @see AuthenticationProvider
  */
-public final class EmbeddingService extends ModelService {
+public class EmbeddingService extends ModelService {
     private static final int MAX_SIZE = 1000;
     private final EmbeddingRestClient client;
 

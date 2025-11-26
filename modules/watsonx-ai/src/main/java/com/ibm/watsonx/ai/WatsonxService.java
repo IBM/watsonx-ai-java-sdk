@@ -53,6 +53,15 @@ public abstract class WatsonxService {
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
 
+    // Required by CDI for proxy / bean instantiation
+    protected WatsonxService() {
+        this.baseUrl = null;
+        this.version = null;
+        this.timeout = null;
+        this.logRequests = false;
+        this.logResponses = false;
+    }
+
     protected WatsonxService(Builder<?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl must be provided");
         version = requireNonNullElse(builder.version, API_VERSION);
@@ -185,6 +194,13 @@ public abstract class WatsonxService {
         protected final String projectId;
         protected final String spaceId;
 
+        // Required by CDI for proxy / bean instantiation
+        protected ProjectService() {
+            super();
+            projectId = null;
+            spaceId = null;
+        }
+
         protected ProjectService(Builder<?> builder) {
             super(builder);
             projectId = builder.projectId;
@@ -236,6 +252,12 @@ public abstract class WatsonxService {
     public static abstract class ModelService extends ProjectService {
 
         protected final String modelId;
+
+        // Required by CDI for proxy / bean instantiation.
+        protected ModelService() {
+            super();
+            modelId = null;
+        }
 
         protected ModelService(Builder<?> builder) {
             super(builder);

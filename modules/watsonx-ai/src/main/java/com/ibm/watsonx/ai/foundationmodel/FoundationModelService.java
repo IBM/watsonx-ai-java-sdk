@@ -28,7 +28,7 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  *
  * @see AuthenticationProvider
  */
-public final class FoundationModelService extends WatsonxService {
+public class FoundationModelService extends WatsonxService {
     private final boolean techPreview;
     private final FoundationModelRestClient client;
 

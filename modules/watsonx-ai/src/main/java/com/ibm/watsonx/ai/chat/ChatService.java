@@ -48,7 +48,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *
  * @see AuthenticationProvider
  */
-public final class ChatService extends ModelService implements ChatProvider {
+public class ChatService extends ModelService implements ChatProvider {
 
     public static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private final ChatRestClient client;
