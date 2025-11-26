@@ -55,8 +55,8 @@ public final class ChatParameters extends WatsonxModelParameters {
     private final Long timeLimit;
     private final String responseFormat;
     private final JsonSchemaObject jsonSchema;
-    private final Float repetitionPenalty;
-    private final Float lengthPenalty;
+    private final Double repetitionPenalty;
+    private final Double lengthPenalty;
     private final String context;
 
     public ChatParameters(Builder builder) {
@@ -171,11 +171,11 @@ public final class ChatParameters extends WatsonxModelParameters {
         return guidedGrammar;
     }
 
-    public Float getRepetitionPenalty() {
+    public Double getRepetitionPenalty() {
         return repetitionPenalty;
     }
 
-    public Float getLengthPenalty() {
+    public Double getLengthPenalty() {
         return lengthPenalty;
     }
 
@@ -226,8 +226,8 @@ public final class ChatParameters extends WatsonxModelParameters {
         private Double topP;
         private Long timeLimit;
         private JsonSchemaObject jsonSchema;
-        private Float repetitionPenalty;
-        private Float lengthPenalty;
+        private Double repetitionPenalty;
+        private Double lengthPenalty;
         private String context;
 
         private Builder() {}
@@ -511,7 +511,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          *
          * @param repetitionPenalty the repetition penalty value.
          */
-        public Builder repetitionPenalty(Float repetitionPenalty) {
+        public Builder repetitionPenalty(Double repetitionPenalty) {
             this.repetitionPenalty = repetitionPenalty;
             return this;
         }
@@ -526,7 +526,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          *
          * @param lengthPenalty the length penalty value.
          */
-        public Builder lengthPenalty(Float lengthPenalty) {
+        public Builder lengthPenalty(Double lengthPenalty) {
             this.lengthPenalty = lengthPenalty;
             return this;
         }

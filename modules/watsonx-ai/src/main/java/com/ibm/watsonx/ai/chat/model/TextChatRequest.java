@@ -42,8 +42,8 @@ public final class TextChatRequest {
     private final Set<String> guidedChoice;
     private final String guidedRegex;
     private final String guidedGrammar;
-    private final Float repetitionPenalty;
-    private final Float lengthPenalty;
+    private final Double repetitionPenalty;
+    private final Double lengthPenalty;
     private final String context;
 
     private TextChatRequest(Builder builder) {
@@ -194,11 +194,11 @@ public final class TextChatRequest {
         return guidedGrammar;
     }
 
-    public Float getRepetitionPenalty() {
+    public Double getRepetitionPenalty() {
         return repetitionPenalty;
     }
 
-    public Float getLengthPenalty() {
+    public Double getLengthPenalty() {
         return lengthPenalty;
     }
 
@@ -234,8 +234,8 @@ public final class TextChatRequest {
         private Set<String> guidedChoice;
         private String guidedRegex;
         private String guidedGrammar;
-        private Float repetitionPenalty;
-        private Float lengthPenalty;
+        private Double repetitionPenalty;
+        private Double lengthPenalty;
         private String context;
 
         private Builder() {}
