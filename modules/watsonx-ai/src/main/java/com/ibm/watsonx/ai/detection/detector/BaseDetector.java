@@ -62,7 +62,7 @@ public abstract class BaseDetector {
             properties = new HashMap<>();
         }
 
-        public T threshold(float threshold) {
+        public T threshold(Double threshold) {
             return addProperty("threshold", threshold);
         }
 
