@@ -133,6 +133,7 @@ public class ChatServiceIT {
                 .parameters(
                     ChatParameters.builder()
                         .temperature(0.0)
+                        .repetitionPenalty(1.5)
                         .build()
                 ).build();
 

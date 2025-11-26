@@ -121,8 +121,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .guidedChoice("guidedChoice")
                 .guidedGrammar("guidedGrammar")
                 .guidedRegex("guidedRegex")
-                .repetitionPenalty(2f)
-                .lengthPenalty(2f)
+                .repetitionPenalty(2.0)
+                .lengthPenalty(2.0)
                 .responseAsJsonSchema("test", Map.of(), false)
                 .build();
 

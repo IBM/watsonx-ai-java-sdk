@@ -11,7 +11,7 @@ abstract class BaseDetectionResponse {
     protected String text;
     protected String detectionType;
     protected String detection;
-    protected float score;
+    protected double score;
 
     public String getText() {
         return text;
@@ -37,11 +37,11 @@ abstract class BaseDetectionResponse {
         this.detection = detection;
     }
 
-    public float getScore() {
+    public double getScore() {
         return score;
     }
 
-    public void setScore(float score) {
+    public void setScore(Double score) {
         this.score = score;
     }
 }
