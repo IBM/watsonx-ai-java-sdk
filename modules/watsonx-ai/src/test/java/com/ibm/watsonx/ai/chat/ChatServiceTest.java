@@ -95,6 +95,31 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 public class ChatServiceTest extends AbstractWatsonxTest {
 
     @Test
+    void should_not_add_messages_when_list_is_empty() {
+
+        ChatRequest.Builder chatRequest = ChatRequest.builder()
+            .messages(SystemMessage.of("You are an helpful assistant"));
+
+        assertEquals(1, chatRequest.build().getMessages().size());
+
+        chatRequest.addMessages(List.of());
+        assertEquals(1, chatRequest.build().getMessages().size());
+    }
+
+    @Test
+    void should_append_user_message_after_system_message() {
+
+        var chatRequest = ChatRequest.builder()
+            .messages(SystemMessage.of("You are an helpful assistant"))
+            .addMessages(UserMessage.text("How are you?"))
+            .build();
+
+        assertEquals(2, chatRequest.getMessages().size());
+        assertInstanceOf(SystemMessage.class, chatRequest.getMessages().get(0));
+        assertInstanceOf(UserMessage.class, chatRequest.getMessages().get(1));
+    }
+
+    @Test
     void should_send_all_chat_parameters_correctly_and_receive_response() {
 
         withWatsonxServiceMock(() -> {
@@ -528,7 +553,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .tools(Tool.of(
                         "get_current_weather",
                         JsonSchema.object()
-                            .property("location", JsonSchema.string().description("The city, e.g. San Francisco, CA"))
+                            .property("location", JsonSchema.string("The city, e.g. San Francisco, CA"))
                             .property("unit", JsonSchema.enumeration("celsius", "fahrenheit"))
                             .required("location")))
                     .parameters(parameters)
@@ -829,7 +854,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
 
-            var response = chatResponse.toObject(LLMResponse.class);
+            var response = chatResponse.toAssistantMessage().toObject(LLMResponse.class);
             assertEquals("Campania", response.name());
             assertEquals(5, response.provinces.size());
             assertEquals(FinishReason.STOP, chatResponse.finishReason());
@@ -845,188 +870,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             chatResponse = chatService.chat(messages, parameters);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
-        });
-    }
-
-    @Test
-    void should_throw_exception_when_tool_call_response_contains_no_text() throws Exception {
-
-        final String REQUEST = """
-            {
-              "model_id" : "ibm/granite-3-8b-instruct",
-              "project_id" : "63dc4cf1-252f-424b-b52d-5cdd9814987f",
-              "messages" : [ {
-                "role" : "user",
-                "content" : [ {
-                  "type" : "text",
-                  "text" : "2 + 2"
-                } ]
-              } ],
-              "tools" : [ {
-                "type" : "function",
-                "function" : {
-                  "name" : "sum",
-                  "description" : "Execute the sum of two numbers",
-                  "parameters" : {
-                    "type" : "object",
-                    "properties" : {
-                      "second_number" : {
-                        "type" : "integer"
-                      },
-                      "first_number" : {
-                        "type" : "integer"
-                      }
-                    },
-                    "required" : [ "first_number", "second_number" ]
-                  }
-                }
-              } ]
-            }""";
-
-        final String RESPONSE = """
-            {
-              "id" : "chatcmpl-344f198bce61aabb4bf2c318d05b3e80",
-              "object" : "chat.completion",
-              "model_id" : "ibm/granite-3-8b-instruct",
-              "model" : "ibm/granite-3-8b-instruct",
-              "choices" : [ {
-                "index" : 0,
-                "message" : {
-                  "role" : "assistant",
-                  "tool_calls" : [ {
-                    "id" : "chatcmpl-tool-95b123bc5f214e7ebaf5fc7e111410a4",
-                    "type" : "function",
-                    "function" : {
-                      "name" : "sum",
-                      "arguments" : "{\\"first_number\\": 2, \\"second_number\\": 2}"
-                    }
-                  } ]
-                },
-                "finish_reason" : "tool_calls"
-              } ],
-              "created" : 1749320949,
-              "model_version" : "1.1.0",
-              "created_at" : "2025-06-07T18:29:09.521Z",
-              "usage" : {
-                "completion_tokens" : 31,
-                "prompt_tokens" : 239,
-                "total_tokens" : 270
-              }
-            }""";
-
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn(RESPONSE);
-
-        withWatsonxServiceMock(() -> {
-            var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
-                .modelId("ibm/granite-3-8b-instruct")
-                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .baseUrl(CloudRegion.DALLAS)
-                .build();
-
-            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
-
-            var messages = List.<ChatMessage>of(UserMessage.text("2 + 2"));
-            var tools = Tool.of(
-                "sum",
-                "Execute the sum of two numbers",
-                JsonSchema.object()
-                    .property("first_number", JsonSchema.integer())
-                    .property("second_number", JsonSchema.integer())
-                    .required(List.of("first_number", "second_number")));
-
-            var chatResponse = chatService.chat(messages, List.of(tools));
-
-            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
-            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
-
-            var ex = assertThrows(RuntimeException.class, () -> chatResponse.extractContent());
-            assertEquals("The response is of the type \"tool_calls\" and contains no text", ex.getMessage());
-        });
-    }
-
-    @Test
-    void should_throw_exception_when_tool_call_without_parameters_contains_no_text() throws Exception {
-
-        final String REQUEST = """
-            {
-              "model_id" : "ibm/granite-3-8b-instruct",
-              "project_id" : "63dc4cf1-252f-424b-b52d-5cdd9814987f",
-              "messages" : [ {
-                "role" : "user",
-                "content" : [ {
-                  "type" : "text",
-                  "text" : "What time is it?"
-                } ]
-              } ],
-              "tools" : [ {
-                "type" : "function",
-                "function" : {
-                  "name" : "get_time",
-                  "description" : "Get the current time"
-                }
-              } ],
-              "time_limit": 60000
-            }""";
-
-        final String RESPONSE = """
-            {
-              "id" : "chatcmpl-344f198bce61aabb4bf2c318d05b3e80",
-              "object" : "chat.completion",
-              "model_id" : "ibm/granite-3-8b-instruct",
-              "model" : "ibm/granite-3-8b-instruct",
-              "choices" : [ {
-                "index" : 0,
-                "message" : {
-                  "role" : "assistant",
-                  "tool_calls" : [ {
-                    "id" : "chatcmpl-tool-95b123bc5f214e7ebaf5fc7e111410a4",
-                    "type" : "function",
-                    "function" : {
-                      "name" : "get_time",
-                      "arguments" : "{}"
-                    }
-                  } ]
-                },
-                "finish_reason" : "tool_calls"
-              } ],
-              "created" : 1749320949,
-              "model_version" : "1.1.0",
-              "created_at" : "2025-06-07T18:29:09.521Z",
-              "usage" : {
-                "completion_tokens" : 31,
-                "prompt_tokens" : 239,
-                "total_tokens" : 270
-              }
-            }""";
-
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn(RESPONSE);
-
-        withWatsonxServiceMock(() -> {
-            var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
-                .modelId("ibm/granite-3-8b-instruct")
-                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .logRequests(true)
-                .baseUrl(CloudRegion.DALLAS)
-                .build();
-
-            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
-
-            var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));
-            var tools = Tool.of("get_time", "Get the current time");
-
-            var chatResponse = chatService.chat(messages, List.of(tools));
-
-            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), true);
-            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), true);
-
-            var ex = assertThrows(RuntimeException.class, () -> chatResponse.extractContent());
-            assertEquals("The response is of the type \"tool_calls\" and contains no text", ex.getMessage());
         });
     }
 
@@ -1461,8 +1304,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-            var thinking = chatResponse.extractThinking();
-            var response = chatResponse.extractContent();
+            var thinking = chatResponse.toAssistantMessage().thinking();
+            var response = chatResponse.toAssistantMessage().content();
             assertEquals("Think", thinking);
             assertEquals("Result", response);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
@@ -1556,8 +1399,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
 
-            var thinking = chatResponse.extractThinking();
-            var response = chatResponse.extractContent();
+            var thinking = chatResponse.toAssistantMessage().thinking();
+            var response = chatResponse.toAssistantMessage().content();
             assertEquals("Think", thinking);
             assertEquals("Result", response);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
@@ -1685,7 +1528,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         assertEquals("stop", response.getChoices().get(0).getFinishReason());
         assertEquals(0, response.getChoices().get(0).getIndex());
         assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
-        assertEquals("Ciao", response.extractContent());
+        assertEquals("Ciao", response.toAssistantMessage().content());
         assertNotNull(response.getCreated());
         assertNotNull(response.getCreatedAt());
         assertNotNull(response.getId());
@@ -1811,7 +1654,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 JsonSchema.object()
                     .property("firstNumber", JsonSchema.integer())
                     .property("secondNumber", JsonSchema.integer())
-                    .build()
             ),
             Tool.of(
                 "subtraction",
@@ -1819,7 +1661,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 JsonSchema.object()
                     .property("firstNumber", JsonSchema.integer())
                     .property("secondNumber", JsonSchema.integer())
-                    .build()
             )
         );
 
@@ -2449,7 +2290,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         inOrder.verify(mockChatHandler).onCompleteResponse(any());
 
         assertEquals(3, counter.get());
-        assertEquals("Ciao", response.extractContent());
+        assertEquals("Ciao", response.toAssistantMessage().content());
 
     }
 

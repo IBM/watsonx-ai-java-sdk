@@ -104,7 +104,7 @@ public class DeploymentServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(chatRequest));
-            var text = chatResponse.extractContent();
+            var text = chatResponse.toAssistantMessage().content();
 
             assertNotNull(chatResponse);
             assertNotNull(text);
@@ -136,7 +136,7 @@ public class DeploymentServiceIT {
                 ).build();
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(chatRequest));
-            var text = chatResponse.extractContent();
+            var text = chatResponse.toAssistantMessage().content();
 
             assertNotNull(chatResponse);
             assertNotNull(text);
@@ -174,7 +174,7 @@ public class DeploymentServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(chatRequest));
-            var poem = chatResponse.toObject(Poem.class);
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
             assertNotNull(poem);
@@ -211,7 +211,7 @@ public class DeploymentServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(chatRequest));
-            var poem = chatResponse.toObject(Poem.class);
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
             assertNotNull(poem);
@@ -243,11 +243,11 @@ public class DeploymentServiceIT {
             assertNotNull(text);
             assertFalse(text.isBlank());
 
-            var thinkingMessage = chatResponse.extractThinking();
+            var thinkingMessage = chatResponse.toAssistantMessage().thinking();
             assertNotNull(thinkingMessage);
             assertFalse(thinkingMessage.isBlank());
 
-            var contentMessage = chatResponse.extractContent();
+            var contentMessage = chatResponse.toAssistantMessage().content();
             assertNotNull(contentMessage);
             assertFalse(contentMessage.isBlank());
         }
@@ -273,7 +273,7 @@ public class DeploymentServiceIT {
                 )).build();
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(chatRequest));
-            var text = chatResponse.extractContent();
+            var text = chatResponse.toAssistantMessage().content();
             assertNotNull(text);
             assertFalse(text.isBlank());
         }
@@ -422,7 +422,7 @@ public class DeploymentServiceIT {
             });
 
             var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
-            var poem = chatResponse.toObject(Poem.class);
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
             assertNotNull(poem);
@@ -474,7 +474,7 @@ public class DeploymentServiceIT {
             });
 
             var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
-            var poem = chatResponse.toObject(Poem.class);
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
             assertNotNull(poem);
@@ -541,11 +541,11 @@ public class DeploymentServiceIT {
             assertNotNull(text);
             assertFalse(text.isBlank());
 
-            var thinkingMessage = chatResponse.extractThinking();
+            var thinkingMessage = chatResponse.toAssistantMessage().thinking();
             assertNotNull(thinkingMessage);
             assertFalse(thinkingMessage.isBlank());
 
-            var contentMessage = chatResponse.extractContent();
+            var contentMessage = chatResponse.toAssistantMessage().content();
             assertNotNull(contentMessage);
             assertFalse(contentMessage.isBlank());
 
@@ -605,11 +605,11 @@ public class DeploymentServiceIT {
 
             var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(10, TimeUnit.SECONDS));
             var partialResponse = assertDoesNotThrow(() -> partialResponseFuture.get(10, TimeUnit.SECONDS));
-            assertNotNull(chatResponse.extractContent());
-            assertFalse(chatResponse.extractContent().isBlank());
+            assertNotNull(chatResponse.toAssistantMessage().content());
+            assertFalse(chatResponse.toAssistantMessage().content().isBlank());
             assertNotNull(partialResponse);
             assertFalse(partialResponse.isBlank());
-            assertEquals(chatResponse.extractContent(), partialResponse);
+            assertEquals(chatResponse.toAssistantMessage().content(), partialResponse);
         }
 
         @Test

@@ -21,4 +21,5 @@ public record ResultMessage(
     String role,
     String content,
     String reasoningContent,
-    String refusal, List<ToolCall> toolCalls) {}
+    String refusal,
+    List<ToolCall> toolCalls) {}

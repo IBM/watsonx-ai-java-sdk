@@ -83,7 +83,7 @@ public class ChatServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> chatService.chat("Hello!"));
-            var text = chatResponse.extractContent();
+            var text = chatResponse.toAssistantMessage().content();
 
             assertNotNull(chatResponse);
             assertNotNull(text);
@@ -139,7 +139,7 @@ public class ChatServiceIT {
 
 
             var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
-            var text = chatResponse.extractContent();
+            var text = chatResponse.toAssistantMessage().content();
 
             assertNotNull(chatResponse);
             assertNotNull(text);
@@ -178,7 +178,7 @@ public class ChatServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
-            var poem = chatResponse.toObject(Poem.class);
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
             assertNotNull(poem);
@@ -216,7 +216,7 @@ public class ChatServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
-            var poem = chatResponse.toObject(Poem.class);
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
             assertNotNull(poem);
@@ -251,11 +251,11 @@ public class ChatServiceIT {
             assertTrue(text.contains("<think>") && text.contains("</think>"));
             assertTrue(text.contains("<response>") && text.contains("</response>"));
 
-            var thinkingMessage = chatResponse.extractThinking();
+            var thinkingMessage = chatResponse.toAssistantMessage().thinking();
             assertNotNull(thinkingMessage);
             assertFalse(thinkingMessage.isBlank());
 
-            var contentMessage = chatResponse.extractContent();
+            var contentMessage = chatResponse.toAssistantMessage().content();
             assertNotNull(contentMessage);
             assertFalse(contentMessage.isBlank());
 
@@ -300,11 +300,11 @@ public class ChatServiceIT {
             assertTrue(text.contains("<think>") && text.contains("</think>"));
             assertTrue(text.contains("<response>") && text.contains("</response>"));
 
-            var thinkingMessage = chatResponse.extractThinking();
+            var thinkingMessage = chatResponse.toAssistantMessage().thinking();
             assertNotNull(thinkingMessage);
             assertFalse(thinkingMessage.isBlank());
 
-            var contentMessage = chatResponse.extractContent();
+            var contentMessage = chatResponse.toAssistantMessage().content();
             assertNotNull(contentMessage);
             assertFalse(contentMessage.isBlank());
 
@@ -348,7 +348,7 @@ public class ChatServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
-            var text = chatResponse.extractContent();
+            var text = chatResponse.toAssistantMessage().content();
             assertNotNull(text);
             assertFalse(text.isBlank());
         }
@@ -547,7 +547,7 @@ public class ChatServiceIT {
                 .parameters(ChatParameters.builder().guidedChoice("Yes", "No").build())
                 .build();
 
-            assertEquals("No", chatService.chat(request).extractContent());
+            assertEquals("No", chatService.chat(request).toAssistantMessage().content());
         }
 
         @Test
@@ -662,7 +662,7 @@ public class ChatServiceIT {
             });
 
             var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
-            var poem = chatResponse.toObject(Poem.class);
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
             assertNotNull(poem);
@@ -715,7 +715,7 @@ public class ChatServiceIT {
             });
 
             var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
-            var poem = chatResponse.toObject(Poem.class);
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
             assertNotNull(poem);
@@ -807,12 +807,12 @@ public class ChatServiceIT {
             assertTrue(text.contains("<think>") && text.contains("</think>"));
             assertTrue(text.contains("<response>") && text.contains("</response>"));
 
-            var thinkingMessage = chatResponse.extractThinking();
+            var thinkingMessage = chatResponse.toAssistantMessage().thinking();
             assertNotNull(thinkingMessage);
             assertFalse(thinkingMessage.isBlank());
             assertFalse(thinkingMessage.contains("<think>") && text.contains("</think>"));
 
-            var contentMessage = chatResponse.extractContent();
+            var contentMessage = chatResponse.toAssistantMessage().content();
             assertNotNull(contentMessage);
             assertFalse(contentMessage.isBlank());
             assertFalse(contentMessage.contains("<response>") && text.contains("</response>"));
@@ -886,11 +886,11 @@ public class ChatServiceIT {
 
             var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(10, TimeUnit.SECONDS));
             var partialResponse = assertDoesNotThrow(() -> partialResponseFuture.get(10, TimeUnit.SECONDS));
-            assertNotNull(chatResponse.extractContent());
-            assertFalse(chatResponse.extractContent().isBlank());
+            assertNotNull(chatResponse.toAssistantMessage().content());
+            assertFalse(chatResponse.toAssistantMessage().content().isBlank());
             assertNotNull(partialResponse);
             assertFalse(partialResponse.isBlank());
-            assertEquals(chatResponse.extractContent(), partialResponse);
+            assertEquals(chatResponse.toAssistantMessage().content(), partialResponse);
         }
 
         @Test
@@ -1211,7 +1211,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse.extractContent());
+                    future.complete(completeResponse.toAssistantMessage().content());
                 }
 
                 @Override

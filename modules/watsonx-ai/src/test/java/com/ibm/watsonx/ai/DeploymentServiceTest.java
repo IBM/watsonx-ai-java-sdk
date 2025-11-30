@@ -599,7 +599,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertEquals("stop", response.getChoices().get(0).getFinishReason());
         assertEquals(0, response.getChoices().get(0).getIndex());
         assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
-        assertEquals("Ciao", response.extractContent());
+        assertEquals("Ciao", response.toAssistantMessage().content());
         assertNotNull(response.getCreated());
         assertNotNull(response.getCreatedAt());
         assertNotNull(response.getId());
@@ -720,8 +720,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         }).get(3, TimeUnit.SECONDS);
 
         var chatResponse = result.get();
-        assertEquals(thinkingResponse.toString(), chatResponse.extractThinking());
-        assertEquals(response.toString(), chatResponse.extractContent());
+        assertEquals(thinkingResponse.toString(), chatResponse.toAssistantMessage().thinking());
+        assertEquals(response.toString(), chatResponse.toAssistantMessage().content());
 
         assertEquals(
             "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.",

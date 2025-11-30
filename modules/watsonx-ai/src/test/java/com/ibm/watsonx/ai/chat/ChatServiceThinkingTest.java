@@ -120,8 +120,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var chatResponse = chatService.chat(chatRequest);
             var assistantMessage = chatResponse.toAssistantMessage();
-            assertEquals("Result", chatResponse.extractContent());
-            assertEquals("Think", chatResponse.extractThinking());
+            assertEquals("Result", chatResponse.toAssistantMessage().content());
+            assertEquals("Think", chatResponse.toAssistantMessage().thinking());
             assertEquals("Result", assistantMessage.content());
             assertEquals("Think", assistantMessage.thinking());
 
@@ -132,8 +132,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             chatResponse = chatService.chat(chatRequest);
             assistantMessage = chatResponse.toAssistantMessage();
-            assertEquals("Result", chatResponse.extractContent());
-            assertEquals("Think", chatResponse.extractThinking());
+            assertEquals("Result", chatResponse.toAssistantMessage().content());
+            assertEquals("Think", chatResponse.toAssistantMessage().thinking());
             assertEquals("Result", assistantMessage.content());
             assertEquals("Think", assistantMessage.thinking());
         }
@@ -185,8 +185,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var chatResponse = chatService.chat(chatRequest);
             var assistantMessage = chatResponse.toAssistantMessage();
-            assertEquals("Aries Daily Horoscope", chatResponse.extractContent());
-            assertEquals("Need to give horoscope for Aries.", chatResponse.extractThinking());
+            assertEquals("Aries Daily Horoscope", chatResponse.toAssistantMessage().content());
+            assertEquals("Need to give horoscope for Aries.", chatResponse.toAssistantMessage().thinking());
             assertEquals("Aries Daily Horoscope", assistantMessage.content());
             assertEquals("Need to give horoscope for Aries.", assistantMessage.thinking());
         }
@@ -241,8 +241,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
                     var chatResponse = chatService.chat(chatRequest);
                     var assistantMessage = chatResponse.toAssistantMessage();
-                    assertEquals("Aries Daily Horoscope", chatResponse.extractContent());
-                    assertEquals("Need to give horoscope for Aries.", chatResponse.extractThinking());
+                    assertEquals("Aries Daily Horoscope", chatResponse.toAssistantMessage().content());
+                    assertEquals("Need to give horoscope for Aries.", chatResponse.toAssistantMessage().thinking());
                     assertEquals("Aries Daily Horoscope", assistantMessage.content());
                     assertEquals("Need to give horoscope for Aries.", assistantMessage.thinking());
                 });
@@ -316,8 +316,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var chatResponse = chatService.chat(chatRequest);
             var assistantMessage = chatResponse.toAssistantMessage();
-            assertEquals("Aries Daily Horoscope", chatResponse.extractContent());
-            assertNull(chatResponse.extractThinking());
+            assertEquals("Aries Daily Horoscope", chatResponse.toAssistantMessage().content());
+            assertNull(chatResponse.toAssistantMessage().thinking());
             assertEquals("Aries Daily Horoscope", assistantMessage.content());
             assertNull(assistantMessage.thinking());
         }
@@ -376,8 +376,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var chatResponse = chatService.chat(chatRequest);
             var assistantMessage = chatResponse.toAssistantMessage();
-            assertEquals("Aries Daily Horoscope", chatResponse.extractContent());
-            assertEquals("Need to give horoscope for Aries.", chatResponse.extractThinking());
+            assertEquals("Aries Daily Horoscope", chatResponse.toAssistantMessage().content());
+            assertEquals("Need to give horoscope for Aries.", chatResponse.toAssistantMessage().thinking());
             assertEquals("Aries Daily Horoscope", assistantMessage.content());
             assertEquals("Need to give horoscope for Aries.", assistantMessage.thinking());
         }
@@ -484,11 +484,13 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
             assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));
 
 
-            assertTrue(chatResponse.extractContent().contains(EXPECTED_RESPONSE));
-            assertFalse(chatResponse.extractContent().contains("<response>") && chatResponse.extractContent().contains("</response>"));
+            assertTrue(chatResponse.toAssistantMessage().content().contains(EXPECTED_RESPONSE));
+            assertFalse(chatResponse.toAssistantMessage().content().contains("<response>")
+                && chatResponse.toAssistantMessage().content().contains("</response>"));
 
-            assertTrue(chatResponse.extractThinking().contains(EXEPECTED_THINKING));
-            assertFalse(chatResponse.extractThinking().contains("<think>") && chatResponse.extractThinking().contains("</think>"));
+            assertTrue(chatResponse.toAssistantMessage().thinking().contains(EXEPECTED_THINKING));
+            assertFalse(chatResponse.toAssistantMessage().thinking().contains("<think>")
+                && chatResponse.toAssistantMessage().thinking().contains("</think>"));
 
             assertEquals(
                 EXEPECTED_THINKING,
@@ -619,10 +621,11 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
             assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));
 
 
-            assertTrue(chatResponse.extractContent().contains(EXPECTED_RESPONSE));
-            assertFalse(chatResponse.extractContent().contains("<response>") && chatResponse.extractContent().contains("</response>"));
+            assertTrue(chatResponse.toAssistantMessage().content().contains(EXPECTED_RESPONSE));
+            assertFalse(chatResponse.toAssistantMessage().content().contains("<response>")
+                && chatResponse.toAssistantMessage().content().contains("</response>"));
 
-            assertNull(chatResponse.extractThinking());
+            assertNull(chatResponse.toAssistantMessage().thinking());
             assertTrue(response.toString().contains(EXPECTED_RESPONSE));
 
             var assistantMessage = chatResponse.toAssistantMessage();
@@ -706,12 +709,12 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var chatResponse = result.get(3, TimeUnit.SECONDS);
             var assistantMessage = chatResponse.toAssistantMessage();
-            assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.extractContent());
-            assertEquals("User wants translation.", chatResponse.extractThinking());
+            assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.toAssistantMessage().content());
+            assertEquals("User wants translation.", chatResponse.toAssistantMessage().thinking());
             assertEquals("\"Hello\" in Italian is **\"ciao\"**.", assistantMessage.content());
             assertEquals("User wants translation.", assistantMessage.thinking());
-            assertEquals(chatResponse.extractThinking(), thinkingResponse.toString());
-            assertEquals(chatResponse.extractContent(), response.toString());
+            assertEquals(chatResponse.toAssistantMessage().thinking(), thinkingResponse.toString());
+            assertEquals(chatResponse.toAssistantMessage().content(), response.toString());
         }
 
         @Test
@@ -791,12 +794,12 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
                     var chatResponse = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
                     var assistantMessage = chatResponse.toAssistantMessage();
-                    assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.extractContent());
-                    assertEquals("User wants translation.", chatResponse.extractThinking());
                     assertEquals("\"Hello\" in Italian is **\"ciao\"**.", assistantMessage.content());
                     assertEquals("User wants translation.", assistantMessage.thinking());
-                    assertEquals(chatResponse.extractThinking(), thinkingResponse.toString());
-                    assertEquals(chatResponse.extractContent(), response.toString());
+                    assertEquals("\"Hello\" in Italian is **\"ciao\"**.", assistantMessage.content());
+                    assertEquals("User wants translation.", assistantMessage.thinking());
+                    assertEquals(assistantMessage.thinking(), thinkingResponse.toString());
+                    assertEquals(assistantMessage.content(), response.toString());
                 });
         }
 
@@ -933,12 +936,12 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var chatResponse = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
             var assistantMessage = chatResponse.toAssistantMessage();
-            assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.extractContent());
-            assertTrue(isNull(chatResponse.extractThinking()) || chatResponse.extractThinking().isBlank());
+            assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.toAssistantMessage().content());
+            assertTrue(isNull(chatResponse.toAssistantMessage().thinking()) || chatResponse.toAssistantMessage().thinking().isBlank());
             assertEquals("\"Hello\" in Italian is **\"ciao\"**.", assistantMessage.content());
             assertTrue(isNull(assistantMessage.thinking()) || assistantMessage.thinking().isBlank());
             assertTrue(isNull(thinkingResponse.toString()) || thinkingResponse.toString().isBlank());
-            assertEquals(chatResponse.extractContent(), response.toString());
+            assertEquals(chatResponse.toAssistantMessage().content(), response.toString());
         }
 
         @Test
@@ -1022,12 +1025,12 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var chatResponse = result.get(3, TimeUnit.SECONDS);
             var assistantMessage = chatResponse.toAssistantMessage();
-            assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.extractContent());
-            assertEquals("User wants translation.", chatResponse.extractThinking());
+            assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.toAssistantMessage().content());
+            assertEquals("User wants translation.", chatResponse.toAssistantMessage().thinking());
             assertEquals("\"Hello\" in Italian is **\"ciao\"**.", assistantMessage.content());
             assertEquals("User wants translation.", assistantMessage.thinking());
-            assertEquals(chatResponse.extractThinking(), thinkingResponse.toString());
-            assertEquals(chatResponse.extractContent(), response.toString());
+            assertEquals(chatResponse.toAssistantMessage().thinking(), thinkingResponse.toString());
+            assertEquals(chatResponse.toAssistantMessage().content(), response.toString());
         }
     }
 }
