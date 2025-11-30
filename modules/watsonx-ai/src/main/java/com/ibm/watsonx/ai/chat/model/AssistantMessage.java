@@ -152,7 +152,7 @@ public record AssistantMessage(
                     Json.fromJson(normalizedArgs, new TypeToken<Map<String, Object>>() {})
                 );
 
-                var result = executor.execute(function.name(), args);
+                var result = String.valueOf(executor.execute(function.name(), args));
                 return (ChatMessage) ToolMessage.of(result, toolCall.id());
 
             }).toList();

@@ -14,18 +14,6 @@ import com.ibm.watsonx.ai.chat.model.ResultMessage;
 
 /**
  * Represents the response from a chat completion request.
- * <p>
- * This class provides methods to access both the assistant's plain response and (optionally) its reasoning process.
- * <p>
- * If {@link ChatRequest.Builder#thinking(ExtractionTags tags)} is enabled, the {@link ExtractionTags} will be used to separate the reasoning
- * ("thinking") part from the assistant's final response.
- * <p>
- * In that case:
- * <ul>
- * <li>{@link #extractContent()} returns only the final response, excluding reasoning</li>
- * <li>{@link #extractThinking()} returns the reasoning text</li>
- * <li>{@link #toAssistantMessage()} always includes only the final response, never reasoning</li>
- * </ul>
  */
 public final class ChatResponse {
 
