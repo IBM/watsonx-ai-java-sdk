@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
-import static java.util.Objects.isNull;
 import java.util.Arrays;
 
 /**
@@ -48,18 +47,11 @@ public abstract class JsonSchema {
     protected final String description;
     protected final boolean nullable;
     protected final Object type;
-    protected final Object constant;
 
     protected JsonSchema(Object type, Builder<?, ?> builder) {
         description = builder.description;
         nullable = builder.nullable;
-        if (isNull(builder.constant)) {
-            this.type = type;
-            constant = null;
-        } else {
-            constant = builder.constant;
-            this.type = null;
-        }
+        this.type = type;
     }
 
     public String getDescription() {
@@ -70,8 +62,22 @@ public abstract class JsonSchema {
         return type;
     }
 
-    public Object getConstant() {
-        return constant;
+    /**
+     * Represents a JSON Schema that allows only a single constant value.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * JsonSchema.constant(42);
+     * JsonSchema.constant("fixedString");
+     * }</pre>
+     *
+     * @param <T> the type of the constant value
+     * @param value the exact value that instances must match
+     * @return a {@link JsonSchema} representing the constant value
+     */
+    public static <T> ConstantSchema.Builder constant(T value) {
+        return new ConstantSchema.Builder(value);
     }
 
     /**
@@ -91,6 +97,25 @@ public abstract class JsonSchema {
      */
     public static ObjectSchema.Builder object() {
         return ObjectSchema.builder();
+    }
+
+    /**
+     * Creates a JSON Schema of type {@code object} with a description.
+     * <p>
+     * The description is a human-readable text providing context about the object schema.
+     *
+     * <pre>{@code
+     * JsonSchema.object("A user object")
+     *     .property("id", JsonSchema.string())
+     *     .property("email", JsonSchema.string())
+     *     .required("id", "email");
+     * }</pre>
+     *
+     * @param description a short text describing the schema
+     * @return a builder for {@link ObjectSchema} with the given description
+     */
+    public static ObjectSchema.Builder object(String description) {
+        return object().description(description);
     }
 
     /**
@@ -118,6 +143,24 @@ public abstract class JsonSchema {
     }
 
     /**
+     * Creates a JSON Schema of type {@code string} with a description.
+     * <p>
+     * The description is a human-readable text providing context about the string field.
+     *
+     * <pre>{@code
+     * JsonSchema.string("The user's email")
+     *     .pattern("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
+     *     .nullable();
+     * }</pre>
+     *
+     * @param description a short text describing the string schema
+     * @return a builder for {@link StringSchema} with the given description
+     */
+    public static StringSchema.Builder string(String description) {
+        return string().description(description);
+    }
+
+    /**
      * Represents a JSON Schema of type {@code number}.
      * <p>
      * <b>Example usage:</b>
@@ -133,6 +176,24 @@ public abstract class JsonSchema {
      */
     public static NumberSchema.Builder number() {
         return NumberSchema.builder();
+    }
+
+    /**
+     * Creates a JSON Schema of type {@code number} with a description.
+     * <p>
+     * The description is a human-readable text providing context about the number field.
+     *
+     * <pre>{@code
+     * JsonSchema.number("The price of the item")
+     *     .minimum(0)
+     *     .maximum(9999);
+     * }</pre>
+     *
+     * @param description a short text describing the number schema
+     * @return a builder for {@link NumberSchema} with the given description
+     */
+    public static NumberSchema.Builder number(String description) {
+        return number().description(description);
     }
 
     /**
@@ -153,6 +214,23 @@ public abstract class JsonSchema {
     }
 
     /**
+     * Creates a JSON Schema of type {@code integer} with a description.
+     * <p>
+     * The description is a human-readable text providing context about the integer field.
+     *
+     * <pre>{@code
+     * JsonSchema.integer("The user's age")
+     *     .minimum(18);
+     * }</pre>
+     *
+     * @param description a short text describing the integer schema
+     * @return a builder for {@link IntegerSchema} with the given description
+     */
+    public static IntegerSchema.Builder integer(String description) {
+        return integer().description(description);
+    }
+
+    /**
      * Represents a JSON Schema of type {@code boolean}.
      * <p>
      * <b>Example usage:</b>
@@ -167,6 +245,23 @@ public abstract class JsonSchema {
      */
     public static BooleanSchema.Builder bool() {
         return BooleanSchema.builder();
+    }
+
+    /**
+     * Creates a JSON Schema of type {@code boolean} with a description.
+     * <p>
+     * The description is a human-readable text providing context about the boolean field.
+     *
+     * <pre>{@code
+     * JsonSchema.bool("Indicates whether the user account is active")
+     *     .nullable();
+     * }</pre>
+     *
+     * @param description a short text describing the boolean schema
+     * @return a builder for {@link BooleanSchema} with the given description
+     */
+    public static BooleanSchema.Builder bool(String description) {
+        return bool().description(description);
     }
 
     /**
@@ -189,6 +284,23 @@ public abstract class JsonSchema {
      */
     public static ArraySchema.Builder array() {
         return ArraySchema.builder();
+    }
+
+    /**
+     * Creates a JSON Schema of type {@code array} with a description.
+     * <p>
+     * The description is a human-readable text providing context about the array field.
+     *
+     * <pre>{@code
+     * JsonSchema.array("A list of user objects")
+     *     .items(JsonSchema.object().property("name", JsonSchema.string()));
+     * }</pre>
+     *
+     * @param description a short text describing the array schema
+     * @return a builder for {@link ArraySchema} with the given description
+     */
+    public static ArraySchema.Builder array(String description) {
+        return array().description(description);
     }
 
     /**
@@ -217,7 +329,6 @@ public abstract class JsonSchema {
     public static abstract class Builder<B, O extends JsonSchema> {
         protected String description;
         protected boolean nullable;
-        protected Object constant;
 
         protected Builder() {
             nullable = false;
@@ -242,17 +353,6 @@ public abstract class JsonSchema {
          */
         public B nullable() {
             this.nullable = true;
-            return (B) this;
-        }
-
-        /**
-         * Sets a constant value that the instance must exactly match.
-         *
-         * @param <T> the type of the constant value
-         * @param constant the exact value that instances must match
-         */
-        public <T> B constant(T constant) {
-            this.constant = constant;
             return (B) this;
         }
 
