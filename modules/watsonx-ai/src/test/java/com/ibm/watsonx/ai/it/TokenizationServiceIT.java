@@ -31,7 +31,7 @@ public class TokenizationServiceIT {
         .baseUrl(URL)
         .projectId(PROJECT_ID)
         .authenticationProvider(authentication)
-        .modelId("ibm/granite-3-8b-instruct")
+        .modelId("ibm/granite-4-h-small")
         .logRequests(true)
         .logResponses(true)
         .build();

@@ -145,16 +145,10 @@ public record AssistantMessage(
         return toolCalls.stream()
             .map(toolCall -> {
                 var function = toolCall.function();
-
                 var normalizedArgs = executor.normalize(function.arguments());
-
-                var args = new ToolArguments(
-                    Json.fromJson(normalizedArgs, new TypeToken<Map<String, Object>>() {})
-                );
-
-                var result = String.valueOf(executor.execute(function.name(), args));
-                return (ChatMessage) ToolMessage.of(result, toolCall.id());
-
+                var toolArguments = new ToolArguments(Json.fromJson(normalizedArgs, new TypeToken<Map<String, Object>>() {}));
+                var toolResult = String.valueOf(executor.execute(function.name(), toolArguments));
+                return (ChatMessage) ToolMessage.of(toolResult, toolCall.id());
             }).toList();
     }
 }
