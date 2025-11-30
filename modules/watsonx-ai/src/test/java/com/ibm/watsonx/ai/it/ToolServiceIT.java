@@ -14,6 +14,12 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.CloudRegion;
+import com.ibm.watsonx.ai.chat.ChatRequest;
+import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.tool.ToolRequest;
@@ -133,5 +139,66 @@ public class ToolServiceIT {
         String result = pythonInterpreterTool.execute("print(\"Hello World!\")");
         assertNotNull(result);
         assertEquals("Hello World!", result);
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "PYTHON_INTERPRETER_DEPLOYMENT_ID", matches = ".+")
+    void should_correctly_chain_python_tool_calls_in_chat() {
+
+        String API_KEY = System.getenv("WATSONX_API_KEY");
+        String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
+        String URL = System.getenv("WATSONX_URL");
+        String PYTHON_DEPLOYMENT_ID = System.getenv("PYTHON_INTERPRETER_DEPLOYMENT_ID");
+
+        PythonInterpreterTool pythonInterpreterTool = new PythonInterpreterTool(toolService, PYTHON_DEPLOYMENT_ID);
+
+        var chatService = ChatService.builder()
+            .baseUrl(URL)
+            .apiKey(API_KEY)
+            .projectId(PROJECT_ID)
+            .modelId("ibm/granite-4-h-small")
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+        var chatRequest = ChatRequest.builder()
+            .messages(
+                SystemMessage.of("You are an helpful assistant. Use python to solve mathematical problems."),
+                UserMessage.text("Tell me the value of the square root of (124 * 2 + 125) / 3")
+            )
+            .tools(
+                Tool.of(
+                    "python_executor",
+                    "Executes python code. The result must be set into a print statement.",
+                    JsonSchema.object()
+                        .property("code", JsonSchema.string("Python code to execute"))
+                        .required("code"))
+            );
+
+        var assistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
+        chatRequest.addMessages(assistantMessage);
+
+        if (assistantMessage.hasToolCalls()) {
+            var toolMessages = assistantMessage.processTools((toolName, arguments) -> pythonInterpreterTool.execute(arguments.get("code")));
+            chatRequest.addMessages(toolMessages);
+            var followUpAssistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
+            chatRequest.addMessages(followUpAssistantMessage);
+        }
+
+        chatRequest.addMessages(UserMessage.text("Tell me the value of the previous operation multiplied by 3"));
+
+        assistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
+        chatRequest.addMessages(assistantMessage);
+
+        if (assistantMessage.hasToolCalls()) {
+            var toolMessages = assistantMessage.processTools((toolName, arguments) -> pythonInterpreterTool.execute(arguments.get("code")));
+            chatRequest.addMessages(toolMessages);
+            assistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
+        }
+
+        assertTrue(assistantMessage.content().contains("33."));
     }
 }

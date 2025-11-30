@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.schema.ConstantSchema;
 import com.ibm.watsonx.ai.chat.model.schema.EnumSchema;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
@@ -27,6 +28,7 @@ public class WatsonxJacksonModule extends SimpleModule {
 
     public WatsonxJacksonModule() {
         super("watsonx-ai-jackson-module");
+        setMixInAnnotation(ConstantSchema.class, ConstantSchemaMixin.class);
         setMixInAnnotation(JsonSchema.class, JsonSchemaMixin.class);
         setMixInAnnotation(EnumSchema.class, EnumSchemaMixin.class);
         setMixInAnnotation(FoundationModel.DefaultValue.class, DefaultValueMixin.class);
@@ -52,6 +54,15 @@ public class WatsonxJacksonModule extends SimpleModule {
      */
     @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
     public abstract static class JsonSchemaMixin {
+        @JsonProperty("const")
+        abstract String getConstant();
+    }
+
+    /**
+     * Mix-in interface for JsonSchema class.
+     */
+    @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
+    public abstract static class ConstantSchemaMixin {
         @JsonProperty("const")
         abstract String getConstant();
     }

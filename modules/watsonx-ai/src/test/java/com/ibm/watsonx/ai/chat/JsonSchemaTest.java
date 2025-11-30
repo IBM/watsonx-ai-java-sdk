@@ -320,6 +320,33 @@ public class JsonSchemaTest {
     }
 
     @Test
+    void should_create_object_schema_with_contains_array_property() {
+
+        final String EXPECTED = """
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "skills": {
+                    "type": "array",
+                    "contains": {
+                        "const": "JavaScript"
+                    }
+                }
+              }
+            }""";
+
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .property("skills", JsonSchema.array().contains(JsonSchema.constant("JavaScript")))
+            .build();
+
+        JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
+    }
+
+    @Test
     void should_throw_exception_when_array_schema_has_no_items_defined() {
         assertThrows(IllegalArgumentException.class, () -> JsonSchema.object()
             .property("name", JsonSchema.string())
@@ -378,27 +405,38 @@ public class JsonSchemaTest {
                   "hasAgreedToTerms": {
                     "type": ["boolean", "null"],
                     "description": "description"
+                  },
+                  "array": {
+                    "type": ["array", "null"],
+                    "description": "description",
+                    "items": {
+                        "type": "string"
+                    }
                   }
                 }
               }
             """;
 
         var schema = JsonSchema.object()
-            .property("name", JsonSchema.string().nullable().description("description"))
-            .property("age", JsonSchema.integer().nullable().description("description"))
-            .property("score", JsonSchema.number().nullable().description("description"))
-            .property("hasAgreedToTerms", JsonSchema.bool().nullable().description("description"))
+            .property("name", JsonSchema.string("description").nullable())
+            .property("age", JsonSchema.integer("description").nullable())
+            .property("score", JsonSchema.number("description").nullable())
+            .property("hasAgreedToTerms", JsonSchema.bool("description").nullable())
+            .property("array", JsonSchema.array("description").nullable().items(JsonSchema.string()))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
     }
 
     @Test
-    void should_create_object_schema_with_described_properties_and_number_constraints() {
+    void should_create_object_schema_with_described_properties() {
 
         final String EXPECTED = """
             {
                 "type": "object",
+                "description": "description",
+                "minProperties": 2,
+                "maxProperties": 10,
                 "properties": {
                   "name": {
                     "type": "string",
@@ -409,20 +447,25 @@ public class JsonSchemaTest {
                     "description": "description"
                   },
                   "score": {
-                     "type": "number",
+                    "type": "number",
                     "description": "description",
                     "exclusiveMinimum": 0,
                     "exclusiveMaximum": 10
                   },
                   "hasAgreedToTerms": {
-                     "type": "boolean",
+                    "type": "boolean",
                     "description": "description"
+                  },
+                  "constant": {
+                    "const": "Hello"
                   }
                 }
               }
             """;
 
-        var schema = JsonSchema.object()
+        var schema = JsonSchema.object("description")
+            .minProperties(2)
+            .maxProperties(10)
             .property("name", JsonSchema.string().description("description"))
             .property("age", JsonSchema.integer().description("description"))
             .property("score", JsonSchema.number()
@@ -430,6 +473,7 @@ public class JsonSchemaTest {
                 .exclusiveMinimum(0)
                 .exclusiveMaximum(10))
             .property("hasAgreedToTerms", JsonSchema.bool().description("description"))
+            .property("constant", JsonSchema.constant("Hello"))
             .build();
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);

@@ -16,6 +16,4 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
  * @param completionId The identifier of the chat completion request this tool call belongs to.
  * @param toolCall The fully constructed {@link ToolCall}.
  */
-public record CompletedToolCall(String completionId, ToolCall toolCall) {
-
-}
+public record CompletedToolCall(String completionId, ToolCall toolCall) {}

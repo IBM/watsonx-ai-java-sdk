@@ -5,15 +5,12 @@
 package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
 import java.util.List;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
-import com.ibm.watsonx.ai.core.Json;
 
 /**
  * Represents the response from a chat completion request.
@@ -210,57 +207,6 @@ public final class ChatResponse {
      */
     void setExtractionTags(ExtractionTags extractionTags) {
         this.extractionTags = extractionTags;
-    }
-
-    /**
-     * Extracts the assistant's response text from the chat completion.
-     *
-     * @return the assistant's response text as plain content
-     * @throws RuntimeException if the response is of type "tool_calls" and contains no textual content
-     */
-    public String extractContent() {
-        var resultMessage = choices.get(0).getMessage();
-        if (nonNull(resultMessage.toolCalls()))
-            throw new RuntimeException("The response is of the type \"tool_calls\" and contains no text");
-
-        if (isNull(extractionTags))
-            return resultMessage.content();
-        else {
-            var content = extractionTags.extractResponse(resultMessage.content());
-            return isNull(content) ? resultMessage.content() : content;
-        }
-    }
-
-    /**
-     * Extracts the assistant's reasoning text (if present) from the chat completion.
-     *
-     * @return the reasoning text, or {@code null} if not available
-     */
-    public String extractThinking() {
-        var resultMessage = choices.get(0).getMessage();
-
-        if (isNull(extractionTags))
-            return resultMessage.reasoningContent();
-        else
-            return extractionTags.extractThinking(resultMessage.content());
-    }
-
-    /**
-     * Deserializes the textual content of the chat response into a Java object.
-     * <p>
-     * This method relies on {@link #extractContent()} to retrieve the textual content of the response and attempts to convert it into an instance of
-     * the specified class.
-     * <p>
-     * Note: This method assumes the content is a valid JSON string matching the structure of the given class. If the content is not valid JSON or
-     * does not match the structure of {@code clazz}, a parsing exception may be thrown.
-     *
-     * @param <T> the type of the object to return
-     * @param clazz the target class for deserialization
-     * @return an instance of {@code clazz} parsed from the response content
-     */
-    public <T> T toObject(Class<T> clazz) {
-        requireNonNull(clazz);
-        return Json.fromJson(extractContent(), clazz);
     }
 
     /**
