@@ -534,7 +534,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     @Test
     void should_use_correct_executors() throws Exception {
 
-        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=2025-10-01")
+        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=2025-11-12")
 
             .willReturn(aResponse()
                 .withStatus(200)
