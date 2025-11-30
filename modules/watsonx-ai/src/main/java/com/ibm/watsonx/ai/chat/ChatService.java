@@ -35,7 +35,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
- *     .modelId("ibm/granite-3-8b-instruct")
+ *     .modelId("ibm/granite-4-h-small")
  *     .build();
  *
  * ChatResponse response = chatService.chat(
@@ -369,7 +369,7 @@ public class ChatService extends ModelService implements ChatProvider {
      *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
-     *     .modelId("ibm/granite-3-8b-instruct")
+     *     .modelId("ibm/granite-4-h-small")
      *     .build();
      *
      * ChatResponse response = chatService.chat(

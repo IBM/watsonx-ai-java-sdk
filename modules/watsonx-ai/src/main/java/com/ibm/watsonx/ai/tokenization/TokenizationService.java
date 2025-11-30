@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  *     .baseUrl("https://...")      // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
  *     .projectId("my-project-id")
- *     .modelId("ibm/granite-3-8b-instruct")
+ *     .modelId("ibm/granite-4-h-small")
  *     .build();
  *
  * TokenizationResponse response = tokenizationService.tokenize("Tell me a joke");
@@ -128,7 +128,7 @@ public class TokenizationService extends ModelService {
      *     .baseUrl("https://...")      // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
      *     .projectId("my-project-id")
-     *     .modelId("ibm/granite-3-8b-instruct")
+     *     .modelId("ibm/granite-4-h-small")
      *     .build();
      *
      * TokenizationResponse response = tokenizationService.tokenize("Tell me a joke");
