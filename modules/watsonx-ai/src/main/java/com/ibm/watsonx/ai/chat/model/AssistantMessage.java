@@ -5,8 +5,14 @@
 package com.ibm.watsonx.ai.chat.model;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import com.ibm.watsonx.ai.chat.ToolExecutor;
+import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
  * Represents a message authored by the assistant within a chat interaction.
@@ -97,5 +103,58 @@ public record AssistantMessage(
      */
     public static AssistantMessage tools(String name, List<ToolCall> toolCalls) {
         return new AssistantMessage(null, null, name, null, toolCalls);
+    }
+
+    /**
+     * Indicates whether this assistant message contains any tool calls.
+     *
+     * @return {@code true} if tool calls are present, {@code false} otherwise
+     */
+    public boolean hasToolCalls() {
+        return nonNull(toolCalls) && !toolCalls.isEmpty();
+    }
+
+    /**
+     * Deserializes the textual content of the {@code AssistantMessage} into a Java object.
+     * <p>
+     * Note: This method assumes the content is a valid JSON string matching the structure of the given class. If the content is not valid JSON or
+     * does not match the structure of {@code clazz}, a parsing exception may be thrown.
+     *
+     * @param <T> the type of the object to return
+     * @param clazz the target class for deserialization
+     * @return an instance of {@code clazz} parsed from the response content
+     */
+    public <T> T toObject(Class<T> clazz) {
+        requireNonNull(clazz);
+        return Json.fromJson(content, clazz);
+    }
+
+    /**
+     * Processes all tool calls contained in the {@link AssistantMessage} using the provided {@link ToolExecutor}, and returns a list of
+     * {@link ToolMessage}.
+     * <p>
+     * If there are no tool calls present, this method returns an empty list.
+     *
+     * @param executor the executor responsible for running the tool call logic
+     * @return a list of {@link ToolMessage} objects generated from each tool call, or an empty list if no tool calls are present
+     */
+    public List<ChatMessage> processTools(ToolExecutor executor) {
+        if (!hasToolCalls())
+            return List.of();
+
+        return toolCalls.stream()
+            .map(toolCall -> {
+                var function = toolCall.function();
+
+                var normalizedArgs = executor.normalize(function.arguments());
+
+                var args = new ToolArguments(
+                    Json.fromJson(normalizedArgs, new TypeToken<Map<String, Object>>() {})
+                );
+
+                var result = executor.execute(function.name(), args);
+                return (ChatMessage) ToolMessage.of(result, toolCall.id());
+
+            }).toList();
     }
 }
