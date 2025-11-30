@@ -20,7 +20,7 @@ public interface ToolExecutor {
      * @param toolArgs the arguments extracted from the tool call JSON
      * @return the result of tool execution
      */
-    String execute(String toolName, ToolArguments toolArgs);
+    Object execute(String toolName, ToolArguments toolArgs);
 
     /**
      * Normalizes the raw argument string received from the model before parsing into {@link ToolArguments}.
