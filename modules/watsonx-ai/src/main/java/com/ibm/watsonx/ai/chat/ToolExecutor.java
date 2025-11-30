@@ -30,7 +30,9 @@ public interface ToolExecutor {
      */
     default String normalize(String rawArguments) {
         try {
-            return Json.fromJson(rawArguments, String.class);
+            return rawArguments.startsWith("\"")
+                ? Json.fromJson(rawArguments, String.class)
+                : rawArguments;
         } catch (RuntimeException e) {
             return rawArguments;
         }
