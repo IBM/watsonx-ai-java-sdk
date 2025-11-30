@@ -74,6 +74,10 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.detection.DetectionRestClient$DetectionRestClientBuilderFactory",
             "com.ibm.watsonx.ai.client.impl.CustomDetectionRestClient$CustomDetectionRestClientBuilderFactory");
 
+        createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.transcription.TranscriptionRestClient$TranscriptionRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomTranscriptionRestClient$CustomTranscriptionRestClientBuilderFactory");
+
         URLClassLoader tempClassLoader = new URLClassLoader(
             new URL[] { tempDir.toUri().toURL() },
             originalClassLoader
