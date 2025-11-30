@@ -10,7 +10,6 @@ import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -58,9 +57,9 @@ public class AiService {
             .maxCompletionTokens(0)
             .build();
 
-        var response = chatService.chat(memory.getMemory(), parameters).extractContent();
-        memory.addMessage(AssistantMessage.text(response));
-        return response;
+        var assistantMessage = chatService.chat(memory.getMemory(), parameters).toAssistantMessage();
+        memory.addMessage(assistantMessage);
+        return assistantMessage.content();
     }
 
     public FoundationModel getModel() {
