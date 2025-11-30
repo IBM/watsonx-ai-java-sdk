@@ -25,9 +25,6 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.deployment.DeploymentRestClient.ChatStreamingRequest;
-import com.ibm.watsonx.ai.deployment.DeploymentRestClient.GenerateRequest;
-import com.ibm.watsonx.ai.deployment.DeploymentRestClient.GenerateStreamingRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationProvider;
@@ -105,8 +102,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var textRequest =
             new TextRequest(null, null, null, input, parameters.toSanitized(), moderation);
 
-        var request = new GenerateRequest(parameters.getTransactionId(), deploymentId, timeout, textRequest);
-        return client.generate(request);
+        return client.generate(parameters.getTransactionId(), deploymentId, timeout, textRequest);
     }
 
     @Override
@@ -125,8 +121,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var textGenRequest =
             new TextRequest(null, null, null, input, parameters.toSanitized(), null);
 
-        var request = new GenerateStreamingRequest(parameters.getTransactionId(), deploymentId, timeout, textGenRequest, handler);
-        return client.generateStreaming(request);
+        return client.generateStreaming(parameters.getTransactionId(), deploymentId, timeout, textGenRequest, handler);
     }
 
     @Override
@@ -149,15 +144,11 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .parameters(parameters)
             .build();
 
-        var request =
-            new com.ibm.watsonx.ai.deployment.DeploymentRestClient.ChatRequest(
-                parameters.getTransactionId(),
-                deploymentId,
-                timeout,
-                textChatRequest
-            );
-
-        var chatResponse = client.chat(request);
+        var chatResponse = client.chat(
+            parameters.getTransactionId(),
+            deploymentId,
+            timeout,
+            textChatRequest);
 
         // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
         if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoiceOption.REQUIRED.type())) {
@@ -203,8 +194,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .chatTemplateKwargs(chatTemplateKwargs)
             .build();
 
-        var request = new ChatStreamingRequest(parameters.getTransactionId(), deploymentId, timeout, extractionTags, textChatRequest, handler);
-        return client.chatStreaming(request);
+        return client.chatStreaming(parameters.getTransactionId(), deploymentId, timeout, extractionTags, textChatRequest, handler);
     }
 
     @Override
@@ -229,8 +219,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         var forecastRequest = new ForecastRequest(null, null, null, data.asMap(), inputSchema, futureData, requestParameters);
 
-        var request = new com.ibm.watsonx.ai.deployment.DeploymentRestClient.ForecastRequest(transactionId, deploymentId, timeout, forecastRequest);
-        return client.forecast(request);
+        return client.forecast(transactionId, deploymentId, timeout, forecastRequest);
     }
 
 

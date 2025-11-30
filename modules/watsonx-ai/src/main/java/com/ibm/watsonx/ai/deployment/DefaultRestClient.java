@@ -24,6 +24,7 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatSubscriber;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -32,6 +33,8 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationSubscriber;
+import com.ibm.watsonx.ai.textgeneration.TextRequest;
+import com.ibm.watsonx.ai.timeseries.ForecastRequest;
 import com.ibm.watsonx.ai.timeseries.ForecastResponse;
 
 /**
@@ -84,12 +87,8 @@ final class DefaultRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public TextGenerationResponse generate(GenerateRequest generateRequest) {
+    public TextGenerationResponse generate(String transactionId, String deploymentId, Duration timeout, TextRequest textRequest) {
 
-        var deploymentId = generateRequest.deploymentId();
-        var timeout = generateRequest.timeout();
-        var textRequest = generateRequest.textRequest();
-        var transactionId = generateRequest.transactionId();
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/generation?version=%s".formatted(deploymentId, version));
 
         var httpRequest = HttpRequest
@@ -113,13 +112,13 @@ final class DefaultRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public CompletableFuture<Void> generateStreaming(GenerateStreamingRequest request) {
+    public CompletableFuture<Void> generateStreaming(
+        String transactionId,
+        String deploymentId,
+        Duration timeout,
+        TextRequest textRequest,
+        TextGenerationHandler handler) {
 
-        var deploymentId = request.deploymentId();
-        var transactionId = request.transactionId();
-        var timeout = request.timeout();
-        var textRequest = request.textRequest();
-        var handler = request.handler();
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/generation_stream?version=%s".formatted(deploymentId, version));
 
         var httpRequest = HttpRequest
@@ -141,12 +140,8 @@ final class DefaultRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public ChatResponse chat(ChatRequest request) {
+    public ChatResponse chat(String transactionId, String deploymentId, Duration timeout, TextChatRequest textChatRequest) {
 
-        var deploymentId = request.deploymentId();
-        var timeout = request.timeout();
-        var textChatRequest = request.textChatRequest();
-        var transactionId = request.transactionId();
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat?version=%s".formatted(deploymentId, version));
 
         var httpRequest =
@@ -171,14 +166,14 @@ final class DefaultRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public CompletableFuture<Void> chatStreaming(ChatStreamingRequest request) {
+    public CompletableFuture<Void> chatStreaming(
+        String transactionId,
+        String deploymentId,
+        Duration timeout,
+        ExtractionTags extractionTags,
+        TextChatRequest textChatRequest,
+        ChatHandler handler) {
 
-        var deploymentId = request.deploymentId();
-        var transactionId = request.transactionId();
-        var timeout = request.timeout();
-        var textChatRequest = request.textChatRequest();
-        var extractionTags = request.extractionTags();
-        var handler = request.handler();
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat_stream?version=%s".formatted(deploymentId, version));
 
         var httpRequest =
@@ -201,12 +196,8 @@ final class DefaultRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public ForecastResponse forecast(ForecastRequest request) {
+    public ForecastResponse forecast(String transactionId, String deploymentId, Duration timeout, ForecastRequest forecastRequest) {
 
-        var deploymentId = request.deploymentId();
-        var timeout = request.timeout();
-        var forecastRequest = request.forecastRequest();
-        var transactionId = request.transactionId();
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/time_series/forecast?version=%s".formatted(deploymentId, version));
 
         var httpRequest = HttpRequest
