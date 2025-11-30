@@ -5,7 +5,11 @@
 package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -143,21 +147,59 @@ public final class ChatRequest {
         }
 
         /**
-         * Sets the conversation messages for the request.
+         * Sets the conversation messages for the request, replacing any existing messages.
+         * <p>
+         * This method completely overwrites the current list of messages with the provided ones.
+         * <p>
+         * Use {@link #addMessages(ChatMessage...)} or {@link #addMessages(List)} to append messages instead.
          *
-         * @param messages list of {@link ChatMessage} objects
+         * @param messages one or more {@link ChatMessage} objects to set
          */
         public Builder messages(ChatMessage... messages) {
-            return messages(List.of(messages));
+            return messages(Arrays.asList(messages));
         }
 
         /**
-         * Sets the conversation messages for the request.
+         * Sets the conversation messages for the request, replacing any existing messages.
+         * <p>
+         * This method completely overwrites the current list of messages with the provided ones.
+         * <p>
+         * Use {@link #addMessages(ChatMessage...)} or {@link #addMessages(List)} to append messages instead.
          *
-         * @param messages list of {@link ChatMessage} objects
+         * @param messages one or more {@link ChatMessage} objects to set
          */
         public Builder messages(List<ChatMessage> messages) {
-            this.messages = messages;
+            if (nonNull(messages))
+                this.messages = new LinkedList<>(messages);
+            return this;
+        }
+
+        /**
+         * Adds one or more messages to the existing list of messages for the chat request.
+         * <p>
+         * Unlike {@link #messages(ChatMessage...)}, which replaces the current list of messages, this method appends the provided messages to the
+         * existing list.
+         *
+         * @param messages one or more {@link ChatMessage} objects to add
+         */
+        public Builder addMessages(ChatMessage... messages) {
+            return addMessages(Arrays.asList(messages));
+        }
+
+        /**
+         * Adds one or more messages to the existing list of messages for the chat request.
+         * <p>
+         * Unlike {@link #messages(ChatMessage...)}, which replaces the current list of messages, this method appends the provided messages to the
+         * existing list.
+         *
+         * @param messages one or more {@link ChatMessage} objects to add
+         */
+        public Builder addMessages(List<ChatMessage> messages) {
+            if (isNull(messages) || messages.isEmpty())
+                return this;
+
+            this.messages = requireNonNullElse(this.messages, new LinkedList<>());
+            this.messages.addAll(messages);
             return this;
         }
 
