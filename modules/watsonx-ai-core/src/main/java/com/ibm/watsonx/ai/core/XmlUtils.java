@@ -17,10 +17,7 @@ public final class XmlUtils {
 
     private static final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
-    /**
-     * Prevents direct instantiation of the {@code Builder}.
-     */
-    protected XmlUtils() {}
+    private XmlUtils() {}
 
     /**
      * Parses the given XML string into a Document object.

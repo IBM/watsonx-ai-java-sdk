@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
 public final class TextExtractionDeleteParameters extends WatsonxParameters {
     private final Optional<Boolean> hardDelete;
 
-    public TextExtractionDeleteParameters(Builder builder) {
+    private TextExtractionDeleteParameters(Builder builder) {
         super(builder);
         this.hardDelete = Optional.ofNullable(builder.hardDelete);
     }

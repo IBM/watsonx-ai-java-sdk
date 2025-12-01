@@ -58,7 +58,7 @@ public final class ChatRequest {
     private final ChatParameters parameters;
     private final Thinking thinking;
 
-    protected ChatRequest(Builder builder) {
+    private ChatRequest(Builder builder) {
         messages = requireNonNull(builder.messages, "messages cannot be null");
         tools = builder.tools;
         parameters = builder.parameters;

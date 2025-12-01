@@ -33,7 +33,7 @@ public final class InputSchema {
      *
      * @param builder the builder instance
      */
-    protected InputSchema(Builder builder) {
+    private InputSchema(Builder builder) {
         timestampColumn = requireNonNull(builder.timestampColumn, "The timestampColumn must be provided");
         idColumns = builder.idColumns.isEmpty() ? null : builder.idColumns;
         freq = builder.freq;

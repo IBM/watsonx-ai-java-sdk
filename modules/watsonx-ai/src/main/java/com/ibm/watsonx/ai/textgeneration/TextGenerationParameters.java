@@ -58,7 +58,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
     private final Boolean includeStopSequence;
     private Map<String, String> promptVariables;
 
-    public TextGenerationParameters(Builder builder) {
+    private TextGenerationParameters(Builder builder) {
         super(builder);
         decodingMethod = builder.decodingMethod;
         lengthPenalty = builder.lengthPenalty;
@@ -437,7 +437,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
         private final Boolean tokenRanks;
         private final Integer topNTokens;
 
-        public ReturnOptions(Builder builder) {
+        private ReturnOptions(Builder builder) {
             this.inputText = builder.inputText;
             this.generatedText = builder.generatedText;
             this.inputTokens = builder.inputTokens;

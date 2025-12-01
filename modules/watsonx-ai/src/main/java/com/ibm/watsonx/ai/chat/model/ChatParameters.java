@@ -59,7 +59,7 @@ public final class ChatParameters extends WatsonxModelParameters {
     private final Double lengthPenalty;
     private final String context;
 
-    public ChatParameters(Builder builder) {
+    private ChatParameters(Builder builder) {
         super(builder);
         this.toolChoiceOption = nonNull(builder.toolChoiceOption) ? builder.toolChoiceOption.type() : null;
         this.frequencyPenalty = builder.frequencyPenalty;

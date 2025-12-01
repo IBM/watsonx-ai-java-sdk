@@ -29,7 +29,7 @@ public final class FoundationModelParameters {
     private final String transactionId;
     private final Boolean techPreview;
 
-    protected FoundationModelParameters(Builder builder) {
+    private FoundationModelParameters(Builder builder) {
         this.start = builder.start;
         this.limit = builder.limit;
         this.filter = builder.filter;
@@ -84,6 +84,8 @@ public final class FoundationModelParameters {
         private Filter filter;
         private String transactionId;
         private Boolean techPreview;
+
+        private Builder() {}
 
         /**
          * Sets the pagination start token.

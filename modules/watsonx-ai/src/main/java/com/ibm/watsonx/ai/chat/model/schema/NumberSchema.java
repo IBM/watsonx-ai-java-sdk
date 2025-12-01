@@ -26,7 +26,7 @@ public final class NumberSchema extends JsonSchema {
     private final Integer exclusiveMinimum;
     private final Integer exclusiveMaximum;
 
-    protected NumberSchema(Builder builder) {
+    private NumberSchema(Builder builder) {
         super(builder.nullable ? List.of("number", "null") : "number", builder);
         this.minimum = builder.minimum;
         this.maximum = builder.maximum;

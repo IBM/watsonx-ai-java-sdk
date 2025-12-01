@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
 public final class TokenizationParameters extends WatsonxModelParameters {
     private final Boolean returnTokens;
 
-    public TokenizationParameters(Builder builder) {
+    private TokenizationParameters(Builder builder) {
         super(builder);
         returnTokens = builder.returnTokens;
     }

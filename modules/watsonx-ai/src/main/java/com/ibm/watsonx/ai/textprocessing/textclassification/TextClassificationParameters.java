@@ -46,7 +46,7 @@ public final class TextClassificationParameters extends WatsonxParameters {
     private final Map<String, Object> custom;
     private final Duration timeout;
 
-    public TextClassificationParameters(Builder builder) {
+    private TextClassificationParameters(Builder builder) {
         super(builder);
         this.ocrMode = builder.ocrMode;
         this.classificationMode = nonNull(builder.classificationMode) ? builder.classificationMode.value() : null;

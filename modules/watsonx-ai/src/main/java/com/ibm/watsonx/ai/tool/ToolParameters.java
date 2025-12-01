@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelParameters;
 public final class ToolParameters {
     private final String transactionId;
 
-    protected ToolParameters(Builder builder) {
+    private ToolParameters(Builder builder) {
         this.transactionId = builder.transactionId;
     }
 

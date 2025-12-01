@@ -32,7 +32,7 @@ public final class TextGenerationRequest {
     private final Moderation moderation;
     private final TextGenerationParameters parameters;
 
-    protected TextGenerationRequest(Builder builder) {
+    private TextGenerationRequest(Builder builder) {
         input = builder.input;
         moderation = builder.moderation;
         parameters = builder.parameters;

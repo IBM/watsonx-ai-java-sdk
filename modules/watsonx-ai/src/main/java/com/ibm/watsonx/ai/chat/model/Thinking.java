@@ -37,7 +37,6 @@ import static java.util.Objects.nonNull;
  * @see ThinkingEffort
  */
 public final class Thinking {
-
     private final Boolean enabled;
     private final Boolean includeReasoning;
     private final ExtractionTags extractionTags;

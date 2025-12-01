@@ -27,7 +27,7 @@ public final class EmbeddingParameters extends WatsonxModelParameters {
     private final Integer truncateInputTokens;
     private final Boolean inputText;
 
-    public EmbeddingParameters(Builder builder) {
+    private EmbeddingParameters(Builder builder) {
         super(builder);
         truncateInputTokens = builder.truncateInputTokens;
         inputText = builder.inputText;

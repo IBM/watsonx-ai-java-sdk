@@ -139,7 +139,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
         /**
          * Prevents direct instantiation of the {@code Builder}.
          */
-        protected Builder() {}
+        private Builder() {}
 
         /**
          * Sets the base URL for the IBM Cloud IAM token endpoint.
