@@ -18,6 +18,10 @@ public class ChatMemory {
         memory = new LinkedList<>();
     }
 
+    public void addMessages(List<? extends ChatMessage> messages) {
+        messages.forEach(this::addMessage);
+    }
+
     public void addMessage(ChatMessage message) {
         if (memory.size() >= MAX_SIZE) {
             var index = 0;

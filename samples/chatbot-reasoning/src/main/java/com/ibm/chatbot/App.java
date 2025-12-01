@@ -31,7 +31,7 @@ public class App {
             while (true) {
                 System.out.print("You: ");
                 var userInput = scanner.nextLine();
-                var response = aiService.chat(userInput);
+                var assistantMessage = aiService.chat(userInput).toAssistantMessage();
                 System.out.println("""
                     Assistant:
                     ------------------
@@ -39,7 +39,7 @@ public class App {
                     %s
                     </think>
                     ------------------
-                    %s""".formatted(response.extractThinking(), response.extractContent()));
+                    %s""".formatted(assistantMessage.thinking(), assistantMessage.content()));
                 System.out.println();
             }
         }
