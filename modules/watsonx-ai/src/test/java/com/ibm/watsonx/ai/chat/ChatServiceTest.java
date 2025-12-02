@@ -3092,4 +3092,90 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 }
             """, json, true);
     }
+
+    @Test
+    void should_send_a_tool_without_parameters() throws Exception {
+
+        final String REQUEST = """
+            {
+                "model_id": "ibm/granite-4-h-small",
+                "project_id": "project-id",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "What time is in Italy?"
+                            }
+                        ]
+                    }
+                ],
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "get_current_time"
+                        }
+                    }
+                ],
+                "time_limit": 60000
+            }""";
+
+        final String RESPONSE =
+            """
+                {
+                    "id": "chatcmpl-58a80ac1bb874d55a143d489dc5daccf",
+                    "object": "chat.completion",
+                    "model_id": "ibm/granite-4-h-small",
+                    "model": "ibm/granite-4-h-small",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "tool_calls": [
+                                    {
+                                        "id": "chatcmpl-tool-2eb69938d25a4004a9c0d83b665bbd08",
+                                        "type": "function",
+                                        "function": {
+                                            "name": "get_current_time",
+                                            "arguments": "null"
+                                        }
+                                    }
+                                ]
+                            },
+                            "finish_reason": "tool_calls"
+                        }
+                    ],
+                    "created": 1764609585,
+                    "model_version": "4.0.0",
+                    "created_at": "2025-12-01T17:19:45.682Z",
+                    "usage": {
+                        "completion_tokens": 17,
+                        "prompt_tokens": 157,
+                        "total_tokens": 174
+                    }
+                }""";
+
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .modelId("ibm/granite-4-h-small")
+                .projectId("project-id")
+                .baseUrl(CloudRegion.LONDON)
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var messages = List.<ChatMessage>of(UserMessage.text("What time is in Italy?"));
+            var chatResponse = chatService.chat(messages, Tool.of("get_current_time"));
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+        });
+    }
 }

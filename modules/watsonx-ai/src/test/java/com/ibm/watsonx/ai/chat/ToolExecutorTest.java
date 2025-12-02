@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
@@ -92,5 +93,19 @@ public class ToolExecutorTest {
 
             # Shows the result
             print(result)""", toolMessage.content());
+    }
+
+    @Test
+    void should_process_a_tool_call_without_parameters() {
+        var assistantMessage = new AssistantMessage(null, null, null, null, List.of(ToolCall.of("id", "name", null)));
+        var toolMessages = assistantMessage.processTools((toolName, arguments) -> {
+            assertEquals("name", toolName);
+            assertNull(arguments);
+            return "result";
+        });
+        assertEquals(1, toolMessages.size());
+        var toolMessage = assertInstanceOf(ToolMessage.class, toolMessages.get(0));
+        assertEquals("id", toolMessage.toolCallId());
+        assertEquals("result", toolMessage.content());
     }
 }

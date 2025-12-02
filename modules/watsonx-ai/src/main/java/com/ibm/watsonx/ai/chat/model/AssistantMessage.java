@@ -9,10 +9,8 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import com.ibm.watsonx.ai.chat.ToolExecutor;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
  * Represents a message authored by the assistant within a chat interaction.
@@ -139,16 +137,8 @@ public record AssistantMessage(
      * @return a list of {@link ToolMessage} objects generated from each tool call, or an empty list if no tool calls are present
      */
     public List<ChatMessage> processTools(ToolExecutor executor) {
-        if (!hasToolCalls())
-            return List.of();
-
-        return toolCalls.stream()
-            .map(toolCall -> {
-                var function = toolCall.function();
-                var normalizedArgs = executor.normalize(function.arguments());
-                var toolArguments = new ToolArguments(Json.fromJson(normalizedArgs, new TypeToken<Map<String, Object>>() {}));
-                var toolResult = String.valueOf(executor.execute(function.name(), toolArguments));
-                return (ChatMessage) ToolMessage.of(toolResult, toolCall.id());
-            }).toList();
+        return !hasToolCalls()
+            ? List.of()
+            : toolCalls.stream().map(toolCall -> toolCall.processTools(executor)).toList();
     }
 }
