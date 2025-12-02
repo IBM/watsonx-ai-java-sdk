@@ -57,6 +57,16 @@ public record ToolCall(Integer index, String id, String type, FunctionCall funct
     }
 
     /**
+     * Returns a copy of this {@link ToolCall} with the specified {@link FunctionCall}.
+     *
+     * @param newFunctionCall the new {@link FunctionCall} to associate with this tool call
+     * @return a new {@link ToolCall} instance with the updated function
+     */
+    public ToolCall withFunctionCall(FunctionCall newFunctionCall) {
+        return new ToolCall(index, id, TYPE, newFunctionCall);
+    }
+
+    /**
      * Processes the tool call using the provided {@link ToolExecutor}, and returns the {@link ToolMessage}.
      *
      * @param executor the executor responsible for running the tool call logic
