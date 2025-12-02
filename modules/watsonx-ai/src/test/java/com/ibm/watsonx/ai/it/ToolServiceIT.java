@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.it;
 
+import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -20,6 +21,7 @@ import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.tool.ToolRequest;
@@ -162,6 +164,13 @@ public class ToolServiceIT {
             .modelId("ibm/granite-4-h-small")
             .logRequests(true)
             .logResponses(true)
+            .toolInterceptor(
+                (request, fc) -> {
+                    var arguments = fc.arguments();
+                    return nonNull(arguments) && arguments.startsWith("\"")
+                        ? fc.withArguments(Json.fromJson(fc.arguments(), String.class))
+                        : fc;
+                })
             .build();
 
         var chatRequest = ChatRequest.builder()

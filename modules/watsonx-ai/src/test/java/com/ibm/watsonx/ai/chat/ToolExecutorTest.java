@@ -43,59 +43,6 @@ public class ToolExecutorTest {
     }
 
     @Test
-    void should_normalize_the_tool_calls_arguments() {
-
-        var assistantMessage = new AssistantMessage(
-            null,
-            null,
-            null,
-            null,
-            List.of(
-                ToolCall.of("id", "name", "{ \"code\": \"code\"}"),
-                ToolCall.of("id", "name", "\"{\\\"code\\\": \\\"print(123)\\\"}\""),
-                ToolCall.of("id", "name",
-                    "\"{\\n  \\\"code\\\": \\\"import math\\\\nvalue = (124 * 2 + 125) / 3\\\\nresult = math.sqrt(value)\\\\nprint(result)\\\"\\n}\""),
-                ToolCall.of("id", "name",
-                    "{\"code\": \"# Previous value assigned\\ntemp = result\\n\\n# calculates the value of the previous operation multiplied by 3 and stores it into result\\nresult = temp * 3\\n\\n# Shows the result\\nprint(result)\"}")
-            ));
-
-        var toolMessages = assistantMessage.processTools((toolName, arguments) -> {
-            assertEquals("name", toolName);
-            return arguments.get("code");
-        });
-
-        assertEquals(4, toolMessages.size());
-
-        var toolMessage = assertInstanceOf(ToolMessage.class, toolMessages.get(0));
-        assertEquals("id", toolMessage.toolCallId());
-        assertEquals("code", toolMessage.content());
-
-        toolMessage = assertInstanceOf(ToolMessage.class, toolMessages.get(1));
-        assertEquals("id", toolMessage.toolCallId());
-        assertEquals("print(123)", toolMessage.content());
-
-        toolMessage = assertInstanceOf(ToolMessage.class, toolMessages.get(2));
-        assertEquals("id", toolMessage.toolCallId());
-        assertEquals("""
-            import math
-            value = (124 * 2 + 125) / 3
-            result = math.sqrt(value)
-            print(result)""", toolMessage.content());
-
-        toolMessage = assertInstanceOf(ToolMessage.class, toolMessages.get(3));
-        assertEquals("id", toolMessage.toolCallId());
-        assertEquals("""
-            # Previous value assigned
-            temp = result
-
-            # calculates the value of the previous operation multiplied by 3 and stores it into result
-            result = temp * 3
-
-            # Shows the result
-            print(result)""", toolMessage.content());
-    }
-
-    @Test
     void should_process_a_tool_call_without_parameters() {
         var assistantMessage = new AssistantMessage(null, null, null, null, List.of(ToolCall.of("id", "name", null)));
         var toolMessages = assistantMessage.processTools((toolName, arguments) -> {
