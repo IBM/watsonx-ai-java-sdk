@@ -97,7 +97,7 @@ public final class Moderation {
     private final GraniteGuardian graniteGuardian;
     private final List<InputRanges> inputRanges;
 
-    public Moderation(Builder builder) {
+    private Moderation(Builder builder) {
         hap = builder.hap;
         pii = builder.pii;
         graniteGuardian = builder.graniteGuardian;

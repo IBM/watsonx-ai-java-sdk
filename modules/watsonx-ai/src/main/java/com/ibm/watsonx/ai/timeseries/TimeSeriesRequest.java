@@ -39,7 +39,7 @@ public final class TimeSeriesRequest {
     private ForecastData data;
     private TimeSeriesParameters parameters;
 
-    protected TimeSeriesRequest(Builder builder) {
+    private TimeSeriesRequest(Builder builder) {
         inputSchema = requireNonNull(builder.inputSchema, "InputSchema cannot be null");
         data = requireNonNull(builder.data, "Data cannot be null");
         parameters = builder.parameters;

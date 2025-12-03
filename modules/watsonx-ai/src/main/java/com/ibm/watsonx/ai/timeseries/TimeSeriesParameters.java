@@ -30,7 +30,7 @@ public final class TimeSeriesParameters extends WatsonxModelParameters {
     private final Integer predictionLength;
     private final ForecastData futureData;
 
-    public TimeSeriesParameters(Builder builder) {
+    private TimeSeriesParameters(Builder builder) {
         super(builder);
         predictionLength = builder.predictionLength;
         futureData = builder.futureData;

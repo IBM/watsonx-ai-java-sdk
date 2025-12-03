@@ -26,7 +26,6 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * Default implementation of the {@link TokenizationRestClient} abstract class.
  */
 final class DefaultRestClient extends TokenizationRestClient {
-
     private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
 

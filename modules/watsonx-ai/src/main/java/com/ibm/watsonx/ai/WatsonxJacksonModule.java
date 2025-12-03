@@ -5,6 +5,8 @@
 package com.ibm.watsonx.ai;
 
 import java.util.List;
+import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.schema.ConstantSchema;
 import com.ibm.watsonx.ai.chat.model.schema.EnumSchema;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
@@ -28,6 +31,7 @@ public class WatsonxJacksonModule extends SimpleModule {
 
     public WatsonxJacksonModule() {
         super("watsonx-ai-jackson-module");
+        setMixInAnnotation(ToolArguments.class, ToolArgumentsMixin.class);
         setMixInAnnotation(ConstantSchema.class, ConstantSchemaMixin.class);
         setMixInAnnotation(JsonSchema.class, JsonSchemaMixin.class);
         setMixInAnnotation(EnumSchema.class, EnumSchemaMixin.class);
@@ -50,7 +54,16 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     /**
-     * Mix-in interface for JsonSchema class.
+     * Mix-in class for ToolArguments class.
+     */
+    public abstract static class ToolArgumentsMixin {
+
+        @JsonAnyGetter
+        abstract Map<String, Object> getRaw();
+    }
+
+    /**
+     * Mix-in class for JsonSchema class.
      */
     @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
     public abstract static class JsonSchemaMixin {
@@ -59,7 +72,7 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     /**
-     * Mix-in interface for JsonSchema class.
+     * Mix-in class for JsonSchema class.
      */
     @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
     public abstract static class ConstantSchemaMixin {
@@ -68,7 +81,7 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     /**
-     * Mix-in interface to support enum deserialization where the enum values should be listed under the JSON property "enum".
+     * Mix-in class to support enum deserialization where the enum values should be listed under the JSON property "enum".
      */
     public abstract static class EnumSchemaMixin {
         @JsonProperty("enum")

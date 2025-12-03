@@ -88,7 +88,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
      *
      * @param builder the builder instance
      */
-    public RetryInterceptor(Builder builder) {
+    private RetryInterceptor(Builder builder) {
         requireNonNull(builder);
         retryInterval = requireNonNullElse(builder.retryInterval, Duration.ofMillis(0));
         maxRetries = requireNonNullElse(builder.maxRetries, 1);
@@ -231,7 +231,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         /**
          * Prevents direct instantiation of the {@code Builder}.
          */
-        protected Builder() {}
+        private Builder() {}
 
         /**
          * Sets the delay between retry attempts.

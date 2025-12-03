@@ -239,7 +239,7 @@ public final class ChatResponse {
         private ResultMessage message;
         private String finishReason;
 
-        public ResultChoice() {}
+        ResultChoice() {}
 
         public ResultChoice(Integer index, ResultMessage message, String finishReason) {
             this.index = index;

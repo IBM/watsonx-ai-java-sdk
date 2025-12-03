@@ -40,6 +40,16 @@ public record Tool(String type, Function function) {
      * Creates a new {@link Tool}.
      *
      * @param name The name of the function.
+     * @return A new {@link Tool} instance.
+     */
+    public static Tool of(String name) {
+        return new Tool("function", new Function(name, null, null));
+    }
+
+    /**
+     * Creates a new {@link Tool}.
+     *
+     * @param name The name of the function.
      * @param description A description of what the function does, used by the model to decide when and how to call the function.
      * @return A new {@link Tool} instance.
      */

@@ -28,4 +28,8 @@ public final class ToolArguments {
     public <T> T get(String key) {
         return (T) raw.get(key);
     }
+
+    Map<String, Object> getRaw() {
+        return raw;
+    }
 }

@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +51,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
@@ -58,7 +61,10 @@ import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
+import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
@@ -420,6 +426,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             TextChatRequest EXPECTED_BODY = TextChatRequest.builder()
                 .messages(List.of(UserMessage.text("Hello")))
                 .parameters(parameters)
+                .timeLimit(60000L)
                 .build();
 
             when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -513,7 +520,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     ],
                     "max_completion_tokens": 0,
                     "temperature": 0,
-                    "context": "test"
+                    "context": "test",
+                    "time_limit": 60000
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -666,7 +674,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     ],
                     "chat_template_kwargs" : {
                         "thinking" : true
-                    }
+                    },
+                    "time_limit": 60000
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -1405,5 +1414,435 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 () -> deploymentService.findById(findByIdRequest), "InterruptedException");
             assertEquals(ex.getCause().getMessage(), "InterruptedException");
         });
+    }
+
+    @Test
+    void should_map_function_call_correctly() {
+
+        String RESPONSE = """
+            {
+                "id": "chatcmpl-3a7d590b3ec34f89a007f7f16c7c682b",
+                "object": "chat.completion",
+                "model_id": "ibm/granite-4-h-small",
+                "model": "ibm/granite-4-h-small",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "tool_calls": [
+                                {
+                                    "id": "chatcmpl-tool-ce5a84405758488fb88eab9d50e908d5",
+                                    "type": "function",
+                                    "function": {
+                                        "name": "get_current_time",
+                                        "arguments": "\\"{\\\\n  \\\\\\"country\\\\\\": \\\\\\"Italy\\\\\\"\\\\n}\\""
+                                    }
+                                }
+                            ]
+                        },
+                        "finish_reason": "tool_calls"
+                    }
+                ],
+                "created": 1764688210,
+                "model_version": "4.0.0",
+                "created_at": "2025-12-02T15:10:11.178Z",
+                "usage": {
+                    "completion_tokens": 28,
+                    "prompt_tokens": 192,
+                    "total_tokens": 220
+                }
+            }""";
+
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var deploymentService = DeploymentService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .baseUrl(CloudRegion.LONDON)
+                .messageInterceptor((request, message) -> "New message")
+                .toolInterceptor((request, fc) -> fc.withArguments(Json.fromJson(fc.arguments(), String.class)))
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var tool = Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
+            var messages = List.<ChatMessage>of(UserMessage.text("What time is it in Italy?"));
+            var chatRequest = ChatRequest.builder().deploymentId("my-deployment-id").messages(messages).tools(tool).build();
+            var chatResponse = deploymentService.chat(chatRequest);
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNull(assistantMessage.content());
+            JSONAssert.assertEquals("""
+                {
+                    "id": "chatcmpl-tool-ce5a84405758488fb88eab9d50e908d5",
+                    "type": "function",
+                    "function": {
+                        "name": "get_current_time",
+                        "arguments" : "{\\n  \\"country\\": \\"Italy\\"\\n}"
+                    }
+                }""",
+                Json.toJson(assistantMessage.toolCalls().get(0)),
+                false
+            );
+            assistantMessage.processTools((toolName, toolArgs) -> {
+                assertEquals("get_current_time", toolName);
+                JSONAssert.assertEquals("{ \"country\": \"Italy\" }", Json.toJson(toolArgs), true);
+                return false;
+            });
+        });
+    }
+
+    @Test
+    void should_override_assistant_content() {
+
+        String RESPONSE = """
+            {
+                "id": "chatcmpl-622a62745da348948b7668a76a553b30",
+                "object": "chat.completion",
+                "model_id": "ibm/granite-4-h-small",
+                "model": "ibm/granite-4-h-small",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": "Hello! I'm doing well, thanks for asking. How can I help you today?"
+                        },
+                        "finish_reason": "stop"
+                    }
+                ],
+                "created": 1764692241,
+                "model_version": "4.0.0",
+                "created_at": "2025-12-02T16:17:22.255Z",
+                "usage": {
+                    "completion_tokens": 19,
+                    "prompt_tokens": 190,
+                    "total_tokens": 209
+                }
+            }""";
+
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var deploymentService = DeploymentService.builder()
+                .authenticationProvider(mockAuthenticationProvider)
+                .baseUrl(CloudRegion.LONDON)
+                .messageInterceptor((request, message) -> "I don't feel good.")
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var chatRequest = ChatRequest.builder()
+                .deploymentId("my-deployment-id")
+                .messages(UserMessage.text("What time is it in Italy?"))
+                .build();
+
+            var chatResponse = deploymentService.chat(chatRequest);
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertEquals("I don't feel good.", assistantMessage.content());
+            assertFalse(assistantMessage.hasToolCalls());
+        });
+    }
+
+    @Test
+    void should_not_override_assistant_content_in_streaming() {
+
+        String REQUEST = """
+            {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "How are you?"
+                            }
+                        ]
+                    }
+                ],
+                "time_limit": 60000
+            }""";
+
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .withRequestBody(equalToJson(REQUEST))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(20, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.590Z","system":{"warnings":[{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Hello"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.590Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":"!"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.610Z"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" I"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.629Z"}
+
+                        id: 5
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":"'m"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.651Z"}
+
+                        id: 6
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" doing"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.670Z"}
+
+                        id: 7
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" well"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.689Z"}
+
+                        id: 8
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":","}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.711Z"}
+
+                        id: 9
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" thank"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.729Z"}
+
+                        id: 10
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" you"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.749Z"}
+
+                        id: 11
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":"."}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.770Z"}
+
+                        id: 12
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" How"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.789Z"}
+
+                        id: 13
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" can"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.808Z"}
+
+                        id: 14
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" I"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.831Z"}
+
+                        id: 15
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" assist"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.851Z"}
+
+                        id: 16
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" you"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.870Z"}
+
+                        id: 17
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" today"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.891Z"}
+
+                        id: 18
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":"?"}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.910Z"}
+
+                        id: 19
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.928Z"}
+
+                        id: 20
+                        event: message
+                        data: {"id":"chatcmpl-1677d3cfb8fb41ffa1de5bdb9ea32a3c","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1764692529,"model_version":"4.0.0","created_at":"2025-12-02T16:22:09.928Z","usage":{"completion_tokens":18,"prompt_tokens":190,"total_tokens":208}}
+                        """)));
+
+        var httpPort = wireMock.getPort();
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        var delpoymentService = DeploymentService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
+            .toolInterceptor((request, fc) -> fc)
+            .messageInterceptor((request, message) -> "I don't feel good.")
+            .build();
+
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        List<String> partialResponses = new ArrayList<>();
+        ChatRequest chatRequest = ChatRequest.builder()
+            .deploymentId("my-deployment-id")
+            .messages(UserMessage.text("How are you?"))
+            .build();
+        delpoymentService.chatStreaming(chatRequest, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partialResponses.add(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                result.completeExceptionally(error);
+            }
+        });
+
+        var chatResponse = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        var assistantMessage = chatResponse.toAssistantMessage();
+        assertEquals("Hello! I'm doing well, thank you. How can I assist you today?", assistantMessage.content());
+        assertFalse(assistantMessage.hasToolCalls());
+        assertEquals("Hello! I'm doing well, thank you. How can I assist you today?", partialResponses.stream().collect(Collectors.joining()));
+    }
+
+    @Test
+    void should_map_function_call_correctly_in_streaming() {
+
+        String REQUEST = """
+            {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "What time is it in Italy?"
+                            }
+                        ]
+                    }
+                ],
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "get_current_time",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "country": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ],
+            "time_limit": 60000
+            }""";
+
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .withRequestBody(equalToJson(REQUEST))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(4, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}]}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"chatcmpl-tool-1","type":"function","function":{"name":"get_current_time","arguments":""}}]}}]}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"{\\\\n  \\\\\\"country\\\\\\": \\\\\\"Italy\\\\\\"\\\\n}\\""}}]}}]}
+
+                        id: 4
+                        event: close
+                        data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.565Z","usage":{"completion_tokens":49,"prompt_tokens":319,"total_tokens":368}}
+                        """)));
+
+        var httpPort = wireMock.getPort();
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        var deploymentService = DeploymentService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
+            .toolInterceptor((request, fc) -> fc.withName("new_name").withArguments(Json.fromJson(fc.arguments(), String.class)))
+            .build();
+
+
+        var tools = Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
+        var messages = List.<ChatMessage>of(UserMessage.text("What time is it in Italy?"));
+
+        List<PartialToolCall> toolFetchers = new ArrayList<>();
+        List<CompletedToolCall> toolCalls = new ArrayList<>();
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        ChatRequest chatRequest = ChatRequest.builder()
+            .deploymentId("my-deployment-id")
+            .messages(messages)
+            .tools(tools)
+            .build();
+
+        deploymentService.chatStreaming(chatRequest, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                toolFetchers.add(partialToolCall);
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                toolCalls.add(completeToolCall);
+            }
+        });
+
+        ChatResponse response = assertDoesNotThrow(() -> result.get(300, TimeUnit.SECONDS));
+        AssistantMessage assistantMessage = response.toAssistantMessage();
+        JSONAssert.assertEquals("""
+            {
+                "index": 0,
+                "id": "chatcmpl-tool-1",
+                "type": "function",
+                "function": {
+                    "name": "new_name",
+                    "arguments" : "{\\n  \\"country\\": \\"Italy\\"\\n}"
+                }
+            }""",
+            Json.toJson(assistantMessage.toolCalls().get(0)),
+            true
+        );
+        assistantMessage.processTools((toolName, toolArgs) -> {
+            assertEquals("new_name", toolName);
+            JSONAssert.assertEquals("{ \"country\": \"Italy\" }", Json.toJson(toolArgs), true);
+            return false;
+        });
+
+        assertEquals(1, toolCalls.size());
+        JSONAssert.assertEquals("""
+            {
+                "index": 0,
+                "id": "chatcmpl-tool-1",
+                "type": "function",
+                "function": {
+                    "name": "new_name",
+                    "arguments" : "{\\n  \\"country\\": \\"Italy\\"\\n}"
+                }
+            }""",
+            Json.toJson(toolCalls.get(0).toolCall()),
+            true
+        );
+
+        assertEquals(
+            "\"{\\n  \\\"country\\\": \\\"Italy\\\"\\n}\"",
+            toolFetchers.stream().map(PartialToolCall::arguments).collect(Collectors.joining()));
     }
 }

@@ -45,7 +45,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
      *
      * @param builder the builder instance
      */
-    public AsyncHttpClient(Builder builder) {
+    private AsyncHttpClient(Builder builder) {
         this(builder.httpClient, builder.interceptors);
     }
 
@@ -131,7 +131,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
         /**
          * Prevents direct instantiation of the {@code Builder}.
          */
-        protected Builder() {}
+        private Builder() {}
 
         /**
          * Sets the {@link HttpClient}.

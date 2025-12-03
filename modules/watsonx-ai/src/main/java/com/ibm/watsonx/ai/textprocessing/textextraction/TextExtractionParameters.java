@@ -56,7 +56,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
     private final Map<String, Object> custom;
     private final Duration timeout;
 
-    public TextExtractionParameters(Builder builder) {
+    private TextExtractionParameters(Builder builder) {
         super(builder);
         this.requestedOutputs = requireNonNullElse(builder.requestedOutputs, List.of(Type.MD.value));
         this.mode = builder.mode;

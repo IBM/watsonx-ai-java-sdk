@@ -15,11 +15,16 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
+import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
+import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
+import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
+import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -49,9 +54,10 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * @see AuthenticationProvider
  */
 public class ChatService extends ModelService implements ChatProvider {
-
     public static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private final ChatRestClient client;
+    private final MessageInterceptor messageInterceptor;
+    private final ToolInterceptor toolInterceptor;
 
     private ChatService(Builder builder) {
         super(builder);
@@ -64,6 +70,8 @@ public class ChatService extends ModelService implements ChatProvider {
             .timeout(timeout)
             .authenticationProvider(builder.getAuthenticationProvider())
             .build();
+        messageInterceptor = builder.messageInterceptor;
+        toolInterceptor = builder.toolInterceptor;
     }
 
     @Override
@@ -114,6 +122,12 @@ public class ChatService extends ModelService implements ChatProvider {
             .build();
 
         var chatResponse = client.chat(parameters.getTransactionId(), textChatRequest);
+
+        if (nonNull(messageInterceptor))
+            chatResponse.setChoices(messageInterceptor.intercept(chatRequest, chatResponse));
+
+        if (nonNull(toolInterceptor))
+            chatResponse.setChoices(toolInterceptor.intercept(chatRequest, chatResponse));
 
         // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
         // Open an issue.
@@ -175,7 +189,42 @@ public class ChatService extends ModelService implements ChatProvider {
             .chatTemplateKwargs(chatTemplateKwargs)
             .build();
 
-        return client.chatStreaming(parameters.getTransactionId(), extractionTags, textChatRequest, handler);
+        return client.chatStreaming(parameters.getTransactionId(), extractionTags, textChatRequest, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                handler.onPartialResponse(partialResponse, partialChatResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                if (nonNull(toolInterceptor))
+                    completeResponse.setChoices(toolInterceptor.intercept(chatRequest, completeResponse));
+                handler.onCompleteResponse(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                handler.onError(error);
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                if (nonNull(toolInterceptor))
+                    completeToolCall = toolInterceptor.intercept(completeToolCall);
+                handler.onCompleteToolCall(completeToolCall);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                handler.onPartialThinking(partialThinking, partialChatResponse);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                handler.onPartialToolCall(partialToolCall);
+            }
+        });
     }
 
     /**
@@ -388,8 +437,55 @@ public class ChatService extends ModelService implements ChatProvider {
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
     public final static class Builder extends ModelService.Builder<Builder> {
+        private MessageInterceptor messageInterceptor;
+        private ToolInterceptor toolInterceptor;
 
         private Builder() {}
+
+        /**
+         * Registers a {@link MessageInterceptor} used to modify or sanitize the assistant's textual content before it is returned to the caller.
+         * <p>
+         * This interceptor is invoked on the final aggregated content (non-streaming responses only), allowing adjustments such as rewriting,
+         * filtering, or normalization.
+         * <p>
+         * <b>Example:</b>
+         *
+         * <pre>{@code
+         * ChatService.builder()
+         *     .messageInterceptor((request, content) -> content.replace("error", "issue"));
+         * }</pre>
+         *
+         * @param messageInterceptor the interceptor to apply
+         */
+        public Builder messageInterceptor(MessageInterceptor messageInterceptor) {
+            this.messageInterceptor = messageInterceptor;
+            return this;
+        }
+
+        /**
+         * Registers a {@link ToolInterceptor} to modify or normalize function call arguments before tool execution.
+         * <p>
+         * This interceptor is applied to every function call appearing in the assistant message. It is invoked both for standard responses and for
+         * aggregated tool-call data in streaming mode.
+         * <p>
+         * <b>Example:</b>
+         *
+         * <pre>{@code
+         * ChatService.builder()
+         *     .toolInterceptor((request, fc) -> {
+         *         var args = fc.arguments();
+         *         return (nonNull(args) && args.startsWith("\""))
+         *             ? fc.withArguments(Json.fromJson(args, String.class))
+         *             : fc;
+         *     });
+         * }</pre>
+         *
+         * @param toolInterceptor the interceptor to apply (may be {@code null})
+         */
+        public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
+            this.toolInterceptor = toolInterceptor;
+            return this;
+        }
 
         /**
          * Builds a {@link ChatService} instance using the configured parameters.

@@ -24,7 +24,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
 public final class FindByIdRequest extends WatsonxParameters {
     private final String deploymentId;
 
-    public FindByIdRequest(Builder builder) {
+    private FindByIdRequest(Builder builder) {
         super(builder);
         deploymentId = builder.deploymentId;
     }

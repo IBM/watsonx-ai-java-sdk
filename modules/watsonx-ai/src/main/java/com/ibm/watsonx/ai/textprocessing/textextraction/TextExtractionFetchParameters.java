@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  */
 public final class TextExtractionFetchParameters extends WatsonxParameters {
 
-    public TextExtractionFetchParameters(Builder builder) {
+    private TextExtractionFetchParameters(Builder builder) {
         super(builder);
     }
 

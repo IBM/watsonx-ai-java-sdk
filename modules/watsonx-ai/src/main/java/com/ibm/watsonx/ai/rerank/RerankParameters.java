@@ -29,7 +29,7 @@ public final class RerankParameters extends WatsonxModelParameters {
     private final Boolean inputs;
     private final Boolean query;
 
-    public RerankParameters(Builder builder) {
+    private RerankParameters(Builder builder) {
         super(builder);
         truncateInputTokens = builder.truncateInputTokens;
         topN = builder.topN;
