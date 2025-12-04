@@ -20,13 +20,11 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.InternalChatHandler;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
-import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
-import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
@@ -249,44 +247,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .timeLimit(timeout.toMillis())
             .build();
 
-        return client.chatStreaming(parameters.transactionId(), deploymentId, timeout, extractionTags, textChatRequest, new ChatHandler() {
-
-            @Override
-            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                handler.onPartialResponse(partialResponse, partialChatResponse);
-            }
-
-            @Override
-            public void onCompleteResponse(ChatResponse completeResponse) {
-                if (nonNull(toolInterceptor))
-                    completeResponse = completeResponse.toBuilder()
-                        .choices(toolInterceptor.intercept(chatRequest, completeResponse))
-                        .build();
-                handler.onCompleteResponse(completeResponse);
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                handler.onError(error);
-            }
-
-            @Override
-            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
-                if (nonNull(toolInterceptor))
-                    completeToolCall = toolInterceptor.intercept(completeToolCall);
-                handler.onCompleteToolCall(completeToolCall);
-            }
-
-            @Override
-            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
-                handler.onPartialThinking(partialThinking, partialChatResponse);
-            }
-
-            @Override
-            public void onPartialToolCall(PartialToolCall partialToolCall) {
-                handler.onPartialToolCall(partialToolCall);
-            }
-        });
+        return client.chatStreaming(
+            parameters.transactionId(),
+            deploymentId,
+            timeout,
+            extractionTags,
+            textChatRequest,
+            new InternalChatHandler(handler, toolInterceptor)
+        );
     }
 
     @Override

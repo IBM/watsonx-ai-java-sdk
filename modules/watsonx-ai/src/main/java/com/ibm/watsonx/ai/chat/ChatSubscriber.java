@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
@@ -149,7 +150,6 @@ public interface ChatSubscriber {
 
                 var message = chunk.choices().get(0);
 
-
                 if (isNull(created) && nonNull(chunk.created()))
                     created = chunk.created();
 
@@ -203,10 +203,14 @@ public interface ChatSubscriber {
                         tools.add(toolFetcher);
 
                         if (index - 1 >= 0) {
-                            var tool = tools.get(index - 1).build();
+                            var toolFetcherToCall = tools.get(index - 1);
                             try {
                                 callbackLock.lock();
-                                handler.onCompleteToolCall(new CompletedToolCall(completionId, tool));
+                                var normalizedToolCall = ((InternalChatHandler) handler)
+                                    .normalizeToolCall(new CompletedToolCall(completionId, toolFetcherToCall.build())).toolCall();
+                                toolFetcherToCall.setId(normalizedToolCall.id());
+                                toolFetcherToCall.setName(normalizedToolCall.function().name());
+                                toolFetcherToCall.setArguments(normalizedToolCall.function().arguments());
                             } finally {
                                 callbackLock.unlock();
                             }
@@ -318,24 +322,26 @@ public interface ChatSubscriber {
                 try {
 
                     List<ToolCall> toolCalls = null;
-                    String content = contentBuffer.toString();
+                    String content = contentBuffer.isEmpty() ? null : contentBuffer.toString();
                     String thinking = thinkingBuffer.toString();
 
                     if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
-                        content = null;
                         toolCalls = tools.stream()
                             .map(StreamingToolFetcher::build)
-                            .toList();
+                            .collect(Collectors.toList());
 
                         try {
                             callbackLock.lock();
-                            handler.onCompleteToolCall(new CompletedToolCall(completionId, toolCalls.get(toolCalls.size() - 1)));
+                            var normalizedToolCall =
+                                ((InternalChatHandler) handler)
+                                    .normalizeToolCall(new CompletedToolCall(completionId, toolCalls.get(toolCalls.size() - 1))).toolCall();
+                            toolCalls.set(toolCalls.size() - 1, normalizedToolCall);
                         } finally {
                             callbackLock.unlock();
                         }
                     }
 
-                    var resultMessage = new ResultMessage(role, content, thinking, refusal, toolCalls);
+                    var resultMessage = new ResultMessage(role, content, thinking, refusal, isNull(toolCalls) ? null : List.copyOf(toolCalls));
 
                     try {
                         callbackLock.lock();

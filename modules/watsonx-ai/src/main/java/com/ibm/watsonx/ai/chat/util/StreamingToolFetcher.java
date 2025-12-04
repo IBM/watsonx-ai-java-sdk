@@ -24,18 +24,22 @@ public final class StreamingToolFetcher {
     }
 
     public void setId(String id) {
-        if (nonNull(id) && !id.isEmpty())
+        if (nonNull(id) && !id.isBlank())
             this.id = id;
     }
 
     public void setName(String name) {
-        if (nonNull(name) && !name.isEmpty())
+        if (nonNull(name) && !name.isBlank())
             this.name = name;
     }
 
     public void appendArguments(String arguments) {
         if (nonNull(arguments) && !arguments.isEmpty())
             this.arguments.append(arguments);
+    }
+
+    public void setArguments(String arguments) {
+        this.arguments = new StringBuffer(arguments);
     }
 
     public int getIndex() {
