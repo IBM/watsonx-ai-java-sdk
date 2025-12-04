@@ -6,24 +6,20 @@ package com.ibm.watsonx.ai.chat.interceptor;
 
 import static java.util.Objects.isNull;
 import java.util.List;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 
 /**
- * Functional interface for intercepting and modifying the textual content of assistant messages in a {@link ChatResponse}.
- * <p>
- * This interceptor is invoked with the original {@link ChatRequest} and the message content. Implementations can transform, sanitize, normalize or
- * rewrite the content before it is returned or consumed by application logic.
+ * Functional interface for intercepting and modifying the textual content of assistant messages.
  * <p>
  * <b>Example usage:</b>
  *
  * <pre>{@code
  * MessageInterceptor interceptor =
- *     (request, content) -> isNull(content)
+ *     (ctx, message) -> message == null
  *         ? "Hello!"
- *         : content.strip();
+ *         : message.strip();
  * }</pre>
  */
 @FunctionalInterface
@@ -32,13 +28,20 @@ public interface MessageInterceptor {
     /**
      * Intercepts and modifies the textual content of an assistant message.
      *
-     * @param request the original chat request
+     * @param ctx the interceptor context, providing access to request, response, and other contextual information
      * @param message the message content to intercept
      * @return the modified content
      */
-    String intercept(ChatRequest request, String message);
+    String intercept(InterceptorContext ctx, String message);
 
-    default List<ResultChoice> intercept(ChatRequest request, ChatResponse response) {
+    /**
+     * Applies this interceptor to all messages in the current {@link ChatResponse}.
+     *
+     * @param ctx the interceptor context containing the current request and response
+     * @return a list of {@link ResultChoice} containing rebuilt messages with applied transformations
+     */
+    default List<ResultChoice> intercept(InterceptorContext ctx) {
+        var response = ctx.response().orElseThrow();
         return response.choices().stream().map(choice -> {
 
             ResultMessage message = choice.message();
@@ -46,7 +49,7 @@ public interface MessageInterceptor {
             if (isNull(message.content()))
                 return choice;
 
-            var normalized = intercept(request, message.content());
+            var normalized = intercept(ctx, message.content());
 
             var resultMessage = new ResultMessage(
                 message.role(),

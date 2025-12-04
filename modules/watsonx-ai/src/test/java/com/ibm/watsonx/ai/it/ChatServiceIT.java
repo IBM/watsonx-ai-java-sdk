@@ -50,6 +50,7 @@ import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
@@ -1263,5 +1264,228 @@ public class ChatServiceIT {
                 .parameters(parameters)
                 .build();
         }
+    }
+
+    @Test
+    void should_handle_streaming_conversation_with_tool_interception() {
+
+        var chatService = ChatService.builder()
+            .apiKey(API_KEY)
+            .baseUrl(URL)
+            .projectId(PROJECT_ID)
+            .modelId("ibm/granite-4-h-small")
+            .logRequests(true)
+            .toolInterceptor((ctx, fc) -> {
+
+                var arguments = fc.arguments();
+
+                if (!arguments.contains("country")) {
+                    int firstBraceIndex = arguments.indexOf('{');
+                    int firstQuoteAfterBrace = arguments.indexOf("\\\"", firstBraceIndex + 1);
+                    String countryPart = arguments.substring(firstQuoteAfterBrace + 2, arguments.indexOf("\\\"", firstQuoteAfterBrace + 2));
+                    arguments = "{ \"country\": \"" + countryPart + "\"}";
+                }
+
+                if (arguments.startsWith("\""))
+                    arguments = Json.toJson(arguments);
+
+                return fc.withArguments(arguments);
+
+            }).build();
+
+        var chatRequest = ChatRequest.builder()
+            .addMessages(UserMessage.text("What time is it in Italy?"))
+            .tools(Tool.of(
+                "get_current_time",
+                "Get the current time",
+                JsonSchema.object()
+                    .property("country", JsonSchema.string())
+                    .required("country")
+            ));
+
+        var firstResponse = new CompletableFuture<ChatResponse>();
+        chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                firstResponse.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
+
+        var assistantMessage = assertDoesNotThrow(() -> firstResponse.get(60, TimeUnit.SECONDS)).toAssistantMessage();
+        assertTrue(assistantMessage.hasToolCalls());
+        var toolCall = assistantMessage.toolCalls().get(0);
+        chatRequest.addMessages(
+            toolCall.processTools((toolName, toolArgs) -> {
+                assertEquals("get_current_time", toolName);
+                assertEquals("Italy", toolArgs.get("country"));
+                return "The current time in Italy is 11:13";
+            }));
+
+        var secondResponse = new CompletableFuture<ChatResponse>();
+        chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                secondResponse.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
+
+        assistantMessage = assertDoesNotThrow(() -> secondResponse.get(60, TimeUnit.SECONDS)).toAssistantMessage();
+        assertFalse(assistantMessage.hasToolCalls());
+        assertTrue(assistantMessage.content().contains("11:13"));
+
+        chatRequest.addMessages(assistantMessage, UserMessage.text("And in Germany?"));
+        var thirdResponse = new CompletableFuture<ChatResponse>();
+        chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                thirdResponse.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
+
+        assistantMessage = assertDoesNotThrow(() -> thirdResponse.get(60, TimeUnit.SECONDS)).toAssistantMessage();
+        assertTrue(assistantMessage.hasToolCalls());
+        toolCall = assistantMessage.toolCalls().get(0);
+        chatRequest.addMessages(
+            toolCall.processTools((toolName, toolArgs) -> {
+                assertEquals("get_current_time", toolName);
+                assertEquals("Germany", toolArgs.get("country"));
+                return "The current time in Italy is 11:15";
+            }));
+
+        var fourthResponse = new CompletableFuture<ChatResponse>();
+        chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                fourthResponse.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
+        assistantMessage = assertDoesNotThrow(() -> fourthResponse.get(60, TimeUnit.SECONDS)).toAssistantMessage();
+        assertFalse(assistantMessage.hasToolCalls());
+        assertTrue(assistantMessage.content().contains("11:15"));
+    }
+
+    @Test
+    void should_handle_streaming_conversation_with_multiple_tools_in_interception_tools() {
+
+        var chatService = ChatService.builder()
+            .apiKey(API_KEY)
+            .baseUrl(URL)
+            .projectId(PROJECT_ID)
+            .modelId("ibm/granite-4-h-small")
+            .logRequests(true)
+            .toolInterceptor((ctx, fc) -> {
+
+                var arguments = fc.arguments();
+
+                if (!arguments.contains("country")) {
+                    int firstBraceIndex = arguments.indexOf('{');
+                    int firstQuoteAfterBrace = arguments.indexOf("\\\"", firstBraceIndex + 1);
+                    String countryPart = arguments.substring(firstQuoteAfterBrace + 2, arguments.indexOf("\\\"", firstQuoteAfterBrace + 2));
+                    arguments = "{ \"country\": \"" + countryPart + "\"}";
+                }
+
+                if (arguments.startsWith("\""))
+                    arguments = Json.toJson(arguments);
+
+                return fc.withArguments(arguments);
+
+            }).build();
+
+        var chatRequest = ChatRequest.builder()
+            .addMessages(
+                SystemMessage.of("You are an helpful assistant"),
+                UserMessage.text("What time is it in Italy, Germany and Japan?")
+            )
+            .tools(Tool.of(
+                "get_current_time",
+                "Get the current time",
+                JsonSchema.object()
+                    .property("name", JsonSchema.string("Name of the country"))
+                    .required("country")
+            ))
+            .parameters(
+                ChatParameters.builder()
+                    .temperature(0.0)
+                    .build()
+            );
+
+        AssistantMessage assistantMessage;
+        int i = 0;
+        do {
+
+            if (i > 5)
+                throw new RuntimeException("Too many attempts");
+
+            var firstResponse = new CompletableFuture<ChatResponse>();
+            chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    System.out.println(partialResponse);
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    firstResponse.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {}
+            });
+
+            assistantMessage = assertDoesNotThrow(() -> firstResponse.get(30, TimeUnit.SECONDS)).toAssistantMessage();
+            assertTrue(assistantMessage.hasToolCalls());
+            i++;
+        } while (assistantMessage.toolCalls().size() == 1 && i < 5);
+
+        var toolCall = assistantMessage.toolCalls().get(0);
+        chatRequest.addMessages(
+            toolCall.processTools((toolName, toolArgs) -> {
+                assertEquals("get_current_time", toolName);
+                assertEquals("Italy", toolArgs.get("country"));
+                return "The current time in Italy is 11:13";
+            }));
+        toolCall = assistantMessage.toolCalls().get(1);
+        chatRequest.addMessages(
+            toolCall.processTools((toolName, toolArgs) -> {
+                assertEquals("get_current_time", toolName);
+                assertEquals("Germany", toolArgs.get("country"));
+                return "The current time in Germany is 11:13";
+            }));
+        toolCall = assistantMessage.toolCalls().get(2);
+        chatRequest.addMessages(
+            toolCall.processTools((toolName, toolArgs) -> {
+                assertEquals("get_current_time", toolName);
+                assertEquals("Japan", toolArgs.get("country"));
+                return "The current time in Germany is 23:13";
+            }));
     }
 }

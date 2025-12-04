@@ -431,27 +431,16 @@ public class WatsonxJacksonModule extends SimpleModule {
         abstract String getFormat();
     }
 
-    /**
-     * Mix-in abstract class for supporting default value serialization/deserialization. This is used for various parameter types that expose a
-     * "default" field in JSON.
-     */
     public abstract static class DefaultValueMixin {
         @JsonProperty("default")
         abstract Object defaultValue();
     }
 
-    /**
-     * Mix-in abstract class for supporting serialization/deserialization of {@link AssistantMessage} without exposing the internal {@code thinking}
-     * field.
-     */
     public abstract static class AssistantMessageMixIn {
         @JsonIgnore
         abstract String thinking();
     }
 
-    /**
-     * Mix-in class that provides custom deserialization support for the {@link Schema} model using its builder pattern.
-     */
     @JsonDeserialize(builder = Schema.Builder.class)
     public abstract class SchemaMixin {
 
@@ -472,21 +461,12 @@ public class WatsonxJacksonModule extends SimpleModule {
 
     }
 
-    /**
-     * Mix-in class that provides custom deserialization support for the {@link Schema.Builder} model using its builder pattern.
-     */
     @JsonPOJOBuilder(withPrefix = "")
     public abstract class SchemaBuilderMixin {}
 
-    /**
-     * Mix-in class that provides custom deserialization support for the {@link KvpFields} model using its builder pattern.
-     */
     @JsonDeserialize(builder = KvpFields.Builder.class)
     public abstract class KvpFieldsMixin {}
 
-    /**
-     * Mix-in class that provides custom deserialization support for the {@link KvpFields.Builder} model using its builder pattern.
-     */
     @JsonPOJOBuilder(withPrefix = "")
     public abstract class KvpFieldsBuilderMixin {
         @JsonAnySetter

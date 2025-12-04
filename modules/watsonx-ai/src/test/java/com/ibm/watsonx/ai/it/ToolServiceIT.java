@@ -144,7 +144,6 @@ public class ToolServiceIT {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
     @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
     @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
     @EnabledIfEnvironmentVariable(named = "PYTHON_INTERPRETER_DEPLOYMENT_ID", matches = ".+")

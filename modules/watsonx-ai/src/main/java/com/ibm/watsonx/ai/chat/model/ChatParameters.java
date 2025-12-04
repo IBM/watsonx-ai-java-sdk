@@ -184,6 +184,44 @@ public final class ChatParameters extends WatsonxModelParameters {
     }
 
     /**
+     * Creates a builder initialized with the current state of the {@code ChatParameters}.
+     *
+     * @return a new {@link Builder} instance pre-populated with this {@code ChatParameters}' data
+     */
+    @SuppressWarnings("rawtypes")
+    public Builder toBuilder() {
+        var builder = new Builder()
+            .context(context)
+            .frequencyPenalty(frequencyPenalty)
+            .guidedChoice(guidedChoice)
+            .guidedGrammar(guidedGrammar)
+            .guidedRegex(guidedRegex)
+            .lengthPenalty(lengthPenalty)
+            .logitBias(logitBias)
+            .logprobs(logprobs)
+            .maxCompletionTokens(maxCompletionTokens)
+            .modelId(modelId)
+            .n(n)
+            .presencePenalty(presencePenalty)
+            .projectId(projectId)
+            .repetitionPenalty(repetitionPenalty)
+            .seed(seed)
+            .spaceId(spaceId)
+            .stop(stop)
+            .temperature(temperature)
+            .timeLimit(nonNull(timeLimit) ? Duration.ofMillis(timeLimit) : null)
+            .toolChoice(nonNull(toolChoice) ? String.valueOf(((Map) toolChoice.get("function")).get("name")) : null)
+            .toolChoiceOption(nonNull(toolChoiceOption) ? ToolChoiceOption.valueOf(toolChoiceOption.toUpperCase()) : null)
+            .topLogprobs(topLogprobs)
+            .topP(topP)
+            .transactionId(transactionId);
+
+        builder.responseFormat = nonNull(responseFormat) ? ResponseFormat.valueOf(responseFormat.toUpperCase()) : null;
+        builder.jsonSchema = jsonSchema;
+        return builder;
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>
@@ -267,7 +305,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          * @param guidedChoices a variable number of allowed output strings
          */
         public Builder guidedChoice(Set<String> guidedChoices) {
-            this.guidedChoice = guidedChoices;
+            this.guidedChoice = isNull(guidedChoices) ? null : Set.copyOf(guidedChoices);
             return this;
         }
 
@@ -326,7 +364,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          * @param logitBias a map from token ids to bias values
          */
         public Builder logitBias(Map<String, Integer> logitBias) {
-            this.logitBias = logitBias;
+            this.logitBias = isNull(logitBias) ? null : Map.copyOf(logitBias);
             return this;
         }
 
@@ -498,7 +536,7 @@ public final class ChatParameters extends WatsonxModelParameters {
          * @param stop list of stop sequences
          */
         public Builder stop(List<String> stop) {
-            this.stop = stop;
+            this.stop = isNull(stop) ? null : List.copyOf(stop);
             return this;
         }
 

@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
+import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -54,6 +55,7 @@ public class ChatService extends ModelService implements ChatProvider {
     private final ChatRestClient client;
     private final MessageInterceptor messageInterceptor;
     private final ToolInterceptor toolInterceptor;
+    private final ChatProvider chatProvider;
 
     private ChatService(Builder builder) {
         super(builder);
@@ -68,6 +70,20 @@ public class ChatService extends ModelService implements ChatProvider {
             .build();
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
+        if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
+            chatProvider = new Builder()
+                .authenticationProvider(builder.getAuthenticationProvider())
+                .baseUrl(baseUrl)
+                .logRequests(logRequests)
+                .logResponses(logResponses)
+                .modelId(modelId)
+                .projectId(projectId)
+                .spaceId(spaceId)
+                .timeout(timeout)
+                .version(version)
+                .build();
+        } else
+            chatProvider = null;
     }
 
     @Override
@@ -142,7 +158,7 @@ public class ChatService extends ModelService implements ChatProvider {
 
         if (nonNull(messageInterceptor)) {
 
-            var newChoices = messageInterceptor.intercept(chatRequest, chatResponse);
+            var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -150,7 +166,7 @@ public class ChatService extends ModelService implements ChatProvider {
 
         if (nonNull(toolInterceptor)) {
 
-            var newChoices = toolInterceptor.intercept(chatRequest, chatResponse);
+            var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -234,7 +250,7 @@ public class ChatService extends ModelService implements ChatProvider {
             parameters.transactionId(),
             extractionTags,
             textChatRequest,
-            new InternalChatHandler(handler, toolInterceptor)
+            new InternalChatHandler(new InterceptorContext(chatProvider, chatRequest, null), handler, toolInterceptor)
         );
     }
 
