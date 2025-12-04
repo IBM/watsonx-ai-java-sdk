@@ -32,6 +32,8 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +64,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
+import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -1406,7 +1409,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
         });
     }
-
 
     @Test
     void should_stream_chat_response_in_chunks_correctly() throws Exception {
@@ -3400,7 +3402,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_map_function_call_correctly_in_streaming() {
+    void should_call_tool_interceptor_correctly_in_streaming() {
 
         String REQUEST = """
             {
@@ -3545,5 +3547,168 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         assertEquals(
             "\"{\\n  \\\"country\\\": \\\"Italy\\\"\\n}\"",
             toolFetchers.stream().map(PartialToolCall::arguments).collect(Collectors.joining()));
+    }
+
+    @Test
+    void should_call_tool_interceptor_only_two_times_in_streaming() {
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(25, 50)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.494Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Saving"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.494Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" to"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.505Z"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" get"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.515Z"}
+
+                        id: 5
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" the"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.526Z"}
+
+                        id: 6
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" current"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.537Z"}
+
+                        id: 7
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" time"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.548Z"}
+
+                        id: 8
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.559Z"}
+
+                        id: 9
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Italy"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.570Z"}
+
+                        id: 10
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" and"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.581Z"}
+
+                        id: 11
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Germany"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.591Z"}
+
+                        id: 12
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":"..."}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.602Z"}
+
+                        id: 13
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"ENqBTHVxT","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.710Z"}
+
+                        id: 14
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.785Z"}
+
+                        id: 15
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"Italy\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.796Z"}
+
+                        id: 16
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.807Z"}
+
+                        id: 17
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.818Z"}
+
+                        id: 18
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.828Z"}
+
+                        id: 19
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"id":"IWoeRYrcI","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.904Z"}
+
+                        id: 20
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.979Z"}
+
+                        id: 21
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"Germany\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.990Z"}
+
+                        id: 22
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.001Z"}
+
+                        id: 23
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.012Z"}
+
+                        id: 24
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.022Z"}
+
+                        id: 25
+                        event: message
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.022Z","usage":{"completion_tokens":50,"prompt_tokens":75,"total_tokens":125}}
+                        """
+                )));
+
+        var toolInterceptor = mock(ToolInterceptor.class);
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(toolInterceptor.intercept(any(CompletedToolCall.class)))
+            .thenReturn(new CompletedToolCall("id_1", ToolCall.of("1", "name_1", "{ \"test_1\": \"1\"}")))
+            .thenReturn(new CompletedToolCall("id_2", ToolCall.of("2", "name_2", "{ \"test_2\": \"2\"}")));
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("ibm/granite-4-h-small")
+            .projectId("project-id")
+            .logResponses(true)
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .toolInterceptor(toolInterceptor)
+            .build();
+
+        var tools = Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
+        StringBuilder stringBuilder = new StringBuilder();
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        chatService.chatStreaming(List.of(UserMessage.text("What time is it in Italy and Germany?")), List.of(tools), new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                stringBuilder.append(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                result.completeExceptionally(error);
+            }
+        });
+
+        var assistantMessage = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS)).toAssistantMessage();
+        verify(toolInterceptor, times(2)).intercept(any(CompletedToolCall.class));
+        verify(toolInterceptor, times(0)).intercept(any(ChatRequest.class), any(ChatResponse.class));
+        assertEquals("Saving to get the current time in Italy and Germany...", stringBuilder.toString());
+        assertEquals("Saving to get the current time in Italy and Germany...", assistantMessage.content());
+        assistantMessage.processTools(((toolName, toolArgs) -> {
+            if (toolName.equals("name_1")) {
+                assertEquals("1", toolArgs.get("test_1"));
+            } else if (toolName.equals("name_2")) {
+                assertEquals("2", toolArgs.get("test_2"));
+            } else
+                fail("Unexpected tool name: " + toolName);
+            return toolArgs;
+        }));
     }
 }
