@@ -22,7 +22,7 @@ public class ChatRequestTest {
             .thinking(tags)
             .build();
 
-        assertNull(chatRequest.getThinking());
+        assertNull(chatRequest.thinking());
 
         ThinkingEffort thinkingEffort = null;
 
@@ -31,6 +31,6 @@ public class ChatRequestTest {
             .thinking(thinkingEffort)
             .build();
 
-        assertNull(chatRequest.getThinking());
+        assertNull(chatRequest.thinking());
     }
 }

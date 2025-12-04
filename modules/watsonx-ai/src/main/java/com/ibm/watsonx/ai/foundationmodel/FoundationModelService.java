@@ -71,8 +71,8 @@ public class FoundationModelService extends WatsonxService {
      */
     public FoundationModelResponse<FoundationModel> getModels(FoundationModelParameters parameters) {
         parameters = requireNonNullElse(parameters, FoundationModelParameters.builder().build());
-        var techPreview = ofNullable(parameters.getTechPreview()).orElse(this.techPreview);
-        return getModels(parameters.getStart(), parameters.getLimit(), parameters.getTransactionId(), techPreview, parameters.getFilter());
+        var techPreview = ofNullable(parameters.techPreview()).orElse(this.techPreview);
+        return getModels(parameters.start(), parameters.limit(), parameters.transactionId(), techPreview, parameters.filter());
     }
 
     /**

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
+import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -92,14 +93,22 @@ public interface ChatSubscriber {
         ExtractionTags extractionTags,
         ChatHandler handler) {
         return new ChatSubscriber() {
+            private final Object usageLock = new Object();
             private volatile String completionId;
             private volatile String finishReason;
             private volatile String role;
             private volatile String refusal;
+            private volatile Long created;
+            private volatile String createdAt;
+            private volatile String id;
+            private volatile String modelId;
+            private volatile String object;
+            private volatile String model;
+            private volatile String modelVersion;
             private volatile boolean pendingSSEError = false;
+            private ChatUsage chatUsage;
             private final StringBuffer contentBuffer = new StringBuffer();
             private final StringBuffer thinkingBuffer = new StringBuffer();
-            private final ChatResponse chatResponse = new ChatResponse();
             private final List<StreamingToolFetcher> tools = Collections.synchronizedList(new ArrayList<>());
             private final StreamingStateTracker stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
             private final ReentrantLock callbackLock = new ReentrantLock();
@@ -130,50 +139,48 @@ public interface ChatSubscriber {
 
                 var chunk = Json.fromJson(messageData, PartialChatResponse.class);
 
-                synchronized (chatResponse) {
-                    // Last message get the "usage" values
-                    if (chunk.choices().size() == 0) {
-                        chatResponse.setUsage(chunk.usage());
+                // Last message get the "usage" values
+                if (chunk.choices().size() == 0) {
+                    synchronized (usageLock) {
+                        chatUsage = chunk.usage();
                         return;
                     }
                 }
 
                 var message = chunk.choices().get(0);
 
-                synchronized (chatResponse) {
 
-                    if (isNull(chatResponse.getCreated()) && nonNull(chunk.created()))
-                        chatResponse.setCreated(chunk.created());
+                if (isNull(created) && nonNull(chunk.created()))
+                    created = chunk.created();
 
-                    if (isNull(chatResponse.getCreatedAt()) && nonNull(chunk.createdAt()))
-                        chatResponse.setCreatedAt(chunk.createdAt());
+                if (isNull(createdAt) && nonNull(chunk.createdAt()))
+                    createdAt = chunk.createdAt();
 
-                    if (isNull(chatResponse.getId()) && nonNull(chunk.id())) {
-                        chatResponse.setId(chunk.id());
-                        completionId = chunk.id();
-                    }
-
-                    if (isNull(chatResponse.getModelId()) && nonNull(chunk.modelId()))
-                        chatResponse.setModelId(chunk.modelId());
-
-                    if (isNull(chatResponse.getObject()) && nonNull(chunk.object()))
-                        chatResponse.setObject(chunk.object());
-
-                    if (isNull(chatResponse.getModelVersion()) && nonNull(chunk.modelVersion()))
-                        chatResponse.setModelVersion(chunk.modelVersion());
-
-                    if (isNull(chatResponse.getModel()) && nonNull(chunk.model()))
-                        chatResponse.setModel(chunk.model());
-
-                    if (isNull(finishReason) && nonNull(message.finishReason()))
-                        finishReason = message.finishReason();
-
-                    if (isNull(role) && nonNull(message.delta().role()))
-                        role = message.delta().role();
-
-                    if (isNull(refusal) && nonNull(message.delta().refusal()))
-                        refusal = message.delta().refusal();
+                if (isNull(id) && nonNull(chunk.id())) {
+                    id = chunk.id();
+                    completionId = chunk.id();
                 }
+
+                if (isNull(modelId) && nonNull(chunk.modelId()))
+                    modelId = chunk.modelId();
+
+                if (isNull(object) && nonNull(chunk.object()))
+                    object = chunk.object();
+
+                if (isNull(modelVersion) && nonNull(chunk.modelVersion()))
+                    modelVersion = chunk.modelVersion();
+
+                if (isNull(model) && nonNull(chunk.model()))
+                    model = chunk.model();
+
+                if (isNull(finishReason) && nonNull(message.finishReason()))
+                    finishReason = message.finishReason();
+
+                if (isNull(role) && nonNull(message.delta().role()))
+                    role = message.delta().role();
+
+                if (isNull(refusal) && nonNull(message.delta().refusal()))
+                    refusal = message.delta().refusal();
 
                 if (message.delta().toolCalls() != null) {
 
@@ -330,14 +337,22 @@ public interface ChatSubscriber {
 
                     var resultMessage = new ResultMessage(role, content, thinking, refusal, toolCalls);
 
-                    synchronized (chatResponse) {
-                        chatResponse.setExtractionTags(extractionTags);
-                        chatResponse.setChoices(List.of(new ResultChoice(0, resultMessage, finishReason)));
-                    }
-
                     try {
                         callbackLock.lock();
-                        handler.onCompleteResponse(chatResponse);
+                        handler.onCompleteResponse(
+                            ChatResponse.build()
+                                .created(created)
+                                .createdAt(createdAt)
+                                .id(id)
+                                .modelId(modelId)
+                                .object(object)
+                                .model(model)
+                                .modelVersion(modelVersion)
+                                .extractionTags(extractionTags)
+                                .usage(chatUsage)
+                                .choices(List.of(new ResultChoice(0, resultMessage, finishReason)))
+                                .build()
+                        );
                     } finally {
                         callbackLock.unlock();
                     }

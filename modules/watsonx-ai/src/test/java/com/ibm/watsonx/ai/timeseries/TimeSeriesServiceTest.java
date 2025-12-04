@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai;
+package com.ibm.watsonx.ai.timeseries;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -27,11 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
+import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
-import com.ibm.watsonx.ai.timeseries.ForecastData;
-import com.ibm.watsonx.ai.timeseries.InputSchema;
-import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
-import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 
 @ExtendWith(MockitoExtension.class)
 public class TimeSeriesServiceTest extends AbstractWatsonxTest {
@@ -227,7 +224,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
         var result = tsService.forecast(inputSchema, data, parameters);
         JSONAssert.assertEquals(EXPECTED, toJson(result), true);
-        assertEquals(512, parameters.getPredictionLength());
+        assertEquals(512, parameters.predictionLength());
 
         var dataFromJson = fromJson("""
             {

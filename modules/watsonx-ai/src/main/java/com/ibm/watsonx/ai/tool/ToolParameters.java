@@ -27,7 +27,7 @@ public final class ToolParameters {
         this.transactionId = builder.transactionId;
     }
 
-    public String getTransactionId() {
+    public String transactionId() {
         return transactionId;
     }
 

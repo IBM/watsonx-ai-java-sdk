@@ -377,18 +377,18 @@ public class TextClassificationService extends ProjectService {
         requireNonNull(id, "The id can not be null");
 
         var builder = TextClassificationDeleteParameters.builder();
-        ofNullable(parameters.getProjectId()).ifPresent(builder::projectId);
-        ofNullable(parameters.getSpaceId()).ifPresent(builder::spaceId);
+        ofNullable(parameters.projectId()).ifPresent(builder::projectId);
+        ofNullable(parameters.spaceId()).ifPresent(builder::spaceId);
 
-        if (isNull(parameters.getProjectId()) && isNull(parameters.getSpaceId()))
+        if (isNull(parameters.projectId()) && isNull(parameters.spaceId()))
             builder.projectId(projectId).spaceId(spaceId);
 
         var p = builder
-            .transactionId(parameters.getTransactionId())
-            .hardDelete(parameters.getHardDelete().orElse(null))
+            .transactionId(parameters.transactionId())
+            .hardDelete(parameters.hardDelete().orElse(null))
             .build();
 
-        var request = DeleteClassificationRequest.of(parameters.getTransactionId(), id, p);
+        var request = DeleteClassificationRequest.of(parameters.transactionId(), id, p);
         return client.deleteClassification(request);
     }
 
@@ -400,14 +400,14 @@ public class TextClassificationService extends ProjectService {
         requireNonNull(id, "The id can not be null");
 
         var builder = TextClassificationFetchParameters.builder();
-        ofNullable(parameters.getProjectId()).ifPresent(builder::projectId);
-        ofNullable(parameters.getSpaceId()).ifPresent(builder::spaceId);
+        ofNullable(parameters.projectId()).ifPresent(builder::projectId);
+        ofNullable(parameters.spaceId()).ifPresent(builder::spaceId);
 
-        if (isNull(parameters.getProjectId()) && isNull(parameters.getSpaceId()))
+        if (isNull(parameters.projectId()) && isNull(parameters.spaceId()))
             builder.projectId(projectId).spaceId(spaceId);
 
         var p = builder
-            .transactionId(parameters.getTransactionId())
+            .transactionId(parameters.transactionId())
             .build();
 
         var request = FetchClassificationDetailsRequest.of(requestId, id, p);
@@ -437,7 +437,7 @@ public class TextClassificationService extends ProjectService {
         CosReference documentReference = this.documentReference;
 
         if (nonNull(parameters))
-            documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
+            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
 
         if (!waitForClassification && removeOutputFile)
             throw new IllegalArgumentException(
@@ -467,13 +467,13 @@ public class TextClassificationService extends ProjectService {
 
         if (nonNull(parameters)) {
             removeUploadedFile = parameters.isRemoveUploadedFile();
-            projectId = parameters.getProjectId();
-            spaceId = parameters.getSpaceId();
-            documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
+            projectId = parameters.projectId();
+            spaceId = parameters.spaceId();
+            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
             params = parameters.toParameters();
-            custom = parameters.getCustom();
-            timeout = requireNonNullElse(parameters.getTimeout(), Duration.ofSeconds(60));
-            transactionId = parameters.getTransactionId();
+            custom = parameters.custom();
+            timeout = requireNonNullElse(parameters.timeout(), Duration.ofSeconds(60));
+            transactionId = parameters.transactionId();
         }
 
         if (isNull(projectId) && isNull(spaceId)) {
@@ -550,7 +550,7 @@ public class TextClassificationService extends ProjectService {
 
         if (nonNull(parameters)) {
             removeUploadedFile = parameters.isRemoveUploadedFile();
-            documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
+            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
         }
 
         String documentBucketName = documentReference.bucket();

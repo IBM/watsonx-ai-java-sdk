@@ -42,39 +42,39 @@ public abstract class SemanticConfig {
         taskModelNameOverride = builder.taskModelNameOverride;
     }
 
-    public Boolean getEnableTextHints() {
+    public Boolean enableTextHints() {
         return enableTextHints;
     }
 
-    public Boolean getEnableGenericKvp() {
+    public Boolean enableGenericKvp() {
         return enableGenericKvp;
     }
 
-    public Boolean getEnableSchemaKvp() {
+    public Boolean enableSchemaKvp() {
         return enableSchemaKvp;
     }
 
-    public String getGroundingMode() {
+    public String groundingMode() {
         return groundingMode;
     }
 
-    public String getForceSchemaName() {
+    public String forceSchemaName() {
         return forceSchemaName;
     }
 
-    public String getDefaultModelName() {
+    public String defaultModelName() {
         return defaultModelName;
     }
 
-    public Map<String, Object> getTaskModelNameOverride() {
+    public Map<String, Object> taskModelNameOverride() {
         return taskModelNameOverride;
     }
 
-    public String getSchemasMergeStrategy() {
+    public String schemasMergeStrategy() {
         return schemasMergeStrategy;
     }
 
-    public List<Schema> getSchemas() {
+    public List<Schema> schemas() {
         return schemas;
     }
 

@@ -36,11 +36,11 @@ public abstract class BaseDetector {
         properties = requireNonNullElse(builder.properties, new HashMap<>());
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, Object> properties() {
         return properties;
     }
 

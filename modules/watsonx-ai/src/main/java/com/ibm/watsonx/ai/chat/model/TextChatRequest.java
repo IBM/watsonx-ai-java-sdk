@@ -86,119 +86,119 @@ public final class TextChatRequest {
         lengthPenalty = builder.lengthPenalty;
     }
 
-    public String getModelId() {
+    public String modelId() {
         return modelId;
     }
 
-    public String getSpaceId() {
+    public String spaceId() {
         return spaceId;
     }
 
-    public String getProjectId() {
+    public String projectId() {
         return projectId;
     }
 
-    public List<ChatMessage> getMessages() {
+    public List<ChatMessage> messages() {
         return messages;
     }
 
-    public List<Tool> getTools() {
+    public List<Tool> tools() {
         return tools;
     }
 
-    public String getToolChoiceOption() {
+    public String toolChoiceOption() {
         return toolChoiceOption;
     }
 
-    public Map<String, Object> getToolChoice() {
+    public Map<String, Object> toolChoice() {
         return toolChoice;
     }
 
-    public Double getFrequencyPenalty() {
+    public Double frequencyPenalty() {
         return frequencyPenalty;
     }
 
-    public Map<String, Integer> getLogitBias() {
+    public Map<String, Integer> logitBias() {
         return logitBias;
     }
 
-    public Boolean getLogprobs() {
+    public Boolean logprobs() {
         return logprobs;
     }
 
-    public Integer getTopLogprobs() {
+    public Integer topLogprobs() {
         return topLogprobs;
     }
 
-    public Integer getMaxCompletionTokens() {
+    public Integer maxCompletionTokens() {
         return maxCompletionTokens;
     }
 
-    public Integer getN() {
+    public Integer n() {
         return n;
     }
 
-    public Double getPresencePenalty() {
+    public Double presencePenalty() {
         return presencePenalty;
     }
 
-    public Integer getSeed() {
+    public Integer seed() {
         return seed;
     }
 
-    public List<String> getStop() {
+    public List<String> stop() {
         return stop;
     }
 
-    public Double getTemperature() {
+    public Double temperature() {
         return temperature;
     }
 
-    public Double getTopP() {
+    public Double topP() {
         return topP;
     }
 
-    public Long getTimeLimit() {
+    public Long timeLimit() {
         return timeLimit;
     }
 
-    public Map<String, Object> getResponseFormat() {
+    public Map<String, Object> responseFormat() {
         return responseFormat;
     }
 
-    public String getContext() {
+    public String context() {
         return context;
     }
 
-    public Map<String, Object> getChatTemplateKwargs() {
+    public Map<String, Object> chatTemplateKwargs() {
         return chatTemplateKwargs;
     }
 
-    public Boolean getIncludeReasoning() {
+    public Boolean includeReasoning() {
         return includeReasoning;
     }
 
-    public String getReasoningEffort() {
+    public String reasoningEffort() {
         return reasoningEffort;
     }
 
-    public Set<String> getGuidedChoice() {
+    public Set<String> guidedChoice() {
         return guidedChoice;
     }
 
-    public String getGuidedRegex() {
+    public String guidedRegex() {
         return guidedRegex;
     }
 
-    public String getGuidedGrammar() {
+    public String guidedGrammar() {
         return guidedGrammar;
     }
 
-    public Double getRepetitionPenalty() {
+    public Double repetitionPenalty() {
         return repetitionPenalty;
     }
 
-    public Double getLengthPenalty() {
+    public Double lengthPenalty() {
         return lengthPenalty;
     }
 
@@ -265,8 +265,83 @@ public final class TextChatRequest {
             return this;
         }
 
+        public Builder toolChoiceOption(String toolChoiceOption) {
+            this.toolChoiceOption = toolChoiceOption;
+            return this;
+        }
+
+        public Builder toolChoice(Map<String, Object> toolChoice) {
+            this.toolChoice = toolChoice;
+            return this;
+        }
+
+        public Builder frequencyPenalty(Double frequencyPenalty) {
+            this.frequencyPenalty = frequencyPenalty;
+            return this;
+        }
+
+        public Builder logitBias(Map<String, Integer> logitBias) {
+            this.logitBias = logitBias;
+            return this;
+        }
+
+        public Builder logprobs(Boolean logprobs) {
+            this.logprobs = logprobs;
+            return this;
+        }
+
+        public Builder topLogprobs(Integer topLogprobs) {
+            this.topLogprobs = topLogprobs;
+            return this;
+        }
+
+        public Builder maxCompletionTokens(Integer maxCompletionTokens) {
+            this.maxCompletionTokens = maxCompletionTokens;
+            return this;
+        }
+
+        public Builder n(Integer n) {
+            this.n = n;
+            return this;
+        }
+
+        public Builder presencePenalty(Double presencePenalty) {
+            this.presencePenalty = presencePenalty;
+            return this;
+        }
+
+        public Builder seed(Integer seed) {
+            this.seed = seed;
+            return this;
+        }
+
+        public Builder stop(List<String> stop) {
+            this.stop = stop;
+            return this;
+        }
+
+        public Builder temperature(Double temperature) {
+            this.temperature = temperature;
+            return this;
+        }
+
+        public Builder topP(Double topP) {
+            this.topP = topP;
+            return this;
+        }
+
         public Builder timeLimit(Long timeLimit) {
             this.timeLimit = timeLimit;
+            return this;
+        }
+
+        public Builder responseFormat(String responseFormat) {
+            this.responseFormat = responseFormat;
+            return this;
+        }
+
+        public Builder chatTemplateKwargs(Map<String, Object> chatTemplateKwargs) {
+            this.chatTemplateKwargs = chatTemplateKwargs;
             return this;
         }
 
@@ -280,34 +355,38 @@ public final class TextChatRequest {
             return this;
         }
 
-        public Builder chatTemplateKwargs(Map<String, Object> chatTemplateKwargs) {
-            this.chatTemplateKwargs = chatTemplateKwargs;
+        public Builder guidedChoice(Set<String> guidedChoice) {
+            this.guidedChoice = guidedChoice;
             return this;
         }
 
-        public Builder parameters(ChatParameters parameters) {
-            toolChoiceOption = parameters.getToolChoiceOption();
-            toolChoice = parameters.getToolChoice();
-            frequencyPenalty = parameters.getFrequencyPenalty();
-            logitBias = parameters.getLogitBias();
-            logprobs = parameters.getLogprobs();
-            topLogprobs = parameters.getTopLogprobs();
-            maxCompletionTokens = parameters.getMaxCompletionTokens();
-            n = parameters.getN();
-            presencePenalty = parameters.getPresencePenalty();
-            seed = parameters.getSeed();
-            stop = parameters.getStop();
-            temperature = parameters.getTemperature();
-            topP = parameters.getTopP();
-            responseFormat = parameters.getResponseFormat();
-            jsonSchema = parameters.getJsonSchema();
-            context = parameters.getContext();
-            timeLimit = parameters.getTimeLimit();
-            guidedChoice = parameters.getGuidedChoice();
-            guidedRegex = parameters.getGuidedRegex();
-            guidedGrammar = parameters.getGuidedGrammar();
-            repetitionPenalty = parameters.getRepetitionPenalty();
-            lengthPenalty = parameters.getLengthPenalty();
+        public Builder guidedRegex(String guidedRegex) {
+            this.guidedRegex = guidedRegex;
+            return this;
+        }
+
+        public Builder guidedGrammar(String guidedGrammar) {
+            this.guidedGrammar = guidedGrammar;
+            return this;
+        }
+
+        public Builder repetitionPenalty(Double repetitionPenalty) {
+            this.repetitionPenalty = repetitionPenalty;
+            return this;
+        }
+
+        public Builder lengthPenalty(Double lengthPenalty) {
+            this.lengthPenalty = lengthPenalty;
+            return this;
+        }
+
+        public Builder context(String context) {
+            this.context = context;
+            return this;
+        }
+
+        public Builder jsonSchema(JsonSchemaObject jsonSchema) {
+            this.jsonSchema = jsonSchema;
             return this;
         }
 

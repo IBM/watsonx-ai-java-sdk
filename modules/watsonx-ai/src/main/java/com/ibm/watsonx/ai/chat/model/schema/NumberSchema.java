@@ -34,19 +34,19 @@ public final class NumberSchema extends JsonSchema {
         this.exclusiveMaximum = builder.exclusiveMaximum;
     }
 
-    public Integer getMinimum() {
+    public Integer minimum() {
         return minimum;
     }
 
-    public Integer getMaximum() {
+    public Integer maximum() {
         return maximum;
     }
 
-    public Integer getExclusiveMinimum() {
+    public Integer exclusiveMinimum() {
         return exclusiveMinimum;
     }
 
-    public Integer getExclusiveMaximum() {
+    public Integer exclusiveMaximum() {
         return exclusiveMaximum;
     }
 

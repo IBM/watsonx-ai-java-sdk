@@ -172,8 +172,8 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 .transactionId("my-transaction-id")
                 .build();
 
-            assertEquals(512, parameters.getTruncateInputTokens());
-            assertEquals(true, parameters.getInputText());
+            assertEquals(512, parameters.truncateInputTokens());
+            assertEquals(true, parameters.inputText());
 
             var inputs = List.of(
                 "Youth craves thrills while adulthood cherishes wisdom.",

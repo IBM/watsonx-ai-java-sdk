@@ -381,11 +381,11 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         JSONAssert.assertEquals(RESULT, Json.toJson(new TextExtractionResponse(metadata, entity)), true);
 
         JSONAssert.assertEquals(Json.toJson(parameters), Json.toJson(params.toParameters()), true);
-        assertEquals("newfile", params.getOutputFileName());
+        assertEquals("newfile", params.outputFileName());
         assertTrue(params.isRemoveOutputFile());
         assertTrue(params.isRemoveUploadedFile());
-        assertEquals(CosReference.of("connection", "bucket"), params.getDocumentReference());
-        assertEquals(CosReference.of("connection2", "bucket2"), params.getResultReference());
+        assertEquals(CosReference.of("connection", "bucket"), params.documentReference());
+        assertEquals(CosReference.of("connection2", "bucket2"), params.resultReference());
 
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))

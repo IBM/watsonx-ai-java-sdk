@@ -10,39 +10,4 @@ package com.ibm.watsonx.ai.chat.model;
  * This record contains information about the number of tokens used during the processing of a chat request, including prompt tokens, completion
  * tokens, and the total number of tokens consumed.
  */
-public final class ChatUsage {
-    private Integer completionTokens;
-    private Integer promptTokens;
-    private Integer totalTokens;
-
-
-    public void setCompletionTokens(Integer completionTokens) {
-        this.completionTokens = completionTokens;
-    }
-
-    public void setPromptTokens(Integer promptTokens) {
-        this.promptTokens = promptTokens;
-    }
-
-    public void setTotalTokens(Integer totalTokens) {
-        this.totalTokens = totalTokens;
-    }
-
-    public Integer getCompletionTokens() {
-        return completionTokens;
-    }
-
-    public Integer getPromptTokens() {
-        return promptTokens;
-    }
-
-    public Integer getTotalTokens() {
-        return totalTokens;
-    }
-
-    @Override
-    public String toString() {
-        return "ChatUsage [completionTokens=" + completionTokens + ", promptTokens=" + promptTokens
-            + ", totalTokens=" + totalTokens + "]";
-    }
-}
+public record ChatUsage(Integer completionTokens, Integer promptTokens, Integer totalTokens) {}

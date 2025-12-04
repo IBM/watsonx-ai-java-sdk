@@ -59,23 +59,23 @@ public final class TextClassificationParameters extends WatsonxParameters {
         this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(30));
     }
 
-    public String getOcrMode() {
+    public String ocrMode() {
         return ocrMode;
     }
 
-    public String getClassificationMode() {
+    public String classificationMode() {
         return classificationMode;
     }
 
-    public Boolean getAutoRotationCorrection() {
+    public Boolean autoRotationCorrection() {
         return autoRotationCorrection;
     }
 
-    public List<String> getLanguages() {
+    public List<String> languages() {
         return languages;
     }
 
-    public TextClassificationSemanticConfig getSemanticConfig() {
+    public TextClassificationSemanticConfig semanticConfig() {
         return semanticConfig;
     }
 
@@ -83,41 +83,41 @@ public final class TextClassificationParameters extends WatsonxParameters {
         return removeUploadedFile;
     }
 
-    public CosReference getDocumentReference() {
+    public CosReference documentReference() {
         return documentReference;
     }
 
 
-    public Map<String, Object> getCustom() {
+    public Map<String, Object> custom() {
         return custom;
     }
 
-    public Duration getTimeout() {
+    public Duration timeout() {
         return timeout;
     }
 
     /**
      * Converts the {@link TextClassificationParameters} into a new {@link Parameters} object.
      */
-    public Parameters toParameters() {
-        var semanticConfig = isNull(getSemanticConfig())
+    Parameters toParameters() {
+        var semanticConfig = isNull(semanticConfig())
             ? null
             : new Parameters.SemanticConfig(
-                this.semanticConfig.getEnableTextHints(),
-                this.semanticConfig.getEnableGenericKvp(),
-                this.semanticConfig.getEnableSchemaKvp(),
-                this.semanticConfig.getGroundingMode(),
-                this.semanticConfig.getForceSchemaName(),
-                this.semanticConfig.getDefaultModelName(),
-                this.semanticConfig.getTaskModelNameOverride(),
-                this.semanticConfig.getSchemasMergeStrategy(),
-                this.semanticConfig.getSchemas());
+                this.semanticConfig.enableTextHints(),
+                this.semanticConfig.enableGenericKvp(),
+                this.semanticConfig.enableSchemaKvp(),
+                this.semanticConfig.groundingMode(),
+                this.semanticConfig.forceSchemaName(),
+                this.semanticConfig.defaultModelName(),
+                this.semanticConfig.taskModelNameOverride(),
+                this.semanticConfig.schemasMergeStrategy(),
+                this.semanticConfig.schemas());
 
         return new Parameters(
-            getOcrMode(),
-            getClassificationMode(),
-            getAutoRotationCorrection(),
-            getLanguages(),
+            ocrMode(),
+            classificationMode(),
+            autoRotationCorrection(),
+            languages(),
             semanticConfig
         );
     }

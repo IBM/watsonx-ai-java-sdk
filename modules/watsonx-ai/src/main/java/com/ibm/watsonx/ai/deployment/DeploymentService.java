@@ -23,7 +23,6 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -86,9 +85,9 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      */
     public DeploymentResource findById(FindByIdRequest parameters) {
         requireNonNull(parameters, "FindByIdRequest cannot be null");
-        requireNonNull(parameters.getDeploymentId(), "deploymentId must be provided");
+        requireNonNull(parameters.deploymentId(), "deploymentId must be provided");
 
-        if (isNull(parameters.getProjectId()) && isNull(parameters.getSpaceId()))
+        if (isNull(parameters.projectId()) && isNull(parameters.spaceId()))
             throw new IllegalArgumentException("Either projectId or spaceId must be provided");
 
         return client.findById(parameters);
@@ -106,12 +105,12 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis()));
 
-        logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
+        logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 
         var textRequest =
             new TextRequest(null, null, null, input, parameters.toSanitized(), moderation);
 
-        return client.generate(parameters.getTransactionId(), deploymentId, timeout, textRequest);
+        return client.generate(parameters.transactionId(), deploymentId, timeout, textRequest);
     }
 
     @Override
@@ -125,50 +124,70 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis()));
 
-        logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
+        logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 
         var textGenRequest =
             new TextRequest(null, null, null, input, parameters.toSanitized(), null);
 
-        return client.generateStreaming(parameters.getTransactionId(), deploymentId, timeout, textGenRequest, handler);
+        return client.generateStreaming(parameters.transactionId(), deploymentId, timeout, textGenRequest, handler);
     }
 
     @Override
     public ChatResponse chat(ChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
 
-        var deploymentId = requireNonNull(chatRequest.getDeploymentId(), "deploymentId must be provided");
-        var messages = chatRequest.getMessages();
-        var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
-        var parameters = requireNonNullElse(chatRequest.getParameters(), ChatParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis()));
+        var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
+        var messages = chatRequest.messages();
+        var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
+        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
+        var timeout = Duration.ofMillis(requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis()));
 
-        logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
+        logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 
         var textChatRequest = TextChatRequest.builder()
             .messages(messages)
             .tools(tools)
-            .parameters(parameters)
+            .toolChoiceOption(parameters.toolChoiceOption())
+            .toolChoice(parameters.toolChoice())
+            .frequencyPenalty(parameters.frequencyPenalty())
+            .logitBias(parameters.logitBias())
+            .logprobs(parameters.logprobs())
+            .topLogprobs(parameters.topLogprobs())
+            .maxCompletionTokens(parameters.maxCompletionTokens())
+            .n(parameters.n())
+            .presencePenalty(parameters.presencePenalty())
+            .seed(parameters.seed())
+            .stop(parameters.stop())
+            .temperature(parameters.temperature())
+            .topP(parameters.topP())
+            .responseFormat(parameters.responseFormat())
+            .jsonSchema(parameters.jsonSchema())
+            .context(parameters.context())
+            .timeLimit(parameters.timeLimit())
+            .guidedChoice(parameters.guidedChoice())
+            .guidedRegex(parameters.guidedRegex())
+            .guidedGrammar(parameters.guidedGrammar())
+            .repetitionPenalty(parameters.repetitionPenalty())
+            .lengthPenalty(parameters.lengthPenalty())
             .timeLimit(timeout.toMillis())
             .build();
 
-        var chatResponse = client.chat(
-            parameters.getTransactionId(),
-            deploymentId,
-            timeout,
-            textChatRequest);
+        var chatResponse = client.chat(parameters.transactionId(), deploymentId, timeout, textChatRequest);
 
-        if (nonNull(messageInterceptor))
-            chatResponse.setChoices(messageInterceptor.intercept(chatRequest, chatResponse));
+        if (nonNull(messageInterceptor)) {
 
-        if (nonNull(toolInterceptor))
-            chatResponse.setChoices(toolInterceptor.intercept(chatRequest, chatResponse));
+            var newChoices = messageInterceptor.intercept(chatRequest, chatResponse);
+            chatResponse = chatResponse.toBuilder()
+                .choices(newChoices)
+                .build();
+        }
 
-        // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
-        if (nonNull(parameters.getToolChoiceOption()) && parameters.getToolChoiceOption().equals(ToolChoiceOption.REQUIRED.type())) {
-            var assistantMessage = chatResponse.toAssistantMessage();
-            if (nonNull(assistantMessage.toolCalls()) && !assistantMessage.toolCalls().isEmpty())
-                chatResponse.getChoices().get(0).setFinishReason("tool_calls");
+        if (nonNull(toolInterceptor)) {
+
+            var newChoices = toolInterceptor.intercept(chatRequest, chatResponse);
+            chatResponse = chatResponse.toBuilder()
+                .choices(newChoices)
+                .build();
         }
 
         return chatResponse;
@@ -179,37 +198,58 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
-        var deploymentId = requireNonNull(chatRequest.getDeploymentId(), "deploymentId must be provided");
-        var messages = chatRequest.getMessages();
-        var tools = nonNull(chatRequest.getTools()) && !chatRequest.getTools().isEmpty() ? chatRequest.getTools() : null;
-        var parameters = requireNonNullElse(chatRequest.getParameters(), ChatParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis()));
+        var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
+        var messages = chatRequest.messages();
+        var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
+        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
+        var timeout = Duration.ofMillis(requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis()));
 
         Boolean includeReasoning = null;
         String thinkingEffort = null;
         ExtractionTags extractionTags = null;
         Map<String, Object> chatTemplateKwargs = null;
-        if (nonNull(chatRequest.getThinking())) {
-            var thinking = chatRequest.getThinking();
+        if (nonNull(chatRequest.thinking())) {
+            var thinking = chatRequest.thinking();
             chatTemplateKwargs = Map.of("thinking", true);
-            extractionTags = thinking.getExtractionTags();
-            includeReasoning = thinking.getIncludeReasoning();
-            thinkingEffort = nonNull(thinking.getThinkingEffort()) ? thinking.getThinkingEffort().getValue() : null;
+            extractionTags = thinking.extractionTags();
+            includeReasoning = thinking.includeReasoning();
+            thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
         }
 
-        logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
+        logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 
         var textChatRequest = TextChatRequest.builder()
             .messages(messages)
             .tools(tools)
-            .parameters(parameters)
+            .toolChoiceOption(parameters.toolChoiceOption())
+            .toolChoice(parameters.toolChoice())
+            .frequencyPenalty(parameters.frequencyPenalty())
+            .logitBias(parameters.logitBias())
+            .logprobs(parameters.logprobs())
+            .topLogprobs(parameters.topLogprobs())
+            .maxCompletionTokens(parameters.maxCompletionTokens())
+            .n(parameters.n())
+            .presencePenalty(parameters.presencePenalty())
+            .seed(parameters.seed())
+            .stop(parameters.stop())
+            .temperature(parameters.temperature())
+            .topP(parameters.topP())
+            .responseFormat(parameters.responseFormat())
+            .jsonSchema(parameters.jsonSchema())
+            .context(parameters.context())
+            .timeLimit(parameters.timeLimit())
+            .guidedChoice(parameters.guidedChoice())
+            .guidedRegex(parameters.guidedRegex())
+            .guidedGrammar(parameters.guidedGrammar())
+            .repetitionPenalty(parameters.repetitionPenalty())
+            .lengthPenalty(parameters.lengthPenalty())
             .includeReasoning(includeReasoning)
             .reasoningEffort(thinkingEffort)
             .chatTemplateKwargs(chatTemplateKwargs)
             .timeLimit(timeout.toMillis())
             .build();
 
-        return client.chatStreaming(parameters.getTransactionId(), deploymentId, timeout, extractionTags, textChatRequest, new ChatHandler() {
+        return client.chatStreaming(parameters.transactionId(), deploymentId, timeout, extractionTags, textChatRequest, new ChatHandler() {
 
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -219,7 +259,9 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
                 if (nonNull(toolInterceptor))
-                    completeResponse.setChoices(toolInterceptor.intercept(chatRequest, completeResponse));
+                    completeResponse = completeResponse.toBuilder()
+                        .choices(toolInterceptor.intercept(chatRequest, completeResponse))
+                        .build();
                 handler.onCompleteResponse(completeResponse);
             }
 
@@ -251,20 +293,20 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     public ForecastResponse forecast(TimeSeriesRequest timeSeriesRequest) {
         requireNonNull(timeSeriesRequest, "timeSeriesRequest cannot be null");
 
-        var deploymentId = requireNonNull(timeSeriesRequest.getDeploymentId(), "deploymentId must be provided");
-        var inputSchema = timeSeriesRequest.getInputSchema();
-        var data = timeSeriesRequest.getData();
-        var parameters = timeSeriesRequest.getParameters();
+        var deploymentId = requireNonNull(timeSeriesRequest.deploymentId(), "deploymentId must be provided");
+        var inputSchema = timeSeriesRequest.inputSchema();
+        var data = timeSeriesRequest.data();
+        var parameters = timeSeriesRequest.parameters();
 
         Parameters requestParameters = null;
         Map<String, List<Object>> futureData = null;
         String transactionId = null;
 
         if (nonNull(parameters)) {
-            logIgnoredParameters(parameters.getModelId(), parameters.getProjectId(), parameters.getSpaceId());
+            logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
             requestParameters = parameters.toParameters();
-            futureData = ofNullable(parameters.getFutureData()).map(p -> p.asMap()).orElse(null);
-            transactionId = parameters.getTransactionId();
+            futureData = ofNullable(parameters.futureData()).map(p -> p.asMap()).orElse(null);
+            transactionId = parameters.transactionId();
         }
 
         var forecastRequest = new ForecastRequest(null, null, null, data.asMap(), inputSchema, futureData, requestParameters);

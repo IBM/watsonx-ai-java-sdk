@@ -71,14 +71,14 @@ public class TextGenerationService extends ModelService implements TextGeneratio
         var projectSpace = resolveProjectSpace(parameters);
         var projectId = projectSpace.projectId();
         var spaceId = projectSpace.spaceId();
-        var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
+        var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
         var textGenRequest =
             new TextRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), moderation);
 
-        return client.generate(parameters.getTransactionId(), textGenRequest);
+        return client.generate(parameters.transactionId(), textGenRequest);
     }
 
     @Override
@@ -96,16 +96,16 @@ public class TextGenerationService extends ModelService implements TextGeneratio
             logger.warn("Prompt variables are not supported in Text Generation service");
         }
 
-        var modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-        var projectId = ofNullable(parameters.getProjectId()).orElse(this.projectId);
-        var spaceId = ofNullable(parameters.getSpaceId()).orElse(this.spaceId);
+        var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
+        var projectId = ofNullable(parameters.projectId()).orElse(this.projectId);
+        var spaceId = ofNullable(parameters.spaceId()).orElse(this.spaceId);
         var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
         var textGenRequest =
             new TextRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), null);
 
-        return client.generateStreaming(parameters.getTransactionId(), textGenRequest, handler);
+        return client.generateStreaming(parameters.transactionId(), textGenRequest, handler);
     }
 
     /**

@@ -17,7 +17,7 @@ public final class TextDetectionContentDetectors extends BaseDetectionRequest {
         this.input = input;
     }
 
-    public String getInput() {
+    public String input() {
         return input;
     }
 }

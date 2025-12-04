@@ -267,11 +267,11 @@ public class TextExtractionService extends ProjectService {
     public String uploadExtractAndFetch(File file, TextExtractionParameters parameters) throws TextExtractionException, FileNotFoundException {
 
         if (nonNull(parameters)) {
-            if (parameters.getRequestedOutputs().size() > 1) {
+            if (parameters.requestedOutputs().size() > 1) {
                 throw new TextExtractionException("fetch_operation_not_allowed",
                     "The fetch operation cannot be executed if more than one file is to be generated");
             }
-            if (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
+            if (parameters.requestedOutputs().size() == 1 && parameters.requestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
                 throw new TextExtractionException("fetch_operation_not_allowed",
                     "The fetch operation cannot be executed for the type \"page_images\"");
             }
@@ -310,11 +310,11 @@ public class TextExtractionService extends ProjectService {
     public String uploadExtractAndFetch(InputStream is, String fileName, TextExtractionParameters parameters) throws TextExtractionException {
 
         if (nonNull(parameters)) {
-            if (parameters.getRequestedOutputs().size() > 1) {
+            if (parameters.requestedOutputs().size() > 1) {
                 throw new TextExtractionException("fetch_operation_not_allowed",
                     "The fetch operation cannot be executed if more than one file is to be generated");
             }
-            if (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
+            if (parameters.requestedOutputs().size() == 1 && parameters.requestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
                 throw new TextExtractionException("fetch_operation_not_allowed",
                     "The fetch operation cannot be executed for the type \"page_images\"");
             }
@@ -432,18 +432,18 @@ public class TextExtractionService extends ProjectService {
         requireNonNull(id, "The id can not be null");
 
         var builder = TextExtractionDeleteParameters.builder();
-        ofNullable(parameters.getProjectId()).ifPresent(builder::projectId);
-        ofNullable(parameters.getSpaceId()).ifPresent(builder::spaceId);
+        ofNullable(parameters.projectId()).ifPresent(builder::projectId);
+        ofNullable(parameters.spaceId()).ifPresent(builder::spaceId);
 
-        if (isNull(parameters.getProjectId()) && isNull(parameters.getSpaceId()))
+        if (isNull(parameters.projectId()) && isNull(parameters.spaceId()))
             builder.projectId(projectId).spaceId(spaceId);
 
         var p = builder
-            .transactionId(parameters.getTransactionId())
-            .hardDelete(parameters.getHardDelete().orElse(null))
+            .transactionId(parameters.transactionId())
+            .hardDelete(parameters.hardDelete().orElse(null))
             .build();
 
-        var request = DeleteExtractionRequest.of(parameters.getTransactionId(), id, p);
+        var request = DeleteExtractionRequest.of(parameters.transactionId(), id, p);
         return client.deleteExtraction(request);
     }
 
@@ -455,14 +455,14 @@ public class TextExtractionService extends ProjectService {
         requireNonNull(id, "The id can not be null");
 
         var builder = TextExtractionFetchParameters.builder();
-        ofNullable(parameters.getProjectId()).ifPresent(builder::projectId);
-        ofNullable(parameters.getSpaceId()).ifPresent(builder::spaceId);
+        ofNullable(parameters.projectId()).ifPresent(builder::projectId);
+        ofNullable(parameters.spaceId()).ifPresent(builder::spaceId);
 
-        if (isNull(parameters.getProjectId()) && isNull(parameters.getSpaceId()))
+        if (isNull(parameters.projectId()) && isNull(parameters.spaceId()))
             builder.projectId(projectId).spaceId(spaceId);
 
         var p = builder
-            .transactionId(parameters.getTransactionId())
+            .transactionId(parameters.transactionId())
             .build();
 
         var request = FetchExtractionDetailsRequest.of(requestId, id, p);
@@ -477,11 +477,11 @@ public class TextExtractionService extends ProjectService {
         requireNonNull(requestId, "requestId cannot be null");
 
         if (nonNull(parameters)) {
-            if (parameters.getRequestedOutputs().size() > 1) {
+            if (parameters.requestedOutputs().size() > 1) {
                 throw new TextExtractionException("fetch_operation_not_allowed",
                     "The fetch operation cannot be executed if more than one file is to be generated");
             }
-            if (parameters.getRequestedOutputs().size() == 1 && parameters.getRequestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
+            if (parameters.requestedOutputs().size() == 1 && parameters.requestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
                 throw new TextExtractionException("fetch_operation_not_allowed",
                     "The fetch operation cannot be executed for the type \"page_images\"");
             }
@@ -506,7 +506,7 @@ public class TextExtractionService extends ProjectService {
         if (nonNull(parameters)) {
             removeOutputFile = parameters.isRemoveOutputFile();
             removeUploadedFile = parameters.isRemoveUploadedFile();
-            documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
+            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
         }
 
         if (!waitForExtraction && (removeOutputFile || removeUploadedFile))
@@ -540,16 +540,16 @@ public class TextExtractionService extends ProjectService {
         if (nonNull(parameters)) {
             removeOutputFile = parameters.isRemoveOutputFile();
             removeUploadedFile = parameters.isRemoveUploadedFile();
-            outputFileName = parameters.getOutputFileName();
-            projectId = parameters.getProjectId();
-            spaceId = parameters.getSpaceId();
-            requestedOutputs = requireNonNullElse(parameters.getRequestedOutputs(), requestedOutputs);
-            documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
-            resultReference = requireNonNullElse(parameters.getResultReference(), this.resultReference);
+            outputFileName = parameters.outputFileName();
+            projectId = parameters.projectId();
+            spaceId = parameters.spaceId();
+            requestedOutputs = requireNonNullElse(parameters.requestedOutputs(), requestedOutputs);
+            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
+            resultReference = requireNonNullElse(parameters.resultReference(), this.resultReference);
             params = parameters.toParameters();
-            custom = parameters.getCustom();
-            timeout = requireNonNullElse(parameters.getTimeout(), Duration.ofSeconds(60));
-            transactionId = parameters.getTransactionId();
+            custom = parameters.custom();
+            timeout = requireNonNullElse(parameters.timeout(), Duration.ofSeconds(60));
+            transactionId = parameters.transactionId();
         } else {
             params = Parameters.of(requestedOutputs);
         }
@@ -657,8 +657,8 @@ public class TextExtractionService extends ProjectService {
         if (nonNull(parameters)) {
             removeUploadedFile = parameters.isRemoveUploadedFile();
             removeOutputFile = parameters.isRemoveOutputFile();
-            documentReference = requireNonNullElse(parameters.getDocumentReference(), this.documentReference);
-            resultsReference = requireNonNullElse(parameters.getDocumentReference(), this.resultReference);
+            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
+            resultsReference = requireNonNullElse(parameters.documentReference(), this.resultReference);
         }
 
         String documentBucketName = documentReference.bucket();

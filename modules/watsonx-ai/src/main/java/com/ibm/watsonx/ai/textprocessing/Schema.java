@@ -36,28 +36,28 @@ public final class Schema {
     private Schema(Builder builder) {
         documentType = builder.documentType;
         documentDescription = builder.documentDescription;
-        fields = nonNull(builder.fields) ? builder.fields.getFields() : null;
+        fields = nonNull(builder.fields) ? builder.fields.fields() : null;
         pages = builder.pages;
         additionalPromptInstructions = builder.additionalPromptInstructions;
     }
 
-    public String getDocumentType() {
+    public String documentType() {
         return documentType;
     }
 
-    public String getDocumentDescription() {
+    public String documentDescription() {
         return documentDescription;
     }
 
-    public Map<String, KvpField> getFields() {
+    public Map<String, KvpField> fields() {
         return fields;
     }
 
-    public KvpPage getPages() {
+    public KvpPage pages() {
         return pages;
     }
 
-    public String getAdditionalPromptInstructions() {
+    public String additionalPromptInstructions() {
         return additionalPromptInstructions;
     }
 

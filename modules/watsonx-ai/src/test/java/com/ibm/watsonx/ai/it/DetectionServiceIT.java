@@ -46,12 +46,12 @@ public class DetectionServiceIT {
         );
 
         assertNotNull(response.detections().get(0));
-        assertEquals(0, response.detections().get(0).getStart());
-        assertEquals(10, response.detections().get(0).getEnd());
-        assertEquals("I kill you", response.detections().get(0).getText());
-        assertEquals("hap", response.detections().get(0).getDetectionType());
-        assertEquals("has_HAP", response.detections().get(0).getDetection());
-        assertEquals(0.97, response.detections().get(0).getScore(), 0.01);
+        assertEquals(0, response.detections().get(0).start());
+        assertEquals(10, response.detections().get(0).end());
+        assertEquals("I kill you", response.detections().get(0).text());
+        assertEquals("hap", response.detections().get(0).detectionType());
+        assertEquals("has_HAP", response.detections().get(0).detection());
+        assertEquals(0.97, response.detections().get(0).score(), 0.01);
     }
 
     @Test
@@ -64,12 +64,12 @@ public class DetectionServiceIT {
         );
 
         assertNotNull(response.detections().get(0));
-        assertEquals(41, response.detections().get(0).getStart());
-        assertEquals(51, response.detections().get(0).getEnd());
-        assertEquals("1234567890", response.detections().get(0).getText());
-        assertEquals("pii", response.detections().get(0).getDetectionType());
-        assertEquals("PhoneNumber", response.detections().get(0).getDetection());
-        assertEquals(0.8, response.detections().get(0).getScore(), 0.1);
+        assertEquals(41, response.detections().get(0).start());
+        assertEquals(51, response.detections().get(0).end());
+        assertEquals("1234567890", response.detections().get(0).text());
+        assertEquals("pii", response.detections().get(0).detectionType());
+        assertEquals("PhoneNumber", response.detections().get(0).detection());
+        assertEquals(0.8, response.detections().get(0).score(), 0.1);
     }
 
     @Test
@@ -82,19 +82,19 @@ public class DetectionServiceIT {
         );
 
         assertNotNull(response.detections().get(0));
-        assertEquals(0, response.detections().get(0).getStart());
-        assertEquals(42, response.detections().get(0).getEnd());
-        assertEquals("I kill you with my phone number 1234567890", response.detections().get(0).getText());
-        assertEquals("hap", response.detections().get(0).getDetectionType());
-        assertEquals("has_HAP", response.detections().get(0).getDetection());
-        assertEquals(0.93, response.detections().get(0).getScore(), 0.01);
+        assertEquals(0, response.detections().get(0).start());
+        assertEquals(42, response.detections().get(0).end());
+        assertEquals("I kill you with my phone number 1234567890", response.detections().get(0).text());
+        assertEquals("hap", response.detections().get(0).detectionType());
+        assertEquals("has_HAP", response.detections().get(0).detection());
+        assertEquals(0.93, response.detections().get(0).score(), 0.01);
 
         assertNotNull(response.detections().get(1));
-        assertEquals(32, response.detections().get(1).getStart());
-        assertEquals(42, response.detections().get(1).getEnd());
-        assertEquals("1234567890", response.detections().get(1).getText());
-        assertEquals("pii", response.detections().get(1).getDetectionType());
-        assertEquals("PhoneNumber", response.detections().get(1).getDetection());
-        assertEquals(0.8, response.detections().get(1).getScore(), 0.1);
+        assertEquals(32, response.detections().get(1).start());
+        assertEquals(42, response.detections().get(1).end());
+        assertEquals("1234567890", response.detections().get(1).text());
+        assertEquals("pii", response.detections().get(1).detectionType());
+        assertEquals("PhoneNumber", response.detections().get(1).detection());
+        assertEquals(0.8, response.detections().get(1).score(), 0.1);
     }
 }

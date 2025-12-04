@@ -12,7 +12,7 @@ public abstract class WatsonxParameters {
     protected final String spaceId;
     protected final String transactionId;
 
-    public WatsonxParameters(Builder<?> builder) {
+    protected WatsonxParameters(Builder<?> builder) {
         projectId = builder.projectId;
         spaceId = builder.spaceId;
         transactionId = builder.transactionId;
@@ -23,7 +23,7 @@ public abstract class WatsonxParameters {
      *
      * @return project id value
      */
-    public String getProjectId() {
+    public String projectId() {
         return projectId;
     }
 
@@ -32,7 +32,7 @@ public abstract class WatsonxParameters {
      *
      * @return space id value
      */
-    public String getSpaceId() {
+    public String spaceId() {
         return spaceId;
     }
 
@@ -41,7 +41,7 @@ public abstract class WatsonxParameters {
      *
      * @return transaction id value
      */
-    public String getTransactionId() {
+    public String transactionId() {
         return transactionId;
     }
 
@@ -93,7 +93,7 @@ public abstract class WatsonxParameters {
     public static abstract class WatsonxModelParameters extends WatsonxParameters {
         protected final String modelId;
 
-        public WatsonxModelParameters(Builder<?> builder) {
+        protected WatsonxModelParameters(Builder<?> builder) {
             super(builder);
             modelId = builder.modelId;
         }
@@ -103,7 +103,7 @@ public abstract class WatsonxParameters {
          *
          * @return the model id value
          */
-        public String getModelId() {
+        public String modelId() {
             return modelId;
         }
 

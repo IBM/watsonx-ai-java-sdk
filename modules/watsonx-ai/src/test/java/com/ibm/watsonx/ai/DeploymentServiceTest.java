@@ -25,7 +25,6 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -41,7 +40,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -54,7 +52,6 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -425,7 +422,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             TextChatRequest EXPECTED_BODY = TextChatRequest.builder()
                 .messages(List.of(UserMessage.text("Hello")))
-                .parameters(parameters)
                 .timeLimit(60000L)
                 .build();
 
@@ -462,16 +458,16 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .build();
 
             var response = deploymentService.chat(request);
-            assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.getId());
-            assertEquals("ibm/granite-3-2b-instruct", response.getModelId());
-            assertEquals("2023-07-21T16:52:32.190Z", response.getCreatedAt());
-            assertEquals(1689958352, response.getCreated());
-            assertEquals(27, response.getUsage().getCompletionTokens());
-            assertEquals(186, response.getUsage().getPromptTokens());
-            assertEquals(213, response.getUsage().getTotalTokens());
-            assertEquals(1, response.getChoices().size());
+            assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.id());
+            assertEquals("ibm/granite-3-2b-instruct", response.modelId());
+            assertEquals("2023-07-21T16:52:32.190Z", response.createdAt());
+            assertEquals(1689958352, response.created());
+            assertEquals(27, response.usage().completionTokens());
+            assertEquals(186, response.usage().promptTokens());
+            assertEquals(213, response.usage().totalTokens());
+            assertEquals(1, response.choices().size());
             assertEquals("The 2020 World Series was played at the Globe Life Field in Arlington, Texas.\n",
-                response.getChoices().get(0).getMessage().content());
+                response.choices().get(0).message().content());
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
 
             JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(mockHttpRequest), true);
@@ -486,7 +482,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .deploymentId("my-deployment-id")
                 .build();
 
-            assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.getId());
+            assertEquals("cmpl-15475d0dea9b4429a55843c77997f8a9", response.id());
         });
     }
 
@@ -602,23 +598,23 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         deploymentService.chatStreaming(request, chatHandler);
         ChatResponse response = assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS));
         assertNotNull(response);
-        assertNotNull(response.getChoices());
-        assertEquals(1, response.getChoices().size());
-        assertEquals("stop", response.getChoices().get(0).getFinishReason());
-        assertEquals(0, response.getChoices().get(0).getIndex());
-        assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
+        assertNotNull(response.choices());
+        assertEquals(1, response.choices().size());
+        assertEquals("stop", response.choices().get(0).finishReason());
+        assertEquals(0, response.choices().get(0).index());
+        assertEquals("Ciao", response.choices().get(0).message().content());
         assertEquals("Ciao", response.toAssistantMessage().content());
-        assertNotNull(response.getCreated());
-        assertNotNull(response.getCreatedAt());
-        assertNotNull(response.getId());
-        assertNotNull(response.getModel());
-        assertNotNull(response.getModelId());
-        assertNotNull(response.getModelVersion());
-        assertNotNull(response.getObject());
-        assertNotNull(response.getUsage());
-        assertNotNull(response.getUsage().getCompletionTokens());
-        assertNotNull(response.getUsage().getPromptTokens());
-        assertNotNull(response.getUsage().getTotalTokens());
+        assertNotNull(response.created());
+        assertNotNull(response.createdAt());
+        assertNotNull(response.id());
+        assertNotNull(response.model());
+        assertNotNull(response.modelId());
+        assertNotNull(response.modelVersion());
+        assertNotNull(response.object());
+        assertNotNull(response.usage());
+        assertNotNull(response.usage().completionTokens());
+        assertNotNull(response.usage().promptTokens());
+        assertNotNull(response.usage().totalTokens());
 
         deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -1192,71 +1188,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_handle_tool_choice_required_in_chat() throws Exception {
-
-        // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
-        // In this case, the SDK forces the finish response.
-
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn(
-            """
-                {
-                    "model": "model",
-                    "choices": [
-                        {
-                            "index": 0,
-                            "message": {
-                                "role": "assistant",
-                                "content": "",
-                                "tool_calls": [
-                                    {
-                                        "id": "chatcmpl-tool-6e63f95869944f03a86fdab6189ba0b5",
-                                        "type": "function",
-                                        "function": {
-                                            "name": "getWeather",
-                                            "arguments": "{\\"city\\": \\"Munich\\"}"
-                                        }
-                                    }
-                                ]
-                            },
-                            "finish_reason": "stop"
-                        }
-                    ],
-                    "created": 1755501551,
-                    "model_version": "3.2.0",
-                    "created_at": "2025-08-18T07:19:13.136Z",
-                    "usage": {
-                        "completion_tokens": 23,
-                        "prompt_tokens": 309,
-                        "total_tokens": 332
-                    }
-                }""");
-
-        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-        when(mockHttpClient.send(captor.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
-
-        withWatsonxServiceMock(() -> {
-            var deploymentService = DeploymentService.builder()
-                .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
-                .build();
-
-            var parameters = ChatParameters.builder()
-                .toolChoiceOption(ToolChoiceOption.REQUIRED)
-                .build();
-
-            var request = ChatRequest.builder()
-                .messages(List.of(UserMessage.text("Show me the weather in Munich")))
-                .parameters(parameters)
-                .deploymentId("my-deployment-id")
-                .build();
-
-            var response = deploymentService.chat(request);
-            assertEquals("tool_calls", response.finishReason().value());
-        });
-    }
-
-    @Test
     void should_use_correct_executors() throws Exception {
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -1805,7 +1736,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(300, TimeUnit.SECONDS));
+        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         AssistantMessage assistantMessage = response.toAssistantMessage();
         JSONAssert.assertEquals("""
             {

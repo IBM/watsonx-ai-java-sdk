@@ -32,14 +32,14 @@ public final class DetectionTextRequest extends WatsonxParameters {
         super(builder);
         input = requireNonNull(builder.input, "input cannot be null");
         detectors = requireNonNull(builder.detectors, "detectors cannot be null").stream()
-            .collect(toMap(BaseDetector::getName, BaseDetector::getProperties));
+            .collect(toMap(BaseDetector::name, BaseDetector::properties));
     }
 
-    public String getInput() {
+    public String input() {
         return input;
     }
 
-    public Map<String, Map<String, Object>> getDetectors() {
+    public Map<String, Map<String, Object>> detectors() {
         return detectors;
     }
 

@@ -54,9 +54,9 @@ public interface ToolInterceptor {
      * @return a list of {@link ResultChoice} containing rebuilt tool calls
      */
     default List<ResultChoice> intercept(ChatRequest request, ChatResponse response) {
-        return response.getChoices().stream().map(choice -> {
+        return response.choices().stream().map(choice -> {
 
-            var message = choice.getMessage();
+            var message = choice.message();
 
             if (isNull(message.toolCalls()))
                 return choice;
@@ -74,7 +74,7 @@ public interface ToolInterceptor {
                 rebuiltToolCalls
             );
 
-            return new ResultChoice(choice.getIndex(), resultMessage, choice.getFinishReason());
+            return choice.withResultMessage(resultMessage);
         }).toList();
     }
 

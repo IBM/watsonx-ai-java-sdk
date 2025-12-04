@@ -67,11 +67,11 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
             assertEquals(1, response.size());
 
             DetectionTextResponse detection = response.get(0);
-            assertEquals(20, detection.getStart());
-            assertEquals(24, detection.getEnd());
-            assertEquals("pii", detection.getDetectionType());
-            assertEquals("xxxx", detection.getDetection());
-            assertEquals(0.846, detection.getScore(), 0.001);
+            assertEquals(20, detection.start());
+            assertEquals(24, detection.end());
+            assertEquals("pii", detection.detectionType());
+            assertEquals("xxxx", detection.detection());
+            assertEquals(0.846, detection.score(), 0.001);
 
             JSONAssert.assertEquals(
                 """
@@ -214,20 +214,20 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
         assertEquals(2, response.size());
 
         DetectionTextResponse detection = response.get(0);
-        assertEquals(20, detection.getStart());
-        assertEquals(24, detection.getEnd());
-        assertEquals("text", detection.getText());
-        assertEquals("pii", detection.getDetectionType());
-        assertEquals("xxxx", detection.getDetection());
-        assertEquals(0.846, detection.getScore(), 0.001);
+        assertEquals(20, detection.start());
+        assertEquals(24, detection.end());
+        assertEquals("text", detection.text());
+        assertEquals("pii", detection.detectionType());
+        assertEquals("xxxx", detection.detection());
+        assertEquals(0.846, detection.score(), 0.001);
 
         detection = response.get(1);
-        assertEquals(122, detection.getStart());
-        assertEquals(239, detection.getEnd());
-        assertEquals("text", detection.getText());
-        assertEquals("hap", detection.getDetectionType());
-        assertEquals("xxxxxxxxxxxxxxxxxxxxxxxxxx", detection.getDetection());
-        assertEquals(0.846, detection.getScore(), 0.001);
+        assertEquals(122, detection.start());
+        assertEquals(239, detection.end());
+        assertEquals("text", detection.text());
+        assertEquals("hap", detection.detectionType());
+        assertEquals("xxxxxxxxxxxxxxxxxxxxxxxxxx", detection.detection());
+        assertEquals(0.846, detection.score(), 0.001);
         assertTrue(detection.toString().contains("hap"));
     }
 

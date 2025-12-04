@@ -29,7 +29,7 @@ public final class FindByIdRequest extends WatsonxParameters {
         deploymentId = builder.deploymentId;
     }
 
-    public String getDeploymentId() {
+    public String deploymentId() {
         return deploymentId;
     }
 

@@ -70,12 +70,12 @@ public class TimeSeriesService extends ModelService implements TimeSeriesProvide
     @Override
     public ForecastResponse forecast(TimeSeriesRequest request) {
 
-        if (nonNull(request.getDeploymentId()))
+        if (nonNull(request.deploymentId()))
             logger.info("The deploymentId parameter can not be used with the TimeSeriesService. Use the DeploymentService instead");
 
-        var inputSchema = request.getInputSchema();
-        var data = request.getData();
-        var parameters = request.getParameters();
+        var inputSchema = request.inputSchema();
+        var data = request.data();
+        var parameters = request.parameters();
 
         ProjectSpace projectSpace = resolveProjectSpace(parameters);
         String projectId = projectSpace.projectId();
@@ -85,8 +85,8 @@ public class TimeSeriesService extends ModelService implements TimeSeriesProvide
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
-            modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-            transactionId = parameters.getTransactionId();
+            modelId = requireNonNullElse(parameters.modelId(), this.modelId);
+            transactionId = parameters.transactionId();
             requestParameters = parameters.toParameters();
         }
 

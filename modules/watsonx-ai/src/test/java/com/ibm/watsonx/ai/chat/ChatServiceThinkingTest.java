@@ -478,7 +478,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
             var EXPECTED_RESPONSE =
                 "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response.";
 
-            var chatResponseText = chatResponse.getChoices().get(0).getMessage().content();
+            var chatResponseText = chatResponse.choices().get(0).message().content();
             assertTrue(chatResponseText.contains("<think>") && chatResponseText.contains("</think>"));
             assertTrue(chatResponseText.contains("<response>") && chatResponseText.contains("</response>"));
             assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));
@@ -615,7 +615,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var EXPECTED_RESPONSE = "Ciao";
 
-            var chatResponseText = chatResponse.getChoices().get(0).getMessage().content();
+            var chatResponseText = chatResponse.choices().get(0).message().content();
             assertFalse(chatResponseText.contains("<think>") && chatResponseText.contains("</think>"));
             assertFalse(chatResponseText.contains("<response>") && chatResponseText.contains("</response>"));
             assertTrue(chatResponseText.contains(EXPECTED_RESPONSE));

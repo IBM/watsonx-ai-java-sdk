@@ -39,9 +39,9 @@ public interface MessageInterceptor {
     String intercept(ChatRequest request, String message);
 
     default List<ResultChoice> intercept(ChatRequest request, ChatResponse response) {
-        return response.getChoices().stream().map(choice -> {
+        return response.choices().stream().map(choice -> {
 
-            ResultMessage message = choice.getMessage();
+            ResultMessage message = choice.message();
 
             if (isNull(message.content()))
                 return choice;
@@ -56,7 +56,7 @@ public interface MessageInterceptor {
                 message.toolCalls()
             );
 
-            return new ResultChoice(choice.getIndex(), resultMessage, choice.getFinishReason());
+            return choice.withResultMessage(resultMessage);
         }).toList();
     }
 }

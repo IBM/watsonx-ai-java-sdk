@@ -95,91 +95,91 @@ public final class ChatParameters extends WatsonxModelParameters {
         this.lengthPenalty = builder.lengthPenalty;
     }
 
-    public String getToolChoiceOption() {
+    public String toolChoiceOption() {
         return toolChoiceOption;
     }
 
-    public Map<String, Object> getToolChoice() {
+    public Map<String, Object> toolChoice() {
         return toolChoice;
     }
 
-    public Map<String, Integer> getLogitBias() {
+    public Map<String, Integer> logitBias() {
         return logitBias;
     }
 
-    public Double getFrequencyPenalty() {
+    public Double frequencyPenalty() {
         return frequencyPenalty;
     }
 
-    public Boolean getLogprobs() {
+    public Boolean logprobs() {
         return logprobs;
     }
 
-    public Integer getTopLogprobs() {
+    public Integer topLogprobs() {
         return topLogprobs;
     }
 
-    public Integer getMaxCompletionTokens() {
+    public Integer maxCompletionTokens() {
         return maxCompletionTokens;
     }
 
-    public Integer getN() {
+    public Integer n() {
         return n;
     }
 
-    public Double getPresencePenalty() {
+    public Double presencePenalty() {
         return presencePenalty;
     }
 
-    public Double getTemperature() {
+    public Double temperature() {
         return temperature;
     }
 
-    public Double getTopP() {
+    public Double topP() {
         return topP;
     }
 
-    public Long getTimeLimit() {
+    public Long timeLimit() {
         return timeLimit;
     }
 
-    public Integer getSeed() {
+    public Integer seed() {
         return seed;
     }
 
-    public List<String> getStop() {
+    public List<String> stop() {
         return stop;
     }
 
-    public String getResponseFormat() {
+    public String responseFormat() {
         return responseFormat;
     }
 
-    public JsonSchemaObject getJsonSchema() {
+    public JsonSchemaObject jsonSchema() {
         return jsonSchema;
     }
 
-    public Set<String> getGuidedChoice() {
+    public Set<String> guidedChoice() {
         return guidedChoice;
     }
 
-    public String getGuidedRegex() {
+    public String guidedRegex() {
         return guidedRegex;
     }
 
-    public String getGuidedGrammar() {
+    public String guidedGrammar() {
         return guidedGrammar;
     }
 
-    public Double getRepetitionPenalty() {
+    public Double repetitionPenalty() {
         return repetitionPenalty;
     }
 
-    public Double getLengthPenalty() {
+    public Double lengthPenalty() {
         return lengthPenalty;
     }
 
-    public String getContext() {
+    public String context() {
         return context;
     }
 

@@ -7,41 +7,32 @@ package com.ibm.watsonx.ai.detection;
 /**
  * Represents the response for a generic detection request.
  */
-abstract class BaseDetectionResponse {
-    protected String text;
-    protected String detectionType;
-    protected String detection;
-    protected double score;
+public abstract class BaseDetectionResponse {
+    protected final String text;
+    protected final String detectionType;
+    protected final String detection;
+    protected final double score;
 
-    public String getText() {
+    protected BaseDetectionResponse(String text, String detectionType, String detection, double score) {
+        this.text = text;
+        this.detectionType = detectionType;
+        this.detection = detection;
+        this.score = score;
+    }
+
+    public String text() {
         return text;
     }
 
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public String getDetectionType() {
+    public String detectionType() {
         return detectionType;
     }
 
-    public void setDetectionType(String detectionType) {
-        this.detectionType = detectionType;
-    }
-
-    public String getDetection() {
+    public String detection() {
         return detection;
     }
 
-    public void setDetection(String detection) {
-        this.detection = detection;
-    }
-
-    public double getScore() {
+    public double score() {
         return score;
-    }
-
-    public void setScore(Double score) {
-        this.score = score;
     }
 }

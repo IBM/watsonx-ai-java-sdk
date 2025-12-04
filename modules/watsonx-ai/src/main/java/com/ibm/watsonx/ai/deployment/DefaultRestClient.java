@@ -55,15 +55,15 @@ final class DefaultRestClient extends DeploymentRestClient {
     @Override
     public DeploymentResource findById(FindByIdRequest parameters) {
 
-        var deploymentId = parameters.getDeploymentId();
+        var deploymentId = parameters.deploymentId();
 
         StringJoiner queryParameters = new StringJoiner("&", "?", "");
 
-        if (nonNull(parameters.getProjectId()))
-            queryParameters.add("project_id=".concat(parameters.getProjectId()));
+        if (nonNull(parameters.projectId()))
+            queryParameters.add("project_id=".concat(parameters.projectId()));
 
-        if (nonNull(parameters.getSpaceId()))
-            queryParameters.add("space_id=".concat(parameters.getSpaceId()));
+        if (nonNull(parameters.spaceId()))
+            queryParameters.add("space_id=".concat(parameters.spaceId()));
 
         queryParameters.add("version=".concat(version));
 
@@ -73,8 +73,8 @@ final class DefaultRestClient extends DeploymentRestClient {
             .timeout(Duration.ofMillis(timeout.toMillis()))
             .GET();
 
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
+        if (nonNull(parameters.transactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.transactionId());
 
         try {
 
@@ -186,7 +186,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        var subscriber = chatSubscriber(textChatRequest.getToolChoiceOption(), ChatSubscriber.toolHasParameters(textChatRequest.getTools()),
+        var subscriber = chatSubscriber(textChatRequest.toolChoiceOption(), ChatSubscriber.toolHasParameters(textChatRequest.tools()),
             extractionTags, handler);
         return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))

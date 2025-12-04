@@ -8,23 +8,21 @@ package com.ibm.watsonx.ai.detection;
  * Represents the response from a text content detection request.
  */
 public final class DetectionTextResponse extends BaseDetectionResponse {
-    private int start;
-    private int end;
+    private final int start;
+    private final int end;
 
-    public int getStart() {
+    public DetectionTextResponse(String text, String detectionType, String detection, double score, int start, int end) {
+        super(text, detectionType, detection, score);
+        this.start = start;
+        this.end = end;
+    }
+
+    public int start() {
         return start;
     }
 
-    public int getEnd() {
+    public int end() {
         return end;
-    }
-
-    public void setStart(int start) {
-        this.start = start;
-    }
-
-    public void setEnd(int end) {
-        this.end = end;
     }
 
     @Override

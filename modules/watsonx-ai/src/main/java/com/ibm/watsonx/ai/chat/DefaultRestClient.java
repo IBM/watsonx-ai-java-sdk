@@ -52,7 +52,7 @@ final class DefaultRestClient extends ChatRestClient {
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(textChatRequest)))
-            .timeout(Duration.ofMillis(textChatRequest.getTimeLimit()));
+            .timeout(Duration.ofMillis(textChatRequest.timeLimit()));
 
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
@@ -75,12 +75,12 @@ final class DefaultRestClient extends ChatRestClient {
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .POST(BodyPublishers.ofString(toJson(textChatRequest)))
-            .timeout(Duration.ofMillis(textChatRequest.getTimeLimit()));
+            .timeout(Duration.ofMillis(textChatRequest.timeLimit()));
 
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        var subscriber = subscriber(textChatRequest.getToolChoiceOption(), toolHasParameters(textChatRequest.getTools()), extractionTags, handler);
+        var subscriber = subscriber(textChatRequest.toolChoiceOption(), toolHasParameters(textChatRequest.tools()), extractionTags, handler);
         return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))

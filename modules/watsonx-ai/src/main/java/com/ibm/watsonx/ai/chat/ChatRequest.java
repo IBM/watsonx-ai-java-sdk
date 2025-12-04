@@ -66,23 +66,23 @@ public final class ChatRequest {
         thinking = builder.thinking;
     }
 
-    public String getDeploymentId() {
+    public String deploymentId() {
         return deploymentId;
     }
 
-    public List<ChatMessage> getMessages() {
+    public List<ChatMessage> messages() {
         return messages;
     }
 
-    public List<Tool> getTools() {
+    public List<Tool> tools() {
         return tools;
     }
 
-    public ChatParameters getParameters() {
+    public ChatParameters parameters() {
         return parameters;
     }
 
-    public Thinking getThinking() {
+    public Thinking thinking() {
         return thinking;
     }
 

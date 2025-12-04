@@ -171,7 +171,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
                 .transactionId("my-transaction-id")
                 .build();
 
-            assertEquals(true, parameters.getReturnTokens());
+            assertEquals(true, parameters.returnTokens());
 
             var response = tokenizationService.tokenize(
                 "Write a tagline for an alumni association: Together we",

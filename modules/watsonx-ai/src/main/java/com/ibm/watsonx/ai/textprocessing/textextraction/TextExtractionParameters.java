@@ -77,43 +77,43 @@ public final class TextExtractionParameters extends WatsonxParameters {
         this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(30));
     }
 
-    public List<String> getRequestedOutputs() {
+    public List<String> requestedOutputs() {
         return requestedOutputs;
     }
 
-    public String getMode() {
+    public String mode() {
         return mode;
     }
 
-    public String getOcrMode() {
+    public String ocrMode() {
         return ocrMode;
     }
 
-    public List<String> getLanguages() {
+    public List<String> languages() {
         return languages;
     }
 
-    public Boolean getAutoRotationCorrection() {
+    public Boolean autoRotationCorrection() {
         return autoRotationCorrection;
     }
 
-    public String getCreateEmbeddedImages() {
+    public String createEmbeddedImages() {
         return createEmbeddedImages;
     }
 
-    public Integer getOutputDpi() {
+    public Integer outputDpi() {
         return outputDpi;
     }
 
-    public Boolean getOutputTokens() {
+    public Boolean outputTokens() {
         return outputTokens;
     }
 
-    public String getKvpMode() {
+    public String kvpMode() {
         return kvpMode;
     }
 
-    public TextExtractionSemanticConfig getSemanticConfig() {
+    public TextExtractionSemanticConfig semanticConfig() {
         return semanticConfig;
     }
 
@@ -125,53 +125,53 @@ public final class TextExtractionParameters extends WatsonxParameters {
         return removeOutputFile;
     }
 
-    public String getOutputFileName() {
+    public String outputFileName() {
         return outputFileName;
     }
 
-    public CosReference getDocumentReference() {
+    public CosReference documentReference() {
         return documentReference;
     }
 
-    public CosReference getResultReference() {
+    public CosReference resultReference() {
         return resultReference;
     }
 
-    public Map<String, Object> getCustom() {
+    public Map<String, Object> custom() {
         return custom;
     }
 
-    public Duration getTimeout() {
+    public Duration timeout() {
         return timeout;
     }
 
     /**
      * Converts the {@link TextExtractionParameters} into a new {@link Parameters} object.
      */
-    public Parameters toParameters() {
-        var semanticConfig = isNull(getSemanticConfig())
+    Parameters toParameters() {
+        var semanticConfig = isNull(semanticConfig())
             ? null
             : new Parameters.SemanticConfig(
-                this.semanticConfig.getEnableTextHints(),
-                this.semanticConfig.getEnableGenericKvp(),
-                this.semanticConfig.getEnableSchemaKvp(),
-                this.semanticConfig.getGroundingMode(),
-                this.semanticConfig.getForceSchemaName(),
-                this.semanticConfig.getDefaultModelName(),
-                this.semanticConfig.getTaskModelNameOverride(),
-                this.semanticConfig.getSchemasMergeStrategy(),
-                this.semanticConfig.getSchemas());
+                this.semanticConfig.enableTextHints(),
+                this.semanticConfig.enableGenericKvp(),
+                this.semanticConfig.enableSchemaKvp(),
+                this.semanticConfig.groundingMode(),
+                this.semanticConfig.forceSchemaName(),
+                this.semanticConfig.defaultModelName(),
+                this.semanticConfig.taskModelNameOverride(),
+                this.semanticConfig.schemasMergeStrategy(),
+                this.semanticConfig.schemas());
 
         return new Parameters(
-            getRequestedOutputs(),
-            getMode(),
-            getOcrMode(),
-            getLanguages(),
-            getAutoRotationCorrection(),
-            getCreateEmbeddedImages(),
-            getOutputDpi(),
-            getOutputTokens(),
-            getKvpMode(),
+            requestedOutputs(),
+            mode(),
+            ocrMode(),
+            languages(),
+            autoRotationCorrection(),
+            createEmbeddedImages(),
+            outputDpi(),
+            outputTokens(),
+            kvpMode(),
             semanticConfig
         );
     }

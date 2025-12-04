@@ -30,7 +30,7 @@ public final class TextExtractionDeleteParameters extends WatsonxParameters {
         this.hardDelete = Optional.ofNullable(builder.hardDelete);
     }
 
-    public Optional<Boolean> getHardDelete() {
+    public Optional<Boolean> hardDelete() {
         return hardDelete;
     }
 
