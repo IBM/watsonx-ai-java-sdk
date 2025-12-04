@@ -54,11 +54,11 @@ public abstract class JsonSchema {
         this.type = type;
     }
 
-    public String getDescription() {
+    public String description() {
         return description;
     }
 
-    public Object getType() {
+    public Object type() {
         return type;
     }
 

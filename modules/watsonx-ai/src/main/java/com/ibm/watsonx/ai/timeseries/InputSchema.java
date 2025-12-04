@@ -22,7 +22,6 @@ import java.util.List;
  * }</pre>
  */
 public final class InputSchema {
-
     private final String timestampColumn;
     private final List<String> idColumns;
     private final String freq;
@@ -40,20 +39,20 @@ public final class InputSchema {
         targetColumns = builder.targetColumns.isEmpty() ? null : builder.targetColumns;
     }
 
-    public String getTimestampColumn() {
+    public String timestampColumn() {
         return timestampColumn;
     }
 
-    public List<String> getIdColumns() {
+    public List<String> idColumns() {
         return idColumns;
     }
 
 
-    public String getFreq() {
+    public String freq() {
         return freq;
     }
 
-    public List<String> getTargetColumns() {
+    public List<String> targetColumns() {
         return targetColumns;
     }
 

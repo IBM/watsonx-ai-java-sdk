@@ -84,7 +84,7 @@ public class ToolService extends WatsonxService {
      * @return a list of {@link UtilityTool} instances representing all available tools
      */
     public Resources getAll(ToolParameters parameters) {
-        return client.getAll(nonNull(parameters) ? parameters.getTransactionId() : null);
+        return client.getAll(nonNull(parameters) ? parameters.transactionId() : null);
     }
 
     /**
@@ -106,7 +106,7 @@ public class ToolService extends WatsonxService {
      */
     public UtilityTool getByName(String name, ToolParameters parameters) {
         requireNonNull(name, "The name of the tool must be provided");
-        var transactionId = nonNull(parameters) ? parameters.getTransactionId() : null;
+        var transactionId = nonNull(parameters) ? parameters.transactionId() : null;
         return client.getByName(transactionId, name);
     }
 
@@ -135,7 +135,7 @@ public class ToolService extends WatsonxService {
         requireNonNull(toolRequest, "The tool run request must be provided");
         requireNonNull(toolRequest.toolName(), "The name of the tool must be provided");
         requireNonNull(toolRequest.input(), "The input of the tool must be provided");
-        var transactionId = nonNull(parameters) ? parameters.getTransactionId() : null;
+        var transactionId = nonNull(parameters) ? parameters.transactionId() : null;
         return client.run(transactionId, toolRequest);
     }
 

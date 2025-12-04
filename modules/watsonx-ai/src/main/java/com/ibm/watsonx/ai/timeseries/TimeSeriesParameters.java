@@ -26,7 +26,6 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *
  */
 public final class TimeSeriesParameters extends WatsonxModelParameters {
-
     private final Integer predictionLength;
     private final ForecastData futureData;
 
@@ -36,11 +35,11 @@ public final class TimeSeriesParameters extends WatsonxModelParameters {
         futureData = builder.futureData;
     }
 
-    public Integer getPredictionLength() {
+    public Integer predictionLength() {
         return predictionLength;
     }
 
-    public ForecastData getFutureData() {
+    public ForecastData futureData() {
         return futureData;
     }
 

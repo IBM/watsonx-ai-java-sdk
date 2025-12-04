@@ -33,15 +33,15 @@ public final class EmbeddingParameters extends WatsonxModelParameters {
         inputText = builder.inputText;
     }
 
-    public Integer getTruncateInputTokens() {
+    public Integer truncateInputTokens() {
         return truncateInputTokens;
     }
 
-    public Boolean getInputText() {
+    public Boolean inputText() {
         return inputText;
     }
 
-    protected Parameters toEmbeddingRequestParameters() {
+    Parameters toEmbeddingRequestParameters() {
         Parameters parameters = null;
         ReturnOptions returnOptions = null;
 

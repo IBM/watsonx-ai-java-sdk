@@ -50,9 +50,9 @@ public class DetectionService extends ProjectService {
 
     public DetectionResponse<DetectionTextResponse> detect(DetectionTextRequest request) {
         var projectSpace = resolveProjectSpace(request);
-        var transactionId = request.getTransactionId();
+        var transactionId = request.transactionId();
         var textDetectionRequest =
-            new TextDetectionContentDetectors(request.getInput(), request.getDetectors(), projectSpace.projectId(), projectSpace.spaceId());
+            new TextDetectionContentDetectors(request.input(), request.detectors(), projectSpace.projectId(), projectSpace.spaceId());
         return client.detect(transactionId, textDetectionRequest);
     }
 

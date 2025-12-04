@@ -35,10 +35,6 @@ public final class StringSchema extends JsonSchema {
         format = builder.format;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public String getPattern() {
         return pattern;
     }

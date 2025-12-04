@@ -66,7 +66,7 @@ public final class KvpFields {
         fieldMap = builder.fields;
     }
 
-    public Map<String, KvpField> getFields() {
+    public Map<String, KvpField> fields() {
         return fieldMap;
     }
 

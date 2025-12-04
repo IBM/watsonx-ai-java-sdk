@@ -42,19 +42,19 @@ public final class ArraySchema extends JsonSchema {
         maxItems = builder.maxItems;
     }
 
-    public JsonSchema getItems() {
+    public JsonSchema items() {
         return items;
     }
 
-    public JsonSchema getContains() {
+    public JsonSchema contains() {
         return contains;
     }
 
-    public Integer getMinItems() {
+    public Integer minItems() {
         return minItems;
     }
 
-    public Integer getMaxItems() {
+    public Integer maxItems() {
         return maxItems;
     }
 

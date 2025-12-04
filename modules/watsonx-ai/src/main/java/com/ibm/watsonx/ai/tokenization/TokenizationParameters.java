@@ -30,7 +30,7 @@ public final class TokenizationParameters extends WatsonxModelParameters {
         returnTokens = builder.returnTokens;
     }
 
-    public Boolean getReturnTokens() {
+    public Boolean returnTokens() {
         return returnTokens;
     }
 

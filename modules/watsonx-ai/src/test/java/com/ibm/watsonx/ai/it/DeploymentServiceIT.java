@@ -237,7 +237,7 @@ public class DeploymentServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(chatRequest));
-            var text = chatResponse.getChoices().get(0).getMessage().content();
+            var text = chatResponse.choices().get(0).message().content();
 
             assertNotNull(chatResponse);
             assertNotNull(text);
@@ -536,7 +536,7 @@ public class DeploymentServiceIT {
             });
 
             var chatResponse = assertDoesNotThrow(() -> futureChatResponse.get(10, TimeUnit.SECONDS));
-            var text = chatResponse.getChoices().get(0).getMessage().content();
+            var text = chatResponse.choices().get(0).message().content();
             assertNotNull(chatResponse);
             assertNotNull(text);
             assertFalse(text.isBlank());
@@ -685,7 +685,7 @@ public class DeploymentServiceIT {
             var toolCall = assertDoesNotThrow(() -> toolCallFuture.get(3, TimeUnit.SECONDS));
             var fromPartialTool = assertDoesNotThrow(() -> fromPartialToolCallFuture.get(3, TimeUnit.SECONDS));
             assertThrows(TimeoutException.class, () -> throwableFuture.get(1, TimeUnit.SECONDS));
-            assertEquals(toolCall.completionId(), chatResponse.getId());
+            assertEquals(toolCall.completionId(), chatResponse.id());
             assertEquals(toolCall.toolCall(), fromPartialTool);
             assertEquals(toolCall.toolCall(), chatResponse.toAssistantMessage().toolCalls().get(0));
             assertNotNull(chatResponse.toAssistantMessage().toolCalls().get(0).id());
@@ -720,9 +720,9 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    ids.add(completeResponse.getId());
-                    var result = cache.remove(completeResponse.getId()).toString();
-                    results.put(completeResponse.getId(), CompletableFuture.completedFuture(result));
+                    ids.add(completeResponse.id());
+                    var result = cache.remove(completeResponse.id()).toString();
+                    results.put(completeResponse.id(), CompletableFuture.completedFuture(result));
                     latch.countDown();
                 }
 

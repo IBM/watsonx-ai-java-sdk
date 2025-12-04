@@ -83,19 +83,19 @@ final class DefaultRestClient extends FoundationModelRestClient {
         StringJoiner queryParameters = new StringJoiner("&", "", "");
         queryParameters.add("version=" + version);
 
-        if (nonNull(parameters.getStart()))
-            queryParameters.add("start=" + parameters.getStart());
+        if (nonNull(parameters.start()))
+            queryParameters.add("start=" + parameters.start());
 
-        if (nonNull(parameters.getLimit()))
-            queryParameters.add("limit=" + parameters.getLimit());
+        if (nonNull(parameters.limit()))
+            queryParameters.add("limit=" + parameters.limit());
 
         var uri =
             URI.create(baseUrl + "/ml/v1/foundation_model_tasks?%s".formatted(queryParameters));
 
         var httpRequest = HttpRequest.newBuilder(uri).GET();
 
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
+        if (nonNull(parameters.transactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.transactionId());
 
         try {
 

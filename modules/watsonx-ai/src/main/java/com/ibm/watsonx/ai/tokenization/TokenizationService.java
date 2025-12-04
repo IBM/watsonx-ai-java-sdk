@@ -77,7 +77,7 @@ public class TokenizationService extends ModelService {
      */
     public TokenizationResponse tokenize(String input, TokenizationParameters parameters) {
         var tokenizationRequest = buildTokenizationRequest(input, parameters);
-        var transactionId = nonNull(parameters) ? parameters.getTransactionId() : null;
+        var transactionId = nonNull(parameters) ? parameters.transactionId() : null;
         return client.tokenize(transactionId, tokenizationRequest);
     }
 
@@ -90,7 +90,7 @@ public class TokenizationService extends ModelService {
      */
     public CompletableFuture<TokenizationResponse> asyncTokenize(String input, TokenizationParameters parameters) {
         var tokenizationRequest = buildTokenizationRequest(input, parameters);
-        var transactionId = nonNull(parameters) ? parameters.getTransactionId() : null;
+        var transactionId = nonNull(parameters) ? parameters.transactionId() : null;
         return client.asyncTokenize(transactionId, tokenizationRequest);
     }
 
@@ -111,7 +111,7 @@ public class TokenizationService extends ModelService {
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
-            modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
+            modelId = requireNonNullElse(parameters.modelId(), this.modelId);
             requestParameters = parameters.toTokenizationRequestParameters();
         }
 

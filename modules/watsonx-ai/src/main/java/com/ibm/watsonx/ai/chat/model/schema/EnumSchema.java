@@ -26,7 +26,7 @@ public final class EnumSchema extends JsonSchema {
         enumValues = builder.values;
     }
 
-    public List<?> getEnumValues() {
+    public List<?> enumValues() {
         return enumValues;
     }
 

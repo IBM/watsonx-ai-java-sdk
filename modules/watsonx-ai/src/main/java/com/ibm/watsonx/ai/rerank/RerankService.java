@@ -88,8 +88,8 @@ public class RerankService extends ModelService {
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
-            modelId = requireNonNullElse(parameters.getModelId(), this.modelId);
-            transactionId = parameters.getTransactionId();
+            modelId = requireNonNullElse(parameters.modelId(), this.modelId);
+            transactionId = parameters.transactionId();
             requestParameters = parameters.toRerankRequestParameters();
         }
 

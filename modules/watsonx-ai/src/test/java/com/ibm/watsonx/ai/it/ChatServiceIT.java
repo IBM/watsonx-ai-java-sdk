@@ -90,25 +90,25 @@ public class ChatServiceIT {
             assertFalse(text.isBlank());
 
             assertNotNull(chatResponse.finishReason());
-            assertNotNull(chatResponse.getChoices());
-            assertNotNull(chatResponse.getChoices().get(0).getFinishReason());
-            assertNotNull(chatResponse.getChoices().get(0).getIndex());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().content());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().role());
-            assertNull(chatResponse.getChoices().get(0).getMessage().refusal());
-            assertNull(chatResponse.getChoices().get(0).getMessage().toolCalls());
-            assertNotNull(chatResponse.getCreated());
-            assertNotNull(chatResponse.getCreatedAt());
-            assertNotNull(chatResponse.getId());
-            assertNotNull(chatResponse.getModel());
-            assertNotNull(chatResponse.getModelId());
-            assertNotNull(chatResponse.getModelVersion());
-            assertNotNull(chatResponse.getObject());
-            assertNotNull(chatResponse.getUsage());
-            assertNotNull(chatResponse.getUsage().getCompletionTokens());
-            assertNotNull(chatResponse.getUsage().getPromptTokens());
-            assertNotNull(chatResponse.getUsage().getTotalTokens());
+            assertNotNull(chatResponse.choices());
+            assertNotNull(chatResponse.choices().get(0).finishReason());
+            assertNotNull(chatResponse.choices().get(0).index());
+            assertNotNull(chatResponse.choices().get(0).message());
+            assertNotNull(chatResponse.choices().get(0).message().content());
+            assertNotNull(chatResponse.choices().get(0).message().role());
+            assertNull(chatResponse.choices().get(0).message().refusal());
+            assertNull(chatResponse.choices().get(0).message().toolCalls());
+            assertNotNull(chatResponse.created());
+            assertNotNull(chatResponse.createdAt());
+            assertNotNull(chatResponse.id());
+            assertNotNull(chatResponse.model());
+            assertNotNull(chatResponse.modelId());
+            assertNotNull(chatResponse.modelVersion());
+            assertNotNull(chatResponse.object());
+            assertNotNull(chatResponse.usage());
+            assertNotNull(chatResponse.usage().completionTokens());
+            assertNotNull(chatResponse.usage().promptTokens());
+            assertNotNull(chatResponse.usage().totalTokens());
         }
 
         @Test
@@ -243,7 +243,7 @@ public class ChatServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
-            var text = chatResponse.getChoices().get(0).getMessage().content();
+            var text = chatResponse.choices().get(0).message().content();
 
             assertNotNull(chatResponse);
             assertNotNull(text);
@@ -292,7 +292,7 @@ public class ChatServiceIT {
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
-            var text = chatResponse.getChoices().get(0).getMessage().content();
+            var text = chatResponse.choices().get(0).message().content();
 
             assertNotNull(chatResponse);
             assertNotNull(text);
@@ -388,30 +388,30 @@ public class ChatServiceIT {
                 true);
 
             assertNotNull(chatResponse.finishReason());
-            assertNotNull(chatResponse.getChoices());
-            assertNotNull(chatResponse.getChoices().get(0).getFinishReason());
-            assertNotNull(chatResponse.getChoices().get(0).getIndex());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage());
-            assertNull(chatResponse.getChoices().get(0).getMessage().content());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().role());
-            assertNull(chatResponse.getChoices().get(0).getMessage().refusal());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0));
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0).id());
-            assertNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0).index());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0).type());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0).function());
-            assertNotNull(chatResponse.getCreated());
-            assertNotNull(chatResponse.getCreatedAt());
-            assertNotNull(chatResponse.getId());
-            assertNotNull(chatResponse.getModel());
-            assertNotNull(chatResponse.getModelId());
-            assertNotNull(chatResponse.getModelVersion());
-            assertNotNull(chatResponse.getObject());
-            assertNotNull(chatResponse.getUsage());
-            assertNotNull(chatResponse.getUsage().getCompletionTokens());
-            assertNotNull(chatResponse.getUsage().getPromptTokens());
-            assertNotNull(chatResponse.getUsage().getTotalTokens());
+            assertNotNull(chatResponse.choices());
+            assertNotNull(chatResponse.choices().get(0).finishReason());
+            assertNotNull(chatResponse.choices().get(0).index());
+            assertNotNull(chatResponse.choices().get(0).message());
+            assertNull(chatResponse.choices().get(0).message().content());
+            assertNotNull(chatResponse.choices().get(0).message().role());
+            assertNull(chatResponse.choices().get(0).message().refusal());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0));
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).id());
+            assertNull(chatResponse.choices().get(0).message().toolCalls().get(0).index());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).type());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).function());
+            assertNotNull(chatResponse.created());
+            assertNotNull(chatResponse.createdAt());
+            assertNotNull(chatResponse.id());
+            assertNotNull(chatResponse.model());
+            assertNotNull(chatResponse.modelId());
+            assertNotNull(chatResponse.modelVersion());
+            assertNotNull(chatResponse.object());
+            assertNotNull(chatResponse.usage());
+            assertNotNull(chatResponse.usage().completionTokens());
+            assertNotNull(chatResponse.usage().promptTokens());
+            assertNotNull(chatResponse.usage().totalTokens());
         }
 
         @Test
@@ -723,25 +723,25 @@ public class ChatServiceIT {
             assertTrue(poem.topic.equalsIgnoreCase("dog"));
 
             assertNotNull(chatResponse.finishReason());
-            assertNotNull(chatResponse.getChoices());
-            assertNotNull(chatResponse.getChoices().get(0).getFinishReason());
-            assertNotNull(chatResponse.getChoices().get(0).getIndex());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().content());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().role());
-            assertNull(chatResponse.getChoices().get(0).getMessage().refusal());
-            assertNull(chatResponse.getChoices().get(0).getMessage().toolCalls());
-            assertNotNull(chatResponse.getCreated());
-            assertNotNull(chatResponse.getCreatedAt());
-            assertNotNull(chatResponse.getId());
-            assertNotNull(chatResponse.getModel());
-            assertNotNull(chatResponse.getModelId());
-            assertNotNull(chatResponse.getModelVersion());
-            assertNotNull(chatResponse.getObject());
-            assertNotNull(chatResponse.getUsage());
-            assertNotNull(chatResponse.getUsage().getCompletionTokens());
-            assertNotNull(chatResponse.getUsage().getPromptTokens());
-            assertNotNull(chatResponse.getUsage().getTotalTokens());
+            assertNotNull(chatResponse.choices());
+            assertNotNull(chatResponse.choices().get(0).finishReason());
+            assertNotNull(chatResponse.choices().get(0).index());
+            assertNotNull(chatResponse.choices().get(0).message());
+            assertNotNull(chatResponse.choices().get(0).message().content());
+            assertNotNull(chatResponse.choices().get(0).message().role());
+            assertNull(chatResponse.choices().get(0).message().refusal());
+            assertNull(chatResponse.choices().get(0).message().toolCalls());
+            assertNotNull(chatResponse.created());
+            assertNotNull(chatResponse.createdAt());
+            assertNotNull(chatResponse.id());
+            assertNotNull(chatResponse.model());
+            assertNotNull(chatResponse.modelId());
+            assertNotNull(chatResponse.modelVersion());
+            assertNotNull(chatResponse.object());
+            assertNotNull(chatResponse.usage());
+            assertNotNull(chatResponse.usage().completionTokens());
+            assertNotNull(chatResponse.usage().promptTokens());
+            assertNotNull(chatResponse.usage().totalTokens());
         }
 
         @Test
@@ -800,7 +800,7 @@ public class ChatServiceIT {
             });
 
             var chatResponse = assertDoesNotThrow(() -> futureChatResponse.get(30, TimeUnit.SECONDS));
-            var text = chatResponse.getChoices().get(0).getMessage().content();
+            var text = chatResponse.choices().get(0).message().content();
             assertNotNull(chatResponse);
             assertNotNull(text);
             assertFalse(text.isBlank());
@@ -964,11 +964,11 @@ public class ChatServiceIT {
                 }
             });
 
-            var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(30, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(60, TimeUnit.SECONDS));
             var toolCall = assertDoesNotThrow(() -> toolCallFuture.get(3, TimeUnit.SECONDS));
             var fromPartialTool = assertDoesNotThrow(() -> fromPartialToolCallFuture.get(3, TimeUnit.SECONDS));
             assertThrows(TimeoutException.class, () -> throwableFuture.get(1, TimeUnit.SECONDS));
-            assertEquals(toolCall.completionId(), chatResponse.getId());
+            assertEquals(toolCall.completionId(), chatResponse.id());
             assertEquals(toolCall.toolCall(), fromPartialTool);
             assertEquals(toolCall.toolCall(), chatResponse.toAssistantMessage().toolCalls().get(0));
             assertNotNull(chatResponse.toAssistantMessage().toolCalls().get(0).id());
@@ -979,30 +979,30 @@ public class ChatServiceIT {
                 true);
 
             assertNotNull(chatResponse.finishReason());
-            assertNotNull(chatResponse.getChoices());
-            assertNotNull(chatResponse.getChoices().get(0).getFinishReason());
-            assertNotNull(chatResponse.getChoices().get(0).getIndex());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage());
-            assertNull(chatResponse.getChoices().get(0).getMessage().content());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().role());
-            assertNull(chatResponse.getChoices().get(0).getMessage().refusal());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0));
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0).id());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0).index());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0).type());
-            assertNotNull(chatResponse.getChoices().get(0).getMessage().toolCalls().get(0).function());
-            assertNotNull(chatResponse.getCreated());
-            assertNotNull(chatResponse.getCreatedAt());
-            assertNotNull(chatResponse.getId());
-            assertNotNull(chatResponse.getModel());
-            assertNotNull(chatResponse.getModelId());
-            assertNotNull(chatResponse.getModelVersion());
-            assertNotNull(chatResponse.getObject());
-            assertNotNull(chatResponse.getUsage());
-            assertNotNull(chatResponse.getUsage().getCompletionTokens());
-            assertNotNull(chatResponse.getUsage().getPromptTokens());
-            assertNotNull(chatResponse.getUsage().getTotalTokens());
+            assertNotNull(chatResponse.choices());
+            assertNotNull(chatResponse.choices().get(0).finishReason());
+            assertNotNull(chatResponse.choices().get(0).index());
+            assertNotNull(chatResponse.choices().get(0).message());
+            assertNull(chatResponse.choices().get(0).message().content());
+            assertNotNull(chatResponse.choices().get(0).message().role());
+            assertNull(chatResponse.choices().get(0).message().refusal());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0));
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).id());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).index());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).type());
+            assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).function());
+            assertNotNull(chatResponse.created());
+            assertNotNull(chatResponse.createdAt());
+            assertNotNull(chatResponse.id());
+            assertNotNull(chatResponse.model());
+            assertNotNull(chatResponse.modelId());
+            assertNotNull(chatResponse.modelVersion());
+            assertNotNull(chatResponse.object());
+            assertNotNull(chatResponse.usage());
+            assertNotNull(chatResponse.usage().completionTokens());
+            assertNotNull(chatResponse.usage().promptTokens());
+            assertNotNull(chatResponse.usage().totalTokens());
         }
 
         @Test
@@ -1039,7 +1039,7 @@ public class ChatServiceIT {
                 }
             });
 
-            var chatResponse = assertDoesNotThrow(() -> future.get(3, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> future.get(60, TimeUnit.SECONDS));
             assertNotNull(chatResponse);
 
             var tools = chatResponse.toAssistantMessage().toolCalls();
@@ -1076,9 +1076,9 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    ids.add(completeResponse.getId());
-                    var result = cache.remove(completeResponse.getId()).toString();
-                    results.put(completeResponse.getId(), CompletableFuture.completedFuture(result));
+                    ids.add(completeResponse.id());
+                    var result = cache.remove(completeResponse.id()).toString();
+                    results.put(completeResponse.id(), CompletableFuture.completedFuture(result));
                     latch.countDown();
                 }
 
@@ -1132,7 +1132,7 @@ public class ChatServiceIT {
                 }
             });
 
-            var ex = assertThrows(ExecutionException.class, () -> future.get(300, TimeUnit.SECONDS));
+            var ex = assertThrows(ExecutionException.class, () -> future.get(60, TimeUnit.SECONDS));
             var wex = assertInstanceOf(WatsonxException.class, ex.getCause());
             assertTrue(wex.getMessage().contains("Provided API key could not be found."));
         }

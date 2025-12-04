@@ -40,23 +40,23 @@ public final class ObjectSchema extends JsonSchema {
         additionalProperties = builder.additionalProperties;
     }
 
-    public Map<String, JsonSchema> getProperties() {
+    public Map<String, JsonSchema> properties() {
         return properties;
     }
 
-    public List<String> getRequired() {
+    public List<String> required() {
         return required;
     }
 
-    public Integer getMinProperties() {
+    public Integer minProperties() {
         return minProperties;
     }
 
-    public Integer getMaxProperties() {
+    public Integer maxProperties() {
         return maxProperties;
     }
 
-    public JsonSchema getAdditionalProperties() {
+    public JsonSchema additionalProperties() {
         return additionalProperties;
     }
 

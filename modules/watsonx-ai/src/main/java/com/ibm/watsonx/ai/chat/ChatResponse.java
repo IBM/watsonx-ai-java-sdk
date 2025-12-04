@@ -17,24 +17,41 @@ import com.ibm.watsonx.ai.chat.model.ResultMessage;
  */
 public final class ChatResponse {
 
-    private String id;
-    private String object;
-    private String modelId;
-    private String model;
-    private List<ResultChoice> choices;
-    private Long created;
-    private String modelVersion;
-    private String createdAt;
-    private ChatUsage usage;
-    private ExtractionTags extractionTags;
+    public static record ResultChoice(Integer index, ResultMessage message, String finishReason) {
 
-    /**
-     * Sets the unique identifier of the chat response.
-     *
-     * @param id unique identifier
-     */
-    public void setId(String id) {
-        this.id = id;
+        /**
+         * Returns a copy of this {@link ResultChoice} with a result message.
+         *
+         * @param newResultMessage the new result message
+         * @return a new {@link ResultChoice} instance
+         */
+        public ResultChoice withResultMessage(ResultMessage newResultMessage) {
+            return new ResultChoice(index, newResultMessage, finishReason);
+        }
+    }
+
+    private final String id;
+    private final String object;
+    private final String modelId;
+    private final String model;
+    private final List<ResultChoice> choices;
+    private final Long created;
+    private final String modelVersion;
+    private final String createdAt;
+    private final ChatUsage usage;
+    private final ExtractionTags extractionTags;
+
+    private ChatResponse(Builder builder) {
+        id = builder.id;
+        object = builder.object;
+        modelId = builder.modelId;
+        model = builder.model;
+        choices = List.copyOf(builder.choices);
+        created = builder.created;
+        modelVersion = builder.modelVersion;
+        createdAt = builder.createdAt;
+        usage = builder.usage;
+        extractionTags = builder.extractionTags;
     }
 
     /**
@@ -42,17 +59,8 @@ public final class ChatResponse {
      *
      * @return id
      */
-    public String getId() {
+    public String id() {
         return id;
-    }
-
-    /**
-     * Sets the type of object returned (e.g., "chat.completion").
-     *
-     * @param object the object type
-     */
-    public void setObject(String object) {
-        this.object = object;
     }
 
     /**
@@ -60,17 +68,8 @@ public final class ChatResponse {
      *
      * @return the object type
      */
-    public String getObject() {
+    public String object() {
         return object;
-    }
-
-    /**
-     * Sets the id of the model used to generate the response.
-     *
-     * @param modelId the model id
-     */
-    public void setModelId(String modelId) {
-        this.modelId = modelId;
     }
 
     /**
@@ -78,17 +77,8 @@ public final class ChatResponse {
      *
      * @return the model id
      */
-    public String getModelId() {
+    public String modelId() {
         return modelId;
-    }
-
-    /**
-     * Sets the model name used to generate the response.
-     *
-     * @param model the model name
-     */
-    public void setModel(String model) {
-        this.model = model;
     }
 
     /**
@@ -96,17 +86,8 @@ public final class ChatResponse {
      *
      * @return the model name
      */
-    public String getModel() {
+    public String model() {
         return model;
-    }
-
-    /**
-     * Sets the list of result choices returned by the model.
-     *
-     * @param choices a list of {@link ResultChoice}
-     */
-    public void setChoices(List<ResultChoice> choices) {
-        this.choices = choices;
     }
 
     /**
@@ -114,17 +95,8 @@ public final class ChatResponse {
      *
      * @return a list of {@link ResultChoice}
      */
-    public List<ResultChoice> getChoices() {
+    public List<ResultChoice> choices() {
         return choices;
-    }
-
-    /**
-     * Sets the Unix timestamp (in seconds) when the response was created.
-     *
-     * @param created the creation timestamp
-     */
-    public void setCreated(Long created) {
-        this.created = created;
     }
 
     /**
@@ -132,17 +104,8 @@ public final class ChatResponse {
      *
      * @return the creation timestamp
      */
-    public Long getCreated() {
+    public Long created() {
         return created;
-    }
-
-    /**
-     * Sets the version of the model that generated the response.
-     *
-     * @param modelVersion the model version
-     */
-    public void setModelVersion(String modelVersion) {
-        this.modelVersion = modelVersion;
     }
 
     /**
@@ -150,17 +113,8 @@ public final class ChatResponse {
      *
      * @return the model version
      */
-    public String getModelVersion() {
+    public String modelVersion() {
         return modelVersion;
-    }
-
-    /**
-     * Sets the formatted creation timestamp of the response.
-     *
-     * @param createdAt the formatted creation time
-     */
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
     }
 
     /**
@@ -168,17 +122,8 @@ public final class ChatResponse {
      *
      * @return the formatted creation time
      */
-    public String getCreatedAt() {
+    public String createdAt() {
         return createdAt;
-    }
-
-    /**
-     * Sets the usage statistics for the response, such as token counts.
-     *
-     * @param usage usage statistics
-     */
-    public void setUsage(ChatUsage usage) {
-        this.usage = usage;
     }
 
     /**
@@ -186,15 +131,18 @@ public final class ChatResponse {
      *
      * @return a {@link ChatUsage} object
      */
-    public ChatUsage getUsage() {
+    public ChatUsage usage() {
         return usage;
     }
 
     /**
-     * Set the {@code ExtractionTags} object used in the {@code toResponse()}, {@code toThinking()} and {@code toAssistantMessage} functions.
+     * Retrieves the finish reason for the current chat response.
+     *
+     * @return a {@code String} representing the reason why the response generation finished d
      */
-    void setExtractionTags(ExtractionTags extractionTags) {
-        this.extractionTags = extractionTags;
+    public FinishReason finishReason() {
+        var resultMessage = choices.get(0);
+        return FinishReason.fromValue(resultMessage.finishReason());
     }
 
     /**
@@ -203,7 +151,7 @@ public final class ChatResponse {
      * @return an {@code AssistantMessage} containing the assistant's reply content
      */
     public AssistantMessage toAssistantMessage() {
-        var resultMessage = choices.get(0).getMessage();
+        var resultMessage = choices.get(0).message();
 
         String content;
         String thinking;
@@ -225,55 +173,153 @@ public final class ChatResponse {
     }
 
     /**
-     * Retrieves the finish reason for the current chat response.
+     * Creates a builder initialized with the current state of the ChatResponse.
      *
-     * @return a {@code String} representing the reason why the response generation finished d
+     * @return a new {@link Builder} instance pre-populated with this response's data
      */
-    public FinishReason finishReason() {
-        var resultMessage = choices.get(0);
-        return FinishReason.fromValue(resultMessage.getFinishReason());
+    public Builder toBuilder() {
+        return new Builder()
+            .id(this.id)
+            .object(this.object)
+            .modelId(this.modelId)
+            .model(this.model)
+            .choices(this.choices)
+            .created(this.created)
+            .modelVersion(this.modelVersion)
+            .createdAt(this.createdAt)
+            .usage(this.usage)
+            .extractionTags(this.extractionTags);
     }
 
-    public final static class ResultChoice {
-        private Integer index;
-        private ResultMessage message;
-        private String finishReason;
+    /**
+     * Returns a new {@link Builder} instance.
+     *
+     * @return {@link Builder} instance.
+     */
+    public static Builder build() {
+        return new Builder();
+    }
 
-        ResultChoice() {}
+    /**
+     * Builder class for constructing {@link ChatResponse} instances with configurable parameters.
+     */
+    public static class Builder {
+        private String id;
+        private String object;
+        private String modelId;
+        private String model;
+        private List<ResultChoice> choices;
+        private Long created;
+        private String modelVersion;
+        private String createdAt;
+        private ChatUsage usage;
+        private ExtractionTags extractionTags;
 
-        public ResultChoice(Integer index, ResultMessage message, String finishReason) {
-            this.index = index;
-            this.message = message;
-            this.finishReason = finishReason;
+        /**
+         * Sets the unique identifier of the chat response.
+         *
+         * @param id unique identifier
+         */
+        public Builder id(String id) {
+            this.id = id;
+            return this;
         }
 
-        public Integer getIndex() {
-            return index;
+        /**
+         * Sets the type of object returned (e.g., "chat.completion").
+         *
+         * @param object the object type
+         */
+        public Builder object(String object) {
+            this.object = object;
+            return this;
         }
 
-        public void setIndex(Integer index) {
-            this.index = index;
+        /**
+         * Sets the id of the model used to generate the response.
+         *
+         * @param modelId the model id
+         */
+        public Builder modelId(String modelId) {
+            this.modelId = modelId;
+            return this;
         }
 
-        public ResultMessage getMessage() {
-            return message;
+        /**
+         * Sets the model name used to generate the response.
+         *
+         * @param model the model name
+         */
+        public Builder model(String model) {
+            this.model = model;
+            return this;
         }
 
-        public void setMessage(ResultMessage message) {
-            this.message = message;
+        /**
+         * Sets the list of result choices returned by the model.
+         *
+         * @param choices a list of {@link ResultChoice}
+         */
+        public Builder choices(List<ResultChoice> choices) {
+            this.choices = choices;
+            return this;
         }
 
-        public String getFinishReason() {
-            return finishReason;
+        /**
+         * Sets the Unix timestamp (in seconds) when the response was created.
+         *
+         * @param created the creation timestamp
+         */
+        public Builder created(Long created) {
+            this.created = created;
+            return this;
         }
 
-        public void setFinishReason(String finishReason) {
-            this.finishReason = finishReason;
+        /**
+         * Sets the version of the model that generated the response.
+         *
+         * @param modelVersion the model version
+         */
+        public Builder modelVersion(String modelVersion) {
+            this.modelVersion = modelVersion;
+            return this;
         }
 
-        @Override
-        public String toString() {
-            return "ResultChoice [index=" + index + ", message=" + message + ", finishReason=" + finishReason + "]";
+        /**
+         * Sets the formatted creation timestamp of the response.
+         *
+         * @param createdAt the formatted creation time
+         */
+        public Builder createdAt(String createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        /**
+         * Sets the usage statistics for the response, such as token counts.
+         *
+         * @param usage usage statistics
+         */
+        public Builder usage(ChatUsage usage) {
+            this.usage = usage;
+            return this;
+        }
+
+        /**
+         * Set the {@code ExtractionTags}.
+         */
+        Builder extractionTags(ExtractionTags extractionTags) {
+            this.extractionTags = extractionTags;
+            return this;
+        }
+
+        /**
+         * Builds a {@link ChatResponse} instance using the configured parameters.
+         *
+         * @return a new instance of {@link ChatResponse}
+         */
+        public ChatResponse build() {
+            return new ChatResponse(this);
         }
     }
 

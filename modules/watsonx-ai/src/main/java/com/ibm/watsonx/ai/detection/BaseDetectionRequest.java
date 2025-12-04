@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Represents a generic detection request.
  */
-abstract class BaseDetectionRequest {
+public abstract class BaseDetectionRequest {
     private final Map<String, Map<String, Object>> detectors;
     private final String projectId;
     private final String spaceId;
@@ -20,15 +20,15 @@ abstract class BaseDetectionRequest {
         this.spaceId = spaceId;
     }
 
-    public Map<String, Map<String, Object>> getDetectors() {
+    public Map<String, Map<String, Object>> detectors() {
         return detectors;
     }
 
-    public String getProjectId() {
+    public String projectId() {
         return projectId;
     }
 
-    public String getSpaceId() {
+    public String spaceId() {
         return spaceId;
     }
 }

@@ -28,7 +28,7 @@ public final class ConstantSchema extends JsonSchema {
         this.constant = builder.value;
     }
 
-    public Object getConst() {
+    public Object constant() {
         return constant;
     }
 

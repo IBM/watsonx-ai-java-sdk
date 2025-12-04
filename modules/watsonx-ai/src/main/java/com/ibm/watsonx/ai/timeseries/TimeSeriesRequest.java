@@ -46,19 +46,19 @@ public final class TimeSeriesRequest {
         deploymentId = builder.deploymentId;
     }
 
-    public String getDeploymentId() {
+    public String deploymentId() {
         return deploymentId;
     }
 
-    public InputSchema getInputSchema() {
+    public InputSchema inputSchema() {
         return inputSchema;
     }
 
-    public ForecastData getData() {
+    public ForecastData data() {
         return data;
     }
 
-    public TimeSeriesParameters getParameters() {
+    public TimeSeriesParameters parameters() {
         return parameters;
     }
 

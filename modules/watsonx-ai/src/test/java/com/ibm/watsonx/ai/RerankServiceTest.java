@@ -167,10 +167,10 @@ public class RerankServiceTest extends AbstractWatsonxTest {
                 .truncateInputTokens(512)
                 .build();
 
-            assertEquals(true, parameters.getQuery());
-            assertEquals(2, parameters.getTopN());
-            assertEquals(true, parameters.getInputs());
-            assertEquals(512, parameters.getTruncateInputTokens());
+            assertEquals(true, parameters.query());
+            assertEquals(2, parameters.topN());
+            assertEquals(true, parameters.inputs());
+            assertEquals(512, parameters.truncateInputTokens());
 
             var response = rerankService.rerank(
                 "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",

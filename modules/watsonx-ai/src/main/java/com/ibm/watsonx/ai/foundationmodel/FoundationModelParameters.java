@@ -37,23 +37,23 @@ public final class FoundationModelParameters {
         this.techPreview = builder.techPreview;
     }
 
-    public Integer getStart() {
+    public Integer start() {
         return start;
     }
 
-    public Integer getLimit() {
+    public Integer limit() {
         return limit;
     }
 
-    public String getFilter() {
+    public String filter() {
         return nonNull(filter) ? filter.toString() : null;
     }
 
-    public String getTransactionId() {
+    public String transactionId() {
         return transactionId;
     }
 
-    public Boolean getTechPreview() {
+    public Boolean techPreview() {
         return techPreview;
     }
 

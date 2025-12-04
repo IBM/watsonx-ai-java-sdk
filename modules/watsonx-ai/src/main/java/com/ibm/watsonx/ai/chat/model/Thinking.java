@@ -49,22 +49,22 @@ public final class Thinking {
         thinkingEffort = builder.thinkingEffort;
     }
 
-    public Boolean getEnabled() {
+    public Boolean enabled() {
         if (isNull(enabled) && (nonNull(includeReasoning) || nonNull(extractionTags) || nonNull(thinkingEffort)))
             return true;
 
         return enabled;
     }
 
-    public Boolean getIncludeReasoning() {
+    public Boolean includeReasoning() {
         return includeReasoning;
     }
 
-    public ExtractionTags getExtractionTags() {
+    public ExtractionTags extractionTags() {
         return extractionTags;
     }
 
-    public ThinkingEffort getThinkingEffort() {
+    public ThinkingEffort thinkingEffort() {
         return thinkingEffort;
     }
 
@@ -93,7 +93,11 @@ public final class Thinking {
 
         private Builder() {}
 
-
+        /**
+         * Sets whether the reasoning feature is enabled.
+         *
+         * @param enabled {@code true} to enable the reasoning feature, {@code false} to disable it
+         */
         public Builder enabled(Boolean enabled) {
             this.enabled = enabled;
             return this;
@@ -104,7 +108,6 @@ public final class Thinking {
          * <p>
          * When {@code true}, the assistant’s reasoning process will be included in the model output. When {@code false}, the reasoning content will
          * be omitted.
-         * <p>
          *
          * @param includeReasoning {@code true} to include reasoning in the model output, {@code false} to exclude it
          */

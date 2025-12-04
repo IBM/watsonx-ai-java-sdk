@@ -214,8 +214,8 @@ public abstract class WatsonxService {
             if (isNull(parameters))
                 return new ProjectSpace(projectId, spaceId);
 
-            return nonNull(parameters.getProjectId()) || nonNull(parameters.getSpaceId())
-                ? new ProjectSpace(parameters.getProjectId(), parameters.getSpaceId())
+            return nonNull(parameters.projectId()) || nonNull(parameters.spaceId())
+                ? new ProjectSpace(parameters.projectId(), parameters.spaceId())
                 : new ProjectSpace(projectId, spaceId);
         }
 

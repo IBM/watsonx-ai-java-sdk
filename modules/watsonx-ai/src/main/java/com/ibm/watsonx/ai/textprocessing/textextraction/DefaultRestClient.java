@@ -148,10 +148,10 @@ final class DefaultRestClient extends TextExtractionRestClient {
         var id = request.extractionId();
         var parameters = request.parameters();
 
-        var projectId = parameters.getProjectId();
-        var spaceId = parameters.getSpaceId();
+        var projectId = parameters.projectId();
+        var spaceId = parameters.spaceId();
 
-        var queryParameters = parameters.getHardDelete()
+        var queryParameters = parameters.hardDelete()
             .map(nullable -> getQueryParameters(projectId, spaceId).concat("&hard_delete=true"))
             .orElse(getQueryParameters(projectId, spaceId));
 
@@ -161,8 +161,8 @@ final class DefaultRestClient extends TextExtractionRestClient {
         if (nonNull(request.requestTrackingId()))
             httpRequest.header(REQUEST_ID_HEADER, request.requestTrackingId());
 
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
+        if (nonNull(parameters.transactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.transactionId());
 
         try {
 
@@ -183,8 +183,8 @@ final class DefaultRestClient extends TextExtractionRestClient {
 
         var id = request.extractionId();
         var parameters = request.parameters();
-        var projectId = parameters.getProjectId();
-        var spaceId = parameters.getSpaceId();
+        var projectId = parameters.projectId();
+        var spaceId = parameters.spaceId();
 
         var queryParameters = getQueryParameters(projectId, spaceId);
         var uri = URI.create(baseUrl + "/ml/v1/text/extractions/%s?%s".formatted(id, queryParameters));
@@ -197,8 +197,8 @@ final class DefaultRestClient extends TextExtractionRestClient {
         if (nonNull(request.requestTrackingId()))
             httpRequest.header(REQUEST_ID_HEADER, request.requestTrackingId());
 
-        if (nonNull(parameters.getTransactionId()))
-            httpRequest.header(TRANSACTION_ID_HEADER, parameters.getTransactionId());
+        if (nonNull(parameters.transactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, parameters.transactionId());
 
         try {
 

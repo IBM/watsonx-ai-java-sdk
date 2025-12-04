@@ -37,6 +37,6 @@ public record KvpSlice(Map<String, KvpField> fields, List<Double> normalizedBbox
 
     public static KvpSlice of(KvpFields fields, List<Double> normalizedBbox) {
         requireNonNull(fields, "fields cannot be null");
-        return new KvpSlice(fields.getFields(), normalizedBbox);
+        return new KvpSlice(fields.fields(), normalizedBbox);
     }
 }

@@ -37,19 +37,19 @@ public final class RerankParameters extends WatsonxModelParameters {
         query = builder.query;
     }
 
-    public Integer getTruncateInputTokens() {
+    public Integer truncateInputTokens() {
         return truncateInputTokens;
     }
 
-    public Integer getTopN() {
+    public Integer topN() {
         return topN;
     }
 
-    public Boolean getInputs() {
+    public Boolean inputs() {
         return inputs;
     }
 
-    public Boolean getQuery() {
+    public Boolean query() {
         return query;
     }
 

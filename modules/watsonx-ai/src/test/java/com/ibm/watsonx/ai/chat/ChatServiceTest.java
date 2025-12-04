@@ -102,10 +102,10 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         ChatRequest.Builder chatRequest = ChatRequest.builder()
             .messages(SystemMessage.of("You are an helpful assistant"));
 
-        assertEquals(1, chatRequest.build().getMessages().size());
+        assertEquals(1, chatRequest.build().messages().size());
 
         chatRequest.addMessages(List.of());
-        assertEquals(1, chatRequest.build().getMessages().size());
+        assertEquals(1, chatRequest.build().messages().size());
     }
 
     @Test
@@ -116,9 +116,9 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .addMessages(UserMessage.text("How are you?"))
             .build();
 
-        assertEquals(2, chatRequest.getMessages().size());
-        assertInstanceOf(SystemMessage.class, chatRequest.getMessages().get(0));
-        assertInstanceOf(UserMessage.class, chatRequest.getMessages().get(1));
+        assertEquals(2, chatRequest.messages().size());
+        assertInstanceOf(SystemMessage.class, chatRequest.messages().get(0));
+        assertInstanceOf(UserMessage.class, chatRequest.messages().get(1));
     }
 
     @Test
@@ -204,22 +204,22 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var chatResponse = chatService.chat(messages, chatParameters);
-            assertEquals("chatcmpl-43962cc06e5346ccbd653a04a48e4b5b", chatResponse.getId());
-            assertEquals("my-super-model", chatResponse.getModelId());
-            assertEquals("my-super-model-model", chatResponse.getModel());
-            assertNotNull(chatResponse.getChoices());
-            assertEquals(1, chatResponse.getChoices().size());
-            assertEquals(0, chatResponse.getChoices().get(0).getIndex());
-            assertEquals(0, chatResponse.getChoices().get(0).getIndex());
-            assertEquals("assistant", chatResponse.getChoices().get(0).getMessage().role());
-            assertEquals("Hello!!!", chatResponse.getChoices().get(0).getMessage().content());
-            assertEquals("stop", chatResponse.getChoices().get(0).getFinishReason());
-            assertEquals(1749288614, chatResponse.getCreated());
-            assertEquals("2025-06-07T09:30:15.122Z", chatResponse.getCreatedAt());
-            assertNotNull(chatResponse.getUsage());
-            assertEquals(37, chatResponse.getUsage().getCompletionTokens());
-            assertEquals(66, chatResponse.getUsage().getPromptTokens());
-            assertEquals(103, chatResponse.getUsage().getTotalTokens());
+            assertEquals("chatcmpl-43962cc06e5346ccbd653a04a48e4b5b", chatResponse.id());
+            assertEquals("my-super-model", chatResponse.modelId());
+            assertEquals("my-super-model-model", chatResponse.model());
+            assertNotNull(chatResponse.choices());
+            assertEquals(1, chatResponse.choices().size());
+            assertEquals(0, chatResponse.choices().get(0).index());
+            assertEquals(0, chatResponse.choices().get(0).index());
+            assertEquals("assistant", chatResponse.choices().get(0).message().role());
+            assertEquals("Hello!!!", chatResponse.choices().get(0).message().content());
+            assertEquals("stop", chatResponse.choices().get(0).finishReason());
+            assertEquals(1749288614, chatResponse.created());
+            assertEquals("2025-06-07T09:30:15.122Z", chatResponse.createdAt());
+            assertNotNull(chatResponse.usage());
+            assertEquals(37, chatResponse.usage().completionTokens());
+            assertEquals(66, chatResponse.usage().promptTokens());
+            assertEquals(103, chatResponse.usage().totalTokens());
 
             HttpRequest actualRequest = mockHttpRequest.getValue();
             assertEquals("http://my-cloud-instance.com/ml/v1/text/chat?version=1988-03-23", actualRequest.uri().toString());
@@ -564,8 +564,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
-            assertEquals("ChatUsage [completionTokens=18, promptTokens=19, totalTokens=37]",
-                chatResponse.getUsage().toString());
         });
     }
 
@@ -1525,23 +1523,23 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
-        assertNotNull(response.getChoices());
-        assertEquals(1, response.getChoices().size());
-        assertEquals("stop", response.getChoices().get(0).getFinishReason());
-        assertEquals(0, response.getChoices().get(0).getIndex());
-        assertEquals("Ciao", response.getChoices().get(0).getMessage().content());
+        assertNotNull(response.choices());
+        assertEquals(1, response.choices().size());
+        assertEquals("stop", response.choices().get(0).finishReason());
+        assertEquals(0, response.choices().get(0).index());
+        assertEquals("Ciao", response.choices().get(0).message().content());
         assertEquals("Ciao", response.toAssistantMessage().content());
-        assertNotNull(response.getCreated());
-        assertNotNull(response.getCreatedAt());
-        assertNotNull(response.getId());
-        assertNotNull(response.getModel());
-        assertNotNull(response.getModelId());
-        assertNotNull(response.getModelVersion());
-        assertNotNull(response.getObject());
-        assertNotNull(response.getUsage());
-        assertNotNull(response.getUsage().getCompletionTokens());
-        assertNotNull(response.getUsage().getPromptTokens());
-        assertNotNull(response.getUsage().getTotalTokens());
+        assertNotNull(response.created());
+        assertNotNull(response.createdAt());
+        assertNotNull(response.id());
+        assertNotNull(response.model());
+        assertNotNull(response.modelId());
+        assertNotNull(response.modelVersion());
+        assertNotNull(response.object());
+        assertNotNull(response.usage());
+        assertNotNull(response.usage().completionTokens());
+        assertNotNull(response.usage().promptTokens());
+        assertNotNull(response.usage().totalTokens());
     }
 
     @Test
@@ -1698,40 +1696,40 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
-        assertEquals(1749764735, response.getCreated());
-        assertEquals("2025-06-12T21:45:35.150Z", response.getCreatedAt());
-        assertEquals("chatcmpl-cc34b5ea3120fa9e07b18c5125d66602", response.getId());
-        assertEquals("ibm/granite-3-3-8b-instruct", response.getModel());
-        assertEquals("ibm/granite-3-3-8b-instruct", response.getModelId());
-        assertEquals("3.3.0", response.getModelVersion());
-        assertEquals("chat.completion.chunk", response.getObject());
-        assertNotNull(response.getUsage());
-        assertEquals(49, response.getUsage().getCompletionTokens());
-        assertEquals(319, response.getUsage().getPromptTokens());
-        assertEquals(368, response.getUsage().getTotalTokens());
-        assertNotNull(response.getChoices());
-        assertEquals(1, response.getChoices().size());
-        assertEquals(0, response.getChoices().get(0).getIndex());
-        assertEquals("tool_calls", response.getChoices().get(0).getFinishReason());
-        assertNotNull(response.getChoices().get(0).getMessage());
-        assertNull(response.getChoices().get(0).getMessage().content());
-        assertNull(response.getChoices().get(0).getMessage().refusal());
-        assertEquals("assistant", response.getChoices().get(0).getMessage().role());
-        assertEquals(2, response.getChoices().get(0).getMessage().toolCalls().size());
+        assertEquals(1749764735, response.created());
+        assertEquals("2025-06-12T21:45:35.150Z", response.createdAt());
+        assertEquals("chatcmpl-cc34b5ea3120fa9e07b18c5125d66602", response.id());
+        assertEquals("ibm/granite-3-3-8b-instruct", response.model());
+        assertEquals("ibm/granite-3-3-8b-instruct", response.modelId());
+        assertEquals("3.3.0", response.modelVersion());
+        assertEquals("chat.completion.chunk", response.object());
+        assertNotNull(response.usage());
+        assertEquals(49, response.usage().completionTokens());
+        assertEquals(319, response.usage().promptTokens());
+        assertEquals(368, response.usage().totalTokens());
+        assertNotNull(response.choices());
+        assertEquals(1, response.choices().size());
+        assertEquals(0, response.choices().get(0).index());
+        assertEquals("tool_calls", response.choices().get(0).finishReason());
+        assertNotNull(response.choices().get(0).message());
+        assertNull(response.choices().get(0).message().content());
+        assertNull(response.choices().get(0).message().refusal());
+        assertEquals("assistant", response.choices().get(0).message().role());
+        assertEquals(2, response.choices().get(0).message().toolCalls().size());
         assertEquals("chatcmpl-tool-af37032523934f019aa7258469580a7a",
-            response.getChoices().get(0).getMessage().toolCalls().get(0).id());
-        assertEquals(0, response.getChoices().get(0).getMessage().toolCalls().get(0).index());
-        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(0).type());
-        assertEquals("sum", response.getChoices().get(0).getMessage().toolCalls().get(0).function().name());
+            response.choices().get(0).message().toolCalls().get(0).id());
+        assertEquals(0, response.choices().get(0).message().toolCalls().get(0).index());
+        assertEquals("function", response.choices().get(0).message().toolCalls().get(0).type());
+        assertEquals("sum", response.choices().get(0).message().toolCalls().get(0).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).getMessage().toolCalls().get(0).function().arguments());
+            response.choices().get(0).message().toolCalls().get(0).function().arguments());
         assertEquals("chatcmpl-tool-f762db03c60f441dba57bab09552bb7b",
-            response.getChoices().get(0).getMessage().toolCalls().get(1).id());
-        assertEquals(1, response.getChoices().get(0).getMessage().toolCalls().get(1).index());
-        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(1).type());
-        assertEquals("subtraction", response.getChoices().get(0).getMessage().toolCalls().get(1).function().name());
+            response.choices().get(0).message().toolCalls().get(1).id());
+        assertEquals(1, response.choices().get(0).message().toolCalls().get(1).index());
+        assertEquals("function", response.choices().get(0).message().toolCalls().get(1).type());
+        assertEquals("subtraction", response.choices().get(0).message().toolCalls().get(1).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).getMessage().toolCalls().get(1).function().arguments());
+            response.choices().get(0).message().toolCalls().get(1).function().arguments());
 
 
         assertEquals(2, toolFetchers.size());
@@ -2027,40 +2025,40 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
-        assertEquals(1749766697, response.getCreated());
-        assertEquals("2025-06-12T22:18:18.126Z", response.getCreatedAt());
-        assertEquals("chatcmpl-75021362a9edcdacca7976b97cc20f0d", response.getId());
-        assertEquals("meta-llama/llama-4-maverick-17b-128e-instruct-fp8", response.getModel());
-        assertEquals("meta-llama/llama-4-maverick-17b-128e-instruct-fp8", response.getModelId());
-        assertEquals("4.0.0", response.getModelVersion());
-        assertEquals("chat.completion.chunk", response.getObject());
-        assertNotNull(response.getUsage());
-        assertEquals(49, response.getUsage().getCompletionTokens());
-        assertEquals(374, response.getUsage().getPromptTokens());
-        assertEquals(423, response.getUsage().getTotalTokens());
-        assertNotNull(response.getChoices());
-        assertEquals(1, response.getChoices().size());
-        assertEquals(0, response.getChoices().get(0).getIndex());
-        assertEquals("tool_calls", response.getChoices().get(0).getFinishReason());
-        assertNotNull(response.getChoices().get(0).getMessage());
-        assertNull(response.getChoices().get(0).getMessage().content());
-        assertNull(response.getChoices().get(0).getMessage().refusal());
-        assertEquals("assistant", response.getChoices().get(0).getMessage().role());
-        assertEquals(2, response.getChoices().get(0).getMessage().toolCalls().size());
+        assertEquals(1749766697, response.created());
+        assertEquals("2025-06-12T22:18:18.126Z", response.createdAt());
+        assertEquals("chatcmpl-75021362a9edcdacca7976b97cc20f0d", response.id());
+        assertEquals("meta-llama/llama-4-maverick-17b-128e-instruct-fp8", response.model());
+        assertEquals("meta-llama/llama-4-maverick-17b-128e-instruct-fp8", response.modelId());
+        assertEquals("4.0.0", response.modelVersion());
+        assertEquals("chat.completion.chunk", response.object());
+        assertNotNull(response.usage());
+        assertEquals(49, response.usage().completionTokens());
+        assertEquals(374, response.usage().promptTokens());
+        assertEquals(423, response.usage().totalTokens());
+        assertNotNull(response.choices());
+        assertEquals(1, response.choices().size());
+        assertEquals(0, response.choices().get(0).index());
+        assertEquals("tool_calls", response.choices().get(0).finishReason());
+        assertNotNull(response.choices().get(0).message());
+        assertNull(response.choices().get(0).message().content());
+        assertNull(response.choices().get(0).message().refusal());
+        assertEquals("assistant", response.choices().get(0).message().role());
+        assertEquals(2, response.choices().get(0).message().toolCalls().size());
         // If tool_choice_option is "required" watsonx doesn't return the id, so it will be autogenerated.
-        assertNotNull(response.getChoices().get(0).getMessage().toolCalls().get(0).id());
-        assertEquals(0, response.getChoices().get(0).getMessage().toolCalls().get(0).index());
-        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(0).type());
-        assertEquals("sum", response.getChoices().get(0).getMessage().toolCalls().get(0).function().name());
+        assertNotNull(response.choices().get(0).message().toolCalls().get(0).id());
+        assertEquals(0, response.choices().get(0).message().toolCalls().get(0).index());
+        assertEquals("function", response.choices().get(0).message().toolCalls().get(0).type());
+        assertEquals("sum", response.choices().get(0).message().toolCalls().get(0).function().name());
         assertEquals("{\"firstNumber\": 2, \"secondNumber\": 2}",
-            response.getChoices().get(0).getMessage().toolCalls().get(0).function().arguments());
+            response.choices().get(0).message().toolCalls().get(0).function().arguments());
         // If tool_choice_option is "required" watsonx doesn't return the id, so it will be autogenerated.
-        assertNotNull(response.getChoices().get(0).getMessage().toolCalls().get(1).id());
-        assertEquals(1, response.getChoices().get(0).getMessage().toolCalls().get(1).index());
-        assertEquals("function", response.getChoices().get(0).getMessage().toolCalls().get(1).type());
-        assertEquals("subtraction", response.getChoices().get(0).getMessage().toolCalls().get(1).function().name());
+        assertNotNull(response.choices().get(0).message().toolCalls().get(1).id());
+        assertEquals(1, response.choices().get(0).message().toolCalls().get(1).index());
+        assertEquals("function", response.choices().get(0).message().toolCalls().get(1).type());
+        assertEquals("subtraction", response.choices().get(0).message().toolCalls().get(1).function().name());
         assertEquals("{\"firstNumber\": 4, \"secondNumber\": 2}",
-            response.getChoices().get(0).getMessage().toolCalls().get(1).function().arguments());
+            response.choices().get(0).message().toolCalls().get(1).function().arguments());
 
         assertEquals(28, toolFetchers.size());
         JSONAssert.assertEquals(
@@ -2350,66 +2348,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         var ex = assertThrows(ExecutionException.class, () -> result.get(3, TimeUnit.SECONDS));
         assertEquals("Error in onComplete handler", ex.getCause().getMessage());
-    }
-
-    @Test
-    void should_return_tool_calls_when_tool_choice_option_is_required() throws Exception {
-
-        // Watsonx doesn't return "tool_calls" when the tool-choice-option is set to REQUIRED.
-        // In this case, the SDK forces the finish response.
-
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn(
-            """
-                {
-                    "model": "model",
-                    "choices": [
-                        {
-                            "index": 0,
-                            "message": {
-                                "role": "assistant",
-                                "content": "",
-                                "tool_calls": [
-                                    {
-                                        "id": "chatcmpl-tool-6e63f95869944f03a86fdab6189ba0b5",
-                                        "type": "function",
-                                        "function": {
-                                            "name": "getWeather",
-                                            "arguments": "{\\"city\\": \\"Munich\\"}"
-                                        }
-                                    }
-                                ]
-                            },
-                            "finish_reason": "stop"
-                        }
-                    ],
-                    "created": 1755501551,
-                    "model_version": "3.2.0",
-                    "created_at": "2025-08-18T07:19:13.136Z",
-                    "usage": {
-                        "completion_tokens": 23,
-                        "prompt_tokens": 309,
-                        "total_tokens": 332
-                    }
-                }""");
-
-        mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
-
-        withWatsonxServiceMock(() -> {
-            var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
-                .modelId("ibm/granite-3-3-8b-instruct")
-                .projectId("project-id")
-                .baseUrl(CloudRegion.FRANKFURT)
-                .build();
-
-            var parameters = ChatParameters.builder()
-                .toolChoiceOption(ToolChoiceOption.REQUIRED)
-                .build();
-
-            var response = chatService.chat(List.of(UserMessage.text("Show me the weather in Munich")), parameters);
-            assertEquals("tool_calls", response.finishReason().value());
-        });
     }
 
     @Test
@@ -3568,7 +3506,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(300, TimeUnit.SECONDS));
+        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         AssistantMessage assistantMessage = response.toAssistantMessage();
         JSONAssert.assertEquals("""
             {
