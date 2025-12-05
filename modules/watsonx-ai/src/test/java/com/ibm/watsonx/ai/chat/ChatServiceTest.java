@@ -64,6 +64,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
+import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -3169,8 +3170,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .modelId("ibm/granite-4-h-small")
                 .projectId("project-id")
                 .baseUrl(CloudRegion.LONDON)
-                .messageInterceptor((request, message) -> "New message")
-                .toolInterceptor((request, fc) -> fc.withArguments(Json.fromJson(fc.arguments(), String.class)))
+                .messageInterceptor((ctx, message) -> "New message")
+                .toolInterceptor((ctx, fc) -> fc.withArguments(Json.fromJson(fc.arguments(), String.class)))
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -3239,7 +3240,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .modelId("ibm/granite-4-h-small")
                 .projectId("project-id")
                 .baseUrl(CloudRegion.LONDON)
-                .messageInterceptor((request, message) -> "I don't feel good.")
+                .messageInterceptor((ctx, message) -> "I don't feel good.")
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -3370,8 +3371,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .projectId("project-id")
             .logResponses(true)
             .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
-            .toolInterceptor((request, fc) -> fc)
-            .messageInterceptor((request, message) -> "I don't feel good.")
+            .toolInterceptor((ctx, fc) -> fc)
+            .messageInterceptor((ctx, message) -> "I don't feel good.")
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
@@ -3472,7 +3473,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             .projectId("project-id")
             .logResponses(true)
             .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
-            .toolInterceptor((request, fc) -> fc.withName("new_name").withArguments(Json.fromJson(fc.arguments(), String.class)))
+            .toolInterceptor((ctx, fc) -> fc.withName("new_name").withArguments(Json.fromJson(fc.arguments(), String.class)))
             .build();
 
 
@@ -3662,13 +3663,13 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         var toolInterceptor = mock(ToolInterceptor.class);
         when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
-        when(toolInterceptor.intercept(any(CompletedToolCall.class)))
+        when(toolInterceptor.intercept(any(InterceptorContext.class), any(CompletedToolCall.class)))
             .thenReturn(new CompletedToolCall("id_1", ToolCall.of("1", "name_1", "{ \"test_1\": \"1\"}")))
             .thenReturn(new CompletedToolCall("id_2", ToolCall.of("2", "name_2", "{ \"test_2\": \"2\"}")));
 
         var chatService = ChatService.builder()
             .authenticationProvider(mockAuthenticationProvider)
-            .modelId("ibm/granite-4-h-small")
+            .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
             .projectId("project-id")
             .logResponses(true)
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -3697,8 +3698,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         });
 
         var assistantMessage = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS)).toAssistantMessage();
-        verify(toolInterceptor, times(2)).intercept(any(CompletedToolCall.class));
-        verify(toolInterceptor, times(0)).intercept(any(ChatRequest.class), any(ChatResponse.class));
+        verify(toolInterceptor, times(2)).intercept(any(InterceptorContext.class), any(CompletedToolCall.class));
+        verify(toolInterceptor, times(0)).intercept(any(InterceptorContext.class));
         assertEquals("Saving to get the current time in Italy and Germany...", stringBuilder.toString());
         assertEquals("Saving to get the current time in Italy and Germany...", assistantMessage.content());
         assistantMessage.processTools(((toolName, toolArgs) -> {
@@ -3710,5 +3711,172 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 fail("Unexpected tool name: " + toolName);
             return toolArgs;
         }));
+    }
+
+    @Test
+    void should_invoke_get_current_time_tool_with_correct_country() {
+
+        wireMock.stubFor(post("/ml/v1/text/chat?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .withRequestBody(equalToJson(
+                """
+                    {
+                      "model_id": "ibm/granite-4-h-small",
+                      "project_id": "project-id",
+                      "messages": [
+                        {
+                          "role": "user",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "What time is it in Italy?"
+                            }
+                          ]
+                        }
+                      ],
+                      "tool_choice_option" : "required",
+                      "max_completion_tokens": 0,
+                      "time_limit": 60000
+                    }
+                    """))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                        {
+                                "id": "chatcmpl-3a7d590b3ec34f89a007f7f16c7c682b",
+                                "object": "chat.completion",
+                                "model_id": "ibm/granite-4-h-small",
+                                "model": "ibm/granite-4-h-small",
+                                "choices": [
+                                    {
+                                        "index": 0,
+                                        "message": {
+                                            "role": "assistant",
+                                            "tool_calls": [
+                                                {
+                                                    "id": "chatcmpl-tool-ce5a84405758488fb88eab9d50e908d5",
+                                                    "type": "function",
+                                                    "function": {
+                                                        "name": "get_current_time",
+                                                        "arguments": "{\\n  \\\"country\\\": \\\"Italy\\\" \\n}"
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "finish_reason": "tool_calls"
+                                    }
+                                ],
+                                "created": 1764688210,
+                                "model_version": "4.0.0",
+                                "created_at": "2025-12-02T15:10:11.178Z",
+                                "usage": {
+                                    "completion_tokens": 28,
+                                    "prompt_tokens": 192,
+                                    "total_tokens": 220
+                                }
+                        }""")));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(10, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:04.974Z","system":{"warnings":[{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"chatcmpl-tool-31d4127a2a3149b6a5642178fc94950f","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.171Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"{\\\\n  \\\\\\""}}]}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.408Z"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"Italy"}}]}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.429Z"}
+
+                        id: 5
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\\\\\"\\\\"}}]}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.451Z"}
+
+                        id: 6
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"n"}}]}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.472Z"}
+
+                        id: 7
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"}\\""}}]}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.494Z"}
+
+                        id: 8
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":""}}]}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.516Z"}
+
+                        id: 9
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"content":""}}],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.559Z"}
+
+                        id: 10
+                        event: message
+                        data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.559Z","usage":{"completion_tokens":28,"prompt_tokens":192,"total_tokens":220}}
+                        """)));
+
+        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+
+        var chatService = ChatService.builder()
+            .authenticationProvider(mockAuthenticationProvider)
+            .modelId("ibm/granite-4-h-small")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .toolInterceptor((ctx, fc) -> {
+                var chatRequest = ctx.request().toBuilder();
+                var chatParameters = ctx.request().parameters().toBuilder();
+                assertFalse(ctx.response().isPresent());
+                assertNotNull(ctx.request());
+                assertEquals(1, ctx.request().messages().size());
+                assertEquals(1, ctx.request().tools().size());
+                var newRequest = chatRequest.parameters(chatParameters.toolChoiceOption(ToolChoiceOption.REQUIRED).build()).build();
+                return ctx.invoke(newRequest).toAssistantMessage().toolCalls().get(0).function();
+            }).build();
+
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+
+        ChatRequest chatRequest = ChatRequest.builder()
+            .messages(UserMessage.text("What time is it in Italy?"))
+            .tools(Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string())))
+            .parameters(ChatParameters.builder().maxCompletionTokens(0).build())
+            .build();
+
+        chatService.chatStreaming(chatRequest, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                error.printStackTrace();
+                result.completeExceptionally(error);
+            }
+
+
+        });
+
+        assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS))
+            .toAssistantMessage()
+            .processTools((toolName, toolArgs) -> {
+                assertEquals("get_current_time", toolName);
+                assertEquals("Italy", toolArgs.get("country"));
+                return "";
+            });
     }
 }

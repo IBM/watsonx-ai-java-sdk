@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.nonNull;
+import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -15,10 +16,12 @@ import com.ibm.watsonx.ai.chat.model.PartialToolCall;
  * version back to the subscriber.
  */
 public class InternalChatHandler implements ChatHandler {
+    private final InterceptorContext context;
     private final ChatHandler delegate;
     private final ToolInterceptor toolInterceptor;
 
-    public InternalChatHandler(ChatHandler delegate, ToolInterceptor toolInterceptor) {
+    public InternalChatHandler(InterceptorContext context, ChatHandler delegate, ToolInterceptor toolInterceptor) {
+        this.context = context;
         this.delegate = delegate;
         this.toolInterceptor = toolInterceptor;
     }
@@ -33,7 +36,7 @@ public class InternalChatHandler implements ChatHandler {
     public CompletedToolCall normalizeToolCall(CompletedToolCall completeToolCall) {
 
         if (nonNull(toolInterceptor))
-            completeToolCall = toolInterceptor.intercept(completeToolCall);
+            completeToolCall = toolInterceptor.intercept(context, completeToolCall);
 
         delegate.onCompleteToolCall(completeToolCall);
         return completeToolCall;

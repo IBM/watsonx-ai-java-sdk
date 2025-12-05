@@ -1393,8 +1393,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             var deploymentService = DeploymentService.builder()
                 .authenticationProvider(mockAuthenticationProvider)
                 .baseUrl(CloudRegion.LONDON)
-                .messageInterceptor((request, message) -> "New message")
-                .toolInterceptor((request, fc) -> fc.withArguments(Json.fromJson(fc.arguments(), String.class)))
+                .messageInterceptor((ctx, message) -> "New message")
+                .toolInterceptor((ctx, fc) -> fc.withArguments(Json.fromJson(fc.arguments(), String.class)))
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1462,7 +1462,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             var deploymentService = DeploymentService.builder()
                 .authenticationProvider(mockAuthenticationProvider)
                 .baseUrl(CloudRegion.LONDON)
-                .messageInterceptor((request, message) -> "I don't feel good.")
+                .messageInterceptor((ctx, message) -> "I don't feel good.")
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
@@ -1593,8 +1593,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         var delpoymentService = DeploymentService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
-            .toolInterceptor((request, fc) -> fc)
-            .messageInterceptor((request, message) -> "I don't feel good.")
+            .toolInterceptor((ctx, fc) -> fc)
+            .messageInterceptor((ctx, message) -> "I don't feel good.")
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
@@ -1694,7 +1694,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         var deploymentService = DeploymentService.builder()
             .authenticationProvider(mockAuthenticationProvider)
             .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
-            .toolInterceptor((request, fc) -> fc.withName("new_name").withArguments(Json.fromJson(fc.arguments(), String.class)))
+            .toolInterceptor((ctx, fc) -> fc.withName("new_name").withArguments(Json.fromJson(fc.arguments(), String.class)))
             .build();
 
 

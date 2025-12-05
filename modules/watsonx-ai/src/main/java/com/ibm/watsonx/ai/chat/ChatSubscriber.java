@@ -322,7 +322,7 @@ public interface ChatSubscriber {
                 try {
 
                     List<ToolCall> toolCalls = null;
-                    String content = contentBuffer.isEmpty() ? null : contentBuffer.toString();
+                    String content = contentBuffer.isEmpty() ? null : contentBuffer.toString().trim();
                     String thinking = thinkingBuffer.toString();
 
                     if (nonNull(finishReason) && finishReason.equals("tool_calls")) {

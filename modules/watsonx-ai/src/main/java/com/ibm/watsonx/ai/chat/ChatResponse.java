@@ -46,7 +46,7 @@ public final class ChatResponse {
         object = builder.object;
         modelId = builder.modelId;
         model = builder.model;
-        choices = List.copyOf(builder.choices);
+        choices = isNull(builder.choices) ? null : List.copyOf(builder.choices);
         created = builder.created;
         modelVersion = builder.modelVersion;
         createdAt = builder.createdAt;
@@ -173,9 +173,9 @@ public final class ChatResponse {
     }
 
     /**
-     * Creates a builder initialized with the current state of the ChatResponse.
+     * Creates a builder initialized with the current state of the {@code ChatResponse}.
      *
-     * @return a new {@link Builder} instance pre-populated with this response's data
+     * @return a new {@link Builder} instance pre-populated with this {@code ChatResponse}'s data
      */
     public Builder toBuilder() {
         return new Builder()

@@ -87,6 +87,19 @@ public final class ChatRequest {
     }
 
     /**
+     * Creates a builder initialized with the current state of the {@code ChatRequest}.
+     *
+     * @return a new {@link Builder} instance pre-populated with this {@code ChatRequest}'s data
+     */
+    public Builder toBuilder() {
+        return new Builder()
+            .deploymentId(deploymentId)
+            .messages(messages)
+            .parameters(parameters)
+            .thinking(thinking);
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>
@@ -218,7 +231,7 @@ public final class ChatRequest {
          * @param tools list of {@link Tool} objects
          */
         public Builder tools(List<Tool> tools) {
-            this.tools = tools;
+            this.tools = isNull(tools) ? null : List.copyOf(tools);
             return this;
         }
 

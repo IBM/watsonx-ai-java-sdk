@@ -21,6 +21,7 @@ import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.InternalChatHandler;
+import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -60,6 +61,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     private final DeploymentRestClient client;
     private final MessageInterceptor messageInterceptor;
     private final ToolInterceptor toolInterceptor;
+    private final ChatProvider chatProvider;
 
     private DeploymentService(Builder builder) {
         super(builder);
@@ -73,6 +75,17 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .build();
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
+        if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
+            chatProvider = new Builder()
+                .authenticationProvider(builder.getAuthenticationProvider())
+                .baseUrl(baseUrl)
+                .logRequests(logRequests)
+                .logResponses(logResponses)
+                .timeout(timeout)
+                .version(version)
+                .build();
+        } else
+            chatProvider = null;
     }
 
     /**
@@ -174,7 +187,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         if (nonNull(messageInterceptor)) {
 
-            var newChoices = messageInterceptor.intercept(chatRequest, chatResponse);
+            var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -182,7 +195,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         if (nonNull(toolInterceptor)) {
 
-            var newChoices = toolInterceptor.intercept(chatRequest, chatResponse);
+            var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -253,7 +266,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             timeout,
             extractionTags,
             textChatRequest,
-            new InternalChatHandler(handler, toolInterceptor)
+            new InternalChatHandler(new InterceptorContext(chatProvider, chatRequest, null), handler, toolInterceptor)
         );
     }
 
