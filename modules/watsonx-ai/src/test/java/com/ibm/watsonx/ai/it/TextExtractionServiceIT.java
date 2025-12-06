@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionDeleteParameters;
@@ -43,7 +43,7 @@ public class TextExtractionServiceIT {
     static final String RESULTS_REFERENCE_BUCKET = System.getenv("WATSONX_RESULTS_REFERENCE_BUCKET");
     static final String CLOUD_OBJECT_STORAGE_URL = System.getenv("CLOUD_OBJECT_STORAGE_URL");
 
-    static final AuthenticationProvider authentication = IAMAuthenticator.builder()
+    static final AuthenticationProvider authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
         .build();
 

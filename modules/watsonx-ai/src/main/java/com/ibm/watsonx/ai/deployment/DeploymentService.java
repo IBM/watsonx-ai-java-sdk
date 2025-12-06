@@ -48,7 +48,7 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
  * <pre>{@code
  * DeploymentService deploymentService = DeploymentService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
  *     .build();
  * }</pre>
  *
@@ -71,13 +71,13 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticationProvider(builder.authenticationProvider())
             .build();
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
         if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
             chatProvider = new Builder()
-                .authenticationProvider(builder.getAuthenticationProvider())
+                .authenticationProvider(builder.authenticationProvider())
                 .baseUrl(baseUrl)
                 .logRequests(logRequests)
                 .logResponses(logResponses)
@@ -304,7 +304,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      * <pre>{@code
      * DeploymentService deploymentService = DeploymentService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
      *     .build();
      * }</pre>
      *

@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  * <pre>{@code
  * TimeSeriesService tsService = TimeSeriesService.builder()
  *     .baseUrl("https://...")      // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-ttm-1536-96-r2")
  *     .build();
@@ -56,14 +56,14 @@ public class TimeSeriesService extends ModelService implements TimeSeriesProvide
 
     private TimeSeriesService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
         client = TimeSeriesRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticationProvider(builder.authenticationProvider())
             .build();
     }
 
@@ -131,7 +131,7 @@ public class TimeSeriesService extends ModelService implements TimeSeriesProvide
      * <pre>{@code
      * TimeSeriesService tsService = TimeSeriesService.builder()
      *     .baseUrl("https://...")      // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-ttm-1536-96-r2")
      *     .build();

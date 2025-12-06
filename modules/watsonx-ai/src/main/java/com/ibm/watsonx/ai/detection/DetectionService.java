@@ -16,7 +16,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * <pre>{@code
  * DetectionService detectionService = DetectionService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
  *     .projectId("my-project-id")
  *     .build();
  *
@@ -37,14 +37,14 @@ public class DetectionService extends ProjectService {
 
     private DetectionService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
         client = DetectionRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticationProvider(builder.authenticationProvider())
             .build();
     }
 
@@ -64,7 +64,7 @@ public class DetectionService extends ProjectService {
      * <pre>{@code
      * DetectionService detectionService = DetectionService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
      *     .projectId("my-project-id")
      *     .build();
      *

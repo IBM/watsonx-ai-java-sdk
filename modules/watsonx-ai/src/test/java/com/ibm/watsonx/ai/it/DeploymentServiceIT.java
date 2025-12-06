@@ -47,7 +47,7 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
 
@@ -60,7 +60,7 @@ public class DeploymentServiceIT {
     static final String DEPLOYMENT_ID = System.getenv("WATSONX_DEPLOYMENT_ID");
     static final String URL = System.getenv("WATSONX_URL");
 
-    static final AuthenticationProvider authentication = IAMAuthenticator.builder()
+    static final AuthenticationProvider authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
         .build();
 

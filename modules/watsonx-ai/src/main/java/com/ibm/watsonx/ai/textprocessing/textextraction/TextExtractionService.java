@@ -48,7 +48,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient
  * TextExtractionService textExtractionService = TextExtractionService.builder()
  *   .baseUrl("https://...")    // or use CloudRegion
  *   .cosUrl("https://...")     // or use CosUrl
- *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
+ *   .apiKey("my-api-key")      // creates an IBM Cloud AuthenticationProvider
  *   .projectId("my-project-id")
  *   .documentReference("<connection_id>", "<bucket-name>")
  *   .resultReference("<connection_id>", "<bucket-name>")
@@ -70,7 +70,7 @@ public class TextExtractionService extends ProjectService {
 
     private TextExtractionService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
         var tmpUrl = requireNonNull(builder.cosUrl, "cosUrl value cannot be null");
         cosUrl = tmpUrl.endsWith("/") ? tmpUrl.substring(0, tmpUrl.length() - 1) : tmpUrl;
         documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");
@@ -82,7 +82,7 @@ public class TextExtractionService extends ProjectService {
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticationProvider(builder.authenticationProvider())
             .build();
     }
 
@@ -713,7 +713,7 @@ public class TextExtractionService extends ProjectService {
      * TextExtractionService textExtractionService = TextExtractionService.builder()
      *   .baseUrl("https://...")    // or use CloudRegion
      *   .cosUrl("https://...")     // or use CosUrl
-     *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
+     *   .apiKey("my-api-key")      // creates an IBM Cloud AuthenticationProvider
      *   .projectId("my-project-id")
      *   .documentReference("<connection_id>", "<bucket-name>")
      *   .resultReference("<connection_id>", "<bucket-name>")

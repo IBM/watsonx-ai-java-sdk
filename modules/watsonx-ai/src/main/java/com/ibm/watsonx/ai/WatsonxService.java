@@ -12,7 +12,7 @@ import java.net.URI;
 import java.time.Duration;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
@@ -148,7 +148,7 @@ public abstract class WatsonxService {
         }
 
         /**
-         * Sets an {@link IAMAuthenticator}-based {@link AuthenticationProvider}, initialized from the provided IBM Cloud API key.
+         * Sets an {@link IBMCloudAuthenticator}-based {@link AuthenticationProvider}, initialized from the provided IBM Cloud API key.
          * <p>
          * For alternative authentication mechanisms, use {@link #authenticationProvider(AuthenticationProvider)}.
          *
@@ -156,7 +156,7 @@ public abstract class WatsonxService {
          */
         public T apiKey(String apiKey) {
             requireNonNull(apiKey, "The apiKey must be provided");
-            authenticationProvider = IAMAuthenticator.builder().apiKey(apiKey).build();
+            authenticationProvider = IBMCloudAuthenticator.builder().apiKey(apiKey).build();
             return (T) this;
         }
 
@@ -179,7 +179,7 @@ public abstract class WatsonxService {
          *
          * @return the configured {@link AuthenticationProvider}, or {@code null} if none has been set.
          */
-        public AuthenticationProvider getAuthenticationProvider() {
+        public AuthenticationProvider authenticationProvider() {
             return authenticationProvider;
         }
     }

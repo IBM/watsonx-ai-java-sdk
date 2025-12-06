@@ -15,7 +15,7 @@ import com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomDetectionRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomEmbeddingRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomFoundationModelRestClient;
-import com.ibm.watsonx.ai.client.impl.CustomIAMRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomRerankRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextClassificationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextExtractionRestClient;
@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.client.impl.CustomTokenizationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomToolRestClient;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
@@ -70,18 +70,18 @@ public class CustomRestClientTest {
     }
 
     @Test
-    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.iam.IAMRestClient$IAMRestClientBuilderFactory
+    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.iam.IBMCloudRestClient$IBMCloudRestClientBuilderFactory
     public void should_use_custom_rest_client_when_building_iam_provider() throws Exception {
 
-        AuthenticationProvider authenticationProvider = IAMAuthenticator.builder()
+        AuthenticationProvider authenticationProvider = IBMCloudAuthenticator.builder()
             .apiKey("test")
             .build();
 
-        Class<IAMAuthenticator> clazz = IAMAuthenticator.class;
+        Class<IBMCloudAuthenticator> clazz = IBMCloudAuthenticator.class;
         var clientField = clazz.getDeclaredField("client");
         clientField.setAccessible(true);
         var client = clientField.get(authenticationProvider);
-        assertTrue(client instanceof CustomIAMRestClient);
+        assertTrue(client instanceof CustomIBMCloudRestClient);
     }
 
     @Test

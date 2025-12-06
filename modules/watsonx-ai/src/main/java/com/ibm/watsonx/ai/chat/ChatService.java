@@ -59,20 +59,20 @@ public class ChatService extends ModelService implements ChatProvider {
 
     private ChatService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
         client = ChatRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticationProvider(builder.authenticationProvider())
             .build();
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
         if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
             chatProvider = new Builder()
-                .authenticationProvider(builder.getAuthenticationProvider())
+                .authenticationProvider(builder.authenticationProvider())
                 .baseUrl(baseUrl)
                 .logRequests(logRequests)
                 .logResponses(logResponses)

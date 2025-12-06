@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * <pre>{@code
  * TokenizationService tokenizationService = TokenizationService.builder()
  *     .baseUrl("https://...")      // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-4-h-small")
  *     .build();
@@ -37,14 +37,14 @@ public class TokenizationService extends ModelService {
 
     private TokenizationService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
         client = TokenizationRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticationProvider(builder.authenticationProvider())
             .build();
     }
 
@@ -126,7 +126,7 @@ public class TokenizationService extends ModelService {
      * <pre>{@code
      * TokenizationService tokenizationService = TokenizationService.builder()
      *     .baseUrl("https://...")      // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-4-h-small")
      *     .build();

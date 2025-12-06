@@ -2998,8 +2998,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             var chatServiceBuilder = ChatService.builder()
                 .apiKey("my-api-key");
 
-            assertNotNull(chatServiceBuilder.getAuthenticationProvider());
-            var spyAuthenticator = spy(chatServiceBuilder.getAuthenticationProvider());
+            assertNotNull(chatServiceBuilder.authenticationProvider());
+            var spyAuthenticator = spy(chatServiceBuilder.authenticationProvider());
 
             when(mockHttpResponse.statusCode()).thenReturn(200);
             when(mockHttpResponse.body()).thenReturn(

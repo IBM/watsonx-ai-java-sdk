@@ -26,16 +26,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
-public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
+public class IBMCloudAuthenticatorSyncTest extends AbstractWatsonxTest {
 
 
     @Test
-    void test_ok_token() throws Exception {
+    void should_return_a_valid_token() throws Exception {
 
         var response = Utils.okResponse();
 
@@ -43,7 +43,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
             try {
                 when(mockHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(response);
 
-                AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
                     .apiKey("my_super_api_key")
                     .build();
 
@@ -60,7 +60,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_ko_token() throws Exception {
+    void should_raise_an_exception() throws Exception {
 
         var response = Utils.koResponse();
 
@@ -68,7 +68,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
             try {
                 when(mockHttpClient.<String>send(any(), any())).thenReturn(response);
 
-                AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
                     .apiKey("my_super_api_key")
                     .build();
 
@@ -81,7 +81,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_cache_token() throws Exception {
+    void should_use_cached_token() throws Exception {
 
         var response = Utils.okResponse();
 
@@ -89,7 +89,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
             try {
                 when(mockHttpClient.<String>send(any(), any())).thenReturn(response);
 
-                AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
                     .apiKey("my_super_api_key")
                     .build();
 
@@ -106,7 +106,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_expired_token() throws Exception {
+    void should_refresh_token_when_existing_token_is_expired() throws Exception {
 
         var expiredResponse = Utils.expiredResponse();
 
@@ -115,7 +115,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
                 when(mockHttpClient.<String>send(any(), any()))
                     .thenReturn(expiredResponse);
 
-                AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
                     .apiKey("my_super_api_key")
                     .build();
 
@@ -139,7 +139,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
             try {
                 when(mockHttpClient.<String>send(httpRequest.capture(), any())).thenReturn(response);
 
-                AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
                     .grantType("new_grant_type")
                     .timeout(Duration.ofSeconds(1))
                     .baseUrl(URI.create("http://mytest.com"))
@@ -181,7 +181,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
             try {
                 when(mockHttpClient.<String>send(httpRequest.capture(), any())).thenReturn(response);
 
-                AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
                     .grantType("new_grant_type")
                     .timeout(Duration.ofSeconds(1))
                     .baseUrl(URI.create("http://mytest.com"))
@@ -205,7 +205,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
     @Test
     void test_builder() throws Exception {
 
-        var authenticator = IAMAuthenticator.builder()
+        var authenticator = IBMCloudAuthenticator.builder()
             .apiKey("test")
             .grantType("test")
             .timeout(Duration.ofSeconds(3))
@@ -213,19 +213,19 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
             .build();
 
 
-        Field apiKey = IAMAuthenticator.class.getDeclaredField("apiKey");
+        Field apiKey = IBMCloudAuthenticator.class.getDeclaredField("apiKey");
         apiKey.setAccessible(true);
         assertEquals("test", (String) apiKey.get(authenticator));
 
-        Field grantType = IAMAuthenticator.class.getDeclaredField("grantType");
+        Field grantType = IBMCloudAuthenticator.class.getDeclaredField("grantType");
         grantType.setAccessible(true);
         assertEquals("test", (String) grantType.get(authenticator));
 
-        Field timeout = IAMAuthenticator.class.getDeclaredField("timeout");
+        Field timeout = IBMCloudAuthenticator.class.getDeclaredField("timeout");
         timeout.setAccessible(true);
         assertEquals(Duration.ofSeconds(3), (Duration) timeout.get(authenticator));
 
-        Field url = IAMAuthenticator.class.getDeclaredField("baseUrl");
+        Field url = IBMCloudAuthenticator.class.getDeclaredField("baseUrl");
         url.setAccessible(true);
         assertEquals(URI.create("http://test"), (URI) url.get(authenticator));
     }
@@ -239,7 +239,7 @@ public class IAMAuthenticatorSyncTest extends AbstractWatsonxTest {
                     .thenThrow(new IOException("IOException"))
                     .thenReturn(Utils.okResponse());
 
-                AuthenticationProvider authenticator = IAMAuthenticator.builder()
+                AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
                     .apiKey("my_super_api_key")
                     .build();
 
