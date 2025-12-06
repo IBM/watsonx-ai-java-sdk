@@ -52,7 +52,11 @@ public class Utils {
         }""";
 
     public static String bodyPublisherToString(ArgumentCaptor<HttpRequest> request) {
-        HttpRequest.BodyPublisher bodyPublisher = request.getValue().bodyPublisher().orElseThrow();
+        return bodyPublisherToString(request.getValue());
+    }
+
+    public static String bodyPublisherToString(HttpRequest request) {
+        HttpRequest.BodyPublisher bodyPublisher = request.bodyPublisher().orElseThrow();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bodyPublisher.subscribe(new Flow.Subscriber<ByteBuffer>() {
             @Override

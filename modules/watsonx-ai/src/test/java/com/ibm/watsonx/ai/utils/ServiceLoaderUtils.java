@@ -31,6 +31,10 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.client.impl.CustomIAMRestClient$CustomIAMRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomCP4DRestClient$CustomCP4DRestClientBuilderFactory");
+
+        createServiceFile(metaInfServices,
             "com.ibm.watsonx.ai.deployment.DeploymentRestClient$DeploymentRestClientBuilderFactory",
             "com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient$CustomDeploymentRestClientBuilderFactory");
 
