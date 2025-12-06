@@ -27,8 +27,8 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.client.impl.CustomChatRestClient$CustomChatRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
-            "com.ibm.watsonx.ai.core.auth.iam.IAMRestClient$IAMRestClientBuilderFactory",
-            "com.ibm.watsonx.ai.client.impl.CustomIAMRestClient$CustomIAMRestClientBuilderFactory");
+            "com.ibm.watsonx.ai.core.auth.iam.IBMCloudRestClient$IBMCloudRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient$CustomIBMCloudRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
             "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DRestClientBuilderFactory",

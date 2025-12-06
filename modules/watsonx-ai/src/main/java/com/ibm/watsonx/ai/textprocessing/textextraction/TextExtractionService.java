@@ -48,7 +48,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient
  * TextExtractionService textExtractionService = TextExtractionService.builder()
  *   .baseUrl("https://...")    // or use CloudRegion
  *   .cosUrl("https://...")     // or use CosUrl
- *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
+ *   .apiKey("my-api-key")      // creates an IBM Cloud AuthenticationProvider
  *   .projectId("my-project-id")
  *   .documentReference("<connection_id>", "<bucket-name>")
  *   .resultReference("<connection_id>", "<bucket-name>")
@@ -713,7 +713,7 @@ public class TextExtractionService extends ProjectService {
      * TextExtractionService textExtractionService = TextExtractionService.builder()
      *   .baseUrl("https://...")    // or use CloudRegion
      *   .cosUrl("https://...")     // or use CosUrl
-     *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
+     *   .apiKey("my-api-key")      // creates an IBM Cloud AuthenticationProvider
      *   .projectId("my-project-id")
      *   .documentReference("<connection_id>", "<bucket-name>")
      *   .resultReference("<connection_id>", "<bucket-name>")

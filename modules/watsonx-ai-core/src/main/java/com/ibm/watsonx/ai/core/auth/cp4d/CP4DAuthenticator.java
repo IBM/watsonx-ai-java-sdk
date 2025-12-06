@@ -138,7 +138,7 @@ public final class CP4DAuthenticator implements AuthenticationProvider {
     }
 
     /**
-     * The builder class for constructing IAMAuthenticator instances.
+     * The builder class for constructing IBMCloudAuthenticator instances.
      */
     public final static class Builder {
         private URI baseUrl;

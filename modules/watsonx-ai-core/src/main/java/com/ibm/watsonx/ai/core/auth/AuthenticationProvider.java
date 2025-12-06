@@ -6,12 +6,12 @@ package com.ibm.watsonx.ai.core.auth;
 
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
 
 /**
  * This interface defines a contract for obtaining a token that can be used to authorize or identify a request.
  *
- * @see IAMAuthenticator
+ * @see IBMCloudAuthenticator
  * @see CP4DAuthenticator
  */
 public interface AuthenticationProvider {

@@ -16,7 +16,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * <pre>{@code
  * DetectionService detectionService = DetectionService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
  *     .projectId("my-project-id")
  *     .build();
  *
@@ -64,7 +64,7 @@ public class DetectionService extends ProjectService {
      * <pre>{@code
      * DetectionService detectionService = DetectionService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
      *     .projectId("my-project-id")
      *     .build();
      *
