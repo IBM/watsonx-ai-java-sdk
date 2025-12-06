@@ -44,7 +44,7 @@ import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRe
  * TextClassificationService textClassificationService = TextClassificationService.builder()
  *   .baseUrl("https://...")    // or use CloudRegion
  *   .cosUrl("https://...")     // or use CosUrl
- *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
+ *   .apiKey("my-api-key")      // creates an IBM Cloud AuthenticationProvider
  *   .projectId("my-project-id")
  *   .documentReference("<connection_id>", "<bucket-name>")
  *   .build();
@@ -589,7 +589,7 @@ public class TextClassificationService extends ProjectService {
      * TextClassificationService textClassificationService = TextClassificationService.builder()
      *   .baseUrl("https://...")    // or use CloudRegion
      *   .cosUrl("https://...")     // or use CosUrl
-     *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
+     *   .apiKey("my-api-key")      // creates an IBM Cloud AuthenticationProvider
      *   .projectId("my-project-id")
      *   .documentReference("<connection_id>", "<bucket-name>")
      *   .build();

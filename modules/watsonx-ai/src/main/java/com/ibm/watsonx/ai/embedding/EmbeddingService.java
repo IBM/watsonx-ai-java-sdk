@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  * <pre>{@code
  * EmbeddingService embeddingService = EmbeddingService.builder()
  *     .baseUrl("https://...")      // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-embedding-278m-multilingual")
  *     .build();
@@ -127,7 +127,7 @@ public class EmbeddingService extends ModelService {
      * <pre>{@code
      * EmbeddingService embeddingService = EmbeddingService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-embedding-278m-multilingual")
      *     .build();
