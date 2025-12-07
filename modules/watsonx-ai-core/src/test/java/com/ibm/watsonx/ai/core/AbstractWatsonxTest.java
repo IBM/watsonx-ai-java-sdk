@@ -18,7 +18,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,7 +28,7 @@ public abstract class AbstractWatsonxTest {
     protected HttpClient mockHttpClient;
 
     @Mock
-    protected AuthenticationProvider mockAuthenticationProvider;
+    protected Authenticator mockAuthenticator;
 
     @Captor
     protected ArgumentCaptor<HttpRequest> mockHttpRequest;

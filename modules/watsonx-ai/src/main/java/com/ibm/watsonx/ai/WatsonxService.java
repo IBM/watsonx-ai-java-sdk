@@ -11,8 +11,8 @@ import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
 import java.time.Duration;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
@@ -77,7 +77,7 @@ public abstract class WatsonxService {
         private Duration timeout;
         private Boolean logRequests;
         private Boolean logResponses;
-        private AuthenticationProvider authenticationProvider;
+        private Authenticator authenticator;
 
         /**
          * Sets the endpoint URL to which the chat request will be sent.
@@ -148,39 +148,39 @@ public abstract class WatsonxService {
         }
 
         /**
-         * Sets an {@link IAMAuthenticator}-based {@link AuthenticationProvider}, initialized from the provided IBM Cloud API key.
+         * Sets an {@link IBMCloudAuthenticator}-based {@link Authenticator}, initialized from the provided IBM Cloud API key.
          * <p>
-         * For alternative authentication mechanisms, use {@link #authenticationProvider(AuthenticationProvider)}.
+         * For alternative authentication mechanisms, use {@link #authenticator(Authenticator)}.
          *
          * @param apiKey IBM Cloud API key
          */
         public T apiKey(String apiKey) {
             requireNonNull(apiKey, "The apiKey must be provided");
-            authenticationProvider = IAMAuthenticator.builder().apiKey(apiKey).build();
+            authenticator = IBMCloudAuthenticator.builder().apiKey(apiKey).build();
             return (T) this;
         }
 
         /**
-         * Sets the {@link AuthenticationProvider} used to authenticate requests.
+         * Sets the {@link Authenticator} used to authenticate requests.
          * <p>
          * Use this method to specify a custom or non-IAM implementation.
          * <p>
          * For IBM Cloud IAM authentication, {@link #apiKey(String)} provides a simpler alternative.
          *
-         * @param authenticationProvider non-null {@link AuthenticationProvider} instance
+         * @param authenticator non-null {@link Authenticator} instance
          */
-        public T authenticationProvider(AuthenticationProvider authenticationProvider) {
-            this.authenticationProvider = authenticationProvider;
+        public T authenticator(Authenticator authenticator) {
+            this.authenticator = authenticator;
             return (T) this;
         }
 
         /**
-         * Returns the authentication provider.
+         * Returns the authenticator.
          *
-         * @return the configured {@link AuthenticationProvider}, or {@code null} if none has been set.
+         * @return the configured {@link Authenticator}
          */
-        public AuthenticationProvider getAuthenticationProvider() {
-            return authenticationProvider;
+        public Authenticator authenticator() {
+            return authenticator;
         }
     }
 

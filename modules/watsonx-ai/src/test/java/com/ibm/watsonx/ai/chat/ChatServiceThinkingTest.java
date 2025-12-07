@@ -47,7 +47,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
             var chatService = ChatService.builder()
                 .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("model-id")
                 .projectId("project-id")
                 .build();
@@ -104,10 +104,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                     .withStatus(200)
                     .withBody(BODY)));
 
-            when(mockAuthenticationProvider.token()).thenReturn("my-token");
+            when(mockAuthenticator.token()).thenReturn("my-token");
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -169,10 +169,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                     .withStatus(200)
                     .withBody(BODY)));
 
-            when(mockAuthenticationProvider.token()).thenReturn("my-token");
+            when(mockAuthenticator.token()).thenReturn("my-token");
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("openai/gpt-oss-120b")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -225,10 +225,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                             .withStatus(200)
                             .withBody(BODY)));
 
-                    when(mockAuthenticationProvider.token()).thenReturn("my-token");
+                    when(mockAuthenticator.token()).thenReturn("my-token");
 
                     var chatService = ChatService.builder()
-                        .authenticationProvider(mockAuthenticationProvider)
+                        .authenticator(mockAuthenticator)
                         .modelId("openai/gpt-oss-120b")
                         .projectId("project-id")
                         .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -300,10 +300,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                             }
                         }""")));
 
-            when(mockAuthenticationProvider.token()).thenReturn("my-token");
+            when(mockAuthenticator.token()).thenReturn("my-token");
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("openai/gpt-oss-120b")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -355,10 +355,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                     .withStatus(200)
                     .withBody(BODY)));
 
-            when(mockAuthenticationProvider.token()).thenReturn("my-token");
+            when(mockAuthenticator.token()).thenReturn("my-token");
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("openai/gpt-oss-120b")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -419,10 +419,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                     .withChunkedDribbleDelay(159, 200)
                     .withBody(BODY)));
 
-            when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
@@ -560,10 +560,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                             data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.564Z","usage":{"completion_tokens":3,"prompt_tokens":38,"total_tokens":41}}
                             """)));
 
-            when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("ibm/granite-3-3-8b-instruct")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -666,10 +666,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                     .withStatus(200)
                     .withBody(BODY)));
 
-            when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
+            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("openai/gpt-oss-120b")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -751,10 +751,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                             .withStatus(200)
                             .withBody(BODY)));
 
-                    when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
+                    when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
 
                     var chatService = ChatService.builder()
-                        .authenticationProvider(mockAuthenticationProvider)
+                        .authenticator(mockAuthenticator)
                         .modelId("openai/gpt-oss-120b")
                         .projectId("project-id")
                         .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -894,10 +894,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                             data: {"id":"chatcmpl-3956a62a1e0446b0a1f4115152baf489","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b-curated","model":"openai/gpt-oss-120b-curated","choices":[],"created":1760258822,"created_at":"2025-10-12T08:47:02.194Z","usage":{"completion_tokens":27,"prompt_tokens":85,"total_tokens":112}}
                             """)));
 
-            when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
+            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("openai/gpt-oss-120b")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -977,10 +977,10 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                     .withStatus(200)
                     .withBody(BODY)));
 
-            when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
+            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
 
             var chatService = ChatService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("openai/gpt-oss-120b")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))

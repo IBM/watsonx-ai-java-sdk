@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.tokenization.TokenizationParameters;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 
@@ -23,14 +23,14 @@ public class TokenizationServiceIT {
     static final String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
     static final String URL = System.getenv("WATSONX_URL");
 
-    static final AuthenticationProvider authentication = IAMAuthenticator.builder()
+    static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
         .build();
 
     static final TokenizationService tokenizationService = TokenizationService.builder()
         .baseUrl(URL)
         .projectId(PROJECT_ID)
-        .authenticationProvider(authentication)
+        .authenticator(authentication)
         .modelId("ibm/granite-4-h-small")
         .logRequests(true)
         .logResponses(true)

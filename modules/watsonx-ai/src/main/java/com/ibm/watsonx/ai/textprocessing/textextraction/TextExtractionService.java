@@ -26,7 +26,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.CosUrl;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
@@ -48,7 +48,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient
  * TextExtractionService textExtractionService = TextExtractionService.builder()
  *   .baseUrl("https://...")    // or use CloudRegion
  *   .cosUrl("https://...")     // or use CosUrl
- *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
+ *   .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
  *   .projectId("my-project-id")
  *   .documentReference("<connection_id>", "<bucket-name>")
  *   .resultReference("<connection_id>", "<bucket-name>")
@@ -57,9 +57,9 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient
  * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class TextExtractionService extends ProjectService {
     private static final Logger logger = LoggerFactory.getLogger(TextExtractionService.class);
@@ -70,7 +70,7 @@ public class TextExtractionService extends ProjectService {
 
     private TextExtractionService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
         var tmpUrl = requireNonNull(builder.cosUrl, "cosUrl value cannot be null");
         cosUrl = tmpUrl.endsWith("/") ? tmpUrl.substring(0, tmpUrl.length() - 1) : tmpUrl;
         documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");
@@ -82,7 +82,7 @@ public class TextExtractionService extends ProjectService {
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
     }
 
@@ -713,7 +713,7 @@ public class TextExtractionService extends ProjectService {
      * TextExtractionService textExtractionService = TextExtractionService.builder()
      *   .baseUrl("https://...")    // or use CloudRegion
      *   .cosUrl("https://...")     // or use CosUrl
-     *   .apiKey("my-api-key")      // creates an IAM-based AuthenticationProvider
+     *   .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
      *   .projectId("my-project-id")
      *   .documentReference("<connection_id>", "<bucket-name>")
      *   .resultReference("<connection_id>", "<bucket-name>")

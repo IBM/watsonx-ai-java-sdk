@@ -27,7 +27,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setUp() {
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
     }
 
     @Test
@@ -73,7 +73,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
                 .baseUrl(CloudRegion.LONDON)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
                 .build();
@@ -151,7 +151,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
                 .baseUrl(CloudRegion.LONDON)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
                 .build();
@@ -244,7 +244,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
                 .baseUrl(CloudRegion.LONDON)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
                 .build();
@@ -279,7 +279,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
                 .baseUrl(CloudRegion.LONDON)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
                 .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
                 .build();

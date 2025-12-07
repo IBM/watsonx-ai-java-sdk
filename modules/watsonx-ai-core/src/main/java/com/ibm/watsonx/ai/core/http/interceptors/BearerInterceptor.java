@@ -9,7 +9,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.concurrent.CompletableFuture;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
@@ -19,14 +19,14 @@ import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
  */
 public final class BearerInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
-    private final AuthenticationProvider authenticator;
+    private final Authenticator authenticator;
 
     /**
      * Constructs a new BearerInterceptor with the given authenticator.
      *
      * @param authenticator the authenticator used to retrieve bearer tokens
      */
-    public BearerInterceptor(AuthenticationProvider authenticator) {
+    public BearerInterceptor(Authenticator authenticator) {
         this.authenticator = authenticator;
     }
 

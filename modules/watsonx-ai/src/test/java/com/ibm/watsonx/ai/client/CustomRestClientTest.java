@@ -9,12 +9,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.client.impl.CustomCP4DRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomChatRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomDetectionRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomEmbeddingRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomFoundationModelRestClient;
-import com.ibm.watsonx.ai.client.impl.CustomIAMRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomRerankRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextClassificationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextExtractionRestClient;
@@ -22,8 +23,9 @@ import com.ibm.watsonx.ai.client.impl.CustomTextGenerationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTimeSeriesRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTokenizationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomToolRestClient;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
@@ -68,18 +70,35 @@ public class CustomRestClientTest {
     }
 
     @Test
-    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.iam.IAMRestClient$IAMRestClientBuilderFactory
-    public void should_use_custom_rest_client_when_building_iam_service() throws Exception {
+    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudRestClient$IBMCloudRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_ibm_cloud_provider() throws Exception {
 
-        AuthenticationProvider authenticationProvider = IAMAuthenticator.builder()
+        Authenticator authenticator = IBMCloudAuthenticator.builder()
             .apiKey("test")
             .build();
 
-        Class<IAMAuthenticator> clazz = IAMAuthenticator.class;
+        Class<IBMCloudAuthenticator> clazz = IBMCloudAuthenticator.class;
         var clientField = clazz.getDeclaredField("client");
         clientField.setAccessible(true);
-        var client = clientField.get(authenticationProvider);
-        assertTrue(client instanceof CustomIAMRestClient);
+        var client = clientField.get(authenticator);
+        assertTrue(client instanceof CustomIBMCloudRestClient);
+    }
+
+    @Test
+    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_cp4d_provider() throws Exception {
+
+        Authenticator authenticator = CP4DAuthenticator.builder()
+            .baseUrl("https://localhost")
+            .username("username")
+            .apiKey("api-key")
+            .build();
+
+        Class<CP4DAuthenticator> clazz = CP4DAuthenticator.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(authenticator);
+        assertTrue(client instanceof CustomCP4DRestClient);
     }
 
     @Test

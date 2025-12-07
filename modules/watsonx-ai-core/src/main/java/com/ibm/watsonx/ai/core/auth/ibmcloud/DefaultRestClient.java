@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core.auth.iam;
+package com.ibm.watsonx.ai.core.auth.ibmcloud;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import java.io.IOException;
@@ -15,17 +15,15 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import com.ibm.watsonx.ai.core.auth.IdentityTokenResponse;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
- * Default implementation of the {@link IAMRestClient}.
+ * Default implementation of the {@link IBMCloudRestClient}.
  */
-final class DefaultRestClient extends IAMRestClient {
-
+final class DefaultRestClient extends IBMCloudRestClient {
     private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
 
@@ -36,19 +34,12 @@ final class DefaultRestClient extends IAMRestClient {
     }
 
     @Override
-    public IdentityTokenResponse token(String apiKey, String grantType) {
+    public TokenResponse token(String apiKey, String grantType) {
 
         try {
 
-            var request = createHttpRequest(apiKey, grantType);
-            var response = syncHttpClient.send(request, BodyHandlers.ofString());
-            var statusCode = response.statusCode();
-
-            if (statusCode >= 200 && statusCode < 300)
-                return fromJson(response.body(), IdentityTokenResponse.class);
-
-            // The status code is not 2xx.
-            throw new RuntimeException(response.body());
+            var response = syncHttpClient.send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString());
+            return fromJson(response.body(), TokenResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e.getMessage());
@@ -56,22 +47,9 @@ final class DefaultRestClient extends IAMRestClient {
     }
 
     @Override
-    public CompletableFuture<IdentityTokenResponse> asyncToken(String apiKey, String grantType) {
-
-        var request = createHttpRequest(apiKey, grantType);
-
-        return asyncHttpClient.send(request, BodyHandlers.ofString())
-            .thenApplyAsync(response -> {
-
-                var statusCode = response.statusCode();
-
-                if (statusCode >= 200 && statusCode < 300)
-                    return fromJson(response.body(), IdentityTokenResponse.class);
-
-                // The status code is not 2xx.
-                throw new RuntimeException(response.body());
-
-            }, ExecutorProvider.cpuExecutor())
+    public CompletableFuture<TokenResponse> asyncToken(String apiKey, String grantType) {
+        return asyncHttpClient.send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString())
+            .thenApplyAsync(response -> fromJson(response.body(), TokenResponse.class), ExecutorProvider.cpuExecutor())
             .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
     }
 
@@ -104,7 +82,7 @@ final class DefaultRestClient extends IAMRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    static final class Builder extends IAMRestClient.Builder<DefaultRestClient, Builder> {
+    static final class Builder extends IBMCloudRestClient.Builder<DefaultRestClient, Builder> {
 
         @Override
         public DefaultRestClient build() {

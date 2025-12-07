@@ -7,7 +7,7 @@ package com.ibm.watsonx.ai;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 public abstract class WatsonxRestClient {
 
@@ -17,7 +17,7 @@ public abstract class WatsonxRestClient {
     protected final String version;
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
-    protected final AuthenticationProvider authenticationProvider;
+    protected final Authenticator authenticator;
 
     protected WatsonxRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The url must be provided");
@@ -25,7 +25,7 @@ public abstract class WatsonxRestClient {
         timeout = requireNonNull(builder.timeout, "The timeout must be provided");
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
-        authenticationProvider = builder.authenticationProvider;
+        authenticator = builder.authenticator;
     }
 
     @SuppressWarnings("unchecked")
@@ -35,7 +35,7 @@ public abstract class WatsonxRestClient {
         private Duration timeout;
         private Boolean logRequests;
         private Boolean logResponses;
-        protected AuthenticationProvider authenticationProvider;
+        protected Authenticator authenticator;
 
         public abstract T build();
 
@@ -90,12 +90,12 @@ public abstract class WatsonxRestClient {
         }
 
         /**
-         * Sets the {@link AuthenticationProvider} used to authenticate requests.
+         * Sets the {@link Authenticator} used to authenticate requests.
          *
-         * @param authenticationProvider {@link AuthenticationProvider} instance
+         * @param authenticator {@link Authenticator} instance
          */
-        public B authenticationProvider(AuthenticationProvider authenticationProvider) {
-            this.authenticationProvider = authenticationProvider;
+        public B authenticator(Authenticator authenticator) {
+            this.authenticator = authenticator;
             return (B) this;
         }
     }

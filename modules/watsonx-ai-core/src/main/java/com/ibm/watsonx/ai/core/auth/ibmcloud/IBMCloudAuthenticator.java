@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core.auth.iam;
+package com.ibm.watsonx.ai.core.auth.ibmcloud;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
@@ -14,49 +14,40 @@ import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.IdentityTokenResponse;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
- * The {@code IAMAuthenticator} class is an implementation of the {@link AuthenticationProvider} interface, responsible for authenticating with IBM
- * Cloud Identity and Access Management using an API key.
+ * The {@code IBMCloudAuthenticator} class is an implementation of the {@link Authenticator} interface, responsible for authenticating with IBM Cloud
+ * Identity and Access Management using an API key.
  * <p>
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * AuthenticationProvider authenticator = IAMAuthenticator.builder()
+ * IBMCloudAuthenticator.builder()
  *     .apiKey("api-key")
  *     .build();
  * }</pre>
- *
- * <pre>{@code
- * String accessToken = authenticator.getToken();
- * }</pre>
- *
- * For more information, see the <a href="https://cloud.ibm.com/docs/account?topic=account-iamtoken_from_apikey#iamtoken_from_apikey" target="_blank">
- * official documentation</a>.
  */
-public final class IAMAuthenticator implements AuthenticationProvider {
-
+public final class IBMCloudAuthenticator implements Authenticator {
     private final URI baseUrl;
     private final String apiKey;
     private final String grantType;
     private final Duration timeout;
-    private final IAMRestClient client;
-    private final AtomicReference<IdentityTokenResponse> token;
+    private final IBMCloudRestClient client;
+    private final AtomicReference<TokenResponse> token;
 
     /**
-     * Constructs an IAMAuthenticator instance using the provided builder.
+     * Constructs an IBMCloudAuthenticator instance using the provided builder.
      *
      * @param builder the builder instance
      */
-    private IAMAuthenticator(Builder builder) {
+    private IBMCloudAuthenticator(Builder builder) {
         token = new AtomicReference<>();
         apiKey = requireNonNull(builder.apiKey);
         baseUrl = requireNonNullElse(builder.baseUrl, URI.create("https://iam.cloud.ibm.com"));
         grantType = requireNonNullElse(builder.grantType, "urn:ibm:params:oauth:grant-type:apikey");
-        timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(10));
-        client = IAMRestClient.builder()
+        timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(60));
+        client = IBMCloudRestClient.builder()
             .baseUrl(baseUrl)
             .timeout(timeout)
             .build();
@@ -65,7 +56,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     @Override
     public String token() {
 
-        IdentityTokenResponse currentToken = token.get();
+        TokenResponse currentToken = token.get();
 
         if (!isExpired(currentToken))
             return currentToken.accessToken();
@@ -78,7 +69,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     @Override
     public CompletableFuture<String> asyncToken() {
 
-        IdentityTokenResponse currentToken = token.get();
+        TokenResponse currentToken = token.get();
 
         if (!isExpired(currentToken))
             return completedFuture(token.get().accessToken());
@@ -90,18 +81,14 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     }
 
     /**
-     * A builder class for constructing IAMAuthenticator instances. *
+     * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * AuthenticationProvider authenticator = IAMAuthenticator.builder()
+     * IBMCloudAuthenticator.builder()
      *     .apiKey("api-key")
      *     .build();
-     * }</pre>
-     *
-     * <pre>{@code
-     * String accessToken = authenticator.getToken();
      * }</pre>
      *
      * @return {@link Builder} instance.
@@ -113,7 +100,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     /**
      * Check whether the token has expired.
      */
-    private boolean isExpired(IdentityTokenResponse token) {
+    private boolean isExpired(TokenResponse token) {
         if (isNull(token))
             return true;
 
@@ -128,7 +115,7 @@ public final class IAMAuthenticator implements AuthenticationProvider {
     }
 
     /**
-     * The builder class for constructing IAMAuthenticator instances.
+     * The builder class for constructing IBMCloudAuthenticator instances.
      */
     public final static class Builder {
         private URI baseUrl;
@@ -182,12 +169,12 @@ public final class IAMAuthenticator implements AuthenticationProvider {
         }
 
         /**
-         * Builds and returns an IAMAuthenticator instance.
+         * Builds and returns an IBMCloudAuthenticator instance.
          *
-         * @return {@link IAMAuthenticator} instance
+         * @return {@link IBMCloudAuthenticator} instance
          */
-        public IAMAuthenticator build() {
-            return new IAMAuthenticator(this);
+        public IBMCloudAuthenticator build() {
+            return new IBMCloudAuthenticator(this);
         }
     }
 }

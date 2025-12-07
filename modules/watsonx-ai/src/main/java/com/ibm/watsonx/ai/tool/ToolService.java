@@ -10,7 +10,7 @@ import java.util.List;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.Experimental;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.PythonInterpreterTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
@@ -30,7 +30,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * <pre>{@code
  * ToolService service = ToolService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
- *     .apiKey("api-key")   // creates an IAM-based AuthenticationProvider
+ *     .apiKey("api-key")   // creates an IBM Cloud Authenticator
  *     .build();
  *
  * var structuredInput = Map.<String, Object>of("q", input);
@@ -39,7 +39,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * var result = toolService.run(input);
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
  * @see GoogleSearchTool
  * @see TavilySearchTool
@@ -47,7 +47,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * @see WebCrawlerTool
  * @see WikipediaTool
  * @see PythonInterpreterTool
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 @Experimental
 public class ToolService extends WatsonxService {
@@ -57,14 +57,14 @@ public class ToolService extends WatsonxService {
 
     private ToolService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
         client = ToolRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
     }
 
@@ -147,7 +147,7 @@ public class ToolService extends WatsonxService {
      * <pre>{@code
      * ToolService service = ToolService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("api-key")   // creates an IAM-based AuthenticationProvider
+     *     .apiKey("api-key")   // creates an IBM Cloud Authenticator
      *     .build();
      *
      * var structuredInput = Map.<String, Object>of("q", input);

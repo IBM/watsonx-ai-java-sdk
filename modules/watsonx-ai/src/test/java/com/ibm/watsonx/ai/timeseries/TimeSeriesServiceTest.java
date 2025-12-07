@@ -36,7 +36,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
     @Test
     void should_forecast_without_parameters() {
 
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
 
         var EXPECTED = """
             {
@@ -67,7 +67,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
         TimeSeriesService tsService = TimeSeriesService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .projectId("my-project-id")
             .modelId("ibm/granite-ttm-1536-96-r2")
             .build();
@@ -125,7 +125,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
     @Test
     void should_forecast_with_parameters() {
 
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
 
         var EXPECTED = """
             {
@@ -187,7 +187,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
         TimeSeriesService tsService = TimeSeriesService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .projectId("my-project-id")
             .modelId("ibm/granite-ttm-1536-96-r2")
             .build();
@@ -298,7 +298,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             TimeSeriesService tsService = TimeSeriesService.builder()
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .projectId("my-project-id")
                 .modelId("ibm/granite-ttm-1536-96-r2")
                 .build();

@@ -2,26 +2,25 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core.auth.iam;
+package com.ibm.watsonx.ai.core.auth.ibmcloud;
 
+import static java.util.Objects.requireNonNull;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-import com.ibm.watsonx.ai.core.auth.IdentityTokenResponse;
 
 /**
  * Abstraction of a REST client for interacting with the IBM Cloud Identity and Access Management service.
  */
-public abstract class IAMRestClient {
-
+public abstract class IBMCloudRestClient {
     protected final URI baseUrl;
     protected final Duration timeout;
 
-    protected IAMRestClient(Builder<?, ?> builder) {
-        this.baseUrl = builder.baseUrl;
-        this.timeout = builder.timeout;
+    protected IBMCloudRestClient(Builder<?, ?> builder) {
+        baseUrl = requireNonNull(builder.baseUrl, "The baseUrl is mandatory");
+        timeout = builder.timeout;
     }
 
     /**
@@ -29,9 +28,9 @@ public abstract class IAMRestClient {
      *
      * @param apiKey the IBM Cloud API key to exchange for an access token
      * @param grantType the grant type to use
-     * @return an {@link IdentityTokenResponse} containing the access token and related metadata
+     * @return an {@link TokenResponse} containing the access token and related metadata
      */
-    public abstract IdentityTokenResponse token(String apiKey, String grantType);
+    public abstract TokenResponse token(String apiKey, String grantType);
 
     /**
      * Performs an asynchronous REST call to the IAM service to obtain an identity token.
@@ -40,29 +39,29 @@ public abstract class IAMRestClient {
      * @param grantType the grant type to use
      * @return a {@link CompletableFuture} that completes with the IAM response or exceptionally on error
      */
-    public abstract CompletableFuture<IdentityTokenResponse> asyncToken(String apiKey, String grantType);
+    public abstract CompletableFuture<TokenResponse> asyncToken(String apiKey, String grantType);
 
     /**
-     * Creates a new {@link Builder} using the first available {@link IAMRestClientBuilderFactory} discovered via {@link ServiceLoader}.
+     * Creates a new {@link Builder} using the first available {@link IBMCloudRestClientBuilderFactory} discovered via {@link ServiceLoader}.
      * <p>
      * If no factory is found, falls back to the default {@link DefaultRestClient}.
      */
     @SuppressWarnings("rawtypes")
-    static IAMRestClient.Builder builder() {
-        return ServiceLoader.load(IAMRestClientBuilderFactory.class).findFirst()
+    static IBMCloudRestClient.Builder builder() {
+        return ServiceLoader.load(IBMCloudRestClientBuilderFactory.class).findFirst()
             .map(Supplier::get)
             .orElse(DefaultRestClient.builder());
     }
 
     /**
-     * Builder abstract class for constructing {@link IAMRestClient} instances with configurable parameters.
+     * Builder abstract class for constructing {@link IBMCloudRestClient} instances with configurable parameters.
      */
     @SuppressWarnings("unchecked")
-    public abstract static class Builder<T extends IAMRestClient, B extends Builder<T, B>> {
+    public abstract static class Builder<T extends IBMCloudRestClient, B extends Builder<T, B>> {
         private URI baseUrl;
         private Duration timeout;
 
-        public abstract T build();
+        protected abstract T build();
 
         public B baseUrl(URI baseUrl) {
             this.baseUrl = baseUrl;
@@ -81,5 +80,5 @@ public abstract class IAMRestClient {
      * This allows frameworks to provide their own client implementations.
      */
     @SuppressWarnings("rawtypes")
-    public interface IAMRestClientBuilderFactory extends Supplier<IAMRestClient.Builder> {}
+    public interface IBMCloudRestClientBuilderFactory extends Supplier<IBMCloudRestClient.Builder> {}
 }

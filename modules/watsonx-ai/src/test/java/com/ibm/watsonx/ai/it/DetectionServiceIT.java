@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.detection.DetectionTextRequest;
 import com.ibm.watsonx.ai.detection.detector.Hap;
@@ -24,14 +24,14 @@ public class DetectionServiceIT {
     static final String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
     static final String URL = System.getenv("WATSONX_URL");
 
-    static final AuthenticationProvider authentication = IAMAuthenticator.builder()
+    static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
         .build();
 
     static final DetectionService detectionService = DetectionService.builder()
         .baseUrl(URL)
         .projectId(PROJECT_ID)
-        .authenticationProvider(authentication)
+        .authenticator(authentication)
         .logRequests(true)
         .logResponses(true)
         .build();

@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
  * Service class to interact with IBM watsonx.ai Text Generation APIs.
@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * <pre>{@code
  * TextGenerationService textGenerationService = TextGenerationService.builder()
  *     .baseUrl("https://...")      // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-13b-instruct-v2")
  *     .build();
@@ -31,9 +31,9 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * TextGenerationResponse response = textGenerationService.generate("Hello!");
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class TextGenerationService extends ModelService implements TextGenerationProvider {
     private static final Logger logger = LoggerFactory.getLogger(TextGenerationService.class);
@@ -41,14 +41,14 @@ public class TextGenerationService extends ModelService implements TextGeneratio
 
     private TextGenerationService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
         client = TextGenerationRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
     }
 
@@ -191,7 +191,7 @@ public class TextGenerationService extends ModelService implements TextGeneratio
      * <pre>{@code
      * TextGenerationService textGenerationService = TextGenerationService.builder()
      *     .baseUrl("https://...")      // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-13b-instruct-v2")
      *     .build();

@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.rerank.RerankService;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
@@ -21,14 +21,14 @@ public class RerankServiceIT {
     static final String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
     static final String URL = System.getenv("WATSONX_URL");
 
-    static final AuthenticationProvider authentication = IAMAuthenticator.builder()
+    static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
         .build();
 
     static final RerankService rerankService = RerankService.builder()
         .baseUrl(URL)
         .projectId(PROJECT_ID)
-        .authenticationProvider(authentication)
+        .authenticator(authentication)
         .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
         .logRequests(true)
         .logResponses(true)

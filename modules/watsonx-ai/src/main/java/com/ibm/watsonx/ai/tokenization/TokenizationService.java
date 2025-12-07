@@ -9,7 +9,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
 
 /**
@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * <pre>{@code
  * TokenizationService tokenizationService = TokenizationService.builder()
  *     .baseUrl("https://...")      // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-4-h-small")
  *     .build();
@@ -28,23 +28,23 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  * TokenizationResponse response = tokenizationService.tokenize("Tell me a joke");
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class TokenizationService extends ModelService {
     private final TokenizationRestClient client;
 
     private TokenizationService(Builder builder) {
         super(builder);
-        requireNonNull(builder.getAuthenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
         client = TokenizationRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.getAuthenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
     }
 
@@ -126,7 +126,7 @@ public class TokenizationService extends ModelService {
      * <pre>{@code
      * TokenizationService tokenizationService = TokenizationService.builder()
      *     .baseUrl("https://...")      // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-4-h-small")
      *     .build();

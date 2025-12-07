@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.core;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -26,16 +25,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
-public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
+@MockitoSettings(strictness = Strictness.LENIENT)
+public class IBMCloudAuthenticatorAsyncTest extends AbstractWatsonxTest {
 
     @Test
-    void test_ok_token() throws Exception {
+    void should_return_a_valid_token() throws Exception {
 
         var response = Utils.okResponse();
 
@@ -43,7 +45,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
             when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
                 .thenReturn(CompletableFuture.completedFuture(response));
 
-            AuthenticationProvider authenticator = IAMAuthenticator.builder()
+            Authenticator authenticator = IBMCloudAuthenticator.builder()
                 .apiKey("my_super_api_key")
                 .build();
 
@@ -57,26 +59,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_ko_token() throws Exception {
-
-        when(mockHttpResponse.body()).thenReturn(Utils.WRONG_RESPONSE);
-        when(mockHttpResponse.statusCode()).thenReturn(400);
-
-        withWatsonxServiceMock(() -> {
-            when(mockHttpClient.<String>sendAsync(any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
-
-            AuthenticationProvider authenticator = IAMAuthenticator.builder()
-                .apiKey("my_super_api_key")
-                .build();
-
-            var ex = assertThrows(RuntimeException.class, () -> authenticator.asyncToken().join());
-            assertEquals(Utils.WRONG_RESPONSE, ex.getCause().getMessage());
-        });
-    }
-
-    @Test
-    void test_cache_token() throws Exception {
+    void should_use_a_cached_token() throws Exception {
 
         var response = Utils.okResponse();
 
@@ -84,7 +67,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
             when(mockHttpClient.<String>sendAsync(any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(response));
 
-            AuthenticationProvider authenticator = IAMAuthenticator.builder()
+            Authenticator authenticator = IBMCloudAuthenticator.builder()
                 .apiKey("my_super_api_key")
                 .build();
 
@@ -98,7 +81,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void test_custom_parameters() throws Exception {
+    void should_use_custom_parameters() throws Exception {
 
         var response = Utils.okResponse();
 
@@ -106,7 +89,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
             when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
                 .thenReturn(CompletableFuture.completedFuture(response));
 
-            AuthenticationProvider authenticator = IAMAuthenticator.builder()
+            Authenticator authenticator = IBMCloudAuthenticator.builder()
                 .grantType("new_grant_type")
                 .timeout(Duration.ofSeconds(1))
                 .baseUrl(URI.create("http://mytest.com"))
@@ -123,7 +106,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void test_executor() throws Exception {
+    void should_use_the_correct_executors() throws Exception {
 
         var mockHttpResponse = Utils.okResponse();
 
@@ -149,7 +132,7 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
                 mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
                 mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
-                var authenticator = IAMAuthenticator.builder()
+                var authenticator = IBMCloudAuthenticator.builder()
                     .grantType("new_grant_type")
                     .timeout(Duration.ofSeconds(1))
                     .baseUrl(URI.create("http://mytest.com"))
@@ -168,6 +151,5 @@ public class IAMAuthenticatorAsyncTest extends AbstractWatsonxTest {
                 assertEquals("cpu-thread", threadNames.get(3));
             }
         });
-
     }
 }

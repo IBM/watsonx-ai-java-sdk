@@ -38,7 +38,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
     @Test
     void test_bearer_interceptor_sync() throws Exception {
 
-        when(mockAuthenticationProvider.token()).thenReturn("my_super_token");
+        when(mockAuthenticator.token()).thenReturn("my_super_token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
 
         withWatsonxServiceMock(() -> {
@@ -47,7 +47,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
             var client = SyncHttpClient.builder()
                 .httpClient(mockHttpClient)
-                .interceptor(new BearerInterceptor(mockAuthenticationProvider))
+                .interceptor(new BearerInterceptor(mockAuthenticator))
                 .build();
 
             try {
@@ -67,13 +67,13 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
     @Test
     void test_bearer_interceptor_sync_with_exception() throws Exception {
 
-        when(mockAuthenticationProvider.token()).thenThrow(new RuntimeException("error"));
+        when(mockAuthenticator.token()).thenThrow(new RuntimeException("error"));
 
         withWatsonxServiceMock(() -> {
 
             var client = SyncHttpClient.builder()
                 .httpClient(mockHttpClient)
-                .interceptor(new BearerInterceptor(mockAuthenticationProvider))
+                .interceptor(new BearerInterceptor(mockAuthenticator))
                 .build();
 
             try {
@@ -93,14 +93,14 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
     @Test
     void test_bearer_interceptor_async() throws Exception {
 
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my_super_token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my_super_token"));
 
         withWatsonxServiceMock(() -> {
             mockHttpClientAsyncSend(mockHttpRequest.capture(), any());
 
             var client = AsyncHttpClient.builder()
                 .httpClient(mockHttpClient)
-                .interceptor(new BearerInterceptor(mockAuthenticationProvider))
+                .interceptor(new BearerInterceptor(mockAuthenticator))
                 .build();
 
             var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
@@ -115,13 +115,13 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
     @Test
     void test_bearer_interceptor_async_with_exception() {
 
-        when(mockAuthenticationProvider.asyncToken()).thenThrow(new RuntimeException("error"));
+        when(mockAuthenticator.asyncToken()).thenThrow(new RuntimeException("error"));
 
         withWatsonxServiceMock(() -> {
 
             var client = AsyncHttpClient.builder()
                 .httpClient(mockHttpClient)
-                .interceptor(new BearerInterceptor(mockAuthenticationProvider))
+                .interceptor(new BearerInterceptor(mockAuthenticator))
                 .build();
 
             var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
@@ -138,7 +138,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
     @SuppressWarnings("unchecked")
     void test_executor() throws Exception {
 
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my_super_token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my_super_token"));
         var threadNames = new ArrayList<>();
 
         var ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
@@ -155,7 +155,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
                 var client = AsyncHttpClient.builder()
                     .httpClient(mockHttpClient)
-                    .interceptor(new BearerInterceptor(mockAuthenticationProvider))
+                    .interceptor(new BearerInterceptor(mockAuthenticator))
                     .interceptor(new AsyncHttpInterceptor() {
                         @Override
                         public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,

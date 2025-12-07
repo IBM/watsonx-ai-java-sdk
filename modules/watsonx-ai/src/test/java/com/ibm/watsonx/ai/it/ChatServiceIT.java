@@ -51,8 +51,8 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IAMAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
@@ -64,7 +64,7 @@ public class ChatServiceIT {
     static final String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
     static final String URL = System.getenv("WATSONX_URL");
 
-    static final AuthenticationProvider authentication = IAMAuthenticator.builder()
+    static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
         .build();
 
@@ -119,7 +119,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -157,7 +157,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -196,7 +196,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -232,7 +232,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .timeout(Duration.ofSeconds(30))
@@ -279,7 +279,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .timeout(Duration.ofSeconds(30))
@@ -330,7 +330,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-medium-2505")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -361,7 +361,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -422,7 +422,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -450,7 +450,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -484,7 +484,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -558,7 +558,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -596,7 +596,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -626,7 +626,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -680,7 +680,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -752,7 +752,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-3-3-8b-instruct")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .timeout(Duration.ofSeconds(30))
@@ -846,7 +846,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-medium-2505")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -901,7 +901,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .timeout(Duration.ofSeconds(30))
@@ -1013,7 +1013,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("ibm/granite-4-h-small")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -1058,7 +1058,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -1145,7 +1145,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
                 .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
-                .authenticationProvider(authentication)
+                .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -1269,6 +1269,8 @@ public class ChatServiceIT {
     @Test
     void should_handle_streaming_conversation_with_tool_interception() {
 
+        var noCallTools = ChatParameters.builder().toolChoiceOption(ToolChoiceOption.NONE).build();
+
         var chatService = ChatService.builder()
             .apiKey(API_KEY)
             .baseUrl(URL)
@@ -1319,14 +1321,16 @@ public class ChatServiceIT {
         });
 
         var assistantMessage = assertDoesNotThrow(() -> firstResponse.get(60, TimeUnit.SECONDS)).toAssistantMessage();
-        assertTrue(assistantMessage.hasToolCalls());
+        assertTrue(assistantMessage.hasToolCalls(), assistantMessage.content());
         var toolCall = assistantMessage.toolCalls().get(0);
-        chatRequest.addMessages(
-            toolCall.processTools((toolName, toolArgs) -> {
-                assertEquals("get_current_time", toolName);
-                assertEquals("Italy", toolArgs.get("country"));
-                return "The current time in Italy is 11:13";
-            }));
+        chatRequest
+            .parameters(noCallTools)
+            .addMessages(
+                toolCall.processTools((toolName, toolArgs) -> {
+                    assertEquals("get_current_time", toolName);
+                    assertEquals("Italy", toolArgs.get("country"));
+                    return "The current time in Italy is 11:13";
+                }));
 
         var secondResponse = new CompletableFuture<ChatResponse>();
         chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
@@ -1343,11 +1347,14 @@ public class ChatServiceIT {
             public void onError(Throwable error) {}
         });
 
-        assistantMessage = assertDoesNotThrow(() -> secondResponse.get(60, TimeUnit.SECONDS)).toAssistantMessage();
-        assertFalse(assistantMessage.hasToolCalls());
-        assertTrue(assistantMessage.content().contains("11:13"));
+        var chatResponse = assertDoesNotThrow(() -> secondResponse.get(60, TimeUnit.SECONDS));
+        assistantMessage = chatResponse.toAssistantMessage();
+        assertFalse(assistantMessage.hasToolCalls(), "Response: " + chatResponse);
+        assertTrue(assistantMessage.content().contains("11:13"), assistantMessage.content());
 
-        chatRequest.addMessages(assistantMessage, UserMessage.text("And in Germany?"));
+        chatRequest
+            .parameters(null)
+            .addMessages(assistantMessage, UserMessage.text("And in Germany?"));
         var thirdResponse = new CompletableFuture<ChatResponse>();
         chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
 
@@ -1364,14 +1371,16 @@ public class ChatServiceIT {
         });
 
         assistantMessage = assertDoesNotThrow(() -> thirdResponse.get(60, TimeUnit.SECONDS)).toAssistantMessage();
-        assertTrue(assistantMessage.hasToolCalls());
+        assertTrue(assistantMessage.hasToolCalls(), assistantMessage.content());
         toolCall = assistantMessage.toolCalls().get(0);
-        chatRequest.addMessages(
-            toolCall.processTools((toolName, toolArgs) -> {
-                assertEquals("get_current_time", toolName);
-                assertEquals("Germany", toolArgs.get("country"));
-                return "The current time in Italy is 11:15";
-            }));
+        chatRequest
+            .parameters(noCallTools)
+            .addMessages(
+                toolCall.processTools((toolName, toolArgs) -> {
+                    assertEquals("get_current_time", toolName);
+                    assertEquals("Germany", toolArgs.get("country"));
+                    return "The current time in Germany is 11:15";
+                }));
 
         var fourthResponse = new CompletableFuture<ChatResponse>();
         chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
@@ -1387,9 +1396,10 @@ public class ChatServiceIT {
             @Override
             public void onError(Throwable error) {}
         });
-        assistantMessage = assertDoesNotThrow(() -> fourthResponse.get(60, TimeUnit.SECONDS)).toAssistantMessage();
-        assertFalse(assistantMessage.hasToolCalls());
-        assertTrue(assistantMessage.content().contains("11:15"));
+        chatResponse = assertDoesNotThrow(() -> fourthResponse.get(60, TimeUnit.SECONDS));
+        assistantMessage = chatResponse.toAssistantMessage();
+        assertFalse(assistantMessage.hasToolCalls(), "Response: " + chatResponse);
+        assertTrue(assistantMessage.content().contains("11:15"), assistantMessage.content());
     }
 
     @Test

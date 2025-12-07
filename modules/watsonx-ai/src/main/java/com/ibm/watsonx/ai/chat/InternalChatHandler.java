@@ -30,7 +30,7 @@ public class InternalChatHandler implements ChatHandler {
      * Applies normalization and transformation logic to the given {@link CompletedToolCall} and returns the modified instance that should replace the
      * original one in the streaming pipeline.
      *
-     * @param call the fully assembled {@link CompletedToolCall} produced from streamed fragments
+     * @param completeToolCall the fully assembled {@link CompletedToolCall} produced from streamed fragments
      * @return the normalized or transformed {@link CompletedToolCall}
      */
     public CompletedToolCall normalizeToolCall(CompletedToolCall completeToolCall) {

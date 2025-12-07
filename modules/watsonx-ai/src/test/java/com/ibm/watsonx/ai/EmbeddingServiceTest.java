@@ -37,7 +37,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setUp() {
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
     }
 
     @Test
@@ -77,7 +77,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var embeddingService = EmbeddingService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId(MODEL_ID)
                 .logRequests(true)
                 .projectId(PROJECT_ID)
@@ -156,7 +156,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var embeddingService = EmbeddingService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId(MODEL_ID)
                 .logRequests(true)
                 .projectId(PROJECT_ID)
@@ -204,7 +204,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var embeddingService = EmbeddingService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId(MODEL_ID)
                 .logRequests(true)
                 .projectId(PROJECT_ID)
@@ -223,7 +223,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         var chatService = EmbeddingService.builder()
             .baseUrl(CloudRegion.DALLAS)
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .projectId("project-id")
             .modelId("model-id")
             .build();

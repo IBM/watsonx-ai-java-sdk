@@ -65,7 +65,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setUp() {
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
         resetHttpClient();
     }
 
@@ -330,7 +330,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
 
             var textGenerationService = TextGenerationService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("model")
                 .projectId("project-id")
                 .spaceId("space-id")
@@ -374,7 +374,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             var textGenerationService = TextGenerationService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("model")
                 .projectId("project-id")
                 .spaceId("space-id")
@@ -403,7 +403,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     void should_throw_exceptions_for_invalid_requests() throws Exception {
 
         var textGenerationService = TextGenerationService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .modelId("model")
             .projectId("project-id")
             .spaceId("space-id")
@@ -483,10 +483,10 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                         """)));
 
 
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var textGenerationService = TextGenerationService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .modelId("ibm/granite-13b-instruct-v2")
             .logResponses(true)
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
@@ -576,7 +576,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
         List<String> threadNames = new ArrayList<>();
 
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
 
         Executor ioExecutor = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
             threadNames.add(Thread.currentThread().getName());
@@ -586,7 +586,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
         try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
             mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
             var textGenerationService = TextGenerationService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .modelId("ibm/granite-13b-instruct-v2")
                 .projectId("project-id")
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
