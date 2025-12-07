@@ -72,13 +72,13 @@ public record ToolCall(Integer index, String id, String type, FunctionCall funct
      * @param executor the executor responsible for running the tool call logic
      * @return {@link ToolMessage} object generated from the tool call
      */
-    public ChatMessage processTools(ToolExecutor executor) {
+    public ToolMessage processTool(ToolExecutor executor) {
 
         var toolArguments = nonNull(function.arguments())
             ? new ToolArguments(Json.fromJson(function.arguments(), new TypeToken<Map<String, Object>>() {}))
             : null;
 
         var toolResult = String.valueOf(executor.execute(function.name(), toolArguments));
-        return (ChatMessage) ToolMessage.of(toolResult, id);
+        return ToolMessage.of(toolResult, id);
     }
 }

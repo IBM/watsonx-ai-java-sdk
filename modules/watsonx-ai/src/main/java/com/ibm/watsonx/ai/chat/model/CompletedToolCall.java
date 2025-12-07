@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.chat.model;
 
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.ToolExecutor;
 
 /**
  * Represents a fully assembled tool call emitted during chat completion streaming.
@@ -16,4 +17,15 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
  * @param completionId The identifier of the chat completion request this tool call belongs to.
  * @param toolCall The fully constructed {@link ToolCall}.
  */
-public record CompletedToolCall(String completionId, ToolCall toolCall) {}
+public record CompletedToolCall(String completionId, ToolCall toolCall) {
+
+    /**
+     * Processes the tool call contained in the {@link CompletedToolCall} using the provided {@link ToolExecutor}, and returns the {@link ToolMessage}
+     *
+     * @param executor the executor responsible for running the tool call logic
+     * @return a {@link ToolMessage} object generated from the tool call
+     */
+    public ToolMessage processTool(ToolExecutor executor) {
+        return toolCall.processTool(executor);
+    }
+}

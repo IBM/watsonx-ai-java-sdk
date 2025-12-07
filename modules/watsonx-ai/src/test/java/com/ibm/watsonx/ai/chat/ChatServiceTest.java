@@ -45,11 +45,14 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -3679,6 +3682,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         var tools = Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
         StringBuilder stringBuilder = new StringBuilder();
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        AtomicInteger completedToolCallCount = new AtomicInteger();
         chatService.chatStreaming(List.of(UserMessage.text("What time is it in Italy and Germany?")), List.of(tools), new ChatHandler() {
 
             @Override
@@ -3694,6 +3698,11 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             @Override
             public void onError(Throwable error) {
                 result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                completedToolCallCount.incrementAndGet();
             }
         });
 
@@ -3711,10 +3720,11 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 fail("Unexpected tool name: " + toolName);
             return toolArgs;
         }));
+        assertEquals(2, completedToolCallCount.get());
     }
 
     @Test
-    void should_invoke_get_current_time_tool_with_correct_country() {
+    void should_invoke_tool_with_correct_arguments() {
 
         wireMock.stubFor(post("/ml/v1/text/chat?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -3867,16 +3877,208 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 error.printStackTrace();
                 result.completeExceptionally(error);
             }
-
-
         });
 
-        assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS))
+        assertDoesNotThrow(() -> result.get())
             .toAssistantMessage()
             .processTools((toolName, toolArgs) -> {
                 assertEquals("get_current_time", toolName);
                 assertEquals("Italy", toolArgs.get("country"));
                 return "";
             });
+    }
+
+    @Test
+    void should_process_multiple_tool_calls_from_single_stream_chunk() {
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(2, 10)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.262Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Italy\\"}"}},{"index":1,"id":"qGJCEKIE6","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Germany\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z","usage":{"completion_tokens":23,"prompt_tokens":76,"total_tokens":99}}
+                        """)));
+
+        var chatService = ChatService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .modelId("mistral-large-2512")
+            .projectId("project-id")
+            .authenticator(mockAuthenticator)
+            .build();
+
+        CompletableFuture<ChatResponse> chatResponse = new CompletableFuture<>();
+        AtomicInteger completedToolCallCount = new AtomicInteger();
+        chatService.chatStreaming("Message", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                chatResponse.complete(completeResponse);
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                completedToolCallCount.incrementAndGet();
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
+
+        AssistantMessage assistantMessage = assertDoesNotThrow(() -> chatResponse.get()).toAssistantMessage();
+        AtomicInteger processedToolCallCount = new AtomicInteger();
+        assistantMessage.processTools((toolName, toolArgs) -> {
+            assertEquals(toolName, "get_current_time");
+            assertTrue(toolArgs.contains("country"));
+            processedToolCallCount.incrementAndGet();
+            return "";
+        });
+        assertEquals(2, processedToolCallCount.get());
+        assertEquals(2, completedToolCallCount.get());
+    }
+
+    @Test
+    void should_handle_tool_calls_from_multiple_stream_chunks() {
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 10)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.262Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"null","delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"id":"ADvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Germany\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z","usage":{"completion_tokens":23,"prompt_tokens":76,"total_tokens":99}}
+                        """)));
+
+        var chatService = ChatService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .modelId("mistral-large-2512")
+            .projectId("project-id")
+            .authenticator(mockAuthenticator)
+            .build();
+
+        CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+        AtomicInteger completedToolCallCount = new AtomicInteger();
+        chatService.chatStreaming("Message", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                future.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                completedToolCallCount.incrementAndGet();
+            }
+        });
+
+        ChatResponse chatResponse = assertDoesNotThrow(() -> future.get());
+        AssistantMessage assistantMessage = chatResponse.toAssistantMessage();
+        AtomicInteger processedToolCallCount = new AtomicInteger();
+        assistantMessage.processTools((toolName, toolArgs) -> {
+            assertEquals(toolName, "get_current_time");
+            assertTrue(toolArgs.contains("country"));
+            processedToolCallCount.incrementAndGet();
+            return "";
+        });
+        assertEquals(2, processedToolCallCount.get());
+        assertEquals(2, completedToolCallCount.get());
+        assertEquals("tool_calls", chatResponse.finishReason().value());
+        assertEquals(23, chatResponse.usage().completionTokens());
+        assertEquals(76, chatResponse.usage().promptTokens());
+        assertEquals(99, chatResponse.usage().totalTokens());
+    }
+
+    @Test
+    void should_invoke_tool_calls_in_parallels() {
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 10)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.262Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"null","delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"id":"ADvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Germany\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z","usage":{"completion_tokens":23,"prompt_tokens":76,"total_tokens":99}}
+                        """)));
+
+        var chatService = ChatService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .modelId("mistral-large-2512")
+            .projectId("project-id")
+            .authenticator(mockAuthenticator)
+            .build();
+
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+        List<ToolMessage> toolMessages = new LinkedList<>();
+        CountDownLatch latch = new CountDownLatch(2);
+        chatService.chatStreaming("Message", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {}
+
+            @Override
+            public void onError(Throwable error) {}
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                executor.execute(() -> {
+                    var toolMessage =
+                        completeToolCall.processTool((toolName, toolArgs) -> {
+                            String country = toolArgs.get("country");
+                            if (country.equals("Italy"))
+                                assertDoesNotThrow(() -> Thread.sleep(2000));
+                            return toolArgs.get("country");
+                        });
+                    toolMessages.add(toolMessage);
+                    latch.countDown();
+                });
+            }
+        });
+
+        assertTrue(assertDoesNotThrow(() -> latch.await(5, TimeUnit.SECONDS)));
+        assertEquals("Germany", toolMessages.get(0).content());
+        assertEquals("Italy", toolMessages.get(1).content());
     }
 }

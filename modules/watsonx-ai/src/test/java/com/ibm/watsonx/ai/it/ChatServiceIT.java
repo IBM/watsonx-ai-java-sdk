@@ -1326,7 +1326,7 @@ public class ChatServiceIT {
         chatRequest
             .parameters(noCallTools)
             .addMessages(
-                toolCall.processTools((toolName, toolArgs) -> {
+                toolCall.processTool((toolName, toolArgs) -> {
                     assertEquals("get_current_time", toolName);
                     assertEquals("Italy", toolArgs.get("country"));
                     return "The current time in Italy is 11:13";
@@ -1376,7 +1376,7 @@ public class ChatServiceIT {
         chatRequest
             .parameters(noCallTools)
             .addMessages(
-                toolCall.processTools((toolName, toolArgs) -> {
+                toolCall.processTool((toolName, toolArgs) -> {
                     assertEquals("get_current_time", toolName);
                     assertEquals("Germany", toolArgs.get("country"));
                     return "The current time in Germany is 11:15";
@@ -1458,9 +1458,7 @@ public class ChatServiceIT {
             chatService.chatStreaming(chatRequest.build(), new ChatHandler() {
 
                 @Override
-                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                    System.out.println(partialResponse);
-                }
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
@@ -1478,24 +1476,24 @@ public class ChatServiceIT {
 
         var toolCall = assistantMessage.toolCalls().get(0);
         chatRequest.addMessages(
-            toolCall.processTools((toolName, toolArgs) -> {
+            toolCall.processTool((toolName, toolArgs) -> {
                 assertEquals("get_current_time", toolName);
                 assertEquals("Italy", toolArgs.get("country"));
                 return "The current time in Italy is 11:13";
             }));
         toolCall = assistantMessage.toolCalls().get(1);
         chatRequest.addMessages(
-            toolCall.processTools((toolName, toolArgs) -> {
+            toolCall.processTool((toolName, toolArgs) -> {
                 assertEquals("get_current_time", toolName);
                 assertEquals("Germany", toolArgs.get("country"));
                 return "The current time in Germany is 11:13";
             }));
         toolCall = assistantMessage.toolCalls().get(2);
         chatRequest.addMessages(
-            toolCall.processTools((toolName, toolArgs) -> {
+            toolCall.processTool((toolName, toolArgs) -> {
                 assertEquals("get_current_time", toolName);
                 assertEquals("Japan", toolArgs.get("country"));
-                return "The current time in Germany is 23:13";
+                return "The current time in Japan is 23:13";
             }));
     }
 }

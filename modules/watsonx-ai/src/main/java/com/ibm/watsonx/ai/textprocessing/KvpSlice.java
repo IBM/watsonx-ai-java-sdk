@@ -21,7 +21,6 @@ import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
  * <p>
  * This record is typically used within a {@link KvpPage} as part of a fixed custom schema, where the layout and content placement on the page are
  * consistent.
- * </p>
  *
  * @param fields a mapping of short-form field names to their {@link KvpFields.KvpField} definitions, each entry represents a key-value field to
  *            extract within this slice

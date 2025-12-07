@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
+import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -110,9 +111,10 @@ public interface ChatSubscriber {
             private ChatUsage chatUsage;
             private final StringBuffer contentBuffer = new StringBuffer();
             private final StringBuffer thinkingBuffer = new StringBuffer();
+            private final ReentrantLock callbackLock = new ReentrantLock();
+            private final ChatHandlerDecorator chatHandlerDecorator = (ChatHandlerDecorator) handler;
             private final List<StreamingToolFetcher> tools = Collections.synchronizedList(new ArrayList<>());
             private final StreamingStateTracker stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
-            private final ReentrantLock callbackLock = new ReentrantLock();
 
             @Override
             public void onNext(String partialMessage) {
@@ -140,13 +142,15 @@ public interface ChatSubscriber {
 
                 var chunk = Json.fromJson(messageData, PartialChatResponse.class);
 
-                // Last message get the "usage" values
-                if (chunk.choices().size() == 0) {
+                if (nonNull(chunk.usage())) {
                     synchronized (usageLock) {
                         chatUsage = chunk.usage();
-                        return;
                     }
                 }
+
+                // Nothing to process.
+                if (chunk.choices().size() == 0)
+                    return;
 
                 var message = chunk.choices().get(0);
 
@@ -184,62 +188,61 @@ public interface ChatSubscriber {
 
                 if (message.delta().toolCalls() != null) {
 
-                    StreamingToolFetcher toolFetcher;
-
                     // Watsonx doesn't return "tool_calls".
                     // Open an issue.
                     finishReason = "tool_calls";
 
-                    // During streaming there is only one element in the tool_calls,
-                    // but the "index" field can be used to understand how many tools need to be
-                    // executed.
-                    var deltaTool = message.delta().toolCalls().get(0);
-                    var index = deltaTool.index();
+                    StreamingToolFetcher toolFetcher;
 
-                    // Check if there is an incomplete version of the TextChatToolCall object.
-                    if ((index + 1) > tools.size()) {
-                        // First occurrence of the object, create it.
-                        toolFetcher = new StreamingToolFetcher(index);
-                        tools.add(toolFetcher);
+                    for (ToolCall deltaTool : message.delta().toolCalls()) {
 
-                        if (index - 1 >= 0) {
-                            var toolFetcherToCall = tools.get(index - 1);
-                            try {
-                                callbackLock.lock();
-                                var normalizedToolCall = ((InternalChatHandler) handler)
-                                    .normalizeToolCall(new CompletedToolCall(completionId, toolFetcherToCall.build())).toolCall();
-                                toolFetcherToCall.setId(normalizedToolCall.id());
-                                toolFetcherToCall.setName(normalizedToolCall.function().name());
-                                toolFetcherToCall.setArguments(normalizedToolCall.function().arguments());
-                            } finally {
-                                callbackLock.unlock();
+                        var index = deltaTool.index();
+
+                        // Check if there is an incomplete version of the TextChatToolCall object.
+                        if ((index + 1) > tools.size()) {
+                            // First occurrence of the object, create it.
+                            toolFetcher = new StreamingToolFetcher(index);
+                            tools.add(toolFetcher);
+
+                            if (index - 1 >= 0) {
+                                var toolFetcherToCall = tools.get(index - 1);
+                                try {
+                                    callbackLock.lock();
+                                    var completedToolCall = new CompletedToolCall(completionId, toolFetcherToCall.build());
+                                    completedToolCall = chatHandlerDecorator.normalizeAndInvoke(completedToolCall);
+                                    toolFetcherToCall.setId(completedToolCall.toolCall().id());
+                                    toolFetcherToCall.setName(completedToolCall.toolCall().function().name());
+                                    toolFetcherToCall.setArguments(completedToolCall.toolCall().function().arguments());
+                                } finally {
+                                    callbackLock.unlock();
+                                }
                             }
+
+                        } else {
+                            // Incomplete version is present, complete it.
+                            toolFetcher = tools.get(index);
                         }
 
-                    } else {
-                        // Incomplete version is present, complete it.
-                        toolFetcher = tools.get(index);
-                    }
+                        toolFetcher.setId(deltaTool.id());
 
-                    toolFetcher.setId(deltaTool.id());
+                        if (nonNull(deltaTool.function())) {
+                            toolFetcher.setName(deltaTool.function().name());
+                            toolFetcher.appendArguments(deltaTool.function().arguments());
 
-                    if (nonNull(deltaTool.function())) {
-                        toolFetcher.setName(deltaTool.function().name());
-                        toolFetcher.appendArguments(deltaTool.function().arguments());
+                            // There is a bug in the Streaming API: it does not return an empty object for tools without arguments.
+                            // Open an issue.
+                            var toolHasParameter = toolHasParameters.get(toolFetcher.getName());
+                            var arguments = isNull(toolHasParameter) || toolHasParameter ? deltaTool.function().arguments() : "{}";
 
-                        // There is a bug in the Streaming API: it does not return an empty object for tools without arguments.
-                        // Open an issue.
-                        var toolHasParameter = toolHasParameters.get(toolFetcher.getName());
-                        var arguments = isNull(toolHasParameter) || toolHasParameter ? deltaTool.function().arguments() : "{}";
-
-                        if (!arguments.isEmpty()) {
-                            var partialToolCall =
-                                new PartialToolCall(completionId, toolFetcher.getIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
-                            try {
-                                callbackLock.lock();
-                                handler.onPartialToolCall(partialToolCall);
-                            } finally {
-                                callbackLock.unlock();
+                            if (!arguments.isEmpty()) {
+                                var partialToolCall =
+                                    new PartialToolCall(completionId, toolFetcher.getIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
+                                try {
+                                    callbackLock.lock();
+                                    handler.onPartialToolCall(partialToolCall);
+                                } finally {
+                                    callbackLock.unlock();
+                                }
                             }
                         }
                     }
@@ -323,7 +326,7 @@ public interface ChatSubscriber {
 
                     List<ToolCall> toolCalls = null;
                     String content = contentBuffer.isEmpty() ? null : contentBuffer.toString().trim();
-                    String thinking = thinkingBuffer.toString();
+                    String thinking = thinkingBuffer.isEmpty() ? null : thinkingBuffer.toString().trim();
 
                     if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
                         toolCalls = tools.stream()
@@ -332,10 +335,9 @@ public interface ChatSubscriber {
 
                         try {
                             callbackLock.lock();
-                            var normalizedToolCall =
-                                ((InternalChatHandler) handler)
-                                    .normalizeToolCall(new CompletedToolCall(completionId, toolCalls.get(toolCalls.size() - 1))).toolCall();
-                            toolCalls.set(toolCalls.size() - 1, normalizedToolCall);
+                            var completedToolCall = new CompletedToolCall(completionId, toolCalls.get(toolCalls.size() - 1));
+                            completedToolCall = chatHandlerDecorator.normalizeAndInvoke(completedToolCall);
+                            toolCalls.set(toolCalls.size() - 1, completedToolCall.toolCall());
                         } finally {
                             callbackLock.unlock();
                         }

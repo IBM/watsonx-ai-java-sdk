@@ -29,6 +29,19 @@ public final class ToolArguments {
         return (T) raw.get(key);
     }
 
+    /**
+     * Checks if the argument map contains a value for the specified key.
+     *
+     * @param key the argument name to check
+     * @return {@code true} if the key is present in the argument map, {@code false} otherwise
+     */
+    public boolean contains(String key) {
+        return raw.containsKey(key);
+    }
+
+    /*
+     * This method is needed by Jackson for serializing the object.
+     */
     Map<String, Object> getRaw() {
         return raw;
     }

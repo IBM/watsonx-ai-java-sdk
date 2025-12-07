@@ -190,7 +190,8 @@ public class ToolServiceIT {
         chatRequest.addMessages(assistantMessage);
 
         if (assistantMessage.hasToolCalls()) {
-            var toolMessages = assistantMessage.processTools((toolName, arguments) -> pythonInterpreterTool.execute(arguments.get("code")));
+            var toolMessages =
+                assistantMessage.processTools((toolName, toolArgs) -> pythonInterpreterTool.execute(toolArgs.get("code")));
             chatRequest.addMessages(toolMessages);
             var followUpAssistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
             chatRequest.addMessages(followUpAssistantMessage);
@@ -202,7 +203,8 @@ public class ToolServiceIT {
         chatRequest.addMessages(assistantMessage);
 
         if (assistantMessage.hasToolCalls()) {
-            var toolMessages = assistantMessage.processTools((toolName, arguments) -> pythonInterpreterTool.execute(arguments.get("code")));
+            var toolMessages =
+                assistantMessage.processTools((toolName, toolArgs) -> pythonInterpreterTool.execute(toolArgs.get("code")));
             chatRequest.addMessages(toolMessages);
             assistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
         }
