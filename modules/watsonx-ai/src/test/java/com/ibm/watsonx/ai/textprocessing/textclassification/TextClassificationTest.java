@@ -87,11 +87,11 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     void beforeEach() {
         cosServer.resetAll();
         watsonxServer.resetAll();
-        when(mockAuthenticationProvider.token()).thenReturn("token");
+        when(mockAuthenticator.token()).thenReturn("token");
         classificationService = TextClassificationService.builder()
             .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
             .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .projectId("project-id")
             .documentReference("connection_id", "my-bucket")
             .logRequests(true)
@@ -594,7 +594,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     @Test
     void should_remove_uploaded_file_after_classification() throws Exception {
 
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
         mockServers(true);
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
 
@@ -742,7 +742,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_classification_job_fails() throws Exception {
 
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
         var JOB_ERROR = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job_error.json").toURI()));
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
@@ -888,7 +888,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     void should_delete_file() throws Exception {
 
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
         cosServer.resetAll();
 
         cosServer.stubFor(delete("/%s/%s".formatted("my-bucket", "test.pdf"))

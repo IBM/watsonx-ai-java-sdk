@@ -37,7 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
@@ -68,7 +68,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 try {
                     when(mockHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(response);
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
                         .baseUrl(URI.create("http://my-url"))
                         .apiKey("api_key")
@@ -106,7 +106,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 try {
                     when(mockHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(response);
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
                         .baseUrl(URI.create("http://my-url"))
                         .password("password")
@@ -144,7 +144,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 try {
                     when(mockHttpClient.<String>send(any(), any())).thenReturn(response);
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
                         .baseUrl(URI.create("http://my-url"))
                         .apiKey("my_super_api_key")
@@ -181,7 +181,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 try {
                     when(mockHttpClient.<String>send(any(), any())).thenReturn(response);
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
                         .baseUrl("http://my-url/")
                         .apiKey("my_super_api_key")
@@ -223,7 +223,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                             throw new RuntimeException("Unexpected URL: " + url);
                     });
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .baseUrl("http://my-url/")
                         .username("username")
                         .password("password")
@@ -285,7 +285,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .thenThrow(new IOException("IOException"))
                         .thenReturn(response);
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
                         .baseUrl("http://my-url/")
                         .apiKey("my_api_key")
@@ -324,7 +324,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                             throw new RuntimeException("Unexpected URL: " + url);
                     });
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .baseUrl("https://localhost")
                         .username("username")
                         .password("password")
@@ -392,7 +392,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .thenReturn(validResponse)
                         .thenReturn(accessToken);
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .baseUrl("https://localhost")
                         .username("username")
                         .password("password")
@@ -430,7 +430,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
                     .thenReturn(CompletableFuture.completedFuture(response));
 
-                AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                Authenticator authenticator = CP4DAuthenticator.builder()
                     .username("username")
                     .baseUrl(URI.create("http://my-url"))
                     .apiKey("api_key")
@@ -461,7 +461,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
                     ArgumentCaptor<HttpRequest> reqCaptor = ArgumentCaptor.forClass(HttpRequest.class);
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .baseUrl("https://localhost")
                         .username("username")
                         .password("password")
@@ -505,7 +505,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 when(mockHttpClient.<String>sendAsync(any(), any()))
                     .thenReturn(CompletableFuture.completedFuture(response));
 
-                AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                Authenticator authenticator = CP4DAuthenticator.builder()
                     .username("username")
                     .baseUrl(URI.create("http://my-url"))
                     .apiKey("api_key")
@@ -544,7 +544,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                             throw new RuntimeException("Unexpected URL: " + url);
                     });
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .baseUrl("http://my-url/")
                         .username("username")
                         .password("password")
@@ -610,7 +610,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
                     mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
-                    AuthenticationProvider authenticator = CP4DAuthenticator.builder()
+                    Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
                         .baseUrl(URI.create("http://my-url"))
                         .apiKey("api_key")

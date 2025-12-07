@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 
 /**
@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  * <pre>{@code
  * EmbeddingService embeddingService = EmbeddingService.builder()
  *     .baseUrl("https://...")      // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-embedding-278m-multilingual")
  *     .build();
@@ -33,9 +33,9 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
  * );
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class EmbeddingService extends ModelService {
     private static final int MAX_SIZE = 1000;
@@ -43,14 +43,14 @@ public class EmbeddingService extends ModelService {
 
     private EmbeddingService(Builder builder) {
         super(builder);
-        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
         client = EmbeddingRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.authenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
     }
 
@@ -127,7 +127,7 @@ public class EmbeddingService extends ModelService {
      * <pre>{@code
      * EmbeddingService embeddingService = EmbeddingService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-embedding-278m-multilingual")
      *     .build();

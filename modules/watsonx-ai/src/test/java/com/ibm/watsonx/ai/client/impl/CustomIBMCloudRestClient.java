@@ -5,8 +5,8 @@
 package com.ibm.watsonx.ai.client.impl;
 
 import java.util.concurrent.CompletableFuture;
-import com.ibm.watsonx.ai.core.auth.iam.IBMCloudRestClient;
-import com.ibm.watsonx.ai.core.auth.iam.TokenResponse;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudRestClient;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.TokenResponse;
 
 public class CustomIBMCloudRestClient extends IBMCloudRestClient {
 

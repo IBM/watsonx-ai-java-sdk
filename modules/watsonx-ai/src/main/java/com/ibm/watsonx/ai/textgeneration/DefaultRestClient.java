@@ -36,9 +36,9 @@ final class DefaultRestClient extends TextGenerationRestClient {
 
     DefaultRestClient(Builder builder) {
         super(builder);
-        requireNonNull(authenticationProvider, "authenticationProvider is mandatory");
-        syncHttpClient = HttpClientFactory.createSync(authenticationProvider, LogMode.of(logRequests, logResponses));
-        asyncHttpClient = HttpClientFactory.createAsync(authenticationProvider, LogMode.of(logRequests, logResponses));
+        requireNonNull(authenticator, "authenticator is mandatory");
+        syncHttpClient = HttpClientFactory.createSync(authenticator, LogMode.of(logRequests, logResponses));
+        asyncHttpClient = HttpClientFactory.createAsync(authenticator, LogMode.of(logRequests, logResponses));
     }
 
     @Override

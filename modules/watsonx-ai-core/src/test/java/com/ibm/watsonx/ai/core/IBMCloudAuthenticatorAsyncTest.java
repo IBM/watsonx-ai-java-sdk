@@ -27,8 +27,8 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
@@ -45,7 +45,7 @@ public class IBMCloudAuthenticatorAsyncTest extends AbstractWatsonxTest {
             when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
                 .thenReturn(CompletableFuture.completedFuture(response));
 
-            AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
+            Authenticator authenticator = IBMCloudAuthenticator.builder()
                 .apiKey("my_super_api_key")
                 .build();
 
@@ -67,7 +67,7 @@ public class IBMCloudAuthenticatorAsyncTest extends AbstractWatsonxTest {
             when(mockHttpClient.<String>sendAsync(any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(response));
 
-            AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
+            Authenticator authenticator = IBMCloudAuthenticator.builder()
                 .apiKey("my_super_api_key")
                 .build();
 
@@ -89,7 +89,7 @@ public class IBMCloudAuthenticatorAsyncTest extends AbstractWatsonxTest {
             when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
                 .thenReturn(CompletableFuture.completedFuture(response));
 
-            AuthenticationProvider authenticator = IBMCloudAuthenticator.builder()
+            Authenticator authenticator = IBMCloudAuthenticator.builder()
                 .grantType("new_grant_type")
                 .timeout(Duration.ofSeconds(1))
                 .baseUrl(URI.create("http://mytest.com"))

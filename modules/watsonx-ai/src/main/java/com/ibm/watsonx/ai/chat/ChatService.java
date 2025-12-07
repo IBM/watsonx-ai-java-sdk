@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
  * Service for interacting with IBM watsonx.ai Text Chat APIs.
@@ -35,7 +35,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * <pre>{@code
  * ChatService chatService = ChatService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-4-h-small")
  *     .build();
@@ -46,9 +46,9 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * );
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class ChatService extends ModelService implements ChatProvider {
     public static final Logger logger = LoggerFactory.getLogger(ChatService.class);
@@ -59,20 +59,20 @@ public class ChatService extends ModelService implements ChatProvider {
 
     private ChatService(Builder builder) {
         super(builder);
-        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
         client = ChatRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.authenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
         if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
             chatProvider = new Builder()
-                .authenticationProvider(builder.authenticationProvider())
+                .authenticator(builder.authenticator())
                 .baseUrl(baseUrl)
                 .logRequests(logRequests)
                 .logResponses(logResponses)
@@ -443,7 +443,7 @@ public class ChatService extends ModelService implements ChatProvider {
      * <pre>{@code
      * ChatService chatService = ChatService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IAM-based AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
      *     .projectId("my-project-id")
      *     .modelId("ibm/granite-4-h-small")
      *     .build();

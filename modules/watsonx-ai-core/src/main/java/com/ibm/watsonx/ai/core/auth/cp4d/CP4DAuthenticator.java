@@ -16,11 +16,11 @@ import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
- * The {@code CP4DAuthenticator} class is an implementation of the {@link AuthenticationProvider} interface, responsible for authenticating with Cloud
- * Pack for Data supporting both IAM-based authentication and legacy username/password or API key authentication.
+ * The {@code CP4DAuthenticator} class is an implementation of the {@link Authenticator} interface, responsible for authenticating with Cloud Pack for
+ * Data supporting both IAM-based authentication and legacy username/password or API key authentication.
  * <p>
  * <b>Example usage:</b>
  *
@@ -33,7 +33,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *     .build();
  * }</pre>
  */
-public final class CP4DAuthenticator implements AuthenticationProvider {
+public final class CP4DAuthenticator implements Authenticator {
     private final URI baseUrl;
     private final String username;
     private final String password;

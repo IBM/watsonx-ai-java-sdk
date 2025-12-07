@@ -87,8 +87,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setup() {
-        when(mockAuthenticationProvider.token()).thenReturn("token");
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
     }
 
     @Test
@@ -97,7 +97,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             TextGenerationParameters parameters = TextGenerationParameters.builder()
@@ -158,7 +158,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             TextGenerationParameters parameters = TextGenerationParameters.builder()
@@ -215,7 +215,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .build();
 
         TextGenerationParameters parameters = TextGenerationParameters.builder()
@@ -295,7 +295,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .build();
 
         TextGenerationParameters parameters = TextGenerationParameters.builder()
@@ -371,7 +371,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .logResponses(true)
             .build();
 
@@ -410,7 +410,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             ChatParameters parameters = ChatParameters.builder()
@@ -491,7 +491,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .build();
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -618,7 +618,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .logResponses(true)
             .build();
 
@@ -650,7 +650,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .build();
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -678,7 +678,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .withChunkedDribbleDelay(159, 200)
                 .withBody(BODY)));
 
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         ChatRequest chatRequest = ChatRequest.builder()
@@ -771,7 +771,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         DeploymentService deploymentService = DeploymentService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .build();
 
         InputSchema inputSchema = InputSchema.builder()
@@ -903,7 +903,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var response = deploymentService.findById(
@@ -967,7 +967,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var response = deploymentService.findById(
@@ -1040,7 +1040,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var response = deploymentService.findById(
@@ -1173,7 +1173,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var response = deploymentService.findById(
@@ -1225,11 +1225,11 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
             mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
-            when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-token"));
+            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var request = ChatRequest.builder()
@@ -1270,7 +1270,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
 
@@ -1310,7 +1310,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var textGenerationRequest = TextGenerationRequest.builder()
@@ -1385,13 +1385,13 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 }
             }""";
 
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
         withWatsonxServiceMock(() -> {
             var deploymentService = DeploymentService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .baseUrl(CloudRegion.LONDON)
                 .messageInterceptor((ctx, message) -> "New message")
                 .toolInterceptor((ctx, fc) -> fc.withArguments(Json.fromJson(fc.arguments(), String.class)))
@@ -1454,13 +1454,13 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 }
             }""";
 
-        when(mockAuthenticationProvider.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
         withWatsonxServiceMock(() -> {
             var deploymentService = DeploymentService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .baseUrl(CloudRegion.LONDON)
                 .messageInterceptor((ctx, message) -> "I don't feel good.")
                 .build();
@@ -1588,10 +1588,10 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                         """)));
 
         var httpPort = wireMock.getPort();
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var delpoymentService = DeploymentService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .toolInterceptor((ctx, fc) -> fc)
             .messageInterceptor((ctx, message) -> "I don't feel good.")
@@ -1689,10 +1689,10 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                         """)));
 
         var httpPort = wireMock.getPort();
-        when(mockAuthenticationProvider.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
 
         var deploymentService = DeploymentService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
             .toolInterceptor((ctx, fc) -> fc.withName("new_name").withArguments(Json.fromJson(fc.arguments(), String.class)))
             .build();

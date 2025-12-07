@@ -41,7 +41,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setup() {
-        when(mockAuthenticationProvider.token()).thenReturn("token");
+        when(mockAuthenticator.token()).thenReturn("token");
     }
 
     @Test
@@ -79,7 +79,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .logRequests(true)
                 .logResponses(true)
                 .timeout(Duration.ofSeconds(10))
@@ -132,7 +132,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
         withWatsonxServiceMock(() -> {
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var utilityTools = toolService.getByName("GoogleSearch");
@@ -163,7 +163,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var body = ToolRequest.unstructuredInput("GoogleSearch", "test");
@@ -204,7 +204,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
                 var toolService = ToolService.builder()
                     .baseUrl(CloudRegion.FRANKFURT)
-                    .authenticationProvider(mockAuthenticationProvider)
+                    .authenticator(mockAuthenticator)
                     .build();
 
                 assertThrows(RuntimeException.class, () -> toolService.getAll());
@@ -234,7 +234,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.LONDON)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var googleSearch = new GoogleSearchTool(toolService);
@@ -285,7 +285,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.LONDON)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var tavilySearch = new TavilySearchTool(toolService, "apiKey");
@@ -345,7 +345,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.MUMBAI)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var webcrawler = new WebCrawlerTool(toolService);
@@ -381,7 +381,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.SYDNEY)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var weather = new WeatherTool(toolService);
@@ -427,7 +427,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.TOKYO)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var wikipedia = new WikipediaTool(toolService);
@@ -461,7 +461,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
             var toolService = ToolService.builder()
                 .baseUrl(CloudRegion.DALLAS)
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .build();
 
             var python = new PythonInterpreterTool(toolService, "my-deployment-id");

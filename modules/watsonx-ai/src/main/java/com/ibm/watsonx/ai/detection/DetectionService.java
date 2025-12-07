@@ -6,7 +6,7 @@ package com.ibm.watsonx.ai.detection;
 
 import static java.util.Objects.requireNonNull;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
  * Service class to interact with IBM watsonx.ai Text Detection APIs.
@@ -16,7 +16,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * <pre>{@code
  * DetectionService detectionService = DetectionService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .build();
  *
@@ -28,23 +28,23 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  * );
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class DetectionService extends ProjectService {
     private final DetectionRestClient client;
 
     private DetectionService(Builder builder) {
         super(builder);
-        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
         client = DetectionRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.authenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
     }
 
@@ -64,7 +64,7 @@ public class DetectionService extends ProjectService {
      * <pre>{@code
      * DetectionService detectionService = DetectionService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
      *     .projectId("my-project-id")
      *     .build();
      *

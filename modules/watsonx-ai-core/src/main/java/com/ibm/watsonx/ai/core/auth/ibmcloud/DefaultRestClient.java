@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core.auth.iam;
+package com.ibm.watsonx.ai.core.auth.ibmcloud;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import java.io.IOException;

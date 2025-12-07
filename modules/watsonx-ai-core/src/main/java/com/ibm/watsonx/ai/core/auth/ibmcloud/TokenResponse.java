@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core.auth.iam;
+package com.ibm.watsonx.ai.core.auth.ibmcloud;
 
 /**
  * Represents the response body returned by the IBM Cloud IAM token authentication endpoint.

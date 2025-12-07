@@ -151,7 +151,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
     @Test
     void should_detect_pii_and_hap_entities_request() {
 
-        when(mockAuthenticationProvider.token()).thenReturn("token");
+        when(mockAuthenticator.token()).thenReturn("token");
 
         wireMock.stubFor(post("/ml/v1/text/detection?version=%s".formatted(API_VERSION))
             .withRequestBody(equalToJson("""
@@ -195,7 +195,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
 
 
         DetectionService service = DetectionService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .baseUrl("http://localhost:%s".formatted(wireMock.getPort()))
             .projectId("project-id")
             .build();
@@ -238,7 +238,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             DetectionService service = DetectionService.builder()
-                .authenticationProvider(mockAuthenticationProvider)
+                .authenticator(mockAuthenticator)
                 .baseUrl(CloudRegion.DALLAS)
                 .projectId("project-id")
                 .build();
@@ -268,7 +268,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                 "status_code": 400
             }""";
 
-        when(mockAuthenticationProvider.token()).thenReturn("token");
+        when(mockAuthenticator.token()).thenReturn("token");
 
         wireMock.stubFor(post("/ml/v1/text/detection?version=%s".formatted(API_VERSION))
             .withRequestBody(equalToJson("""
@@ -284,7 +284,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                 .withBody(EXCEPTION)));
 
         DetectionService service = DetectionService.builder()
-            .authenticationProvider(mockAuthenticationProvider)
+            .authenticator(mockAuthenticator)
             .baseUrl("http://localhost:%s".formatted(wireMock.getPort()))
             .projectId("project-id")
             .build();

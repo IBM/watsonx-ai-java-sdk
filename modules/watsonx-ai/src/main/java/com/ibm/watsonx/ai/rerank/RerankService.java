@@ -9,7 +9,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.List;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.rerank.RerankRequest.Parameters;
 import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
 
@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  * <pre>{@code
  * RerankService rerankService = RerankService.builder()
  *     .baseUrl("https://...")      // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
  *     .build();
@@ -36,23 +36,23 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  * );
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class RerankService extends ModelService {
     private final RerankRestClient client;
 
     private RerankService(Builder builder) {
         super(builder);
-        requireNonNull(builder.authenticationProvider(), "authenticationProvider cannot be null");
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
         client = RerankRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.authenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
     }
 
@@ -113,7 +113,7 @@ public class RerankService extends ModelService {
      * <pre>{@code
      * RerankService rerankService = RerankService.builder()
      *     .baseUrl("https://...")      // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
      *     .projectId("my-project-id")
      *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
      *     .build();

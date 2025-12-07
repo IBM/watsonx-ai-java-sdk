@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.core.auth.iam;
+package com.ibm.watsonx.ai.core.auth.ibmcloud;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
@@ -14,11 +14,11 @@ import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
- * The {@code IBMCloudAuthenticator} class is an implementation of the {@link AuthenticationProvider} interface, responsible for authenticating with
- * IBM Cloud Identity and Access Management using an API key.
+ * The {@code IBMCloudAuthenticator} class is an implementation of the {@link Authenticator} interface, responsible for authenticating with IBM Cloud
+ * Identity and Access Management using an API key.
  * <p>
  * <b>Example usage:</b>
  *
@@ -28,7 +28,7 @@ import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
  *     .build();
  * }</pre>
  */
-public final class IBMCloudAuthenticator implements AuthenticationProvider {
+public final class IBMCloudAuthenticator implements Authenticator {
     private final URI baseUrl;
     private final String apiKey;
     private final String grantType;

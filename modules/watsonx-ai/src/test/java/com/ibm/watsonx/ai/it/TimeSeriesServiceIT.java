@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.timeseries.ForecastData;
 import com.ibm.watsonx.ai.timeseries.InputSchema;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
@@ -28,13 +28,13 @@ public class TimeSeriesServiceIT {
     static final String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
     static final String URL = System.getenv("WATSONX_URL");
 
-    static final AuthenticationProvider authentication = IBMCloudAuthenticator.builder()
+    static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
         .build();
 
     static final TimeSeriesService timeSeriesService = TimeSeriesService.builder()
         .baseUrl(URL)
-        .authenticationProvider(authentication)
+        .authenticator(authentication)
         .projectId(PROJECT_ID)
         .modelId("ibm/granite-ttm-512-96-r2")
         .logRequests(true)

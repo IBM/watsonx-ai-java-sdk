@@ -7,7 +7,7 @@ package com.ibm.watsonx.ai.foundationmodel;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import com.ibm.watsonx.ai.WatsonxService;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 /**
@@ -26,7 +26,7 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  * var maxSequenceLength = result.maxSequenceLength();
  * }</pre>
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class FoundationModelService extends WatsonxService {
     private final boolean techPreview;

@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
-import com.ibm.watsonx.ai.core.auth.iam.IBMCloudAuthenticator;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
@@ -22,14 +22,14 @@ public class EmbeddingServiceIT {
     static final String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
     static final String URL = System.getenv("WATSONX_URL");
 
-    static final AuthenticationProvider authentication = IBMCloudAuthenticator.builder()
+    static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
         .build();
 
     static final EmbeddingService embeddingService = EmbeddingService.builder()
         .baseUrl(URL)
         .projectId(PROJECT_ID)
-        .authenticationProvider(authentication)
+        .authenticator(authentication)
         .modelId("ibm/granite-embedding-278m-multilingual")
         .logRequests(true)
         .logResponses(true)

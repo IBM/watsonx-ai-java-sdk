@@ -27,7 +27,7 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
-import com.ibm.watsonx.ai.core.auth.AuthenticationProvider;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationProvider;
@@ -48,13 +48,13 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
  * <pre>{@code
  * DeploymentService deploymentService = DeploymentService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
- *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
+ *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .build();
  * }</pre>
  *
- * To use a custom authentication mechanism, configure it explicitly with {@code authenticationProvider(AuthenticationProvider)}.
+ * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  *
- * @see AuthenticationProvider
+ * @see Authenticator
  */
 public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
@@ -71,13 +71,13 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
-            .authenticationProvider(builder.authenticationProvider())
+            .authenticator(builder.authenticator())
             .build();
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
         if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
             chatProvider = new Builder()
-                .authenticationProvider(builder.authenticationProvider())
+                .authenticator(builder.authenticator())
                 .baseUrl(baseUrl)
                 .logRequests(logRequests)
                 .logResponses(logResponses)
@@ -304,7 +304,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      * <pre>{@code
      * DeploymentService deploymentService = DeploymentService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
-     *     .apiKey("my-api-key")    // creates an IBM Cloud AuthenticationProvider
+     *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
      *     .build();
      * }</pre>
      *
