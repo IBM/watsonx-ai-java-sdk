@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat;
 
+import java.util.concurrent.ExecutorService;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -20,6 +21,10 @@ public interface ChatHandler {
     /**
      * Called whenever a partial chat response chunk is received. This method may be invoked multiple times during the lifecycle of a single chat
      * request.
+     * <p>
+     * This method <b>is executed on the same thread</b> that handles the streaming process. If this method performs blocking operations (e.g., I/O,
+     * heavy computation), it is recommended to delegate those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the
+     * streaming thread.
      *
      * @param partialResponse the partial chunk of the response received
      * @param partialChatResponse the partial chat response
@@ -28,6 +33,10 @@ public interface ChatHandler {
 
     /**
      * Called once the full chat response has been received and the stream is complete. This marks the end of the response sequence.
+     * <p>
+     * This method <b>is executed on the same thread</b> that handles the streaming process. If this method performs blocking operations (e.g., I/O,
+     * heavy computation), it is recommended to delegate those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the
+     * streaming thread.
      *
      * @param completeResponse the full chat response
      */
@@ -35,40 +44,47 @@ public interface ChatHandler {
 
     /**
      * Called if an error occurs during the chat streaming process. This terminates the stream and no further responses will be delivered.
+     * <p>
+     * This method <b>is executed on the same thread</b> that handles the streaming process. If this method performs blocking operations (e.g., I/O,
+     * heavy computation), it is recommended to delegate those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the
+     * streaming thread.
      *
      * @param error the exception that was thrown
      */
     void onError(Throwable error);
 
     /**
-     * This callback is invoked each time the model generates a partial tool call, which may contain a fragment (token) of the tool's arguments.
+     * This callback is invoked each time the model generates a partial tool call, which may contain a fragment of the tool's arguments.
      * <p>
      * It is typically invoked multiple times for a single tool call until {@link #onCompleteToolCall(CompletedToolCall)} is invoked, indicating that
      * the tool call is fully assembled.
+     * <p>
+     * This method <b>is executed on the same thread</b> that handles the streaming process. If this method performs blocking operations (e.g., I/O,
+     * heavy computation), it is recommended to delegate those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the
+     * streaming thread.
      *
      * @param partialToolCall A partial tool call fragment containing index, tool ID, tool name, and partial arguments.
      */
-    default void onPartialToolCall(PartialToolCall partialToolCall) {
-        // Invoked whenever a partial tool call is detected during the streaming process
-    }
+    default void onPartialToolCall(PartialToolCall partialToolCall) {}
 
     /**
      * Invoked once the model has finished streaming a single tool call and the arguments are fully assembled.
+     * <p>
+     * This method <b>is executed on the same thread</b> as the streaming process. If this method performs blocking operations (e.g., I/O, heavy
+     * computation), it is recommended to handle threading separately using an {@link ExecutorService}.
      *
      * @param completeToolCall The completed tool call.
      */
-    default void onCompleteToolCall(CompletedToolCall completeToolCall) {
-        // Allows triggering actions as soon as the complete tool call is available, without necessarily waiting for the full assistant response to
-        // finish streaming.
-    }
+    default void onCompleteToolCall(CompletedToolCall completeToolCall) {}
 
     /**
      * Called whenever a partial segment of the assistant's reasoning process is received during streaming.
      * <p>
      * This method may be invoked multiple times if the reasoning content is streamed in multiple chunks.
      * <p>
-     * <b>Note:</b> For this handler to work, {@link ExtractionTags} must be configured in the {@code ChatService} so that reasoning tags can be
-     * detected in the stream.
+     * This method <b>is executed on the same thread</b> that handles the streaming process. If this method performs blocking operations (e.g., I/O,
+     * heavy computation), it is recommended to delegate those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the
+     * streaming thread.
      *
      * @param partialThinking the raw partial text of the reasoning content
      * @param partialChatResponse the structured partial chat response

@@ -136,9 +136,9 @@ public record AssistantMessage(
      * @param executor the executor responsible for running the tool call logic
      * @return a list of {@link ToolMessage} objects generated from each tool call, or an empty list if no tool calls are present
      */
-    public List<ChatMessage> processTools(ToolExecutor executor) {
+    public List<ToolMessage> processTools(ToolExecutor executor) {
         return !hasToolCalls()
             ? List.of()
-            : toolCalls.stream().map(toolCall -> toolCall.processTools(executor)).toList();
+            : toolCalls.stream().map(toolCall -> toolCall.processTool(executor)).toList();
     }
 }

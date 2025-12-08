@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.InternalChatHandler;
+import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
@@ -187,7 +187,8 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         if (nonNull(messageInterceptor)) {
 
-            var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
+            var newChoices = messageInterceptor.intercept(
+                new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -195,7 +196,8 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         if (nonNull(toolInterceptor)) {
 
-            var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
+            var newChoices = toolInterceptor.intercept(
+                new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -266,7 +268,11 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             timeout,
             extractionTags,
             textChatRequest,
-            new InternalChatHandler(new InterceptorContext(chatProvider, chatRequest, null), handler, toolInterceptor)
+            new ChatHandlerDecorator(
+                new InterceptorContext(chatProvider, chatRequest, null),
+                handler,
+                toolInterceptor
+            )
         );
     }
 

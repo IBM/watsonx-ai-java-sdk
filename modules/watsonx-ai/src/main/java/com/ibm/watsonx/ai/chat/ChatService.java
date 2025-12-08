@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
+import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
@@ -158,7 +159,8 @@ public class ChatService extends ModelService implements ChatProvider {
 
         if (nonNull(messageInterceptor)) {
 
-            var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
+            var newChoices = messageInterceptor.intercept(
+                new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -166,7 +168,8 @@ public class ChatService extends ModelService implements ChatProvider {
 
         if (nonNull(toolInterceptor)) {
 
-            var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
+            var newChoices = toolInterceptor.intercept(
+                new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -250,7 +253,11 @@ public class ChatService extends ModelService implements ChatProvider {
             parameters.transactionId(),
             extractionTags,
             textChatRequest,
-            new InternalChatHandler(new InterceptorContext(chatProvider, chatRequest, null), handler, toolInterceptor)
+            new ChatHandlerDecorator(
+                new InterceptorContext(chatProvider, chatRequest, null),
+                handler,
+                toolInterceptor
+            )
         );
     }
 

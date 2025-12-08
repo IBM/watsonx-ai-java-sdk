@@ -86,7 +86,6 @@ public class FoundationModelService extends WatsonxService {
      *
      *            <p>
      *            <b>Filter Syntax:</b>
-     *            </p>
      *
      *            <pre>
      *                pattern: tfilter[,tfilter][:(or|and)]
@@ -95,7 +94,6 @@ public class FoundationModelService extends WatsonxService {
      *
      *            <p>
      *            <b>Explanation:</b>
-     *            </p>
      *            <ul>
      *            <li><code>filter</code> requires the presence of a specific attribute.</li>
      *            <li><code>!filter</code> requires the absence of a specific attribute.</li>
@@ -105,7 +103,6 @@ public class FoundationModelService extends WatsonxService {
      *
      *            <p>
      *            <b>Supported filter types (prefixes):</b>
-     *            </p>
      *            <ul>
      *            <li><code>modelid_*</code>: Filter by specific model ID</li>
      *            <li><code>provider_*</code>: Filter by model provider (e.g., IBM, Meta)</li>

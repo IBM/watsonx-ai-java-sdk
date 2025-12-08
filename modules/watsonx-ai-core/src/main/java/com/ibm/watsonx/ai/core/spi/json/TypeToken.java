@@ -20,7 +20,6 @@ public abstract class TypeToken<T> {
      * <p>
      * This constructor extracts the actual type parameter {@code T} from the subclass's generic superclass. If the generic type information is not
      * present, it throws an {@link IllegalStateException}.
-     * </p>
      *
      * @throws IllegalStateException if the {@code TypeToken} is not created with generic type information
      */

@@ -181,7 +181,7 @@ public final class ChatRequest {
          *
          * @param messages one or more {@link ChatMessage} objects to set
          */
-        public Builder messages(List<ChatMessage> messages) {
+        public Builder messages(List<? extends ChatMessage> messages) {
             if (nonNull(messages))
                 this.messages = new LinkedList<>(messages);
             return this;
@@ -207,7 +207,7 @@ public final class ChatRequest {
          *
          * @param messages one or more {@link ChatMessage} objects to add
          */
-        public Builder addMessages(List<ChatMessage> messages) {
+        public Builder addMessages(List<? extends ChatMessage> messages) {
             if (isNull(messages) || messages.isEmpty())
                 return this;
 

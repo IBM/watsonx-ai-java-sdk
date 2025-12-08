@@ -2,9 +2,11 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.chat;
+package com.ibm.watsonx.ai.chat.decorator;
 
 import static java.util.Objects.nonNull;
+import com.ibm.watsonx.ai.chat.ChatHandler;
+import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
@@ -12,28 +14,38 @@ import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 
 /**
- * Internal extension of ChatHandler that allows interceptors to transform {@code CompletedToolCall} during streaming, and return the normalized
- * version back to the subscriber.
+ * A {@link ChatHandler} decorator that intercepts and optionally transforms {@link CompletedToolCall} instances using a {@link ToolInterceptor}
+ * before delegating all callbacks to the wrapped {@link ChatHandler}.
  */
-public class InternalChatHandler implements ChatHandler {
+public class ChatHandlerDecorator implements ChatHandler {
     private final InterceptorContext context;
     private final ChatHandler delegate;
     private final ToolInterceptor toolInterceptor;
 
-    public InternalChatHandler(InterceptorContext context, ChatHandler delegate, ToolInterceptor toolInterceptor) {
+    /**
+     * Constructs a new {@link ChatHandlerDecorator}.
+     * <p>
+     * This decorator wraps a {@link ChatHandler} delegate and applies a {@link ToolInterceptor} to {@link CompletedToolCall} instances before
+     * forwarding them to the delegate. All other callbacks (partial responses, partial thinking, partial tool calls, errors, and complete responses)
+     * are directly delegated without modification.
+     *
+     * @param context the {@link InterceptorContext} providing contextual information for the interceptor
+     * @param delegate the underlying {@link ChatHandler} to which all callbacks will be forwarded
+     * @param toolInterceptor the {@link ToolInterceptor} used to transform {@link CompletedToolCall} instances
+     */
+    public ChatHandlerDecorator(InterceptorContext context, ChatHandler delegate, ToolInterceptor toolInterceptor) {
         this.context = context;
         this.delegate = delegate;
         this.toolInterceptor = toolInterceptor;
     }
 
     /**
-     * Applies normalization and transformation logic to the given {@link CompletedToolCall} and returns the modified instance that should replace the
-     * original one in the streaming pipeline.
+     * Intercepts and transforms the given {@link CompletedToolCall}, then forwards it to the delegate.
      *
-     * @param completeToolCall the fully assembled {@link CompletedToolCall} produced from streamed fragments
-     * @return the normalized or transformed {@link CompletedToolCall}
+     * @param completeToolCall the {@link CompletedToolCall} to intercept and forward
+     * @return the (potentially modified) {@link CompletedToolCall}
      */
-    public CompletedToolCall normalizeToolCall(CompletedToolCall completeToolCall) {
+    public CompletedToolCall normalizeAndInvoke(CompletedToolCall completeToolCall) {
 
         if (nonNull(toolInterceptor))
             completeToolCall = toolInterceptor.intercept(context, completeToolCall);
@@ -56,9 +68,6 @@ public class InternalChatHandler implements ChatHandler {
     public void onError(Throwable error) {
         delegate.onError(error);
     }
-
-    @Override
-    public void onCompleteToolCall(CompletedToolCall completeToolCall) {}
 
     @Override
     public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
