@@ -12,5 +12,6 @@ package com.ibm.watsonx.ai.core.auth.cp4d;
  */
 public enum AuthMode {
     LEGACY,
-    IAM
+    IAM,
+    ZEN_API_KEY,
 }

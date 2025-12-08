@@ -5,6 +5,9 @@
 package com.ibm.watsonx.ai.core.auth.cp4d;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
+import static com.ibm.watsonx.ai.core.Json.toJson;
+import static java.util.Objects.nonNull;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -13,9 +16,10 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import com.ibm.watsonx.ai.core.Json;
+import java.util.function.Function;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
@@ -37,32 +41,20 @@ class DefaultRestClient extends CP4DRestClient {
 
     @Override
     public TokenResponse token(TokenRequest request) {
-
         try {
-
-            var response = syncHttpClient.send(createTokenRequest(request), BodyHandlers.ofString());
-            var tokenResponse = parseTokenResponse(response);
-
             return switch(authMode) {
-                case LEGACY -> tokenResponse;
-                case IAM -> {
-                    response =
-                        syncHttpClient.send(
-                            createIamValidationRequest(request.username(), tokenResponse.accessToken()),
-                            BodyHandlers.ofString());
-
-                    var json = Json.fromJson(response.body(), new TypeToken<Map<String, Object>>() {});
-                    yield new TokenResponse(
-                        String.valueOf(json.containsKey("accessToken") ? json.get("accessToken") : json.get("token")),
-                        tokenResponse.refreshToken(),
-                        tokenResponse.tokenType(),
-                        tokenResponse.expiresIn(),
-                        tokenResponse.expiration(),
-                        tokenResponse.scope()
-                    );
+                case LEGACY -> {
+                    var response = syncHttpClient.send(createTokenRequest(request), BodyHandlers.ofString());
+                    yield parseTokenResponse(response);
                 }
+                case IAM -> {
+                    var response = syncHttpClient.send(createTokenRequest(request), BodyHandlers.ofString());
+                    var tokenResponse = parseTokenResponse(response);
+                    var httpRequest = createIamValidationRequest(request.username(), tokenResponse.accessToken());
+                    yield createTokenResponseForIAM(syncHttpClient.send(httpRequest, BodyHandlers.ofString()), tokenResponse);
+                }
+                case ZEN_API_KEY -> createTokenResponseForZenApiKey(request);
             };
-
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -70,27 +62,23 @@ class DefaultRestClient extends CP4DRestClient {
 
     @Override
     public CompletableFuture<TokenResponse> asyncToken(TokenRequest request) {
-        return asyncHttpClient
-            .send(createTokenRequest(request), BodyHandlers.ofString())
-            .thenApplyAsync(this::parseTokenResponse, ExecutorProvider.cpuExecutor())
-            .thenComposeAsync(tokenResponse -> {
-                return switch(authMode) {
-                    case LEGACY -> CompletableFuture.completedFuture(tokenResponse);
-                    case IAM -> asyncHttpClient
-                        .send(createIamValidationRequest(request.username(), tokenResponse.accessToken()), BodyHandlers.ofString())
-                        .thenApplyAsync(validateResp -> {
-                            var json = Json.fromJson(validateResp.body(), new TypeToken<Map<String, Object>>() {});
-                            return new TokenResponse(
-                                String.valueOf(json.containsKey("accessToken") ? json.get("accessToken") : json.get("token")),
-                                tokenResponse.refreshToken(),
-                                tokenResponse.tokenType(),
-                                tokenResponse.expiresIn(),
-                                tokenResponse.expiration(),
-                                tokenResponse.scope()
-                            );
-                        }, ExecutorProvider.cpuExecutor());
-                };
-            }, ExecutorProvider.ioExecutor());
+        return switch(authMode) {
+            case LEGACY -> asyncHttpClient
+                .send(createTokenRequest(request), BodyHandlers.ofString())
+                .thenApplyAsync(this::parseTokenResponse, ExecutorProvider.cpuExecutor())
+                .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
+            case IAM -> asyncHttpClient
+                .send(createTokenRequest(request), BodyHandlers.ofString())
+                .thenComposeAsync(response -> {
+                    var tokenResponse = parseTokenResponse(response);
+                    var httpRequest = createIamValidationRequest(request.username(), tokenResponse.accessToken());
+                    return asyncHttpClient
+                        .send(httpRequest, BodyHandlers.ofString())
+                        .thenApplyAsync(httpResponse -> createTokenResponseForIAM(httpResponse, tokenResponse), ExecutorProvider.ioExecutor());
+                })
+                .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
+            case ZEN_API_KEY -> completedFuture(createTokenResponseForZenApiKey(request));
+        };
     }
 
     /*
@@ -114,9 +102,10 @@ class DefaultRestClient extends CP4DRestClient {
         return switch(authMode) {
             case IAM -> fromJson(response.body(), TokenResponse.class);
             case LEGACY -> {
-                var json = Json.fromJson(response.body(), new TypeToken<Map<String, Object>>() {});
+                var json = fromJson(response.body(), new TypeToken<Map<String, Object>>() {});
                 yield new TokenResponse(String.valueOf(json.get("token")), null, null, null, null, null);
             }
+            case ZEN_API_KEY -> throw new IllegalStateException("parseTokenResponse should not be called when authMode is ZEN_API_KEY");
         };
     }
 
@@ -136,30 +125,56 @@ class DefaultRestClient extends CP4DRestClient {
      * Builds the HTTP request used to obtain an authentication token.
      */
     private HttpRequest createTokenRequest(TokenRequest request) {
+        return switch(authMode) {
+            case IAM -> HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl.toString().concat("/idprovider/v1/auth/identitytoken")))
+                .timeout(timeout)
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(BodyPublishers.ofString(
+                    "grant_type=password&username=%s&password=%s&scope=openid".formatted(
+                        encode(request.username()), encode(request.password())
+                    )))
+                .build();
+            case LEGACY -> HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl.toString().concat("/icp4d-api/v1/authorize")))
+                .timeout(timeout)
+                .header("Content-Type", "application/json")
+                .POST(BodyPublishers.ofString(toJson(request)))
+                .build();
+            case ZEN_API_KEY -> throw new IllegalStateException("createTokenRequest should not be called when authMode is ZEN_API_KEY");
+        };
+    }
 
-        String path = null;
-        String contentType = null;
-        String body = null;
+    /**
+     * Creates a {@link TokenResponse} for Zen API Key authentication.
+     *
+     * @param request The {@link TokenRequest} containing the username, API key, or password.
+     * @return A {@link TokenResponse} containing the base64-encoded access token.
+     */
+    private TokenResponse createTokenResponseForZenApiKey(TokenRequest request) {
+        var username = request.username();
+        var password = nonNull(request.apiKey()) ? request.apiKey() : request.password();
+        var accessToken = Base64.getEncoder().encodeToString("%s:%s".formatted(username, password).getBytes());
+        return new TokenResponse(accessToken, null, null, null, null, null);
+    }
 
-        switch(authMode) {
-            case IAM -> {
-                path = "/idprovider/v1/auth/identitytoken";
-                contentType = "application/x-www-form-urlencoded";
-                body = "grant_type=password&username=%s&password=%s&scope=openid".formatted(encode(request.username()), encode(request.password()));
-            }
-            case LEGACY -> {
-                path = "/icp4d-api/v1/authorize";
-                contentType = "application/json";
-                body = Json.toJson(request);
-            }
-        }
-
-        return HttpRequest.newBuilder()
-            .uri(URI.create(baseUrl.toString().concat(path)))
-            .timeout(timeout)
-            .header("Content-Type", contentType)
-            .POST(BodyPublishers.ofString(body))
-            .build();
+    /**
+     * Creates a {@link TokenResponse} for IAM authentication.
+     *
+     * @param httpResponse The HTTP response containing the IAM authentication information.
+     * @param tokenResponse The original {@link TokenResponse} that contains some pre-existing token data like refresh token.
+     * @return A {@link TokenResponse} populated with the access token and other token details.
+     */
+    private TokenResponse createTokenResponseForIAM(HttpResponse<String> httpResponse, TokenResponse tokenResponse) {
+        var json = fromJson(httpResponse.body(), new TypeToken<Map<String, Object>>() {});
+        return new TokenResponse(
+            String.valueOf(json.containsKey("accessToken") ? json.get("accessToken") : json.get("token")),
+            tokenResponse.refreshToken(),
+            tokenResponse.tokenType(),
+            tokenResponse.expiresIn(),
+            tokenResponse.expiration(),
+            tokenResponse.scope()
+        );
     }
 
     /**
