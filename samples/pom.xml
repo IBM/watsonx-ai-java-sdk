@@ -25,6 +25,7 @@
     <module>utility-tools</module>
     <module>deployment</module>
     <module>detection</module>
+    <module>cp4d-authentication</module>
   </modules>
 
   <licenses>
