@@ -584,4 +584,95 @@ public class JsonSchemaTest {
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(schema), true);
     }
+
+    @Test
+    void should_add_additional_properties_to_object_schema() {
+
+        JSONAssert.assertEquals("""
+            {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": {
+                    "type": "string"
+                }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("name", JsonSchema.string())
+                    .additionalProperties(JsonSchema.string())
+                    .build()
+            ), true);
+
+        JSONAssert.assertEquals("""
+            {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("name", JsonSchema.string())
+                    .additionalProperties(false)
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_add_multiple_of_property() {
+
+        JSONAssert.assertEquals("""
+            {
+                "type": "object",
+                "properties": {
+                    "age": {
+                        "type": "integer",
+                        "multipleOf": 5
+                    },
+                    "height": {
+                        "type": "number",
+                        "multipleOf": 0.1
+                    }
+                }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("age", JsonSchema.integer().multipleOf(5))
+                    .property("height", JsonSchema.number().multipleOf(0.1))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_use_pattern_properties() {
+
+        JSONAssert.assertEquals("""
+            {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "patternProperties": {
+                    "^DEPT-[0-9]{3}$": {
+                        "type": "string",
+                        "pattern": "^[A-Z]+$"
+                    }
+                }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("name", JsonSchema.string())
+                    .patternProperty("^DEPT-[0-9]{3}$", JsonSchema.string().pattern("^[A-Z]+$"))
+                    .build()
+            ), true);
+    }
 }

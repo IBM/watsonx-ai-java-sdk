@@ -372,6 +372,9 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("exclusiveMaximum")
         abstract Integer exclusiveMaximum();
+
+        @JsonProperty("multipleOf")
+        abstract Integer multipleOf();
     }
 
     public abstract static class JsonSchemaMixin {
@@ -397,8 +400,11 @@ public class WatsonxJacksonModule extends SimpleModule {
         @JsonProperty("maxProperties")
         public abstract Integer maxProperties();
 
+        @JsonProperty("patternProperties")
+        public abstract Map<String, JsonSchema> patternProperties();
+
         @JsonProperty("additionalProperties")
-        public abstract JsonSchema additionalProperties();
+        public abstract Object additionalProperties();
     }
 
     public abstract static class NumberSchemaMixin {
@@ -414,6 +420,9 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("exclusiveMaximum")
         abstract Integer exclusiveMaximum();
+
+        @JsonProperty("multipleOf")
+        abstract Double multipleOf();
     }
 
     public abstract static class StringSchemaMixin {

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
+import static java.util.Objects.requireNonNullElse;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,10 +27,11 @@ import java.util.Map;
  */
 public final class ObjectSchema extends JsonSchema {
     private final Map<String, JsonSchema> properties;
+    private final Map<String, JsonSchema> patternProperties;
     private final List<String> required;
     private final Integer minProperties;
     private final Integer maxProperties;
-    private final JsonSchema additionalProperties;
+    private final Object additionalProperties;
 
     private ObjectSchema(Builder builder) {
         super(builder.nullable ? List.of("object", "null") : "object", builder);
@@ -37,6 +39,7 @@ public final class ObjectSchema extends JsonSchema {
         required = builder.required;
         minProperties = builder.minProperties;
         maxProperties = builder.maxProperties;
+        patternProperties = builder.patternProperties;
         additionalProperties = builder.additionalProperties;
     }
 
@@ -56,8 +59,12 @@ public final class ObjectSchema extends JsonSchema {
         return maxProperties;
     }
 
-    public JsonSchema additionalProperties() {
+    public Object additionalProperties() {
         return additionalProperties;
+    }
+
+    public Map<String, JsonSchema> patternProperties() {
+        return patternProperties;
     }
 
     /**
@@ -86,9 +93,10 @@ public final class ObjectSchema extends JsonSchema {
      */
     public static final class Builder extends JsonSchema.Builder<Builder, ObjectSchema> {
         private Map<String, JsonSchema> properties;
+        private Map<String, JsonSchema> patternProperties;
         private Integer minProperties;
         private Integer maxProperties;
-        private JsonSchema additionalProperties;
+        private Object additionalProperties;
         private List<String> required;
 
         private Builder() {
@@ -125,6 +133,47 @@ public final class ObjectSchema extends JsonSchema {
          */
         public Builder maxProperties(int maxProperties) {
             this.maxProperties = maxProperties;
+            return this;
+        }
+
+        /**
+         * Adds a pattern-based property definition to the object schema.
+         *
+         * @param name the regex pattern for the property name
+         * @param schema the schema describing the property's structure
+         */
+        public Builder patternProperty(String name, JsonSchema.Builder<?, ?> schema) {
+            patternProperties = requireNonNullElse(patternProperties, new LinkedHashMap<>());
+            patternProperties.put(name, schema.build());
+            return this;
+        }
+
+        /**
+         * Enables or disables additional properties for the object schema.
+         *
+         * @param enable whether to enable additional properties (true) or disable them (false).
+         */
+        public Builder additionalProperties(Boolean enable) {
+            additionalProperties = enable;
+            return this;
+        }
+
+        /**
+         * Sets a specific schema for additional properties.
+         *
+         * @param schema the schema to apply to additional properties.
+         */
+        public Builder additionalProperties(JsonSchema.Builder<?, ?> schema) {
+            return additionalProperties(schema.build());
+        }
+
+        /**
+         * Sets a specific schema for additional properties.
+         *
+         * @param schema the schema to apply to additional properties.
+         */
+        public Builder additionalProperties(JsonSchema schema) {
+            additionalProperties = schema;
             return this;
         }
 

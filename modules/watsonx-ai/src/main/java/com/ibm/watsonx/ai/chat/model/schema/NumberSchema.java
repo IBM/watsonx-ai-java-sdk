@@ -25,6 +25,7 @@ public final class NumberSchema extends JsonSchema {
     private final Integer maximum;
     private final Integer exclusiveMinimum;
     private final Integer exclusiveMaximum;
+    private final Double multipleOf;
 
     private NumberSchema(Builder builder) {
         super(builder.nullable ? List.of("number", "null") : "number", builder);
@@ -32,6 +33,7 @@ public final class NumberSchema extends JsonSchema {
         this.maximum = builder.maximum;
         this.exclusiveMinimum = builder.exclusiveMinimum;
         this.exclusiveMaximum = builder.exclusiveMaximum;
+        this.multipleOf = builder.multipleOf;
     }
 
     public Integer minimum() {
@@ -48,6 +50,10 @@ public final class NumberSchema extends JsonSchema {
 
     public Integer exclusiveMaximum() {
         return exclusiveMaximum;
+    }
+
+    public Double multipleOf() {
+        return multipleOf;
     }
 
     /**
@@ -77,6 +83,7 @@ public final class NumberSchema extends JsonSchema {
         private Integer maximum;
         private Integer exclusiveMinimum;
         private Integer exclusiveMaximum;
+        private Double multipleOf;
 
         private Builder() {}
 
@@ -117,6 +124,16 @@ public final class NumberSchema extends JsonSchema {
          */
         public Builder exclusiveMaximum(int exclusiveMaximum) {
             this.exclusiveMaximum = exclusiveMaximum;
+            return this;
+        }
+
+        /**
+         * Sets the value that the number must be a multiple of.
+         *
+         * @param multipleOf the value to which the number must be a multiple.
+         */
+        public Builder multipleOf(Double multipleOf) {
+            this.multipleOf = multipleOf;
             return this;
         }
 

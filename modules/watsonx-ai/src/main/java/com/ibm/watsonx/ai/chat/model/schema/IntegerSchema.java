@@ -25,13 +25,15 @@ public final class IntegerSchema extends JsonSchema {
     private final Integer maximum;
     private final Integer exclusiveMinimum;
     private final Integer exclusiveMaximum;
+    private final Integer multipleOf;
 
     private IntegerSchema(Builder builder) {
         super(builder.nullable ? List.of("integer", "null") : "integer", builder);
-        this.minimum = builder.minimum;
-        this.maximum = builder.maximum;
-        this.exclusiveMinimum = builder.exclusiveMinimum;
-        this.exclusiveMaximum = builder.exclusiveMaximum;
+        minimum = builder.minimum;
+        maximum = builder.maximum;
+        exclusiveMinimum = builder.exclusiveMinimum;
+        exclusiveMaximum = builder.exclusiveMaximum;
+        multipleOf = builder.multipleOf;
     }
 
     public Integer minimum() {
@@ -48,6 +50,10 @@ public final class IntegerSchema extends JsonSchema {
 
     public Integer exclusiveMaximum() {
         return exclusiveMaximum;
+    }
+
+    public Integer multipleOf() {
+        return multipleOf;
     }
 
     /**
@@ -77,6 +83,7 @@ public final class IntegerSchema extends JsonSchema {
         private Integer maximum;
         private Integer exclusiveMinimum;
         private Integer exclusiveMaximum;
+        private Integer multipleOf;
 
         private Builder() {}
 
@@ -117,6 +124,16 @@ public final class IntegerSchema extends JsonSchema {
          */
         public Builder exclusiveMaximum(int exclusiveMaximum) {
             this.exclusiveMaximum = exclusiveMaximum;
+            return this;
+        }
+
+        /**
+         * Sets the value that the integer must be a multiple of.
+         *
+         * @param multipleOf the value to which the integer must be a multiple.
+         */
+        public Builder multipleOf(Integer multipleOf) {
+            this.multipleOf = multipleOf;
             return this;
         }
 
