@@ -31,8 +31,16 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient$CustomIBMCloudRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
-            "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DRestClientBuilderFactory",
-            "com.ibm.watsonx.ai.client.impl.CustomCP4DRestClient$CustomCP4DRestClientBuilderFactory");
+            "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DLegacyRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomCP4DLegacyRestClient$CustomCP4DLegacyRestClientBuilderFactory");
+
+        createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DIAMRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomCP4DIAMRestClient$CustomCP4DIAMRestClientBuilderFactory");
+
+        createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DZenRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomCP4DZenRestClient$CustomCP4DZenRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
             "com.ibm.watsonx.ai.deployment.DeploymentRestClient$DeploymentRestClientBuilderFactory",

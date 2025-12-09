@@ -18,11 +18,9 @@ import java.util.function.Supplier;
 public abstract class CP4DRestClient {
     protected final URI baseUrl;
     protected final Duration timeout;
-    protected final AuthMode authMode;
 
     protected CP4DRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl is mandatory");
-        authMode = requireNonNullElse(builder.authMode, AuthMode.LEGACY);
         timeout = builder.timeout;
     }
 
@@ -41,15 +39,34 @@ public abstract class CP4DRestClient {
     public abstract CompletableFuture<TokenResponse> asyncToken(TokenRequest request);
 
     /**
-     * Creates a new {@link Builder} using the first available {@link CP4DRestClientBuilderFactory} discovered via {@link ServiceLoader}.
+     * Creates a new {@link Builder} by loading the first available {@code CP4D*RestClientBuilderFactory} discovered via {@link ServiceLoader},
+     * selecting the appropriate factory based on the specified {@link AuthMode}.
      * <p>
-     * If no factory is found, falls back to the default {@link DefaultRestClient}.
+     * The behavior of this method varies depending on the chosen authentication mode:
+     * <ul>
+     * <li><b>{@link AuthMode#IAM}</b> → loads a {@link CP4DIAMRestClientBuilderFactory}</li>
+     * <li><b>{@link AuthMode#LEGACY}</b> → loads a {@link CP4DLegacyRestClientBuilderFactory}</li>
+     * <li><b>{@link AuthMode#ZEN_API_KEY}</b> → loads a {@link CP4DZenRestClientBuilderFactory}</li>
+     * </ul>
+     * If no implementation is found for the selected mode, the method falls back to the corresponding default REST client builder.
+     *
+     * @param authMode the authentication mode used to select which type of REST client builder to load
+     * @return a {@link Builder} instance appropriate for the selected authentication mode
      */
     @SuppressWarnings("rawtypes")
-    static CP4DRestClient.Builder builder() {
-        return ServiceLoader.load(CP4DRestClientBuilderFactory.class).findFirst()
-            .map(Supplier::get)
-            .orElse(DefaultRestClient.builder());
+    static Builder builder(AuthMode authMode) {
+        authMode = requireNonNullElse(authMode, AuthMode.LEGACY);
+        return switch(authMode) {
+            case IAM -> ServiceLoader.load(CP4DIAMRestClientBuilderFactory.class).findFirst()
+                .map(Supplier::get)
+                .orElse(DefaultIAMRestClient.builder());
+            case LEGACY -> ServiceLoader.load(CP4DLegacyRestClientBuilderFactory.class).findFirst()
+                .map(Supplier::get)
+                .orElse(DefaultLegacyRestClient.builder());
+            case ZEN_API_KEY -> ServiceLoader.load(CP4DZenRestClientBuilderFactory.class).findFirst()
+                .map(Supplier::get)
+                .orElse(DefaultZenRestClient.builder());
+        };
     }
 
     /**
@@ -59,7 +76,6 @@ public abstract class CP4DRestClient {
     public abstract static class Builder<T extends CP4DRestClient, B extends Builder<T, B>> {
         private URI baseUrl;
         private Duration timeout;
-        private AuthMode authMode;
 
         protected abstract T build();
 
@@ -72,18 +88,29 @@ public abstract class CP4DRestClient {
             this.timeout = timeout;
             return (B) this;
         }
-
-        public B authMode(AuthMode authMode) {
-            this.authMode = authMode;
-            return (B) this;
-        }
     }
 
     /**
-     * Service Provider Interface for supplying custom {@link Builder} implementations.
+     * Service Provider Interface for supplying custom {@link Builder} for Legacy implementations.
      * <p>
      * This allows frameworks to provide their own client implementations.
      */
     @SuppressWarnings("rawtypes")
-    public interface CP4DRestClientBuilderFactory extends Supplier<CP4DRestClient.Builder> {}
+    public interface CP4DLegacyRestClientBuilderFactory extends Supplier<CP4DRestClient.Builder> {}
+
+    /**
+     * Service Provider Interface for supplying custom {@link Builder} for IAM implementations.
+     * <p>
+     * This allows frameworks to provide their own client implementations.
+     */
+    @SuppressWarnings("rawtypes")
+    public interface CP4DIAMRestClientBuilderFactory extends Supplier<CP4DRestClient.Builder> {}
+
+    /**
+     * Service Provider Interface for supplying custom {@link Builder} for Zen implementations.
+     * <p>
+     * This allows frameworks to provide their own client implementations.
+     */
+    @SuppressWarnings("rawtypes")
+    public interface CP4DZenRestClientBuilderFactory extends Supplier<CP4DRestClient.Builder> {}
 }

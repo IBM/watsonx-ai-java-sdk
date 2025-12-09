@@ -28,7 +28,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *     .build();
  * }</pre>
  */
-public final class IBMCloudAuthenticator implements Authenticator {
+public class IBMCloudAuthenticator implements Authenticator {
     private final URI baseUrl;
     private final String apiKey;
     private final String grantType;

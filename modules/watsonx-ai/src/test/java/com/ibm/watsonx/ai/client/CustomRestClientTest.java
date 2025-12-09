@@ -9,7 +9,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.client.impl.CustomCP4DRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomCP4DIAMRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomCP4DLegacyRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomCP4DZenRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomChatRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomDetectionRestClient;
@@ -24,6 +26,7 @@ import com.ibm.watsonx.ai.client.impl.CustomTimeSeriesRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTokenizationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomToolRestClient;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
@@ -85,20 +88,56 @@ public class CustomRestClientTest {
     }
 
     @Test
-    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DRestClientBuilderFactory
-    public void should_use_custom_rest_client_when_building_cp4d_provider() throws Exception {
+    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DLegacyRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_cp4d_legacy_provider() throws Exception {
 
         Authenticator authenticator = CP4DAuthenticator.builder()
             .baseUrl("https://localhost")
             .username("username")
-            .apiKey("api-key")
+            .password("password")
             .build();
 
         Class<CP4DAuthenticator> clazz = CP4DAuthenticator.class;
         var clientField = clazz.getDeclaredField("client");
         clientField.setAccessible(true);
         var client = clientField.get(authenticator);
-        assertTrue(client instanceof CustomCP4DRestClient);
+        assertTrue(client instanceof CustomCP4DLegacyRestClient);
+    }
+
+    @Test
+    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DIAMRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_cp4d_iam_provider() throws Exception {
+
+        Authenticator authenticator = CP4DAuthenticator.builder()
+            .baseUrl("https://localhost")
+            .username("username")
+            .password("password")
+            .authMode(AuthMode.IAM)
+            .build();
+
+        Class<CP4DAuthenticator> clazz = CP4DAuthenticator.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(authenticator);
+        assertTrue(client instanceof CustomCP4DIAMRestClient);
+    }
+
+    @Test
+    // resources/META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DZenRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_cp4d_zen_provider() throws Exception {
+
+        Authenticator authenticator = CP4DAuthenticator.builder()
+            .baseUrl("https://localhost")
+            .username("username")
+            .password("password")
+            .authMode(AuthMode.ZEN_API_KEY)
+            .build();
+
+        Class<CP4DAuthenticator> clazz = CP4DAuthenticator.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(authenticator);
+        assertTrue(client instanceof CustomCP4DZenRestClient);
     }
 
     @Test
