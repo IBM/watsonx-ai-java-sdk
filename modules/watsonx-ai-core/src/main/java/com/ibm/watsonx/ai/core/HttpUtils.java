@@ -31,8 +31,8 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
  */
 public final class HttpUtils {
 
-    private static final Pattern BEARER_PATTERN =
-        Pattern.compile("(Bearer\\s*)(\\w{4})(\\w+)(\\w{4})");
+    private static final Pattern AUTHORIZATION_PATTERN =
+        Pattern.compile("(\\w+\\s)(\\w{4})(\\w+)(\\w{4})");
 
     /**
      * Prevents direct instantiation of the {@code Builder}.
@@ -202,7 +202,7 @@ public final class HttpUtils {
     //
     private static String maskAuthorizationHeaderValue(String authorizationHeaderValue) {
 
-        Matcher matcher = BEARER_PATTERN.matcher(authorizationHeaderValue);
+        Matcher matcher = AUTHORIZATION_PATTERN.matcher(authorizationHeaderValue);
 
         StringBuilder sb = new StringBuilder();
         while (matcher.find()) {

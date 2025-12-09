@@ -10,6 +10,8 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
+import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
@@ -45,8 +47,11 @@ public final class BearerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
     // Creates a copy of the given request with the Authorization header set to use the Bearer token.
     private HttpRequest requestWithBearer(HttpRequest request, String token) {
+        var authorization = authenticator instanceof CP4DAuthenticator auth && auth.isAuthMode(AuthMode.ZEN_API_KEY)
+            ? "ZenApiKey %s".formatted(token)
+            : "Bearer %s".formatted(token);
         return HttpRequest.newBuilder(request, (key, value) -> true)
-            .header("Authorization", "Bearer %s".formatted(token))
+            .header("Authorization", authorization)
             .build();
     }
 }

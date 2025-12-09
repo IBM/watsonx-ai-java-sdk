@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -28,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.apache.hc.client5.http.utils.Base64;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -408,6 +410,20 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 }
             });
         }
+
+        @Test
+        void should_use_zen_api_key_authentication_mode() {
+
+            Authenticator authenticator = CP4DAuthenticator.builder()
+                .username("username")
+                .baseUrl(URI.create("http://my-url"))
+                .apiKey("api_key")
+                .authMode(AuthMode.ZEN_API_KEY)
+                .build();
+
+            var encoded = Base64.encodeBase64String("username:api_key".getBytes());
+            assertEquals(encoded, authenticator.token());
+        }
     }
 
     @Nested
@@ -575,6 +591,21 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     fail(e);
                 }
             });
+        }
+
+        @Test
+        void should_use_zen_api_key_authentication_mode() {
+
+            CP4DAuthenticator authenticator = CP4DAuthenticator.builder()
+                .username("username")
+                .baseUrl(URI.create("http://my-url"))
+                .apiKey("api_key")
+                .authMode(AuthMode.ZEN_API_KEY)
+                .build();
+
+            var encoded = Base64.encodeBase64String("username:api_key".getBytes());
+            assertEquals(encoded, assertDoesNotThrow(() -> authenticator.asyncToken().get()));
+            assertTrue(authenticator.isAuthMode(AuthMode.ZEN_API_KEY));
         }
 
         @Test

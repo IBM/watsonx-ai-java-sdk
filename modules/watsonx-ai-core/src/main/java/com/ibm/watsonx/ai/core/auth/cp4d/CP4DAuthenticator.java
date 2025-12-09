@@ -4,8 +4,8 @@
  */
 package com.ibm.watsonx.ai.core.auth.cp4d;
 
-import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.IAM;
 import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.LEGACY;
+import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.ZEN_API_KEY;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
@@ -50,11 +50,16 @@ public final class CP4DAuthenticator implements Authenticator {
         authMode = requireNonNullElse(builder.authMode, LEGACY);
         username = requireNonNull(builder.username, "The username parameter is mandatory");
 
-        if (authMode.equals(IAM) && isNull(password))
-            throw new NullPointerException("IAM authentication requires a password");
-
-        if (authMode.equals(LEGACY) && isNull(password) && isNull(apiKey))
-            throw new NullPointerException("Either password or apiKey must be provided");
+        switch(authMode) {
+            case IAM -> {
+                if (isNull(password))
+                    throw new NullPointerException("IAM authentication requires a password");
+            }
+            case LEGACY, ZEN_API_KEY -> {
+                if (isNull(password) && isNull(apiKey))
+                    throw new NullPointerException("Either password or apiKey must be provided");
+            }
+        }
 
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl parameter is mandatory");
         timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(60));
@@ -93,6 +98,16 @@ public final class CP4DAuthenticator implements Authenticator {
     }
 
     /**
+     * Checks if the current authentication mode matches the provided {@link AuthMode}.
+     *
+     * @param authMode The {@link AuthMode} to compare against the current authentication mode.
+     * @return {@code true} if the current authentication mode matches the provided {@link AuthMode}, {@code false} otherwise.
+     */
+    public boolean isAuthMode(AuthMode authMode) {
+        return this.authMode.equals(authMode);
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>
@@ -119,7 +134,7 @@ public final class CP4DAuthenticator implements Authenticator {
         if (isNull(token))
             return true;
 
-        if (authMode.equals(LEGACY))
+        if (authMode.equals(LEGACY) || authMode.equals(ZEN_API_KEY))
             return false;
 
         Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
