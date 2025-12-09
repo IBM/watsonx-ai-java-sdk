@@ -5,7 +5,6 @@
 package com.ibm.watsonx.ai.core.auth.cp4d;
 
 import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.LEGACY;
-import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.ZEN_API_KEY;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
@@ -33,7 +32,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *     .build();
  * }</pre>
  */
-public final class CP4DAuthenticator implements Authenticator {
+public class CP4DAuthenticator implements Authenticator {
     private final URI baseUrl;
     private final String username;
     private final String password;
@@ -44,16 +43,18 @@ public final class CP4DAuthenticator implements Authenticator {
     private final AtomicReference<TokenResponse> token;
 
     private CP4DAuthenticator(Builder builder) {
+        baseUrl = requireNonNull(builder.baseUrl, "BaseUrl must be provided");
+        username = requireNonNull(builder.username, "Username must be provided");
+        timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(60));
+        authMode = requireNonNullElse(builder.authMode, LEGACY);
         apiKey = builder.apiKey;
         password = builder.password;
         token = new AtomicReference<>();
-        authMode = requireNonNullElse(builder.authMode, LEGACY);
-        username = requireNonNull(builder.username, "The username parameter is mandatory");
 
         switch(authMode) {
             case IAM -> {
                 if (isNull(password))
-                    throw new NullPointerException("IAM authentication requires a password");
+                    throw new NullPointerException("Password must be provided");
             }
             case LEGACY, ZEN_API_KEY -> {
                 if (isNull(password) && isNull(apiKey))
@@ -61,12 +62,9 @@ public final class CP4DAuthenticator implements Authenticator {
             }
         }
 
-        baseUrl = requireNonNull(builder.baseUrl, "The baseUrl parameter is mandatory");
-        timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(60));
-        client = CP4DRestClient.builder()
+        client = CP4DRestClient.builder(authMode)
             .baseUrl(baseUrl)
             .timeout(timeout)
-            .authMode(authMode)
             .build();
     }
 
@@ -134,11 +132,13 @@ public final class CP4DAuthenticator implements Authenticator {
         if (isNull(token))
             return true;
 
-        if (authMode.equals(LEGACY) || authMode.equals(ZEN_API_KEY))
-            return false;
-
-        Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
-        return expiration.after(new Date()) ? false : true;
+        return switch(authMode) {
+            case IAM -> {
+                Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
+                yield expiration.after(new Date()) ? false : true;
+            }
+            case LEGACY, ZEN_API_KEY -> false;
+        };
     }
 
     /**

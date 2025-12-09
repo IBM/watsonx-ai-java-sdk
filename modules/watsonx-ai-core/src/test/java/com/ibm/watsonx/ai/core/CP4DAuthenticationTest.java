@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.core;
 
+import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.IAM;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -259,9 +260,15 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void should_fail_if_both_password_and_api_key_are_not_set() throws Exception {
+        void should_fail_if_mandatory_parameters_are_not_set_for_legacy_authentication() throws Exception {
 
             var ex = assertThrows(NullPointerException.class, () -> CP4DAuthenticator.builder()
+                .baseUrl(URI.create("http://my-url"))
+                .build()
+            );
+            assertEquals("Username must be provided", ex.getMessage());
+
+            ex = assertThrows(NullPointerException.class, () -> CP4DAuthenticator.builder()
                 .username("username")
                 .baseUrl(URI.create("http://my-url"))
                 .build()
@@ -270,22 +277,51 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void should_catch_the_io_exception_correctly() throws Exception {
+        void should_fail_if_mandatory_parameters_are_not_set_for_iam_authentication() {
 
-            HttpResponse<String> response = mock(HttpResponse.class);
-            when(response.statusCode()).thenReturn(200);
-            when(response.body()).thenReturn("""
-                {
-                    "_messageCode_": "200",
-                    "message": "Success",
-                    "token": "access-token"
-                }""");
+            var ex = assertThrows(NullPointerException.class, () -> CP4DAuthenticator.builder()
+                .baseUrl("https://localhost")
+                .authMode(AuthMode.IAM)
+                .build()
+                .token());
+            assertEquals("Username must be provided", ex.getMessage());
 
+            ex = assertThrows(NullPointerException.class, () -> CP4DAuthenticator.builder()
+                .baseUrl("https://localhost")
+                .username("username")
+                .authMode(AuthMode.IAM)
+                .build()
+                .token());
+            assertEquals("Password must be provided", ex.getMessage());
+        }
+
+        @Test
+        void should_fail_if_mandatory_parameters_are_not_set_for_zen_authentication() {
+
+            var ex = assertThrows(NullPointerException.class, () -> CP4DAuthenticator.builder()
+                .baseUrl(URI.create("http://my-url"))
+                .authMode(AuthMode.ZEN_API_KEY)
+                .build()
+                .token()
+            );
+            assertEquals("Username must be provided", ex.getMessage());
+
+            ex = assertThrows(NullPointerException.class, () -> CP4DAuthenticator.builder()
+                .username("username")
+                .baseUrl(URI.create("http://my-url"))
+                .authMode(AuthMode.ZEN_API_KEY)
+                .build()
+                .token()
+            );
+            assertEquals("Either password or apiKey must be provided", ex.getMessage());
+        }
+
+        @Test
+        void should_catch_the_io_exception_correctly_for_legacy_authentication() throws Exception {
             withWatsonxServiceMock(() -> {
                 try {
                     when(mockHttpClient.<String>send(any(), any()))
-                        .thenThrow(new IOException("IOException"))
-                        .thenReturn(response);
+                        .thenThrow(new IOException("IOException"));
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
@@ -295,8 +331,29 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
                     var ex = assertThrows(RuntimeException.class, () -> authenticator.token());
                     assertEquals(ex.getMessage(), "IOException");
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
+        }
 
-                    assertEquals("access-token", authenticator.token());
+        @Test
+        void should_catch_the_io_exception_correctly_for_iam_authentication() throws Exception {
+            withWatsonxServiceMock(() -> {
+                try {
+                    when(mockHttpClient.<String>send(any(), any()))
+                        .thenThrow(new IOException("IOException"));
+
+                    Authenticator authenticator = CP4DAuthenticator.builder()
+                        .username("username")
+                        .password("password")
+                        .baseUrl("http://my-url/")
+                        .apiKey("my_api_key")
+                        .authMode(IAM)
+                        .build();
+
+                    var ex = assertThrows(RuntimeException.class, () -> authenticator.token());
+                    assertEquals(ex.getMessage(), "IOException");
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -357,17 +414,6 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
             });
         }
 
-
-        @Test
-        void should_fail_when_iam_enabled_without_password() {
-            var ex = assertThrows(NullPointerException.class, () -> CP4DAuthenticator.builder()
-                .baseUrl("https://localhost")
-                .username("username")
-                .authMode(AuthMode.IAM)
-                .build());
-            assertEquals("IAM authentication requires a password", ex.getMessage());
-        }
-
         @Test
         void should_refresh_token_when_existing_token_is_expired() throws Exception {
 
@@ -422,6 +468,16 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 .build();
 
             var encoded = Base64.encodeBase64String("username:api_key".getBytes());
+            assertEquals(encoded, authenticator.token());
+
+            authenticator = CP4DAuthenticator.builder()
+                .username("username")
+                .baseUrl(URI.create("http://my-url"))
+                .password("password")
+                .authMode(AuthMode.ZEN_API_KEY)
+                .build();
+
+            encoded = Base64.encodeBase64String("username:password".getBytes());
             assertEquals(encoded, authenticator.token());
         }
     }
