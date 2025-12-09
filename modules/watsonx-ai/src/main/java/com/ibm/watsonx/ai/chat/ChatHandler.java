@@ -43,7 +43,7 @@ public interface ChatHandler {
     void onCompleteResponse(ChatResponse completeResponse);
 
     /**
-     * Called if an error occurs during the chat streaming process. This terminates the stream and no further responses will be delivered.
+     * Called if an error occurs during the chat streaming process.
      * <p>
      * This method <b>is executed on the same thread</b> that handles the streaming process. If this method performs blocking operations (e.g., I/O,
      * heavy computation), it is recommended to delegate those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the
@@ -54,10 +54,9 @@ public interface ChatHandler {
     void onError(Throwable error);
 
     /**
-     * This callback is invoked each time the model generates a partial tool call, which may contain a fragment of the tool's arguments.
-     * <p>
-     * It is typically invoked multiple times for a single tool call until {@link #onCompleteToolCall(CompletedToolCall)} is invoked, indicating that
-     * the tool call is fully assembled.
+     * This callback is invoked each time the model generates a partial tool call, which may contain a fragment of the tool's arguments. It is
+     * typically invoked multiple times for a single tool call until {@link #onCompleteToolCall(CompletedToolCall)} is invoked, indicating that the
+     * tool call is fully assembled.
      * <p>
      * This method <b>is executed on the same thread</b> that handles the streaming process. If this method performs blocking operations (e.g., I/O,
      * heavy computation), it is recommended to delegate those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the
@@ -79,8 +78,6 @@ public interface ChatHandler {
 
     /**
      * Called whenever a partial segment of the assistant's reasoning process is received during streaming.
-     * <p>
-     * This method may be invoked multiple times if the reasoning content is streamed in multiple chunks.
      * <p>
      * This method <b>is executed on the same thread</b> that handles the streaming process. If this method performs blocking operations (e.g., I/O,
      * heavy computation), it is recommended to delegate those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the

@@ -5,28 +5,21 @@
 package com.ibm.chatbot;
 
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
-import static java.util.Objects.nonNull;
 import java.net.URI;
-import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.chatbot.Tools.SendEmailArguments;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
-import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
-import com.ibm.watsonx.ai.chat.model.ToolMessage;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
-import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
@@ -62,7 +55,6 @@ public class AiService {
         chatService = ChatService.builder()
             .apiKey(apiKey)
             .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
             .modelId(modelId)
             .baseUrl(url)
             .build();
@@ -70,7 +62,6 @@ public class AiService {
         foundationModelService = FoundationModelService.builder()
             .apiKey(apiKey)
             .baseUrl(url)
-            .timeout(Duration.ofSeconds(60))
             .build();
 
         memory = new ChatMemory();
@@ -95,9 +86,13 @@ public class AiService {
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
                 var assistantMessage = completeResponse.toAssistantMessage();
+                memory.addMessage(assistantMessage);
 
-                if (nonNull(assistantMessage.toolCalls())) {
-                    handleToolCalls(assistantMessage, this)
+                if (assistantMessage.hasToolCalls()) {
+                    var toolMessages =
+                        assistantMessage.processTools((name, args) -> Tools.sendEmail(args.get("email"), args.get("subject"), args.get("body")));
+                    memory.addMessages(toolMessages);
+                    chatService.chatStreaming(memory.getMemory(), this)
                         .whenComplete((res, err) -> {
                             if (err != null)
                                 future.completeExceptionally(err);
@@ -116,19 +111,6 @@ public class AiService {
         });
 
         return future;
-    }
-
-    private CompletableFuture<Void> handleToolCalls(AssistantMessage assistantMessage, ChatHandler chatHandler) {
-        List<ChatMessage> messages = new ArrayList<>(memory.getMemory());
-        messages.add(assistantMessage);
-
-        for (var toolCall : assistantMessage.toolCalls()) {
-            var args = Json.fromJson(toolCall.function().arguments(), SendEmailArguments.class);
-            var result = Tools.sendEmail(args.email(), args.subject(), args.body());
-            messages.add(ToolMessage.of(String.valueOf(result), toolCall.id()));
-        }
-
-        return chatService.chatStreaming(messages, chatHandler);
     }
 
     public FoundationModel getModel() {

@@ -50,6 +50,6 @@ public class App {
             .build();
 
         System.out.println("USER: ".concat(message));
-        System.out.println("ASSISTANT: ".concat(deploymentService.chat(chatRequest).extractContent()));
+        System.out.println("ASSISTANT: ".concat(deploymentService.chat(chatRequest).toAssistantMessage().content()));
     }
 }

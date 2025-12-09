@@ -65,7 +65,7 @@ public class SyncHttpClientTest {
     }
 
     @Test
-    void test_send_request_with_interceptor() throws Exception {
+    void should_send_request_when_interceptors_are_configured() throws Exception {
 
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
@@ -95,7 +95,7 @@ public class SyncHttpClientTest {
     }
 
     @Test
-    void test_send_request_with_interceptors() throws Exception {
+    void should_send_request_when_interceptors_are_provided_as_list() throws Exception {
 
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
@@ -124,7 +124,7 @@ public class SyncHttpClientTest {
     }
 
     @Test
-    void test_send_request_without_interceptor() throws Exception {
+    void should_send_request_when_no_interceptors_are_configured() throws Exception {
 
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
@@ -141,7 +141,7 @@ public class SyncHttpClientTest {
     }
 
     @Test
-    void test_send_request_with_401() throws Exception {
+    void should_throw_watsonx_exception_when_response_status_is_401() throws Exception {
 
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()
@@ -174,7 +174,7 @@ public class SyncHttpClientTest {
     }
 
     @Test
-    void test_send_request_with_no_exception_body() throws Exception {
+    void should_throw_watsonx_exception_when_401_response_has_no_body() throws Exception {
 
         BodyHandler<String> handler = mock(BodyHandler.class);
         SyncHttpClient client = SyncHttpClient.builder()

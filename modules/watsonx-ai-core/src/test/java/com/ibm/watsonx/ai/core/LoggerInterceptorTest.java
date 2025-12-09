@@ -54,10 +54,10 @@ public class LoggerInterceptorTest {
 
     @Nested
     @SuppressWarnings("unchecked")
-    public class DefaultConstructor {
+    class DefaultConstructor {
 
         @Test
-        void test_headers() throws Exception {
+        void should_log_headers_properly_with_masking() throws Exception {
 
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost"))
@@ -90,7 +90,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_base64() throws Exception {
+        void should_log_base64_body_correctly() throws Exception {
 
             String body = "data:image/png;base64,AAAAAAAAAAAAAAAABBBBBBBBBBBBBBBCCCCCCCCCCCCCCCDDDDDDDDDDDDDD";
             HttpRequest request = HttpRequest.newBuilder()
@@ -109,7 +109,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_json() throws Exception {
+        void should_log_json_body_when_content_type_is_json() throws Exception {
 
             String json = "{\"name\":\"Alan\",\"last_name\":\"Wake\"}";
             HttpRequest request = HttpRequest.newBuilder()
@@ -132,7 +132,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_no_json_with_content_type_and_accept() throws Exception {
+        void should_log_non_json_body_even_with_json_content_type_header() throws Exception {
 
             String message = "This is clearly not a json";
             HttpRequest request = HttpRequest.newBuilder()
@@ -155,7 +155,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_text() throws Exception {
+        void should_log_text_body_with_text_content_type() throws Exception {
 
             String body = "Hello, world!";
             HttpRequest request = HttpRequest.newBuilder()
@@ -178,7 +178,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_empty_text() throws Exception {
+        void should_handle_null_response_body_when_logging() throws Exception {
 
             String body = "Hello, world!";
             HttpRequest request = HttpRequest.newBuilder()
@@ -201,7 +201,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_bytes() throws Exception {
+        void should_log_byte_array_response_body() throws Exception {
 
             String body = "Hello, world!";
             HttpRequest request = HttpRequest.newBuilder()
@@ -224,7 +224,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_input_stream() throws Exception {
+        void should_log_input_stream_response_body() throws Exception {
 
             InputStream requestBody = new ByteArrayInputStream("Hello, world!".getBytes());
             InputStream responseBody = new ByteArrayInputStream("Hello!".getBytes());
@@ -249,7 +249,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_file() throws Exception {
+        void should_log_file_response_body() throws Exception {
 
             Path path = Path.of(getClass().getClassLoader().getResource("test.txt").toURI());
             BodyHandler<Path> bodyHandler = HttpResponse.BodyHandlers.ofFile(path);
@@ -273,7 +273,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_ofLines() throws Exception {
+        void should_log_stream_of_lines_response() throws Exception {
 
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost"))
@@ -301,7 +301,7 @@ public class LoggerInterceptorTest {
         }
 
         @Test
-        void test_async() throws Exception {
+        void should_log_async_requests_and_responses() throws Exception {
 
             String body = "Hello, world!";
             HttpRequest request = HttpRequest.newBuilder()
@@ -323,70 +323,69 @@ public class LoggerInterceptorTest {
                 .intercept(request, HttpResponse.BodyHandlers.ofString(), 0, chain).get());
             verify(chain).proceed(any(), any());
         }
-    }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    void test_executor() throws Exception {
+        @Test
+        void should_use_correct_executors() throws Exception {
 
-        var threadNames = new ArrayList<>();
+            var threadNames = new ArrayList<>();
 
-        var cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-            threadNames.add(Thread.currentThread().getName());
-            r.run();
-        }, "cpu-thread"));
+            var cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+                threadNames.add(Thread.currentThread().getName());
+                r.run();
+            }, "cpu-thread"));
 
-        var ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-            threadNames.add(Thread.currentThread().getName());
-            r.run();
-        }, "io-thread"));
+            var ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
+                threadNames.add(Thread.currentThread().getName());
+                r.run();
+            }, "io-thread"));
 
-        var mockHttpResponse = mock(HttpResponse.class);
-        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
+            var mockHttpResponse = mock(HttpResponse.class);
+            when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
 
-        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
-            mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
-            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
+            try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
+                mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
+                mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
-            LoggerInterceptor interceptor = new LoggerInterceptor();
+                LoggerInterceptor interceptor = new LoggerInterceptor();
 
-            var client = AsyncHttpClient.builder()
-                .httpClient(httpClient)
-                .interceptor(interceptor)
-                .interceptor(new AsyncHttpInterceptor() {
-                    @Override
-                    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-                        int index, AsyncChain chain) {
-                        assertEquals("io-thread", Thread.currentThread().getName());
-                        threadNames.add(Thread.currentThread().getName());
-                        return chain.proceed(request, bodyHandler)
-                            .thenApplyAsync(Function.identity(), cpuExecutor)
-                            .thenApplyAsync(r -> {
-                                threadNames.add(Thread.currentThread().getName());
-                                return r;
-                            }, ioExecutor);
-                    }
-                }).build();
+                var client = AsyncHttpClient.builder()
+                    .httpClient(httpClient)
+                    .interceptor(interceptor)
+                    .interceptor(new AsyncHttpInterceptor() {
+                        @Override
+                        public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+                            int index, AsyncChain chain) {
+                            assertEquals("io-thread", Thread.currentThread().getName());
+                            threadNames.add(Thread.currentThread().getName());
+                            return chain.proceed(request, bodyHandler)
+                                .thenApplyAsync(Function.identity(), cpuExecutor)
+                                .thenApplyAsync(r -> {
+                                    threadNames.add(Thread.currentThread().getName());
+                                    return r;
+                                }, ioExecutor);
+                        }
+                    }).build();
 
-            client.send(HttpRequest.newBuilder()
-                .uri(URI.create("https://test.com"))
-                .GET().build(), BodyHandlers.ofString())
-                .get(3, TimeUnit.SECONDS);
+                client.send(HttpRequest.newBuilder()
+                    .uri(URI.create("https://test.com"))
+                    .GET().build(), BodyHandlers.ofString())
+                    .get(3, TimeUnit.SECONDS);
 
-            assertEquals(4, threadNames.size());
-            assertEquals("io-thread", threadNames.get(0));
-            assertEquals("io-thread", threadNames.get(1));
-            assertEquals("cpu-thread", threadNames.get(2));
-            assertEquals("io-thread", threadNames.get(3));
+                assertEquals(4, threadNames.size());
+                assertEquals("io-thread", threadNames.get(0));
+                assertEquals("io-thread", threadNames.get(1));
+                assertEquals("cpu-thread", threadNames.get(2));
+                assertEquals("io-thread", threadNames.get(3));
+            }
         }
     }
 
     @Nested
     @SuppressWarnings("unchecked")
-    public class Request {
+    class Request {
 
         @Test
-        void test_text() throws Exception {
+        void should_log_only_request_when_log_mode_is_request() throws Exception {
 
             String body = "Hello, world!";
             HttpRequest request = HttpRequest.newBuilder()
@@ -411,7 +410,7 @@ public class LoggerInterceptorTest {
     public class Response {
 
         @Test
-        void test_text() throws Exception {
+        void should_log_only_response_when_log_mode_is_response() throws Exception {
 
             String body = "Hello, world!";
             HttpRequest request = HttpRequest.newBuilder()
@@ -439,7 +438,7 @@ public class LoggerInterceptorTest {
     class Both {
 
         @Test
-        void test_text() throws Exception {
+        void should_log_both_request_and_response_when_log_mode_is_both() throws Exception {
 
             String body = "Hello, world!";
             HttpRequest request = HttpRequest.newBuilder()

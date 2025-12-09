@@ -5,24 +5,16 @@
 package com.ibm.chatbot;
 
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
-import static java.util.Objects.nonNull;
 import java.net.URI;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.chatbot.Tools.SendEmailArguments;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.chat.model.AssistantMessage;
-import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
-import com.ibm.watsonx.ai.chat.model.ToolMessage;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
-import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
@@ -38,7 +30,7 @@ public class AiService {
         "send_email",
         "Send an email to one or more users",
         JsonSchema.object()
-            .property("email", JsonSchema.string())
+            .property("emails", JsonSchema.array().items(JsonSchema.string()))
             .property("subject", JsonSchema.string())
             .property("body", JsonSchema.string())
             .required("email", "subject", "body")
@@ -53,7 +45,7 @@ public class AiService {
         var url = URI.create(config.getValue("WATSONX_URL", String.class));
         var apiKey = config.getValue("WATSONX_API_KEY", String.class);
         var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
-        modelId = config.getOptionalValue("WATSONX_MODEL_ID", String.class).orElse("mistralai/mistral-medium-2505");
+        modelId = config.getOptionalValue("WATSONX_MODEL_ID", String.class).orElse("ibm/granite-4-h-small");
 
         chatService = ChatService.builder()
             .apiKey(apiKey)
@@ -83,26 +75,16 @@ public class AiService {
 
         var response = chatService.chat(memory.getMemory(), parameters, EMAIL_TOOL);
         var assistantMessage = response.toAssistantMessage();
-
-        if (nonNull(assistantMessage.toolCalls())) {
-            assistantMessage = handleToolCalls(assistantMessage, parameters);
-        }
-
         memory.addMessage(assistantMessage);
-        return assistantMessage.content();
-    }
 
-    private AssistantMessage handleToolCalls(AssistantMessage assistantMessage, ChatParameters parameters) {
-        List<ChatMessage> messages = new ArrayList<>(memory.getMemory());
-        messages.add(assistantMessage);
-
-        for (var toolCall : assistantMessage.toolCalls()) {
-            var args = Json.fromJson(toolCall.function().arguments(), SendEmailArguments.class);
-            var result = Tools.sendEmail(args.emails(), args.subject(), args.body());
-            messages.add(ToolMessage.of(String.valueOf(result), toolCall.id()));
+        if (assistantMessage.hasToolCalls()) {
+            var toolMessages =
+                assistantMessage.processTools((name, args) -> Tools.sendEmail(args.get("emails"), args.get("subject"), args.get("body")));
+            memory.addMessages(toolMessages);
+            assistantMessage = chatService.chat(memory.getMemory(), parameters, EMAIL_TOOL).toAssistantMessage();
         }
 
-        return chatService.chat(messages, parameters).toAssistantMessage();
+        return assistantMessage.content();
     }
 
     public FoundationModel getModel() {

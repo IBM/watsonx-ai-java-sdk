@@ -50,7 +50,7 @@ public class App {
                     UserMessage.of(
                         TextContent.of("Write a short description of the image"),
                         ImageContent.from(path)
-                    )).extractContent();
+                    )).toAssistantMessage().content();
 
                 System.out.println("""
                     ----------------------------------------------------

@@ -122,7 +122,7 @@ public class ToolServiceIT {
 
     @Test
     @EnabledIfEnvironmentVariable(named = "TAVILY_SEARCH_API_KEY", matches = ".+")
-    void test_tashould_return_tavily_search_results_for_queryvily_search_tool() {
+    void should_return_tavily_search_results_for_queryvily_search_tool() {
         String tavilyApiKey = System.getenv("TAVILY_SEARCH_API_KEY");
         TavilySearchTool tavilySearchTool = new TavilySearchTool(toolService, tavilyApiKey);
         List<TavilySearchResult> results = tavilySearchTool.search("watsonx.ai java sdk", 1);

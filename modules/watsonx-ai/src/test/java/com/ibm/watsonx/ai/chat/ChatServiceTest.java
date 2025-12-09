@@ -4081,4 +4081,186 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         assertEquals("Germany", toolMessages.get(0).content());
         assertEquals("Italy", toolMessages.get(1).content());
     }
+
+    @Test
+    void should_stream_chat_response_and_process_thinking_and_tool_calls() {
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(33, 10)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.799Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":""}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.813Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":"We"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.821Z"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" need"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.828Z"}
+
+                        id: 5
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" to"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.835Z"}
+
+                        id: 6
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" get"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.843Z"}
+
+                        id: 7
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" current"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.850Z"}
+
+                        id: 8
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" time"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.857Z"}
+
+                        id: 9
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" in"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.865Z"}
+
+                        id: 10
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" Italy"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.872Z"}
+
+                        id: 11
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":"."}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.880Z"}
+
+                        id: 12
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" Use"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.887Z"}
+
+                        id: 13
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" get"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.894Z"}
+
+                        id: 14
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":"_current"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.901Z"}
+
+                        id: 15
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":"_time"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.909Z"}
+
+                        id: 16
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" function"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.916Z"}
+
+                        id: 17
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" with"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.924Z"}
+
+                        id: 18
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" country"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.931Z"}
+
+                        id: 19
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":" \\""}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.938Z"}
+
+                        id: 20
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":"Italy"}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.946Z"}
+
+                        id: 21
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"reasoning_content":"\\"."}}],"created":1765271581,"created_at":"2025-12-09T09:13:01.953Z"}
+
+                        id: 22
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"chatcmpl-tool-779a7d337bba480a924b2966b6d8b484","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.070Z"}
+
+                        id: 23
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\n"}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.077Z"}
+
+                        id: 24
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" "}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.084Z"}
+
+                        id: 25
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \\""}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.091Z"}
+
+                        id: 26
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"country"}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.099Z"}
+
+                        id: 27
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\":"}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.106Z"}
+
+                        id: 28
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \\""}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.113Z"}
+
+                        id: 29
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"Italy"}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.120Z"}
+
+                        id: 30
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"\\n"}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.128Z"}
+
+                        id: 31
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"}"}}]}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.135Z"}
+
+                        id: 32
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}],"created":1765271581,"created_at":"2025-12-09T09:13:02.142Z"}
+
+                        id: 33
+                        event: message
+                        data: {"id":"chatcmpl-24749ba5a9c44b6d8db37bd794bdf128","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[],"created":1765271581,"created_at":"2025-12-09T09:13:02.142Z","usage":{"completion_tokens":48,"prompt_tokens":128,"total_tokens":176}}
+                        """)));
+
+        var chatService = ChatService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .modelId("openai/gpt-oss-120b")
+            .projectId("project-id")
+            .authenticator(mockAuthenticator)
+            .build();
+
+        CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+        StringBuilder thinking = new StringBuilder();
+        chatService.chatStreaming("Message", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                future.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                thinking.append(partialThinking);
+            }
+        });
+
+        var chatResponse = assertDoesNotThrow(() -> future.get(3, TimeUnit.SECONDS));
+        assertEquals("We need to get current time in Italy. Use get_current_time function with country \"Italy\".",
+            chatResponse.toAssistantMessage().thinking());
+        assertEquals("We need to get current time in Italy. Use get_current_time function with country \"Italy\".", thinking.toString());
+        chatResponse.toAssistantMessage().processTools((toolName, toolArgs) -> {
+            assertEquals("get_current_time", toolName);
+            assertEquals("Italy", toolArgs.get("country"));
+            return "10:23";
+        });
+    }
 }
