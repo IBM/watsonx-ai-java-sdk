@@ -42,13 +42,13 @@ public class ExecutorProviderTest {
     }
 
     @Test
-    void test_shared_io_executor_with_custom_core() throws Exception {
+    void should_create_io_executor_with_custom_core_threads_from_environment() throws Exception {
         var instance = (ThreadPoolExecutor) ExecutorProvider.ioExecutor();
         assertEquals(3, instance.getCorePoolSize());
     }
 
     @Test
-    void test_shared_cpu_executor() throws Exception {
+    void should_return_singleton_forkjoinpool_for_cpu_executor() throws Exception {
         var instance = ExecutorProvider.cpuExecutor();
         assertEquals(instance, ExecutorProvider.cpuExecutor());
         assertInstanceOf(ForkJoinPool.class, instance);
@@ -56,7 +56,7 @@ public class ExecutorProviderTest {
 
 
     @Test
-    void test_shared_io_executor() throws Exception {
+    void should_provide_shared_io_executor_with_correct_thread_name_pattern() throws Exception {
         var instance = ExecutorProvider.ioExecutor();
         assertEquals(instance, ExecutorProvider.ioExecutor());
         CompletableFuture<String> future = new CompletableFuture<>();

@@ -14,7 +14,7 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 public class WatsonxErrorTest {
 
     @Test
-    void test_watsonx_error_1() {
+    void should_deserialize_watsonx_error() {
 
         var value = fromJson(
             """
@@ -47,7 +47,7 @@ public class WatsonxErrorTest {
     }
 
     @Test
-    void test_watsonx_error_2() {
+    void should_deserialize_watsonx_error_with_multiple_error_codes() {
 
         var value = fromJson("""
             {

@@ -33,7 +33,7 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 public class HttpUtilsTest {
 
     @Test
-    void test_extract_body_as_string_with_string() {
+    void should_extract_body_as_string_from_string() {
         HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
         when(mockHttpResponse.body()).thenReturn("test string body");
         String result = HttpUtils.extractBodyAsString(mockHttpResponse).get();
@@ -41,7 +41,7 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void test_extract_body_as_string_with_byte_array() {
+    void should_extract_body_as_string_from_byte_array() {
         HttpResponse<byte[]> mockHttpResponse = mock(HttpResponse.class);
         byte[] bytes = "test byte array body".getBytes(StandardCharsets.UTF_8);
         when(mockHttpResponse.body()).thenReturn(bytes);
@@ -50,7 +50,7 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void test_extract_body_as_string_with_input_stream() {
+    void should_extract_body_as_string_from_input_stream() {
         HttpResponse<InputStream> mockHttpResponse = mock(HttpResponse.class);
         ByteArrayInputStream inputStream = new ByteArrayInputStream("test input stream body".getBytes(StandardCharsets.UTF_8));
         when(mockHttpResponse.body()).thenReturn(inputStream);
@@ -59,7 +59,7 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void test_extract_body_as_string_with_stream() {
+    void should_extract_body_as_string_from_stream() {
         HttpResponse<Stream<String>> mockHttpResponse = mock(HttpResponse.class);
         Stream<String> stream = Stream.of("test", "stream", "body");
         when(mockHttpResponse.body()).thenReturn(stream);
@@ -68,7 +68,7 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void test_extract_body_as_string_with_path(@TempDir Path tempDir) throws IOException {
+    void should_extract_body_as_string_from_path(@TempDir Path tempDir) throws IOException {
         Path tempFile = Files.createTempFile(tempDir, "prefix-", ".txt");
         Files.write(tempFile, "test path body".getBytes(StandardCharsets.UTF_8));
         HttpResponse<Path> mockHttpResponse = mock(HttpResponse.class);
@@ -78,21 +78,21 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void test_in_one_line_empty_headers() {
+    void should_return_empty_string_when_formatting_empty_headers_in_one_line() {
         Map<String, List<String>> headers = Map.of();
         String result = HttpUtils.inOneLine(headers);
         assertEquals("", result);
     }
 
     @Test
-    void test_in_one_line_single_header() {
+    void should_format_single_header_correctly_in_one_line() {
         Map<String, List<String>> headers = Map.of("Test-Header", Arrays.asList("Value"));
         String result = HttpUtils.inOneLine(headers);
         assertEquals("[Test-Header: Value]", result);
     }
 
     @Test
-    void test_in_one_line_multiple_headers() {
+    void should_format_multiple_headers_correctly_in_one_line() {
         LinkedHashMap<String, List<String>> headers = new LinkedHashMap<>();
         headers.put("Test-Header-1", Arrays.asList("Value1"));
         headers.put("Test-Header-2", Arrays.asList("Value2"));
@@ -101,14 +101,18 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void test_in_one_line_mask_authorization_header_value() {
+    void should_mask_authorization_header_value_when_formatting_in_one_line() {
         Map<String, List<String>> headers = Map.of("Authorization", Arrays.asList("Bearer abc123def456"));
         String result = HttpUtils.inOneLine(headers);
         assertEquals("[Authorization: Bearer abc1...f456]", result);
+
+        headers = Map.of("Authorization", Arrays.asList("ZenApiKey abc123def456"));
+        result = HttpUtils.inOneLine(headers);
+        assertEquals("[Authorization: ZenApiKey abc1...f456]", result);
     }
 
     @Test
-    void test_parse_error_body_json() {
+    void should_parse_error_body_correctly_from_json() {
         WatsonxError watsonxError = new WatsonxError(400, "Internal Server Error", List.of(new Error("ERROR", "error", "error")));
         String jsonBody = Json.toJson(watsonxError);
         WatsonxError result = HttpUtils.parseErrorBody(400, jsonBody, "application/json");
@@ -116,7 +120,7 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void test_parse_error_body_xml() {
+    void should_parse_error_body_correctly_from_xml() {
         String xmlBody = """
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <Error>
@@ -133,7 +137,7 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void testParseErrorBody_UnsupportedContentType() {
+    void should_throw_runtime_exception_when_parsing_error_body_with_unsupported_content_type() {
         assertThrows(RuntimeException.class, () -> {
             HttpUtils.parseErrorBody(500, "test body", "text/plain");
         });

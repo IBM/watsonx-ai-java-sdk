@@ -79,8 +79,7 @@ public class RetryInterceptorTest {
     }
 
     @Test
-    void test_exponential_backoff_without_retry_interval() {
-
+    void should_throw_exception_when_exponential_backoff_enabled_without_retry_interval() {
         assertThrows(IllegalArgumentException.class, () -> RetryInterceptor.builder()
             .exponentialBackoff(true)
             .retryOn(NullPointerException.class)
@@ -104,7 +103,7 @@ public class RetryInterceptorTest {
         };
 
         @Test
-        void retry_with_default_values() throws Exception {
+        void should_retry_when_null_pointer_exception_occurs() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .retryOn(NullPointerException.class)
@@ -124,13 +123,13 @@ public class RetryInterceptorTest {
         }
 
         @Test
-        void retry_without_exception() throws Exception {
+        void should_throw_exception_when_no_exceptions_configured_for_retry() throws Exception {
             var ex = assertThrows(RuntimeException.class, () -> RetryInterceptor.builder().build());
             assertEquals("At least one exception must be specified", ex.getMessage());
         }
 
         @Test
-        void retry_only_with_exception() throws Exception {
+        void should_retry_specified_number_of_times_when_null_pointer_exception_occurs() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -157,7 +156,7 @@ public class RetryInterceptorTest {
         }
 
         @Test
-        void retry_with_exception_and_supplier() throws Exception {
+        void should_retry_when_exception_matches_and_supplier_condition_is_true() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -184,7 +183,7 @@ public class RetryInterceptorTest {
         }
 
         @Test
-        void retry_with_unhandled_exception() throws Exception {
+        void should_not_retry_when_exception_is_not_in_retry_list() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -210,7 +209,7 @@ public class RetryInterceptorTest {
         }
 
         @Test
-        void retry_with_result() throws Exception {
+        void should_succeed_after_retry_when_initial_request_fails() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -241,7 +240,7 @@ public class RetryInterceptorTest {
 
         @Test
         @SuppressWarnings("unchecked")
-        void retry_with_watsonx_exception() throws Exception {
+        void should_retry_when_watsonx_exception_has_token_expired_error() throws Exception {
 
             RetryInterceptor retryInterceptor = onTokenExpired(3);
 
@@ -287,7 +286,7 @@ public class RetryInterceptorTest {
 
         @Test
         @SuppressWarnings("unchecked")
-        void retry_with_tool_exception() throws Exception {
+        void should_retry_when_tool_exception_has_token_expired_error() throws Exception {
 
             RetryInterceptor retryInterceptor = onTokenExpired(3);
 
@@ -328,7 +327,7 @@ public class RetryInterceptorTest {
         }
 
         @Test
-        void retry_with_exponential_backoff_succeed_after_retry() throws Exception {
+        void should_retry_with_exponential_backoff_and_succeed_after_multiple_attempts() throws Exception {
             Duration timeout = Duration.ofMillis(10);
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -383,7 +382,7 @@ public class RetryInterceptorTest {
 
         @Test
         @SuppressWarnings("unchecked")
-        void retry_only_with_exception() throws Exception {
+        void should_retry_specified_number_of_times_when_null_pointer_exception_occurs() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -411,7 +410,7 @@ public class RetryInterceptorTest {
 
         @Test
         @SuppressWarnings("unchecked")
-        void retry_with_exception_and_supplier() throws Exception {
+        void should_retry_when_exception_matches_and_supplier_condition_is_true() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -439,7 +438,7 @@ public class RetryInterceptorTest {
 
         @Test
         @SuppressWarnings("unchecked")
-        void retry_with_unhandled_exception() throws Exception {
+        void should_not_retry_when_exception_is_not_in_retry_list() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -466,7 +465,7 @@ public class RetryInterceptorTest {
 
         @Test
         @SuppressWarnings("unchecked")
-        void retry_with_result() throws Exception {
+        void should_succeed_after_retry_when_initial_request_fails() throws Exception {
 
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -494,7 +493,7 @@ public class RetryInterceptorTest {
 
         @Test
         @SuppressWarnings("unchecked")
-        void retry_with_watsonx_exception() throws Exception {
+        void should_retry_when_watsonx_exception_has_token_expired_error() throws Exception {
 
             RetryInterceptor retryInterceptor = onTokenExpired(3);
 
@@ -551,7 +550,7 @@ public class RetryInterceptorTest {
 
         @Test
         @SuppressWarnings("unchecked")
-        void retry_with_exponential_backoff_succeed_after_retry() throws Exception {
+        void should_retry_with_exponential_backoff_and_succeed_after_multiple_attempts() throws Exception {
             Duration timeout = Duration.ofMillis(10);
             RetryInterceptor retryInterceptor = RetryInterceptor.builder()
                 .maxRetries(3)
@@ -587,7 +586,7 @@ public class RetryInterceptorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void test_executor() throws Exception {
+    void should_use_correct_executors() throws Exception {
 
         var threadNames = new ArrayList<>();
 

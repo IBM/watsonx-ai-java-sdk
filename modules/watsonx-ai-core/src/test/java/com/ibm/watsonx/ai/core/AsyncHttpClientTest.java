@@ -94,7 +94,7 @@ public class AsyncHttpClientTest {
     };
 
     @Test
-    void test_send_httpRequest_with_interceptor() throws Exception {
+    void should_send_http_request_with_interceptor() throws Exception {
 
         AsyncHttpClient client = AsyncHttpClient.builder()
             .httpClient(httpClient)
@@ -121,7 +121,7 @@ public class AsyncHttpClientTest {
     }
 
     @Test
-    void test_send_httpRequest_with_interceptors() throws Exception {
+    void should_send_http_request_with_multiple_interceptors() throws Exception {
 
         AsyncHttpClient client = AsyncHttpClient.builder()
             .httpClient(httpClient)
@@ -147,7 +147,7 @@ public class AsyncHttpClientTest {
     }
 
     @Test
-    void test_send_httpRequest_without_interceptor() throws Exception {
+    void should_send_http_request_without_interceptor() throws Exception {
 
         AsyncHttpClient client = AsyncHttpClient.builder()
             .httpClient(httpClient)
@@ -161,7 +161,7 @@ public class AsyncHttpClientTest {
     }
 
     @Test
-    void test_send_httpRequest_with_401() throws Exception {
+    void should_throw_exception_when_response_status_is_401() throws Exception {
 
         wireMock.stubFor(get(urlEqualTo("/test-401"))
             .willReturn(aResponse()
@@ -198,7 +198,7 @@ public class AsyncHttpClientTest {
 
 
     @Test
-    void test_send_httpRequest_with_no_exception_body() throws Exception {
+    void should_throw_exception_when_response_has_no_body() throws Exception {
 
         wireMock.stubFor(get(urlEqualTo("/test-401"))
             .willReturn(aResponse()
@@ -218,7 +218,7 @@ public class AsyncHttpClientTest {
     }
 
     @Test
-    void test_http_custom_executor() throws Exception {
+    void should_use_custom_executors() throws Exception {
 
         Executor executor = Executors.newCachedThreadPool();
 
@@ -229,7 +229,7 @@ public class AsyncHttpClientTest {
     }
 
     @Test
-    void test_async_responses_returned_in_order_of_completion_not_submission() throws Exception {
+    void should_return_async_responses_in_order_of_completion_not_submission() throws Exception {
 
         var url = "http://localhost:%s/my-path".formatted(wireMock.getPort());
 
