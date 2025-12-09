@@ -44,7 +44,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  */
 public abstract class WatsonxService {
 
-    protected static final String API_VERSION = "2025-11-12";
+    protected static final String API_VERSION = "2025-12-05";
     protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
     protected static final Duration TIME_OUT = Duration.ofSeconds(60);
 
