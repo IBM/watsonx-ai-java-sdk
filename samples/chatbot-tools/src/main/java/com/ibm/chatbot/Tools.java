@@ -4,7 +4,6 @@
  */
 package com.ibm.chatbot;
 
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,7 @@ public class Tools {
 
     private static final Logger logger = LoggerFactory.getLogger(Tools.class);
 
-    public static boolean sendEmail(List<String> to, String subject, String body) {
+    public static boolean sendEmail(String to, String subject, String body) {
         logger.info("""
             :
             ----------------------------------------
