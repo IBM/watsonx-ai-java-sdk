@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.deployment;
 
+import static com.ibm.watsonx.ai.chat.ChatSubscriber.createSubscriber;
+import static com.ibm.watsonx.ai.chat.ChatSubscriber.handleError;
+import static com.ibm.watsonx.ai.chat.ChatSubscriber.toolHasParameters;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
@@ -186,13 +189,17 @@ final class DefaultRestClient extends DeploymentRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        var subscriber = chatSubscriber(textChatRequest.toolChoiceOption(), ChatSubscriber.toolHasParameters(textChatRequest.tools()),
-            extractionTags, handler);
+        var response = new CompletableFuture<Void>();
+        var subscriber =
+            subscriber(textChatRequest.toolChoiceOption(), toolHasParameters(textChatRequest.tools()), extractionTags, response, handler);
         return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))
             .thenAccept(r -> {})
-            .exceptionally(t -> ChatSubscriber.handleError(t, handler));
+            .exceptionally(t -> {
+                response.completeExceptionally(handleError(t, handler));
+                return null;
+            });
     }
 
     @Override
@@ -272,24 +279,18 @@ final class DefaultRestClient extends DeploymentRestClient {
 
     /**
      * Creates a subscriber that listens to raw SSE messages from the chat stream, and delegates processing to a {@link ChatSubscriber}.
-     *
-     * @param toolChoiceOption tool selection strategy (e.g. "auto", "required")
-     * @param toolHasParameters map of tool names
-     * @param extractionTags optional tags for reasoning/extraction
-     * @param handler the handler that receives processed chat events
-     * @return a {@link Flow.Subscriber} suitable for consumption by the HTTP client
      */
-    private Flow.Subscriber<String> chatSubscriber(
+    private Flow.Subscriber<String> subscriber(
         String toolChoiceOption,
         Map<String, Boolean> toolHasParameters,
         ExtractionTags extractionTags,
+        CompletableFuture<Void> response,
         ChatHandler handler) {
 
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
-            private volatile boolean success = true;
-            private volatile ChatSubscriber chatSubscriber =
-                ChatSubscriber.createSubscriber(toolChoiceOption, toolHasParameters, extractionTags, handler);
+            private volatile boolean continueProcessing = true;
+            private volatile ChatSubscriber chatSubscriber = createSubscriber(toolChoiceOption, toolHasParameters, extractionTags, handler);
 
             @Override
             public void onSubscribe(Subscription subscription) {
@@ -305,14 +306,18 @@ final class DefaultRestClient extends DeploymentRestClient {
 
                 } catch (RuntimeException e) {
 
-                    onError(e);
-                    success = !handler.failOnFirstError();
+                    Throwable t = nonNull(e.getCause()) ? e.getCause() : e;
+                    onError(t);
+                    continueProcessing = !handler.failOnFirstError();
+                    if (!continueProcessing)
+                        response.completeExceptionally(t);
 
                 } finally {
-                    if (success)
+                    if (continueProcessing)
                         subscription.request(1);
-                    else
+                    else {
                         subscription.cancel();
+                    }
                 }
             }
 
@@ -324,6 +329,7 @@ final class DefaultRestClient extends DeploymentRestClient {
             @Override
             public void onComplete() {
                 chatSubscriber.onComplete();
+                response.complete(null);
             }
         };
     }

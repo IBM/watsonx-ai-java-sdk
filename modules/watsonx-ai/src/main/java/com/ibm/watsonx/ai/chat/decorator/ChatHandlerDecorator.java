@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.chat.decorator;
 
 import static java.util.Objects.nonNull;
+import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
@@ -12,6 +13,7 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
  * A {@link ChatHandler} decorator that intercepts and optionally transforms {@link CompletedToolCall} instances using a {@link ToolInterceptor}
@@ -45,13 +47,10 @@ public class ChatHandlerDecorator implements ChatHandler {
      * @param completeToolCall the {@link CompletedToolCall} to intercept and forward
      * @return the (potentially modified) {@link CompletedToolCall}
      */
-    public CompletedToolCall normalizeAndInvoke(CompletedToolCall completeToolCall) {
-
-        if (nonNull(toolInterceptor))
-            completeToolCall = toolInterceptor.intercept(context, completeToolCall);
-
-        delegate.onCompleteToolCall(completeToolCall);
-        return completeToolCall;
+    public CompletableFuture<CompletedToolCall> normalize(CompletedToolCall completeToolCall) {
+        return (nonNull(toolInterceptor))
+            ? CompletableFuture.supplyAsync(() -> toolInterceptor.intercept(context, completeToolCall), ExecutorProvider.interceptorExecutor())
+            : CompletableFuture.completedFuture(completeToolCall);
     }
 
     @Override
@@ -77,5 +76,15 @@ public class ChatHandlerDecorator implements ChatHandler {
     @Override
     public void onPartialToolCall(PartialToolCall partialToolCall) {
         delegate.onPartialToolCall(partialToolCall);
+    }
+
+    @Override
+    public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+        delegate.onCompleteToolCall(completeToolCall);
+    }
+
+    @Override
+    public boolean failOnFirstError() {
+        return delegate.failOnFirstError();
     }
 }

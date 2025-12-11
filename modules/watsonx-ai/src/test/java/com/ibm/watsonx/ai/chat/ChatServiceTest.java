@@ -45,9 +45,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -58,6 +61,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
@@ -2279,7 +2284,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
         doAnswer(invocation -> {
             Throwable error = invocation.getArgument(0);
-            assertInstanceOf(JsonParseException.class, error.getCause());
+            assertInstanceOf(JsonParseException.class, error);
             counter.incrementAndGet();
             return null;
         }).when(mockChatHandler).onError(any());
@@ -2291,13 +2296,12 @@ public class ChatServiceTest extends AbstractWatsonxTest {
         var response = result.get(3, TimeUnit.SECONDS);
 
         inOrder.verify(mockChatHandler).onPartialResponse(eq("C"), any());
-        inOrder.verify(mockChatHandler).onError(any(RuntimeException.class));
+        inOrder.verify(mockChatHandler).onError(any(JsonParseException.class));
         inOrder.verify(mockChatHandler).onPartialResponse(eq("iao"), any());
         inOrder.verify(mockChatHandler).onCompleteResponse(any());
 
         assertEquals(3, counter.get());
         assertEquals("Ciao", response.toAssistantMessage().content());
-
     }
 
     @Test
@@ -2545,7 +2549,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_process_chat_streaming_non_blocking_on_io_thread() {
+    void should_process_chat_streaming_non_blocking() {
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withRequestBody(equalToJson(
@@ -2657,7 +2661,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     fail(error);
                 }
             };
-
 
             CompletableFuture.allOf(
                 chatService.chatStreaming(List.of(UserMessage.text("Ciao")), chatHandler),
@@ -2926,8 +2929,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             r.run();
         }, "my-thread"));
 
-        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
-            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
+        withCustomExecutor(() -> {
+
             var chatService = ChatService.builder()
                 .baseUrl("http://localhost:%s".formatted(wireMock.getPort()))
                 .authenticator(mockAuthenticator)
@@ -2970,10 +2973,12 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 }
             });
 
-            result.get(3, TimeUnit.SECONDS);
+            assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
             assertEquals(1, threadNames.size());
             assertEquals("my-thread", threadNames.get(0));
-        }
+
+        }, ioExecutor);
+
     }
 
     @Test
@@ -4083,6 +4088,56 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_invoke_on_error_during_interceptor_call() {
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(2, 10)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.262Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"id":"ADvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Germany\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z","usage":{"completion_tokens":23,"prompt_tokens":76,"total_tokens":99}}
+                        """)));
+
+        var chatService = ChatService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .modelId("mistral-large-2512")
+            .projectId("project-id")
+            .authenticator(mockAuthenticator)
+            .toolInterceptor((ctx, fc) -> {
+                throw new RuntimeException("Error");
+            }).build();
+
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        chatService.chatStreaming("Message", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {}
+
+            @Override
+            public void onError(Throwable error) {
+                future.completeExceptionally(error);
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {}
+        });
+
+        var ex = assertThrows(ExecutionException.class, () -> future.get(3, TimeUnit.SECONDS));
+        var runtimeException = assertInstanceOf(RuntimeException.class, ex.getCause());
+        assertEquals("Error", runtimeException.getMessage());
+    }
+
+    @Test
     void should_stream_chat_response_and_process_thinking_and_tool_calls() {
         when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -4262,5 +4317,324 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             assertEquals("Italy", toolArgs.get("country"));
             return "10:23";
         });
+    }
+
+    @Test
+    void should_stop_streaming_on_first_error() throws Exception {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"i"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"ao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        AtomicInteger onPartialResponse = new AtomicInteger();
+        AtomicInteger onCompleteResponse = new AtomicInteger();
+        AtomicInteger onError = new AtomicInteger();
+
+        assertThrows(ExecutionException.class, () -> chatService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onPartialResponse.incrementAndGet();
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                onCompleteResponse.incrementAndGet();
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                onError.incrementAndGet();
+            }
+
+            @Override
+            public boolean failOnFirstError() {
+                return true;
+            }
+        }).get());
+
+        assertEquals(2, onPartialResponse.get());
+        assertEquals(0, onCompleteResponse.get());
+        assertEquals(1, onError.get());
+    }
+
+    @Test
+    @EnabledForJreRange(max = JRE.JAVA_20)
+    void should_use_cached_thread_pool_for_interceptor() {
+
+        wireMock.stubFor(post("/ml/v1/text/chat?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withFixedDelay(3000)
+                .withBody(
+                    """
+                        {
+                                "id": "chatcmpl-3a7d590b3ec34f89a007f7f16c7c682b",
+                                "object": "chat.completion",
+                                "model_id": "ibm/granite-4-h-small",
+                                "model": "ibm/granite-4-h-small",
+                                "choices": [
+                                    {
+                                        "index": 0,
+                                        "message": {
+                                            "role": "assistant",
+                                            "tool_calls": [
+                                                {
+                                                    "id": "chatcmpl-tool-ce5a84405758488fb88eab9d50e908d5",
+                                                    "type": "function",
+                                                    "function": {
+                                                        "name": "get_current_time",
+                                                        "arguments": "{\\n  \\"country\\": \\"Italy\\" \\n}"
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "finish_reason": "tool_calls"
+                                    }
+                                ],
+                                "created": 1764688210,
+                                "model_version": "4.0.0",
+                                "created_at": "2025-12-02T15:10:11.178Z",
+                                "usage": {
+                                    "completion_tokens": 28,
+                                    "prompt_tokens": 192,
+                                    "total_tokens": 220
+                                }
+                        }""")));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 5)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}]}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"chatcmpl-tool-1","type":"function","function":{"name":"get_current_time","arguments":""}}]}}]}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"{\\\\n  \\\\\\"country\\\\\\": \\\\\\"Italy\\\\\\"\\\\n}\\""}}]}}]}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Done"}}]}
+
+
+                        id: 5
+                        event: close
+                        data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.565Z","usage":{"completion_tokens":49,"prompt_tokens":319,"total_tokens":368}}
+                        """)));
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        withCustomExecutor(() -> {
+
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("ibm/granite-4-h-small")
+                .projectId("project-id")
+                .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+                .toolInterceptor((ctx, fc) -> {
+                    assertTrue(Thread.currentThread().getName().equals("interceptor-thread-1"));
+                    return ctx.invoke(ctx.request()).toAssistantMessage().toolCalls().get(0).function();
+                }).build();
+
+
+            CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+            Set<String> collection = Collections.synchronizedSet(new LinkedHashSet<>());
+            chatService.chatStreaming("message", new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    collection.add("onPartialResponse");
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    collection.add("onCompleteResponse");
+                    result.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    result.completeExceptionally(error);
+                }
+
+                @Override
+                public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                    collection.add("onCompleteToolCall");
+                }
+            });
+
+            assertDoesNotThrow(() -> result.get(10, TimeUnit.SECONDS));
+            Iterator<String> iterator = collection.iterator();
+            assertEquals("onPartialResponse", iterator.next());
+            assertEquals("onCompleteToolCall", iterator.next());
+            assertEquals("onCompleteResponse", iterator.next());
+
+        }, Executors.newFixedThreadPool(1, tf -> {
+            return new Thread(tf, "custom-io-thread-1");
+        }));
+    }
+
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_21)
+    void should_use_virtual_thread_for_interceptor() {
+
+        wireMock.stubFor(post("/ml/v1/text/chat?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withFixedDelay(3000)
+                .withBody(
+                    """
+                        {
+                                "id": "chatcmpl-3a7d590b3ec34f89a007f7f16c7c682b",
+                                "object": "chat.completion",
+                                "model_id": "ibm/granite-4-h-small",
+                                "model": "ibm/granite-4-h-small",
+                                "choices": [
+                                    {
+                                        "index": 0,
+                                        "message": {
+                                            "role": "assistant",
+                                            "tool_calls": [
+                                                {
+                                                    "id": "chatcmpl-tool-ce5a84405758488fb88eab9d50e908d5",
+                                                    "type": "function",
+                                                    "function": {
+                                                        "name": "get_current_time",
+                                                        "arguments": "{\\n  \\"country\\": \\"Italy\\" \\n}"
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "finish_reason": "tool_calls"
+                                    }
+                                ],
+                                "created": 1764688210,
+                                "model_version": "4.0.0",
+                                "created_at": "2025-12-02T15:10:11.178Z",
+                                "usage": {
+                                    "completion_tokens": 28,
+                                    "prompt_tokens": 192,
+                                    "total_tokens": 220
+                                }
+                        }""")));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 5)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}]}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"chatcmpl-tool-1","type":"function","function":{"name":"get_current_time","arguments":""}}]}}]}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"{\\\\n  \\\\\\"country\\\\\\": \\\\\\"Italy\\\\\\"\\\\n}\\""}}]}}]}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Done"}}]}
+
+
+                        id: 5
+                        event: close
+                        data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.565Z","usage":{"completion_tokens":49,"prompt_tokens":319,"total_tokens":368}}
+                        """)));
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        withCustomExecutor(() -> {
+
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("ibm/granite-4-h-small")
+                .projectId("project-id")
+                .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+                .toolInterceptor((ctx, fc) -> {
+                    try {
+                        var method = Thread.class.getMethod("isVirtual");
+                        assertTrue((boolean) method.invoke(Thread.currentThread()));
+                    } catch (Exception e) {
+                        fail(e);
+                    }
+                    return ctx.invoke(ctx.request()).toAssistantMessage().toolCalls().get(0).function();
+                }).build();
+
+
+            CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+            Set<String> collection = Collections.synchronizedSet(new LinkedHashSet<>());
+            chatService.chatStreaming("message", new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    collection.add("onPartialResponse");
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    collection.add("onCompleteResponse");
+                    result.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    result.completeExceptionally(error);
+                }
+
+                @Override
+                public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                    collection.add("onCompleteToolCall");
+                }
+            });
+
+            assertDoesNotThrow(() -> result.get(10, TimeUnit.SECONDS));
+            Iterator<String> iterator = collection.iterator();
+            assertEquals("onPartialResponse", iterator.next());
+            assertEquals("onCompleteToolCall", iterator.next());
+            assertEquals("onCompleteResponse", iterator.next());
+
+        }, Executors.newFixedThreadPool(1, tf -> {
+            return new Thread(tf, "custom-io-thread-1");
+        }));
     }
 }
