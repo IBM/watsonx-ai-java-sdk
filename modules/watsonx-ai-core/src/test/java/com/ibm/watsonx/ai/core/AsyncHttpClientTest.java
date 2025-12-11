@@ -180,7 +180,7 @@ public class AsyncHttpClientTest {
                         "status_code": 401
                     }""")));
 
-        AsyncHttpClient client = AsyncHttpClient.builder().build();
+        AsyncHttpClient client = AsyncHttpClient.builder().httpClient(HttpClient.newHttpClient()).build();
 
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:%s/test-401".formatted(wireMock.getPort())))
@@ -205,13 +205,12 @@ public class AsyncHttpClientTest {
                 .withStatus(401)
                 .withHeader("Content-Type", "application/json")));
 
-        AsyncHttpClient client = AsyncHttpClient.builder().build();
+        AsyncHttpClient client = AsyncHttpClient.builder().httpClient(HttpClient.newHttpClient()).build();
 
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:%s/test-401".formatted(wireMock.getPort())))
             .GET()
             .build();
-
 
         CompletionException ex = assertThrows(CompletionException.class, () -> client.send(request, handler).join());
         assertEquals(WatsonxException.class, ex.getCause().getClass());
