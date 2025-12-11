@@ -45,6 +45,7 @@ public class DetectionService extends ProjectService {
             .logResponses(logResponses)
             .timeout(timeout)
             .authenticator(builder.authenticator())
+            .httpClient(httpClient)
             .build();
     }
 

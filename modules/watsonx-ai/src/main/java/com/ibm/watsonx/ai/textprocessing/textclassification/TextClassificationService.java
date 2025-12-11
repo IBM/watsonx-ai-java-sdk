@@ -76,6 +76,7 @@ public class TextClassificationService extends ProjectService {
             .logResponses(logResponses)
             .timeout(timeout)
             .authenticator(builder.authenticator())
+            .httpClient(httpClient)
             .build();
     }
 

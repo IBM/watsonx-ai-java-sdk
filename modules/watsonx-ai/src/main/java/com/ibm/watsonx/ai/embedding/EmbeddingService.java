@@ -51,6 +51,7 @@ public class EmbeddingService extends ModelService {
             .logResponses(logResponses)
             .timeout(timeout)
             .authenticator(builder.authenticator())
+            .httpClient(httpClient)
             .build();
     }
 

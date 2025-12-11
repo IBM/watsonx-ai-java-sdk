@@ -38,8 +38,8 @@ final class DefaultRestClient extends TextClassificationRestClient {
     DefaultRestClient(Builder builder) {
         super(builder);
         requireNonNull(authenticator, "authenticator is mandatory");
-        syncHttpClient = HttpClientFactory.createSync(authenticator, LogMode.of(logRequests, logResponses));
-        asyncHttpClient = HttpClientFactory.createAsync(authenticator, LogMode.of(logRequests, logResponses));
+        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
+        asyncHttpClient = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
     }
 
     @Override

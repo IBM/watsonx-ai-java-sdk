@@ -9,6 +9,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
@@ -52,14 +53,16 @@ public abstract class WatsonxService {
     protected final String version;
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
+    protected final HttpClient httpClient;
 
     // Required by CDI for proxy / bean instantiation
     protected WatsonxService() {
-        this.baseUrl = null;
-        this.version = null;
-        this.timeout = null;
-        this.logRequests = false;
-        this.logResponses = false;
+        baseUrl = null;
+        version = null;
+        timeout = null;
+        logRequests = false;
+        logResponses = false;
+        httpClient = null;
     }
 
     protected WatsonxService(Builder<?> builder) {
@@ -68,6 +71,7 @@ public abstract class WatsonxService {
         timeout = requireNonNullElse(builder.timeout, TIME_OUT);
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
+        httpClient = builder.httpClient;
     }
 
     @SuppressWarnings("unchecked")
@@ -78,6 +82,7 @@ public abstract class WatsonxService {
         private Boolean logRequests;
         private Boolean logResponses;
         private Authenticator authenticator;
+        private HttpClient httpClient;
 
         /**
          * Sets the endpoint URL to which the chat request will be sent.
@@ -156,7 +161,7 @@ public abstract class WatsonxService {
          */
         public T apiKey(String apiKey) {
             requireNonNull(apiKey, "The apiKey must be provided");
-            authenticator = IBMCloudAuthenticator.builder().apiKey(apiKey).build();
+            authenticator = IBMCloudAuthenticator.builder().httpClient(httpClient).apiKey(apiKey).build();
             return (T) this;
         }
 
@@ -171,6 +176,20 @@ public abstract class WatsonxService {
          */
         public T authenticator(Authenticator authenticator) {
             this.authenticator = authenticator;
+            return (T) this;
+        }
+
+        /**
+         * Sets a custom {@link HttpClient} to be used for HTTP communication.
+         * <p>
+         * This allows customization of the underlying HTTP client, such as configuring a custom {@link javax.net.ssl.SSLContext} for TLS/SSL
+         * settings, proxy configuration, connection timeouts, or other HTTP client properties. If not specified, a default {@link HttpClient} will be
+         * created automatically.
+         *
+         * @param httpClient the custom {@link HttpClient} to use
+         */
+        public T httpClient(HttpClient httpClient) {
+            this.httpClient = httpClient;
             return (T) this;
         }
 

@@ -67,6 +67,7 @@ public class ChatService extends ModelService implements ChatProvider {
             .logRequests(logRequests)
             .logResponses(logResponses)
             .timeout(timeout)
+            .httpClient(httpClient)
             .authenticator(builder.authenticator())
             .build();
         messageInterceptor = builder.messageInterceptor;
@@ -82,6 +83,7 @@ public class ChatService extends ModelService implements ChatProvider {
                 .spaceId(spaceId)
                 .timeout(timeout)
                 .version(version)
+                .httpClient(httpClient)
                 .build();
         } else
             chatProvider = null;

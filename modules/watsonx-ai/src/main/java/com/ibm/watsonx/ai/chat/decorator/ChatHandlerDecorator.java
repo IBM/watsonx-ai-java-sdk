@@ -16,8 +16,7 @@ import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
- * A {@link ChatHandler} decorator that intercepts and optionally transforms {@link CompletedToolCall} instances using a {@link ToolInterceptor}
- * before delegating all callbacks to the wrapped {@link ChatHandler}.
+ * A {@link ChatHandler} decorator that intercepts and transforms {@link CompletedToolCall} instances using a {@link ToolInterceptor}.
  */
 public class ChatHandlerDecorator implements ChatHandler {
     private final InterceptorContext context;
@@ -28,8 +27,7 @@ public class ChatHandlerDecorator implements ChatHandler {
      * Constructs a new {@link ChatHandlerDecorator}.
      * <p>
      * This decorator wraps a {@link ChatHandler} delegate and applies a {@link ToolInterceptor} to {@link CompletedToolCall} instances before
-     * forwarding them to the delegate. All other callbacks (partial responses, partial thinking, partial tool calls, errors, and complete responses)
-     * are directly delegated without modification.
+     * forwarding them to the {@link #onCompleteToolCall(CompletedToolCall)}.
      *
      * @param context the {@link InterceptorContext} providing contextual information for the interceptor
      * @param delegate the underlying {@link ChatHandler} to which all callbacks will be forwarded
@@ -42,10 +40,10 @@ public class ChatHandlerDecorator implements ChatHandler {
     }
 
     /**
-     * Intercepts and transforms the given {@link CompletedToolCall}, then forwards it to the delegate.
+     * Intercepts and transforms the given {@link CompletedToolCall}.
      *
-     * @param completeToolCall the {@link CompletedToolCall} to intercept and forward
-     * @return the (potentially modified) {@link CompletedToolCall}
+     * @param completeToolCall the {@link CompletedToolCall} to intercept
+     * @return the normalized {@link CompletedToolCall}
      */
     public CompletableFuture<CompletedToolCall> normalize(CompletedToolCall completeToolCall) {
         return (nonNull(toolInterceptor))

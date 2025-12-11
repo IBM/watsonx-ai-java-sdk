@@ -72,6 +72,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .logResponses(logResponses)
             .timeout(timeout)
             .authenticator(builder.authenticator())
+            .httpClient(httpClient)
             .build();
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
@@ -83,6 +84,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                 .logResponses(logResponses)
                 .timeout(timeout)
                 .version(version)
+                .httpClient(httpClient)
                 .build();
         } else
             chatProvider = null;

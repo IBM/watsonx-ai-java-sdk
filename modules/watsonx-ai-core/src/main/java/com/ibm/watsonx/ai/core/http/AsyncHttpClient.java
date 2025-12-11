@@ -36,7 +36,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
      * @param interceptors a list of asynchronous HTTP interceptors; may be {@code null}
      */
     AsyncHttpClient(HttpClient httpClient, List<AsyncHttpInterceptor> interceptors) {
-        super(requireNonNullElse(httpClient, HttpClient.newHttpClient()));
+        super(requireNonNull(httpClient, "The HTTP client cannot be null"));
         this.interceptors = requireNonNullElse(interceptors, List.of());
     }
 
