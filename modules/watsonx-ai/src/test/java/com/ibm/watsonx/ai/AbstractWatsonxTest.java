@@ -8,9 +8,11 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import java.lang.reflect.Field;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.concurrent.Executor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -21,6 +23,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +33,7 @@ public abstract class AbstractWatsonxTest {
     protected static final String ML_API_TEXT_PATH = ML_API_PATH.concat("/text");
     protected static final String API_VERSION = "2025-12-05";
     protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
+    protected static final Executor originalExecutor = ExecutorProvider.ioExecutor();
 
     @Mock
     protected HttpClient mockHttpClient;
@@ -75,6 +79,22 @@ public abstract class AbstractWatsonxTest {
             field.set(null, null);
         } catch (Exception e) {
             fail(e);
+        }
+    }
+
+    protected void withCustomExecutor(Runnable action, Executor executor) {
+        setIoExecutor(executor);
+        action.run();
+        setIoExecutor(originalExecutor);
+    }
+
+    private void setIoExecutor(Executor executor) {
+        try {
+            Field ioExecutorField = ExecutorProvider.class.getDeclaredField("ioExecutor");
+            ioExecutorField.setAccessible(true);
+            ioExecutorField.set(null, executor);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

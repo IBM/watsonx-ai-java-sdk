@@ -80,12 +80,18 @@ final class DefaultRestClient extends ChatRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        var subscriber = subscriber(textChatRequest.toolChoiceOption(), toolHasParameters(textChatRequest.tools()), extractionTags, handler);
-        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+        var response = new CompletableFuture<Void>();
+        var subscriber =
+            subscriber(textChatRequest.toolChoiceOption(), toolHasParameters(textChatRequest.tools()), extractionTags, response, handler);
+        asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))
             .thenAccept(r -> {})
-            .exceptionally(t -> handleError(t, handler));
+            .exceptionally(t -> {
+                response.completeExceptionally(handleError(t, handler));
+                return null;
+            });
+        return response;
     }
 
     /**
@@ -95,11 +101,12 @@ final class DefaultRestClient extends ChatRestClient {
         String toolChoiceOption,
         Map<String, Boolean> toolHasParameters,
         ExtractionTags extractionTags,
+        CompletableFuture<Void> response,
         ChatHandler handler) {
 
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
-            private volatile boolean success = true;
+            private volatile boolean continueProcessing = true;
             private volatile ChatSubscriber chatSubscriber = createSubscriber(toolChoiceOption, toolHasParameters, extractionTags, handler);
 
             @Override
@@ -116,14 +123,18 @@ final class DefaultRestClient extends ChatRestClient {
 
                 } catch (RuntimeException e) {
 
-                    onError(e);
-                    success = !handler.failOnFirstError();
+                    Throwable t = nonNull(e.getCause()) ? e.getCause() : e;
+                    onError(t);
+                    continueProcessing = !handler.failOnFirstError();
+                    if (!continueProcessing)
+                        response.completeExceptionally(t);
 
                 } finally {
-                    if (success)
+                    if (continueProcessing)
                         subscription.request(1);
-                    else
+                    else {
                         subscription.cancel();
+                    }
                 }
             }
 
@@ -135,6 +146,7 @@ final class DefaultRestClient extends ChatRestClient {
             @Override
             public void onComplete() {
                 chatSubscriber.onComplete();
+                response.complete(null);
             }
         };
     }

@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core.provider;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
+import java.lang.reflect.Method;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.core.spi.executor.CpuExecutorProvider;
 import com.ibm.watsonx.ai.core.spi.executor.IOExecutorProvider;
+import com.ibm.watsonx.ai.core.spi.executor.InterceptorExecutorProvider;
 
 /**
  * A utility class that provides a shared instance of Executors for the SDK's internal operations.
@@ -28,8 +30,10 @@ public final class ExecutorProvider {
     private static final Logger logger = LoggerFactory.getLogger(ExecutorProvider.class);
     private static final CpuExecutorProvider cpuExecutorProvider = loadCpuExecutorProvider();
     private static final IOExecutorProvider ioExecutorProvider = loadIoExecutorProvider();
+    private static final InterceptorExecutorProvider interceptorExecutorProvider = loadInterceptorExecutorProvider();
     private static volatile Executor cpuExecutor;
     private static volatile Executor ioExecutor;
+    private static volatile Executor interceptorExecutor;
 
     private ExecutorProvider() {}
 
@@ -89,6 +93,47 @@ public final class ExecutorProvider {
     }
 
     /**
+     * Retrieves the shared executor for interceptor tasks.
+     * <p>
+     * This executor is specifically designed for running interceptors that may perform blocking operations (such as synchronous HTTP calls). It uses
+     * a separate thread pool to avoid blocking the main I/O executor.
+     * <p>
+     * On Java 21+, this executor uses virtual threads for optimal scalability with blocking operations. On earlier Java versions, a cached thread
+     * pool is used as fallback.
+     *
+     * @return The shared {@link Executor} for interceptor tasks.
+     */
+    public static synchronized Executor interceptorExecutor() {
+        if (isNull(interceptorExecutor)) {
+
+            if (nonNull(interceptorExecutorProvider)) {
+                logger.trace("Loaded Interceptor executor from SPI");
+                interceptorExecutor = interceptorExecutorProvider.executor();
+                return interceptorExecutor;
+            }
+
+            try {
+                // Try to create virtual thread executor (Java 21+)
+                Method method = Executors.class.getMethod("newVirtualThreadPerTaskExecutor");
+                logger.debug("Using virtual thread executor for interceptors (Java 21+)");
+                interceptorExecutor = (ExecutorService) method.invoke(null);
+
+            } catch (Exception e) {
+                // Java < 21, fall back to cached thread pool
+                AtomicInteger counter = new AtomicInteger(1);
+                logger.debug("Virtual threads not available, using cached thread pool for interceptors");
+                interceptorExecutor = Executors.newCachedThreadPool(r -> {
+                    var thread = new Thread(r, "interceptor-thread-" + counter.getAndIncrement());
+                    thread.setDaemon(true);
+                    return thread;
+                });
+
+            }
+        }
+        return interceptorExecutor;
+    }
+
+    /**
      * Attempts to load a {@link CpuExecutorProvider} via {@link ServiceLoader}.
      */
     private static CpuExecutorProvider loadCpuExecutorProvider() {
@@ -101,6 +146,14 @@ public final class ExecutorProvider {
      */
     private static IOExecutorProvider loadIoExecutorProvider() {
         return ServiceLoader.load(IOExecutorProvider.class)
+            .findFirst().orElse(null);
+    }
+
+    /**
+     * Attempts to load a {@link InterceptorExecutorProvider} via {@link ServiceLoader}.
+     */
+    private static InterceptorExecutorProvider loadInterceptorExecutorProvider() {
+        return ServiceLoader.load(InterceptorExecutorProvider.class)
             .findFirst().orElse(null);
     }
 }

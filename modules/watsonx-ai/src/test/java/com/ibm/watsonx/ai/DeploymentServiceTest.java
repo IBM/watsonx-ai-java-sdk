@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -62,7 +60,6 @@ import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
@@ -1223,9 +1220,9 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             r.run();
         }, "my-thread"));
 
-        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
-            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
-            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
+
+        withCustomExecutor(() -> {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -1259,10 +1256,11 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 }
             });
 
-            result.get(3, TimeUnit.SECONDS);
+            assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
             assertEquals(1, threadNames.size());
             assertEquals("my-thread", threadNames.get(0));
-        }
+
+        }, ioExecutor);
     }
 
     @Test

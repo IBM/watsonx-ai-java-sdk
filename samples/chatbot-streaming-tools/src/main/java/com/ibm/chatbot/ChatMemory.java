@@ -9,6 +9,7 @@ import java.util.List;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.ToolMessage;
 
 public class ChatMemory {
 
@@ -23,16 +24,17 @@ public class ChatMemory {
         messages.forEach(this::addMessage);
     }
 
-    public void addMessage(ChatMessage message) {
+    public synchronized void addMessage(ChatMessage message) {
         if (memory.size() >= MAX_SIZE) {
-            var index = 0;
-            if (memory.get(0) instanceof SystemMessage)
-                index = 1;
+            int index = (memory.get(0) instanceof SystemMessage) ? 1 : 0;
             var removedMessage = memory.remove(index);
-            if (removedMessage instanceof AssistantMessage am && am.hasToolCalls())
-                memory.remove(index);
+            // If we removed an AssistantMessage with tool calls, also remove subsequent ToolMessages
+            if (removedMessage instanceof AssistantMessage am && am.hasToolCalls()) {
+                while (index < memory.size() && memory.get(index) instanceof ToolMessage) {
+                    memory.remove(index);
+                }
+            }
         }
-
         memory.add(message);
     }
 
