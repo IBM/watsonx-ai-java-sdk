@@ -34,12 +34,16 @@ public class AiService {
         final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
         modelId = "ibm/granite-3-3-8b-instruct";
 
+        var defaultParameters = ChatParameters.builder()
+            .maxCompletionTokens(0)
+            .build();
+
         chatService = ChatService.builder()
+            .baseUrl(url)
             .apiKey(apiKey)
             .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
             .modelId(modelId)
-            .baseUrl(url)
+            .defaultParameters(defaultParameters)
             .build();
 
         foundationModelService = FoundationModelService.builder()
@@ -54,13 +58,8 @@ public class AiService {
     public ChatResponse chat(String message) {
         memory.addMessage(UserMessage.text(message));
 
-        var parameters = ChatParameters.builder()
-            .maxCompletionTokens(0)
-            .build();
-
         ChatRequest chatRequest = ChatRequest.builder()
             .messages(memory.getMemory())
-            .parameters(parameters)
             .thinking(ExtractionTags.of("think", "response"))
             .build();
 
