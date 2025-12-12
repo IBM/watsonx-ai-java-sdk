@@ -49,6 +49,7 @@ public class TextGenerationService extends ModelService implements TextGeneratio
             .logResponses(logResponses)
             .timeout(timeout)
             .authenticator(builder.authenticator())
+            .httpClient(httpClient)
             .build();
     }
 

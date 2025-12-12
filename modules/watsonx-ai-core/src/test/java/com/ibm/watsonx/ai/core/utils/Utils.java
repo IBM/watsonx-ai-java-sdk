@@ -108,4 +108,21 @@ public class Utils {
         when(response.statusCode()).thenReturn(400);
         return response;
     }
+
+    public static Object getFieldValue(Object obj, String fieldName) throws Exception {
+        Class<?> clazz = obj.getClass();
+        NoSuchFieldException lastException = null;
+
+        while (clazz != null) {
+            try {
+                var field = clazz.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                return field.get(obj);
+            } catch (NoSuchFieldException e) {
+                lastException = e;
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw lastException;
+    }
 }

@@ -29,8 +29,8 @@ final class DefaultRestClient extends IBMCloudRestClient {
 
     DefaultRestClient(Builder builder) {
         super(builder);
-        syncHttpClient = HttpClientFactory.createSync(null, null);
-        asyncHttpClient = HttpClientFactory.createAsync(null, null);
+        syncHttpClient = HttpClientFactory.createSync(null, httpClient, null);
+        asyncHttpClient = HttpClientFactory.createAsync(null, httpClient, null);
     }
 
     @Override

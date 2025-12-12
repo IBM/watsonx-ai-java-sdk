@@ -83,6 +83,7 @@ public class TextExtractionService extends ProjectService {
             .logResponses(logResponses)
             .timeout(timeout)
             .authenticator(builder.authenticator())
+            .httpClient(httpClient)
             .build();
     }
 

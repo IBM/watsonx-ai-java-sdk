@@ -9,6 +9,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +51,7 @@ public class IBMCloudAuthenticator implements Authenticator {
         client = IBMCloudRestClient.builder()
             .baseUrl(baseUrl)
             .timeout(timeout)
+            .httpClient(builder.httpClient)
             .build();
     }
 
@@ -122,6 +124,7 @@ public class IBMCloudAuthenticator implements Authenticator {
         private String apiKey;
         private String grantType;
         private Duration timeout;
+        private HttpClient httpClient;
 
         /**
          * Prevents direct instantiation of the {@code Builder}.
@@ -165,6 +168,20 @@ public class IBMCloudAuthenticator implements Authenticator {
          */
         public Builder timeout(Duration timeout) {
             this.timeout = timeout;
+            return this;
+        }
+
+        /**
+         * Sets a custom {@link HttpClient} to be used for HTTP communication.
+         * <p>
+         * This allows customization of the underlying HTTP client, such as configuring a custom {@link javax.net.ssl.SSLContext} for TLS/SSL
+         * settings, proxy configuration, connection timeouts, or other HTTP client properties. If not specified, a default {@link HttpClient} will be
+         * created automatically.
+         *
+         * @param httpClient the custom {@link HttpClient} to use
+         */
+        public Builder httpClient(HttpClient httpClient) {
+            this.httpClient = httpClient;
             return this;
         }
 

@@ -6,8 +6,10 @@ package com.ibm.watsonx.ai;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 public abstract class WatsonxRestClient {
 
@@ -18,6 +20,7 @@ public abstract class WatsonxRestClient {
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
     protected final Authenticator authenticator;
+    protected final HttpClient httpClient;
 
     protected WatsonxRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The url must be provided");
@@ -26,6 +29,7 @@ public abstract class WatsonxRestClient {
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
         authenticator = builder.authenticator;
+        httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient());
     }
 
     @SuppressWarnings("unchecked")
@@ -35,7 +39,8 @@ public abstract class WatsonxRestClient {
         private Duration timeout;
         private Boolean logRequests;
         private Boolean logResponses;
-        protected Authenticator authenticator;
+        private Authenticator authenticator;
+        private HttpClient httpClient;
 
         public abstract T build();
 
@@ -96,6 +101,20 @@ public abstract class WatsonxRestClient {
          */
         public B authenticator(Authenticator authenticator) {
             this.authenticator = authenticator;
+            return (B) this;
+        }
+
+        /**
+         * Sets a custom {@link HttpClient} to be used for HTTP communication.
+         * <p>
+         * This allows customization of the underlying HTTP client, such as configuring a custom {@link javax.net.ssl.SSLContext} for TLS/SSL
+         * settings, proxy configuration, connection timeouts, or other HTTP client properties. If not specified, a default {@link HttpClient} will be
+         * created automatically.
+         *
+         * @param httpClient the custom {@link HttpClient} to use
+         */
+        public B httpClient(HttpClient httpClient) {
+            this.httpClient = httpClient;
             return (B) this;
         }
     }

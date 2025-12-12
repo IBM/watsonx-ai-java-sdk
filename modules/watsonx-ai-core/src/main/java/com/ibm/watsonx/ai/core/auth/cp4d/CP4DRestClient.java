@@ -7,10 +7,12 @@ package com.ibm.watsonx.ai.core.auth.cp4d;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 /**
  * Abstraction of a REST client for interacting with the IBM Cloud Pak for Data
@@ -18,10 +20,12 @@ import java.util.function.Supplier;
 public abstract class CP4DRestClient {
     protected final URI baseUrl;
     protected final Duration timeout;
+    protected final HttpClient httpClient;
 
     protected CP4DRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl is mandatory");
         timeout = builder.timeout;
+        httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient());
     }
 
     /**
@@ -76,6 +80,7 @@ public abstract class CP4DRestClient {
     public abstract static class Builder<T extends CP4DRestClient, B extends Builder<T, B>> {
         private URI baseUrl;
         private Duration timeout;
+        private HttpClient httpClient;
 
         protected abstract T build();
 
@@ -86,6 +91,11 @@ public abstract class CP4DRestClient {
 
         public B timeout(Duration timeout) {
             this.timeout = timeout;
+            return (B) this;
+        }
+
+        public B httpClient(HttpClient httpClient) {
+            this.httpClient = httpClient;
             return (B) this;
         }
     }

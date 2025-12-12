@@ -5,6 +5,8 @@
 package com.ibm.watsonx.ai.core.factory;
 
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
+import java.net.http.HttpClient;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
@@ -12,7 +14,6 @@ import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
-import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 /**
  * Factory class for creating configured {@link SyncHttpClient} and {@link AsyncHttpClient} instances.
@@ -36,9 +37,9 @@ public final class HttpClientFactory {
      * @param logMode Indicate whether logging should be enabled
      * @return {@link SyncHttpClient} instance
      */
-    public static SyncHttpClient createSync(Authenticator authenticator, LogMode logMode) {
+    public static SyncHttpClient createSync(Authenticator authenticator, HttpClient httpClient, LogMode logMode) {
 
-        var httpClient = HttpClientProvider.httpClient();
+        requireNonNull(httpClient);
         var builder = SyncHttpClient.builder().httpClient(httpClient);
 
         builder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
@@ -68,9 +69,9 @@ public final class HttpClientFactory {
      * @param logMode Indicate whether logging should be enabled
      * @return {@link AsyncHttpClient} instance
      */
-    public static AsyncHttpClient createAsync(Authenticator authenticator, LogMode logMode) {
+    public static AsyncHttpClient createAsync(Authenticator authenticator, HttpClient httpClient, LogMode logMode) {
 
-        var httpClient = HttpClientProvider.httpClient();
+        requireNonNull(httpClient);
         var builder = AsyncHttpClient.builder().httpClient(httpClient);
 
         builder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);

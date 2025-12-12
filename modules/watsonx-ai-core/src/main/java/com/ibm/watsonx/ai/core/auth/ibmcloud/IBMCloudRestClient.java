@@ -5,11 +5,14 @@
 package com.ibm.watsonx.ai.core.auth.ibmcloud;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 /**
  * Abstraction of a REST client for interacting with the IBM Cloud Identity and Access Management service.
@@ -17,10 +20,12 @@ import java.util.function.Supplier;
 public abstract class IBMCloudRestClient {
     protected final URI baseUrl;
     protected final Duration timeout;
+    protected final HttpClient httpClient;
 
     protected IBMCloudRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl is mandatory");
         timeout = builder.timeout;
+        httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient());
     }
 
     /**
@@ -60,6 +65,7 @@ public abstract class IBMCloudRestClient {
     public abstract static class Builder<T extends IBMCloudRestClient, B extends Builder<T, B>> {
         private URI baseUrl;
         private Duration timeout;
+        private HttpClient httpClient;
 
         protected abstract T build();
 
@@ -70,6 +76,11 @@ public abstract class IBMCloudRestClient {
 
         public B timeout(Duration timeout) {
             this.timeout = timeout;
+            return (B) this;
+        }
+
+        public B httpClient(HttpClient httpClient) {
+            this.httpClient = httpClient;
             return (B) this;
         }
     }

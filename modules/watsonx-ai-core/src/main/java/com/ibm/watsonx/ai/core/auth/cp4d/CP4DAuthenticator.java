@@ -10,6 +10,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +20,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
  * The {@code CP4DAuthenticator} class is an implementation of the {@link Authenticator} interface, responsible for authenticating with Cloud Pack for
- * Data supporting both IAM-based authentication and legacy username/password or API key authentication.
+ * Data.
  * <p>
  * <b>Example usage:</b>
  *
@@ -65,6 +66,7 @@ public class CP4DAuthenticator implements Authenticator {
         client = CP4DRestClient.builder(authMode)
             .baseUrl(baseUrl)
             .timeout(timeout)
+            .httpClient(builder.httpClient)
             .build();
     }
 
@@ -151,6 +153,7 @@ public class CP4DAuthenticator implements Authenticator {
         private String apiKey;
         private AuthMode authMode;
         private Duration timeout;
+        private HttpClient httpClient;
 
         /**
          * Prevents direct instantiation of the {@code Builder}.
@@ -224,6 +227,20 @@ public class CP4DAuthenticator implements Authenticator {
          */
         public Builder authMode(AuthMode authMode) {
             this.authMode = authMode;
+            return this;
+        }
+
+        /**
+         * Sets a custom {@link HttpClient} to be used for HTTP communication.
+         * <p>
+         * This allows customization of the underlying HTTP client, such as configuring a custom {@link javax.net.ssl.SSLContext} for TLS/SSL
+         * settings, proxy configuration, connection timeouts, or other HTTP client properties. If not specified, a default {@link HttpClient} will be
+         * created automatically.
+         *
+         * @param httpClient the custom {@link HttpClient} to use
+         */
+        public Builder httpClient(HttpClient httpClient) {
+            this.httpClient = httpClient;
             return this;
         }
 
