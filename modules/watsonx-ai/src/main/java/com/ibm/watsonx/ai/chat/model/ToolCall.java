@@ -67,7 +67,7 @@ public record ToolCall(Integer index, String id, String type, FunctionCall funct
     }
 
     /**
-     * Processes the tool call using the provided {@link ToolExecutor}, and returns the {@link ToolMessage}.
+     * Processes the tool call using the provided {@link ToolExecutor}.
      *
      * @param executor the executor responsible for running the tool call logic
      * @return {@link ToolMessage} object generated from the tool call

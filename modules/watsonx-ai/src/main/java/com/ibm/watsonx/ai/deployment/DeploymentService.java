@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.deployment;
 
+import static com.ibm.watsonx.ai.core.Utils.getOrDefault;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -25,7 +26,6 @@ import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
@@ -62,9 +62,15 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     private final MessageInterceptor messageInterceptor;
     private final ToolInterceptor toolInterceptor;
     private final ChatProvider chatProvider;
+    private final ChatParameters defaultParameters;
 
     private DeploymentService(Builder builder) {
         super(builder);
+        requireNonNull(builder.authenticator(), "authenticator cannot be null");
+        messageInterceptor = builder.messageInterceptor;
+        toolInterceptor = builder.toolInterceptor;
+        defaultParameters = requireNonNullElse(builder.defaultParameters, ChatParameters.builder().build());
+
         client = DeploymentRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
@@ -74,8 +80,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
             .build();
-        messageInterceptor = builder.messageInterceptor;
-        toolInterceptor = builder.toolInterceptor;
+
         if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
             chatProvider = new Builder()
                 .authenticator(builder.authenticator())
@@ -84,6 +89,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                 .logResponses(logResponses)
                 .timeout(timeout)
                 .version(version)
+                .defaultParameters(defaultParameters)
                 .httpClient(httpClient)
                 .build();
         } else
@@ -150,56 +156,23 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         requireNonNull(chatRequest, "chatRequest cannot be null");
 
         var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
-        var messages = chatRequest.messages();
-        var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
-        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis()));
+        var textChatRequest = buildTextChatRequest(chatRequest);
+        var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
+        var timeout = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().timeLimit())
+            ? chatRequest.parameters().timeLimit()
+            : this.timeout.toMillis();
 
-        logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
-
-        var textChatRequest = TextChatRequest.builder()
-            .messages(messages)
-            .tools(tools)
-            .toolChoiceOption(parameters.toolChoiceOption())
-            .toolChoice(parameters.toolChoice())
-            .frequencyPenalty(parameters.frequencyPenalty())
-            .logitBias(parameters.logitBias())
-            .logprobs(parameters.logprobs())
-            .topLogprobs(parameters.topLogprobs())
-            .maxCompletionTokens(parameters.maxCompletionTokens())
-            .n(parameters.n())
-            .presencePenalty(parameters.presencePenalty())
-            .seed(parameters.seed())
-            .stop(parameters.stop())
-            .temperature(parameters.temperature())
-            .topP(parameters.topP())
-            .responseFormat(parameters.responseFormat())
-            .jsonSchema(parameters.jsonSchema())
-            .context(parameters.context())
-            .timeLimit(parameters.timeLimit())
-            .guidedChoice(parameters.guidedChoice())
-            .guidedRegex(parameters.guidedRegex())
-            .guidedGrammar(parameters.guidedGrammar())
-            .repetitionPenalty(parameters.repetitionPenalty())
-            .lengthPenalty(parameters.lengthPenalty())
-            .timeLimit(timeout.toMillis())
-            .build();
-
-        var chatResponse = client.chat(parameters.transactionId(), deploymentId, timeout, textChatRequest);
+        var chatResponse = client.chat(transactionId, deploymentId, Duration.ofMillis(timeout), textChatRequest);
 
         if (nonNull(messageInterceptor)) {
-
-            var newChoices = messageInterceptor.intercept(
-                new InterceptorContext(chatProvider, chatRequest, chatResponse));
+            var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
         if (nonNull(toolInterceptor)) {
-
-            var newChoices = toolInterceptor.intercept(
-                new InterceptorContext(chatProvider, chatRequest, chatResponse));
+            var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -209,65 +182,22 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public CompletableFuture<Void> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
         var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
-        var messages = chatRequest.messages();
-        var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
-        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis()));
-
-        Boolean includeReasoning = null;
-        String thinkingEffort = null;
-        ExtractionTags extractionTags = null;
-        Map<String, Object> chatTemplateKwargs = null;
-        if (nonNull(chatRequest.thinking())) {
-            var thinking = chatRequest.thinking();
-            chatTemplateKwargs = Map.of("thinking", true);
-            extractionTags = thinking.extractionTags();
-            includeReasoning = thinking.includeReasoning();
-            thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
-        }
-
-        logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
-
-        var textChatRequest = TextChatRequest.builder()
-            .messages(messages)
-            .tools(tools)
-            .toolChoiceOption(parameters.toolChoiceOption())
-            .toolChoice(parameters.toolChoice())
-            .frequencyPenalty(parameters.frequencyPenalty())
-            .logitBias(parameters.logitBias())
-            .logprobs(parameters.logprobs())
-            .topLogprobs(parameters.topLogprobs())
-            .maxCompletionTokens(parameters.maxCompletionTokens())
-            .n(parameters.n())
-            .presencePenalty(parameters.presencePenalty())
-            .seed(parameters.seed())
-            .stop(parameters.stop())
-            .temperature(parameters.temperature())
-            .topP(parameters.topP())
-            .responseFormat(parameters.responseFormat())
-            .jsonSchema(parameters.jsonSchema())
-            .context(parameters.context())
-            .timeLimit(parameters.timeLimit())
-            .guidedChoice(parameters.guidedChoice())
-            .guidedRegex(parameters.guidedRegex())
-            .guidedGrammar(parameters.guidedGrammar())
-            .repetitionPenalty(parameters.repetitionPenalty())
-            .lengthPenalty(parameters.lengthPenalty())
-            .includeReasoning(includeReasoning)
-            .reasoningEffort(thinkingEffort)
-            .chatTemplateKwargs(chatTemplateKwargs)
-            .timeLimit(timeout.toMillis())
-            .build();
+        var textChatRequest = buildTextChatRequest(chatRequest);
+        var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
+        var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
+        var timeout = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().timeLimit())
+            ? chatRequest.parameters().timeLimit()
+            : this.timeout.toMillis();
 
         return client.chatStreaming(
-            parameters.transactionId(),
+            transactionId,
             deploymentId,
-            timeout,
+            Duration.ofMillis(timeout),
             extractionTags,
             textChatRequest,
             new ChatHandlerDecorator(
@@ -323,6 +253,61 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     /**
+     * Builds a {@link TextChatRequest} from the provided {@link ChatRequest}.
+     *
+     * @param chatRequest the {@link ChatRequest} object
+     * @return a fully constructed {@link TextChatRequest} object
+     */
+    private TextChatRequest buildTextChatRequest(ChatRequest chatRequest) {
+        var messages = chatRequest.messages();
+        var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
+        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
+        var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
+
+        Boolean includeReasoning = null;
+        String thinkingEffort = null;
+        Map<String, Object> chatTemplateKwargs = null;
+        if (nonNull(chatRequest.thinking())) {
+            var thinking = chatRequest.thinking();
+            chatTemplateKwargs = Map.of("thinking", true);
+            includeReasoning = thinking.includeReasoning();
+            thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
+        }
+
+        logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
+
+        return TextChatRequest.builder()
+            .messages(messages)
+            .tools(tools)
+            .toolChoiceOption(getOrDefault(parameters.toolChoiceOption(), defaultParameters.toolChoiceOption()))
+            .toolChoice(getOrDefault(parameters.toolChoice(), defaultParameters.toolChoice()))
+            .frequencyPenalty(getOrDefault(parameters.frequencyPenalty(), defaultParameters.frequencyPenalty()))
+            .logitBias(getOrDefault(parameters.logitBias(), defaultParameters.logitBias()))
+            .logprobs(getOrDefault(parameters.logprobs(), defaultParameters.logprobs()))
+            .topLogprobs(getOrDefault(parameters.topLogprobs(), defaultParameters.topLogprobs()))
+            .maxCompletionTokens(getOrDefault(parameters.maxCompletionTokens(), defaultParameters.maxCompletionTokens()))
+            .n(getOrDefault(parameters.n(), defaultParameters.n()))
+            .presencePenalty(getOrDefault(parameters.presencePenalty(), defaultParameters.presencePenalty()))
+            .seed(getOrDefault(parameters.seed(), defaultParameters.seed()))
+            .stop(getOrDefault(parameters.stop(), defaultParameters.stop()))
+            .temperature(getOrDefault(parameters.temperature(), defaultParameters.temperature()))
+            .topP(getOrDefault(parameters.topP(), defaultParameters.topP()))
+            .responseFormat(getOrDefault(parameters.responseFormat(), defaultParameters.responseFormat()))
+            .jsonSchema(getOrDefault(parameters.jsonSchema(), defaultParameters.jsonSchema()))
+            .context(getOrDefault(parameters.context(), defaultParameters.context()))
+            .timeLimit(getOrDefault(parameters.timeLimit(), timeout.toMillis()))
+            .guidedChoice(getOrDefault(parameters.guidedChoice(), defaultParameters.guidedChoice()))
+            .guidedRegex(getOrDefault(parameters.guidedRegex(), defaultParameters.guidedRegex()))
+            .guidedGrammar(getOrDefault(parameters.guidedGrammar(), defaultParameters.guidedGrammar()))
+            .repetitionPenalty(getOrDefault(parameters.repetitionPenalty(), defaultParameters.repetitionPenalty()))
+            .lengthPenalty(getOrDefault(parameters.lengthPenalty(), defaultParameters.lengthPenalty()))
+            .includeReasoning(includeReasoning)
+            .reasoningEffort(thinkingEffort)
+            .chatTemplateKwargs(chatTemplateKwargs)
+            .build();
+    }
+
+    /**
      * This method helps notify developers when they set parameters that are not applicable to deployments.
      *
      * @param modelId the model identifier, ignored in deployment context
@@ -346,8 +331,35 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     public final static class Builder extends WatsonxService.Builder<Builder> {
         private MessageInterceptor messageInterceptor;
         private ToolInterceptor toolInterceptor;
+        private ChatParameters defaultParameters;
 
         private Builder() {}
+
+        /**
+         * Sets the default {@link ChatParameters} that will be applied to all chat requests when no specific parameters are provided.
+         * <p>
+         * These default values serve as fallbacks for any parameter not explicitly set in individual {@link ChatRequest} objects. When a request
+         * includes its own parameters, those values take precedence over the defaults.
+         *
+         * @param defaultParameters the default chat parameters to use
+         */
+        public Builder defaultParameters(ChatParameters.Builder defaultParameters) {
+            return defaultParameters(defaultParameters.build());
+        }
+
+
+        /**
+         * Sets the default {@link ChatParameters} that will be applied to all chat requests when no specific parameters are provided.
+         * <p>
+         * These default values serve as fallbacks for any parameter not explicitly set in individual {@link ChatRequest} objects. When a request
+         * includes its own parameters, those values take precedence over the defaults.
+         *
+         * @param defaultParameters the default chat parameters to use
+         */
+        public Builder defaultParameters(ChatParameters defaultParameters) {
+            this.defaultParameters = defaultParameters;
+            return this;
+        }
 
         /**
          * Registers a {@link MessageInterceptor} used to modify or sanitize the assistant's textual content before it is returned to the caller.

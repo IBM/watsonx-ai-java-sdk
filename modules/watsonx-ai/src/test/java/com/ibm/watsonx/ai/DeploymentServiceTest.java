@@ -24,12 +24,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -50,6 +52,7 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -1773,5 +1776,247 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertEquals(
             "\"{\\n  \\\"country\\\": \\\"Italy\\\"\\n}\"",
             toolFetchers.stream().map(PartialToolCall::arguments).collect(Collectors.joining()));
+    }
+
+    @Test
+    void should_use_default_chat_parameters() throws Exception {
+
+        withWatsonxServiceMock(() -> {
+
+            var deploymentService = DeploymentService.builder()
+                .authenticator(mockAuthenticator)
+                .baseUrl(CloudRegion.FRANKFURT)
+                .defaultParameters(
+                    ChatParameters.builder()
+                        .context("context")
+                        .frequencyPenalty(2.0)
+                        .guidedChoice(Set.of("1"))
+                        .guidedGrammar("guidedGrammar")
+                        .guidedRegex("guidedRegex")
+                        .lengthPenalty(1.0)
+                        .logitBias(Map.of("test", 1))
+                        .logprobs(true)
+                        .maxCompletionTokens(0)
+                        .n(2)
+                        .presencePenalty(3.0)
+                        .repetitionPenalty(4.0)
+                        .responseAsJson()
+                        .seed(2)
+                        .stop(List.of("stop"))
+                        .temperature(1.0)
+                        .timeLimit(Duration.ofMinutes(120))
+                        .toolChoice("toolChoice")
+                        .toolChoiceOption(ToolChoiceOption.REQUIRED)
+                        .topLogprobs(3)
+                        .topP(6.0)
+                        .build()
+                ).build();
+
+            var messages = List.<ChatMessage>of(UserMessage.text("Hello"));
+
+            when(mockAuthenticator.token()).thenReturn("my-super-token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn(
+                """
+                    {
+                        "id": "chatcmpl-43962cc06e5346ccbd653a04a48e4b5b",
+                        "object" : "chat.completion",
+                        "model_id" : "my-super-model",
+                        "model" : "my-super-model-model",
+                        "choices" : [ {
+                        "index" : 0,
+                        "message" : {
+                            "role" : "assistant",
+                            "content" : "Hello!!!"
+                        },
+                        "finish_reason" : "stop"
+                        }],
+                        "created" : 1749288614,
+                        "model_version" : "1.1.0",
+                        "created_at" : "2025-06-07T09:30:15.122Z",
+                        "usage" : {
+                        "completion_tokens" : 37,
+                        "prompt_tokens" : 66,
+                        "total_tokens" : 103
+                        }
+                    }""");
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var chatRequest = ChatRequest.builder()
+                .deploymentId("deploymentId")
+                .messages(messages)
+                .build();
+
+            deploymentService.chat(chatRequest);
+            HttpRequest actualRequest = mockHttpRequest.getValue();
+            assertEquals("https://eu-de.ml.cloud.ibm.com/ml/v1/deployments/deploymentId/text/chat?version=%s".formatted(API_VERSION),
+                actualRequest.uri().toString());
+            assertEquals("Bearer my-super-token", actualRequest.headers().firstValue("Authorization").orElse(""));
+            assertEquals("application/json", actualRequest.headers().firstValue("Accept").orElse(""));
+            assertEquals("application/json", actualRequest.headers().firstValue("Content-Type").orElse(""));
+            assertEquals("POST", actualRequest.method());
+
+            String expectedBody = Json.toJson(
+                TextChatRequest.builder()
+                    .messages(messages)
+                    .context("context")
+                    .frequencyPenalty(2.0)
+                    .guidedChoice(Set.of("1"))
+                    .guidedGrammar("guidedGrammar")
+                    .guidedRegex("guidedRegex")
+                    .lengthPenalty(1.0)
+                    .logitBias(Map.of("test", 1))
+                    .logprobs(true)
+                    .maxCompletionTokens(0)
+                    .n(2)
+                    .presencePenalty(3.0)
+                    .repetitionPenalty(4.0)
+                    .responseFormat("json_object")
+                    .seed(2)
+                    .stop(List.of("stop"))
+                    .temperature(1.0)
+                    .toolChoice(Map.of("type", "function", "function", Map.of("name", "toolChoice")))
+                    .toolChoiceOption("required")
+                    .topLogprobs(3)
+                    .topP(6.0)
+                    .timeLimit(7200000L)
+                    .build());
+
+            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+        });
+    }
+
+    @Test
+    void should_override_default_chat_parameters() throws Exception {
+
+        withWatsonxServiceMock(() -> {
+
+            var deploymentService = DeploymentService.builder()
+                .authenticator(mockAuthenticator)
+                .baseUrl(CloudRegion.FRANKFURT)
+                .defaultParameters(
+                    ChatParameters.builder()
+                        .context("context")
+                        .frequencyPenalty(2.0)
+                        .guidedChoice(Set.of("1"))
+                        .guidedGrammar("guidedGrammar")
+                        .guidedRegex("guidedRegex")
+                        .lengthPenalty(1.0)
+                        .logitBias(Map.of("test", 1))
+                        .logprobs(true)
+                        .maxCompletionTokens(0)
+                        .n(2)
+                        .presencePenalty(3.0)
+                        .repetitionPenalty(4.0)
+                        .responseAsJson()
+                        .seed(2)
+                        .stop(List.of("stop"))
+                        .temperature(1.0)
+                        .timeLimit(Duration.ofMinutes(120))
+                        .toolChoice("toolChoice")
+                        .toolChoiceOption(ToolChoiceOption.REQUIRED)
+                        .topLogprobs(3)
+                        .topP(6.0)
+                        .build()
+                ).build();
+
+            var messages = List.<ChatMessage>of(UserMessage.text("Hello"));
+
+            when(mockAuthenticator.token()).thenReturn("my-super-token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn(
+                """
+                    {
+                        "id": "chatcmpl-43962cc06e5346ccbd653a04a48e4b5b",
+                        "object" : "chat.completion",
+                        "model_id" : "my-super-model",
+                        "model" : "my-super-model-model",
+                        "choices" : [ {
+                        "index" : 0,
+                        "message" : {
+                            "role" : "assistant",
+                            "content" : "Hello!!!"
+                        },
+                        "finish_reason" : "stop"
+                        }],
+                        "created" : 1749288614,
+                        "model_version" : "1.1.0",
+                        "created_at" : "2025-06-07T09:30:15.122Z",
+                        "usage" : {
+                        "completion_tokens" : 37,
+                        "prompt_tokens" : 66,
+                        "total_tokens" : 103
+                        }
+                    }""");
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var chatRequest = ChatRequest.builder()
+                .deploymentId("deploymentId")
+                .messages(messages)
+                .parameters(
+                    ChatParameters.builder()
+                        .context("context_override")
+                        .frequencyPenalty(0.0)
+                        .guidedChoice(Set.of("1_override"))
+                        .guidedGrammar("guidedGrammar_override")
+                        .guidedRegex("guidedRegex_override")
+                        .lengthPenalty(0.0)
+                        .logitBias(Map.of("test", 0))
+                        .logprobs(false)
+                        .maxCompletionTokens(100)
+                        .n(0)
+                        .presencePenalty(0.0)
+                        .repetitionPenalty(0.0)
+                        .responseAsText()
+                        .seed(0)
+                        .stop(List.of("stop_override"))
+                        .temperature(0.0)
+                        .timeLimit(Duration.ofSeconds(1))
+                        .toolChoice("toolChoice_override")
+                        .toolChoiceOption(ToolChoiceOption.NONE)
+                        .topLogprobs(0)
+                        .topP(0.0)
+                        .build()
+                ).build();
+
+            deploymentService.chat(chatRequest);
+            HttpRequest actualRequest = mockHttpRequest.getValue();
+            assertEquals("https://eu-de.ml.cloud.ibm.com/ml/v1/deployments/deploymentId/text/chat?version=%s".formatted(API_VERSION),
+                actualRequest.uri().toString());
+            assertEquals("Bearer my-super-token", actualRequest.headers().firstValue("Authorization").orElse(""));
+            assertEquals("application/json", actualRequest.headers().firstValue("Accept").orElse(""));
+            assertEquals("application/json", actualRequest.headers().firstValue("Content-Type").orElse(""));
+            assertEquals("POST", actualRequest.method());
+
+            String expectedBody = Json.toJson(
+                TextChatRequest.builder()
+                    .messages(messages)
+                    .context("context_override")
+                    .frequencyPenalty(0.0)
+                    .guidedChoice(Set.of("1_override"))
+                    .guidedGrammar("guidedGrammar_override")
+                    .guidedRegex("guidedRegex_override")
+                    .lengthPenalty(0.0)
+                    .logitBias(Map.of("test", 0))
+                    .logprobs(false)
+                    .maxCompletionTokens(100)
+                    .n(0)
+                    .presencePenalty(0.0)
+                    .repetitionPenalty(0.0)
+                    .responseFormat("text")
+                    .seed(0)
+                    .stop(List.of("stop_override"))
+                    .temperature(0.0)
+                    .toolChoice(Map.of("type", "function", "function", Map.of("name", "toolChoice_override")))
+                    .toolChoiceOption("none")
+                    .topLogprobs(0)
+                    .topP(0.0)
+                    .timeLimit(1000L)
+                    .build());
+
+            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+        });
     }
 }

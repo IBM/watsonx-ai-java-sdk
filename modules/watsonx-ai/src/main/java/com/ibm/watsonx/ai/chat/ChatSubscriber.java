@@ -50,7 +50,7 @@ public interface ChatSubscriber {
     /**
      * Called once the streaming session has completed successfully.
      */
-    void onComplete();
+    CompletableFuture<ChatResponse> onComplete();
 
     /**
      * Builds a map indicating whether each tool has parameters.
@@ -292,69 +292,55 @@ public interface ChatSubscriber {
             }
 
             @Override
-            public void onComplete() {
-                try {
+            public CompletableFuture<ChatResponse> onComplete() {
+                String content = contentBuffer.isEmpty() ? null : contentBuffer.toString().trim();
+                String thinking = thinkingBuffer.isEmpty() ? null : thinkingBuffer.toString().trim();
 
-                    String content = contentBuffer.isEmpty() ? null : contentBuffer.toString().trim();
-                    String thinking = thinkingBuffer.isEmpty() ? null : thinkingBuffer.toString().trim();
-
-                    if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
-                        var completedToolCall = new CompletedToolCall(completionId, tools.get(tools.size() - 1).build());
-                        pendingNormalization.add(
-                            handlerDecorator.normalize(completedToolCall)
-                                .thenAcceptAsync(normalizedToolCall -> {
-                                    var toolFetcher = tools.get(tools.size() - 1);
-                                    toolFetcher.setId(normalizedToolCall.toolCall().id());
-                                    toolFetcher.setName(normalizedToolCall.toolCall().function().name());
-                                    toolFetcher.setArguments(normalizedToolCall.toolCall().function().arguments());
-                                    handlerDecorator.onCompleteToolCall(normalizedToolCall);
-                                }, ExecutorProvider.ioExecutor())
-                                .exceptionally(err -> {
-                                    handlerDecorator.onError(nonNull(err.getCause()) ? err.getCause() : err);
-                                    return null;
-                                })
-                        );
-                    }
-
-                    CompletableFuture
-                        .allOf(pendingNormalization.toArray(new CompletableFuture[0]))
-                        .whenCompleteAsync((v, err) -> {
-
-                            if (nonNull(err)) {
-                                handlerDecorator.onError(err.getCause() != null ? err.getCause() : err);
-                            } else {
-
-                                List<ToolCall> toolCalls = tools.stream().map(StreamingToolFetcher::build).collect(Collectors.toList());
-
-                                var resultMessage =
-                                    new ResultMessage(role, content, thinking, refusal,
-                                        (isNull(toolCalls) || toolCalls.isEmpty()) ? null : List.copyOf(toolCalls));
-
-                                var complete = ChatResponse.build()
-                                    .created(created)
-                                    .createdAt(createdAt)
-                                    .id(id)
-                                    .modelId(modelId)
-                                    .object(object)
-                                    .model(model)
-                                    .modelVersion(modelVersion)
-                                    .extractionTags(extractionTags)
-                                    .usage(chatUsage)
-                                    .choices(List.of(new ResultChoice(0, resultMessage, finishReason)))
-                                    .build();
-
-                                try {
-                                    handlerDecorator.onCompleteResponse(complete);
-                                } catch (RuntimeException e) {
-                                    handlerDecorator.onError(e);
-                                }
-                            }
-                        }, ExecutorProvider.ioExecutor());
-
-
-                } catch (RuntimeException e) {
-                    onError(e);
+                if (nonNull(finishReason) && finishReason.equals("tool_calls")) {
+                    var completedToolCall = new CompletedToolCall(completionId, tools.get(tools.size() - 1).build());
+                    pendingNormalization.add(
+                        handlerDecorator.normalize(completedToolCall)
+                            .thenAcceptAsync(normalizedToolCall -> {
+                                var toolFetcher = tools.get(tools.size() - 1);
+                                toolFetcher.setId(normalizedToolCall.toolCall().id());
+                                toolFetcher.setName(normalizedToolCall.toolCall().function().name());
+                                toolFetcher.setArguments(normalizedToolCall.toolCall().function().arguments());
+                                handlerDecorator.onCompleteToolCall(normalizedToolCall);
+                            }, ExecutorProvider.ioExecutor())
+                            .exceptionally(err -> {
+                                handlerDecorator.onError(nonNull(err.getCause()) ? err.getCause() : err);
+                                return null;
+                            })
+                    );
                 }
+
+                return CompletableFuture
+                    .allOf(pendingNormalization.toArray(new CompletableFuture[0]))
+                    .thenApplyAsync(v -> {
+
+                        List<ToolCall> toolCalls = tools.stream().map(StreamingToolFetcher::build).collect(Collectors.toList());
+
+                        var resultMessage =
+                            new ResultMessage(role, content, thinking, refusal,
+                                (isNull(toolCalls) || toolCalls.isEmpty()) ? null : List.copyOf(toolCalls));
+
+                        var complete = ChatResponse.build()
+                            .created(created)
+                            .createdAt(createdAt)
+                            .id(id)
+                            .modelId(modelId)
+                            .object(object)
+                            .model(model)
+                            .modelVersion(modelVersion)
+                            .extractionTags(extractionTags)
+                            .usage(chatUsage)
+                            .choices(List.of(new ResultChoice(0, resultMessage, finishReason)))
+                            .build();
+
+                        handlerDecorator.onCompleteResponse(complete);
+                        return complete;
+
+                    }, ExecutorProvider.ioExecutor());
             }
         };
     }
