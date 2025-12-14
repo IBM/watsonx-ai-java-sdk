@@ -4,18 +4,32 @@
  */
 package com.ibm.watsonx.ai.chat;
 
-import java.util.concurrent.ExecutorService;
-import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 
 /**
  * Interface for handling streaming chat responses.
  * <p>
- * This interface defines a callback-based mechanism to process data as it is streamed from the model.
+ *
+ * <b>Required Methods</b>
+ * <ul>
+ * <li>{@link #onPartialResponse} - called as data arrives</li>
+ * <li>{@link #onCompleteResponse} - called when streaming completes</li>
+ * <li>{@link #onError} - handle errors during streaming</li>
+ * </ul>
+ *
+ * <b>Optional Methods</b>
+ * <ul>
+ * <li>{@link #onPartialToolCall} - receive partial tool call fragments</li>
+ * <li>{@link #onCompleteToolCall} - receive completed tool calls</li>
+ * <li>{@link #onPartialThinking} - receive reasoning/thinking content</li>
+ * <li>{@link #failOnFirstError} - control error handling behavior</li>
+ * </ul>
+ *
+ * <b>Callback Order</b>
  * <p>
+ *
  * Within a single streaming request, callbacks are invoked in the following order:
  * <ol>
  * <li>{@link #onPartialResponse}, {@link #onPartialThinking}, {@link #onPartialToolCall} - invoked zero or more times as data arrives</li>
@@ -27,8 +41,8 @@ import com.ibm.watsonx.ai.chat.model.PartialToolCall;
  * </ul>
  * </li>
  * </ol>
- * <p>
- * <b>Error handling behavior:</b>
+ *
+ * <b>Error Handling Behavior</b>
  * <ul>
  * <li>If {@link #failOnFirstError()} returns {@code true}: the first error triggers {@link #onError} and immediately cancels the stream. No further
  * callbacks are invoked.</li>
@@ -36,10 +50,8 @@ import com.ibm.watsonx.ai.chat.model.PartialToolCall;
  * errors may be reported, and {@link #onCompleteResponse} is still called at the end.</li>
  * </ul>
  *
- * <b>Thread Safety</b>
- * <p>
- * Within a single streaming request, all callbacks are guaranteed to be invoked <b>sequentially</b> and <b>never concurrently</b>, following the
- * Reactive Streams specification.
+ * <b>Thread Safety</b> Within a single streaming request, all callbacks are guaranteed to be invoked <b>sequentially</b> and <b>never
+ * concurrently</b>, following the Reactive Streams specification.
  * <p>
  * <b>Important:</b> If the same {@code ChatHandler} instance is shared across multiple concurrent streaming requests, the implementation must handle
  * synchronization internally. The SDK does not serialize callbacks across different requests.
@@ -52,7 +64,7 @@ public interface ChatHandler {
      * This method may be invoked multiple times during the lifecycle of a single chat request.
      * <p>
      * <b>Threading:</b> This method is executed on the streaming thread. If it performs blocking operations (e.g., I/O, heavy computation), delegate
-     * those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the stream.
+     * those tasks to a separate thread to avoid blocking the stream.
      *
      * @param partialResponse the partial chunk of the response received
      * @param partialChatResponse the partial chat response
@@ -68,7 +80,7 @@ public interface ChatHandler {
      * {@link #onError(Throwable)} is called instead.
      * <p>
      * <b>Threading:</b> This method is executed on the streaming thread. If it performs blocking operations (e.g., I/O, heavy computation), delegate
-     * those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the stream.
+     * those tasks to a separate thread to avoid blocking the stream.
      *
      * @param completeResponse the full chat response
      */
@@ -85,7 +97,7 @@ public interface ChatHandler {
      * </ul>
      * <p>
      * <b>Threading:</b> This method is executed on the streaming thread. If it performs blocking operations (e.g., I/O, heavy computation), delegate
-     * those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the stream.
+     * those tasks to a separate thread to avoid blocking the stream.
      *
      * @param error the exception that was thrown
      */
@@ -98,7 +110,7 @@ public interface ChatHandler {
      * {@link #onCompleteToolCall(CompletedToolCall)} is invoked indicating that the tool call is fully assembled.
      * <p>
      * <b>Threading:</b> This method is executed on the streaming thread. If it performs blocking operations (e.g., I/O, heavy computation), delegate
-     * those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the stream.
+     * those tasks to a separate thread to avoid blocking the stream.
      *
      * @param partialToolCall a partial tool call fragment containing index, tool ID, tool name, and partial arguments
      */
@@ -110,11 +122,8 @@ public interface ChatHandler {
      * When multiple tools are called in the same response, this method is invoked once per tool. The {@link CompletedToolCall#toolCall()} contains an
      * {@code index} field that can be used to determine the original order of tool calls if needed.
      * <p>
-     * <b>Note:</b> When a {@link ToolInterceptor} is configured, tool calls are processed asynchronously. In this case, the order of
-     * {@code onCompleteToolCall} invocations may not match the original order of tool calls. Use the {@code index} field to reorder if necessary.
-     * <p>
-     * <b>Threading:</b> This method is executed on the streaming thread, or on an executor thread if a {@link ToolInterceptor} is configured. If it
-     * performs blocking operations (e.g., I/O, heavy computation), delegate those tasks to a separate thread using an {@link ExecutorService}.
+     * <b>Threading:</b> This method is executed on the streaming thread. If it performs blocking operations (e.g., I/O, heavy computation), delegate
+     * those tasks to a separate thread to avoid blocking the stream.
      *
      * @param completeToolCall the completed tool call
      */
@@ -124,11 +133,10 @@ public interface ChatHandler {
      * Called whenever a partial segment of the assistant's reasoning process is received during streaming.
      * <p>
      * <b>Threading:</b> This method is executed on the streaming thread. If it performs blocking operations (e.g., I/O, heavy computation), delegate
-     * those tasks to a separate thread using an {@link ExecutorService} to avoid blocking the stream.
+     * those tasks to a separate thread to avoid blocking the stream.
      *
      * @param partialThinking the raw partial text of the reasoning content
      * @param partialChatResponse the structured partial chat response
-     * @see ExtractionTags
      */
     default void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {}
 

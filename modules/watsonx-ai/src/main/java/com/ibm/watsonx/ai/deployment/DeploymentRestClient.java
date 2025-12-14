@@ -98,7 +98,7 @@ public abstract class DeploymentRestClient extends WatsonxRestClient {
      * @param handler the {@link ChatHandler} receiving streaming events
      * @return a {@link CompletableFuture} that completes when streaming finishes or fails
      */
-    public abstract CompletableFuture<Void> chatStreaming(
+    public abstract CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
         String deploymentId,
         Duration timeout,

@@ -146,7 +146,7 @@ public final class ChatResponse {
     }
 
     /**
-     * Converts this {@code ChatResponse} into an {@link AssistantMessage}.
+     * Converts the {@code ChatResponse} into an {@link AssistantMessage}.
      *
      * @return an {@code AssistantMessage} containing the assistant's reply content
      */
@@ -155,6 +155,7 @@ public final class ChatResponse {
 
         String content;
         String thinking;
+
         if (isNull(extractionTags)) {
             content = resultMessage.content();
             thinking = resultMessage.reasoningContent();

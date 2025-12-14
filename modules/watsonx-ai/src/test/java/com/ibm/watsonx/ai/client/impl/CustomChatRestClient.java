@@ -23,7 +23,7 @@ public class CustomChatRestClient extends ChatRestClient {
     }
 
     @Override
-    public CompletableFuture<Void> chatStreaming(String transactionId, ExtractionTags extractionTags, TextChatRequest textChatRequest,
+    public CompletableFuture<ChatResponse> chatStreaming(String transactionId, ExtractionTags extractionTags, TextChatRequest textChatRequest,
         ChatHandler handler) {
         throw new UnsupportedOperationException("Unimplemented method 'chatStreaming'");
     }

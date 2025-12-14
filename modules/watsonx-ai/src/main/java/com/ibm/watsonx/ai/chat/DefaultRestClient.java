@@ -68,7 +68,7 @@ final class DefaultRestClient extends ChatRestClient {
     }
 
     @Override
-    public CompletableFuture<Void> chatStreaming(String transactionId, ExtractionTags extractionTags, TextChatRequest textChatRequest,
+    public CompletableFuture<ChatResponse> chatStreaming(String transactionId, ExtractionTags extractionTags, TextChatRequest textChatRequest,
         ChatHandler handler) {
 
         var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/chat_stream?version=%s".formatted(version)))
@@ -80,7 +80,7 @@ final class DefaultRestClient extends ChatRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        var response = new CompletableFuture<Void>();
+        var response = new CompletableFuture<ChatResponse>();
         var subscriber =
             subscriber(textChatRequest.toolChoiceOption(), toolHasParameters(textChatRequest.tools()), extractionTags, response, handler);
         asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
@@ -101,7 +101,7 @@ final class DefaultRestClient extends ChatRestClient {
         String toolChoiceOption,
         Map<String, Boolean> toolHasParameters,
         ExtractionTags extractionTags,
-        CompletableFuture<Void> response,
+        CompletableFuture<ChatResponse> response,
         ChatHandler handler) {
 
         return new Flow.Subscriber<String>() {
@@ -145,8 +145,15 @@ final class DefaultRestClient extends ChatRestClient {
 
             @Override
             public void onComplete() {
-                chatSubscriber.onComplete();
-                response.complete(null);
+                chatSubscriber.onComplete()
+                    .whenComplete((chatResponse, error) -> {
+                        if (nonNull(error)) {
+                            error = nonNull(error.getCause()) ? error.getCause() : error;
+                            chatSubscriber.onError(error);
+                            response.completeExceptionally(error);
+                        } else
+                            response.complete(chatResponse);
+                    });
             }
         };
     }

@@ -40,7 +40,7 @@ public abstract class ChatRestClient extends WatsonxRestClient {
      * @param handler the {@link ChatHandler} instance that receives streaming events
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
-    public abstract CompletableFuture<Void> chatStreaming(
+    public abstract CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
         ExtractionTags extractionTags,
         TextChatRequest textChatRequest,

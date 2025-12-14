@@ -169,7 +169,7 @@ final class DefaultRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public CompletableFuture<Void> chatStreaming(
+    public CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
         String deploymentId,
         Duration timeout,
@@ -189,10 +189,10 @@ final class DefaultRestClient extends DeploymentRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        var response = new CompletableFuture<Void>();
+        var response = new CompletableFuture<ChatResponse>();
         var subscriber =
             subscriber(textChatRequest.toolChoiceOption(), toolHasParameters(textChatRequest.tools()), extractionTags, response, handler);
-        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+        asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))
             .thenAccept(r -> {})
@@ -200,6 +200,7 @@ final class DefaultRestClient extends DeploymentRestClient {
                 response.completeExceptionally(handleError(t, handler));
                 return null;
             });
+        return response;
     }
 
     @Override
@@ -284,7 +285,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         String toolChoiceOption,
         Map<String, Boolean> toolHasParameters,
         ExtractionTags extractionTags,
-        CompletableFuture<Void> response,
+        CompletableFuture<ChatResponse> response,
         ChatHandler handler) {
 
         return new Flow.Subscriber<String>() {
@@ -328,8 +329,15 @@ final class DefaultRestClient extends DeploymentRestClient {
 
             @Override
             public void onComplete() {
-                chatSubscriber.onComplete();
-                response.complete(null);
+                chatSubscriber.onComplete()
+                    .whenComplete((chatResponse, error) -> {
+                        if (nonNull(error)) {
+                            error = nonNull(error.getCause()) ? error.getCause() : error;
+                            chatSubscriber.onError(error);
+                            response.completeExceptionally(error);
+                        } else
+                            response.complete(chatResponse);
+                    });
             }
         };
     }

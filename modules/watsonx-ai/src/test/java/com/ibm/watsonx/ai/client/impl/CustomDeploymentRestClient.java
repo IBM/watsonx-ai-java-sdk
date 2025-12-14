@@ -47,7 +47,7 @@ public class CustomDeploymentRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public CompletableFuture<Void> chatStreaming(String transactionId, String deploymentId, Duration timeout, ExtractionTags extractionTags,
+    public CompletableFuture<ChatResponse> chatStreaming(String transactionId, String deploymentId, Duration timeout, ExtractionTags extractionTags,
         TextChatRequest textChatRequest, ChatHandler handler) {
         throw new UnsupportedOperationException("Unimplemented method 'chatStreaming'");
     }
