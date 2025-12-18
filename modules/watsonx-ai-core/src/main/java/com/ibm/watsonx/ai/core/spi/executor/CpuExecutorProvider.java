@@ -15,11 +15,11 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * This executor is used for CPU-intensive operations such as JSON parsing, data transformation, or other computational tasks that should not block
  * I/O threads.
  *
- * <h2>Default Behavior</h2>
+ * <b>Default Behavior</b>
  * <p>
  * If no custom provider is registered, the SDK uses {@link ForkJoinPool#commonPool()}.
  *
- * <h2>Custom Implementation</h2>
+ * <b>Custom Implementation</b>
  * <p>
  * To provide a custom executor, implement this interface and register it via {@link ServiceLoader}:
  * <ol>

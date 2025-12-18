@@ -2,11 +2,12 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.chat.util;
+package com.ibm.watsonx.ai.chat.streaming;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.util.UUID;
+import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 
 /**
@@ -14,11 +15,13 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
  */
 public final class StreamingToolFetcher {
 
+    private volatile String completionId;
     private volatile int index;
     private StringBuffer arguments;
     private volatile String id, name;
 
-    public StreamingToolFetcher(int index) {
+    public StreamingToolFetcher(String completionId, int index) {
+        this.completionId = completionId;
         this.index = index;
         arguments = new StringBuffer();
     }
@@ -54,11 +57,11 @@ public final class StreamingToolFetcher {
         return id;
     }
 
-    public ToolCall build() {
+    public CompletedToolCall build() {
         // Watsonx doesn't return "id" if the option tool-choice is set to REQUIRED.
         if (isNull(id))
             id = UUID.randomUUID().toString();
 
-        return ToolCall.of(index, id, name, arguments.toString().isBlank() ? "{}" : arguments.toString());
+        return new CompletedToolCall(completionId, ToolCall.of(index, id, name, arguments.toString().isBlank() ? "{}" : arguments.toString()));
     }
 }

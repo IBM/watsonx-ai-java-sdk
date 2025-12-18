@@ -2,7 +2,7 @@
  * Copyright IBM Corp. 2025 - 2025
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.chat.util;
+package com.ibm.watsonx.ai.chat.streaming;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;

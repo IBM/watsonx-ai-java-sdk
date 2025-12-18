@@ -17,11 +17,11 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
@@ -190,22 +190,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var textChatRequest = buildTextChatRequest(chatRequest);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
-        var timeout = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().timeLimit())
-            ? chatRequest.parameters().timeLimit()
-            : this.timeout.toMillis();
+        var context = ChatClientContext.builder()
+            .chatProvider(chatProvider)
+            .chatRequest(chatRequest)
+            .toolInterceptor(toolInterceptor)
+            .extractionTags(extractionTags)
+            .build();
 
-        return client.chatStreaming(
-            transactionId,
-            deploymentId,
-            Duration.ofMillis(timeout),
-            extractionTags,
-            textChatRequest,
-            new ChatHandlerDecorator(
-                new InterceptorContext(chatProvider, chatRequest, null),
-                handler,
-                toolInterceptor
-            )
-        );
+        return client.chatStreaming(transactionId, deploymentId, textChatRequest, context, handler);
     }
 
     @Override

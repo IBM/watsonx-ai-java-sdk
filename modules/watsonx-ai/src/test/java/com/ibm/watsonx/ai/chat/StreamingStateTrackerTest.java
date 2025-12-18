@@ -4,17 +4,17 @@
  */
 package com.ibm.watsonx.ai.chat;
 
-import static com.ibm.watsonx.ai.chat.util.StreamingStateTracker.State.NO_THINKING;
-import static com.ibm.watsonx.ai.chat.util.StreamingStateTracker.State.RESPONSE;
-import static com.ibm.watsonx.ai.chat.util.StreamingStateTracker.State.START;
-import static com.ibm.watsonx.ai.chat.util.StreamingStateTracker.State.THINKING;
-import static com.ibm.watsonx.ai.chat.util.StreamingStateTracker.State.UNKNOWN;
+import static com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker.State.NO_THINKING;
+import static com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker.State.RESPONSE;
+import static com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker.State.START;
+import static com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker.State.THINKING;
+import static com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker.State.UNKNOWN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
-import com.ibm.watsonx.ai.chat.util.StreamingStateTracker;
-import com.ibm.watsonx.ai.chat.util.StreamingStateTracker.Result;
+import com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker;
+import com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker.Result;
 
 public class StreamingStateTrackerTest {
 

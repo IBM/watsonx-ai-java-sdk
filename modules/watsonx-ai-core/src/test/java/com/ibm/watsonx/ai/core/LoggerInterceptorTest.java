@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,15 +29,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
@@ -329,54 +325,41 @@ public class LoggerInterceptorTest {
 
             var threadNames = new ArrayList<>();
 
-            var cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-                threadNames.add(Thread.currentThread().getName());
-                r.run();
-            }, "cpu-thread"));
-
-            var ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-                threadNames.add(Thread.currentThread().getName());
-                r.run();
-            }, "io-thread"));
-
             var mockHttpResponse = mock(HttpResponse.class);
             when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
 
-            try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
-                mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
-                mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
+            LoggerInterceptor interceptor = new LoggerInterceptor();
 
-                LoggerInterceptor interceptor = new LoggerInterceptor();
+            var client = AsyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(interceptor)
+                .interceptor(new AsyncHttpInterceptor() {
+                    @Override
+                    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+                        int index, AsyncChain chain) {
+                        assertEquals("http-io-thread", Thread.currentThread().getName());
+                        threadNames.add(Thread.currentThread().getName());
+                        return chain.proceed(request, bodyHandler)
+                            .thenApplyAsync(r -> {
+                                threadNames.add(Thread.currentThread().getName());
+                                return r;
+                            }, ExecutorProvider.cpuExecutor())
+                            .thenApplyAsync(r -> {
+                                threadNames.add(Thread.currentThread().getName());
+                                return r;
+                            }, ExecutorProvider.ioExecutor());
+                    }
+                }).build();
 
-                var client = AsyncHttpClient.builder()
-                    .httpClient(httpClient)
-                    .interceptor(interceptor)
-                    .interceptor(new AsyncHttpInterceptor() {
-                        @Override
-                        public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-                            int index, AsyncChain chain) {
-                            assertEquals("io-thread", Thread.currentThread().getName());
-                            threadNames.add(Thread.currentThread().getName());
-                            return chain.proceed(request, bodyHandler)
-                                .thenApplyAsync(Function.identity(), cpuExecutor)
-                                .thenApplyAsync(r -> {
-                                    threadNames.add(Thread.currentThread().getName());
-                                    return r;
-                                }, ioExecutor);
-                        }
-                    }).build();
+            client.send(HttpRequest.newBuilder()
+                .uri(URI.create("https://test.com"))
+                .GET().build(), BodyHandlers.ofString())
+                .get(3, TimeUnit.SECONDS);
 
-                client.send(HttpRequest.newBuilder()
-                    .uri(URI.create("https://test.com"))
-                    .GET().build(), BodyHandlers.ofString())
-                    .get(3, TimeUnit.SECONDS);
-
-                assertEquals(4, threadNames.size());
-                assertEquals("io-thread", threadNames.get(0));
-                assertEquals("io-thread", threadNames.get(1));
-                assertEquals("cpu-thread", threadNames.get(2));
-                assertEquals("io-thread", threadNames.get(3));
-            }
+            assertEquals(3, threadNames.size());
+            assertEquals("http-io-thread", threadNames.get(0));
+            assertEquals("ForkJoinPool.commonPool-worker-1", threadNames.get(1));
+            assertEquals("http-io-thread", threadNames.get(2));
         }
     }
 

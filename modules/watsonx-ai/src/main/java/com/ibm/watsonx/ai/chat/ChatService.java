@@ -16,7 +16,6 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
-import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
@@ -136,17 +135,14 @@ public class ChatService extends ModelService implements ChatProvider {
         var textChatRequest = buildTextChatRequest(chatRequest);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
+        var context = ChatClientContext.builder()
+            .chatProvider(chatProvider)
+            .chatRequest(chatRequest)
+            .toolInterceptor(toolInterceptor)
+            .extractionTags(extractionTags)
+            .build();
 
-        return client.chatStreaming(
-            transactionId,
-            extractionTags,
-            textChatRequest,
-            new ChatHandlerDecorator(
-                new InterceptorContext(chatProvider, chatRequest, null),
-                handler,
-                toolInterceptor
-            )
-        );
+        return client.chatStreaming(transactionId, textChatRequest, context, handler);
     }
 
     /**

@@ -4,9 +4,6 @@
  */
 package com.ibm.watsonx.ai.deployment;
 
-import static com.ibm.watsonx.ai.chat.ChatSubscriber.createSubscriber;
-import static com.ibm.watsonx.ai.chat.ChatSubscriber.handleError;
-import static com.ibm.watsonx.ai.chat.ChatSubscriber.toolHasParameters;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
@@ -18,16 +15,19 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.time.Duration;
-import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
+import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.ChatSubscriber;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.SseEventProcessor;
+import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
+import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
+import com.ibm.watsonx.ai.chat.streaming.ChatSubscriber;
+import com.ibm.watsonx.ai.chat.streaming.DefaultChatSubscriber;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -172,9 +172,8 @@ final class DefaultRestClient extends DeploymentRestClient {
     public CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
         String deploymentId,
-        Duration timeout,
-        ExtractionTags extractionTags,
         TextChatRequest textChatRequest,
+        ChatClientContext context,
         ChatHandler handler) {
 
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat_stream?version=%s".formatted(deploymentId, version));
@@ -184,20 +183,26 @@ final class DefaultRestClient extends DeploymentRestClient {
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
                 .POST(BodyPublishers.ofString(toJson(textChatRequest)))
-                .timeout(timeout);
+                .timeout(Duration.ofMillis(textChatRequest.timeLimit()));
 
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         var response = new CompletableFuture<ChatResponse>();
-        var subscriber =
-            subscriber(textChatRequest.toolChoiceOption(), toolHasParameters(textChatRequest.tools()), extractionTags, response, handler);
+        var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
+        var chatSubscriber =
+            new DefaultChatSubscriber(
+                new SseEventProcessor(ChatSubscriber.toolHasParameters(textChatRequest.tools()), context.extractionTags()),
+                new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
+            );
+
+        var subscriber = subscriber(chatSubscriber, response, !handler.failOnFirstError());
         asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))
             .thenAccept(r -> {})
             .exceptionally(t -> {
-                response.completeExceptionally(handleError(t, handler));
+                response.completeExceptionally(ChatSubscriber.handleError(t, handler));
                 return null;
             });
         return response;
@@ -282,16 +287,13 @@ final class DefaultRestClient extends DeploymentRestClient {
      * Creates a subscriber that listens to raw SSE messages from the chat stream, and delegates processing to a {@link ChatSubscriber}.
      */
     private Flow.Subscriber<String> subscriber(
-        String toolChoiceOption,
-        Map<String, Boolean> toolHasParameters,
-        ExtractionTags extractionTags,
+        ChatSubscriber chatSubscriber,
         CompletableFuture<ChatResponse> response,
-        ChatHandler handler) {
+        boolean failOnFirstError) {
 
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
             private volatile boolean continueProcessing = true;
-            private volatile ChatSubscriber chatSubscriber = createSubscriber(toolChoiceOption, toolHasParameters, extractionTags, handler);
 
             @Override
             public void onSubscribe(Subscription subscription) {
@@ -309,7 +311,7 @@ final class DefaultRestClient extends DeploymentRestClient {
 
                     Throwable t = nonNull(e.getCause()) ? e.getCause() : e;
                     onError(t);
-                    continueProcessing = !handler.failOnFirstError();
+                    continueProcessing = failOnFirstError;
                     if (!continueProcessing)
                         response.completeExceptionally(t);
 

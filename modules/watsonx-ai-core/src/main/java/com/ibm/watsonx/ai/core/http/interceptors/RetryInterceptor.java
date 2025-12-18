@@ -166,7 +166,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         Duration timeout, AsyncChain chain) {
 
         return chain.proceed(request, bodyHandler)
-            .exceptionallyComposeAsync(throwable -> {
+            .exceptionallyCompose(throwable -> {
 
                 String requestId = request.headers()
                     .firstValue(REQUEST_ID_HEADER)
@@ -203,7 +203,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     },
                     CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, ExecutorProvider.ioExecutor())
                 ).thenCompose(Function.identity());
-            }, ExecutorProvider.ioExecutor());
+            });
     }
 
     public List<RetryOn> retryOn() {

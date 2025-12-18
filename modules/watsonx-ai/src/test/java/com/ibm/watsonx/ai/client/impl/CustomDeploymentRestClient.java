@@ -6,9 +6,9 @@ package com.ibm.watsonx.ai.client.impl;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.deployment.DeploymentResource;
 import com.ibm.watsonx.ai.deployment.DeploymentRestClient;
@@ -47,8 +47,8 @@ public class CustomDeploymentRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public CompletableFuture<ChatResponse> chatStreaming(String transactionId, String deploymentId, Duration timeout, ExtractionTags extractionTags,
-        TextChatRequest textChatRequest, ChatHandler handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(String transactionId, String deploymentId, TextChatRequest textChatRequest,
+        ChatClientContext context, ChatHandler handler) {
         throw new UnsupportedOperationException("Unimplemented method 'chatStreaming'");
     }
 

@@ -22,4 +22,13 @@ public class Utils {
         }
         throw lastException;
     }
+
+    public static boolean isVirtual() {
+        try {
+            var method = Thread.class.getMethod("isVirtual");
+            return (boolean) method.invoke(Thread.currentThread());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
