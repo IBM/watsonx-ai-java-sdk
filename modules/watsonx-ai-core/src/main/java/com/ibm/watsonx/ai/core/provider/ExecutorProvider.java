@@ -13,7 +13,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,13 +147,20 @@ public final class ExecutorProvider {
 
             } catch (Exception e) {
                 // Java < 21: cached thread pool
-                logger.debug("Virtual threads not available, using cached thread pool for callbacks");
+                logger.debug("Virtual threads not available, using cached thread pool");
                 AtomicInteger counter = new AtomicInteger(1);
-                callbackExecutor = Executors.newCachedThreadPool(r -> {
-                    var thread = new Thread(r, "thread-" + counter.getAndIncrement());
-                    thread.setDaemon(true);
-                    return thread;
-                });
+                callbackExecutor = new ThreadPoolExecutor(
+                    1,
+                    Integer.MAX_VALUE,
+                    60L,
+                    TimeUnit.SECONDS,
+                    new SynchronousQueue<>(),
+                    r -> {
+                        var thread = new Thread(r, "thread-" + counter.getAndIncrement());
+                        thread.setDaemon(true);
+                        return thread;
+                    }
+                );
             }
         }
         return callbackExecutor;

@@ -6,7 +6,6 @@ package com.ibm.chatbot;
 
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import java.net.URI;
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.eclipse.microprofile.config.Config;
@@ -38,33 +37,31 @@ public class AiService {
         final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
         modelId = "ibm/granite-3-3-8b-instruct";
 
+        var defaultParameters = ChatParameters.builder()
+            .maxCompletionTokens(0)
+            .build();
+
         chatService = ChatService.builder()
-            .apiKey(apiKey)
-            .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
-            .modelId(modelId)
             .baseUrl(url)
+            .apiKey(apiKey)
+            .modelId(modelId)
+            .projectId(projectId)
+            .defaultParameters(defaultParameters)
             .build();
 
         foundationModelService = FoundationModelService.builder()
-            .apiKey(apiKey)
             .baseUrl(url)
-            .timeout(Duration.ofSeconds(60))
+            .apiKey(apiKey)
             .build();
 
         memory = new ChatMemory();
     }
 
-    public CompletableFuture<Void> chat(String message, Consumer<String> response, Consumer<String> thinking) {
-
-        var parameters = ChatParameters.builder()
-            .maxCompletionTokens(0)
-            .build();
+    public CompletableFuture<ChatResponse> chat(String message, Consumer<String> response, Consumer<String> thinking) {
 
         memory.addMessage(UserMessage.text(message));
 
         var chatRequest = ChatRequest.builder()
-            .parameters(parameters)
             .messages(memory.getMemory())
             .thinking(ExtractionTags.of("think", "response"))
             .build();
@@ -89,7 +86,7 @@ public class AiService {
 
             @Override
             public void onError(Throwable error) {
-                error.printStackTrace();
+                System.err.println(error);
             }
 
             @Override

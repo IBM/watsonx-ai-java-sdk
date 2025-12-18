@@ -95,11 +95,14 @@ public class AiService {
                     future.complete(assistantMessage);
                     return;
                 } else {
+
                     assistantMessage.toolCalls().stream()
                         .map(toolCall -> toolCall.id())
                         .map(toolMessages::get)
                         .forEach(memory::addMessage);
-                    chatService.chatStreaming(memory.getMemory(), this)
+
+                    chatService
+                        .chatStreaming(memory.getMemory(), this)
                         .whenComplete((res, err) -> {
                             if (err != null)
                                 future.completeExceptionally(err);

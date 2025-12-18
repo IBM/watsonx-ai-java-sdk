@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -36,6 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
@@ -321,12 +324,14 @@ public class LoggerInterceptorTest {
         }
 
         @Test
+        @MockitoSettings(strictness = Strictness.LENIENT)
         void should_use_correct_executors() throws Exception {
 
             var threadNames = new ArrayList<>();
 
             var mockHttpResponse = mock(HttpResponse.class);
             when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
+            when(httpClient.executor()).thenReturn(Optional.of(ExecutorProvider.ioExecutor()));
 
             LoggerInterceptor interceptor = new LoggerInterceptor();
 

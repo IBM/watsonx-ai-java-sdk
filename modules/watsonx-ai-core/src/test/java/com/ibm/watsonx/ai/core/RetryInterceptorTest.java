@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
@@ -588,8 +589,9 @@ public class RetryInterceptorTest {
     void should_use_correct_cached_executor() throws Exception {
 
         var threadNames = new ArrayList<>();
-
         var mockHttpResponse = mock(HttpResponse.class);
+
+        when(httpClient.executor()).thenReturn(Optional.of(ExecutorProvider.ioExecutor()));
         when(httpClient.sendAsync(any(), any(BodyHandler.class)))
             .thenReturn(failedFuture(new NullPointerException("First error")))
             .thenReturn(failedFuture(new NullPointerException("Second error")))
@@ -639,12 +641,12 @@ public class RetryInterceptorTest {
 
         var threadNames = new ArrayList<>();
         var mockHttpResponse = mock(HttpResponse.class);
+        when(httpClient.executor()).thenReturn(Optional.of(ExecutorProvider.ioExecutor()));
         when(httpClient.sendAsync(any(), any(BodyHandler.class)))
             .thenReturn(failedFuture(new NullPointerException("First error")))
             .thenReturn(failedFuture(new NullPointerException("Second error")))
             .thenReturn(failedFuture(new NullPointerException("Third error")))
             .thenReturn(completedFuture(mockHttpResponse));
-
 
         RetryInterceptor retryInterceptor = RetryInterceptor.builder()
             .maxRetries(3)

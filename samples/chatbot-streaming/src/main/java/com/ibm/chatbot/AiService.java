@@ -6,7 +6,6 @@ package com.ibm.chatbot;
 
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import java.net.URI;
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.eclipse.microprofile.config.Config;
@@ -37,32 +36,31 @@ public class AiService {
         final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
         modelId = config.getOptionalValue("WATSONX_MODEL_ID", String.class).orElse("mistralai/mistral-medium-2505");
 
+        var defaultParameters = ChatParameters.builder()
+            .maxCompletionTokens(0)
+            .build();
+
         chatService = ChatService.builder()
-            .apiKey(apiKey)
-            .projectId(projectId)
-            .timeout(Duration.ofSeconds(60))
-            .modelId(modelId)
             .baseUrl(url)
+            .apiKey(apiKey)
+            .modelId(modelId)
+            .projectId(projectId)
+            .defaultParameters(defaultParameters)
             .build();
 
         foundationModelService = FoundationModelService.builder()
-            .apiKey(apiKey)
             .baseUrl(url)
-            .timeout(Duration.ofSeconds(60))
+            .apiKey(apiKey)
             .build();
 
         memory = new ChatMemory();
         memory.addMessage(SystemMessage.of("You are an helpful assistant"));
     }
 
-    public CompletableFuture<Void> chat(String message, Consumer<String> handler) {
-
-        var parameters = ChatParameters.builder()
-            .maxCompletionTokens(0)
-            .build();
+    public CompletableFuture<ChatResponse> chat(String message, Consumer<String> handler) {
 
         memory.addMessage(UserMessage.text(message));
-        return chatService.chatStreaming(memory.getMemory(), parameters, new ChatHandler() {
+        return chatService.chatStreaming(memory.getMemory(), new ChatHandler() {
 
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
