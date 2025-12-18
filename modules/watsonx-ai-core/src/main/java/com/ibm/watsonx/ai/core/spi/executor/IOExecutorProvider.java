@@ -4,21 +4,26 @@
  */
 package com.ibm.watsonx.ai.core.spi.executor;
 
+import java.net.http.HttpClient;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
- * Service Provider Interface (SPI) for providing a custom {@link Executor} for I/O-bound tasks.
+ * Service Provider Interface (SPI) for providing a custom {@link Executor} for {@link HttpClient} response processing.
  * <p>
- * This executor is used for network calls, HTTP requests, and other operations that may block while waiting for external resources.
- *
- * <h2>Default Behavior</h2>
+ * This executor is used internally by the SDK to process HTTP responses and parse SSE (Server-Sent Events) streams.
  * <p>
- * If no custom provider is registered, the SDK uses a fixed thread pool with a size equal to the number of available processors. The pool size can be
- * customized via the {@code IO_CORE_THREADS} environment variable.
+ * User callbacks are executed on a separate executor (see {@link CallbackExecutorProvider}).
  *
- * <h2>Custom Implementation</h2>
+ * <p>
+ * <b>Default Behavior</b>
+ * <p>
+ * If no custom provider is registered, a single-threaded executor is used by default (configurable via {@code WATSONX_IO_EXECUTOR_THREADS}
+ * environment variable).
+ *
+ * <p>
+ * <b>Custom Implementation</b>
  * <p>
  * To provide a custom executor, implement this interface and register it via {@link ServiceLoader}:
  * <ol>
@@ -28,16 +33,15 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * </ol>
  *
  * @see ExecutorProvider#ioExecutor()
+ * @see CallbackExecutorProvider
  */
 @FunctionalInterface
 public interface IOExecutorProvider {
 
     /**
-     * Returns the {@link Executor} to be used for I/O-bound tasks.
-     * <p>
-     * The returned executor should be capable of handling blocking I/O operations.
+     * Returns the {@link Executor} to be used for HTTP response processing.
      *
-     * @return the executor for I/O-bound tasks
+     * @return the executor for HTTP response processing
      */
     Executor executor();
 }

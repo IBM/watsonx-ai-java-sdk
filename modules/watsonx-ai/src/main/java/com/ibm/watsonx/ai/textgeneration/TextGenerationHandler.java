@@ -7,8 +7,8 @@ package com.ibm.watsonx.ai.textgeneration;
 /**
  * Callback interface used to handle streaming in text generation requests.
  * <p>
- * This interface defines a callback-based mechanism to process data as it is streamed from the model. A {@code ChatHandler} guarantees that all
- * method calls are delivered in a <b>sequential and ordered</b> manner.
+ * This interface defines a callback-based mechanism to process data as it is streamed from the model. A {@code TextGenerationHandler} guarantees that
+ * all method calls are delivered in a <b>sequential and ordered</b> manner.
  */
 public interface TextGenerationHandler {
 

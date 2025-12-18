@@ -8,7 +8,6 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Optional.ofNullable;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse.Result;
 
@@ -62,7 +61,6 @@ public interface TextGenerationSubscriber {
             private volatile String stopReason;
             private volatile boolean pendingSSEError = false;
             private final StringBuffer buffer = new StringBuffer();
-            private final ReentrantLock callbackLock = new ReentrantLock();
 
             @Override
             public void onNext(String partialMessage) {
@@ -109,23 +107,13 @@ public interface TextGenerationSubscriber {
                 if (nonNull(result.generatedText()) && !result.generatedText().isEmpty()) {
                     buffer.append(result.generatedText());
 
-                    try {
-                        callbackLock.lock();
-                        handler.onPartialResponse(result.generatedText());
-                    } finally {
-                        callbackLock.unlock();
-                    }
+                    handler.onPartialResponse(result.generatedText());
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
-                try {
-                    callbackLock.lock();
-                    handler.onError(throwable);
-                } finally {
-                    callbackLock.unlock();
-                }
+                handler.onError(throwable);
             }
 
             @Override
@@ -134,12 +122,8 @@ public interface TextGenerationSubscriber {
 
                     var result = List.of(new Result(buffer.toString(), stopReason, generatedTokenCount,
                         inputTokenCount, null, null, null, null));
-                    try {
-                        callbackLock.lock();
-                        handler.onCompleteResponse(new TextGenerationResponse(modelId, null, null, result));
-                    } finally {
-                        callbackLock.unlock();
-                    }
+
+                    handler.onCompleteResponse(new TextGenerationResponse(modelId, null, null, result));
 
                 } catch (RuntimeException e) {
                     onError(e);

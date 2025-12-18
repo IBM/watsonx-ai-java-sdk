@@ -4,9 +4,6 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
-import static java.util.Objects.requireNonNull;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ToolExecutor;
 
@@ -30,17 +27,5 @@ public record CompletedToolCall(String completionId, ToolCall toolCall) {
      */
     public ToolMessage processTool(ToolExecutor executor) {
         return toolCall.processTool(executor);
-    }
-
-    /**
-     * Processes the tool call using the provided {@link ToolExecutor} and executes the task asynchronously using the specified {@link Executor}.
-     *
-     * @param toolExecutor the {@link ToolExecutor} responsible for executing the tool call logic
-     * @param executor the {@link Executor} that will handle the asynchronous execution of the tool call
-     * @return a {@link CompletableFuture} that will complete with a {@link ToolMessage} when the tool call is processed
-     */
-    public CompletableFuture<ToolMessage> processTool(ToolExecutor toolExecutor, Executor executor) {
-        requireNonNull(executor, "The executor must be provided");
-        return CompletableFuture.supplyAsync(() -> toolCall.processTool(toolExecutor), executor);
     }
 }

@@ -13,7 +13,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,16 +31,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -585,20 +583,11 @@ public class RetryInterceptorTest {
     }
 
     @Test
+    @EnabledForJreRange(max = JRE.JAVA_20)
     @SuppressWarnings("unchecked")
-    void should_use_correct_executors() throws Exception {
+    void should_use_correct_cached_executor() throws Exception {
 
         var threadNames = new ArrayList<>();
-
-        var cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-            threadNames.add(Thread.currentThread().getName());
-            r.run();
-        }, "cpu-thread"));
-
-        var ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-            threadNames.add(Thread.currentThread().getName());
-            r.run();
-        }, "io-thread"));
 
         var mockHttpResponse = mock(HttpResponse.class);
         when(httpClient.sendAsync(any(), any(BodyHandler.class)))
@@ -607,40 +596,81 @@ public class RetryInterceptorTest {
             .thenReturn(failedFuture(new NullPointerException("Third error")))
             .thenReturn(completedFuture(mockHttpResponse));
 
-        try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
-            mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
-            mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
+        RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+            .maxRetries(3)
+            .retryInterval(Duration.ofMillis(1))
+            .retryOn(NullPointerException.class)
+            .build();
 
-            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
-                .maxRetries(3)
-                .retryInterval(Duration.ofMillis(1))
-                .retryOn(NullPointerException.class)
-                .build();
+        var client = AsyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptor(retryInterceptor)
+            .interceptor(new AsyncHttpInterceptor() {
+                @Override
+                public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+                    int index, AsyncChain chain) {
+                    return chain.proceed(request, bodyHandler)
+                        .thenApplyAsync(httpResponse -> {
+                            threadNames.add(Thread.currentThread().getName());
+                            return httpResponse;
+                        }, ExecutorProvider.cpuExecutor())
+                        .thenApplyAsync(httpResponse -> {
+                            threadNames.add(Thread.currentThread().getName());
+                            return httpResponse;
+                        }, ExecutorProvider.ioExecutor());
+                }
+            }).build();
 
-            var client = AsyncHttpClient.builder()
-                .httpClient(httpClient)
-                .interceptor(retryInterceptor)
-                .interceptor(new AsyncHttpInterceptor() {
-                    @Override
-                    public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
-                        int index, AsyncChain chain) {
-                        return chain.proceed(request, bodyHandler)
-                            .thenApplyAsync(Function.identity(), cpuExecutor)
-                            .thenApplyAsync(Function.identity(), ioExecutor);
-                    }
-                }).build();
+        client.send(HttpRequest.newBuilder()
+            .uri(URI.create("https://test.com"))
+            .GET().build(), BodyHandlers.ofString())
+            .thenRun(() -> threadNames.add(Thread.currentThread().getName()))
+            .get(3, TimeUnit.SECONDS);
 
-            client.send(HttpRequest.newBuilder()
-                .uri(URI.create("https://test.com"))
-                .GET().build(), BodyHandlers.ofString())
-                .thenRun(() -> threadNames.add(Thread.currentThread().getName()))
-                .get(3, TimeUnit.SECONDS);
+        assertEquals(3, threadNames.size());
+        assertEquals("ForkJoinPool.commonPool-worker-1", threadNames.get(0));
+        assertEquals("http-io-thread", threadNames.get(1));
+        assertEquals("http-io-thread", threadNames.get(2));
+    }
 
-            assertEquals(3, threadNames.size());
-            assertEquals("io-thread", threadNames.get(0));
-            assertEquals("cpu-thread", threadNames.get(1));
-            assertEquals("io-thread", threadNames.get(2));
-        }
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_use_correct_io_executor() throws Exception {
+
+        var threadNames = new ArrayList<>();
+        var mockHttpResponse = mock(HttpResponse.class);
+        when(httpClient.sendAsync(any(), any(BodyHandler.class)))
+            .thenReturn(failedFuture(new NullPointerException("First error")))
+            .thenReturn(failedFuture(new NullPointerException("Second error")))
+            .thenReturn(failedFuture(new NullPointerException("Third error")))
+            .thenReturn(completedFuture(mockHttpResponse));
+
+
+        RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+            .maxRetries(3)
+            .retryInterval(Duration.ofMillis(1))
+            .retryOn(NullPointerException.class)
+            .build();
+
+        var client = AsyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptor(retryInterceptor)
+            .interceptor(new AsyncHttpInterceptor() {
+                @Override
+                public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
+                    int index, AsyncChain chain) {
+                    return chain.proceed(request, bodyHandler);
+                }
+            }).build();
+
+        client.send(HttpRequest.newBuilder()
+            .uri(URI.create("https://test.com"))
+            .GET().build(), BodyHandlers.ofString())
+            .thenRun(() -> threadNames.add(Thread.currentThread().getName()))
+            .get(3, TimeUnit.SECONDS);
+
+        assertEquals(1, threadNames.size());
+        assertTrue(String.valueOf(threadNames.get(0)).startsWith("http-io-thread"));
     }
 
     private RetryInterceptor onTokenExpired(int maxRetries) {

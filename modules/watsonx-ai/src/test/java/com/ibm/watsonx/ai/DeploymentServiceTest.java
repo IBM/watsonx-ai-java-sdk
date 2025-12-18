@@ -33,12 +33,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -1188,6 +1188,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    @EnabledForJreRange(max = JRE.JAVA_20)
     void should_use_correct_executors() throws Exception {
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -1216,54 +1217,41 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.564Z","usage":{"completion_tokens":3,"prompt_tokens":38,"total_tokens":41}}
                         """)));
 
-        List<String> threadNames = new ArrayList<>();
-
-        Executor ioExecutor = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
-            threadNames.add(Thread.currentThread().getName());
-            r.run();
-        }, "my-thread"));
-
         when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
 
-        withCustomExecutor(() -> {
+        var deploymentService = DeploymentService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticator(mockAuthenticator)
+            .build();
 
-            var deploymentService = DeploymentService.builder()
-                .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
-                .authenticator(mockAuthenticator)
-                .build();
+        var request = ChatRequest.builder()
+            .messages(List.of(UserMessage.text("Hello")))
+            .deploymentId("my-deployment-id")
+            .build();
 
-            var request = ChatRequest.builder()
-                .messages(List.of(UserMessage.text("Hello")))
-                .deploymentId("my-deployment-id")
-                .build();
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        deploymentService.chatStreaming(request, new ChatHandler() {
 
-            CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-            deploymentService.chatStreaming(request, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                assertTrue(Thread.currentThread().getName().startsWith("thread-"));
+                assertNotNull(partialResponse);
+                assertNotNull(partialChatResponse);
+            }
 
-                @Override
-                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                    assertEquals("my-thread", Thread.currentThread().getName());
-                    assertNotNull(partialResponse);
-                    assertNotNull(partialChatResponse);
-                }
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                assertTrue(Thread.currentThread().getName().startsWith("thread-"));
+                result.complete(completeResponse);
+            }
 
-                @Override
-                public void onCompleteResponse(ChatResponse completeResponse) {
-                    assertEquals("my-thread", Thread.currentThread().getName());
-                    result.complete(completeResponse);
-                }
+            @Override
+            public void onError(Throwable error) {
+                fail(error);
+            }
+        });
 
-                @Override
-                public void onError(Throwable error) {
-                    fail(error);
-                }
-            });
-
-            assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
-            assertEquals(1, threadNames.size());
-            assertEquals("my-thread", threadNames.get(0));
-
-        }, ioExecutor);
+        assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
     }
 
     @Test

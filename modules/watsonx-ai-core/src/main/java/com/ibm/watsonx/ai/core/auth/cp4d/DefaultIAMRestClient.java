@@ -19,7 +19,6 @@ import java.util.function.Function;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
@@ -53,14 +52,13 @@ class DefaultIAMRestClient extends CP4DRestClient {
     public CompletableFuture<TokenResponse> asyncToken(TokenRequest request) {
         return asyncHttpClient
             .send(createTokenRequest(request), BodyHandlers.ofString())
-            .thenComposeAsync(response -> {
+            .thenCompose(response -> {
                 var tokenResponse = parseTokenResponse(response);
                 var httpRequest = createValidationRequest(request.username(), tokenResponse.accessToken());
                 return asyncHttpClient
                     .send(httpRequest, BodyHandlers.ofString())
-                    .thenApplyAsync(httpResponse -> createTokenResponse(httpResponse, tokenResponse), ExecutorProvider.ioExecutor());
-            })
-            .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
+                    .thenApply(httpResponse -> createTokenResponse(httpResponse, tokenResponse));
+            }).thenApply(Function.identity());
     }
 
     /*

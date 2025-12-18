@@ -9,9 +9,9 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
+import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
@@ -92,18 +92,16 @@ public abstract class DeploymentRestClient extends WatsonxRestClient {
      *
      * @param transactionId an optional transaction identifier for tracing
      * @param deploymentId the deployment to execute the request on
-     * @param timeout the maximum duration to wait for completion
-     * @param extractionTags optional tags to extract reasoning or intermediate outputs
      * @param textChatRequest the structured chat request
-     * @param handler the {@link ChatHandler} receiving streaming events
-     * @return a {@link CompletableFuture} that completes when streaming finishes or fails
+     * @param context the {@link ChatClientContext} containing additional data needed by the client
+     * @param handler the {@link ChatHandler} instance that receives streaming events
+     * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
     public abstract CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
         String deploymentId,
-        Duration timeout,
-        ExtractionTags extractionTags,
         TextChatRequest textChatRequest,
+        ChatClientContext context,
         ChatHandler handler);
 
     /**

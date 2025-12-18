@@ -92,7 +92,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
         return CompletableFuture
             .runAsync(() -> logRequest(request), ExecutorProvider.ioExecutor())
-            .thenComposeAsync(v -> chain.proceed(request, bodyHandler), ExecutorProvider.ioExecutor())
+            .thenCompose(v -> chain.proceed(request, bodyHandler))
             .whenComplete((response, exception) -> {
                 var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
                 if (isNull(exception))

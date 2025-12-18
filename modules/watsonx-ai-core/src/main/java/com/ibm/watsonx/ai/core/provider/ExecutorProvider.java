@@ -13,27 +13,33 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider;
 import com.ibm.watsonx.ai.core.spi.executor.CpuExecutorProvider;
 import com.ibm.watsonx.ai.core.spi.executor.IOExecutorProvider;
-import com.ibm.watsonx.ai.core.spi.executor.InterceptorExecutorProvider;
 
 /**
- * A utility class that provides a shared instance of Executors for the SDK's internal operations.
+ * A utility class that provides shared Executor instances for the SDK's internal operations.
  * <p>
- * Provides separate executors for CPU-bound tasks and I/O-bound tasks.
+ * Provides three separate executors:
+ * <ul>
+ * <li>{@link #cpuExecutor()} - for CPU-intensive tasks (JSON parsing, computation)</li>
+ * <li>{@link #ioExecutor()} - for SSE stream parsing (single-threaded by default)</li>
+ * <li>{@link #callbackExecutor()} - for user callbacks (virtual threads on Java 21+)</li>
+ * </ul>
  */
 public final class ExecutorProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutorProvider.class);
     private static final CpuExecutorProvider cpuExecutorProvider = loadCpuExecutorProvider();
-    private static final IOExecutorProvider ioExecutorProvider = loadIoExecutorProvider();
-    private static final InterceptorExecutorProvider interceptorExecutorProvider = loadInterceptorExecutorProvider();
+    private static final IOExecutorProvider ioExecutorProvider = loadIOExecutorProvider();
+    private static final CallbackExecutorProvider callbackExecutorProvider = loadCallbackExecutorProvider();
     private static volatile Executor cpuExecutor;
     private static volatile Executor ioExecutor;
-    private static volatile Executor interceptorExecutor;
+    private static volatile Executor callbackExecutor;
 
     private ExecutorProvider() {}
 
@@ -61,11 +67,14 @@ public final class ExecutorProvider {
     }
 
     /**
-     * Retrieves the shared executor for I/O-bound tasks.
+     * Executor for SSE stream parsing and HTTP response processing.
      * <p>
-     * This executor is intended for network calls, HTTP requests, or other I/O operations that may block.
+     * By default, uses a single thread to ensure sequential processing of SSE events. Can be configured to use multiple threads via the
+     * {@code WATSONX_IO_EXECUTOR_THREADS} environment variable.
+     * <p>
+     * <b>Note:</b> User callbacks are executed on {@link #callbackExecutor()}, not this executor.
      *
-     * @return The shared {@link ExecutorService} for I/O-bound tasks.
+     * @return the executor for SSE parsing
      */
     public static synchronized Executor ioExecutor() {
         if (isNull(ioExecutor)) {
@@ -76,61 +85,75 @@ public final class ExecutorProvider {
                 return ioExecutor;
             }
 
-            var nThreads = ofNullable(System.getenv("IO_CORE_THREADS"))
+            var nThreads = ofNullable(System.getenv("WATSONX_IO_EXECUTOR_THREADS"))
                 .map(Integer::valueOf)
-                .orElse(Runtime.getRuntime().availableProcessors());
+                .orElse(1);
 
-            AtomicInteger counter = new AtomicInteger(1);
-            ExecutorService defaultExecutor = Executors.newFixedThreadPool(nThreads, r -> {
-                var thread = new Thread(r, "io-thread-" + counter.getAndIncrement());
-                thread.setDaemon(true);
-                return thread;
-            });
-
-            ioExecutor = defaultExecutor;
+            if (nThreads > 1) {
+                AtomicInteger counter = new AtomicInteger(1);
+                ioExecutor = Executors.newFixedThreadPool(nThreads, r -> {
+                    var thread = new Thread(r, "http-io-thread-" + counter.getAndIncrement());
+                    thread.setDaemon(true);
+                    return thread;
+                });
+            } else
+                ioExecutor = Executors.newFixedThreadPool(nThreads, r -> {
+                    var thread = new Thread(r, "http-io-thread");
+                    thread.setDaemon(true);
+                    return thread;
+                });
         }
         return ioExecutor;
     }
 
     /**
-     * Retrieves the shared executor for interceptor tasks.
+     * Executor for user-defined callbacks in streaming operations.
      * <p>
-     * This executor is specifically designed for running interceptors that may perform blocking operations (such as synchronous HTTP calls). It uses
-     * a separate thread pool to avoid blocking the main I/O executor.
+     * This executor is used to run {@code ChatHandler} and {@code TextGenerationHandler} callbacks, ensuring they don't block the SSE parsing thread.
      * <p>
-     * On Java 21+, this executor uses virtual threads for optimal scalability with blocking operations. On earlier Java versions, a cached thread
-     * pool is used as fallback.
+     * <b>Default Behavior:</b>
+     * <ul>
+     * <li><b>Java 21+:</b> Virtual threads (lightweight, non-blocking)</li>
+     * <li><b>Java 17-20:</b> Cached thread pool (reuses threads)</li>
+     * </ul>
      *
-     * @return The shared {@link Executor} for interceptor tasks.
+     * @return the executor for user callbacks
      */
-    public static synchronized Executor interceptorExecutor() {
-        if (isNull(interceptorExecutor)) {
+    public static synchronized Executor callbackExecutor() {
+        if (isNull(callbackExecutor)) {
 
-            if (nonNull(interceptorExecutorProvider)) {
-                logger.trace("Loaded Interceptor executor from SPI");
-                interceptorExecutor = interceptorExecutorProvider.executor();
-                return interceptorExecutor;
+            if (nonNull(callbackExecutorProvider)) {
+                logger.trace("Loaded callback executor from SPI");
+                callbackExecutor = callbackExecutorProvider.executor();
+                return callbackExecutor;
             }
 
             try {
-                // Try to create virtual thread executor (Java 21+)
-                Method method = Executors.class.getMethod("newVirtualThreadPerTaskExecutor");
-                logger.debug("Using virtual thread executor for interceptors (Java 21+)");
-                interceptorExecutor = (ExecutorService) method.invoke(null);
+                // Java 21+: virtual threads
+                Method ofVirtual = Thread.class.getMethod("ofVirtual");
+                Object builder = ofVirtual.invoke(null);
+                Class<?> builderInterface = Class.forName("java.lang.Thread$Builder");
+                Class<?> ofVirtualInterface = Class.forName("java.lang.Thread$Builder$OfVirtual");
+                Method nameMethod = ofVirtualInterface.getMethod("name", String.class, long.class);
+                builder = nameMethod.invoke(builder, "virtual-thread-", 1L);
+                Method factoryMethod = builderInterface.getMethod("factory");
+                ThreadFactory factory = (ThreadFactory) factoryMethod.invoke(builder);
+                Method newThreadPerTaskExecutor = Executors.class.getMethod("newThreadPerTaskExecutor", ThreadFactory.class);
+                callbackExecutor = (ExecutorService) newThreadPerTaskExecutor.invoke(null, factory);
+                logger.debug("Using virtual thread executor for callbacks (Java 21+)");
 
             } catch (Exception e) {
-                // Java < 21, fall back to cached thread pool
+                // Java < 21: cached thread pool
+                logger.debug("Virtual threads not available, using cached thread pool for callbacks");
                 AtomicInteger counter = new AtomicInteger(1);
-                logger.debug("Virtual threads not available, using cached thread pool for interceptors");
-                interceptorExecutor = Executors.newCachedThreadPool(r -> {
-                    var thread = new Thread(r, "interceptor-thread-" + counter.getAndIncrement());
+                callbackExecutor = Executors.newCachedThreadPool(r -> {
+                    var thread = new Thread(r, "thread-" + counter.getAndIncrement());
                     thread.setDaemon(true);
                     return thread;
                 });
-
             }
         }
-        return interceptorExecutor;
+        return callbackExecutor;
     }
 
     /**
@@ -144,16 +167,16 @@ public final class ExecutorProvider {
     /**
      * Attempts to load a {@link IOExecutorProvider} via {@link ServiceLoader}.
      */
-    private static IOExecutorProvider loadIoExecutorProvider() {
+    private static IOExecutorProvider loadIOExecutorProvider() {
         return ServiceLoader.load(IOExecutorProvider.class)
             .findFirst().orElse(null);
     }
 
     /**
-     * Attempts to load a {@link InterceptorExecutorProvider} via {@link ServiceLoader}.
+     * Attempts to load a {@link CallbackExecutorProvider} via {@link ServiceLoader}.
      */
-    private static InterceptorExecutorProvider loadInterceptorExecutorProvider() {
-        return ServiceLoader.load(InterceptorExecutorProvider.class)
+    private static CallbackExecutorProvider loadCallbackExecutorProvider() {
+        return ServiceLoader.load(CallbackExecutorProvider.class)
             .findFirst().orElse(null);
     }
 }

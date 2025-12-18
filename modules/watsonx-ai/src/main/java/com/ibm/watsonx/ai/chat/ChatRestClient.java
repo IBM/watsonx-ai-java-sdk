@@ -8,7 +8,6 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 
 /**
@@ -35,15 +34,15 @@ public abstract class ChatRestClient extends WatsonxRestClient {
      * Partial results are delivered incrementally to the provided {@link ChatHandler}.
      *
      * @param transactionId an optional client-provided transaction identifier used for tracing
-     * @param extractionTags optional tags for extracting "thinking" or intermediate reasoning tokens
      * @param textChatRequest the structured chat request payload
+     * @param context the {@link ChatClientContext} containing additional data needed by the client
      * @param handler the {@link ChatHandler} instance that receives streaming events
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
     public abstract CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
-        ExtractionTags extractionTags,
         TextChatRequest textChatRequest,
+        ChatClientContext context,
         ChatHandler handler);
 
     /**
