@@ -17,14 +17,7 @@ import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
- * Default implementation of {@link ChatSubscriber} for SDK standalone usage with CompletableFuture.
- * <p>
- * This subscriber orchestrates the streaming chat completion flow by:
- * <ul>
- * <li>Delegating SSE parsing to {@link SseEventProcessor}</li>
- * <li>Dispatching events to {@link ChatHandlerDecorator} for callback execution</li>
- * <li>Managing asynchronous completion using {@link CompletableFuture} and {@link ExecutorProvider}</li>
- * </ul>
+ * Default implementation of {@link ChatSubscriber}.
  * <p>
  * <b>Threading Model:</b> The implementation uses {@link ExecutorProvider#ioExecutor()} for I/O-bound operations. User callbacks are executed via
  * {@link ExecutorProvider#callbackExecutor()}, which automatically switches to virtual threads on Java 21+ for improved scalability, or uses a cached
