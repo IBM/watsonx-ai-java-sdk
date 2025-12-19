@@ -202,8 +202,8 @@ final class DefaultRestClient extends TextExtractionRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TextExtractionResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), TextExtractionResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -228,8 +228,8 @@ final class DefaultRestClient extends TextExtractionRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TextExtractionResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), TextExtractionResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

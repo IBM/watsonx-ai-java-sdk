@@ -59,8 +59,8 @@ final class DefaultRestClient extends TextGenerationRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TextGenerationResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), TextGenerationResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

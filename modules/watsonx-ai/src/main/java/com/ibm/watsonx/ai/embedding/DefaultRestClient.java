@@ -45,8 +45,8 @@ final class DefaultRestClient extends EmbeddingRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), EmbeddingResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), EmbeddingResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

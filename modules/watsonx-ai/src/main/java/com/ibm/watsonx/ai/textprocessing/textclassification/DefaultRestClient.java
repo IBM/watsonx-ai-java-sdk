@@ -60,8 +60,8 @@ final class DefaultRestClient extends TextClassificationRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TextClassificationResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), TextClassificationResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -92,8 +92,8 @@ final class DefaultRestClient extends TextClassificationRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TextClassificationResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), TextClassificationResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

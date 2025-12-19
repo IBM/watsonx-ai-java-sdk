@@ -47,8 +47,8 @@ final class DefaultRestClient extends ToolRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), Resources.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), Resources.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -69,8 +69,8 @@ final class DefaultRestClient extends ToolRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), UtilityTool.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), UtilityTool.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -92,8 +92,8 @@ final class DefaultRestClient extends ToolRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            var result = fromJson(httpReponse.body(), Map.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            var result = fromJson(httpResponse.body(), Map.class);
             return (String) result.get("output");
 
         } catch (IOException | InterruptedException e) {
