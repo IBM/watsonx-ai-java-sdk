@@ -100,6 +100,16 @@ public class IBMCloudAuthenticator implements Authenticator {
     }
 
     /**
+     * Creates an {@link IBMCloudAuthenticator} instance with the specified API key.
+     *
+     * @param apiKey The IBM Cloud API key to use for authentication.
+     * @return A configured {@link IBMCloudAuthenticator} instance.
+     */
+    public static IBMCloudAuthenticator withKey(String apiKey) {
+        return builder().apiKey(apiKey).build();
+    }
+
+    /**
      * Check whether the token has expired.
      */
     private boolean isExpired(TokenResponse token) {

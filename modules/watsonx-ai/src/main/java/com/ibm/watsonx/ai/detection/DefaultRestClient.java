@@ -45,8 +45,8 @@ final class DefaultRestClient extends DetectionRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), new TypeToken<DetectionResponse<DetectionTextResponse>>() {});
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), new TypeToken<DetectionResponse<DetectionTextResponse>>() {});
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

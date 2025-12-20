@@ -51,8 +51,8 @@ final class DefaultRestClient extends TokenizationRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), TokenizationResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), TokenizationResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

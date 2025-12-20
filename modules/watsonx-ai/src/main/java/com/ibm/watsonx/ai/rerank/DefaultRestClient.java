@@ -44,8 +44,8 @@ final class DefaultRestClient extends RerankRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), RerankResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), RerankResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

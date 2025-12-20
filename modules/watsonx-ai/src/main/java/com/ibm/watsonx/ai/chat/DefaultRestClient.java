@@ -58,8 +58,8 @@ final class DefaultRestClient extends ChatRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), ChatResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), ChatResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

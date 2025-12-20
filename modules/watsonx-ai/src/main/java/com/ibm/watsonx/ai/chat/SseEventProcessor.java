@@ -28,16 +28,7 @@ import com.ibm.watsonx.ai.chat.streaming.StreamingToolFetcher;
 import com.ibm.watsonx.ai.core.Json;
 
 /**
- * Processes Server-Sent Events from the watsonx.ai.
- * <p>
- * This class is responsible for:
- * <ul>
- * <li>Parsing raw SSE messages into structured {@link PartialChatResponse} objects</li>
- * <li>Accumulating streaming content (text, thinking, tool calls) across multiple chunks</li>
- * <li>Detecting and handling extraction tags for thinking content (if configured)</li>
- * <li>Emitting domain events ({@link CallbackEvent}) for each significant state change</li>
- * <li>Building the final {@link ChatResponse} once streaming completes</li>
- * </ul>
+ * Processes Server-Sent Events.
  * <p>
  * The processor is stateful and thread-safe, designed to be used by a single streaming session.
  */
@@ -134,21 +125,11 @@ public class SseEventProcessor {
     public SseEventProcessor(Map<String, Boolean> toolHasParameters, ExtractionTags extractionTags) {
         this.toolHasParameters = toolHasParameters;
         this.extractionTags = extractionTags;
-        this.stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
+        stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
     }
 
     /**
      * Processes a single SSE chunk and returns the resulting events.
-     * <p>
-     * This method:
-     * <ul>
-     * <li>Parses the raw SSE message into a {@link PartialChatResponse}</li>
-     * <li>Updates internal state (buffers, metadata, tool calls)</li>
-     * <li>Generates appropriate {@link CallbackEvent}s for state changes</li>
-     * <li>Handles SSE protocol messages (error, close events)</li>
-     * </ul>
-     * <p>
-     * The method is designed to be called sequentially for each SSE chunk received from the server.
      *
      * @param partialMessage the raw SSE message (e.g., "data: {...}")
      * @return a {@link ProcessResult} containing events to dispatch or an error
@@ -223,8 +204,7 @@ public class SseEventProcessor {
 
         if (message.delta().toolCalls() != null) {
 
-            // Watsonx doesn't return "tool_calls".
-            // Open an issue.
+            // Watsonx doesn't return "tool_calls". Open an issue.
             finishReason = "tool_calls";
 
             StreamingToolFetcher toolFetcher;

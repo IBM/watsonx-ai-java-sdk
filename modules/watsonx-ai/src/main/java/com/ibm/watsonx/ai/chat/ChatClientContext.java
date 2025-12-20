@@ -8,7 +8,7 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 
 /**
- * Context object that carries data needed by the REST client.
+ * Holds the context data for a chat interaction.
  */
 public class ChatClientContext {
     private final ChatProvider chatProvider;
@@ -24,7 +24,7 @@ public class ChatClientContext {
     }
 
     /**
-     * Returns the chat provider used for making chat requests.
+     * Returns the chat provider.
      *
      * @return the chat provider
      */
@@ -33,7 +33,7 @@ public class ChatClientContext {
     }
 
     /**
-     * Returns the original chat request.
+     * Returns chat request.
      *
      * @return the chat request
      */

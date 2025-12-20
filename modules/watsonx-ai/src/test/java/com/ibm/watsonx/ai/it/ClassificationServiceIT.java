@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.it;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,8 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Path;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
@@ -34,6 +37,7 @@ import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationSe
 public class ClassificationServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
+    static final String COS_API_KEY = System.getenv("CLOUD_OBJECT_STORAGE_API_KEY");
     static final String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
     static final String URL = System.getenv("WATSONX_URL");
     static final String DOCUMENT_REFERENCE_CONNECTION_ID = System.getenv("WATSONX_DOCUMENT_REFERENCE_CONNECTION_ID");
@@ -43,9 +47,11 @@ public class ClassificationServiceIT {
     static final TextClassificationService classificationService = TextClassificationService.builder()
         .baseUrl(URL)
         .apiKey(API_KEY)
-        .cosUrl(CLOUD_OBJECT_STORAGE_URL)
         .projectId(PROJECT_ID)
+        .cosUrl(CLOUD_OBJECT_STORAGE_URL)
+        .cosAuthenticator(nonNull(COS_API_KEY) ? IBMCloudAuthenticator.withKey(COS_API_KEY) : IBMCloudAuthenticator.withKey(API_KEY))
         .documentReference(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET)
+        .timeout(Duration.ofMinutes(5))
         .logRequests(true)
         .logResponses(true)
         .build();

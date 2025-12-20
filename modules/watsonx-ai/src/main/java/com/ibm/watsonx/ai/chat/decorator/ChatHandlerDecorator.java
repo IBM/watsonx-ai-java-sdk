@@ -36,10 +36,6 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * <p>
  * This class is thread-safe and designed for concurrent use in streaming scenarios. All callback scheduling is handled through atomic operations and
  * thread-safe collections.
- *
- * @see ChatHandler
- * @see ToolInterceptor
- * @see InterceptorContext
  */
 public class ChatHandlerDecorator implements ChatHandler {
     /**
@@ -83,67 +79,33 @@ public class ChatHandlerDecorator implements ChatHandler {
         this.toolInterceptor = toolInterceptor;
     }
 
-    /**
-     * Handles a partial response from the chat stream. This callback is scheduled sequentially to maintain response order.
-     *
-     * @param partialResponse the partial text response received
-     * @param partialChatResponse the complete partial response object with metadata
-     */
     @Override
     public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
         scheduleCallback(() -> delegate.onPartialResponse(partialResponse, partialChatResponse));
     }
 
-    /**
-     * Handles the complete response from the chat stream. This callback is scheduled sequentially after all partial responses.
-     *
-     * @param completeResponse the final complete chat response
-     */
+
     @Override
     public void onCompleteResponse(ChatResponse completeResponse) {
         scheduleCallback(() -> delegate.onCompleteResponse(completeResponse));
     }
 
-    /**
-     * Handles errors that occur during chat streaming. This callback is scheduled sequentially to maintain error handling order.
-     *
-     * @param error the error that occurred
-     */
+
     @Override
     public void onError(Throwable error) {
         scheduleCallback(() -> delegate.onError(error));
     }
 
-    /**
-     * Handles partial thinking/reasoning output from the chat model. This callback is scheduled sequentially to maintain thinking output order.
-     *
-     * @param partialThinking the partial thinking text received
-     * @param partialChatResponse the complete partial response object with metadata
-     */
     @Override
     public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
         scheduleCallback(() -> delegate.onPartialThinking(partialThinking, partialChatResponse));
     }
 
-    /**
-     * Handles a partial tool call from the chat stream. This callback is scheduled sequentially to maintain tool call streaming order.
-     *
-     * @param partialToolCall the partial tool call information received
-     */
     @Override
     public void onPartialToolCall(PartialToolCall partialToolCall) {
         scheduleCallback(() -> delegate.onPartialToolCall(partialToolCall));
     }
 
-    /**
-     * Handles a complete tool call from the chat stream.
-     *
-     * <p>
-     * Unlike other callbacks, tool calls are processed asynchronously and can execute in parallel. This allows multiple tool calls to be intercepted
-     * and processed concurrently for better performance.
-     *
-     * @param completeToolCall the complete tool call information
-     */
     @Override
     public void onCompleteToolCall(CompletedToolCall completeToolCall) {
         var future = CompletableFuture
@@ -163,19 +125,13 @@ public class ChatHandlerDecorator implements ChatHandler {
         pendingToolCallCallbacks.add(future);
     }
 
-    /**
-     * Indicates whether the handler should fail immediately on the first error. This delegates to the underlying handler's error handling strategy.
-     *
-     * @return true if processing should stop on first error, false to continue
-     */
     @Override
     public boolean failOnFirstError() {
         return delegate.failOnFirstError();
     }
 
     /**
-     * Waits for all pending callbacks (both sequential and parallel tool calls) to complete.
-     *
+     * Waits for all pending callbacks to complete.
      * <p>
      * This method returns a {@link CompletableFuture} that completes when:
      * <ol>

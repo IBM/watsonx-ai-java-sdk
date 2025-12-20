@@ -76,6 +76,7 @@ public class TextClassificationService extends ProjectService {
             .logResponses(logResponses)
             .timeout(timeout)
             .authenticator(builder.authenticator())
+            .cosAuthenticator(builder.cosAuthenticator)
             .httpClient(httpClient)
             .build();
     }
@@ -609,6 +610,7 @@ public class TextClassificationService extends ProjectService {
      */
     public final static class Builder extends ProjectService.Builder<Builder> {
         private String cosUrl;
+        private Authenticator cosAuthenticator;
         private CosReference documentReference;
 
         private Builder() {}
@@ -620,6 +622,19 @@ public class TextClassificationService extends ProjectService {
          */
         public Builder cosUrl(String cosUrl) {
             this.cosUrl = cosUrl;
+            return this;
+        }
+
+        /**
+         * Specifies a custom authenticator for Cloud Object Storage (COS) operations.
+         * <p>
+         * This allows using a different API key or authentication method for COS when it is deployed in a different environment or region than the
+         * main service. If not specified, the main service authenticator will be used.
+         *
+         * @param cosAuthenticator The {@link Authenticator} to use for COS operations.
+         */
+        public Builder cosAuthenticator(Authenticator cosAuthenticator) {
+            this.cosAuthenticator = cosAuthenticator;
             return this;
         }
 

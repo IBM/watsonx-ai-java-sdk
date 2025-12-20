@@ -45,8 +45,8 @@ final class DefaultRestClient extends TimeSeriesRestClient {
 
         try {
 
-            var httpReponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpReponse.body(), ForecastResponse.class);
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), ForecastResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

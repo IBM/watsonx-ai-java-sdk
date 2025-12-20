@@ -56,7 +56,7 @@ public final class TextClassificationParameters extends WatsonxParameters {
         this.removeUploadedFile = builder.removeUploadedFile;
         this.documentReference = builder.documentReference;
         this.custom = builder.custom;
-        this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(30));
+        this.timeout = builder.timeout;
     }
 
     public String ocrMode() {
