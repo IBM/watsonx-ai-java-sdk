@@ -5,11 +5,13 @@
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
 import java.io.FileNotFoundException;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Code;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
@@ -22,12 +24,13 @@ import com.ibm.watsonx.ai.textprocessing.UploadRequest;
  * Abstraction of a REST client for interacting with the IBM watsonx.ai Text Extraction APIs.
  */
 public abstract class TextExtractionRestClient extends WatsonxRestClient {
-
     protected final String cosUrl;
+    protected final Authenticator cosAuthenticator;
 
     protected TextExtractionRestClient(Builder builder) {
         super(builder);
-        this.cosUrl = requireNonNull(builder.cosUrl, "cosUrl cannot be null");
+        cosUrl = requireNonNull(builder.cosUrl, "cosUrl cannot be null");
+        cosAuthenticator = requireNonNullElse(builder.cosAuthenticator, authenticator);
     }
 
     /**
@@ -125,6 +128,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      */
     public abstract static class Builder extends WatsonxRestClient.Builder<TextExtractionRestClient, Builder> {
         private String cosUrl;
+        private Authenticator cosAuthenticator;
 
         /**
          * Specifies the Cloud Object Storage (COS) base URL to be used for reading and writing files.
@@ -133,6 +137,19 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
          */
         public Builder cosUrl(String cosUrl) {
             this.cosUrl = cosUrl;
+            return this;
+        }
+
+        /**
+         * Specifies a custom authenticator for Cloud Object Storage (COS) operations.
+         * <p>
+         * This allows using a different API key or authentication method for COS when it is deployed in a different environment or region than the
+         * main service. If not specified, the main service authenticator will be used.
+         *
+         * @param cosAuthenticator The {@link Authenticator} to use for COS operations.
+         */
+        public Builder cosAuthenticator(Authenticator cosAuthenticator) {
+            this.cosAuthenticator = cosAuthenticator;
             return this;
         }
     }

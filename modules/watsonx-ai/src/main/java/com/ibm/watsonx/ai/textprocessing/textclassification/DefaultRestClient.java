@@ -31,15 +31,16 @@ import com.ibm.watsonx.ai.textprocessing.UploadRequest;
  * Default implementation of the {@link TextClassificationRestClient} abstract class.
  */
 final class DefaultRestClient extends TextClassificationRestClient {
-
     private final SyncHttpClient syncHttpClient;
-    private final AsyncHttpClient asyncHttpClient;
+    private final SyncHttpClient syncCosHttpClient;
+    private final AsyncHttpClient asyncCosHttpClient;
 
     DefaultRestClient(Builder builder) {
         super(builder);
         requireNonNull(authenticator, "authenticator is mandatory");
         syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
-        asyncHttpClient = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
+        syncCosHttpClient = HttpClientFactory.createSync(cosAuthenticator, httpClient, LogMode.of(logRequests, logResponses));
+        asyncCosHttpClient = HttpClientFactory.createAsync(cosAuthenticator, httpClient, LogMode.of(logRequests, logResponses));
     }
 
     @Override
@@ -166,7 +167,7 @@ final class DefaultRestClient extends TextClassificationRestClient {
             if (nonNull(request.requestTrackingId()))
                 httpRequest.header(REQUEST_ID_HEADER, request.requestTrackingId());
 
-            return asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
+            return asyncCosHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
                 .thenApply(response -> response.statusCode() == 204);
 
         } catch (URISyntaxException e) {
@@ -192,7 +193,7 @@ final class DefaultRestClient extends TextClassificationRestClient {
             if (nonNull(request.requestTrackingId()))
                 httpRequest.header(REQUEST_ID_HEADER, request.requestTrackingId());
 
-            var response = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            var response = syncCosHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return response.statusCode() == 200;
 
         } catch (IOException | InterruptedException | URISyntaxException e) {

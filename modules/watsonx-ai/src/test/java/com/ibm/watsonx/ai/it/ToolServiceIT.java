@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
@@ -47,7 +46,7 @@ public class ToolServiceIT {
         .build();
 
     static final ToolService toolService = ToolService.builder()
-        .baseUrl(CloudRegion.FRANKFURT)
+        .baseUrl(URL)
         .authenticator(authentication)
         .logRequests(true)
         .logResponses(true)

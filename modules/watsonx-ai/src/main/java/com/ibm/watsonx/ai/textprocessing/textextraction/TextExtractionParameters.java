@@ -74,7 +74,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
         this.documentReference = builder.documentReference;
         this.resultReference = builder.resultReference;
         this.custom = builder.custom;
-        this.timeout = requireNonNullElse(builder.timeout, Duration.ofSeconds(30));
+        this.timeout = builder.timeout;
     }
 
     public List<String> requestedOutputs() {

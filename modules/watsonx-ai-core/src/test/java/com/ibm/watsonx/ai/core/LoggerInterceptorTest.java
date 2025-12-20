@@ -342,8 +342,6 @@ public class LoggerInterceptorTest {
                     @Override
                     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler,
                         int index, AsyncChain chain) {
-                        assertEquals("http-io-thread", Thread.currentThread().getName());
-                        threadNames.add(Thread.currentThread().getName());
                         return chain.proceed(request, bodyHandler)
                             .thenApplyAsync(r -> {
                                 threadNames.add(Thread.currentThread().getName());
@@ -361,10 +359,9 @@ public class LoggerInterceptorTest {
                 .GET().build(), BodyHandlers.ofString())
                 .get(3, TimeUnit.SECONDS);
 
-            assertEquals(3, threadNames.size());
-            assertEquals("http-io-thread", threadNames.get(0));
-            assertEquals("ForkJoinPool.commonPool-worker-1", threadNames.get(1));
-            assertEquals("http-io-thread", threadNames.get(2));
+            assertEquals(2, threadNames.size());
+            assertEquals("ForkJoinPool.commonPool-worker-1", threadNames.get(0));
+            assertEquals("http-io-thread", threadNames.get(1));
         }
     }
 

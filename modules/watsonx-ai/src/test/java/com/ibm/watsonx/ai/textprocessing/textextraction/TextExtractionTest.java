@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,6 +62,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
@@ -2013,6 +2015,32 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_delete_file_with_custom_api_key() {
+
+        var cosAuthenticator = mock(Authenticator.class);
+        when(cosAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("custom-token"));
+        cosServer.resetAll();
+
+        var textExtractionService = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .cosAuthenticator(cosAuthenticator)
+            .projectId("projectid")
+            .documentReference("<connection_id>", BUCKET_NAME)
+            .resultReference("<connection_id>", BUCKET_NAME)
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+        cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer custom-token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        assertTrue(assertDoesNotThrow(() -> textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME)));
+    }
+
+    @Test
     void should_throw_exception_when_deleting_non_existent_file() {
 
         when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
@@ -2044,6 +2072,32 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
         cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        assertTrue(textExtractionService.uploadFile(file));
+    }
+
+    @Test
+    void should_upload_file_with_different_api_key() throws Exception {
+
+        var cosAuthenticator = mock(Authenticator.class);
+        when(cosAuthenticator.token()).thenReturn("my-custom-token");
+
+        var textExtractionService = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .cosAuthenticator(cosAuthenticator)
+            .projectId("projectid")
+            .documentReference("<connection_id>", BUCKET_NAME)
+            .resultReference("<connection_id>", BUCKET_NAME)
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+        cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer my-custom-token"))
             .willReturn(aResponse().withStatus(200)));
 
         assertTrue(textExtractionService.uploadFile(file));

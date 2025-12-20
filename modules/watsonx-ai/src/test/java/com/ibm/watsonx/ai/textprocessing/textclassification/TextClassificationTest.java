@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -48,6 +49,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
@@ -922,6 +924,56 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_delete_file_with_custom_api_key() throws Exception {
+
+        var cosAuthenticator = mock(Authenticator.class);
+        when(cosAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("custom-token"));
+        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        cosServer.resetAll();
+
+        var classificationService = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .cosAuthenticator(cosAuthenticator)
+            .projectId("projectid")
+            .documentReference("connection_id", "my-bucket")
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+        cosServer.stubFor(delete("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer custom-token"))
+            .inScenario("retry")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willSetStateTo("retry")
+            .willReturn(aResponse()
+                .withStatus(403)
+                .withHeader("Content-Type", "application/xml")
+                .withBody("""
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Error>
+                        <Code>AccessDenied</Code>
+                        <Message>Access Denied</Message>
+                        <Resource>/andreaproject-donotdelete-pr-xnran4g4ptd1wo/ciao.pdf</Resource>
+                        <RequestId>df887c2b-43c3-4933-a3a1-b0e19e7c2231</RequestId>
+                        <httpStatusCode>403</httpStatusCode>
+                    </Error>""")));
+
+        cosServer.stubFor(delete("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer custom-token"))
+            .inScenario("retry")
+            .whenScenarioStateIs("retry")
+            .willSetStateTo(Scenario.STARTED)
+            .willReturn(aResponse().withStatus(204)));
+
+        assertTrue(classificationService.deleteFile("my-bucket", "test.pdf"));
+        Thread.sleep(500);
+        cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
+    }
+
+    @Test
     void should_upload_file() throws Exception {
 
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
@@ -931,6 +983,33 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         assertTrue(classificationService.uploadFile(file));
     }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_upload_file_with_different_api_key() throws Exception {
+
+        var cosAuthenticator = mock(Authenticator.class);
+        when(cosAuthenticator.token()).thenReturn("custom-token");
+
+        var classificationService = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .cosAuthenticator(cosAuthenticator)
+            .projectId("projectid")
+            .documentReference("connection_id", "my-bucket")
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+        cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer custom-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        assertTrue(classificationService.uploadFile(file));
+    }
+
 
     @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
