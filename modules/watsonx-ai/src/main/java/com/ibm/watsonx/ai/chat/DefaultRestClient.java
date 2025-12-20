@@ -129,10 +129,13 @@ final class DefaultRestClient extends ChatRestClient {
                 } catch (RuntimeException e) {
 
                     Throwable t = nonNull(e.getCause()) ? e.getCause() : e;
-                    onError(t);
                     continueProcessing = failOnFirstError;
-                    if (!continueProcessing)
-                        response.completeExceptionally(t);
+                    chatSubscriber.onError(t)
+                        .whenComplete((v, err) -> {
+                            if (!continueProcessing) {
+                                response.completeExceptionally(t);
+                            }
+                        });
 
                 } finally {
                     if (continueProcessing)
