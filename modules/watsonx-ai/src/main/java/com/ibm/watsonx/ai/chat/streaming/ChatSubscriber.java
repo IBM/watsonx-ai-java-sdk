@@ -31,7 +31,7 @@ public interface ChatSubscriber {
      *
      * @param throwable the error that occurred
      */
-    void onError(Throwable throwable);
+    CompletableFuture<Void> onError(Throwable throwable);
 
     /**
      * Called once the streaming session has completed successfully.

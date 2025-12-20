@@ -82,7 +82,8 @@ public class DefaultChatSubscriber implements ChatSubscriber {
     }
 
     @Override
-    public void onError(Throwable throwable) {
+    public CompletableFuture<Void> onError(Throwable throwable) {
         handler.onError(throwable);
+        return handler.awaitCallbacks().thenApply(v -> null);
     }
 }
