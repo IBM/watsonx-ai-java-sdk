@@ -207,7 +207,6 @@ public abstract class WatsonxService {
      * Abstract base class for watsonx services that require a project or space context.
      */
     public static abstract class ProjectService extends WatsonxService {
-
         protected record ProjectSpace(String projectId, String spaceId) {}
 
         protected final String projectId;
@@ -269,7 +268,6 @@ public abstract class WatsonxService {
      * Abstract base class for watsonx services that operate on a specific model.
      */
     public static abstract class ModelService extends ProjectService {
-
         protected final String modelId;
 
         // Required by CDI for proxy / bean instantiation.
@@ -294,6 +292,44 @@ public abstract class WatsonxService {
              */
             public T modelId(String modelId) {
                 this.modelId = modelId;
+                return (T) this;
+            }
+        }
+    }
+
+    /**
+     * Abstract base class for watsonx services that support encryption of inference requests using a key reference from a keys management service.
+     */
+    public static abstract class CryptoService extends ModelService {
+        protected final String crypto;
+
+        // Required by CDI for proxy / bean instantiation.
+        protected CryptoService() {
+            super();
+            crypto = null;
+        }
+
+        protected CryptoService(Builder<?> builder) {
+            super(builder);
+            crypto = builder.crypto;
+        }
+
+        @SuppressWarnings("unchecked")
+        protected static abstract class Builder<T extends Builder<T>> extends ModelService.Builder<T> {
+            private String crypto;
+
+            /**
+             * Sets the crypto key reference for encrypting requests.
+             * <p>
+             * The key reference should be an identifier from a keys management service (e.g., IBM Key Protect).
+             *
+             * @param crypto the key reference identifier (e.g., CRN format for IBM Key Protect)
+             * @see <a href=
+             *      "https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-generation.html?context=wx&audience=wdp#inf-encrypt">Encrypting
+             *      inference requests</a>
+             */
+            public T crypto(String crypto) {
+                this.crypto = crypto;
                 return (T) this;
             }
         }

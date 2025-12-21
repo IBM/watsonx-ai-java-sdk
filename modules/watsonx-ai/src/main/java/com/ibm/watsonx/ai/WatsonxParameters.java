@@ -127,4 +127,50 @@ public abstract class WatsonxParameters {
             }
         }
     }
+
+    /**
+     * Abstract subclass of {@link WatsonxCryptoParameters} that introduces the {@code crypto} field.
+     */
+    public static abstract class WatsonxCryptoParameters extends WatsonxModelParameters {
+        protected final String crypto;
+
+        protected WatsonxCryptoParameters(Builder<?> builder) {
+            super(builder);
+            crypto = builder.crypto;
+        }
+
+        /**
+         * Returns the crypto key reference for encrypting inference requests.
+         *
+         * @return the crypto key reference identifier
+         */
+        public String crypto() {
+            return crypto;
+        }
+
+        /**
+         * Abstract builder class for constructing {@link WatsonxCryptoParameters} instances.
+         *
+         * @param <T> the concrete builder subclass
+         */
+        @SuppressWarnings("unchecked")
+        public static abstract class Builder<T extends Builder<T>> extends WatsonxModelParameters.Builder<T> {
+            protected String crypto;
+
+            /**
+             * Sets the crypto key reference for encrypting inference requests.
+             * <p>
+             * The key reference should be an identifier from a keys management service (e.g., IBM Key Protect).
+             *
+             * @param crypto the key reference identifier (e.g., CRN format for IBM Key Protect)
+             * @see <a href=
+             *      "https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-generation.html?context=wx&audience=wdp#inf-encrypt">Encrypting
+             *      inference requests</a>
+             */
+            public T crypto(String crypto) {
+                this.crypto = crypto;
+                return (T) this;
+            }
+        }
+    }
 }

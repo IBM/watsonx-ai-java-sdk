@@ -10,6 +10,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import com.ibm.watsonx.ai.Crypto;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
@@ -91,12 +92,14 @@ public class EmbeddingService extends ModelService {
         String spaceId = projectSpace.spaceId();
         String modelId = this.modelId;
         String transactionId = null;
+        Crypto crypto = null;
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
             modelId = requireNonNullElse(parameters.modelId(), this.modelId);
             transactionId = parameters.transactionId();
             requestParameters = parameters.toEmbeddingRequestParameters();
+            crypto = nonNull(parameters.crypto()) ? new Crypto(parameters.crypto()) : null;
         }
 
         int inputTokenCount = 0;
@@ -109,7 +112,7 @@ public class EmbeddingService extends ModelService {
             List<String> subList = inputs.subList(fromIndex, toIndex);
 
             var embeddingRequest =
-                new EmbeddingRequest(modelId, spaceId, projectId, subList, requestParameters);
+                new EmbeddingRequest(modelId, spaceId, projectId, subList, requestParameters, crypto);
 
             var response = client.embedding(transactionId, embeddingRequest);
             results.addAll(response.results());

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
+import com.ibm.watsonx.ai.WatsonxParameters.WatsonxCryptoParameters;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
@@ -32,7 +32,7 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  *     .build();
  * }</pre>
  */
-public final class ChatParameters extends WatsonxModelParameters {
+public final class ChatParameters extends WatsonxCryptoParameters {
 
     public record JsonSchemaObject(String name, Object schema, boolean strict) {};
 
@@ -61,38 +61,38 @@ public final class ChatParameters extends WatsonxModelParameters {
 
     private ChatParameters(Builder builder) {
         super(builder);
-        this.toolChoiceOption = nonNull(builder.toolChoiceOption) ? builder.toolChoiceOption.type() : null;
-        this.frequencyPenalty = builder.frequencyPenalty;
-        this.logitBias = builder.logitBias;
-        this.logprobs = builder.logprobs;
-        this.topLogprobs = builder.topLogprobs;
-        this.maxCompletionTokens = builder.maxCompletionTokens;
-        this.n = builder.n;
-        this.presencePenalty = builder.presencePenalty;
-        this.temperature = builder.temperature;
-        this.topP = builder.topP;
-        this.timeLimit = builder.timeLimit;
-        this.seed = builder.seed;
-        this.stop = builder.stop;
-        this.context = builder.context;
+        toolChoiceOption = nonNull(builder.toolChoiceOption) ? builder.toolChoiceOption.type() : null;
+        frequencyPenalty = builder.frequencyPenalty;
+        logitBias = builder.logitBias;
+        logprobs = builder.logprobs;
+        topLogprobs = builder.topLogprobs;
+        maxCompletionTokens = builder.maxCompletionTokens;
+        n = builder.n;
+        presencePenalty = builder.presencePenalty;
+        temperature = builder.temperature;
+        topP = builder.topP;
+        timeLimit = builder.timeLimit;
+        seed = builder.seed;
+        stop = builder.stop;
+        context = builder.context;
 
         if (nonNull(builder.responseFormat)) {
-            this.responseFormat = builder.responseFormat.type();
-            this.jsonSchema = builder.jsonSchema;
+            responseFormat = builder.responseFormat.type();
+            jsonSchema = builder.jsonSchema;
         } else {
-            this.responseFormat = null;
-            this.jsonSchema = null;
+            responseFormat = null;
+            jsonSchema = null;
         }
 
-        this.toolChoice = nonNull(builder.toolChoice)
+        toolChoice = nonNull(builder.toolChoice)
             ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
             : null;
 
-        this.guidedChoice = builder.guidedChoice;
-        this.guidedRegex = builder.guidedRegex;
-        this.guidedGrammar = builder.guidedGrammar;
-        this.repetitionPenalty = builder.repetitionPenalty;
-        this.lengthPenalty = builder.lengthPenalty;
+        guidedChoice = builder.guidedChoice;
+        guidedRegex = builder.guidedRegex;
+        guidedGrammar = builder.guidedGrammar;
+        repetitionPenalty = builder.repetitionPenalty;
+        lengthPenalty = builder.lengthPenalty;
     }
 
     public String toolChoiceOption() {
@@ -214,7 +214,8 @@ public final class ChatParameters extends WatsonxModelParameters {
             .toolChoiceOption(nonNull(toolChoiceOption) ? ToolChoiceOption.valueOf(toolChoiceOption.toUpperCase()) : null)
             .topLogprobs(topLogprobs)
             .topP(topP)
-            .transactionId(transactionId);
+            .transactionId(transactionId)
+            .crypto(crypto);
 
         builder.responseFormat = nonNull(responseFormat) ? ResponseFormat.valueOf(responseFormat.toUpperCase()) : null;
         builder.jsonSchema = jsonSchema;
@@ -244,7 +245,7 @@ public final class ChatParameters extends WatsonxModelParameters {
     /**
      * Builder class for constructing {@link ChatParameters} instances with configurable parameters.
      */
-    public final static class Builder extends WatsonxModelParameters.Builder<Builder> {
+    public final static class Builder extends WatsonxCryptoParameters.Builder<Builder> {
         private ToolChoiceOption toolChoiceOption;
         private String toolChoice;
         private Set<String> guidedChoice;

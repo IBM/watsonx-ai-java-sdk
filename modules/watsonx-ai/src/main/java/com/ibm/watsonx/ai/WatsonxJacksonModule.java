@@ -321,6 +321,9 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("json_schema")
         abstract JsonSchemaObject jsonSchema();
+
+        @JsonProperty("crypto")
+        abstract Map<String, Object> crypto();
     }
 
     @JsonPOJOBuilder(withPrefix = "")

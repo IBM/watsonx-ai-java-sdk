@@ -8,6 +8,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.concurrent.CompletableFuture;
+import com.ibm.watsonx.ai.Crypto;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
@@ -109,14 +110,16 @@ public class TokenizationService extends ModelService {
         String projectId = projectSpace.projectId();
         String spaceId = projectSpace.spaceId();
         String modelId = this.modelId;
+        Crypto crypto = null;
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
             modelId = requireNonNullElse(parameters.modelId(), this.modelId);
             requestParameters = parameters.toTokenizationRequestParameters();
+            crypto = nonNull(parameters.crypto()) ? new Crypto(parameters.crypto()) : null;
         }
 
-        return new TokenizationRequest(modelId, input, projectId, spaceId, requestParameters);
+        return new TokenizationRequest(modelId, input, projectId, spaceId, requestParameters, crypto);
     }
 
     /**

@@ -230,4 +230,55 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         assertThrows(RuntimeException.class, () -> chatService.embedding("test"), "IOException");
     }
+
+    @Test
+    void should_send_embedded_crypted_request() throws Exception {
+
+        final String REQUEST = """
+            {
+                "inputs": ["Youth craves thrills while adulthood cherishes wisdom."],
+                "model_id": "slate",
+                "project_id": "project_id",
+                "crypto": {
+                    "key_ref": "key-ref"
+                }
+            }""";
+
+        final String RESPONSE = """
+            {
+              "model_id": "slate",
+              "results": [
+                {
+                  "embedding": [
+                    -0.006929283,
+                    -0.005336422,
+                    -0.024047505
+                  ]
+                }
+              ],
+              "created_at": "2024-02-21T17:32:28Z",
+              "input_token_count": 10
+            }""";
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+            .thenReturn(mockHttpResponse);
+
+        withWatsonxServiceMock(() -> {
+            var embeddingService = EmbeddingService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId(MODEL_ID)
+                .projectId(PROJECT_ID)
+                .logRequests(true)
+                .baseUrl(CloudRegion.DALLAS)
+                .build();
+
+            var inputs = List.of("Youth craves thrills while adulthood cherishes wisdom.");
+            var parameters = EmbeddingParameters.builder().crypto("key-ref").build();
+
+            embeddingService.embedding(inputs, parameters);
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
+        });
+    }
 }

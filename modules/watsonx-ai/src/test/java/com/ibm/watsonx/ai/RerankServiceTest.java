@@ -287,4 +287,70 @@ public class RerankServiceTest extends AbstractWatsonxTest {
             assertThrows(RuntimeException.class, () -> rerankService.rerank("test", List.of("test")));
         });
     }
+
+    @Test
+    void should_send_rerank_crypted_request() throws Exception {
+
+        final String REQUEST =
+            """
+                {
+                  "model_id": "cross-encoder/ms-marco-minilm-l-12-v2",
+                  "project_id": "12ac4cf1-252f-424b-b52d-5cdd9814987f",
+                  "inputs": [
+                    {
+                      "text": "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine."
+                    },
+                    {
+                      "text": "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                    }
+                  ],
+                  "query": "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                  "crypto": {
+                    "key_ref": "key-ref"
+                  }
+                }""";
+
+        final String RESPONSE = """
+            {
+              "model_id": "cross-encoder/ms-marco-minilm-l-12-v2",
+              "results": [
+                {
+                  "index": 1,
+                  "score": 0.7461
+                },
+                {
+                  "index": 0,
+                  "score": 0.8274
+                }
+              ],
+              "created_at": "2024-02-21T17:32:28Z",
+              "input_token_count": 20
+            }""";
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        withWatsonxServiceMock(() -> {
+            var rerankService = RerankService.builder()
+                .baseUrl(CloudRegion.LONDON)
+                .authenticator(mockAuthenticator)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+                .build();
+
+            var parameters = RerankParameters.builder().crypto("key-ref").build();
+            var response = rerankService.rerank(
+                "As a Youth, I craved excitement while in adulthood I followed Enthusiastic Pursuit.",
+                List.of(
+                    "In my younger years, I often reveled in the excitement of spontaneous adventures and embraced the thrill of the unknown, whereas in my grownup life, I've come to appreciate the comforting stability of a well-established routine.",
+                    "As a young man, I frequently sought out exhilarating experiences, craving the adrenaline rush of life's novelties, while as a responsible adult, I've come to understand the profound value of accumulated wisdom and life experience."
+                ),
+                parameters
+            );
+
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        });
+    }
 }
