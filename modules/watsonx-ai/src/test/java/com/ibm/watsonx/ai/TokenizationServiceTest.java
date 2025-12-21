@@ -247,6 +247,47 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_send_tokenize_crypted_request() throws Exception {
+
+        final String REQUEST = """
+            {
+              "model_id": "google/flan-ul2",
+              "input": "Write a tagline for an alumni association: Together we",
+              "project_id": "12ac4cf1-252f-424b-b52d-5cdd9814987f",
+              "crypto": {
+                "key_ref": "key-ref",
+              }
+            }""";
+
+        final String RESPONSE = """
+            {
+              "model_id": "google/flan-ul2",
+              "result": {
+                "token_count": 11
+              }
+            }""";
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        withWatsonxServiceMock(() -> {
+            var tokenizationService = TokenizationService.builder()
+                .baseUrl(CloudRegion.LONDON)
+                .authenticator(mockAuthenticator)
+                .projectId("12ac4cf1-252f-424b-b52d-5cdd9814987f")
+                .modelId("google/flan-ul2")
+                .build();
+
+            var parameters = TokenizationParameters.builder().crypto("key-ref").build();
+            var response = tokenizationService.tokenize("Write a tagline for an alumni association: Together we", parameters);
+
+            JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+        });
+    }
+
+    @Test
     void should_use_correct_executors() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);

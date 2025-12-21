@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.rerank;
 
 import java.util.List;
+import com.ibm.watsonx.ai.Crypto;
 
 /**
  * Represents a request to perform text reranking using a specified model.
@@ -15,7 +16,8 @@ public record RerankRequest(
     String query,
     String spaceId,
     String projectId,
-    Parameters parameters) {
+    Parameters parameters,
+    Crypto crypto) {
 
     public record RerankInput(String text) {}
     public record Parameters(Integer truncateInputTokens, ReturnOptions returnOptions) {}

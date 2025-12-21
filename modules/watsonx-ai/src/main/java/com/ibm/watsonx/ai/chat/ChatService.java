@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.watsonx.ai.WatsonxService.ModelService;
+import com.ibm.watsonx.ai.WatsonxService.CryptoService;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
@@ -50,7 +50,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *
  * @see Authenticator
  */
-public class ChatService extends ModelService implements ChatProvider {
+public class ChatService extends CryptoService implements ChatProvider {
     public static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private final ChatRestClient client;
     private final MessageInterceptor messageInterceptor;
@@ -415,13 +415,14 @@ public class ChatService extends ModelService implements ChatProvider {
             .includeReasoning(includeReasoning)
             .reasoningEffort(thinkingEffort)
             .chatTemplateKwargs(chatTemplateKwargs)
+            .crypto(getOrDefault(parameters.crypto(), defaultParameters.crypto()))
             .build();
     }
 
     /**
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
-    public final static class Builder extends ModelService.Builder<Builder> {
+    public final static class Builder extends CryptoService.Builder<Builder> {
         private MessageInterceptor messageInterceptor;
         private ToolInterceptor toolInterceptor;
         private ChatParameters defaultParameters;

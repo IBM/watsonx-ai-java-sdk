@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.rerank;
 
 import static java.util.Objects.nonNull;
-import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
+import com.ibm.watsonx.ai.WatsonxParameters.WatsonxCryptoParameters;
 import com.ibm.watsonx.ai.rerank.RerankRequest.Parameters;
 import com.ibm.watsonx.ai.rerank.RerankRequest.ReturnOptions;
 
@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.ReturnOptions;
  * }</pre>
  *
  */
-public final class RerankParameters extends WatsonxModelParameters {
+public final class RerankParameters extends WatsonxCryptoParameters {
     private final Integer truncateInputTokens;
     private final Integer topN;
     private final Boolean inputs;
@@ -87,7 +87,7 @@ public final class RerankParameters extends WatsonxModelParameters {
     /**
      * Builder class for constructing {@link RerankParameters} instances.
      */
-    public static final class Builder extends WatsonxModelParameters.Builder<Builder> {
+    public static final class Builder extends WatsonxCryptoParameters.Builder<Builder> {
         private Integer truncateInputTokens;
         private Integer topN;
         private Boolean inputs;

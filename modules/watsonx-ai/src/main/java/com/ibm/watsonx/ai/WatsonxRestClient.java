@@ -12,9 +12,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 public abstract class WatsonxRestClient {
-
     public static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
-
     protected final String baseUrl;
     protected final String version;
     protected final Duration timeout;
@@ -26,9 +24,9 @@ public abstract class WatsonxRestClient {
         baseUrl = requireNonNull(builder.baseUrl, "The url must be provided");
         version = requireNonNull(builder.version, "The version must be provided");
         timeout = requireNonNull(builder.timeout, "The timeout must be provided");
+        authenticator = builder.authenticator;
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
-        authenticator = builder.authenticator;
         httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient());
     }
 

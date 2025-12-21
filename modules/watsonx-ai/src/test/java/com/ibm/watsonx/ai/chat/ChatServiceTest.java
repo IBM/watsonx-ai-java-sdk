@@ -291,6 +291,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         .toolChoiceOption(ToolChoiceOption.REQUIRED)
                         .topLogprobs(3)
                         .topP(6.0)
+                        .crypto("crypto")
                         .build()
                 ).build();
 
@@ -361,6 +362,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .topLogprobs(3)
                     .topP(6.0)
                     .timeLimit(7200000L)
+                    .crypto("crypto")
                     .build());
 
             assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
@@ -401,6 +403,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         .toolChoiceOption(ToolChoiceOption.REQUIRED)
                         .topLogprobs(3)
                         .topP(6.0)
+                        .crypto("crypto")
                         .build()
                 ).build();
 
@@ -459,6 +462,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .toolChoiceOption(ToolChoiceOption.NONE)
                     .topLogprobs(0)
                     .topP(0.0)
+                    .crypto("crypto_override")
                     .build()
             );
 
@@ -497,6 +501,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .topLogprobs(0)
                     .topP(0.0)
                     .timeLimit(1000L)
+                    .crypto("crypto_override")
                     .build());
 
             assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));

@@ -8,6 +8,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.List;
+import com.ibm.watsonx.ai.Crypto;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.rerank.RerankRequest.Parameters;
@@ -86,12 +87,14 @@ public class RerankService extends ModelService {
         String spaceId = projectSpace.spaceId();
         String modelId = this.modelId;
         String transactionId = null;
+        Crypto crypto = null;
         Parameters requestParameters = null;
 
         if (nonNull(parameters)) {
             modelId = requireNonNullElse(parameters.modelId(), this.modelId);
             transactionId = parameters.transactionId();
             requestParameters = parameters.toRerankRequestParameters();
+            crypto = nonNull(parameters.crypto()) ? new Crypto(parameters.crypto()) : null;
         }
 
         var rerankRequest = new RerankRequest(
@@ -100,7 +103,8 @@ public class RerankService extends ModelService {
             query,
             spaceId,
             projectId,
-            requestParameters
+            requestParameters,
+            crypto
         );
 
         return client.rerank(transactionId, rerankRequest);
