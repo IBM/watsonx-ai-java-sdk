@@ -22,6 +22,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ibm.watsonx.ai.core.RetryConfig;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
@@ -32,7 +33,6 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * An HTTP interceptor that performs automatic retries.
  */
 public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
-
     private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
 
     public record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
@@ -46,7 +46,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
      * Checks whether a {@link WatsonxException} is retryable due to an expired authentication token.
      */
     public static final RetryInterceptor ON_TOKEN_EXPIRED = RetryInterceptor.builder()
-        .maxRetries(1)
+        .maxRetries(RetryConfig.tokenExpiredMaxRetries())
         .retryOn(
             WatsonxException.class,
             ex -> {
@@ -70,9 +70,9 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
      * </ul>
      */
     public static final RetryInterceptor ON_RETRYABLE_STATUS_CODES = RetryInterceptor.builder()
-        .maxRetries(10)
-        .exponentialBackoff(true)
-        .retryInterval(Duration.ofMillis(20))
+        .maxRetries(RetryConfig.statusCodesMaxRetries())
+        .exponentialBackoff(RetryConfig.statusCodesExponentialBackoffEnabled())
+        .retryInterval(RetryConfig.statusCodesInitialRetryInterval())
         .retryOn(
             WatsonxException.class,
             ex -> {
@@ -166,7 +166,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         Duration timeout, AsyncChain chain) {
 
         return chain.proceed(request, bodyHandler)
-            .exceptionallyCompose(throwable -> {
+            .exceptionallyComposeAsync(throwable -> {
 
                 String requestId = request.headers()
                     .firstValue(REQUEST_ID_HEADER)
@@ -203,11 +203,23 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     },
                     CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, ExecutorProvider.ioExecutor())
                 ).thenCompose(Function.identity());
-            });
+            }, ExecutorProvider.ioExecutor());
     }
 
     public List<RetryOn> retryOn() {
         return retryOn;
+    }
+
+    public int maxRetries() {
+        return maxRetries;
+    }
+
+    public Duration retryInterval() {
+        return retryInterval;
+    }
+
+    public boolean exponentialBackoff() {
+        return exponentialBackoff;
     }
 
     /**
