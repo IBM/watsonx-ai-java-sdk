@@ -36,7 +36,7 @@ public final class JacksonProvider implements JsonProvider {
         try {
             return objectMapper.readValue(json, type);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to deserialize JSON: '" + json + "'", e);
         }
     }
 
@@ -46,7 +46,7 @@ public final class JacksonProvider implements JsonProvider {
             JavaType javaType = objectMapper.getTypeFactory().constructType(type.getType());
             return objectMapper.readValue(json, javaType);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to deserialize JSON: '" + json + "'", e);
         }
     }
 

@@ -5,7 +5,10 @@
 package com.ibm.watsonx.ai.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 public class JsonTest {
 
@@ -21,5 +24,23 @@ public class JsonTest {
     void should_deserialize_json_string_to_object() {
         var person = Json.fromJson("{\"name\":\"Alan\",\"lastname\":\"Wake\"}", Person.class);
         assertEquals(new Person("Alan", "Wake"), person);
+    }
+
+    @Test
+    void should_pretty_print_json_string() {
+        var json = Json.prettyPrint("{\"name\":\"Alan\",\"lastname\":\"Wake\"}");
+        assertEquals("""
+            {
+              "name" : "Alan",
+              "lastname" : "Wake"
+            }""", json);
+    }
+
+    @Test
+    void should_throw_exception_when_json_is_invalid() {
+        var ex = assertThrows(RuntimeException.class, () -> Json.fromJson("{", String.class));
+        assertEquals("Failed to deserialize JSON: '{'", ex.getMessage());
+        ex = assertThrows(RuntimeException.class, () -> Json.fromJson("{", new TypeToken<Map<String, Object>>() {}));
+        assertEquals("Failed to deserialize JSON: '{'", ex.getMessage());
     }
 }
