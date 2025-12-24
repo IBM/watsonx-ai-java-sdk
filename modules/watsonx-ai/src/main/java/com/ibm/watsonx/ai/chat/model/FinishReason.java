@@ -62,8 +62,8 @@ public enum FinishReason {
     /**
      * Maps a string value returned by the API to the corresponding {@link FinishReason} enum.
      *
-     * @param value the finish reason value, can be {@code null}
-     * @return the matching {@link FinishReason}, or {@link #INCOMPLETE} if the value is {@code null} or unrecognized
+     * @param value the finish reason value
+     * @return the matching {@link FinishReason}
      */
     public static FinishReason fromValue(String value) {
         if (value == null) {

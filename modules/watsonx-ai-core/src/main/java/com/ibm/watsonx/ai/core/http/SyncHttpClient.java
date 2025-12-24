@@ -31,7 +31,7 @@ public final class SyncHttpClient extends BaseHttpClient {
     /**
      * Constructs an {@code SyncHttpClient} with the given underlying {@link HttpClient} and interceptors.
      *
-     * @param httpClient the HTTP client to use; if {@code null}, a default client is used
+     * @param httpClient the HTTP client to use, if {@code null}, a default client is used
      * @param interceptors a list of synchronous HTTP interceptors; may be {@code null}
      */
     private SyncHttpClient(HttpClient httpClient, List<SyncHttpInterceptor> interceptors) {

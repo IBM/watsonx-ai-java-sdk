@@ -33,7 +33,7 @@ public final class WatsonxException extends RuntimeException {
      *
      * @param message the detail message explaining the exception
      * @param statusCode the HTTP status code of the error response
-     * @param details the detailed error information from the API response, may be {@code null}
+     * @param details the detailed error information from the API response
      */
     public WatsonxException(String message, Integer statusCode, WatsonxError details) {
         super(message);

@@ -391,7 +391,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
          *     });
          * }</pre>
          *
-         * @param toolInterceptor the interceptor to apply (may be {@code null})
+         * @param toolInterceptor the interceptor to apply
          */
         public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
             this.toolInterceptor = toolInterceptor;

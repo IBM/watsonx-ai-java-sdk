@@ -57,11 +57,15 @@ public interface ChatSubscriber {
     }
 
     /**
-     * Handles an error by invoking the {@link ChatHandler}'s {@code onError} callback if the given throwable is non-null.
+     * Handles an error by unwrapping the root cause and notifying the {@link ChatHandler}.
+     * <p>
+     * This method extracts the underlying cause from the throwable (if present) and invokes
+     * the handler's {@code onError} callback. It is designed to be used in {@link CompletableFuture}
+     * exception handlers, particularly with {@code exceptionally} or {@code completeExceptionally}.
      *
-     * @param t the {@link Throwable} to handle
+     * @param t the {@link Throwable} to handle (typically a {@link java.util.concurrent.CompletionException})
      * @param handler the {@link ChatHandler} that should be notified of the error
-     * @return always {@code null}, enabling direct use in async exception handlers
+     * @return the unwrapped {@link Throwable} (the cause if present, otherwise the original throwable)
      */
     static Throwable handleError(Throwable t, ChatHandler handler) {
         t = nonNull(t.getCause()) ? t.getCause() : t;
