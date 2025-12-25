@@ -4,9 +4,11 @@
  */
 package com.ibm.watsonx.ai.chat;
 
+import java.util.ServiceLoader;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
+import com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider;
 
 /**
  * Interface for handling streaming chat responses.
@@ -54,9 +56,12 @@ import com.ibm.watsonx.ai.chat.model.PartialToolCall;
  * <p>
  * All callbacks are executed on the callback executor:
  * <ul>
- * <li><b>Java 21+:</b> Virtual threads are used, allowing blocking operations without performance impact.</li>
- * <li><b>Java 17-20:</b> A cached thread pool is used. Blocking operations are allowed but may consume threads from the pool.</li>
+ * <li><b>Java 21+:</b> Virtual threads are used by default, allowing blocking operations without performance impact.</li>
+ * <li><b>Java 17-20:</b> A cached thread pool is used by default. Blocking operations are allowed but may consume threads from the pool.</li>
  * </ul>
+ * <p>
+ * <b>Custom Executor:</b> Developers can customize the threading behavior by implementing the {@link CallbackExecutorProvider} SPI and registering it
+ * via {@link ServiceLoader}. This allows full control over thread management, pooling strategies, and execution policies.
  * <p>
  * Within a single streaming request, all callbacks are guaranteed to be invoked <b>sequentially</b> and <b>never concurrently</b>, following the
  * Reactive Streams specification.

@@ -74,9 +74,15 @@ public record ToolCall(Integer index, String id, String type, FunctionCall funct
      */
     public ToolMessage processTool(ToolExecutor executor) {
 
-        var toolArguments = nonNull(function.arguments())
-            ? new ToolArguments(Json.fromJson(function.arguments(), new TypeToken<Map<String, Object>>() {}))
-            : null;
+        ToolArguments toolArguments = null;
+        if (nonNull(function.arguments())) {
+
+            var arguments = function.arguments().startsWith("\"")
+                ? Json.fromJson(function.arguments(), String.class)
+                : function.arguments();
+
+            toolArguments = new ToolArguments(Json.fromJson(arguments, new TypeToken<Map<String, Object>>() {}));
+        }
 
         var toolResult = String.valueOf(executor.execute(function.name(), toolArguments));
         return ToolMessage.of(toolResult, id);

@@ -26,10 +26,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,6 +49,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -3294,5 +3297,60 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertEquals("send_email", onCompleteToolCall.get().toolCall().function().name());
         assertNotNull(thinking.toString());
         assertNotNull(onCompleteResponse.get());
+    }
+
+    @Test
+    void should_not_invoke_onError_when_toolInterceptor_catches_exception() throws Exception {
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"123","choices":[{"index":0,"delta":{"role":"assistant","tool_calls":[{"index":0,"id":"tool1","function":{"name":"get_time","arguments":"invalid json {"}}]}}]}
+
+                        id: 2
+                        event: message
+                        data: {"id":"123","choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}],"usage":{"total_tokens":10}}
+                        """)));
+
+        AtomicBoolean interceptorCaughtException = new AtomicBoolean(false);
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("model-id")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .toolInterceptor((ctx, fc) -> {
+                try {
+                    Json.fromJson(fc.arguments(), Object.class);
+                    return fc;
+                } catch (Exception e) {
+                    interceptorCaughtException.set(true);
+                    return fc.withArguments("{}");
+                }
+            })
+            .build();
+
+        var mockChatHandler = mock(ChatHandler.class);
+        when(mockChatHandler.failOnFirstError()).thenReturn(true);
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(mockChatHandler).onCompleteResponse(any());
+
+        chatService.chatStreaming("Hello", mockChatHandler).join();
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertTrue(interceptorCaughtException.get());
+        verify(mockChatHandler, never()).onError(any());
+        verify(mockChatHandler).onCompleteResponse(any());
+        verify(mockChatHandler).onCompleteToolCall(argThat(toolCall -> toolCall.toolCall().function().arguments().equals("{}")));
     }
 }
