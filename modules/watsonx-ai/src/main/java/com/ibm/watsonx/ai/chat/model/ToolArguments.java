@@ -22,7 +22,7 @@ public final class ToolArguments {
      *
      * @param <T> the expected type
      * @param key the argument name
-     * @return the value cast to {@code T}, or {@code null} if the key is not present
+     * @return the value cast to {@code T}
      */
     @SuppressWarnings("unchecked")
     public <T> T get(String key) {

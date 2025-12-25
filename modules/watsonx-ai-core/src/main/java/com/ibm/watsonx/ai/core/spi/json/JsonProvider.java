@@ -44,4 +44,12 @@ public interface JsonProvider {
      * @return a JSON-formatted string representation of the object
      */
     String prettyPrint(Object object);
+
+    /**
+     * Validates whether the given string is a valid JSON object.
+     *
+     * @param json the JSON string to validate
+     * @return {@code true} if the string is a valid JSON object, {@code false} otherwise
+     */
+    boolean isValidObject(String json);
 }

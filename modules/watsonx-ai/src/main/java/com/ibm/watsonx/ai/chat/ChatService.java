@@ -480,7 +480,7 @@ public class ChatService extends CryptoService implements ChatProvider {
          *     });
          * }</pre>
          *
-         * @param toolInterceptor the interceptor to apply (may be {@code null})
+         * @param toolInterceptor the interceptor to apply
          */
         public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
             this.toolInterceptor = toolInterceptor;

@@ -4,10 +4,12 @@
  */
 package com.ibm.watsonx.ai.core.provider;
 
+import static java.util.Objects.isNull;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
@@ -36,7 +38,7 @@ public final class JacksonProvider implements JsonProvider {
         try {
             return objectMapper.readValue(json, type);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to deserialize JSON: '" + json + "'", e);
         }
     }
 
@@ -46,7 +48,7 @@ public final class JacksonProvider implements JsonProvider {
             JavaType javaType = objectMapper.getTypeFactory().constructType(type.getType());
             return objectMapper.readValue(json, javaType);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to deserialize JSON: '" + json + "'", e);
         }
     }
 
@@ -62,12 +64,24 @@ public final class JacksonProvider implements JsonProvider {
     @Override
     public String prettyPrint(Object obj) {
         try {
-            if (obj instanceof String str) {
-                return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(objectMapper.readTree((str)));
-            }
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+            return (obj instanceof String str)
+                ? objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(objectMapper.readTree((str)))
+                : objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             return obj.toString();
+        }
+    }
+
+    @Override
+    public boolean isValidObject(String json) {
+        if (isNull(json) || json.isBlank())
+            return false;
+
+        try {
+            JsonNode node = objectMapper.readTree(json);
+            return node.isObject();
+        } catch (JsonProcessingException e) {
+            return false;
         }
     }
 }

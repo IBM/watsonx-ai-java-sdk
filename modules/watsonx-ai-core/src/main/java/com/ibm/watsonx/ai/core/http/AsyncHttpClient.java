@@ -32,8 +32,8 @@ public final class AsyncHttpClient extends BaseHttpClient {
     /**
      * Constructs an {@code AsyncHttpClient} with the given underlying {@link HttpClient} and interceptors.
      *
-     * @param httpClient the HTTP client to use; if {@code null}, a default client is used
-     * @param interceptors a list of asynchronous HTTP interceptors; may be {@code null}
+     * @param httpClient the HTTP client to use, if {@code null}, a default client is used
+     * @param interceptors a list of asynchronous HTTP interceptors
      */
     AsyncHttpClient(HttpClient httpClient, List<AsyncHttpInterceptor> interceptors) {
         super(requireNonNull(httpClient, "The HTTP client cannot be null"));

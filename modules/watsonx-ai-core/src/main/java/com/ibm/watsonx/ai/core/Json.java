@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.core;
 
-import static java.util.Objects.requireNonNull;
 import java.util.ServiceLoader;
 import com.ibm.watsonx.ai.core.provider.JacksonProvider;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
@@ -64,8 +63,17 @@ public final class Json {
      * @return a JSON-formatted string representation of the object
      */
     public static String prettyPrint(Object object) {
-        requireNonNull(object);
         return provider.prettyPrint(object);
+    }
+
+    /**
+     * Validates whether the given string is a valid JSON object.
+     *
+     * @param json the JSON string to validate
+     * @return {@code true} if the string is a valid JSON object, {@code false} otherwise
+     */
+    public static boolean isValidObject(String json) {
+        return provider.isValidObject(json);
     }
 
     /**

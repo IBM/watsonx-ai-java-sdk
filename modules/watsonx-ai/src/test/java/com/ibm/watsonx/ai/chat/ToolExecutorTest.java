@@ -55,4 +55,15 @@ public class ToolExecutorTest {
         assertEquals("id", toolMessage.toolCallId());
         assertEquals("result", toolMessage.content());
     }
+
+    @Test
+    void should_unwrap_double_quoted_json_arguments() {
+        ToolCall toolCall = ToolCall.of("id", "name", "\"{ \\\"name\\\": \\\"value\\\" }\"");
+        var toolMessage = toolCall.processTool((toolName, toolArgs) -> {
+            assertEquals("name", toolName);
+            assertEquals("value", toolArgs.get("name"));
+            return toolArgs.get("name");
+        });
+        assertEquals("value", toolMessage.content());
+    }
 }

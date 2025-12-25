@@ -36,4 +36,9 @@ public record TextContent(String type, String text) implements UserContent {
     public static TextContent of(String text) {
         return new TextContent(TYPE, text);
     }
+
+    @Override
+    public String toString() {
+        return text;
+    }
 }
