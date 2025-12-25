@@ -6,7 +6,7 @@
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-detection</artifactId>
   <version>0.16.0</version>
-  <name>Detection Sample</name>
+  <name>Detection</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

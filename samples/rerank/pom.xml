@@ -6,7 +6,7 @@
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-rerank</artifactId>
   <version>0.16.0</version>
-  <name>Rerank Sample</name>
+  <name>Rerank</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
