@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-chatbot-reasoning</artifactId>
-  <name>Chatbot Reasoning Sample</name>
+  <name>Chatbot Reasoning</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

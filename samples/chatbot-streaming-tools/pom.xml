@@ -6,7 +6,7 @@
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-streaming-chatbot-tools</artifactId>
   <version>0.16.0</version>
-  <name>Streaming Chatbot Tools Sample</name>
+  <name>Streaming Chatbot Tools</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

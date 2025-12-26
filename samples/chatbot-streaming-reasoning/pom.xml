@@ -6,7 +6,7 @@
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-streaming-reasoning-chatbot</artifactId>
   <version>0.16.0</version>
-  <name>Streaming Chatbot Reasoning Sample</name>
+  <name>Streaming Chatbot Reasoning</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

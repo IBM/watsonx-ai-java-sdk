@@ -6,7 +6,7 @@
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-utilitytools</artifactId>
   <version>0.16.0</version>
-  <name>Utility Tools Sample</name>
+  <name>Utility Tools</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

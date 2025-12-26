@@ -6,7 +6,7 @@
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-tools-chatbot</artifactId>
   <version>0.16.0</version>
-  <name>Chatbot Tools Sample</name>
+  <name>Chatbot Tools</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

@@ -6,7 +6,7 @@
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai-sample-deployment</artifactId>
   <version>0.16.0</version>
-  <name>Deployment Sample</name>
+  <name>Deployment</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
