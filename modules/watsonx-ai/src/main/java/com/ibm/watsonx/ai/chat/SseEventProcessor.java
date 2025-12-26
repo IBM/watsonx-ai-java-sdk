@@ -177,9 +177,8 @@ public class SseEventProcessor {
         if (isNull(createdAt) && nonNull(chunk.createdAt()))
             createdAt = chunk.createdAt();
 
-        if (isNull(id) && nonNull(chunk.id())) {
+        if (isNull(id) && nonNull(chunk.id()))
             id = chunk.id();
-        }
 
         if (isNull(modelId) && nonNull(chunk.modelId()))
             modelId = chunk.modelId();
@@ -203,9 +202,6 @@ public class SseEventProcessor {
             refusal = message.delta().refusal();
 
         if (message.delta().toolCalls() != null) {
-
-            // Watsonx doesn't return "tool_calls". Open an issue.
-            finishReason = "tool_calls";
 
             StreamingToolFetcher toolFetcher;
 
@@ -277,21 +273,28 @@ public class SseEventProcessor {
             events.add(new PartialThinkingEvent(token, chunk));
         }
 
+        if ("tool_calls".equals(finishReason))
+            events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
+
         return ProcessResult.events(events);
     }
 
     /**
      * Builds the final {@link ChatResponse} from accumulated streaming data.
      *
-     * @param toolCalls the list of tool calls
      * @return the complete {@link ChatResponse}
      */
-    public ChatResponse buildResponse(List<ToolCall> toolCalls) {
+    public ChatResponse buildResponse() {
         String content = contentBuffer.isEmpty() ? null : contentBuffer.toString().trim();
         String thinking = thinkingBuffer.isEmpty() ? null : thinkingBuffer.toString().trim();
 
         var resultMessage = new ResultMessage(role, content, thinking, refusal,
-            (isNull(toolCalls) || toolCalls.isEmpty()) ? null : List.copyOf(toolCalls));
+            !tools.isEmpty()
+                ? tools.stream()
+                    .map(StreamingToolFetcher::build)
+                    .map(CompletedToolCall::toolCall)
+                    .toList()
+                : null);
 
         return ChatResponse.build()
             .created(created)
@@ -305,28 +308,5 @@ public class SseEventProcessor {
             .usage(chatUsage)
             .choices(List.of(new ResultChoice(0, resultMessage, finishReason)))
             .build();
-    }
-
-    /**
-     * Returns the completed {@link ToolCall} instances derived from the collected tool data.
-     *
-     * @return a list of completed {@link ToolCall} objects, or an empty list if none are available
-     */
-    public List<ToolCall> toolCalls() {
-        return !tools.isEmpty()
-            ? tools.stream()
-                .map(StreamingToolFetcher::build)
-                .map(CompletedToolCall::toolCall)
-                .toList()
-            : List.of();
-    }
-
-    /**
-     * Completes and returns the final tool call if one exists.
-     *
-     * @return the completed tool call, or null if no tools were called
-     */
-    public CompletedToolCall finalCompletedToolCall() {
-        return (tools.isEmpty()) ? null : tools.get(tools.size() - 1).build();
     }
 }

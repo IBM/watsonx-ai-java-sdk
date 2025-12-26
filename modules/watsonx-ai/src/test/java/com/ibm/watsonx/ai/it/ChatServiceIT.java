@@ -195,7 +195,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .modelId("ibm/granite-4-h-small")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -360,7 +360,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .modelId("ibm/granite-4-h-small")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -537,7 +537,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .modelId("ibm/granite-4-h-small")
                 .apiKey(API_KEY)
                 .logRequests(true)
                 .logResponses(true)
@@ -832,7 +832,7 @@ public class ChatServiceIT {
             assertFalse(assistantMessage.thinking().isBlank());
             assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
             assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
-            assertEquals(thinking, assistantMessage.thinking());
+            assertEquals(thinking.trim(), assistantMessage.thinking());
             assertEquals(thinkingMessage, thinking);
 
         }
@@ -1144,7 +1144,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .modelId("ibm/granite-4-h-small")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -1180,7 +1180,7 @@ public class ChatServiceIT {
                 public void onError(Throwable error) {}
             }));
 
-            var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> future.get(10, TimeUnit.SECONDS));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());

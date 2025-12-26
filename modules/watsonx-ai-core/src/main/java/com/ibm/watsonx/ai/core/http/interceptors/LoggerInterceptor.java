@@ -150,7 +150,9 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             }
 
             @Override
-            public void onError(Throwable throwable) {}
+            public void onError(Throwable throwable) {
+                logger.warn("Error reading request body for logging", throwable);
+            }
 
             @Override
             public void onComplete() {
@@ -201,13 +203,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
                 headers = HttpUtils.inOneLine(response.headers().map());
                 joiner.add("- headers: " + headers);
 
-                var headersMap = response.headers().map();
-                var contentType = Optional.<String>empty();
-
-                if (headersMap.containsKey("Content-Type"))
-                    contentType = response.headers().firstValue("Content-Type");
-                else if (headersMap.containsKey("content-type"))
-                    contentType = response.headers().firstValue("content-type");
+                var contentType = response.headers().firstValue("Content-Type");
 
                 if (contentType.isPresent() && contentType.get().contains("application/json"))
                     prettyPrint = true;
@@ -238,13 +234,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
                 body = formatBase64Image(body);
                 body = maskApiKeysInJsonBody(body);
 
-                var headersMap = request.headers().map();
-                var contentType = Optional.<String>empty();
-
-                if (headersMap.containsKey("Content-Type"))
-                    contentType = request.headers().firstValue("Content-Type");
-                else if (headersMap.containsKey("content-type"))
-                    contentType = request.headers().firstValue("content-type");
+                var contentType = request.headers().firstValue("Content-Type");
 
                 if (contentType.isPresent() && contentType.get().contains("application/json"))
                     body = Json.prettyPrint(body);
