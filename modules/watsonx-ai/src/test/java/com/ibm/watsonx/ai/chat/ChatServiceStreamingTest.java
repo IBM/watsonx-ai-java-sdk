@@ -1804,7 +1804,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(300, TimeUnit.SECONDS));
+        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         AssistantMessage assistantMessage = response.toAssistantMessage();
         JSONAssert.assertEquals("""
             {
@@ -2847,7 +2847,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 4
                         event: message
-                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Done"}}]}
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant","content":"Done"}}]}
 
                         id: 5
                         event: close
