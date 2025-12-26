@@ -8,7 +8,7 @@
   <artifactId>watsonx-ai-parent</artifactId>
   <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
+  <url>https://ibm.github.io/watsonx-ai-java-sdk/</url>
   <description>Java client library and SDK for IBM watsonx.ai</description>
 
   <modules>
