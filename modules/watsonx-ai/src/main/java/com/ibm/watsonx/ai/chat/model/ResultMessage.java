@@ -22,4 +22,15 @@ public record ResultMessage(
     String content,
     String reasoningContent,
     String refusal,
-    List<ToolCall> toolCalls) {}
+    List<ToolCall> toolCalls) {
+
+    /**
+     * Creates a new {@code ResultMessage} with the specified tool calls, preserving all other fields.
+     *
+     * @param newToolCalls the new list of tool calls to use in the returned message
+     * @return a new {@code ResultMessage} instance with the updated tool calls
+     */
+    public ResultMessage withToolCalls(List<ToolCall> newToolCalls) {
+        return new ResultMessage(role, content, reasoningContent, refusal, newToolCalls);
+    }
+}

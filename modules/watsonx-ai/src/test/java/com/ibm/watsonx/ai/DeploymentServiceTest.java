@@ -1670,7 +1670,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
                         id: 3
                         event: message
-                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"{\\\\n  \\\\\\"country\\\\\\": \\\\\\"Italy\\\\\\"\\\\n}\\""}}]}}]}
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"{\\\\n  \\\\\\"country\\\\\\": \\\\\\"Italy\\\\\\"\\\\n}\\""}}]}}]}
 
                         id: 4
                         event: close

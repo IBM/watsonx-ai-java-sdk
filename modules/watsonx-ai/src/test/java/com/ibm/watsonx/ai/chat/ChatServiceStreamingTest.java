@@ -624,7 +624,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 29
                         event: message
-                        data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"}"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.638Z"}
+                        data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"type":"function","function":{"name":"","arguments":"}"}}]}}],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.638Z"}
 
                         id: 30
                         event: message
@@ -1752,7 +1752,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 3
                         event: message
-                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"{\\\\n  \\\\\\"country\\\\\\": \\\\\\"Italy\\\\\\"\\\\n}\\""}}]}}]}
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\"{\\\\n  \\\\\\"country\\\\\\": \\\\\\"Italy\\\\\\"\\\\n}\\""}}]}}]}
 
                         id: 4
                         event: close
@@ -2257,7 +2257,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 2
                         event: message
-                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"null","delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
 
                         id: 3
                         event: message
@@ -2325,7 +2325,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 2
                         event: message
-                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"null","delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
 
                         id: 3
                         event: message
@@ -2729,7 +2729,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 4
                         event: message
-                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Done"}}]}
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant","content":"Done"}}]}
 
                         id: 5
                         event: close
@@ -2847,7 +2847,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 4
                         event: message
-                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Done"}}]}
+                        data: {"id":"chatcmpl-xyz","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant","content":"Done"}}]}
 
                         id: 5
                         event: close

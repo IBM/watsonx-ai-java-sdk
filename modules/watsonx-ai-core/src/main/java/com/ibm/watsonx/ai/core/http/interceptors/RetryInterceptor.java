@@ -77,9 +77,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
             WatsonxException.class,
             ex -> {
                 var statusCode = ((WatsonxException) ex).statusCode();
-                return statusCode == 429 || statusCode == 503 || statusCode == 504 || statusCode == 520
-                    ? true
-                    : false;
+                return statusCode == 429 || statusCode == 503 || statusCode == 504 || statusCode == 520;
             }
         ).build();
 
@@ -125,7 +123,6 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                 }
 
                 var res = chain.proceed(request, bodyHandler);
-                timeout = Duration.from(retryInterval);
                 return res;
 
             } catch (Exception e) {
@@ -148,12 +145,10 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     continue;
                 }
 
-                timeout = Duration.from(retryInterval);
                 throw e;
             }
         }
 
-        timeout = Duration.from(retryInterval);
         throw new RuntimeException("Max retries reached for request [%s]".formatted(requestId), isNull(exception) ? new Exception() : exception);
     }
 

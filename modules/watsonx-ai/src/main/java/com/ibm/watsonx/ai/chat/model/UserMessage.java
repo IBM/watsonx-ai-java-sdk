@@ -42,7 +42,7 @@ public record UserMessage(String role, List<UserContent> content, String name) i
 
     public UserMessage {
         role = ROLE;
-        requireNonNull(content);
+        requireNonNull(content, "content must not be null");
     }
 
     /**
@@ -91,5 +91,31 @@ public record UserMessage(String role, List<UserContent> content, String name) i
     public static UserMessage text(String text) {
         var content = TextContent.of(text);
         return of(null, List.of(content));
+    }
+
+    /**
+     * Extracts the text content.
+     * <p>
+     * This method is a convenience accessor for messages containing a single {@link TextContent} element.
+     *
+     * @return the text content of this message
+     * @throws IllegalStateException if the message does not contain exactly one {@link TextContent} element
+     */
+    public String text() {
+        if (content.isEmpty())
+            throw new IllegalStateException("Message contains no content");
+
+        if (content.size() > 1) {
+            throw new IllegalStateException(
+                "Message contains multiple content elements (" + content.size() + "). " +
+                    "Use content() to access all elements."
+            );
+        }
+
+        UserContent firstContent = content.get(0);
+        if (firstContent instanceof TextContent textContent)
+            return textContent.text();
+
+        throw new IllegalStateException("Message does not contain text content.");
     }
 }

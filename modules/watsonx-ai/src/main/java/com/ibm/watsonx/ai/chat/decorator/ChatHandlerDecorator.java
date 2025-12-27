@@ -84,12 +84,10 @@ public class ChatHandlerDecorator implements ChatHandler {
         scheduleCallback(() -> delegate.onPartialResponse(partialResponse, partialChatResponse));
     }
 
-
     @Override
     public void onCompleteResponse(ChatResponse completeResponse) {
         scheduleCallback(() -> delegate.onCompleteResponse(completeResponse));
     }
-
 
     @Override
     public void onError(Throwable error) {

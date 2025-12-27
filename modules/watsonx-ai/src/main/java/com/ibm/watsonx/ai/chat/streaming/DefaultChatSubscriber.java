@@ -5,8 +5,10 @@
 package com.ibm.watsonx.ai.chat.streaming;
 
 import static java.util.Objects.nonNull;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.ErrorEvent;
@@ -66,17 +68,16 @@ public class DefaultChatSubscriber implements ChatSubscriber {
 
     @Override
     public CompletableFuture<ChatResponse> onComplete() {
-        return CompletableFuture
-            .supplyAsync(() -> {
-                var completedToolCall = processor.finalCompletedToolCall();
-                if (nonNull(completedToolCall))
-                    handler.onCompleteToolCall(completedToolCall);
-                return null;
-            }, ExecutorProvider.ioExecutor())
-            .thenCompose(v -> handler.awaitCallbacks())
+        return handler.awaitCallbacks()
             .thenCompose(toolCalls -> {
-                var response = processor.buildResponse(toolCalls);
-                handler.onCompleteResponse(response);
+                var response = processor.buildResponse();
+                if (nonNull(toolCalls) && !toolCalls.isEmpty()) {
+                    ResultChoice resultChoice = response.choices().get(0);
+                    resultChoice = resultChoice.withResultMessage(resultChoice.message().withToolCalls(toolCalls));
+                    handler.onCompleteResponse(response.toBuilder().choices(List.of(resultChoice)).build());
+                } else {
+                    handler.onCompleteResponse(response);
+                }
                 return handler.awaitCallbacks().thenApply(ignored -> response);
             });
     }

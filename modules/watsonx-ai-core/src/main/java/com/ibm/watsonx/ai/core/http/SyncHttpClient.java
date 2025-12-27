@@ -34,7 +34,7 @@ public final class SyncHttpClient extends BaseHttpClient {
      * @param httpClient the HTTP client to use, if {@code null}, a default client is used
      * @param interceptors a list of synchronous HTTP interceptors; may be {@code null}
      */
-    private SyncHttpClient(HttpClient httpClient, List<SyncHttpInterceptor> interceptors) {
+    SyncHttpClient(HttpClient httpClient, List<SyncHttpInterceptor> interceptors) {
         super(requireNonNull(httpClient, "The HTTP client cannot be null"));
         this.interceptors = requireNonNullElse(interceptors, List.of());
     }
@@ -44,7 +44,7 @@ public final class SyncHttpClient extends BaseHttpClient {
      *
      * @param builder the builder instance
      */
-    public SyncHttpClient(Builder builder) {
+    private SyncHttpClient(Builder builder) {
         this(builder.httpClient, builder.interceptors);
     }
 
