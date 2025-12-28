@@ -17,7 +17,6 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
-import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
@@ -63,7 +62,7 @@ public class ChatHandlerDecorator implements ChatHandler {
      * Thread-safe list of pending tool call futures that can execute in parallel. These are tracked separately to allow concurrent tool call
      * processing.
      */
-    private final List<CompletableFuture<ToolCall>> pendingToolCallCallbacks =
+    private final List<CompletableFuture<CompletedToolCall>> pendingToolCallCallbacks =
         Collections.synchronizedList(new ArrayList<>());
 
     /**
@@ -113,7 +112,7 @@ public class ChatHandlerDecorator implements ChatHandler {
             .thenApplyAsync(toolCallNormalized -> {
                 try {
                     delegate.onCompleteToolCall(toolCallNormalized);
-                    return toolCallNormalized.toolCall();
+                    return toolCallNormalized;
                 } catch (RuntimeException e) {
                     delegate.onError(e);
                     throw e;
@@ -138,12 +137,12 @@ public class ChatHandlerDecorator implements ChatHandler {
      * </ol>
      *
      * <p>
-     * The returned future resolves to a list of all processed {@link ToolCall} objects, in the order they were completed (not necessarily the order
-     * they were received).
+     * The returned future resolves to a list of all processed {@link CompletedToolCall} objects, in the order they were completed (not necessarily
+     * the order they were received).
      *
      * @return a CompletableFuture that resolves to a list of all processed tool calls
      */
-    public CompletableFuture<List<ToolCall>> awaitCallbacks() {
+    public CompletableFuture<List<CompletedToolCall>> awaitCallbacks() {
         return CompletableFuture.allOf(pendingToolCallCallbacks.toArray(new CompletableFuture[0]))
             .thenCompose(v -> callbackChain.get())
             .thenApply(v -> pendingToolCallCallbacks.stream().map(CompletableFuture::join).toList());

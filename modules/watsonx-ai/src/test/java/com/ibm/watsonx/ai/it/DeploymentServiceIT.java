@@ -665,7 +665,7 @@ public class DeploymentServiceIT {
                     cachePartialToolCall.computeIfAbsent("id", k -> partialToolCall.id());
                     cachePartialToolCall.computeIfAbsent("name", k -> partialToolCall.name());
                     cachePartialToolCall.computeIfAbsent("completionId", k -> partialToolCall.completionId());
-                    cachePartialToolCall.computeIfAbsent("index", k -> partialToolCall.index() + "");
+                    cachePartialToolCall.computeIfAbsent("index", k -> partialToolCall.toolIndex() + "");
                     if (cachePartialToolCall.containsKey("arguments")) {
                         var arguments = cachePartialToolCall.get("arguments") + partialToolCall.arguments();
                         cachePartialToolCall.put("arguments", arguments);
@@ -742,6 +742,32 @@ public class DeploymentServiceIT {
             assertEquals(10, ids.size());
             for (var future : results.values())
                 assertEquals("0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20", future.get());
+        }
+
+        @Test
+        void should_manage_multiple_choices() {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .defaultParameters(ChatParameters.builder().n(2).build())
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .deploymentId(DEPLOYMENT_ID)
+                .messages(UserMessage.text("Tell me a joke"))
+                .build();
+
+            var chatResponse = deploymentService.chatStreaming(chatRequest, (partialResponse, partialChatResponse) -> {}).join();
+            var assistantMessages = chatResponse.toAssistantMessages();
+            assertEquals(2, assistantMessages.size());
+
+            assistantMessages.forEach(assistantMessage -> {
+                assertNotNull(assistantMessage.content());
+                assertFalse(assistantMessage.hasToolCalls());
+            });
         }
 
         @Test

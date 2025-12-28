@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -1912,10 +1913,156 @@ public class ChatServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatResponse = chatService.chat(UserMessage.text("What time is it in Italy?"));
+            var chatResponse = chatService.chat("What time is it in Italy?");
             var assistantMessage = chatResponse.toAssistantMessage();
             assertEquals("I don't feel good.", assistantMessage.content());
             assertFalse(assistantMessage.hasToolCalls());
+        });
+    }
+
+    @Test
+    void should_convert_multiple_choices_to_assistant_messages() throws Exception {
+
+        var RESPONSE = new String(ClassLoader.getSystemResourceAsStream("chat_response_multiple_choices.json").readAllBytes());
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("ibm/granite-4-h-small")
+                .projectId("project-id")
+                .baseUrl("http://localhost")
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var chatResponse = chatService.chat("What is the capital of Italy?");
+            var assistantMessages = chatResponse.toAssistantMessages();
+            assertEquals("The capital of Italy is Rome. It is also the country's largest city and a significant center of history, art, and culture.",
+                assistantMessages.get(0).content());
+            assertFalse(assistantMessages.get(0).hasToolCalls());
+            assertEquals("The capital of Italy is Rome.", assistantMessages.get(1).content());
+            assertFalse(assistantMessages.get(1).hasToolCalls());
+        });
+    }
+
+    @Test
+    void should_apply_message_interceptor_to_multiple_choices() throws Exception {
+
+        var RESPONSE = new String(ClassLoader.getSystemResourceAsStream("chat_response_multiple_choices.json").readAllBytes());
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("ibm/granite-4-h-small")
+                .projectId("project-id")
+                .baseUrl("http://localhost")
+                .messageInterceptor((ctx, message) -> message.replace("Rome", "rome"))
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var chatResponse = chatService.chat("What is the capital of Italy?");
+            var assistantMessages = chatResponse.toAssistantMessages();
+            assertEquals("The capital of Italy is rome. It is also the country's largest city and a significant center of history, art, and culture.",
+                assistantMessages.get(0).content());
+            assertFalse(assistantMessages.get(0).hasToolCalls());
+            assertEquals("The capital of Italy is rome.", assistantMessages.get(1).content());
+            assertFalse(assistantMessages.get(1).hasToolCalls());
+        });
+    }
+
+    @Test
+    void should_handle_multiple_choices_with_different_finish_reasons() throws Exception {
+
+        var RESPONSE =
+            new String(ClassLoader.getSystemResourceAsStream("chat_response_multiple_choices_different_finish_reasons.json").readAllBytes());
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("ibm/granite-3-8b-instruct")
+                .projectId("project-id")
+                .baseUrl("http://localhost")
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var chatResponse = chatService.chat("What is the capital of France?");
+            var assistantMessages = chatResponse.toAssistantMessages();
+
+            assertEquals(2, assistantMessages.size());
+            assertEquals("Paris is the capital and largest city of France.", assistantMessages.get(0).content());
+            assertFalse(assistantMessages.get(0).hasToolCalls());
+            assertEquals(
+                "Paris, the capital of France, is known for its art, fashion, gastronomy, and culture. The city is home to iconic landmarks such as the Eiffel Tower, the Louvre Museum, Notre-Dame Cathedral",
+                assistantMessages.get(1).content());
+            assertFalse(assistantMessages.get(1).hasToolCalls());
+
+            assertEquals(2, chatResponse.choices().size());
+            assertEquals("stop", chatResponse.choices().get(0).finishReason());
+            assertEquals("length", chatResponse.choices().get(1).finishReason());
+
+            assertEquals(FinishReason.STOP, FinishReason.fromValue(chatResponse.choices().get(0).finishReason()));
+            assertEquals(FinishReason.LENGTH, FinishReason.fromValue(chatResponse.choices().get(1).finishReason()));
+        });
+    }
+
+    @Test
+    void should_handle_multiple_choices_with_tools() throws Exception {
+
+        var RESPONSE = new String(ClassLoader.getSystemResourceAsStream("chat_response_multiple_choices_with_tools.json").readAllBytes());
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("ibm/granite-3-8b-instruct")
+                .projectId("project-id")
+                .baseUrl("http://localhost")
+                .toolInterceptor((ctx, fc) -> fc.withArguments(fc.arguments().replace("Paris", "Rome")))
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var chatResponse = chatService.chat("What's the weather in Paris?");
+            var assistantMessages = chatResponse.toAssistantMessages();
+
+            assertEquals(2, assistantMessages.size());
+
+            assertNull(assistantMessages.get(0).content());
+            assertTrue(assistantMessages.get(0).hasToolCalls());
+            assertEquals(1, assistantMessages.get(0).toolCalls().size());
+            assertEquals("get_weather", assistantMessages.get(0).toolCalls().get(0).function().name());
+            assertEquals("{\"location\": \"Rome\", \"unit\": \"celsius\"}",
+                assistantMessages.get(0).toolCalls().get(0).function().arguments());
+            assertEquals("call_abc123", assistantMessages.get(0).toolCalls().get(0).id());
+
+            assertNull(assistantMessages.get(1).content());
+            assertTrue(assistantMessages.get(1).hasToolCalls());
+            assertEquals(1, assistantMessages.get(1).toolCalls().size());
+            assertEquals("get_weather", assistantMessages.get(1).toolCalls().get(0).function().name());
+            assertEquals("{\"location\": \"Rome\", \"unit\": \"fahrenheit\"}",
+                assistantMessages.get(1).toolCalls().get(0).function().arguments());
+            assertEquals("call_def456", assistantMessages.get(1).toolCalls().get(0).id());
+
+            assertEquals("tool_calls", chatResponse.choices().get(0).finishReason());
+            assertEquals("tool_calls", chatResponse.choices().get(1).finishReason());
+            assertEquals(FinishReason.TOOL_CALLS, chatResponse.finishReason());
         });
     }
 }

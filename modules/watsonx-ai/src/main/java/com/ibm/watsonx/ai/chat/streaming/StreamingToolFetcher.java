@@ -16,13 +16,15 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 public final class StreamingToolFetcher {
 
     private volatile String completionId;
-    private volatile int index;
+    private volatile int choiceIndex;
+    private volatile int toolIndex;
     private StringBuffer arguments;
     private volatile String id, name;
 
-    public StreamingToolFetcher(String completionId, int index) {
+    public StreamingToolFetcher(String completionId, int choiceIndex, int toolIndex) {
         this.completionId = completionId;
-        this.index = index;
+        this.choiceIndex = choiceIndex;
+        this.toolIndex = toolIndex;
         arguments = new StringBuffer();
     }
 
@@ -45,8 +47,8 @@ public final class StreamingToolFetcher {
         this.arguments = new StringBuffer(arguments);
     }
 
-    public int getIndex() {
-        return index;
+    public int getToolIndex() {
+        return toolIndex;
     }
 
     public String getName() {
@@ -57,11 +59,16 @@ public final class StreamingToolFetcher {
         return id;
     }
 
+    public int getChoiceIndex() {
+        return choiceIndex;
+    }
+
     public CompletedToolCall build() {
         // Watsonx doesn't return "id" if the option tool-choice is set to REQUIRED.
         if (isNull(id))
             id = UUID.randomUUID().toString();
 
-        return new CompletedToolCall(completionId, ToolCall.of(index, id, name, arguments.toString().isBlank() ? "{}" : arguments.toString()));
+        return new CompletedToolCall(completionId, choiceIndex,
+            ToolCall.of(toolIndex, id, name, arguments.toString().isBlank() ? "{}" : arguments.toString()));
     }
 }

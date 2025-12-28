@@ -146,31 +146,52 @@ public final class ChatResponse {
     }
 
     /**
-     * Converts the {@code ChatResponse} into an {@link AssistantMessage}.
+     * Converts the {@code ChatResponse} into a list of {@link AssistantMessage}.
+     * <p>
+     * This method processes all choices in the response and converts each one into an {@code AssistantMessage}. Use this method when the chat request
+     * was made with the {@code n} parameter greater than 1 to retrieve multiple alternative responses from the model.
      *
-     * @return an {@code AssistantMessage} containing the assistant's reply content
+     * @return a list of {@code AssistantMessage} instances, one for each choice in the response
+     * @see #toAssistantMessage()
+     */
+    public List<AssistantMessage> toAssistantMessages() {
+        return choices.stream()
+            .map(ResultChoice::message)
+            .map(message -> {
+
+                String content;
+                String thinking;
+
+                if (isNull(extractionTags)) {
+                    content = message.content();
+                    thinking = message.reasoningContent();
+                } else {
+                    content = extractionTags.extractResponse(message.content());
+                    content = isNull(content) ? message.content() : content;
+                    thinking = extractionTags.extractThinking(message.content());
+                }
+
+                return new AssistantMessage(
+                    content,
+                    thinking,
+                    null,
+                    message.refusal(),
+                    message.toolCalls());
+
+            }).toList();
+    }
+
+    /**
+     * Converts the {@code ChatResponse} into an {@link AssistantMessage}.
+     * <p>
+     * This method returns the first assistant message from the list of choices. If the chat request was made with the {@code n} parameter greater
+     * than 1, use {@link #toAssistantMessages()} instead to retrieve all alternative responses.
+     *
+     * @return an {@code AssistantMessage} containing the assistant's reply content from the first choice
+     * @see #toAssistantMessages()
      */
     public AssistantMessage toAssistantMessage() {
-        var resultMessage = choices.get(0).message();
-
-        String content;
-        String thinking;
-
-        if (isNull(extractionTags)) {
-            content = resultMessage.content();
-            thinking = resultMessage.reasoningContent();
-        } else {
-            content = extractionTags.extractResponse(resultMessage.content());
-            content = isNull(content) ? resultMessage.content() : content;
-            thinking = extractionTags.extractThinking(resultMessage.content());
-        }
-
-        return new AssistantMessage(
-            content,
-            thinking,
-            null,
-            resultMessage.refusal(),
-            resultMessage.toolCalls());
+        return toAssistantMessages().get(0);
     }
 
     /**

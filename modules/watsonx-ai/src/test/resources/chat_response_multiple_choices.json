@@ -1,0 +1,32 @@
+{
+    "id": "chatcmpl-d22a589d644b430db7f316aac05186df",
+    "object": "chat.completion",
+    "model_id": "ibm/granite-4-h-small",
+    "model": "ibm/granite-4-h-small",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "The capital of Italy is Rome. It is also the country's largest city and a significant center of history, art, and culture."
+            },
+            "finish_reason": "stop"
+        },
+        {
+            "index": 1,
+            "message": {
+                "role": "assistant",
+                "content": "The capital of Italy is Rome."
+            },
+            "finish_reason": "stop"
+        }
+    ],
+    "created": 1766914663,
+    "model_version": "4.0.0",
+    "created_at": "2025-12-28T09:37:44.511Z",
+    "usage": {
+        "completion_tokens": 36,
+        "prompt_tokens": 34,
+        "total_tokens": 70
+    }
+}

@@ -15,9 +15,10 @@ import com.ibm.watsonx.ai.chat.ToolExecutor;
  * the same chat response, if the model decides to call more than one tool.
  *
  * @param completionId The identifier of the chat completion request this tool call belongs to.
+ * @param index Choice index.
  * @param toolCall The fully constructed {@link ToolCall}.
  */
-public record CompletedToolCall(String completionId, ToolCall toolCall) {
+public record CompletedToolCall(String completionId, Integer index, ToolCall toolCall) {
 
     /**
      * Processes the tool call using the provided {@link ToolExecutor}.

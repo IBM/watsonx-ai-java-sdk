@@ -5,10 +5,8 @@
 package com.ibm.watsonx.ai.chat.streaming;
 
 import static java.util.Objects.nonNull;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.ErrorEvent;
@@ -16,6 +14,7 @@ import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEv
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEvent;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
+import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
@@ -59,7 +58,7 @@ public class DefaultChatSubscriber implements ChatSubscriber {
             } else if (event instanceof PartialToolCallEvent e) {
                 handler.onPartialToolCall(e.toolCall());
             } else if (event instanceof CompleteToolCallEvent e) {
-                handler.onCompleteToolCall(e.toolCall());
+                handler.onCompleteToolCall(e.completeToolCall());
             } else if (event instanceof ErrorEvent e) {
                 handler.onError(e.error());
             }
@@ -69,12 +68,18 @@ public class DefaultChatSubscriber implements ChatSubscriber {
     @Override
     public CompletableFuture<ChatResponse> onComplete() {
         return handler.awaitCallbacks()
-            .thenCompose(toolCalls -> {
+            .thenCompose(completeToolCalls -> {
                 var response = processor.buildResponse();
-                if (nonNull(toolCalls) && !toolCalls.isEmpty()) {
-                    ResultChoice resultChoice = response.choices().get(0);
-                    resultChoice = resultChoice.withResultMessage(resultChoice.message().withToolCalls(toolCalls));
-                    handler.onCompleteResponse(response.toBuilder().choices(List.of(resultChoice)).build());
+                if (nonNull(completeToolCalls) && !completeToolCalls.isEmpty()) {
+                    var choices = response.choices().stream()
+                        .map(choice -> {
+                            var tools = completeToolCalls.stream()
+                                .filter(ctc -> ctc.index().equals(choice.index()))
+                                .map(CompletedToolCall::toolCall)
+                                .toList();
+                            return choice.withResultMessage(choice.message().withToolCalls(tools));
+                        }).toList();
+                    handler.onCompleteResponse(response.toBuilder().choices(choices).build());
                 } else {
                     handler.onCompleteResponse(response);
                 }

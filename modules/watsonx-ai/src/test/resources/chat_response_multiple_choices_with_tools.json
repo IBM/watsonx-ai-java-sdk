@@ -1,0 +1,54 @@
+{
+    "id": "chatcmpl-tools123abc",
+    "object": "chat.completion",
+    "model_id": "ibm/granite-3-8b-instruct",
+    "model": "ibm/granite-3-8b-instruct",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": null,
+                "tool_calls": [
+                    {
+                        "index": 0,
+                        "id": "call_abc123",
+                        "type": "function",
+                        "function": {
+                            "name": "get_weather",
+                            "arguments": "{\"location\": \"Paris\", \"unit\": \"celsius\"}"
+                        }
+                    }
+                ]
+            },
+            "finish_reason": "tool_calls"
+        },
+        {
+            "index": 1,
+            "message": {
+                "role": "assistant",
+                "content": null,
+                "tool_calls": [
+                    {
+                        "index": 0,
+                        "id": "call_def456",
+                        "type": "function",
+                        "function": {
+                            "name": "get_weather",
+                            "arguments": "{\"location\": \"Paris\", \"unit\": \"fahrenheit\"}"
+                        }
+                    }
+                ]
+            },
+            "finish_reason": "tool_calls"
+        }
+    ],
+    "created": 1735395700,
+    "model_version": "3.0.0",
+    "created_at": "2025-12-28T14:01:40.000Z",
+    "usage": {
+        "completion_tokens": 45,
+        "prompt_tokens": 85,
+        "total_tokens": 130
+    }
+}
