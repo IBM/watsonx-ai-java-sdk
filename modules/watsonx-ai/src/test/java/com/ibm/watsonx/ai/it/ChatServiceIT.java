@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +36,7 @@ import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
@@ -584,6 +586,54 @@ public class ChatServiceIT {
             assertNotNull(assistantMessage.toolCalls());
             assertEquals(1, assistantMessage.toolCalls().size());
         }
+
+        @Test
+        void should_manage_multiple_choices() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("ibm/granite-4-h-small")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .defaultParameters(ChatParameters.builder().n(2).build())
+                .build();
+
+            var chatResponse = chatService.chat("Tell me a joke");
+            var assistantMessages = chatResponse.toAssistantMessages();
+            assertEquals(2, assistantMessages.size());
+
+            assistantMessages.forEach(assistantMessage -> {
+                assertNotNull(assistantMessage.content());
+                assertFalse(assistantMessage.hasToolCalls());
+            });
+        }
+
+        @Test
+        void should_manage_multiple_choices_with_tool() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("ibm/granite-4-h-small")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .defaultParameters(ChatParameters.builder().n(2).build())
+                .build();
+
+            var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));
+            var tools = List.of(Tool.of("get_current_time"));
+            var chatResponse = chatService.chat(messages, tools);
+            var assistantMessages = chatResponse.toAssistantMessages();
+
+            assertEquals(2, assistantMessages.size());
+            assistantMessages.forEach(assistantMessage -> {
+                assertNull(assistantMessage.content());
+                assertTrue(assistantMessage.hasToolCalls());
+            });
+        }
     }
 
     @Nested
@@ -949,7 +999,7 @@ public class ChatServiceIT {
                     cachePartialToolCall.computeIfAbsent("id", k -> partialToolCall.id());
                     cachePartialToolCall.computeIfAbsent("name", k -> partialToolCall.name());
                     cachePartialToolCall.computeIfAbsent("completionId", k -> partialToolCall.completionId());
-                    cachePartialToolCall.computeIfAbsent("index", k -> partialToolCall.index() + "");
+                    cachePartialToolCall.computeIfAbsent("index", k -> partialToolCall.toolIndex() + "");
                     if (cachePartialToolCall.containsKey("arguments")) {
                         var arguments = cachePartialToolCall.get("arguments") + partialToolCall.arguments();
                         cachePartialToolCall.put("arguments", arguments);
@@ -1497,6 +1547,59 @@ public class ChatServiceIT {
                     assertEquals("Japan", toolArgs.get("country"));
                     return "The current time in Japan is 23:13";
                 }));
+        }
+
+        @Test
+        void should_manage_multiple_choices() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("ibm/granite-4-h-small")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .defaultParameters(ChatParameters.builder().n(2).build())
+                .build();
+
+            var chatResponse = chatService.chatStreaming("Tell me a joke", (partialResponse, partialChatResponse) -> {}).join();
+            var assistantMessages = chatResponse.toAssistantMessages();
+            assertEquals(2, assistantMessages.size());
+
+            assistantMessages.forEach(assistantMessage -> {
+                assertNotNull(assistantMessage.content());
+                assertFalse(assistantMessage.hasToolCalls());
+            });
+        }
+
+        @Test
+        void should_manage_multiple_choices_with_tool() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistral-large-2512")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .defaultParameters(ChatParameters.builder()
+                    .maxCompletionTokens(0)
+                    .n(2)
+                    .build())
+                .build();
+
+            var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));
+            var tools = List.of(Tool.of("get_current_time", "Get current time", JsonSchema.object()));
+            var chatResponse = chatService.chatStreaming(messages, tools, (partialResponse, partialChatResponse) -> {}).join();
+            var assistantMessages = chatResponse.toAssistantMessages();
+
+            assertEquals(2, assistantMessages.size());
+            assistantMessages.forEach(assistantMessage -> {
+                assertNull(assistantMessage.content());
+                assertTrue(assistantMessage.hasToolCalls());
+                assertEquals(1, assistantMessage.toolCalls().size());
+                assertEquals("get_current_time", assistantMessage.toolCalls().get(0).function().name());
+            });
         }
     }
 }

@@ -1,0 +1,131 @@
+id: 1
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.000Z"}
+
+id: 2
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.000Z"}
+
+id: 3
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"The"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.100Z"}
+
+id: 4
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":"A"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.100Z"}
+
+id: 5
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" weather"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.200Z"}
+
+id: 6
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" very"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.200Z"}
+
+id: 7
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.300Z"}
+
+id: 8
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" long"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.300Z"}
+
+id: 9
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Paris"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.400Z"}
+
+id: 10
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" response"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.400Z"}
+
+id: 11
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" today"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.500Z"}
+
+id: 12
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" that"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.500Z"}
+
+id: 13
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" is"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.600Z"}
+
+id: 14
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" continues"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.600Z"}
+
+id: 15
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" sunny"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.700Z"}
+
+id: 16
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" with"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.700Z"}
+
+id: 17
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" with"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.800Z"}
+
+id: 18
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" many"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.800Z"}
+
+id: 19
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" temperatures"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.900Z"}
+
+id: 20
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" details"}}],"created":1735395600,"created_at":"2025-12-28T14:00:00.900Z"}
+
+id: 21
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" around"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.000Z"}
+
+id: 22
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" about"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.000Z"}
+
+id: 23
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":" 20"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.100Z"}
+
+id: 24
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" the"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.100Z"}
+
+id: 25
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"°C"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.200Z"}
+
+id: 26
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" weather"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.200Z"}
+
+id: 27
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"content":"."}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.300Z"}
+
+id: 28
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" conditions"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.300Z"}
+
+id: 29
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":0,"finish_reason":"stop","delta":{}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.400Z"}
+
+id: 30
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" in"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.400Z"}
+
+id: 31
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":null,"delta":{"content":" Paris"}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.500Z"}
+
+id: 32
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[{"index":1,"finish_reason":"length","delta":{}}],"created":1735395600,"created_at":"2025-12-28T14:00:01.600Z"}
+
+id: 33
+event: message
+data: {"id":"chatcmpl-abc123def456","object":"chat.completion.chunk","model_id":"ibm/granite-3-8b-instruct","model":"ibm/granite-3-8b-instruct","choices":[],"created":1735395600,"created_at":"2025-12-28T14:00:01.600Z","usage":{"completion_tokens":42,"prompt_tokens":15,"total_tokens":57}}

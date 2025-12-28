@@ -89,6 +89,7 @@ public interface ToolInterceptor {
         var normalized = intercept(context, completedToolCall.toolCall().function());
         return new CompletedToolCall(
             completedToolCall.completionId(),
+            completedToolCall.index(),
             completedToolCall.toolCall().withFunctionCall(normalized)
         );
     }

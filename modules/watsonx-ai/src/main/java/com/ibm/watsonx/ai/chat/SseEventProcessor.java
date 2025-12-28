@@ -7,9 +7,9 @@ package com.ibm.watsonx.ai.chat;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.ErrorEvent;
@@ -34,7 +34,7 @@ import com.ibm.watsonx.ai.core.Json;
  */
 public class SseEventProcessor {
     private final Object usageLock = new Object();
-    private volatile String finishReason;
+    private volatile Map<Integer, String> finishReasons = new ConcurrentHashMap<>();
     private volatile String role;
     private volatile String refusal;
     private volatile Long created;
@@ -46,9 +46,9 @@ public class SseEventProcessor {
     private volatile String modelVersion;
     private volatile boolean pendingSSEError = false;
     private ChatUsage chatUsage;
-    private final StringBuffer contentBuffer = new StringBuffer();
-    private final StringBuffer thinkingBuffer = new StringBuffer();
-    private final List<StreamingToolFetcher> tools = Collections.synchronizedList(new ArrayList<>());
+    private final Map<Integer, StringBuilder> contentBuffers = new ConcurrentHashMap<>();
+    private final Map<Integer, StringBuilder> thinkingBuffers = new ConcurrentHashMap<>();
+    private final Map<Integer, List<StreamingToolFetcher>> toolFetchers = new ConcurrentHashMap<>();
     private final StreamingStateTracker stateTracker;
     private final Map<String, Boolean> toolHasParameters;
     private final ExtractionTags extractionTags;
@@ -78,7 +78,7 @@ public class SseEventProcessor {
         record PartialToolCallEvent(PartialToolCall toolCall) implements CallbackEvent {}
 
         /** Event emitted when a tool call has been fully assembled. */
-        record CompleteToolCallEvent(CompletedToolCall toolCall) implements CallbackEvent {}
+        record CompleteToolCallEvent(CompletedToolCall completeToolCall) implements CallbackEvent {}
 
         /** Event emitted when an error occurs during chunk processing. */
         record ErrorEvent(Throwable error) implements CallbackEvent {}
@@ -170,6 +170,10 @@ public class SseEventProcessor {
             return ProcessResult.empty();
 
         var message = chunk.choices().get(0);
+        var messageIndex = message.index();
+        var finishReason = finishReasons.get(messageIndex);
+        var contentBuffer = contentBuffers.computeIfAbsent(messageIndex, StringBuilder::new);
+        var thinkingBuffer = thinkingBuffers.computeIfAbsent(messageIndex, StringBuilder::new);
 
         if (isNull(created) && nonNull(chunk.created()))
             created = chunk.created();
@@ -192,8 +196,10 @@ public class SseEventProcessor {
         if (isNull(model) && nonNull(chunk.model()))
             model = chunk.model();
 
-        if (isNull(finishReason) && nonNull(message.finishReason()))
+        if (isNull(finishReason) && nonNull(message.finishReason())) {
             finishReason = message.finishReason();
+            finishReasons.put(messageIndex, finishReason);
+        }
 
         if (isNull(role) && nonNull(message.delta().role()))
             role = message.delta().role();
@@ -207,19 +213,20 @@ public class SseEventProcessor {
 
             for (ToolCall deltaTool : message.delta().toolCalls()) {
 
-                var index = deltaTool.index();
+                var toolIndex = deltaTool.index();
+                var tools = toolFetchers.computeIfAbsent(messageIndex, ArrayList::new);
 
                 // Check if there is an incomplete version of the TextChatToolCall object.
-                if ((index + 1) > tools.size()) {
+                if ((toolIndex + 1) > tools.size()) {
                     // First occurrence of the object, create it.
-                    toolFetcher = new StreamingToolFetcher(id, index);
+                    toolFetcher = new StreamingToolFetcher(id, messageIndex, toolIndex);
                     tools.add(toolFetcher);
-                    if (index - 1 >= 0) {
-                        events.add(new CompleteToolCallEvent(tools.get(index - 1).build()));
+                    if (toolIndex - 1 >= 0) {
+                        events.add(new CompleteToolCallEvent(tools.get(toolIndex - 1).build()));
                     }
                 } else {
                     // Incomplete version is present, complete it.
-                    toolFetcher = tools.get(index);
+                    toolFetcher = tools.get(toolIndex);
                 }
 
                 toolFetcher.setId(deltaTool.id());
@@ -234,7 +241,8 @@ public class SseEventProcessor {
                     var arguments = isNull(toolHasParameter) || toolHasParameter ? deltaTool.function().arguments() : "{}";
 
                     if (!arguments.isEmpty()) {
-                        var partialToolCall = new PartialToolCall(id, toolFetcher.getIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
+                        var partialToolCall =
+                            new PartialToolCall(id, messageIndex, toolFetcher.getToolIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
                         events.add(new PartialToolCallEvent(partialToolCall));
                     }
                 }
@@ -273,8 +281,10 @@ public class SseEventProcessor {
             events.add(new PartialThinkingEvent(token, chunk));
         }
 
-        if ("tool_calls".equals(finishReason))
+        if ("tool_calls".equals(finishReason)) {
+            var tools = toolFetchers.get(messageIndex);
             events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
+        }
 
         return ProcessResult.events(events);
     }
@@ -285,16 +295,26 @@ public class SseEventProcessor {
      * @return the complete {@link ChatResponse}
      */
     public ChatResponse buildResponse() {
-        String content = contentBuffer.isEmpty() ? null : contentBuffer.toString().trim();
-        String thinking = thinkingBuffer.isEmpty() ? null : thinkingBuffer.toString().trim();
 
-        var resultMessage = new ResultMessage(role, content, thinking, refusal,
-            !tools.isEmpty()
-                ? tools.stream()
-                    .map(StreamingToolFetcher::build)
-                    .map(CompletedToolCall::toolCall)
-                    .toList()
-                : null);
+        var choices = contentBuffers.keySet().stream()
+            .map(key -> {
+
+                var content = contentBuffers.get(key).isEmpty() ? null : contentBuffers.get(key).toString().trim();
+                var thinking = thinkingBuffers.get(key).isEmpty() ? null : thinkingBuffers.get(key).toString().trim();
+                var tools = toolFetchers.get(key);
+
+                var resultMessage = new ResultMessage(role, content, thinking, refusal,
+                    nonNull(tools) && !tools.isEmpty()
+                        ? tools.stream()
+                            .map(StreamingToolFetcher::build)
+                            .map(CompletedToolCall::toolCall)
+                            .toList()
+                        : null);
+
+                return new ResultChoice(key, resultMessage, finishReasons.get(key));
+
+            }).toList();
+
 
         return ChatResponse.build()
             .created(created)
@@ -306,7 +326,7 @@ public class SseEventProcessor {
             .modelVersion(modelVersion)
             .extractionTags(extractionTags)
             .usage(chatUsage)
-            .choices(List.of(new ResultChoice(0, resultMessage, finishReason)))
+            .choices(choices)
             .build();
     }
 }

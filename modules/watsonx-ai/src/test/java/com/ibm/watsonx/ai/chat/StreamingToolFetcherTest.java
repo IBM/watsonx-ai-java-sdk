@@ -13,7 +13,7 @@ public class StreamingToolFetcherTest {
     @Test
     void should_retain_tool_properties_once_set_and_ignore_null_or_empty_updates() {
 
-        StreamingToolFetcher fetcher = new StreamingToolFetcher("0", 0);
+        StreamingToolFetcher fetcher = new StreamingToolFetcher("0", 0, 0);
 
         fetcher.setId("id");
         assertEquals("id", fetcher.build().toolCall().id());

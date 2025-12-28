@@ -10,6 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.ibm.watsonx.ai.core.Json.prettyPrint;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.Utils.isVirtual;
 import static java.util.Objects.nonNull;
@@ -43,8 +44,10 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -73,6 +76,7 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.Image;
 import com.ibm.watsonx.ai.chat.model.Image.Detail;
@@ -417,10 +421,10 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         assertEquals(2, toolFetchers.size());
         assertEquals(
-            "{\"completion_id\":\"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602\",\"index\":0,\"id\":\"chatcmpl-tool-af37032523934f019aa7258469580a7a\",\"name\":\"sum\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
+            "{\"completion_id\":\"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602\",\"index\":0,\"tool_index\":0,\"id\":\"chatcmpl-tool-af37032523934f019aa7258469580a7a\",\"name\":\"sum\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
             toJson(toolFetchers.get(0)));
         assertEquals(
-            "{\"completion_id\":\"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602\",\"index\":1,\"id\":\"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b\",\"name\":\"subtraction\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
+            "{\"completion_id\":\"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602\",\"index\":0,\"tool_index\":1,\"id\":\"chatcmpl-tool-f762db03c60f441dba57bab09552bb7b\",\"name\":\"subtraction\",\"arguments\":\"{\\\"firstNumber\\\": 2, \\\"secondNumber\\\": 2}\"}",
             toJson(toolFetchers.get(1)));
 
         assertEquals(2, toolCalls.size());
@@ -744,144 +748,144 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         assertEquals(28, toolFetchers.size());
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "{\"")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "{\"")),
             toJson(toolFetchers.get(0)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "first")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "first")),
             toJson(toolFetchers.get(1)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "Number")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "Number")),
             toJson(toolFetchers.get(2)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "\":")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "\":")),
             toJson(toolFetchers.get(3)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", " ")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", " ")),
             toJson(toolFetchers.get(4)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "2")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "2")),
             toJson(toolFetchers.get(5)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", ",")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", ",")),
             toJson(toolFetchers.get(6)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", " \"")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", " \"")),
             toJson(toolFetchers.get(7)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "second")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "second")),
             toJson(toolFetchers.get(8)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "Number")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "Number")),
             toJson(toolFetchers.get(9)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "\":")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "\":")),
             toJson(toolFetchers.get(10)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", " ")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", " ")),
             toJson(toolFetchers.get(11)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "2")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "2")),
             toJson(toolFetchers.get(12)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, null, "sum", "}")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 0, null, "sum", "}")),
             toJson(toolFetchers.get(13)),
             true
         );
 
 
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "{\"")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "{\"")),
             toJson(toolFetchers.get(14)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "first")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "first")),
             toJson(toolFetchers.get(15)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "Number")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "Number")),
             toJson(toolFetchers.get(16)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "\":")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "\":")),
             toJson(toolFetchers.get(17)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", " ")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", " ")),
             toJson(toolFetchers.get(18)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "4")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "4")),
             toJson(toolFetchers.get(19)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", ",")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", ",")),
             toJson(toolFetchers.get(20)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", " \"")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", " \"")),
             toJson(toolFetchers.get(21)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "second")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "second")),
             toJson(toolFetchers.get(22)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "Number")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "Number")),
             toJson(toolFetchers.get(23)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "\":")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "\":")),
             toJson(toolFetchers.get(24)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", " ")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", " ")),
             toJson(toolFetchers.get(25)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "2")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "2")),
             toJson(toolFetchers.get(26)),
             true
         );
         JSONAssert.assertEquals(
-            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 1, null, "subtraction", "}")),
+            toJson(new PartialToolCall("chatcmpl-75021362a9edcdacca7976b97cc20f0d", 0, 1, null, "subtraction", "}")),
             toJson(toolFetchers.get(27)),
             true
         );
@@ -1959,8 +1963,8 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         var toolInterceptor = mock(ToolInterceptor.class);
         when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
         when(toolInterceptor.intercept(any(InterceptorContext.class), any(CompletedToolCall.class)))
-            .thenReturn(new CompletedToolCall("id_1", ToolCall.of("1", "name_1", "{ \"test_1\": \"1\"}")))
-            .thenReturn(new CompletedToolCall("id_2", ToolCall.of("2", "name_2", "{ \"test_2\": \"2\"}")));
+            .thenReturn(new CompletedToolCall("id_1", 0, ToolCall.of("1", "name_1", "{ \"test_1\": \"1\"}")))
+            .thenReturn(new CompletedToolCall("id_2", 0, ToolCall.of("2", "name_2", "{ \"test_2\": \"2\"}")));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -3352,5 +3356,434 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         verify(mockChatHandler, never()).onError(any());
         verify(mockChatHandler).onCompleteResponse(any());
         verify(mockChatHandler).onCompleteToolCall(argThat(toolCall -> toolCall.toolCall().function().arguments().equals("{}")));
+    }
+
+    @Test
+    void should_convert_multiple_choices_to_assistant_messages() throws Exception {
+
+        var RESPONSE = new String(ClassLoader.getSystemResourceAsStream("chat_streaming_response_multiple_choices.txt").readAllBytes());
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(81, 5)
+                .withBody(RESPONSE)));
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("model-id")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        Map<Integer, StringBuilder> partialResponses = new ConcurrentHashMap<>();
+        Map<Integer, StringBuilder> partialThinkings = new ConcurrentHashMap<>();
+        AtomicReference<ChatResponse> chatResponse = new AtomicReference<>();
+        var assistantMessages =
+            chatService.chatStreaming("What is the capital of Italy?", new ChatHandler() {
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    chatResponse.set(completeResponse);
+                }
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    partialResponses
+                        .computeIfAbsent(partialChatResponse.index(), StringBuilder::new)
+                        .append(partialResponse);
+                }
+
+                @Override
+                public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                    partialThinkings
+                        .computeIfAbsent(partialChatResponse.index(), StringBuilder::new)
+                        .append(partialThinking);
+                }
+
+            }).join().toAssistantMessages();
+
+        assertEquals(2, assistantMessages.size());
+        assertEquals("The capital of Italy is **Rome**.", assistantMessages.get(0).content());
+        assertEquals(
+            "User asks: \"What is the capitaly of italy?\" Should answer: capital of Italy is Rome. Also note typo, but answer accordingly.",
+            assistantMessages.get(0).thinking()
+        );
+        assertFalse(assistantMessages.get(0).hasToolCalls());
+        assertEquals("The capital of Italy is **Rome**.", assistantMessages.get(1).content());
+        assertEquals(
+            "User asks: \"What is the capitaly of italy?\" Probably typo for \"capital\". Answer: Rome. Provide friendly.",
+            assistantMessages.get(1).thinking()
+        );
+        assertFalse(assistantMessages.get(1).hasToolCalls());
+
+        assertEquals(2, partialResponses.size());
+        assertEquals("The capital of Italy is **Rome**.", partialResponses.get(0).toString());
+        assertEquals("The capital of Italy is **Rome**.", partialResponses.get(1).toString());
+        assertEquals(2, partialThinkings.size());
+        assertEquals(
+            "User asks: \"What is the capitaly of italy?\" Should answer: capital of Italy is Rome. Also note typo, but answer accordingly.",
+            partialThinkings.get(0).toString()
+        );
+        assertEquals(
+            "User asks: \"What is the capitaly of italy?\" Probably typo for \"capital\". Answer: Rome. Provide friendly.",
+            partialThinkings.get(1).toString()
+        );
+
+        assistantMessages = chatResponse.get().toAssistantMessages();
+        assertEquals(2, assistantMessages.size());
+        assertEquals("The capital of Italy is **Rome**.", assistantMessages.get(0).content());
+        assertEquals(
+            "User asks: \"What is the capitaly of italy?\" Should answer: capital of Italy is Rome. Also note typo, but answer accordingly.",
+            assistantMessages.get(0).thinking()
+        );
+        assertFalse(assistantMessages.get(0).hasToolCalls());
+        assertEquals("The capital of Italy is **Rome**.", assistantMessages.get(1).content());
+        assertEquals(
+            "User asks: \"What is the capitaly of italy?\" Probably typo for \"capital\". Answer: Rome. Provide friendly.",
+            assistantMessages.get(1).thinking()
+        );
+        assertFalse(assistantMessages.get(1).hasToolCalls());
+    }
+
+    @Test
+    void should_handle_multiple_choices_with_different_finish_reasons() throws Exception {
+
+        var RESPONSE = new String(
+            ClassLoader.getSystemResourceAsStream("chat_streaming_response_multiple_choices_different_finish_reasons.txt").readAllBytes());
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(33, 5)
+                .withBody(RESPONSE)));
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-3-8b-instruct")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        Map<Integer, StringBuilder> partialResponses = new ConcurrentHashMap<>();
+        AtomicReference<ChatResponse> chatResponse = new AtomicReference<>();
+        var assistantMessages =
+            chatService.chatStreaming("What is the weather in Paris?", new ChatHandler() {
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    chatResponse.set(completeResponse);
+                }
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    partialResponses
+                        .computeIfAbsent(partialChatResponse.index(), StringBuilder::new)
+                        .append(partialResponse);
+                }
+
+            }).join().toAssistantMessages();
+
+        assertEquals(2, assistantMessages.size());
+
+        assertEquals("The weather in Paris today is sunny with temperatures around 20°C.", assistantMessages.get(0).content());
+        assertFalse(assistantMessages.get(0).hasToolCalls());
+
+        assertEquals("A very long response that continues with many details about the weather conditions in Paris",
+            assistantMessages.get(1).content());
+        assertFalse(assistantMessages.get(1).hasToolCalls());
+
+        assertEquals(2, partialResponses.size());
+        assertEquals("The weather in Paris today is sunny with temperatures around 20°C.", partialResponses.get(0).toString());
+        assertEquals("A very long response that continues with many details about the weather conditions in Paris",
+            partialResponses.get(1).toString());
+
+        var response = chatResponse.get();
+        assertEquals(2, response.choices().size());
+        assertEquals("stop", response.choices().get(0).finishReason());
+        assertEquals("length", response.choices().get(1).finishReason());
+
+        assertEquals(FinishReason.STOP, FinishReason.fromValue(response.choices().get(0).finishReason()));
+        assertEquals(FinishReason.LENGTH, FinishReason.fromValue(response.choices().get(1).finishReason()));
+    }
+
+    @Test
+    void should_manage_multiple_choices_with_empty_argument_tools() throws Exception {
+
+        var RESPONSE =
+            """
+                id: 1
+                event: message
+                data: {"id":"chatcmpl-1584a62bbcb64b17abe5fe3f1411e8b6","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1766945485,"model_version":"4.0.0","created_at":"2025-12-28T18:11:25.185Z"}
+
+                id: 2
+                event: message
+                data: {"id":"chatcmpl-1584a62bbcb64b17abe5fe3f1411e8b6","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":1,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1766945485,"model_version":"4.0.0","created_at":"2025-12-28T18:11:25.185Z"}
+
+                id: 3
+                event: message
+                data: {"id":"chatcmpl-1584a62bbcb64b17abe5fe3f1411e8b6","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"id":"chatcmpl-tool-f58ca21749e94e5fba09aadef9a9e9a0","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1766945485,"model_version":"4.0.0","created_at":"2025-12-28T18:11:25.357Z"}
+
+                id: 4
+                event: message
+                data: {"id":"chatcmpl-1584a62bbcb64b17abe5fe3f1411e8b6","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"content":""}}],"created":1766945485,"model_version":"4.0.0","created_at":"2025-12-28T18:11:25.489Z"}
+
+                id: 5
+                event: message
+                data: {"id":"chatcmpl-1584a62bbcb64b17abe5fe3f1411e8b6","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":1,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"id":"chatcmpl-tool-f58ca21749e94e5fba09aadef9a9e9a0","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1766945485,"model_version":"4.0.0","created_at":"2025-12-28T18:11:25.357Z"}
+
+                id: 6
+                event: message
+                data: {"id":"chatcmpl-1584a62bbcb64b17abe5fe3f1411e8b6","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1766945485,"model_version":"4.0.0","created_at":"2025-12-28T18:11:25.489Z","usage":{"completion_tokens":34,"prompt_tokens":164,"total_tokens":198}}
+                """;
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(6, 5)
+                .withBody(RESPONSE)));
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("model-id")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+
+        var chatResponse = chatService.chatStreaming("What time is it?", (partialResponse, partialChatResponse) -> {}).join();
+        var assistantMessages = chatResponse.toAssistantMessages();
+        assistantMessages.forEach(assistantMessage -> {
+            assertNull(assistantMessage.content());
+            assertTrue(assistantMessage.hasToolCalls());
+            assertEquals(1, assistantMessage.toolCalls().size());
+            assertEquals("get_current_time", assistantMessage.toolCalls().get(0).function().name());
+        });
+    }
+
+    @Test
+    void should_manage_multiple_choices_with_tools() throws Exception {
+
+        var RESPONSE =
+            new String(ClassLoader.getSystemResourceAsStream("chat_streaming_response_multiple_choices_with_tools.txt").readAllBytes());
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(101, 5)
+                .withBody(RESPONSE)));
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("model-id")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        Map<Integer, StringBuilder> partialResponses = new ConcurrentHashMap<>();
+        Map<Integer, StringBuilder> partialThinkings = new ConcurrentHashMap<>();
+        Map<Integer, StringBuilder> partialToolCalls = new ConcurrentHashMap<>();
+        Map<Integer, List<CompletedToolCall>> completeToolCalls = new ConcurrentHashMap<>();
+        AtomicReference<ChatResponse> chatResponse = new AtomicReference<>();
+        var assistantMessages =
+            chatService.chatStreaming("What is the capital of Italy?", new ChatHandler() {
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    chatResponse.set(completeResponse);
+                }
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    partialResponses
+                        .computeIfAbsent(partialChatResponse.index(), StringBuilder::new)
+                        .append(partialResponse);
+                }
+
+                @Override
+                public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                    partialThinkings
+                        .computeIfAbsent(partialChatResponse.index(), StringBuilder::new)
+                        .append(partialThinking);
+                }
+
+                @Override
+                public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                    completeToolCalls
+                        .computeIfAbsent(completeToolCall.index(), ArrayList::new)
+                        .add(completeToolCall);
+                }
+
+                @Override
+                public void onPartialToolCall(PartialToolCall partialToolCall) {
+                    partialToolCalls
+                        .computeIfAbsent(partialToolCall.index(), StringBuilder::new)
+                        .append(partialToolCall.arguments());
+                }
+
+            }).join().toAssistantMessages();
+
+        assertEquals(2, assistantMessages.size());
+        assertEquals("The result of 2 + 2 is 4.", assistantMessages.get(0).content());
+        assertEquals(
+            "User wants to execute 2+2. Use sum function.",
+            assistantMessages.get(0).thinking()
+        );
+        assertTrue(assistantMessages.get(0).hasToolCalls());
+        assertEquals(1, assistantMessages.get(0).toolCalls().size());
+
+        assertEquals("The result of 2 + 2 is 4.", assistantMessages.get(1).content());
+        assertEquals(
+            "We need to compute 2+2. Use sum function.",
+            assistantMessages.get(1).thinking()
+        );
+        assertTrue(assistantMessages.get(1).hasToolCalls());
+        assertEquals(1, assistantMessages.get(1).toolCalls().size());
+
+        assertEquals(2, partialResponses.size());
+        assertEquals("The result of 2 + 2 is 4.", partialResponses.get(0).toString());
+        assertEquals("The result of 2 + 2 is 4.", partialResponses.get(1).toString());
+        assertEquals(2, partialThinkings.size());
+        assertEquals(
+            "User wants to execute 2+2. Use sum function.",
+            partialThinkings.get(0).toString()
+        );
+        assertEquals(
+            "We need to compute 2+2. Use sum function.",
+            partialThinkings.get(1).toString()
+        );
+
+        assistantMessages = chatResponse.get().toAssistantMessages();
+        assertEquals(2, assistantMessages.size());
+        assertEquals("The result of 2 + 2 is 4.", assistantMessages.get(0).content());
+        assertEquals(
+            "User wants to execute 2+2. Use sum function.",
+            assistantMessages.get(0).thinking()
+        );
+        assertTrue(assistantMessages.get(0).hasToolCalls());
+        assertEquals(1, assistantMessages.get(0).toolCalls().size());
+
+        assertEquals("The result of 2 + 2 is 4.", assistantMessages.get(1).content());
+        assertEquals(
+            "We need to compute 2+2. Use sum function.",
+            assistantMessages.get(1).thinking()
+        );
+        assertTrue(assistantMessages.get(1).hasToolCalls());
+        assertEquals(1, assistantMessages.get(1).toolCalls().size());
+
+        assertEquals(2, partialToolCalls.size());
+        assertEquals(List.of(0, 1), partialToolCalls.keySet().stream().toList());
+        assertEquals(
+            prettyPrint("""
+                    {
+                      "first_number": 2,
+                      "second_number": 2
+                    }
+                """),
+            prettyPrint(partialToolCalls.get(0).toString())
+        );
+        assertEquals(
+            prettyPrint("""
+                    {
+                      "first_number": 2,
+                      "second_number": 2
+                    }
+                """),
+            prettyPrint(partialToolCalls.get(1).toString())
+        );
+
+        assertEquals(2, completeToolCalls.size());
+        assertEquals(List.of(0, 1), completeToolCalls.keySet().stream().toList());
+    }
+
+    @Test
+    void should_apply_tool_interceptor_to_multiple_choices_streaming() throws Exception {
+
+        var RESPONSE =
+            new String(ClassLoader.getSystemResourceAsStream("chat_streaming_response_multiple_choices_with_tools.txt").readAllBytes());
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(101, 5)
+                .withBody(RESPONSE)));
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+
+        var interceptorCallCount = new AtomicInteger(0);
+        var completedToolCalls = new ConcurrentHashMap<Integer, CompletedToolCall>();
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("openai/gpt-oss-120b")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .toolInterceptor((ctx, fc) -> {
+                interceptorCallCount.incrementAndGet();
+                var modifiedArgs = fc.arguments().replace("2", "5");
+                return fc.withArguments(modifiedArgs);
+            })
+            .build();
+
+
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        chatService.chatStreaming("Calculate 2 + 2", new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {}
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completedToolCall) {
+                completedToolCalls.put(completedToolCall.index(), completedToolCall);
+            }
+        });
+
+        var chatResponse = result.join();
+        assertEquals(2, interceptorCallCount.get());
+
+        var assistantMessages = chatResponse.toAssistantMessages();
+        assertEquals(2, assistantMessages.size());
+        assistantMessages.forEach(assistantMessage -> {
+            assertTrue(assistantMessage.hasToolCalls());
+            assertEquals(1, assistantMessage.toolCalls().size());
+            var toolCall = assistantMessage.toolCalls().get(0);
+            assertTrue(toolCall.function().arguments().contains("5"));
+            assertFalse(toolCall.function().arguments().contains("2"));
+        });
+
+        assertEquals(2, completedToolCalls.size());
+        assertTrue(completedToolCalls.containsKey(0));
+        assertTrue(completedToolCalls.containsKey(1));
+        assertEquals(0, completedToolCalls.get(0).index());
+        assertEquals(1, completedToolCalls.get(1).index());
+        completedToolCalls.entrySet().forEach(completedToolCall -> {
+            completedToolCall.getValue().processTool((toolName, toolArgs) -> {
+                assertEquals("sum", toolName);
+                var firstArgument = toolArgs.get("first_number");
+                var secondArgument = toolArgs.get("second_number");
+                assertEquals(5, firstArgument);
+                assertEquals(5, secondArgument);
+                return null;
+            });
+        });
     }
 }
