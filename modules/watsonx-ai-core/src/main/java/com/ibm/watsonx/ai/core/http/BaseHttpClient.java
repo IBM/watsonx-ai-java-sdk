@@ -9,7 +9,7 @@ import java.net.http.HttpRequest;
 import java.util.UUID;
 
 /**
- * The abstract base class for all HTTP client
+ * The abstract base class for all HTTP clients
  *
  * @see SyncHttpClient
  * @see AsyncHttpClient

@@ -34,9 +34,6 @@ public final class HttpUtils {
     private static final Pattern AUTHORIZATION_PATTERN =
         Pattern.compile("(\\w+\\s)(\\w{4})(\\w+)(\\w{4})");
 
-    /**
-     * Prevents direct instantiation of the {@code Builder}.
-     */
     protected HttpUtils() {}
 
     /**

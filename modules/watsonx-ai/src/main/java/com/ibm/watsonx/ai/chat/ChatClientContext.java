@@ -33,7 +33,7 @@ public class ChatClientContext {
     }
 
     /**
-     * Returns chat request.
+     * Returns the chat request.
      *
      * @return the chat request
      */

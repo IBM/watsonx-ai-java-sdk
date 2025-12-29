@@ -13,7 +13,7 @@ package com.ibm.watsonx.ai.foundationmodel.filter;
 public interface FilterExpression {
 
     /**
-     * Serialises the filter expression to a string value.
+     * Serializes the filter expression to a string value.
      *
      * @return A string representation of the filter expression.
      */

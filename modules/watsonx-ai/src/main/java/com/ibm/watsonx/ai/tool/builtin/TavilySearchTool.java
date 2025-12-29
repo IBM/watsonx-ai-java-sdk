@@ -13,7 +13,6 @@ import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
-import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool.GoogleSearchResult;
 
 /**
  * Tool to search for online trends, news, current events, real-time information, or research topics.
@@ -27,9 +26,10 @@ public class TavilySearchTool {
     private final String apiKey;
 
     /**
-     * Constructs a new {@code GoogleSearchTool} with the specified {@link ToolService}.
+     * Constructs a new {@code TavilySearchTool} with the specified {@link ToolService} and API key.
      *
-     * @param toolService the service used to execute the tool calls.
+     * @param toolService the service used to execute the tool calls
+     * @param apiKey the Tavily API key for authentication
      */
     public TavilySearchTool(ToolService toolService, String apiKey) {
         this.toolService = requireNonNull(toolService, "ToolService can't be null");
@@ -51,7 +51,7 @@ public class TavilySearchTool {
      *
      * @param query Query to search for.
      * @param maxResults Max number of results.
-     * @return {@link List} of {@link GoogleSearchResult} that contain the retrieved web page content.
+     * @return {@link List} of {@link TavilySearchResult} that contain the retrieved web page content.
      */
     public List<TavilySearchResult> search(String query, Integer maxResults) {
 

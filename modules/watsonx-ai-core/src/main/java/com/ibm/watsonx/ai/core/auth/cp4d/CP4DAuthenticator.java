@@ -144,7 +144,7 @@ public class CP4DAuthenticator implements Authenticator {
     }
 
     /**
-     * The builder class for constructing IBMCloudAuthenticator instances.
+     * The builder class for constructing CP4DAuthenticator instances.
      */
     public final static class Builder {
         private URI baseUrl;
@@ -155,9 +155,6 @@ public class CP4DAuthenticator implements Authenticator {
         private Duration timeout;
         private HttpClient httpClient;
 
-        /**
-         * Prevents direct instantiation of the {@code Builder}.
-         */
         private Builder() {}
 
         /**

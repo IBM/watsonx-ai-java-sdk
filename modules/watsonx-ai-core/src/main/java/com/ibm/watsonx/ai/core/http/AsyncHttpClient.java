@@ -128,9 +128,6 @@ public final class AsyncHttpClient extends BaseHttpClient {
         private HttpClient httpClient;
         private List<AsyncHttpInterceptor> interceptors;
 
-        /**
-         * Prevents direct instantiation of the {@code Builder}.
-         */
         private Builder() {}
 
         /**

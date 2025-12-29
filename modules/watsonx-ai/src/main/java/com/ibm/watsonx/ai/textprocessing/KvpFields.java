@@ -66,6 +66,11 @@ public final class KvpFields {
         fieldMap = builder.fields;
     }
 
+    /**
+     * Gets the map of field names to their definitions.
+     *
+     * @return the map of field definitions
+     */
     public Map<String, KvpField> fields() {
         return fieldMap;
     }

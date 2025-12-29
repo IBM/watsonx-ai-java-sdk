@@ -136,9 +136,6 @@ public class IBMCloudAuthenticator implements Authenticator {
         private Duration timeout;
         private HttpClient httpClient;
 
-        /**
-         * Prevents direct instantiation of the {@code Builder}.
-         */
         private Builder() {}
 
         /**

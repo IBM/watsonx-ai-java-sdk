@@ -7,9 +7,7 @@ package com.ibm.watsonx.ai.deployment;
 import com.ibm.watsonx.ai.WatsonxParameters;
 
 /**
- * Represents a set of parameters used to control the behavior of the retrieve deployment details.
- * <p>
- * Instances of this class are created using the {@link Builder} pattern:
+ * Represents a set of parameters used to retrieve deployment details.
  * <p>
  * <b>Example usage:</b>
  *
@@ -29,6 +27,11 @@ public final class FindByIdRequest extends WatsonxParameters {
         deploymentId = builder.deploymentId;
     }
 
+    /**
+     * Returns the deployment identifier.
+     *
+     * @return the deployment id
+     */
     public String deploymentId() {
         return deploymentId;
     }
@@ -59,11 +62,21 @@ public final class FindByIdRequest extends WatsonxParameters {
 
         private Builder() {}
 
+        /**
+         * Sets the deployment identifier.
+         *
+         * @param deploymentId the deployment ID
+         */
         public Builder deploymentId(String deploymentId) {
             this.deploymentId = deploymentId;
             return this;
         }
 
+        /**
+         * Builds a {@link FindByIdRequest} instance.
+         *
+         * @return a new instance of {@link FindByIdRequest}
+         */
         public FindByIdRequest build() {
             return new FindByIdRequest(this);
         }

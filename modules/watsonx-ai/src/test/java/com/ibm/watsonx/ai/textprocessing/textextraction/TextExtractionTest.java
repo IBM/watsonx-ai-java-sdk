@@ -1165,7 +1165,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         TextExtractionException ex = assertThrows(TextExtractionException.class,
             () -> textExtractionService.uploadAndStartExtraction(file));
-        assertEquals(ex.getCode(), "file_not_found");
+        assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
 
         watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
@@ -1408,7 +1408,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .build());
         });
 
-        assertEquals("fetch_operation_not_allowed", ex.getCode());
+        assertEquals("fetch_operation_not_allowed", ex.code());
         assertEquals("The fetch operation cannot be executed if more than one file is to be generated", ex.getMessage());
 
         File file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
@@ -1428,7 +1428,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .build());
         });
 
-        assertEquals("fetch_operation_not_allowed", ex.getCode());
+        assertEquals("fetch_operation_not_allowed", ex.code());
         assertEquals("The fetch operation cannot be executed if more than one file is to be generated",
             ex.getMessage());
 
@@ -1449,7 +1449,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .outputTokens(false)
                     .build());
         });
-        assertEquals("fetch_operation_not_allowed", ex.getCode());
+        assertEquals("fetch_operation_not_allowed", ex.code());
         assertEquals("The fetch operation cannot be executed if more than one file is to be generated",
             ex.getMessage());
     }
@@ -1471,7 +1471,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .requestedOutputs(PAGE_IMAGES)
                     .build());
         });
-        assertEquals("fetch_operation_not_allowed", ex.getCode());
+        assertEquals("fetch_operation_not_allowed", ex.code());
         assertEquals("The fetch operation cannot be executed for the type \"page_images\"",
             ex.getMessage());
 
@@ -1483,7 +1483,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .requestedOutputs(PAGE_IMAGES)
                     .build());
         });
-        assertEquals("fetch_operation_not_allowed", ex.getCode());
+        assertEquals("fetch_operation_not_allowed", ex.code());
         assertEquals("The fetch operation cannot be executed for the type \"page_images\"",
             ex.getMessage());
 
@@ -1496,7 +1496,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     .requestedOutputs(PAGE_IMAGES)
                     .build());
         });
-        assertEquals("fetch_operation_not_allowed", ex.getCode());
+        assertEquals("fetch_operation_not_allowed", ex.code());
         assertEquals("The fetch operation cannot be executed for the type \"page_images\"",
             ex.getMessage());
     }
@@ -1675,14 +1675,14 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             TextExtractionException.class,
             () -> textExtractionService.extractAndFetch(FILE_NAME, parameters));
 
-        assertEquals(ex.getCode(), "file_download_error");
+        assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
         ex = assertThrows(
             TextExtractionException.class,
             () -> textExtractionService.uploadExtractAndFetch(file, parameters));
 
-        assertEquals(ex.getCode(), "file_download_error");
+        assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
         Thread.sleep(200); // Wait for the async calls.
@@ -2115,7 +2115,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         TextExtractionException ex = assertThrows(TextExtractionException.class,
             () -> textExtractionService.uploadFile(file));
-        assertEquals(ex.getCode(), "file_not_found");
+        assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
     }
 

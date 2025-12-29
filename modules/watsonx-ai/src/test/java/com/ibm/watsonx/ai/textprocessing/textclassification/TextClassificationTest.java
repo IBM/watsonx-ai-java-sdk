@@ -536,7 +536,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         TextClassificationException ex = assertThrows(TextClassificationException.class,
             () -> classificationService.uploadClassifyAndFetch(file));
-        assertEquals(ex.getCode(), "file_not_found");
+        assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
         assertEquals("TextClassificationException [code=file_not_found, message=doesnotexist.pdf (No such file or directory)]", ex.toString());
 
@@ -569,7 +569,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         TextClassificationException ex = assertThrows(TextClassificationException.class,
             () -> classificationService.uploadAndStartClassification(file));
-        assertEquals(ex.getCode(), "file_not_found");
+        assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
 
         watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
@@ -796,14 +796,14 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             TextClassificationException.class,
             () -> classificationService.classifyAndFetch("test.pdf", parameters));
 
-        assertEquals(ex.getCode(), "file_download_error");
+        assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
         ex = assertThrows(
             TextClassificationException.class,
             () -> classificationService.uploadClassifyAndFetch(file, parameters));
 
-        assertEquals(ex.getCode(), "file_download_error");
+        assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
         Thread.sleep(200); // Wait for the async calls.
@@ -1022,7 +1022,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         TextClassificationException ex = assertThrows(TextClassificationException.class,
             () -> classificationService.uploadFile(file));
-        assertEquals(ex.getCode(), "file_not_found");
+        assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
     }
 

@@ -51,6 +51,9 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
  */
 public class WatsonxJacksonModule extends SimpleModule {
 
+    /**
+     * Constructs a new WatsonxJacksonModule and registers all mix-in annotations.
+     */
     public WatsonxJacksonModule() {
         super("watsonx-ai-jackson-module");
 

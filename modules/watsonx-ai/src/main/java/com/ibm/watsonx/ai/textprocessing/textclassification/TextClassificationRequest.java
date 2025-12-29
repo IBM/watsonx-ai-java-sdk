@@ -9,6 +9,12 @@ import com.ibm.watsonx.ai.textprocessing.DataReference;
 
 /**
  * Represents a request for the Text Classification API.
+ *
+ * @param projectId the project identifier
+ * @param spaceId the space identifier
+ * @param documentReference reference to the input document in COS
+ * @param parameters classification parameters
+ * @param custom user-defined custom properties
  */
 public record TextClassificationRequest(String projectId, String spaceId, DataReference documentReference, Parameters parameters,
     Map<String, Object> custom) {}

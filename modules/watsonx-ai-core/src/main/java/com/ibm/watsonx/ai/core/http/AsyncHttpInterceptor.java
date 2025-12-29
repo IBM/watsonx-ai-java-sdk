@@ -13,7 +13,7 @@ import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 
 /**
- * A functional interface representing a asynchronous HTTP interceptor.
+ * A functional interface representing an asynchronous HTTP interceptor.
  *
  * @see LoggerInterceptor
  */

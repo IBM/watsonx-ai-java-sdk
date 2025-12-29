@@ -17,10 +17,20 @@ public final class DetectionTextResponse extends BaseDetectionResponse {
         this.end = end;
     }
 
+    /**
+     * Returns the start position of the detected content in the input text.
+     *
+     * @return the start index (0-based)
+     */
     public int start() {
         return start;
     }
 
+    /**
+     * Returns the end position of the detected content in the input text.
+     *
+     * @return the end index (0-based, exclusive)
+     */
     public int end() {
         return end;
     }

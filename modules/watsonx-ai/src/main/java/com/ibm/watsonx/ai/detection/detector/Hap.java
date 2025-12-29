@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.detection.detector;
 
 /**
- * A detector specialized of a Hate and profanity (HAP) text detector.
+ * A detector specialized in identifying hate and profanity (HAP) content in text.
  * <p>
  * <b>Example usage:</b>
  *

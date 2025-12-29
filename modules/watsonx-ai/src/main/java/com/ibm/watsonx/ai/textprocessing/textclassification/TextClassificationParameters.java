@@ -59,39 +59,83 @@ public final class TextClassificationParameters extends WatsonxParameters {
         this.timeout = builder.timeout;
     }
 
+    /**
+     * Gets the OCR mode.
+     *
+     * @return the OCR mode
+     */
     public String ocrMode() {
         return ocrMode;
     }
 
+    /**
+     * Gets the classification mode.
+     *
+     * @return the classification mode
+     */
     public String classificationMode() {
         return classificationMode;
     }
 
+    /**
+     * Gets whether automatic rotation correction is enabled.
+     *
+     * @return true if auto rotation correction is enabled
+     */
     public Boolean autoRotationCorrection() {
         return autoRotationCorrection;
     }
 
+    /**
+     * Gets the list of languages for OCR.
+     *
+     * @return the list of language codes
+     */
     public List<String> languages() {
         return languages;
     }
 
+    /**
+     * Gets the semantic configuration.
+     *
+     * @return the semantic configuration
+     */
     public TextClassificationSemanticConfig semanticConfig() {
         return semanticConfig;
     }
 
+    /**
+     * Gets whether to remove the uploaded file after classification.
+     *
+     * @return true if the uploaded file should be removed
+     */
     public boolean isRemoveUploadedFile() {
         return removeUploadedFile;
     }
 
+    /**
+     * Gets the document reference for COS.
+     *
+     * @return the document COS reference
+     */
     public CosReference documentReference() {
         return documentReference;
     }
 
-
+    /**
+     * Gets the custom properties map.
+     *
+     * @return the map of custom properties
+     */
     public Map<String, Object> custom() {
         return custom;
     }
 
+    /**
+     * Gets the timeout duration.
+     *
+     * @return the timeout duration
+     */
     public Duration timeout() {
         return timeout;
     }

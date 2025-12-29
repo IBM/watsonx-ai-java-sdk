@@ -17,6 +17,13 @@ public abstract class DetectionRestClient extends WatsonxRestClient {
         super(builder);
     }
 
+    /**
+     * Executes a text content detection request.
+     *
+     * @param transactionId an optional transaction identifier for tracing
+     * @param request the detection request containing input text and detector configurations
+     * @return a {@link DetectionResponse} containing the detection results
+     */
     public abstract DetectionResponse<DetectionTextResponse> detect(String transactionId, TextDetectionContentDetectors request);
 
     /**

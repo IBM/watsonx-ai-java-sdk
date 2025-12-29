@@ -8,7 +8,7 @@ import static java.util.Objects.isNull;
 import java.net.http.HttpClient;
 
 /**
- * Provides a instance of {@link HttpClient}.
+ * Provides an instance of {@link HttpClient}.
  */
 public final class HttpClientProvider {
 

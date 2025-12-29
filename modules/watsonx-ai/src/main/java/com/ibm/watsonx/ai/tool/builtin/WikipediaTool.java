@@ -5,11 +5,9 @@
 package com.ibm.watsonx.ai.tool.builtin;
 
 import static java.util.Objects.requireNonNull;
-import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
-import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool.GoogleSearchResult;
 
 /**
  * Tool to search a query on Wikipedia.
@@ -28,10 +26,10 @@ public class WikipediaTool {
     }
 
     /**
-     * Search for online trends, news, current events, real-time information, or research topics.
+     * Searches for information on Wikipedia.
      *
      * @param query Query to search for.
-     * @return {@link List} of {@link GoogleSearchResult} that contain the retrieved web page content.
+     * @return A string containing the Wikipedia search results.
      */
     public String search(String query) {
 

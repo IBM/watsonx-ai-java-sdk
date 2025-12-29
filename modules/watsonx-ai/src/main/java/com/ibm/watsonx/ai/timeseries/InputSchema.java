@@ -39,19 +39,38 @@ public final class InputSchema {
         targetColumns = builder.targetColumns.isEmpty() ? null : builder.targetColumns;
     }
 
+    /**
+     * Gets the timestamp column name.
+     *
+     * @return the timestamp column name
+     */
     public String timestampColumn() {
         return timestampColumn;
     }
 
+    /**
+     * Gets the list of ID columns.
+     *
+     * @return the list of ID column names
+     */
     public List<String> idColumns() {
         return idColumns;
     }
 
-
+    /**
+     * Gets the frequency of the time series.
+     *
+     * @return the frequency string
+     */
     public String freq() {
         return freq;
     }
 
+    /**
+     * Gets the list of target columns.
+     *
+     * @return the list of target column names
+     */
     public List<String> targetColumns() {
         return targetColumns;
     }

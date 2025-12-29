@@ -126,9 +126,6 @@ public final class SyncHttpClient extends BaseHttpClient {
         private HttpClient httpClient;
         private List<SyncHttpInterceptor> interceptors;
 
-        /**
-         * Prevents direct instantiation of the {@code Builder}.
-         */
         private Builder() {}
 
         /**

@@ -17,9 +17,6 @@ public final class Json {
 
     private static final JsonProvider provider = loadProvider();
 
-    /**
-     * Prevents direct instantiation of the {@code Builder}.
-     */
     private Json() {}
 
     /**

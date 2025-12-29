@@ -62,6 +62,13 @@ public abstract class BaseDetector {
             properties = new HashMap<>();
         }
 
+        /**
+         * Sets the detection threshold.
+         * <p>
+         * The threshold determines the minimum confidence score required for a detection to be reported.
+         *
+         * @param threshold the threshold value
+         */
         public T threshold(Double threshold) {
             return addProperty("threshold", threshold);
         }

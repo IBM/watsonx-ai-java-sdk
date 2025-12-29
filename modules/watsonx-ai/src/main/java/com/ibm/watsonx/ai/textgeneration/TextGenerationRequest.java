@@ -39,18 +39,38 @@ public final class TextGenerationRequest {
         deploymentId = builder.deploymentId;
     }
 
+    /**
+     * Gets the deployment identifier.
+     *
+     * @return the deployment ID
+     */
     public String getDeploymentId() {
         return deploymentId;
     }
 
+    /**
+     * Gets the input text prompt.
+     *
+     * @return the input text
+     */
     public String getInput() {
         return input;
     }
 
+    /**
+     * Gets the moderation configuration.
+     *
+     * @return the moderation settings
+     */
     public Moderation getModeration() {
         return moderation;
     }
 
+    /**
+     * Gets the text generation parameters.
+     *
+     * @return the generation parameters
+     */
     public TextGenerationParameters getParameters() {
         return parameters;
     }

@@ -20,14 +20,29 @@ public abstract class BaseDetectionRequest {
         this.spaceId = spaceId;
     }
 
+    /**
+     * Returns the detector configurations.
+     *
+     * @return a map of detector names to their configuration parameters
+     */
     public Map<String, Map<String, Object>> detectors() {
         return detectors;
     }
 
+    /**
+     * Returns the project identifier.
+     *
+     * @return the project id
+     */
     public String projectId() {
         return projectId;
     }
 
+    /**
+     * Returns the space identifier.
+     *
+     * @return the space id
+     */
     public String spaceId() {
         return spaceId;
     }

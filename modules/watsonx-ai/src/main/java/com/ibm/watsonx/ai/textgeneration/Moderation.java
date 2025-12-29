@@ -104,18 +104,38 @@ public final class Moderation {
         inputRanges = builder.inputRanges;
     }
 
+    /**
+     * Gets the Hate and Profanity (HAP) moderation configuration.
+     *
+     * @return the HAP moderation settings, or null if not configured
+     */
     public Hap getHap() {
         return hap;
     }
 
+    /**
+     * Gets the Personally Identifiable Information (PII) moderation configuration.
+     *
+     * @return the PII moderation settings, or null if not configured
+     */
     public Pii getPii() {
         return pii;
     }
 
+    /**
+     * Gets the Granite Guardian moderation configuration.
+     *
+     * @return the Granite Guardian moderation settings, or null if not configured
+     */
     public GraniteGuardian getGraniteGuardian() {
         return graniteGuardian;
     }
 
+    /**
+     * Gets the list of input ranges to which moderation should be applied.
+     *
+     * @return the list of input ranges, or null if not configured
+     */
     public List<InputRanges> getInputRanges() {
         return inputRanges;
     }
@@ -153,6 +173,10 @@ public final class Moderation {
 
         /**
          * Sets the Hate and Profanity (HAP) moderation configuration.
+         *
+         * @param input Moderation settings for input text.
+         * @param output Moderation settings for output text.
+         * @param mask Whether to apply masking when HAP content is detected.
          */
         public Builder hap(TextModeration input, TextModeration output, boolean mask) {
             this.hap = new Hap(input, output, new MaskProperties(mask));
@@ -161,6 +185,10 @@ public final class Moderation {
 
         /**
          * Sets the Personally Identifiable Information (PII) moderation configuration.
+         *
+         * @param input Whether to enable PII detection on input text.
+         * @param output Whether to enable PII detection on output text.
+         * @param mask Whether to apply masking when PII is detected.
          */
         public Builder pii(boolean input, boolean output, boolean mask) {
             this.pii = new Pii(new TextModerationWithoutThreshold(input), new TextModerationWithoutThreshold(output),
@@ -170,6 +198,9 @@ public final class Moderation {
 
         /**
          * Sets the Granite Guardian moderation configuration.
+         *
+         * @param input Moderation settings for input text.
+         * @param mask Whether to apply masking when Granite Guardian detects content.
          */
         public Builder graniteGuardian(TextModeration input, boolean mask) {
             this.graniteGuardian = new GraniteGuardian(input, new MaskProperties(mask));

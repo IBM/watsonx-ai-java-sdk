@@ -359,8 +359,9 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         }
 
         /**
-         * Increasing or decreasing probability of tokens being selected during generation; a positive bias makes a token more likely to appear, while
-         * a negative bias makes it less likely.
+         * Sets the logit bias to increase or decrease the probability of specific tokens being selected during generation.
+         * <p>
+         * A positive bias makes a token more likely to appear, while a negative bias makes it less likely.
          *
          * @param logitBias a map from token ids to bias values
          */
@@ -380,10 +381,11 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         }
 
         /**
-         * An integer specifying the number of most likely tokens to return at each token position, each with an associated log probability. The
-         * option logprobs must be set to true if this parameter is used.
+         * Specifies the number of most likely tokens to return at each token position, each with an associated log probability.
+         * <p>
+         * The {@code logprobs} option must be set to {@code true} if this parameter is used.
          *
-         * @param topLogprobs the number of top tokens with logprobs to return
+         * @param topLogprobs the number of top tokens with log probabilities to return
          */
         public Builder topLogprobs(Integer topLogprobs) {
             this.topLogprobs = topLogprobs;
@@ -391,8 +393,10 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         }
 
         /**
-         * The maximum number of tokens that can be generated in the chat completion. The total length of input tokens and generated tokens is limited
-         * by the model's context length. Set to 0 for the model's configured max generated tokens.
+         * Sets the maximum number of tokens that can be generated in the chat completion.
+         * <p>
+         * The total length of input tokens and generated tokens is limited by the model's context length. Set to {@code 0} to use the model's
+         * configured maximum generated tokens.
          *
          * @param maxCompletionTokens the maximum number of tokens
          */
@@ -422,8 +426,10 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         }
 
         /**
-         * What sampling temperature to use,. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more
-         * focused and deterministic. We generally recommend altering this or {@code top_p} but not both. Valid range: (0, 2).
+         * Sets the sampling temperature to use.
+         * <p>
+         * Higher values like {@code 0.8} will make the output more random, while lower values like {@code 0.2} will make it more focused and
+         * deterministic. We generally recommend altering this or {@code topP} but not both. Valid range: (0, 2).
          *
          * @param temperature the sampling temperature
          */
@@ -522,7 +528,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         }
 
         /**
-         * Random number generator seed to use in sampling mode for experimental repeatability.
+         * Sets the random number generator seed to use in sampling mode for experimental repeatability.
          *
          * @param seed the seed value
          */

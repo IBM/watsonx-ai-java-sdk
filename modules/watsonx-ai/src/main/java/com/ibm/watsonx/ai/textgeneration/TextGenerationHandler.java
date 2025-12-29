@@ -23,7 +23,7 @@ public interface TextGenerationHandler {
     /**
      * Called once the full response has been received and the stream is complete. This marks the end of the response sequence.
      *
-     * @param completeResponse the full assembled chat response
+     * @param completeResponse the full assembled text generation response
      */
     void onCompleteResponse(TextGenerationResponse completeResponse);
 

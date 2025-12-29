@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.detection.detector;
 
 /**
- * Granite Guardian detector.
+ * A detector that uses IBM Granite Guardian for content moderation and safety analysis.
  * <p>
  * <b>Example usage:</b>
  *

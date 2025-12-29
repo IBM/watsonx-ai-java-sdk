@@ -134,7 +134,7 @@ public class FoundationModelService extends WatsonxService {
     /**
      * Retrieves a paginated list of tasks.
      *
-     * @param parameters Parameter to customize the get tasks operation.
+     * @param parameters Parameters to customize the get tasks operation.
      * @return a {@link FoundationModelResponse} containing the list of tasks.
      */
     public FoundationModelResponse<FoundationModelTask> getTasks(FoundationModelParameters parameters) {

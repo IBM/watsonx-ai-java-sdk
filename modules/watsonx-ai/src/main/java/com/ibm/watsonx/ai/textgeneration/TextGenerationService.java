@@ -12,7 +12,6 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
-import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
@@ -207,7 +206,7 @@ public class TextGenerationService extends ModelService implements TextGeneratio
     }
 
     /**
-     * Builder class for constructing {@link ChatService} instances with configurable parameters.
+     * Builder class for constructing {@link TextGenerationService} instances with configurable parameters.
      */
     public final static class Builder extends ModelService.Builder<Builder> {
 

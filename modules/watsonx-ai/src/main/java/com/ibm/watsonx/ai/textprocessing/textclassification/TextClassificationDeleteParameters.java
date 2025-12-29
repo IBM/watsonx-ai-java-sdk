@@ -30,6 +30,11 @@ public final class TextClassificationDeleteParameters extends WatsonxParameters 
         this.hardDelete = Optional.ofNullable(builder.hardDelete);
     }
 
+    /**
+     * Gets the hard delete option.
+     *
+     * @return an Optional containing true if hard delete is enabled
+     */
     public Optional<Boolean> hardDelete() {
         return hardDelete;
     }

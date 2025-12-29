@@ -4,8 +4,6 @@
  */
 package com.ibm.watsonx.ai.tool;
 
-import com.ibm.watsonx.ai.foundationmodel.FoundationModelParameters;
-
 /**
  * Represents a set of parameters used to control the behavior of a Tool APIs.
  * <p>
@@ -27,6 +25,11 @@ public final class ToolParameters {
         this.transactionId = builder.transactionId;
     }
 
+    /**
+     * Gets the transaction id.
+     *
+     * @return the transaction id
+     */
     public String transactionId() {
         return transactionId;
     }
@@ -49,7 +52,7 @@ public final class ToolParameters {
     }
 
     /**
-     * Builder class for constructing {@link FoundationModelParameters} instances.
+     * Builder class for constructing {@link ToolParameters} instances.
      */
     public final static class Builder {
         private String transactionId;

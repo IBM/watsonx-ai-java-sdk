@@ -41,22 +41,47 @@ public final class Schema {
         additionalPromptInstructions = builder.additionalPromptInstructions;
     }
 
+    /**
+     * Gets the document type.
+     *
+     * @return the document type
+     */
     public String documentType() {
         return documentType;
     }
 
+    /**
+     * Gets the document description.
+     *
+     * @return the document description
+     */
     public String documentDescription() {
         return documentDescription;
     }
 
+    /**
+     * Gets the field-based schema definition.
+     *
+     * @return the map of field definitions, or null if page-based schema is used
+     */
     public Map<String, KvpField> fields() {
         return fields;
     }
 
+    /**
+     * Gets the page-based schema definition.
+     *
+     * @return the page definition, or null if field-based schema is used
+     */
     public KvpPage pages() {
         return pages;
     }
 
+    /**
+     * Gets the additional prompt instructions.
+     *
+     * @return the additional prompt instructions, or null if not set
+     */
     public String additionalPromptInstructions() {
         return additionalPromptInstructions;
     }
