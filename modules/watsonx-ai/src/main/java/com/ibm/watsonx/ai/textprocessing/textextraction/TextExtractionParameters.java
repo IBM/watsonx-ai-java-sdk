@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
@@ -77,70 +77,155 @@ public final class TextExtractionParameters extends WatsonxParameters {
         this.timeout = builder.timeout;
     }
 
+    /**
+     * Gets the list of requested output types.
+     *
+     * @return the list of output types
+     */
     public List<String> requestedOutputs() {
         return requestedOutputs;
     }
 
+    /**
+     * Gets the extraction mode.
+     *
+     * @return the extraction mode
+     */
     public String mode() {
         return mode;
     }
 
+    /**
+     * Gets the OCR mode.
+     *
+     * @return the OCR mode
+     */
     public String ocrMode() {
         return ocrMode;
     }
 
+    /**
+     * Gets the list of languages for OCR.
+     *
+     * @return the list of language codes
+     */
     public List<String> languages() {
         return languages;
     }
 
+    /**
+     * Gets whether automatic rotation correction is enabled.
+     *
+     * @return true if auto rotation correction is enabled
+     */
     public Boolean autoRotationCorrection() {
         return autoRotationCorrection;
     }
 
+    /**
+     * Gets the embedded image creation mode.
+     *
+     * @return the embedded image mode
+     */
     public String createEmbeddedImages() {
         return createEmbeddedImages;
     }
 
+    /**
+     * Gets the output DPI for images.
+     *
+     * @return the output DPI value
+     */
     public Integer outputDpi() {
         return outputDpi;
     }
 
+    /**
+     * Gets whether to output tokens.
+     *
+     * @return true if tokens should be output
+     */
     public Boolean outputTokens() {
         return outputTokens;
     }
 
+    /**
+     * Gets the key-value pair extraction mode.
+     *
+     * @return the KVP mode
+     */
     public String kvpMode() {
         return kvpMode;
     }
 
+    /**
+     * Gets the semantic configuration.
+     *
+     * @return the semantic configuration
+     */
     public TextExtractionSemanticConfig semanticConfig() {
         return semanticConfig;
     }
 
+    /**
+     * Gets whether to remove the uploaded file after extraction.
+     *
+     * @return true if the uploaded file should be removed
+     */
     public boolean isRemoveUploadedFile() {
         return removeUploadedFile;
     }
 
+    /**
+     * Gets whether to remove the output file after extraction.
+     *
+     * @return true if the output file should be removed
+     */
     public boolean isRemoveOutputFile() {
         return removeOutputFile;
     }
 
+    /**
+     * Gets the output file name.
+     *
+     * @return the output file name
+     */
     public String outputFileName() {
         return outputFileName;
     }
 
+    /**
+     * Gets the document reference for COS.
+     *
+     * @return the document COS reference
+     */
     public CosReference documentReference() {
         return documentReference;
     }
 
+    /**
+     * Gets the result reference for COS.
+     *
+     * @return the result COS reference
+     */
     public CosReference resultReference() {
         return resultReference;
     }
 
+    /**
+     * Gets the custom properties map.
+     *
+     * @return the map of custom properties
+     */
     public Map<String, Object> custom() {
         return custom;
     }
 
+    /**
+     * Gets the timeout duration.
+     *
+     * @return the timeout duration
+     */
     public Duration timeout() {
         return timeout;
     }

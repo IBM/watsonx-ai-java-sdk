@@ -1,11 +1,11 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.detection.detector;
 
 /**
- * Granite Guardian detector.
+ * A detector that uses IBM Granite Guardian for content moderation and safety analysis.
  * <p>
  * <b>Example usage:</b>
  *

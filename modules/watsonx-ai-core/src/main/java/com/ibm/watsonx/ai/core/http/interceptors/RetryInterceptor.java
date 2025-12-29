@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.core.http.interceptors;
@@ -235,9 +235,6 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         private List<RetryOn> retryOn;
         private boolean exponentialBackoff = false;
 
-        /**
-         * Prevents direct instantiation of the {@code Builder}.
-         */
         private Builder() {}
 
         /**
@@ -288,9 +285,9 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         }
 
         /**
-         * Wether to use exponential backoff in retries or not
+         * Whether to use exponential backoff in retries or not
          *
-         * @param enable wether to enable exponential backoff.
+         * @param enable whether to enable exponential backoff.
          * @return {@code Builder} instance for method chaining.
          */
         public Builder exponentialBackoff(boolean enable) {

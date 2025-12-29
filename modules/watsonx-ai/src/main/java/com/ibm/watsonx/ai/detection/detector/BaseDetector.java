@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.detection.detector;
@@ -62,6 +62,13 @@ public abstract class BaseDetector {
             properties = new HashMap<>();
         }
 
+        /**
+         * Sets the detection threshold.
+         * <p>
+         * The threshold determines the minimum confidence score required for a detection to be reported.
+         *
+         * @param threshold the threshold value
+         */
         public T threshold(Double threshold) {
             return addProperty("threshold", threshold);
         }

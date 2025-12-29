@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.chat;
@@ -138,7 +138,7 @@ public final class ChatResponse {
     /**
      * Retrieves the finish reason for the current chat response.
      *
-     * @return a {@code String} representing the reason why the response generation finished d
+     * @return a {@code String} representing the reason why the response generation finished
      */
     public FinishReason finishReason() {
         var resultMessage = choices.get(0);
@@ -328,7 +328,9 @@ public final class ChatResponse {
         }
 
         /**
-         * Set the {@code ExtractionTags}.
+         * Sets the extraction tags used to parse thinking and response content.
+         *
+         * @param extractionTags the extraction tags
          */
         Builder extractionTags(ExtractionTags extractionTags) {
             this.extractionTags = extractionTags;

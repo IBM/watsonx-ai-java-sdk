@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.detection;
@@ -49,6 +49,12 @@ public class DetectionService extends ProjectService {
             .build();
     }
 
+    /**
+     * Performs content detection on the provided text using the specified detectors.
+     *
+     * @param request the detection request containing input text and detector configurations
+     * @return a {@link DetectionResponse} containing the detection results
+     */
     public DetectionResponse<DetectionTextResponse> detect(DetectionTextRequest request) {
         var projectSpace = resolveProjectSpace(request);
         var transactionId = request.transactionId();

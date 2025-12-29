@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.timeseries;
@@ -46,22 +46,47 @@ public final class TimeSeriesRequest {
         deploymentId = builder.deploymentId;
     }
 
+    /**
+     * Gets the deployment identifier.
+     *
+     * @return the deployment ID
+     */
     public String deploymentId() {
         return deploymentId;
     }
 
+    /**
+     * Gets the input schema.
+     *
+     * @return the input schema
+     */
     public InputSchema inputSchema() {
         return inputSchema;
     }
 
+    /**
+     * Gets the forecast data.
+     *
+     * @return the forecast data
+     */
     public ForecastData data() {
         return data;
     }
 
+    /**
+     * Gets the time series parameters.
+     *
+     * @return the parameters
+     */
     public TimeSeriesParameters parameters() {
         return parameters;
     }
 
+    /**
+     * Returns a new {@link Builder} instance.
+     *
+     * @return {@link Builder} instance
+     */
     public static Builder builder() {
         return new Builder();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.detection;
@@ -17,6 +17,11 @@ public final class TextDetectionContentDetectors extends BaseDetectionRequest {
         this.input = input;
     }
 
+    /**
+     * Returns the input text to analyze.
+     *
+     * @return the input text
+     */
     public String input() {
         return input;
     }

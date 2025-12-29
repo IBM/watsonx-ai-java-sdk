@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.core.http;
@@ -9,7 +9,7 @@ import java.net.http.HttpRequest;
 import java.util.UUID;
 
 /**
- * The abstract base class for all HTTP client
+ * The abstract base class for all HTTP clients
  *
  * @see SyncHttpClient
  * @see AsyncHttpClient

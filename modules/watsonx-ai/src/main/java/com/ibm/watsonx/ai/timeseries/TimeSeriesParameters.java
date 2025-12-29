@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.timeseries;
@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.timeseries;
 import static java.util.Objects.nonNull;
 import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
-import com.ibm.watsonx.ai.embedding.EmbeddingParameters;
 import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
 
 
@@ -35,10 +34,20 @@ public final class TimeSeriesParameters extends WatsonxModelParameters {
         futureData = builder.futureData;
     }
 
+    /**
+     * Gets the prediction length.
+     *
+     * @return the number of time steps to predict
+     */
     public Integer predictionLength() {
         return predictionLength;
     }
 
+    /**
+     * Gets the future data for exogenous features.
+     *
+     * @return the future data
+     */
     public ForecastData futureData() {
         return futureData;
     }
@@ -100,7 +109,7 @@ public final class TimeSeriesParameters extends WatsonxModelParameters {
         }
 
         /**
-         * Builds a {@link EmbeddingParameters} instance.
+         * Builds a {@link TimeSeriesParameters} instance.
          *
          * @return a new instance of {@link TimeSeriesParameters}
          */

@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.tool.builtin;
@@ -19,6 +19,11 @@ public class WebCrawlerTool {
 
     private final ToolService toolService;
 
+    /**
+     * Constructs a new {@code WebCrawlerTool} with the specified {@link ToolService}.
+     *
+     * @param toolService the service used to execute the tool calls
+     */
     public WebCrawlerTool(ToolService toolService) {
         this.toolService = requireNonNull(toolService, "ToolService can't be null");
     }

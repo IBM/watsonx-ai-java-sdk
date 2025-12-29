@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.core;
@@ -34,9 +34,6 @@ public final class HttpUtils {
     private static final Pattern AUTHORIZATION_PATTERN =
         Pattern.compile("(\\w+\\s)(\\w{4})(\\w+)(\\w{4})");
 
-    /**
-     * Prevents direct instantiation of the {@code Builder}.
-     */
     protected HttpUtils() {}
 
     /**

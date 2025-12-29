@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.tokenization;
@@ -30,6 +30,11 @@ public final class TokenizationParameters extends WatsonxCryptoParameters {
         returnTokens = builder.returnTokens;
     }
 
+    /**
+     * Gets whether to return tokens in the response.
+     *
+     * @return true if tokens should be returned
+     */
     public Boolean returnTokens() {
         return returnTokens;
     }
@@ -69,7 +74,7 @@ public final class TokenizationParameters extends WatsonxCryptoParameters {
         private Builder() {}
 
         /**
-         * Indicating if the response will include the actual tokens produced.
+         * Indicates whether the response will include the actual tokens produced.
          *
          * @param returnTokens A boolean value indicating whether the tokens should be included in the response
          */

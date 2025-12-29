@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.embedding;
@@ -10,9 +10,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.ReturnOptions;
 
 /**
- * Represents a set of parameters used to control the behavior of a embedding generation.
- * <p>
- * Instances of this class are created using the {@link Builder} pattern:
+ * Represents a set of parameters used to control the behavior of embedding generation.
  * <p>
  * <b>Example usage:</b>
  *
@@ -33,10 +31,20 @@ public final class EmbeddingParameters extends WatsonxCryptoParameters {
         inputText = builder.inputText;
     }
 
+    /**
+     * Returns the maximum number of tokens accepted per input.
+     *
+     * @return the maximum number of input tokens, or {@code null} if not set
+     */
     public Integer truncateInputTokens() {
         return truncateInputTokens;
     }
 
+    /**
+     * Returns whether to include the input text in each result document.
+     *
+     * @return {@code true} to include input text, {@code false} otherwise, or {@code null} if not set
+     */
     public Boolean inputText() {
         return inputText;
     }
@@ -81,15 +89,12 @@ public final class EmbeddingParameters extends WatsonxCryptoParameters {
         private Builder() {}
 
         /**
-         * Represents the maximum number of tokens accepted per input.
+         * Sets the maximum number of tokens accepted per input.
+         * <p>
+         * This can be used to avoid requests failing due to input being longer than configured limits. If the text is truncated, it truncates the end
+         * of the input (on the right), so the start of the input will remain the same.
          *
-         * This can be used to avoid requests failing due to input being longer than configured limits. If the text is truncated, then it truncates
-         * the end of the input (on the right), so the start of the input will remain the same.
-         *
-         * If this value exceeds the maximum sequence length (refer to the documentation to find this value for the model) then the call will fail if
-         * the total number of tokens exceeds the maximum sequence length.
-         *
-         * @param truncateInputTokens Integer value.
+         * @param truncateInputTokens the maximum number of input tokens
          */
         public Builder truncateInputTokens(Integer truncateInputTokens) {
             this.truncateInputTokens = truncateInputTokens;
@@ -97,9 +102,9 @@ public final class EmbeddingParameters extends WatsonxCryptoParameters {
         }
 
         /**
-         * Include the input text in each of the results documents.
+         * Sets whether to include the input text in each of the result documents.
          *
-         * @param inputText Boolean value
+         * @param inputText {@code true} to include input text, {@code false} otherwise
          */
         public Builder inputText(Boolean inputText) {
             this.inputText = inputText;

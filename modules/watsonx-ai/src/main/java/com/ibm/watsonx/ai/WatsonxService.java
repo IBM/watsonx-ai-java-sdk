@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai;
@@ -74,6 +74,11 @@ public abstract class WatsonxService {
         httpClient = builder.httpClient;
     }
 
+    /**
+     * Abstract builder class for constructing {@link WatsonxService} instances.
+     *
+     * @param <T> the type of the concrete builder subclass
+     */
     @SuppressWarnings("unchecked")
     protected static abstract class Builder<T extends Builder<T>> {
         private String baseUrl;
@@ -85,7 +90,7 @@ public abstract class WatsonxService {
         private HttpClient httpClient;
 
         /**
-         * Sets the endpoint URL to which the chat request will be sent.
+         * Sets the endpoint URL to which requests will be sent.
          *
          * @param baseUrl the endpoint URL as a string
          */
@@ -95,18 +100,18 @@ public abstract class WatsonxService {
         }
 
         /**
-         * Sets the endpoint URL to which the chat request will be sent.
+         * Sets the endpoint URL to which requests will be sent.
          *
-         * @param baseUrl the endpoint URL as a string
+         * @param baseUrl the endpoint URL as a URI
          */
         public T baseUrl(URI baseUrl) {
             return baseUrl(baseUrl.toString());
         }
 
         /**
-         * Sets the endpoint URL to which the chat request will be sent.
+         * Sets the endpoint URL to which requests will be sent.
          *
-         * @param baseUrl the endpoint URL as a string
+         * @param baseUrl the cloud region containing the endpoint URL
          */
         public T baseUrl(CloudRegion baseUrl) {
             return baseUrl(baseUrl.getMlEndpoint());
@@ -228,6 +233,12 @@ public abstract class WatsonxService {
                 throw new NullPointerException("Either projectId or spaceId must be provided");
         }
 
+        /**
+         * Resolves the project or space context from the provided parameters or falls back to the service defaults.
+         *
+         * @param parameters the request parameters containing optional project/space overrides
+         * @return a {@link ProjectSpace} record containing the resolved project and space identifiers
+         */
         protected ProjectSpace resolveProjectSpace(WatsonxParameters parameters) {
             if (isNull(parameters))
                 return new ProjectSpace(projectId, spaceId);

@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai;
@@ -51,6 +51,9 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
  */
 public class WatsonxJacksonModule extends SimpleModule {
 
+    /**
+     * Constructs a new WatsonxJacksonModule and registers all mix-in annotations.
+     */
     public WatsonxJacksonModule() {
         super("watsonx-ai-jackson-module");
 

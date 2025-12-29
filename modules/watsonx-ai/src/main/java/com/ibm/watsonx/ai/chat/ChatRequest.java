@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.chat;
@@ -66,22 +66,47 @@ public final class ChatRequest {
         thinking = builder.thinking;
     }
 
+    /**
+     * Returns the deployment id.
+     *
+     * @return the deployment id, or {@code null} if not set
+     */
     public String deploymentId() {
         return deploymentId;
     }
 
+    /**
+     * Returns the list of chat messages.
+     *
+     * @return the list of messages
+     */
     public List<ChatMessage> messages() {
         return messages;
     }
 
+    /**
+     * Returns the list of tools available to the model.
+     *
+     * @return the list of tools, or {@code null} if not set
+     */
     public List<Tool> tools() {
         return tools;
     }
 
+    /**
+     * Returns the chat parameters.
+     *
+     * @return the chat parameters, or {@code null} if not set
+     */
     public ChatParameters parameters() {
         return parameters;
     }
 
+    /**
+     * Returns the thinking configuration.
+     *
+     * @return the thinking configuration, or {@code null} if not set
+     */
     public Thinking thinking() {
         return thinking;
     }

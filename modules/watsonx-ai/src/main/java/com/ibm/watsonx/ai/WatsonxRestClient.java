@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai;
@@ -11,6 +11,12 @@ import java.time.Duration;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
+/**
+ * Abstract base class for REST client implementations used to communicate with watsonx.ai services.
+ * <p>
+ * This class provides common configuration and functionality for making HTTP requests to watsonx.ai endpoints, including authentication, timeout
+ * management, and request/response logging.
+ */
 public abstract class WatsonxRestClient {
     public static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
     protected final String baseUrl;
@@ -30,6 +36,12 @@ public abstract class WatsonxRestClient {
         httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient());
     }
 
+    /**
+     * Abstract builder class for constructing {@link WatsonxRestClient} instances.
+     *
+     * @param <T> the type of the REST client being built
+     * @param <B> the type of the concrete builder subclass
+     */
     @SuppressWarnings("unchecked")
     protected static abstract class Builder<T, B extends Builder<T, B>> {
         private String baseUrl;
@@ -40,6 +52,11 @@ public abstract class WatsonxRestClient {
         private Authenticator authenticator;
         private HttpClient httpClient;
 
+        /**
+         * Builds and returns the configured REST client instance.
+         *
+         * @return the constructed REST client
+         */
         public abstract T build();
 
         /**

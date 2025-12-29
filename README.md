@@ -37,7 +37,7 @@ To ensure a smooth contribution process, please follow these guidelines:
 
   ```
   /*
-   * Copyright <holder> All Rights Reserved.
+   * Copyright 2025 IBM Corporation
    * SPDX-License-Identifier: Apache-2.0
    */
   ```

@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.detection;
@@ -20,18 +20,38 @@ public abstract class BaseDetectionResponse {
         this.score = score;
     }
 
+    /**
+     * Returns the detected text.
+     *
+     * @return the text
+     */
     public String text() {
         return text;
     }
 
+    /**
+     * Returns the type of detection performed.
+     *
+     * @return the detection type
+     */
     public String detectionType() {
         return detectionType;
     }
 
+    /**
+     * Returns the detection result.
+     *
+     * @return the detection result
+     */
     public String detection() {
         return detection;
     }
 
+    /**
+     * Returns the confidence score of the detection.
+     *
+     * @return the score
+     */
     public double score() {
         return score;
     }

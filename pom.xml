@@ -176,10 +176,6 @@
         <artifactId>license-maven-plugin</artifactId>
         <version>${license-maven-plugin-version}</version>
         <configuration>
-          <properties>
-            <inceptionYear>2025</inceptionYear>
-            <currentYear>${currentYear}</currentYear>
-          </properties>
           <licenseSets>
             <licenseSet>
               <header>config/license-header</header>

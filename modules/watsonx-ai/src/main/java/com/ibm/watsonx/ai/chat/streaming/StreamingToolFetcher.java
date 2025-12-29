@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.chat.streaming;
@@ -11,7 +11,9 @@ import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 
 /**
- * The {@code StreamingToolFetcher} class is responsible for fetching a list of tools from a streaming api.
+ * Accumulates tool call data from streaming API chunks.
+ * <p>
+ * This class is responsible for incrementally building a complete {@link ToolCall} from partial data received during streaming.
  */
 public final class StreamingToolFetcher {
 

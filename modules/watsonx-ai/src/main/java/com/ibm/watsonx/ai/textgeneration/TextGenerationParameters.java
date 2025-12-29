@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.textgeneration;
@@ -77,62 +77,137 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
         promptVariables = builder.promptVariables;
     }
 
+    /**
+     * Gets the decoding method used for text generation.
+     *
+     * @return the decoding method
+     */
     public String getDecodingMethod() {
         return decodingMethod;
     }
 
+    /**
+     * Gets the length penalty configuration.
+     *
+     * @return the length penalty settings, or null if not configured
+     */
     public LengthPenalty getLengthPenalty() {
         return lengthPenalty;
     }
 
+    /**
+     * Gets the maximum number of new tokens to generate.
+     *
+     * @return the maximum number of new tokens
+     */
     public Integer getMaxNewTokens() {
         return maxNewTokens;
     }
 
+    /**
+     * Gets the minimum number of new tokens to generate.
+     *
+     * @return the minimum number of new tokens
+     */
     public Integer getMinNewTokens() {
         return minNewTokens;
     }
 
+    /**
+     * Gets the random seed for reproducible generation.
+     *
+     * @return the random seed value
+     */
     public Integer getRandomSeed() {
         return randomSeed;
     }
 
+    /**
+     * Gets the list of stop sequences that will terminate generation.
+     *
+     * @return the list of stop sequences
+     */
     public List<String> getStopSequences() {
         return stopSequences;
     }
 
+    /**
+     * Gets the temperature value for controlling randomness in generation.
+     *
+     * @return the temperature value
+     */
     public Double getTemperature() {
         return temperature;
     }
 
+    /**
+     * Gets the time limit for generation in milliseconds.
+     *
+     * @return the time limit in milliseconds
+     */
     public Long getTimeLimit() {
         return timeLimit;
     }
 
+    /**
+     * Gets the top-k sampling parameter.
+     *
+     * @return the top-k value
+     */
     public Integer getTopK() {
         return topK;
     }
 
+    /**
+     * Gets the top-p sampling parameter.
+     *
+     * @return the top-p value
+     */
     public Double getTopP() {
         return topP;
     }
 
+    /**
+     * Gets the repetition penalty to discourage repeated tokens.
+     *
+     * @return the repetition penalty value
+     */
     public Double getRepetitionPenalty() {
         return repetitionPenalty;
     }
 
+    /**
+     * Gets the maximum number of input tokens to use.
+     *
+     * @return the truncate input tokens value
+     */
     public Integer getTruncateInputTokens() {
         return truncateInputTokens;
     }
 
+    /**
+     * Gets the return options configuration.
+     *
+     * @return the return options settings
+     */
     public ReturnOptions getReturnOptions() {
         return returnOptions;
     }
 
+    /**
+     * Gets whether to include the stop sequence in the generated text.
+     *
+     * @return true if stop sequence should be included, false otherwise
+     */
     public Boolean getIncludeStopSequence() {
         return includeStopSequence;
     }
 
+    /**
+     * Gets the prompt variables for template substitution.
+     *
+     * @return the map of prompt variables
+     */
     public Map<String, String> getPromptVariables() {
         return promptVariables;
     }
@@ -446,26 +521,56 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
             this.topNTokens = builder.topNTokens;
         }
 
+        /**
+         * Gets whether to include the input text in the response.
+         *
+         * @return true if input text should be included
+         */
         public Boolean getInputText() {
             return inputText;
         }
 
+        /**
+         * Gets whether to include the generated text in the response.
+         *
+         * @return true if generated text should be included
+         */
         public Boolean getGeneratedText() {
             return generatedText;
         }
 
+        /**
+         * Gets whether to include input tokens in the response.
+         *
+         * @return true if input tokens should be included
+         */
         public Boolean getInputTokens() {
             return inputTokens;
         }
 
+        /**
+         * Gets whether to include token log probabilities in the response.
+         *
+         * @return true if token log probabilities should be included
+         */
         public Boolean getTokenLogprobs() {
             return tokenLogprobs;
         }
 
+        /**
+         * Gets whether to include token ranks in the response.
+         *
+         * @return true if token ranks should be included
+         */
         public Boolean getTokenRanks() {
             return tokenRanks;
         }
 
+        /**
+         * Gets the number of top tokens to return for each position.
+         *
+         * @return the number of top tokens
+         */
         public Integer getTopN_Tokens() {
             return topNTokens;
         }

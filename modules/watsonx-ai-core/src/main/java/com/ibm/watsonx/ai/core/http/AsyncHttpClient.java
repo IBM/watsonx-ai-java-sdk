@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.core.http;
@@ -128,9 +128,6 @@ public final class AsyncHttpClient extends BaseHttpClient {
         private HttpClient httpClient;
         private List<AsyncHttpInterceptor> interceptors;
 
-        /**
-         * Prevents direct instantiation of the {@code Builder}.
-         */
         private Builder() {}
 
         /**

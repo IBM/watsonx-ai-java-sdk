@@ -1,9 +1,12 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.textprocessing.textclassification;
 
+/**
+ * Exception thrown when a text classification operation fails.
+ */
 public final class TextClassificationException extends Exception {
 
     final String code;
@@ -18,7 +21,12 @@ public final class TextClassificationException extends Exception {
         this.code = code;
     }
 
-    public String getCode() {
+    /**
+     * Gets the error code associated with this exception.
+     *
+     * @return the error code
+     */
+    public String code() {
         return code;
     }
 

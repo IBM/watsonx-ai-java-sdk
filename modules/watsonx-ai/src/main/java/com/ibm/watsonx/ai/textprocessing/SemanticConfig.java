@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.textprocessing;
@@ -13,7 +13,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticCo
 /**
  * Base class for semantic configuration.
  * <p>
- * <strong>Note:</strong> This class is intended for internal use only. Use one of the specific subclasses instead:
+ * <b>Note:</b> This class is intended for internal use only. Use one of the specific subclasses instead:
  * <ul>
  * <li>{@link TextExtractionSemanticConfig}</li>
  * <li>{@link TextClassificationSemanticConfig}</li>
@@ -42,38 +42,83 @@ public abstract class SemanticConfig {
         taskModelNameOverride = builder.taskModelNameOverride;
     }
 
+    /**
+     * Gets whether text hints are enabled.
+     *
+     * @return true if text hints are enabled
+     */
     public Boolean enableTextHints() {
         return enableTextHints;
     }
 
+    /**
+     * Gets whether generic key-value pair extraction is enabled.
+     *
+     * @return true if generic KVP extraction is enabled
+     */
     public Boolean enableGenericKvp() {
         return enableGenericKvp;
     }
 
+    /**
+     * Gets whether schema key-value pair extraction is enabled.
+     *
+     * @return true if schema KVP extraction is enabled
+     */
     public Boolean enableSchemaKvp() {
         return enableSchemaKvp;
     }
 
+    /**
+     * Gets the grounding mode.
+     *
+     * @return the grounding mode
+     */
     public String groundingMode() {
         return groundingMode;
     }
 
+    /**
+     * Gets the forced schema name.
+     *
+     * @return the forced schema name, or null if not set
+     */
     public String forceSchemaName() {
         return forceSchemaName;
     }
 
+    /**
+     * Gets the default model name.
+     *
+     * @return the default model name
+     */
     public String defaultModelName() {
         return defaultModelName;
     }
 
+    /**
+     * Gets the task model name overrides.
+     *
+     * @return the map of task names to model names
+     */
     public Map<String, Object> taskModelNameOverride() {
         return taskModelNameOverride;
     }
 
+    /**
+     * Gets the schema merge strategy.
+     *
+     * @return the schema merge strategy value
+     */
     public String schemasMergeStrategy() {
         return schemasMergeStrategy;
     }
 
+    /**
+     * Gets the list of custom schemas.
+     *
+     * @return the list of schemas
+     */
     public List<Schema> schemas() {
         return schemas;
     }

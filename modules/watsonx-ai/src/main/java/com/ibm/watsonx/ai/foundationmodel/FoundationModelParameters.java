@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.foundationmodel;
@@ -8,9 +8,7 @@ import static java.util.Objects.nonNull;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 /**
- * Represents a set of parameters used to control the behavior of a foundation models specs.
- * <p>
- * Instances of this class are created using the {@link Builder} pattern:
+ * Represents a set of parameters used to control the retrieval of foundation models.
  * <p>
  * <b>Example usage:</b>
  *
@@ -37,22 +35,47 @@ public final class FoundationModelParameters {
         this.techPreview = builder.techPreview;
     }
 
+    /**
+     * Returns the starting index for pagination.
+     *
+     * @return the start index
+     */
     public Integer start() {
         return start;
     }
 
+    /**
+     * Returns the maximum number of models to return.
+     *
+     * @return the limit
+     */
     public Integer limit() {
         return limit;
     }
 
+    /**
+     * Returns the filter expression as a string.
+     *
+     * @return the filter string, or {@code null} if no filter is set
+     */
     public String filter() {
         return nonNull(filter) ? filter.toString() : null;
     }
 
+    /**
+     * Returns the transaction identifier.
+     *
+     * @return the transaction id
+     */
     public String transactionId() {
         return transactionId;
     }
 
+    /**
+     * Returns whether to include tech preview models.
+     *
+     * @return {@code true} to include tech preview models, {@code false} otherwise
+     */
     public Boolean techPreview() {
         return techPreview;
     }

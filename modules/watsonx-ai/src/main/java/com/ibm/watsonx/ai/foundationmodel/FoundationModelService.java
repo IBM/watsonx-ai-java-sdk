@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.foundationmodel;
@@ -134,7 +134,7 @@ public class FoundationModelService extends WatsonxService {
     /**
      * Retrieves a paginated list of tasks.
      *
-     * @param parameters Parameter to customize the get tasks operation.
+     * @param parameters Parameters to customize the get tasks operation.
      * @return a {@link FoundationModelResponse} containing the list of tasks.
      */
     public FoundationModelResponse<FoundationModelTask> getTasks(FoundationModelParameters parameters) {

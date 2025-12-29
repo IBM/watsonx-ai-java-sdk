@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.rerank;
@@ -37,18 +37,38 @@ public final class RerankParameters extends WatsonxCryptoParameters {
         query = builder.query;
     }
 
+    /**
+     * Returns the maximum number of tokens allowed per input.
+     *
+     * @return the maximum number of tokens, or {@code null} if not set
+     */
     public Integer truncateInputTokens() {
         return truncateInputTokens;
     }
 
+    /**
+     * Returns the number of top-ranked results to return.
+     *
+     * @return the top N value, or {@code null} if not set
+     */
     public Integer topN() {
         return topN;
     }
 
+    /**
+     * Returns whether to include input strings in the response.
+     *
+     * @return {@code true} to include inputs, {@code false} otherwise, or {@code null} if not set
+     */
     public Boolean inputs() {
         return inputs;
     }
 
+    /**
+     * Returns whether to include the query in the response.
+     *
+     * @return {@code true} to include query, {@code false} otherwise, or {@code null} if not set
+     */
     public Boolean query() {
         return query;
     }
@@ -114,7 +134,7 @@ public final class RerankParameters extends WatsonxCryptoParameters {
          * <p>
          * Must be > 1.
          *
-         * @param topN Number of ranked results
+         * @param topN The number of top-ranked results to return
          */
         public Builder topN(Integer topN) {
             this.topN = topN;

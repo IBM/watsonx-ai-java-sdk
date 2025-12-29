@@ -1,11 +1,11 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.detection.detector;
 
 /**
- * A detector specialized of a Hate and profanity (HAP) text detector.
+ * A detector specialized in identifying hate and profanity (HAP) content in text.
  * <p>
  * <b>Example usage:</b>
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.core.auth.ibmcloud;
@@ -136,9 +136,6 @@ public class IBMCloudAuthenticator implements Authenticator {
         private Duration timeout;
         private HttpClient httpClient;
 
-        /**
-         * Prevents direct instantiation of the {@code Builder}.
-         */
         private Builder() {}
 
         /**

@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.textgeneration;
@@ -23,7 +23,7 @@ public interface TextGenerationHandler {
     /**
      * Called once the full response has been received and the stream is complete. This marks the end of the response sequence.
      *
-     * @param completeResponse the full assembled chat response
+     * @param completeResponse the full assembled text generation response
      */
     void onCompleteResponse(TextGenerationResponse completeResponse);
 

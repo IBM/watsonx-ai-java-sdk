@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.chat;
@@ -33,7 +33,7 @@ public class ChatClientContext {
     }
 
     /**
-     * Returns chat request.
+     * Returns the chat request.
      *
      * @return the chat request
      */

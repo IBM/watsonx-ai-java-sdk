@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.textprocessing.textclassification;
@@ -30,6 +30,11 @@ public final class TextClassificationDeleteParameters extends WatsonxParameters 
         this.hardDelete = Optional.ofNullable(builder.hardDelete);
     }
 
+    /**
+     * Gets the hard delete option.
+     *
+     * @return an Optional containing true if hard delete is enabled
+     */
     public Optional<Boolean> hardDelete() {
         return hardDelete;
     }

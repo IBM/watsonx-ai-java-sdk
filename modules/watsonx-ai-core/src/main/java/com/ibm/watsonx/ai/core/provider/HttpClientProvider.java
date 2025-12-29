@@ -1,5 +1,5 @@
 /*
- * Copyright IBM Corp. 2025 - 2025
+ * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.watsonx.ai.core.provider;
@@ -8,7 +8,7 @@ import static java.util.Objects.isNull;
 import java.net.http.HttpClient;
 
 /**
- * Provides a instance of {@link HttpClient}.
+ * Provides an instance of {@link HttpClient}.
  */
 public final class HttpClientProvider {
 
