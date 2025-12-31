@@ -23,7 +23,7 @@ public class App {
 
         try {
 
-            var url = URI.create(config.getValue("WATSONX_URL", String.class));
+            var url = URI.create(config.getValue("WATSONX_WX_URL", String.class));
             var watsonxApiKey = config.getValue("WATSONX_API_KEY", String.class);
             var tavilyApiKey = config.getOptionalValue("TAVILY_SEARCH_API_KEY", String.class);
 

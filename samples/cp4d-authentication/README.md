@@ -8,6 +8,56 @@ With this sample, you will:
 
 - Use the `CP4DAuthenticator` class with the watsonx.ai service.
 - Send a user message to a chat model and receive a response.
+- Learn how to disable SSL certificate verification for development environments with self-signed certificates.
+
+## Disabling SSL Certificate Verification
+
+When working with CP4D instances that use self-signed certificates, you need to disable SSL certificate verification. The SDK provides two approaches:
+
+### Option 1: Using `verifySsl(false)`
+
+The simplest approach is to use the built-in `verifySsl()` method available on both the authenticator and service builders:
+
+```java
+ChatService chatService = ChatService.builder()
+    .baseUrl(baseUrl)
+    .modelId("ibm/granite-3-2-8b-instruct")
+    .projectId(projectId)
+    .verifySsl(false)  // Disable SSL verification
+    .authenticator(
+        CP4DAuthenticator.builder()
+            .baseUrl(baseUrl)
+            .username(username)
+            .apiKey(apiKey)
+            .verifySsl(false)  // Disable SSL verification
+            .build()
+    ).build();
+```
+
+### Option 2: Using a Custom HttpClient
+
+Alternatively, you can create a custom `HttpClient` with a trust-all SSL context (as shown in the sample code):
+
+```java
+HttpClient httpClient = HttpClient.newBuilder()
+    .sslContext(createTrustAllSSLContext())
+    .executor(ExecutorProvider.ioExecutor())
+    .build();
+
+ChatService chatService = ChatService.builder()
+    .baseUrl(baseUrl)
+    .modelId("ibm/granite-3-2-8b-instruct")
+    .projectId(projectId)
+    .httpClient(httpClient)
+    .authenticator(
+        CP4DAuthenticator.builder()
+            .baseUrl(baseUrl)
+            .username(username)
+            .apiKey(apiKey)
+            .httpClient(httpClient)
+            .build()
+    ).build();
+```
 
 ## Prerequisites
 

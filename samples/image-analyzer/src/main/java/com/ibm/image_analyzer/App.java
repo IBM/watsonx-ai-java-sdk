@@ -13,8 +13,6 @@ import java.util.stream.Stream;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatService;
-import com.ibm.watsonx.ai.chat.model.ImageContent;
-import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 
 public class App {
@@ -46,18 +44,15 @@ public class App {
 
             for (Path path : paths) {
 
-                var imageDescription = chatService.chat(
-                    UserMessage.of(
-                        TextContent.of("Write a short description of the image"),
-                        ImageContent.from(path)
-                    )).toAssistantMessage().content();
+                var chatResponse = chatService.chat(UserMessage.image("Write a short description of the image", path));
+                var assistantMessage = chatResponse.toAssistantMessage();
 
                 System.out.println("""
                     ----------------------------------------------------
                     Filename: %s
                     Description: %s
                     ----------------------------------------------------"""
-                    .formatted(path.getFileName(), imageDescription));
+                    .formatted(path.getFileName(), assistantMessage.content()));
             }
 
         } catch (Exception e) {

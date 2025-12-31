@@ -9,7 +9,7 @@ Before running the application, set the following environment variables or creat
 | Variable                  | Required | Description |
 |---------------------------|----------|-------------|
 | `WATSONX_API_KEY`         | Yes      | Your watsonx.ai API key |
-| `WATSONX_URL`             | Yes      | The base URL for the watsonx.ai service. See list of endpoints below. |
+| `WATSONX_WX_URL`             | Yes      | The base URL for the watsonx.ai service. See list of endpoints below. |
 | `TAVILY_SEARCH_API_KEY`   | No       | Tavily API Key. If not set, the `TavilySearchTool` will be disabled. |
 
 > **NOTE**: This is a partial list of watsonx.ai endpoint URLs, see the [documentation](https://cloud.ibm.com/apidocs/watsonx-ai#endpoint-url) for the full list:  
@@ -27,7 +27,7 @@ Example (Linux/macOS):
 
 ```bash
 export WATSONX_API_KEY=api-key
-export WATSONX_URL=https://watsonx-url
+export WATSONX_WX_URL=https://watsonx-url
 # Optional: export TAVILY_SEARCH_API_KEY=tavily-api-key
 ```
 
@@ -35,7 +35,7 @@ Example (Windows CMD):
 
 ```cmd
 set WATSONX_API_KEY=api-key
-set WATSONX_URL=https://watsonx-url
+set WATSONX_WX_URL=https://watsonx-url
 :: Optional: set TAVILY_SEARCH_API_KEY=tavily-api-key
 ```
 

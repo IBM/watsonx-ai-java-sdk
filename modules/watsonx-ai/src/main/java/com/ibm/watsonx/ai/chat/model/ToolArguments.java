@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.chat.model;
 
 import java.util.Map;
+import com.ibm.watsonx.ai.core.Json;
 
 /**
  * Provides generic access to arguments from a tool call.
@@ -44,5 +45,10 @@ public final class ToolArguments {
      */
     Map<String, Object> getRaw() {
         return raw;
+    }
+
+    @Override
+    public String toString() {
+        return Json.toJson(raw);
     }
 }
