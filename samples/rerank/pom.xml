@@ -4,9 +4,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
-  <artifactId>watsonx-ai-sample-rerank</artifactId>
+  <artifactId>rerank</artifactId>
   <version>0.16.0</version>
-  <name>Rerank Sample</name>
+  <name>Rerank</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
