@@ -43,7 +43,7 @@ public class AiService {
             .apiKey(apiKey)
             .projectId(projectId)
             .modelId(modelId)
-            .defaultParameters(defaultParameters)
+            .parameters(defaultParameters)
             .build();
 
         foundationModelService = FoundationModelService.builder()
