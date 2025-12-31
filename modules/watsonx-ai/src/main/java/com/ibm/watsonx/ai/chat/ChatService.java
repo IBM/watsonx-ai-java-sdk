@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.CryptoService;
@@ -258,7 +259,7 @@ public class ChatService extends CryptoService implements ChatProvider {
      * Sends a chat request to the model using the provided message.
      *
      * @param message Message to send.
-     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @param handler a {@link ChatHandler} implementation
      */
     public CompletableFuture<ChatResponse> chatStreaming(String message, ChatHandler handler) {
         return chatStreaming(List.of(UserMessage.text(message)), handler);
@@ -271,7 +272,7 @@ public class ChatService extends CryptoService implements ChatProvider {
      * {@link ChatHandler}.
      *
      * @param messages the list of chat messages forming the prompt history
-     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @param handler a {@link ChatHandler} implementation
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatHandler handler) {
         return chatStreaming(messages, ChatParameters.builder().build(), handler);
@@ -285,10 +286,10 @@ public class ChatService extends CryptoService implements ChatProvider {
      *
      * @param messages the list of chat messages forming the prompt history
      * @param tools the list of tools that the model may use
-     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @param handler a {@link ChatHandler} implementation
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
-        return chatStreaming(messages, ChatParameters.builder().build(), tools, handler);
+        return chatStreaming(messages, null, tools, handler);
     }
 
     /**
@@ -299,22 +300,74 @@ public class ChatService extends CryptoService implements ChatProvider {
      *
      * @param messages the list of chat messages forming the prompt history
      * @param parameters additional optional parameters for the chat invocation
-     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @param handler a {@link ChatHandler} implementation
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, ChatHandler handler) {
         return chatStreaming(messages, parameters, null, handler);
     }
 
     /**
+     * Sends a chat request to the model using the provided message.
+     *
+     * @param message Message to send.
+     * @param handler a consumer that receives partial text responses
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String message, Consumer<String> handler) {
+        return chatStreaming(List.of(UserMessage.text(message)), handler);
+    }
+
+    /**
      * Sends a streaming chat request using the provided messages.
-     * <p>
-     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
-     * {@link ChatHandler}.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param handler a consumer that receives partial text responses
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, Consumer<String> handler) {
+        return chatStreaming(messages, ChatParameters.builder().build(), handler);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param handler a consumer that receives partial text responses
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, Consumer<String> handler) {
+        return chatStreaming(messages, parameters, null, handler);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param tools the list of tools that the model may use
+     * @param handler a consumer that receives partial text responses
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, List<Tool> tools, Consumer<String> handler) {
+        return chatStreaming(messages, null, tools, handler);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages.
      *
      * @param messages the list of chat messages forming the prompt history
      * @param parameters additional optional parameters for the chat invocation
      * @param tools the list of tools that the model may use
-     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @param handler a consumer that receives partial text responses
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools,
+        Consumer<String> handler) {
+        return chatStreaming(messages, parameters, tools, (text, chunk) -> handler.accept(text));
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param tools the list of tools that the model may use
+     * @param handler a {@link ChatHandler} implementation
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools,
         ChatHandler handler) {

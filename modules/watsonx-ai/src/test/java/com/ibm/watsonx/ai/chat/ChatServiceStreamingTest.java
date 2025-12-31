@@ -3556,7 +3556,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .build();
 
 
-        var chatResponse = chatService.chatStreaming("What time is it?", (partialResponse, partialChatResponse) -> {}).join();
+        var chatResponse = chatService.chatStreaming("What time is it?", (partialResponse) -> {}).join();
         var assistantMessages = chatResponse.toAssistantMessages();
         assistantMessages.forEach(assistantMessage -> {
             assertNull(assistantMessage.content());
