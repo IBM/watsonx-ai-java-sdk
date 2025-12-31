@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -27,6 +28,7 @@ import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
+import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
@@ -63,12 +65,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     private final ToolInterceptor toolInterceptor;
     private final ChatProvider chatProvider;
     private final ChatParameters defaultParameters;
+    private final List<Tool> defaultTools;
 
     private DeploymentService(Builder builder) {
         super(builder);
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
+        defaultTools = builder.tools;
         defaultParameters = requireNonNullElse(builder.defaultParameters, ChatParameters.builder().build());
 
         client = DeploymentRestClient.builder()
@@ -225,7 +229,6 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         return client.forecast(transactionId, deploymentId, timeout, forecastRequest);
     }
 
-
     /**
      * Returns a new {@link Builder} instance.
      * <p>
@@ -252,7 +255,8 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      */
     private TextChatRequest buildTextChatRequest(ChatRequest chatRequest) {
         var messages = chatRequest.messages();
-        var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
+        var tools = isNull(chatRequest.tools()) ? defaultTools : chatRequest.tools();
+        tools = nonNull(tools) && !tools.isEmpty() ? tools : null;
         var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
 
@@ -324,6 +328,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         private MessageInterceptor messageInterceptor;
         private ToolInterceptor toolInterceptor;
         private ChatParameters defaultParameters;
+        private List<Tool> tools;
 
         private Builder() {}
 
@@ -395,6 +400,31 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
          */
         public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
             this.toolInterceptor = toolInterceptor;
+            return this;
+        }
+
+        /**
+         * Sets the default tools that will be available to the model during chat interactions.
+         * <p>
+         * These tools will be used in all chat requests unless explicitly overridden by passing tools directly to the chat methods. If tools are
+         * provided in the chat method call, they will take precedence over these default tools.
+         *
+         * @param tools varargs of {@link Tool} objects to set as defaults
+         */
+        public Builder tools(Tool... tools) {
+            return tools(Arrays.asList(tools));
+        }
+
+        /**
+         * Sets the default tools that will be available to the model during chat interactions.
+         * <p>
+         * These tools will be used in all chat requests unless explicitly overridden by passing tools directly to the chat methods. If tools are
+         * provided in the chat method call, they will take precedence over these default tools.
+         *
+         * @param tools list of {@link Tool} objects to set as defaults
+         */
+        public Builder tools(List<Tool> tools) {
+            this.tools = tools;
             return this;
         }
 
