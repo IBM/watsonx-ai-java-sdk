@@ -752,7 +752,7 @@ public class DeploymentServiceIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .defaultParameters(ChatParameters.builder().n(2).build())
+                .parameters(ChatParameters.builder().n(2).build())
                 .build();
 
             var chatRequest = ChatRequest.builder()

@@ -597,7 +597,7 @@ public class ChatServiceIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .defaultParameters(ChatParameters.builder().n(2).build())
+                .parameters(ChatParameters.builder().n(2).build())
                 .build();
 
             var chatResponse = chatService.chat("Tell me a joke");
@@ -620,7 +620,7 @@ public class ChatServiceIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .defaultParameters(ChatParameters.builder().n(2).build())
+                .parameters(ChatParameters.builder().n(2).build())
                 .build();
 
             var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));
@@ -1559,7 +1559,7 @@ public class ChatServiceIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .defaultParameters(ChatParameters.builder().n(2).build())
+                .parameters(ChatParameters.builder().n(2).build())
                 .build();
 
             var chatResponse = chatService.chatStreaming("Tell me a joke", (partialResponse, partialChatResponse) -> {}).join();
@@ -1582,7 +1582,7 @@ public class ChatServiceIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .defaultParameters(ChatParameters.builder()
+                .parameters(ChatParameters.builder()
                     .maxCompletionTokens(0)
                     .n(2)
                     .build())

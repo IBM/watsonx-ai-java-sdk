@@ -72,7 +72,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
-        defaultTools = builder.tools;
+        defaultTools = builder.defaultTools;
         defaultParameters = requireNonNullElse(builder.defaultParameters, ChatParameters.builder().build());
 
         client = DeploymentRestClient.builder()
@@ -93,7 +93,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                 .logResponses(logResponses)
                 .timeout(timeout)
                 .version(version)
-                .defaultParameters(defaultParameters)
+                .parameters(defaultParameters)
                 .httpClient(httpClient)
                 .build();
         } else
@@ -328,33 +328,20 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         private MessageInterceptor messageInterceptor;
         private ToolInterceptor toolInterceptor;
         private ChatParameters defaultParameters;
-        private List<Tool> tools;
+        private List<Tool> defaultTools;
 
         private Builder() {}
 
         /**
          * Sets the default {@link ChatParameters} that will be applied to all chat requests when no specific parameters are provided.
          * <p>
-         * These default values serve as fallbacks for any parameter not explicitly set in individual {@link ChatRequest} objects. When a request
-         * includes its own parameters, those values take precedence over the defaults.
+         * These default values serve as fallbacks for any parameter not explicitly set. When parameters are provided in the chat method call, they
+         * will take precedence over these default parameters.
          *
-         * @param defaultParameters the default chat parameters to use
+         * @param parameters the default chat parameters to use
          */
-        public Builder defaultParameters(ChatParameters.Builder defaultParameters) {
-            return defaultParameters(defaultParameters.build());
-        }
-
-
-        /**
-         * Sets the default {@link ChatParameters} that will be applied to all chat requests when no specific parameters are provided.
-         * <p>
-         * These default values serve as fallbacks for any parameter not explicitly set in individual {@link ChatRequest} objects. When a request
-         * includes its own parameters, those values take precedence over the defaults.
-         *
-         * @param defaultParameters the default chat parameters to use
-         */
-        public Builder defaultParameters(ChatParameters defaultParameters) {
-            this.defaultParameters = defaultParameters;
+        public Builder parameters(ChatParameters parameters) {
+            this.defaultParameters = parameters;
             return this;
         }
 
@@ -424,7 +411,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
          * @param tools list of {@link Tool} objects to set as defaults
          */
         public Builder tools(List<Tool> tools) {
-            this.tools = tools;
+            this.defaultTools = tools;
             return this;
         }
 

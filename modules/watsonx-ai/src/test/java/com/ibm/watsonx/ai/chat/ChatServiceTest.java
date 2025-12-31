@@ -271,7 +271,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .spaceId("default-space-id")
                 .baseUrl(CloudRegion.FRANKFURT)
                 .tools(tool)
-                .defaultParameters(
+                .parameters(
                     ChatParameters.builder()
                         .context("context")
                         .frequencyPenalty(2.0)
@@ -388,7 +388,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .spaceId("default-space-id")
                 .baseUrl(CloudRegion.FRANKFURT)
                 .tools(defaultTool)
-                .defaultParameters(
+                .parameters(
                     ChatParameters.builder()
                         .context("context")
                         .frequencyPenalty(2.0)

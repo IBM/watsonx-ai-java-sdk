@@ -1776,7 +1776,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .authenticator(mockAuthenticator)
                 .baseUrl(CloudRegion.FRANKFURT)
                 .tools(tool)
-                .defaultParameters(
+                .parameters(
                     ChatParameters.builder()
                         .context("context")
                         .frequencyPenalty(2.0)
@@ -1890,7 +1890,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .authenticator(mockAuthenticator)
                 .baseUrl(CloudRegion.FRANKFURT)
                 .tools(defaultTool)
-                .defaultParameters(
+                .parameters(
                     ChatParameters.builder()
                         .context("context")
                         .frequencyPenalty(2.0)
