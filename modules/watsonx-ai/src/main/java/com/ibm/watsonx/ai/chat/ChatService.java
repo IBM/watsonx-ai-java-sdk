@@ -58,12 +58,14 @@ public class ChatService extends CryptoService implements ChatProvider {
     private final ToolInterceptor toolInterceptor;
     private final ChatProvider chatProvider;
     private final ChatParameters defaultParameters;
+    private final List<Tool> defaultTools;
 
     private ChatService(Builder builder) {
         super(builder);
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
+        defaultTools = builder.tools;
         defaultParameters = requireNonNullElse(builder.defaultParameters, ChatParameters.builder().build());
 
         client = ChatRestClient.builder()
@@ -216,22 +218,7 @@ public class ChatService extends CryptoService implements ChatProvider {
      * @return a {@link ChatResponse} object containing the model's reply
      */
     public ChatResponse chat(List<ChatMessage> messages, ChatParameters parameters) {
-        return chat(messages, parameters, List.of());
-    }
-
-    /**
-     * Sends a chat request to the model using the provided messages, and parameters.
-     * <p>
-     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, and customize
-     * the generation behavior via {@link ChatParameters}.
-     *
-     * @param messages the list of chat messages representing the conversation history
-     * @param parameters parameters to customize the output generation
-     * @param tools list of tools the model may call during generation
-     * @return a {@link ChatResponse} object containing the model's reply
-     */
-    public ChatResponse chat(List<ChatMessage> messages, ChatParameters parameters, Tool... tools) {
-        return chat(messages, parameters, Arrays.asList(tools));
+        return chat(messages, parameters, null);
     }
 
     /**
@@ -250,7 +237,7 @@ public class ChatService extends CryptoService implements ChatProvider {
             ChatRequest.builder()
                 .messages(messages)
                 .parameters(parameters)
-                .tools(tools)
+                .tools(isNull(tools) ? defaultTools : tools)
                 .build()
         );
     }
@@ -374,7 +361,7 @@ public class ChatService extends CryptoService implements ChatProvider {
         var chatRequest = ChatRequest.builder()
             .messages(messages)
             .parameters(parameters)
-            .tools(tools)
+            .tools(isNull(tools) ? defaultTools : tools)
             .build();
         return chatStreaming(chatRequest, handler);
     }
@@ -479,6 +466,7 @@ public class ChatService extends CryptoService implements ChatProvider {
         private MessageInterceptor messageInterceptor;
         private ToolInterceptor toolInterceptor;
         private ChatParameters defaultParameters;
+        private List<Tool> tools;
 
         private Builder() {}
 
@@ -537,6 +525,31 @@ public class ChatService extends CryptoService implements ChatProvider {
          */
         public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
             this.toolInterceptor = toolInterceptor;
+            return this;
+        }
+
+        /**
+         * Sets the default tools that will be available to the model during chat interactions.
+         * <p>
+         * These tools will be used in all chat requests unless explicitly overridden by passing tools directly to the chat methods. If tools are
+         * provided in the chat method call, they will take precedence over these default tools.
+         *
+         * @param tools varargs of {@link Tool} objects to set as defaults
+         */
+        public Builder tools(Tool... tools) {
+            return tools(Arrays.asList(tools));
+        }
+
+        /**
+         * Sets the default tools that will be available to the model during chat interactions.
+         * <p>
+         * These tools will be used in all chat requests unless explicitly overridden by passing tools directly to the chat methods. If tools are
+         * provided in the chat method call, they will take precedence over these default tools.
+         *
+         * @param tools list of {@link Tool} objects to set as defaults
+         */
+        public Builder tools(List<Tool> tools) {
+            this.tools = tools;
             return this;
         }
 

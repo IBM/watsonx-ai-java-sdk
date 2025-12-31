@@ -1771,9 +1771,11 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
 
+            var tool = Tool.of("get_current_time", "Get the current time");
             var deploymentService = DeploymentService.builder()
                 .authenticator(mockAuthenticator)
                 .baseUrl(CloudRegion.FRANKFURT)
+                .tools(tool)
                 .defaultParameters(
                     ChatParameters.builder()
                         .context("context")
@@ -1869,6 +1871,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     .topLogprobs(3)
                     .topP(6.0)
                     .timeLimit(7200000L)
+                    .tools(List.of(tool))
                     .build());
 
             assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
@@ -1880,9 +1883,13 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
 
+            var defaultTool = Tool.of("get_current_time", "Get the current time");
+            var ovverideTool = Tool.of("get_current_time_ovveride", "Get the current time override");
+
             var deploymentService = DeploymentService.builder()
                 .authenticator(mockAuthenticator)
                 .baseUrl(CloudRegion.FRANKFURT)
+                .tools(defaultTool)
                 .defaultParameters(
                     ChatParameters.builder()
                         .context("context")
@@ -1943,6 +1950,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             var chatRequest = ChatRequest.builder()
                 .deploymentId("deploymentId")
                 .messages(messages)
+                .tools(ovverideTool)
                 .parameters(
                     ChatParameters.builder()
                         .context("context_override")
@@ -2002,6 +2010,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     .topLogprobs(0)
                     .topP(0.0)
                     .timeLimit(1000L)
+                    .tools(List.of(ovverideTool))
                     .build());
 
             assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
