@@ -66,15 +66,17 @@ public enum FinishReason {
      * @return the matching {@link FinishReason}
      */
     public static FinishReason fromValue(String value) {
-        if (value == null) {
-            return INCOMPLETE;
-        }
-        for (FinishReason reason : values()) {
-            if (value.equals(reason.value)) {
-                return reason;
-            }
-        }
-        throw new IllegalArgumentException("Unknown finish reason: " + value);
+        return value == null
+            ? INCOMPLETE
+            : switch(value) {
+                case "stop" -> STOP;
+                case "length" -> LENGTH;
+                case "tool_calls" -> TOOL_CALLS;
+                case "time_limit" -> TIME_LIMIT;
+                case "cancelled" -> CANCELLED;
+                case "error" -> ERROR;
+                default -> throw new IllegalArgumentException("Unknown finish reason: " + value);
+            };
     }
 }
 
