@@ -114,7 +114,7 @@ public abstract class WatsonxService {
          * @param baseUrl the cloud region containing the endpoint URL
          */
         public T baseUrl(CloudRegion baseUrl) {
-            return baseUrl(baseUrl.getMlEndpoint());
+            return baseUrl(baseUrl.mlEndpoint());
         }
 
         /**

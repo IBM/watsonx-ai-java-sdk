@@ -144,7 +144,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(mockHttpRequest), true);
             assertEquals(
-                URI.create(CloudRegion.DALLAS.getMlEndpoint()
+                URI.create(CloudRegion.DALLAS.mlEndpoint()
                     .concat("/ml/v1/deployments/my-deployment-id/text/generation?version=%s".formatted(API_VERSION))),
                 mockHttpRequest.getValue().uri()
             );
@@ -203,7 +203,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(mockHttpRequest), true);
             assertEquals(
-                URI.create(CloudRegion.DALLAS.getMlEndpoint()
+                URI.create(CloudRegion.DALLAS.mlEndpoint()
                     .concat("/ml/v1/deployments/my-deployment-id/text/generation?version=%s".formatted(API_VERSION))),
                 mockHttpRequest.getValue().uri()
             );
@@ -472,7 +472,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             JSONAssert.assertEquals(toJson(EXPECTED_BODY), bodyPublisherToString(mockHttpRequest), true);
             assertEquals(
-                URI.create(CloudRegion.DALLAS.getMlEndpoint()
+                URI.create(CloudRegion.DALLAS.mlEndpoint()
                     .concat("/ml/v1/deployments/my-deployment-id/text/chat?version=%s".formatted(API_VERSION))),
                 mockHttpRequest.getValue().uri()
             );

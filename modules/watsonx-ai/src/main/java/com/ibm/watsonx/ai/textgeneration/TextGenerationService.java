@@ -56,14 +56,14 @@ public class TextGenerationService extends ModelService implements TextGeneratio
     public TextGenerationResponse generate(TextGenerationRequest textGenerationRequest) {
         requireNonNull(textGenerationRequest, "textGenerationRequest cannot be null");
 
-        if (nonNull(textGenerationRequest.getDeploymentId()))
+        if (nonNull(textGenerationRequest.deploymentId()))
             logger.info("The deploymentId parameter can not be used with the TextGenerationService. Use the DeploymentService instead");
 
-        var input = requireNonNull(textGenerationRequest.getInput(), "input cannot be null");
-        var moderation = textGenerationRequest.getModeration();
-        var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
+        var input = requireNonNull(textGenerationRequest.input(), "input cannot be null");
+        var moderation = textGenerationRequest.moderation();
+        var parameters = requireNonNullElse(textGenerationRequest.parameters(), TextGenerationParameters.builder().build());
 
-        if (nonNull(parameters.getPromptVariables())) {
+        if (nonNull(parameters.promptVariables())) {
             parameters.setPromptVariables(null);
             logger.warn("Prompt variables are not supported in Text Generation service");
         }
@@ -72,7 +72,7 @@ public class TextGenerationService extends ModelService implements TextGeneratio
         var projectId = projectSpace.projectId();
         var spaceId = projectSpace.spaceId();
         var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
-        var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
+        var timeout = requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
         var textGenRequest =
@@ -85,13 +85,13 @@ public class TextGenerationService extends ModelService implements TextGeneratio
     public CompletableFuture<Void> generateStreaming(TextGenerationRequest textGenerationRequest, TextGenerationHandler handler) {
         requireNonNull(textGenerationRequest, "textGenerationRequest cannot be null");
 
-        if (nonNull(textGenerationRequest.getDeploymentId()))
+        if (nonNull(textGenerationRequest.deploymentId()))
             logger.info("The deploymentId parameter can not be used with the TextGenerationService. Use the DeploymentService instead");
 
-        var input = requireNonNull(textGenerationRequest.getInput(), "input cannot be null");
-        var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
+        var input = requireNonNull(textGenerationRequest.input(), "input cannot be null");
+        var parameters = requireNonNullElse(textGenerationRequest.parameters(), TextGenerationParameters.builder().build());
 
-        if (nonNull(parameters.getPromptVariables())) {
+        if (nonNull(parameters.promptVariables())) {
             parameters.setPromptVariables(null);
             logger.warn("Prompt variables are not supported in Text Generation service");
         }
@@ -99,7 +99,7 @@ public class TextGenerationService extends ModelService implements TextGeneratio
         var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
         var projectId = ofNullable(parameters.projectId()).orElse(this.projectId);
         var spaceId = ofNullable(parameters.spaceId()).orElse(this.spaceId);
-        var timeout = requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis());
+        var timeout = requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis());
         parameters.setTimeLimit(timeout);
 
         var textGenRequest =

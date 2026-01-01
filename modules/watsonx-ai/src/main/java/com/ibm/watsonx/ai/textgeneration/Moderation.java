@@ -109,7 +109,7 @@ public final class Moderation {
      *
      * @return the HAP moderation settings, or null if not configured
      */
-    public Hap getHap() {
+    public Hap hap() {
         return hap;
     }
 
@@ -118,7 +118,7 @@ public final class Moderation {
      *
      * @return the PII moderation settings, or null if not configured
      */
-    public Pii getPii() {
+    public Pii pii() {
         return pii;
     }
 
@@ -127,7 +127,7 @@ public final class Moderation {
      *
      * @return the Granite Guardian moderation settings, or null if not configured
      */
-    public GraniteGuardian getGraniteGuardian() {
+    public GraniteGuardian graniteGuardian() {
         return graniteGuardian;
     }
 
@@ -136,7 +136,7 @@ public final class Moderation {
      *
      * @return the list of input ranges, or null if not configured
      */
-    public List<InputRanges> getInputRanges() {
+    public List<InputRanges> inputRanges() {
         return inputRanges;
     }
 

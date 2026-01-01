@@ -176,7 +176,7 @@ public class ToolService extends WatsonxService {
 
         @Override
         public Builder baseUrl(CloudRegion url) {
-            return super.baseUrl(url.getWxEndpoint());
+            return super.baseUrl(url.wxEndpoint());
         }
 
         /**
