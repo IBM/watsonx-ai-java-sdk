@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat;
 
+import static com.ibm.watsonx.ai.chat.model.FinishReason.TOOL_CALLS;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.util.ArrayList;
@@ -281,7 +282,7 @@ public class SseEventProcessor {
             events.add(new PartialThinkingEvent(token, chunk));
         }
 
-        if ("tool_calls".equals(finishReason)) {
+        if (TOOL_CALLS.value().equals(finishReason)) {
             var tools = toolFetchers.get(messageIndex);
             events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
         }

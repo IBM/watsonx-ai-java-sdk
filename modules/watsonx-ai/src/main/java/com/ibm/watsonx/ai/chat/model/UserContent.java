@@ -19,5 +19,6 @@ package com.ibm.watsonx.ai.chat.model;
  * @see TextContent
  * @see ImageContent
  * @see VideoContent
+ * @see AudioContent
  */
-public sealed interface UserContent permits TextContent, ImageContent, VideoContent {}
+public sealed interface UserContent permits TextContent, ImageContent, VideoContent, AudioContent {}

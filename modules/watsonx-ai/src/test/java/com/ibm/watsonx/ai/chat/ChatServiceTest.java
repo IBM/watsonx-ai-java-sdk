@@ -39,6 +39,7 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.AudioContent;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
@@ -1312,10 +1313,13 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     @Test
     void should_send_video_content_in_user_message() throws Exception {
 
+        var bytes = ClassLoader.getSystemResourceAsStream("video.mp4").readAllBytes();
+        var file = new File(ClassLoader.getSystemResource("video.mp4").toURI());
+
         final String REQUEST = """
             {
               "model_id" : "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
-              "project_id" : "63dc4cf1-252f-424b-b52d-5cdd9814987f",
+              "project_id" : "project-id",
               "messages" : [ {
                 "role" : "user",
                 "content" : [ {
@@ -1324,12 +1328,12 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 }, {
                   "type" : "video_url",
                   "video_url" : {
-                    "url" : "data:video/mp4;base64,ABC"
+                    "url" : "data:video/mp4;base64,%s"
                   }
                 } ]
               } ],
               "time_limit" : 60000
-            }""";
+            }""".formatted(Base64.getEncoder().encodeToString(bytes));
 
         final String RESPONSE =
             """
@@ -1343,7 +1347,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                               "index": 0,
                               "message": {
                                   "role": "assistant",
-                                  "content": "Alan Wake videogame"
+                                  "content": "This is a test video file."
                               },
                               "finish_reason": "stop"
                           }
@@ -1358,7 +1362,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                       }
                 }""";
 
-        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.token()).thenReturn("my-token");
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
 
@@ -1366,20 +1370,104 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             var chatService = ChatService.builder()
                 .authenticator(mockAuthenticator)
                 .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
-                .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
-                .baseUrl(CloudRegion.DALLAS)
+                .projectId("project-id")
+                .baseUrl(CloudRegion.TORONTO)
                 .build();
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var message = UserMessage.of(List.of(
+            var message = UserMessage.of(
                 TextContent.of("Tell me more about this video"),
-                VideoContent.of("video/mp4", "ABC")
-            ));
+                VideoContent.of("video/mp4", Base64.getEncoder().encodeToString(bytes))
+            );
 
             var chatResponse = chatService.chat(message);
             JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            assertEquals(
+                VideoContent.of("video/mp4", Base64.getEncoder().encodeToString(bytes)),
+                assertDoesNotThrow(() -> VideoContent.from(file)));
+        });
+    }
+
+    @Test
+    void should_send_audio_content_in_user_message() throws Exception {
+
+        var bytes = ClassLoader.getSystemResourceAsStream("audio.wav").readAllBytes();
+        var file = new File(ClassLoader.getSystemResource("audio.wav").toURI());
+
+        final String REQUEST = """
+            {
+              "model_id" : "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
+              "project_id" : "project-id",
+              "messages" : [ {
+                "role" : "user",
+                "content" : [ {
+                  "type" : "text",
+                  "text" : "Tell me more about this audio"
+                }, {
+                  "type" : "input_audio",
+                  "input_audio" : {
+                    "data" : "%s",
+                    "format" : "audio/x-wav"
+                  }
+                } ]
+              } ],
+              "time_limit" : 60000
+            }""".formatted(Base64.getEncoder().encodeToString(bytes));
+
+        final String RESPONSE =
+            """
+                  {
+                      "id": "chatcmpl-016961bf40e3faa36420cf41ee60761d",
+                      "object": "chat.completion",
+                      "model_id": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
+                      "model": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
+                      "choices": [
+                          {
+                              "index": 0,
+                              "message": {
+                                  "role": "assistant",
+                                  "content": "This is a test audio file."
+                              },
+                              "finish_reason": "stop"
+                          }
+                      ],
+                      "created": 1749330987,
+                      "model_version": "4.0.0",
+                      "created_at": "2025-06-07T21:16:30.676Z",
+                      "usage": {
+                          "completion_tokens": 263,
+                          "prompt_tokens": 2552,
+                          "total_tokens": 2815
+                      }
+                }""";
+
+        when(mockAuthenticator.token()).thenReturn("my-token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(RESPONSE);
+
+        withWatsonxServiceMock(() -> {
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+                .projectId("project-id")
+                .baseUrl(CloudRegion.TORONTO)
+                .build();
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var message = UserMessage.of(
+                TextContent.of("Tell me more about this audio"),
+                AudioContent.of("audio/x-wav", Base64.getEncoder().encodeToString(bytes))
+            );
+
+            var chatResponse = chatService.chat(message);
+            JSONAssert.assertEquals(REQUEST, bodyPublisherToString(mockHttpRequest), false);
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(chatResponse), false);
+            assertEquals(
+                AudioContent.of("audio/x-wav", Base64.getEncoder().encodeToString(bytes)),
+                assertDoesNotThrow(() -> AudioContent.from(file)));
         });
     }
 
