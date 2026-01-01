@@ -122,11 +122,11 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         // The input parameter can be null, if the prompt_template is used.
 
-        var input = textGenerationRequest.getInput();
-        var moderation = textGenerationRequest.getModeration();
-        var deploymentId = requireNonNull(textGenerationRequest.getDeploymentId(), "deploymentId must be provided");
-        var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis()));
+        var input = textGenerationRequest.input();
+        var moderation = textGenerationRequest.moderation();
+        var deploymentId = requireNonNull(textGenerationRequest.deploymentId(), "deploymentId must be provided");
+        var parameters = requireNonNullElse(textGenerationRequest.parameters(), TextGenerationParameters.builder().build());
+        var timeout = Duration.ofMillis(requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis()));
 
         logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 
@@ -142,10 +142,10 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         // The input parameter can be null, if the prompt_template is used.
 
-        var input = textGenerationRequest.getInput();
-        var deploymentId = requireNonNull(textGenerationRequest.getDeploymentId(), "deploymentId must be provided");
-        var parameters = requireNonNullElse(textGenerationRequest.getParameters(), TextGenerationParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(parameters.getTimeLimit(), this.timeout.toMillis()));
+        var input = textGenerationRequest.input();
+        var deploymentId = requireNonNull(textGenerationRequest.deploymentId(), "deploymentId must be provided");
+        var parameters = requireNonNullElse(textGenerationRequest.parameters(), TextGenerationParameters.builder().build());
+        var timeout = Duration.ofMillis(requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis()));
 
         logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 

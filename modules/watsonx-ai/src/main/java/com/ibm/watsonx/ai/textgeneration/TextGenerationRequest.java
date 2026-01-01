@@ -44,7 +44,7 @@ public final class TextGenerationRequest {
      *
      * @return the deployment ID
      */
-    public String getDeploymentId() {
+    public String deploymentId() {
         return deploymentId;
     }
 
@@ -53,7 +53,7 @@ public final class TextGenerationRequest {
      *
      * @return the input text
      */
-    public String getInput() {
+    public String input() {
         return input;
     }
 
@@ -62,7 +62,7 @@ public final class TextGenerationRequest {
      *
      * @return the moderation settings
      */
-    public Moderation getModeration() {
+    public Moderation moderation() {
         return moderation;
     }
 
@@ -71,7 +71,7 @@ public final class TextGenerationRequest {
      *
      * @return the generation parameters
      */
-    public TextGenerationParameters getParameters() {
+    public TextGenerationParameters parameters() {
         return parameters;
     }
 

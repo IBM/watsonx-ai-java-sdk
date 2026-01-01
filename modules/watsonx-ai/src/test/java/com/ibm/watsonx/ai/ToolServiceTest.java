@@ -90,7 +90,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(response, toJson(utilityTools), true);
             assertEquals(10000, mockHttpRequest.getValue().timeout().orElseThrow().toMillis());
             assertEquals(
-                URI.create(CloudRegion.DALLAS.getWxEndpoint().concat("/v1-beta/utility_agent_tools")),
+                URI.create(CloudRegion.DALLAS.wxEndpoint().concat("/v1-beta/utility_agent_tools")),
                 mockHttpRequest.getValue().uri()
             );
 
@@ -138,7 +138,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             var utilityTools = toolService.getByName("GoogleSearch");
             JSONAssert.assertEquals(response, toJson(utilityTools), true);
             assertEquals(
-                URI.create(CloudRegion.DALLAS.getWxEndpoint().concat("/v1-beta/utility_agent_tools/GoogleSearch")),
+                URI.create(CloudRegion.DALLAS.wxEndpoint().concat("/v1-beta/utility_agent_tools/GoogleSearch")),
                 mockHttpRequest.getValue().uri()
             );
 
@@ -170,7 +170,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
             var result = toolService.run(body);
             assertEquals(2, fromJson(result, List.class).size());
             assertEquals(
-                URI.create(CloudRegion.DALLAS.getWxEndpoint().concat("/v1-beta/utility_agent_tools/run")),
+                URI.create(CloudRegion.DALLAS.wxEndpoint().concat("/v1-beta/utility_agent_tools/run")),
                 mockHttpRequest.getValue().uri()
             );
             JSONAssert.assertEquals(toJson(body), bodyPublisherToString(mockHttpRequest), true);

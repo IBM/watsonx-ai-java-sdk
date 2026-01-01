@@ -82,7 +82,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the decoding method
      */
-    public String getDecodingMethod() {
+    public String decodingMethod() {
         return decodingMethod;
     }
 
@@ -91,7 +91,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the length penalty settings, or null if not configured
      */
-    public LengthPenalty getLengthPenalty() {
+    public LengthPenalty lengthPenalty() {
         return lengthPenalty;
     }
 
@@ -100,7 +100,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the maximum number of new tokens
      */
-    public Integer getMaxNewTokens() {
+    public Integer maxNewTokens() {
         return maxNewTokens;
     }
 
@@ -109,7 +109,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the minimum number of new tokens
      */
-    public Integer getMinNewTokens() {
+    public Integer minNewTokens() {
         return minNewTokens;
     }
 
@@ -118,7 +118,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the random seed value
      */
-    public Integer getRandomSeed() {
+    public Integer randomSeed() {
         return randomSeed;
     }
 
@@ -127,7 +127,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the list of stop sequences
      */
-    public List<String> getStopSequences() {
+    public List<String> stopSequences() {
         return stopSequences;
     }
 
@@ -136,7 +136,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the temperature value
      */
-    public Double getTemperature() {
+    public Double temperature() {
         return temperature;
     }
 
@@ -145,7 +145,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the time limit in milliseconds
      */
-    public Long getTimeLimit() {
+    public Long timeLimit() {
         return timeLimit;
     }
 
@@ -154,7 +154,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the top-k value
      */
-    public Integer getTopK() {
+    public Integer topK() {
         return topK;
     }
 
@@ -163,7 +163,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the top-p value
      */
-    public Double getTopP() {
+    public Double topP() {
         return topP;
     }
 
@@ -172,7 +172,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the repetition penalty value
      */
-    public Double getRepetitionPenalty() {
+    public Double repetitionPenalty() {
         return repetitionPenalty;
     }
 
@@ -181,7 +181,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the truncate input tokens value
      */
-    public Integer getTruncateInputTokens() {
+    public Integer truncateInputTokens() {
         return truncateInputTokens;
     }
 
@@ -190,7 +190,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the return options settings
      */
-    public ReturnOptions getReturnOptions() {
+    public ReturnOptions returnOptions() {
         return returnOptions;
     }
 
@@ -199,7 +199,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return true if stop sequence should be included, false otherwise
      */
-    public Boolean getIncludeStopSequence() {
+    public Boolean includeStopSequence() {
         return includeStopSequence;
     }
 
@@ -208,15 +208,15 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      *
      * @return the map of prompt variables
      */
-    public Map<String, String> getPromptVariables() {
+    public Map<String, String> promptVariables() {
         return promptVariables;
     }
 
-    public void setTimeLimit(Long timeLimit) {
+    void setTimeLimit(Long timeLimit) {
         this.timeLimit = timeLimit;
     }
 
-    public void setPromptVariables(Map<String, String> promptVariables) {
+    void setPromptVariables(Map<String, String> promptVariables) {
         this.promptVariables = promptVariables;
     }
 

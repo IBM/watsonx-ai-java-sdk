@@ -37,7 +37,15 @@ import com.ibm.watsonx.ai.detection.BaseDetectionRequest;
 import com.ibm.watsonx.ai.detection.DetectionTextRequest;
 import com.ibm.watsonx.ai.detection.DetectionTextResponse;
 import com.ibm.watsonx.ai.detection.TextDetectionContentDetectors;
+import com.ibm.watsonx.ai.detection.detector.GraniteGuardian;
+import com.ibm.watsonx.ai.detection.detector.Hap;
+import com.ibm.watsonx.ai.detection.detector.Pii;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
+import com.ibm.watsonx.ai.textgeneration.Moderation;
+import com.ibm.watsonx.ai.textgeneration.Moderation.InputRanges;
+import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
+import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters.LengthPenalty;
+import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters.ReturnOptions;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
 import com.ibm.watsonx.ai.textprocessing.KvpPage;
@@ -64,6 +72,12 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TextChatRequest.class, TextChatRequestMixin.class);
         setMixInAnnotation(TextChatRequest.Builder.class, TextChatRequestBuilderMixin.class);
         setMixInAnnotation(ToolArguments.class, ToolArgumentsMixin.class);
+
+        // -- Text Generation --- //
+        setMixInAnnotation(TextGenerationParameters.class, TextGenerationParametersMixin.class);
+        setMixInAnnotation(TextGenerationParameters.Builder.class, TextGenerationParametersBuilderMixin.class);
+        setMixInAnnotation(Moderation.class, ModerationMixin.class);
+        setMixInAnnotation(Moderation.Builder.class, ModerationBuilderMixin.class);
 
         // --- Schema Mixin --- //
         setMixInAnnotation(ArraySchema.class, ArraySchemaMixin.class);
@@ -108,6 +122,77 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TimeSeriesParameters.class, TimeSeriesParametersMixin.class);
         setMixInAnnotation(TimeSeriesParameters.Builder.class, TimeSeriesParametersBuilderMixin.class);
     }
+
+    @JsonDeserialize(builder = Moderation.Builder.class)
+    public abstract static class ModerationMixin {
+
+        @JsonProperty("hap")
+        abstract Hap hap();
+
+        @JsonProperty("pii")
+        abstract Pii pii();
+
+        @JsonProperty("granite_guardian")
+        abstract GraniteGuardian graniteGuardian();
+
+        @JsonProperty("input_ranges")
+        abstract List<InputRanges> inputRanges();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class ModerationBuilderMixin {}
+
+    @JsonDeserialize(builder = TextGenerationParameters.Builder.class)
+    public abstract static class TextGenerationParametersMixin {
+
+        @JsonProperty("decoding_method")
+        abstract String decodingMethod();
+
+        @JsonProperty("length_penalty")
+        abstract LengthPenalty lengthPenalty();
+
+        @JsonProperty("max_new_tokens")
+        abstract Integer maxNewTokens();
+
+        @JsonProperty("min_new_tokens")
+        abstract Integer minNewTokens();
+
+        @JsonProperty("random_seed")
+        abstract Integer randomSeed();
+
+        @JsonProperty("stop_sequences")
+        abstract List<String> stopSequences();
+
+        @JsonProperty("temperature")
+        abstract Double temperature();
+
+        @JsonProperty("time_limit")
+        abstract Long timeLimit();
+
+        @JsonProperty("top_k")
+        abstract Integer topK();
+
+        @JsonProperty("top_p")
+        abstract Double topP();
+
+        @JsonProperty("repetition_penalty")
+        abstract Double repetitionPenalty();
+
+        @JsonProperty("truncate_input_tokens")
+        abstract Integer truncateInputTokens();
+
+        @JsonProperty("return_options")
+        abstract ReturnOptions returnOptions();
+
+        @JsonProperty("include_stop_sequence")
+        abstract Boolean includeStopSequence();
+
+        @JsonProperty("prompt_variables")
+        abstract Map<String, String> promptVariables();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class TextGenerationParametersBuilderMixin {}
 
     @JsonDeserialize(builder = TimeSeriesParameters.Builder.class)
     public abstract static class TimeSeriesParametersMixin {

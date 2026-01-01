@@ -44,7 +44,7 @@ final class DefaultRestClient extends TextGenerationRestClient {
     @Override
     public TextGenerationResponse generate(String transactionId, TextRequest textRequest) {
 
-        var timeout = textRequest.parameters().getTimeLimit();
+        var timeout = textRequest.parameters().timeLimit();
 
         var httpRequest =
             HttpRequest
@@ -70,7 +70,7 @@ final class DefaultRestClient extends TextGenerationRestClient {
     @Override
     public CompletableFuture<Void> generateStreaming(String transactionId, TextRequest textRequest, TextGenerationHandler handler) {
 
-        var timeout = textRequest.parameters().getTimeLimit();
+        var timeout = textRequest.parameters().timeLimit();
 
         var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/generation_stream?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
