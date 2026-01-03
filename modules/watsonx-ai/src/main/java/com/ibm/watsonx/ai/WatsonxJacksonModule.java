@@ -73,7 +73,7 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TextChatRequest.Builder.class, TextChatRequestBuilderMixin.class);
         setMixInAnnotation(ToolArguments.class, ToolArgumentsMixin.class);
 
-        // -- Text Generation --- //
+        // -- Text Generation Mixin --- //
         setMixInAnnotation(TextGenerationParameters.class, TextGenerationParametersMixin.class);
         setMixInAnnotation(TextGenerationParameters.Builder.class, TextGenerationParametersBuilderMixin.class);
         setMixInAnnotation(Moderation.class, ModerationMixin.class);
@@ -110,13 +110,13 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(FoundationModel.TargetModules.class, DefaultValueMixin.class);
         setMixInAnnotation(FoundationModel.DeploymentParameter.class, DefaultValueMixin.class);
 
-        // --- Text Extraction / Classificaiton Mixin --- //
+        // --- Text Extraction / Classification Mixin --- //
         setMixInAnnotation(Schema.class, SchemaMixin.class);
         setMixInAnnotation(Schema.Builder.class, SchemaBuilderMixin.class);
         setMixInAnnotation(KvpFields.class, KvpFieldsMixin.class);
         setMixInAnnotation(KvpFields.Builder.class, KvpFieldsBuilderMixin.class);
 
-        // --- Time series Mixin --- //
+        // --- Time Series Mixin --- //
         setMixInAnnotation(InputSchema.class, InputSchemaMixin.class);
         setMixInAnnotation(InputSchema.Builder.class, InputSchemaBuilderMixin.class);
         setMixInAnnotation(TimeSeriesParameters.class, TimeSeriesParametersMixin.class);

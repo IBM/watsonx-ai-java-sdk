@@ -69,7 +69,6 @@ import com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider;
  * <b>Important:</b> If the same {@code ChatHandler} instance is shared across multiple concurrent streaming requests, the implementation must handle
  * synchronization internally. The SDK does not serialize callbacks across different requests.
  */
-@FunctionalInterface
 public interface ChatHandler {
 
     /**

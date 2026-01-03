@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *
  * <pre>{@code
  * TextGenerationService textGenerationService = TextGenerationService.builder()
- *     .baseUrl("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-13b-instruct-v2")

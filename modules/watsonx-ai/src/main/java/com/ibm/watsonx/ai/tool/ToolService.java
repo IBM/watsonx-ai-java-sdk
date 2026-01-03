@@ -30,7 +30,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * <pre>{@code
  * ToolService service = ToolService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
- *     .apiKey("api-key")   // creates an IBM Cloud Authenticator
+ *     .apiKey("api-key")       // creates an IBM Cloud Authenticator
  *     .build();
  *
  * var structuredInput = Map.<String, Object>of("q", input);
