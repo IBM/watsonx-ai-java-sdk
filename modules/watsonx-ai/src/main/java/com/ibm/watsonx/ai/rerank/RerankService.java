@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
  *
  * <pre>{@code
  * RerankService rerankService = RerankService.builder()
- *     .baseUrl("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")

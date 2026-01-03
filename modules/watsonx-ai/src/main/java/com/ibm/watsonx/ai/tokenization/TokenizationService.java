@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationRequest.Parameters;
  *
  * <pre>{@code
  * TokenizationService tokenizationService = TokenizationService.builder()
- *     .baseUrl("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-4-h-small")

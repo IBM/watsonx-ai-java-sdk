@@ -23,6 +23,7 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -343,9 +344,14 @@ public class ChatService extends CryptoService implements ChatProvider {
      * @param tools the list of tools that the model may use
      * @param handler a consumer that receives partial text responses
      */
-    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools,
-        Consumer<String> handler) {
-        return chatStreaming(messages, parameters, tools, (text, chunk) -> handler.accept(text));
+    public CompletableFuture<ChatResponse> chatStreaming(
+        List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools, Consumer<String> handler) {
+        return chatStreaming(messages, parameters, tools, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                handler.accept(partialResponse);
+            }
+        });
     }
 
     /**

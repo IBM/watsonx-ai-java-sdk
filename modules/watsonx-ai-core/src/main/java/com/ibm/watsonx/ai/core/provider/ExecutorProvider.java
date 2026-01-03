@@ -116,8 +116,8 @@ public final class ExecutorProvider {
      * <p>
      * <b>Default Behavior:</b>
      * <ul>
-     * <li><b>Java 21+:</b> Virtual threads (lightweight, non-blocking)</li>
-     * <li><b>Java 17-20:</b> Cached thread pool (reuses threads)</li>
+     * <li><b>Java 21+:</b> Virtual threads</li>
+     * <li><b>Java 17-20:</b> Cached thread pool</li>
      * </ul>
      *
      * @return the executor for user callbacks
@@ -132,6 +132,7 @@ public final class ExecutorProvider {
             }
 
             try {
+
                 // Java 21+: virtual threads
                 Method ofVirtual = Thread.class.getMethod("ofVirtual");
                 Object builder = ofVirtual.invoke(null);
@@ -146,6 +147,7 @@ public final class ExecutorProvider {
                 logger.debug("Using virtual thread executor for callbacks (Java 21+)");
 
             } catch (Exception e) {
+
                 // Java < 21: cached thread pool
                 logger.debug("Virtual threads not available, using cached thread pool");
                 AtomicInteger counter = new AtomicInteger(1);

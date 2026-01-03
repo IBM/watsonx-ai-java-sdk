@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.timeseries.ForecastRequest.Parameters;
  *
  * <pre>{@code
  * TimeSeriesService tsService = TimeSeriesService.builder()
- *     .baseUrl("https://...")      // or use CloudRegion
+ *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .projectId("my-project-id")
  *     .modelId("ibm/granite-ttm-1536-96-r2")
