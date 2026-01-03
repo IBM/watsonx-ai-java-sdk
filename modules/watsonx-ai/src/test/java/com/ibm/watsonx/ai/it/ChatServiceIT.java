@@ -343,9 +343,9 @@ public class ChatServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
-                .messages(UserMessage.of(
-                    TextContent.of("Give a short description of the image"),
-                    ImageContent.from(Paths.get(image.toURI()))
+                .messages(UserMessage.image(
+                    "Give a short description of the image",
+                    Paths.get(image.toURI())
                 ))
                 .parameters(parameters)
                 .build();
