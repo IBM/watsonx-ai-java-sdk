@@ -12,9 +12,11 @@
     <module>chatbot</module>
     <module>chatbot-reasoning</module>
     <module>chatbot-streaming</module>
+    <module>chatbot-streaming-simple-blocking</module>
     <module>chatbot-streaming-reasoning</module>
     <module>chatbot-tools</module>
     <module>chatbot-streaming-tools</module>
+    <module>chatbot-streaming-with-tool-interceptor</module>
     <module>image-analyzer</module>
     <module>embedding-text</module>
     <module>rerank</module>
@@ -43,7 +45,7 @@
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai</artifactId>
-      <version>0.16.0</version>
+      <version>999-SNAPSHOT</version>
     </dependency>
 
     <dependency>

@@ -4,8 +4,8 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
-  <artifactId>watsonx-ai-sample-chatbot-reasoning</artifactId>
-  <name>Chatbot Reasoning Sample</name>
+  <artifactId>chatbot-reasoning</artifactId>
+  <name>Chatbot Reasoning</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>

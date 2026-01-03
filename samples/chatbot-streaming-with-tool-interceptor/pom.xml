@@ -4,9 +4,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
-  <artifactId>streaming-chatbot</artifactId>
+  <artifactId>streaming-chatbot-with-tool-interceptor</artifactId>
   <version>0.16.0</version>
-  <name>Streaming Chatbot</name>
+  <name>Streaming Chatbot with Tool Inteceptor</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
