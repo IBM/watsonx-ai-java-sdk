@@ -32,6 +32,7 @@ import com.ibm.watsonx.ai.chat.model.schema.IntegerSchema;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.chat.model.schema.NumberSchema;
 import com.ibm.watsonx.ai.chat.model.schema.ObjectSchema;
+import com.ibm.watsonx.ai.chat.model.schema.RequiredSchema;
 import com.ibm.watsonx.ai.chat.model.schema.StringSchema;
 import com.ibm.watsonx.ai.detection.BaseDetectionRequest;
 import com.ibm.watsonx.ai.detection.DetectionTextRequest;
@@ -82,6 +83,7 @@ public class WatsonxJacksonModule extends SimpleModule {
         // --- Schema Mixin --- //
         setMixInAnnotation(ArraySchema.class, ArraySchemaMixin.class);
         setMixInAnnotation(ConstantSchema.class, ConstantSchemaMixin.class);
+        setMixInAnnotation(RequiredSchema.class, RequiredSchemaMixin.class);
         setMixInAnnotation(EnumSchema.class, EnumSchemaMixin.class);
         setMixInAnnotation(IntegerSchema.class, IntegerSchemaMixin.class);
         setMixInAnnotation(JsonSchema.class, JsonSchemaMixin.class);
@@ -444,6 +446,10 @@ public class WatsonxJacksonModule extends SimpleModule {
         abstract String constant();
     }
 
+    public abstract static class RequiredSchemaMixin {
+        @JsonProperty("required")
+        abstract String required();
+    }
 
     public abstract static class EnumSchemaMixin {
         @JsonProperty("enum")
@@ -475,27 +481,34 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("type")
         abstract Object type();
+
+        @JsonProperty("oneOf")
+        abstract List<String> oneOf();
+
     }
 
     public abstract class ObjectSchemaMixin {
 
         @JsonProperty("properties")
-        public abstract Map<String, JsonSchema> properties();
+        abstract Map<String, JsonSchema> properties();
 
         @JsonProperty("required")
-        public abstract List<String> required();
+        abstract List<String> required();
+
+        @JsonProperty("anyOf")
+        abstract List<String> anyOf();
 
         @JsonProperty("minProperties")
-        public abstract Integer minProperties();
+        abstract Integer minProperties();
 
         @JsonProperty("maxProperties")
-        public abstract Integer maxProperties();
+        abstract Integer maxProperties();
 
         @JsonProperty("patternProperties")
-        public abstract Map<String, JsonSchema> patternProperties();
+        abstract Map<String, JsonSchema> patternProperties();
 
         @JsonProperty("additionalProperties")
-        public abstract Object additionalProperties();
+        abstract Object additionalProperties();
     }
 
     public abstract static class NumberSchemaMixin {

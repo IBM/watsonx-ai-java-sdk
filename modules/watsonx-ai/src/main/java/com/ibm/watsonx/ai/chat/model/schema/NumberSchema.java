@@ -78,7 +78,7 @@ public final class NumberSchema extends JsonSchema {
     /**
      * Builder class for constructing {@link NumberSchema} instances with configurable parameters.
      */
-    public static final class Builder extends JsonSchema.Builder<Builder, NumberSchema> {
+    public static final class Builder extends JsonSchema.Builder<Builder, NumberSchema, NumberSchema.Builder> {
         private Integer minimum;
         private Integer maximum;
         private Integer exclusiveMinimum;

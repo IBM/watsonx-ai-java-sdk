@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
+import java.util.List;
+
 /**
  * Represents a JSON Schema that enforces a constant value.
  * <p>
@@ -35,11 +37,31 @@ public final class ConstantSchema extends JsonSchema {
     /**
      * Builder class for constructing {@link ConstantSchema} instances with configurable parameters.
      */
-    static final class Builder extends JsonSchema.Builder<Builder, ConstantSchema> {
+    public static final class Builder extends JsonSchema.Builder<Builder, ConstantSchema, ConstantSchema.Builder> {
         private final Object value;
 
         Builder(Object value) {
             this.value = value;
+        }
+
+        @Override
+        public Builder description(String description) {
+            throw new UnsupportedOperationException("ConstantSchema does not support description");
+        }
+
+        @Override
+        public Builder nullable() {
+            throw new UnsupportedOperationException("ConstantSchema does not support nullable");
+        }
+
+        @Override
+        public Builder oneOf(Builder... oneOf) {
+            throw new UnsupportedOperationException("ConstantSchema does not support oneOf");
+        }
+
+        @Override
+        public Builder oneOf(List<Builder> oneOf) {
+            throw new UnsupportedOperationException("ConstantSchema does not support oneOf");
         }
 
         /**

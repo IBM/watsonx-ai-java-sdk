@@ -73,7 +73,7 @@ public final class StringSchema extends JsonSchema {
     /**
      * Builder class for constructing {@link StringSchema} instances with configurable parameters.
      */
-    public final static class Builder extends JsonSchema.Builder<Builder, StringSchema> {
+    public final static class Builder extends JsonSchema.Builder<Builder, StringSchema, StringSchema.Builder> {
         private String pattern;
         private Integer minLength;
         private Integer maxLength;
