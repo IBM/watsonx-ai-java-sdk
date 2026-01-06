@@ -6,6 +6,8 @@ package com.ibm.watsonx.ai.tool.builtin;
 
 import static java.util.Objects.requireNonNull;
 import java.util.Map;
+import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
@@ -40,6 +42,20 @@ public class PythonInterpreterTool {
 
     private final ToolService toolService;
     private final String deploymentId;
+
+    /**
+     * Pre-configured tool definition.
+     */
+    public static final Tool TOOL_SCHEMA = Tool.of(
+        "python_interpreter", """
+            Executes Python code and returns the console output. \
+            Use this tool for calculations, data manipulation, or visualizations.
+            Important: Only printed output (via print()) is returned. \
+            Results not explicitly printed will be ignored.""",
+        JsonSchema.object()
+            .property("code", JsonSchema.string("The Python code to execute"))
+            .required("code")
+            .build());
 
     /**
      * Constructs a new {@code PythonInterpreterTool} with the specified {@link ToolService} and deployment identifier for the Python interpreter
