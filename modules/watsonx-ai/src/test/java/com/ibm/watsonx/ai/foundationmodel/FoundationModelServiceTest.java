@@ -227,7 +227,7 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             try {
-                when(mockHttpClient.send(any(), any(BodyHandler.class)))
+                when(mockSecureHttpClient.send(any(), any(BodyHandler.class)))
                     .thenThrow(IOException.class);
 
 

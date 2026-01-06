@@ -66,6 +66,7 @@ public class ToolService extends WatsonxService {
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
     }
 

@@ -83,6 +83,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
 
         if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
@@ -95,6 +96,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                 .version(version)
                 .parameters(defaultParameters)
                 .httpClient(httpClient)
+                .verifySsl(verifySsl)
                 .build();
         } else
             chatProvider = null;

@@ -324,7 +324,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("{}");
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
@@ -369,7 +369,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("{}");
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
@@ -414,12 +414,12 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
         var ex = assertThrows(NullPointerException.class, () -> textGenerationService.generate(TextGenerationRequest.builder().build()));
         assertEquals(ex.getMessage(), "input cannot be null");
 
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenThrow(IOException.class);
 
         assertThrows(RuntimeException.class, () -> textGenerationService.generate("Hello"));
 
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenThrow(InterruptedException.class);
 
         assertThrows(RuntimeException.class, () -> textGenerationService.generate("Hello"));

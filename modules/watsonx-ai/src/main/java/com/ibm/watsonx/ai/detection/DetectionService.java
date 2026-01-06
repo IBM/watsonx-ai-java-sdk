@@ -46,6 +46,7 @@ public class DetectionService extends ProjectService {
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
     }
 

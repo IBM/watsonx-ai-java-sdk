@@ -72,7 +72,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
@@ -151,7 +151,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
@@ -199,7 +199,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
         when(mockHttpResponse.statusCode()).thenReturn(400);
         when(mockHttpResponse.body()).thenReturn(json);
         when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
@@ -219,7 +219,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
     @Test
     void should_throw_runtime_exception_on_http_client_error() throws Exception {
 
-        when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 
         var chatService = EmbeddingService.builder()
             .baseUrl(CloudRegion.DALLAS)
@@ -262,7 +262,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
             .thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {

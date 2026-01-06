@@ -68,7 +68,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
@@ -146,7 +146,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
@@ -239,7 +239,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
@@ -274,7 +274,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_rerank_fails() throws Exception {
 
-        when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(new IOException("error"));
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()
@@ -329,7 +329,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var rerankService = RerankService.builder()

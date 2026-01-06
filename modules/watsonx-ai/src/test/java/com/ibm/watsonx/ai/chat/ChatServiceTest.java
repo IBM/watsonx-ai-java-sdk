@@ -1741,7 +1741,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     @Test
     void should_throw_runtime_exception_on_io_exception() throws Exception {
 
-        when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 
         withWatsonxServiceMock(() -> {
             var chatService = ChatService.builder()

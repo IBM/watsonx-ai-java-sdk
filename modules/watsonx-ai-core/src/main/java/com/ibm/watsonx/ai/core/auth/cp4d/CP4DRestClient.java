@@ -25,7 +25,7 @@ public abstract class CP4DRestClient {
     protected CP4DRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl is mandatory");
         timeout = builder.timeout;
-        httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient());
+        httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient(builder.verifySsl));
     }
 
     /**
@@ -81,21 +81,61 @@ public abstract class CP4DRestClient {
         private URI baseUrl;
         private Duration timeout;
         private HttpClient httpClient;
+        private boolean verifySsl = true;
 
+        /**
+         * Builds and returns the configured REST client instance.
+         *
+         * @return the constructed REST client
+         */
         protected abstract T build();
 
+        /**
+         * Sets the endpoint URL to which the chat request will be sent.
+         *
+         * @param baseUrl the endpoint URL
+         */
         public B baseUrl(URI baseUrl) {
             this.baseUrl = baseUrl;
             return (B) this;
         }
 
+        /**
+         * Sets the request timeout.
+         *
+         * @param timeout {@link Duration} timeout.
+         */
         public B timeout(Duration timeout) {
             this.timeout = timeout;
             return (B) this;
         }
 
+        /**
+         * Sets a custom {@link HttpClient} to be used for HTTP communication.
+         * <p>
+         * This allows customization of the underlying HTTP client, such as configuring a custom {@link javax.net.ssl.SSLContext} for TLS/SSL
+         * settings, proxy configuration, connection timeouts, or other HTTP client properties. If not specified, a default {@link HttpClient} will be
+         * created automatically.
+         *
+         * @param httpClient the custom {@link HttpClient} to use
+         */
         public B httpClient(HttpClient httpClient) {
             this.httpClient = httpClient;
+            return (B) this;
+        }
+
+        /**
+         * Sets whether SSL/TLS certificate verification should be performed.
+         * <p>
+         * When set to {@code true} (default), the client validates server certificates against trusted Certificate Authorities. When set to
+         * {@code false}, all certificates are accepted without validation, including self-signed certificates.
+         * <p>
+         * This setting is ignored if a custom {@link HttpClient} is provided via {@link #httpClient(HttpClient)}.
+         *
+         * @param verifySsl {@code true} to enable certificate verification, {@code false} to accept all certificates
+         */
+        public B verifySsl(boolean verifySsl) {
+            this.verifySsl = verifySsl;
             return (B) this;
         }
     }

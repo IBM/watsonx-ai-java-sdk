@@ -897,7 +897,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
 
@@ -962,7 +962,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
@@ -1035,7 +1035,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
@@ -1168,7 +1168,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(EXPECTED_RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             DeploymentService deploymentService = DeploymentService.builder()
@@ -1292,7 +1292,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_http_request_fails() throws Exception {
 
-        when(mockHttpClient.send(any(), any()))
+        when(mockSecureHttpClient.send(any(), any()))
             .thenThrow(new IOException("IOException"))
             .thenThrow(new InterruptedException("InterruptedException"));
 

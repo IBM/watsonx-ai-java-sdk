@@ -54,6 +54,7 @@ public abstract class WatsonxService {
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
     protected final HttpClient httpClient;
+    protected final boolean verifySsl;
 
     // Required by CDI for proxy / bean instantiation
     protected WatsonxService() {
@@ -63,6 +64,7 @@ public abstract class WatsonxService {
         logRequests = false;
         logResponses = false;
         httpClient = null;
+        verifySsl = true;
     }
 
     protected WatsonxService(Builder<?> builder) {
@@ -72,6 +74,7 @@ public abstract class WatsonxService {
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
         httpClient = builder.httpClient;
+        verifySsl = builder.verifySsl;
     }
 
     /**
@@ -88,6 +91,7 @@ public abstract class WatsonxService {
         private Boolean logResponses;
         private Authenticator authenticator;
         private HttpClient httpClient;
+        private boolean verifySsl = true;
 
         /**
          * Sets the endpoint URL to which requests will be sent.
@@ -195,6 +199,21 @@ public abstract class WatsonxService {
          */
         public T httpClient(HttpClient httpClient) {
             this.httpClient = httpClient;
+            return (T) this;
+        }
+
+        /**
+         * Sets whether SSL/TLS certificate verification should be performed.
+         * <p>
+         * When set to {@code true} (default), the client validates server certificates against trusted Certificate Authorities. When set to
+         * {@code false}, all certificates are accepted without validation, including self-signed certificates.
+         * <p>
+         * This setting is ignored if a custom {@link HttpClient} is provided via {@link #httpClient(HttpClient)}.
+         *
+         * @param verifySsl {@code true} to enable certificate verification, {@code false} to accept all certificates
+         */
+        public T verifySsl(boolean verifySsl) {
+            this.verifySsl = verifySsl;
             return (T) this;
         }
 

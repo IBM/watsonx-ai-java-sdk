@@ -85,6 +85,7 @@ public class TextExtractionService extends ProjectService {
             .authenticator(builder.authenticator())
             .cosAuthenticator(builder.cosAuthenticator)
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
     }
 

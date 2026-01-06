@@ -47,6 +47,7 @@ public class TokenizationService extends ModelService {
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
     }
 

@@ -67,6 +67,7 @@ public class CP4DAuthenticator implements Authenticator {
             .baseUrl(baseUrl)
             .timeout(timeout)
             .httpClient(builder.httpClient)
+            .verifySsl(builder.verifySsl)
             .build();
     }
 
@@ -154,6 +155,7 @@ public class CP4DAuthenticator implements Authenticator {
         private AuthMode authMode;
         private Duration timeout;
         private HttpClient httpClient;
+        private boolean verifySsl = true;
 
         private Builder() {}
 
@@ -238,6 +240,21 @@ public class CP4DAuthenticator implements Authenticator {
          */
         public Builder httpClient(HttpClient httpClient) {
             this.httpClient = httpClient;
+            return this;
+        }
+
+        /**
+         * Sets whether SSL/TLS certificate verification should be performed.
+         * <p>
+         * When set to {@code true} (default), the client validates server certificates against trusted Certificate Authorities. When set to
+         * {@code false}, all certificates are accepted without validation, including self-signed certificates.
+         * <p>
+         * This setting is ignored if a custom {@link HttpClient} is provided via {@link #httpClient(HttpClient)}.
+         *
+         * @param verifySsl {@code true} to enable certificate verification, {@code false} to accept all certificates
+         */
+        public Builder verifySsl(boolean verifySsl) {
+            this.verifySsl = verifySsl;
             return this;
         }
 

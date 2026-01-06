@@ -78,6 +78,7 @@ public class TextClassificationService extends ProjectService {
             .authenticator(builder.authenticator())
             .cosAuthenticator(builder.cosAuthenticator)
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
     }
 

@@ -76,6 +76,7 @@ public class ChatService extends CryptoService implements ChatProvider {
             .logResponses(logResponses)
             .timeout(timeout)
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .authenticator(builder.authenticator())
             .build();
 
@@ -92,6 +93,7 @@ public class ChatService extends CryptoService implements ChatProvider {
                 .version(version)
                 .parameters(defaultParameters)
                 .httpClient(httpClient)
+                .verifySsl(verifySsl)
                 .build();
         } else
             chatProvider = null;
