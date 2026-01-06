@@ -47,7 +47,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                 }]
             }""");
 
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
 
@@ -234,7 +234,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
     @Test
     void should_catch_io_exception() throws Exception {
 
-        when(mockHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 
         withWatsonxServiceMock(() -> {
             DetectionService service = DetectionService.builder()

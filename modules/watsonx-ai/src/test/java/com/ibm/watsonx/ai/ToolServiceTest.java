@@ -74,7 +74,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(response);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var toolService = ToolService.builder()
@@ -127,7 +127,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(response);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var toolService = ToolService.builder()
@@ -198,7 +198,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
             try {
-                when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
+                when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class)))
                     .thenThrow(new IOException())
                     .thenThrow(new InterruptedException());
 

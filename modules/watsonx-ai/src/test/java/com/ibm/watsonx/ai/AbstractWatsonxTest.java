@@ -32,7 +32,10 @@ public abstract class AbstractWatsonxTest {
     protected static final String TRANSACTION_ID_HEADER = "X-Global-Transaction-Id";
 
     @Mock
-    protected HttpClient mockHttpClient;
+    protected HttpClient mockSecureHttpClient;
+
+    @Mock
+    protected HttpClient mockInsecureHttpClient;
 
     @Mock
     protected Authenticator mockAuthenticator;
@@ -55,14 +58,15 @@ public abstract class AbstractWatsonxTest {
 
     protected void withWatsonxServiceMock(Runnable action) {
         try (MockedStatic<HttpClientProvider> mockedStatic = mockStatic(HttpClientProvider.class)) {
-            mockedStatic.when(HttpClientProvider::httpClient).thenReturn(mockHttpClient);
+            mockedStatic.when(() -> HttpClientProvider.httpClient(true)).thenReturn(mockSecureHttpClient);
+            mockedStatic.when(() -> HttpClientProvider.httpClient(false)).thenReturn(mockInsecureHttpClient);
             action.run();
         }
     }
 
     protected void mockHttpClientSend(HttpRequest request, HttpResponse.BodyHandler<String> responseBodyHandler) {
         try {
-            when(mockHttpClient.send(request, responseBodyHandler)).thenReturn(mockHttpResponse);
+            when(mockSecureHttpClient.send(request, responseBodyHandler)).thenReturn(mockHttpResponse);
         } catch (Exception e) {
             fail(e);
         }
@@ -70,9 +74,12 @@ public abstract class AbstractWatsonxTest {
 
     protected void resetHttpClient() {
         try {
-            var field = HttpClientProvider.class.getDeclaredField("httpClient");
-            field.setAccessible(true);
-            field.set(null, null);
+            var secureClient = HttpClientProvider.class.getDeclaredField("secureClient");
+            secureClient.setAccessible(true);
+            secureClient.set(null, null);
+            var insecureClient = HttpClientProvider.class.getDeclaredField("insecureClient");
+            insecureClient.setAccessible(true);
+            insecureClient.set(null, null);
         } catch (Exception e) {
             fail(e);
         }

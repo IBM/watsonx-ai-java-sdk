@@ -39,15 +39,18 @@ public class CustomHttpClientTest {
 
                 Object cp4dRestClient = getFieldValue(authenticator, "client");
                 assertEquals(customClient, getFieldValue(cp4dRestClient, "httpClient"));
-                assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(cp4dRestClient, "httpClient"));
+                assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(cp4dRestClient, "httpClient"));
+                assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(cp4dRestClient, "httpClient"));
 
                 Object syncHttpClient = getFieldValue(cp4dRestClient, "syncHttpClient");
                 assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
-                assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(syncHttpClient, "delegate"));
+                assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
+                assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
 
                 Object asyncHttpClient = getFieldValue(cp4dRestClient, "asyncHttpClient");
                 assertEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
-                assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(asyncHttpClient, "delegate"));
+                assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(asyncHttpClient, "delegate"));
+                assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(asyncHttpClient, "delegate"));
 
             } catch (Exception e) {
                 fail(e);
@@ -71,15 +74,44 @@ public class CustomHttpClientTest {
 
                 Object cp4dRestClient = getFieldValue(authenticator, "client");
                 assertNotEquals(customClient, getFieldValue(cp4dRestClient, "httpClient"));
-                assertEquals(HttpClientProvider.httpClient(), getFieldValue(cp4dRestClient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(true), getFieldValue(cp4dRestClient, "httpClient"));
 
                 Object syncHttpClient = getFieldValue(cp4dRestClient, "syncHttpClient");
                 assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
-                assertEquals(HttpClientProvider.httpClient(), getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
 
                 Object asyncHttpClient = getFieldValue(cp4dRestClient, "asyncHttpClient");
                 assertNotEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
-                assertEquals(HttpClientProvider.httpClient(), getFieldValue(asyncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(true), getFieldValue(asyncHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+
+        Stream.of(LEGACY, IAM).forEach(authMode -> {
+
+            try {
+
+                HttpClient customClient = HttpClient.newHttpClient();
+                Authenticator authenticator = CP4DAuthenticator.builder()
+                    .baseUrl("https://localhost")
+                    .username("username")
+                    .password("password")
+                    .verifySsl(false)
+                    .build();
+
+                Object cp4dRestClient = getFieldValue(authenticator, "client");
+                assertNotEquals(customClient, getFieldValue(cp4dRestClient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(false), getFieldValue(cp4dRestClient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(cp4dRestClient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+
+                Object asyncHttpClient = getFieldValue(cp4dRestClient, "asyncHttpClient");
+                assertNotEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(false), getFieldValue(asyncHttpClient, "delegate"));
 
             } catch (Exception e) {
                 fail(e);
@@ -98,35 +130,48 @@ public class CustomHttpClientTest {
 
         Object ibmCloudRestClient = getFieldValue(authenticator, "client");
         assertEquals(customClient, getFieldValue(ibmCloudRestClient, "httpClient"));
-        assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(ibmCloudRestClient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(ibmCloudRestClient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(ibmCloudRestClient, "httpClient"));
 
         Object syncHttpClient = getFieldValue(ibmCloudRestClient, "syncHttpClient");
         assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
-        assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
 
         Object asyncHttpClient = getFieldValue(ibmCloudRestClient, "asyncHttpClient");
         assertEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
-        assertNotEquals(HttpClientProvider.httpClient(), getFieldValue(asyncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(asyncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(asyncHttpClient, "delegate"));
     }
 
     @Test
-    void should_use_default_http_client_for_ibm_cloud_authentication() throws Exception {
+    void should_use_default_http_client_for_ibm_cloud_authentication() {
 
-        HttpClient customClient = HttpClient.newHttpClient();
-        Authenticator authenticator = IBMCloudAuthenticator.builder()
-            .apiKey("apiKey")
-            .build();
+        Stream.of(true, false).forEach(verifySsl -> {
 
-        Object ibmCloudRestClient = getFieldValue(authenticator, "client");
-        assertNotEquals(customClient, getFieldValue(ibmCloudRestClient, "httpClient"));
-        assertEquals(HttpClientProvider.httpClient(), getFieldValue(ibmCloudRestClient, "httpClient"));
+            HttpClient customClient = HttpClient.newHttpClient();
+            Authenticator authenticator = IBMCloudAuthenticator.builder()
+                .apiKey("apiKey")
+                .verifySsl(verifySsl)
+                .build();
 
-        Object syncHttpClient = getFieldValue(ibmCloudRestClient, "syncHttpClient");
-        assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
-        assertEquals(HttpClientProvider.httpClient(), getFieldValue(syncHttpClient, "delegate"));
+            try {
 
-        Object asyncHttpClient = getFieldValue(ibmCloudRestClient, "asyncHttpClient");
-        assertNotEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
-        assertEquals(HttpClientProvider.httpClient(), getFieldValue(asyncHttpClient, "delegate"));
+                Object ibmCloudRestClient = getFieldValue(authenticator, "client");
+                assertNotEquals(customClient, getFieldValue(ibmCloudRestClient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(ibmCloudRestClient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(ibmCloudRestClient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+                Object asyncHttpClient = getFieldValue(ibmCloudRestClient, "asyncHttpClient");
+                assertNotEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(asyncHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
     }
 }

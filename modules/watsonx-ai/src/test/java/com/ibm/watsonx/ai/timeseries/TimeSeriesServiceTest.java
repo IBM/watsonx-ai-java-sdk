@@ -322,10 +322,10 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
             assertEquals(ex.getMessage(), "Data cannot be null");
 
             try {
-                when(mockHttpClient.send(any(), any(BodyHandler.class))).thenThrow(IOException.class);
+                when(mockSecureHttpClient.send(any(), any(BodyHandler.class))).thenThrow(IOException.class);
                 assertThrows(RuntimeException.class, () -> tsService.forecast(inputSchema, data));
 
-                when(mockHttpClient.send(any(), any(BodyHandler.class))).thenThrow(InterruptedException.class);
+                when(mockSecureHttpClient.send(any(), any(BodyHandler.class))).thenThrow(InterruptedException.class);
                 assertThrows(RuntimeException.class, () -> tsService.forecast(inputSchema, data));
             } catch (Exception e) {
                 fail(e);

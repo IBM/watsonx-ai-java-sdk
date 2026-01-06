@@ -53,7 +53,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
                 mockHttpClientSend(mockHttpRequest.capture(), any());
 
                 var client = SyncHttpClient.builder()
-                    .httpClient(mockHttpClient)
+                    .httpClient(mockSecureHttpClient)
                     .interceptor(new BearerInterceptor(mockAuthenticator))
                     .build();
 
@@ -84,7 +84,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
                 mockHttpClientSend(mockHttpRequest.capture(), any());
 
                 var client = SyncHttpClient.builder()
-                    .httpClient(mockHttpClient)
+                    .httpClient(mockSecureHttpClient)
                     .interceptor(new BearerInterceptor(cp4dAuthenticatorMock))
                     .build();
 
@@ -110,7 +110,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
             withWatsonxServiceMock(() -> {
 
                 var client = SyncHttpClient.builder()
-                    .httpClient(mockHttpClient)
+                    .httpClient(mockSecureHttpClient)
                     .interceptor(new BearerInterceptor(mockAuthenticator))
                     .build();
 
@@ -141,7 +141,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
                 mockHttpClientAsyncSend(mockHttpRequest.capture(), any());
 
                 var client = AsyncHttpClient.builder()
-                    .httpClient(mockHttpClient)
+                    .httpClient(mockSecureHttpClient)
                     .interceptor(new BearerInterceptor(mockAuthenticator))
                     .build();
 
@@ -166,7 +166,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
                 mockHttpClientAsyncSend(mockHttpRequest.capture(), any());
 
                 var client = AsyncHttpClient.builder()
-                    .httpClient(mockHttpClient)
+                    .httpClient(mockSecureHttpClient)
                     .interceptor(new BearerInterceptor(cp4dAuthenticatorMock))
                     .build();
 
@@ -187,7 +187,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
             withWatsonxServiceMock(() -> {
 
                 var client = AsyncHttpClient.builder()
-                    .httpClient(mockHttpClient)
+                    .httpClient(mockSecureHttpClient)
                     .interceptor(new BearerInterceptor(mockAuthenticator))
                     .build();
 
@@ -215,13 +215,13 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 mockHttpClientAsyncSend(mockHttpRequest.capture(), any());
-                when(mockHttpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
+                when(mockSecureHttpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
 
                 try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
                     mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
                     var client = AsyncHttpClient.builder()
-                        .httpClient(mockHttpClient)
+                        .httpClient(mockSecureHttpClient)
                         .interceptor(new BearerInterceptor(mockAuthenticator))
                         .interceptor(new AsyncHttpInterceptor() {
                             @Override

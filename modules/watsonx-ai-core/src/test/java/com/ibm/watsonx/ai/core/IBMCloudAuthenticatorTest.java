@@ -58,7 +58,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(response);
 
                     Authenticator authenticator = IBMCloudAuthenticator.builder()
                         .apiKey("my_super_api_key")
@@ -83,7 +83,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockHttpClient.<String>send(any(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>send(any(), any())).thenReturn(response);
 
                     Authenticator authenticator = IBMCloudAuthenticator.builder()
                         .apiKey("my_super_api_key")
@@ -104,7 +104,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockHttpClient.<String>send(any(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>send(any(), any())).thenReturn(response);
 
                     Authenticator authenticator = IBMCloudAuthenticator.builder()
                         .apiKey("my_super_api_key")
@@ -115,7 +115,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
                     // Get the value from the cache.
                     authenticator.token();
 
-                    verify(mockHttpClient, times(1)).send(any(), any());
+                    verify(mockSecureHttpClient, times(1)).send(any(), any());
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -129,7 +129,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockHttpClient.<String>send(any(), any()))
+                    when(mockSecureHttpClient.<String>send(any(), any()))
                         .thenReturn(expiredResponse);
 
                     Authenticator authenticator = IBMCloudAuthenticator.builder()
@@ -139,7 +139,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
                     authenticator.token();
 
                     assertEquals("my_super_token", authenticator.token());
-                    verify(mockHttpClient, times(2)).send(any(), any());
+                    verify(mockSecureHttpClient, times(2)).send(any(), any());
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -154,7 +154,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockHttpClient.<String>send(httpRequest.capture(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>send(httpRequest.capture(), any())).thenReturn(response);
 
                     Authenticator authenticator = IBMCloudAuthenticator.builder()
                         .grantType("new_grant_type")
@@ -196,7 +196,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockHttpClient.<String>send(httpRequest.capture(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>send(httpRequest.capture(), any())).thenReturn(response);
 
                     Authenticator authenticator = IBMCloudAuthenticator.builder()
                         .grantType("new_grant_type")
@@ -252,7 +252,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockHttpClient.<String>send(any(), any()))
+                    when(mockSecureHttpClient.<String>send(any(), any()))
                         .thenThrow(new IOException("IOException"))
                         .thenReturn(Utils.okResponse());
 
@@ -281,7 +281,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
             var response = Utils.okResponse();
 
             withWatsonxServiceMock(() -> {
-                when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
+                when(mockSecureHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
                     .thenReturn(CompletableFuture.completedFuture(response));
 
                 Authenticator authenticator = IBMCloudAuthenticator.builder()
@@ -303,7 +303,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
             var response = Utils.okResponse();
 
             withWatsonxServiceMock(() -> {
-                when(mockHttpClient.<String>sendAsync(any(), any()))
+                when(mockSecureHttpClient.<String>sendAsync(any(), any()))
                     .thenReturn(CompletableFuture.completedFuture(response));
 
                 Authenticator authenticator = IBMCloudAuthenticator.builder()
@@ -315,7 +315,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
                 // Get the value from the cache.
                 assertDoesNotThrow(() -> authenticator.asyncToken().get());
 
-                verify(mockHttpClient, times(1)).sendAsync(any(), any());
+                verify(mockSecureHttpClient, times(1)).sendAsync(any(), any());
             });
         }
 
@@ -325,7 +325,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
             var response = Utils.okResponse();
 
             withWatsonxServiceMock(() -> {
-                when(mockHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
+                when(mockSecureHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
                     .thenReturn(CompletableFuture.completedFuture(response));
 
                 Authenticator authenticator = IBMCloudAuthenticator.builder()
@@ -353,7 +353,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
                 try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
 
-                    when(mockHttpClient.sendAsync(any(), any(BodyHandler.class)))
+                    when(mockSecureHttpClient.sendAsync(any(), any(BodyHandler.class)))
                         .thenReturn(completedFuture(mockHttpResponse));
 
                     List<String> threadNames = new ArrayList<>();

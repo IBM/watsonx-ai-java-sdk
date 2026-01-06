@@ -42,6 +42,7 @@ public class FoundationModelService extends WatsonxService {
             .logResponses(logResponses)
             .timeout(timeout)
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
     }
 

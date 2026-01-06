@@ -63,7 +63,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
@@ -100,7 +100,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
+        when(mockSecureHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(completedFuture(mockHttpResponse));
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
@@ -156,7 +156,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
@@ -205,7 +205,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
@@ -234,7 +234,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     @Test
     void should_throw_runtime_exception_when_tokenization_fails() throws Exception {
 
-        when(mockHttpClient.send(any(), any())).thenThrow(new IOException("error"));
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(new IOException("error"));
 
         var tokenizationService = TokenizationService.builder()
             .baseUrl(CloudRegion.LONDON)
@@ -269,7 +269,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(RESPONSE);
-        when(mockHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
 
         withWatsonxServiceMock(() -> {
             var tokenizationService = TokenizationService.builder()
@@ -317,7 +317,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
 
-                when(mockHttpClient.sendAsync(any(), any(BodyHandler.class)))
+                when(mockSecureHttpClient.sendAsync(any(), any(BodyHandler.class)))
                     .thenReturn(completedFuture(mockHttpResponse));
 
                 var tokenizationService = TokenizationService.builder()

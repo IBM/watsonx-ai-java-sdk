@@ -973,7 +973,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void should_throw_exception_when_http_request_fails() throws Exception {
 
         when(mockAuthenticator.token()).thenReturn("my-super-token");
-        when(mockHttpClient.send(any(), any(BodyHandler.class)))
+        when(mockSecureHttpClient.send(any(), any(BodyHandler.class)))
             .thenThrow(IOException.class);
 
         withWatsonxServiceMock(() -> {

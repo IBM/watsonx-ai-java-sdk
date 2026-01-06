@@ -53,6 +53,7 @@ public class EmbeddingService extends ModelService {
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
     }
 

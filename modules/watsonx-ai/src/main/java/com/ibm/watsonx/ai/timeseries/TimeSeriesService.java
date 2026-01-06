@@ -65,6 +65,7 @@ public class TimeSeriesService extends ModelService implements TimeSeriesProvide
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
+            .verifySsl(verifySsl)
             .build();
     }
 
