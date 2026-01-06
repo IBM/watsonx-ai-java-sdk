@@ -7,6 +7,8 @@ package com.ibm.watsonx.ai.tool.builtin;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.util.Map;
+import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
@@ -18,6 +20,18 @@ import com.ibm.watsonx.ai.tool.ToolService;
 public class WeatherTool {
 
     private final ToolService toolService;
+
+    /**
+     * Pre-configured tool definition.
+     */
+    public static final Tool TOOL_SCHEMA = Tool.of(
+        "weather",
+        "Find the weather for a location.",
+        JsonSchema.object()
+            .property("location", JsonSchema.string("Name of the location"))
+            .property("country", JsonSchema.string("Name of the country"))
+            .required("location")
+            .build());
 
     /**
      * Constructs a new {@code WeatherTool} with the specified {@link ToolService}.

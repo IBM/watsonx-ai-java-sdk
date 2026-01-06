@@ -9,6 +9,8 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.List;
 import java.util.Map;
+import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.tool.ToolRequest;
@@ -21,6 +23,17 @@ import com.ibm.watsonx.ai.tool.ToolService;
 public class GoogleSearchTool {
 
     public record GoogleSearchResult(String title, String description, String url) {}
+
+    /**
+     * Pre-configured tool definition.
+     */
+    public static final Tool TOOL_SCHEMA = Tool.of(
+        "google_search",
+        "Search for online trends, news, current events, real-time information, or research topics.",
+        JsonSchema.object()
+            .property("query", JsonSchema.string("Google search query"))
+            .required("query")
+            .build());
 
     private final ToolService toolService;
 
