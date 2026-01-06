@@ -50,7 +50,7 @@ public final class EnumSchema extends JsonSchema {
     /**
      * Builder class for constructing {@link EnumSchema} instances with configurable parameters.
      */
-    public static final class Builder extends JsonSchema.Builder<Builder, EnumSchema> {
+    public static final class Builder extends JsonSchema.Builder<Builder, EnumSchema, EnumSchema.Builder> {
         private List<?> values;
 
         private Builder() {}

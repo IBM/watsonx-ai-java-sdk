@@ -34,7 +34,7 @@ public final class ArraySchema extends JsonSchema {
 
     private ArraySchema(Builder builder) {
         super(builder.nullable ? List.of("array", "null") : "array", builder);
-        if (isNull(builder.items) && isNull(builder.contains))
+        if (isNull(builder.items) && isNull(builder.contains) && isNull(oneOf))
             throw new IllegalArgumentException("Either items or contains must be specified");
         items = builder.items;
         contains = builder.contains;
@@ -85,7 +85,7 @@ public final class ArraySchema extends JsonSchema {
     /**
      * Builder class for constructing {@link ArraySchema} instances with configurable parameters.
      */
-    public static final class Builder extends JsonSchema.Builder<Builder, ArraySchema> {
+    public static final class Builder extends JsonSchema.Builder<Builder, ArraySchema, ArraySchema.Builder> {
         private JsonSchema items;
         private JsonSchema contains;
         private Integer minItems;
@@ -98,7 +98,7 @@ public final class ArraySchema extends JsonSchema {
          *
          * @param items the schema that each element of the array must satisfy
          */
-        public Builder items(JsonSchema.Builder<?, ?> items) {
+        public Builder items(JsonSchema.Builder<?, ?, ?> items) {
             this.items = items.build();
             return this;
         }
@@ -108,7 +108,7 @@ public final class ArraySchema extends JsonSchema {
          *
          * @param contains the schema that at least one element of the array must satisfy
          */
-        public Builder contains(JsonSchema.Builder<?, ?> contains) {
+        public Builder contains(JsonSchema.Builder<?, ?, ?> contains) {
             this.contains = contains.build();
             return this;
         }

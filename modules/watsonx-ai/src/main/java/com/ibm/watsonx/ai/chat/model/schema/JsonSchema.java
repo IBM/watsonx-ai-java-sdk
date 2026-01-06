@@ -4,7 +4,9 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
+import static java.util.Objects.nonNull;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Represents a JSON Schema used to describe the structure of a response or tool.
@@ -21,6 +23,9 @@ import java.util.Arrays;
  * <li>{@link #integer()} — creates an {@link IntegerSchema}</li>
  * <li>{@link #bool()} — creates a {@link BooleanSchema}</li>
  * <li>{@link #enumeration(Object...)} — creates an {@link EnumSchema}</li>
+ * <li>{@link #constant(Object)} — creates a {@link ConstantSchema}</li>
+ * <li>{@link #required(String...)} — creates a {@link RequiredSchema}</li>
+ *
  * </ul>
  * <p>
  * <b>Example usage:</b>
@@ -42,24 +47,104 @@ import java.util.Arrays;
  * @see BooleanSchema
  * @see ArraySchema
  * @see EnumSchema
+ * @see ConstantSchema
+ * @see RequiredSchema
  */
 public abstract class JsonSchema {
     protected final String description;
     protected final boolean nullable;
     protected final Object type;
+    protected final List<? extends JsonSchema> oneOf;
 
-    protected JsonSchema(Object type, Builder<?, ?> builder) {
+    protected JsonSchema(Object type, Builder<?, ?, ?> builder) {
         description = builder.description;
         nullable = builder.nullable;
-        this.type = type;
+        oneOf = nonNull(builder.oneOf)
+            ? builder.oneOf.stream().map(JsonSchema.Builder::build).toList()
+            : null;
+        // oneOf type, clean the type.
+        this.type = builder.excludeType ? null : type;
     }
 
+    /**
+     * Returns the human-readable description of this schema.
+     *
+     * @return the description
+     */
     public String description() {
         return description;
     }
 
+    /**
+     * Returns the JSON Schema type of this schema.
+     * <p>
+     * The type can be a single string (e.g., {@code "string"}, {@code "object"}) or a list of types when the schema is nullable (e.g.,
+     * {@code ["string", "null"]}).
+     *
+     * @return the type definitionle
+     */
     public Object type() {
         return type;
+    }
+
+    /**
+     * Returns the list of alternative schemas defined by {@code oneOf}.
+     * <p>
+     * The {@code oneOf} keyword validates the data against exactly one of the provided schemas. This is useful for defining mutually exclusive
+     * alternatives.
+     *
+     * @return the list of alternative schemas
+     */
+    public List<? extends JsonSchema> oneOf() {
+        return oneOf;
+    }
+
+    /**
+     * Creates a required constraint for use with {@code oneOf} or {@code anyOf} in object schemas.
+     * <p>
+     * This is typically used to specify alternative sets of required fields in an object schema.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * JsonSchema.object()
+     *     .property("age", JsonSchema.integer())
+     *     .property("dateOfBirth", JsonSchema.string())
+     *     .oneOf(
+     *         JsonSchema.required("age"),
+     *         JsonSchema.required("dateOfBirth")
+     *     );
+     * }</pre>
+     *
+     * @param required the names of the required fields
+     * @return a {@link JsonSchema} representing required fields
+     */
+    public static RequiredSchema.Builder required(String... required) {
+        return required(List.of(required));
+    }
+
+    /**
+     * Creates a required constraint for use with {@code oneOf} or {@code anyOf} in object schemas.
+     * <p>
+     * This is typically used to specify alternative sets of required fields in an object schema.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * JsonSchema.object()
+     *     .property("age", JsonSchema.integer())
+     *     .property("dateOfBirth", JsonSchema.string())
+     *     .oneOf(
+     *         JsonSchema.required("age"),
+     *         JsonSchema.required("dateOfBirth")
+     *     );
+     * }</pre>
+     *
+     * @param required the names of the required fields
+     * @return a {@link JsonSchema} representing required fields
+     */
+    public static RequiredSchema.Builder required(List<String> required) {
+        return new RequiredSchema.Builder(required);
     }
 
     /**
@@ -326,9 +411,11 @@ public abstract class JsonSchema {
      * Builder class for constructing {@link JsonSchema} instances with configurable parameters.
      */
     @SuppressWarnings("unchecked")
-    public static abstract class Builder<B, O extends JsonSchema> {
+    public static abstract class Builder<B, JS extends JsonSchema, O extends JsonSchema.Builder<?, ?, ?>> {
         protected String description;
         protected boolean nullable;
+        protected List<O> oneOf;
+        protected boolean excludeType = false;
 
         protected Builder() {
             nullable = false;
@@ -357,13 +444,37 @@ public abstract class JsonSchema {
         }
 
         /**
-         * Builds and returns the concrete {@link JsonSchema} instance configured by this builder.
-         * <p>
-         * Each subclass of {@code JsonSchema} provides its own implementation of this method, assembling a fully-initialized and immutable schema
-         * object based on the parameters supplied to the builder.
+         * Defines schemas using the {@code oneOf} keyword.
          *
-         * @return the constructed schema instance of type {@code O}
+         * @param oneOf the alternative schema builders
          */
-        public abstract O build();
+        public B oneOf(O... oneOf) {
+            return oneOf(List.of(oneOf));
+        }
+
+        /**
+         * Defines schemas using the {@code oneOf} keyword.
+         *
+         * @param oneOf the alternative schema builders
+         */
+        public B oneOf(List<O> oneOf) {
+            this.oneOf = oneOf.stream().map(e -> {
+                // Clean metadata from oneOf alternatives to match JSON Schema spec
+                // Note: This mutates the builders, but they're typically used inline and not reused, so this is safe in practice
+                e.description = null;
+                e.nullable = false;
+                e.oneOf = null;
+                e.excludeType = true;
+                return e;
+            }).toList();
+            return (B) this;
+        }
+
+        /**
+         * Builds and returns the concrete {@link JsonSchema} instance configured by this builder.
+         *
+         * @return the constructed schema instance
+         */
+        public abstract JS build();
     }
 }

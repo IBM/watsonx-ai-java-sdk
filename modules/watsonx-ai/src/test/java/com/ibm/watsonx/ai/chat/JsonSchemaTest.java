@@ -675,4 +675,178 @@ public class JsonSchemaTest {
                     .build()
             ), true);
     }
+
+    @Test
+    void should_support_oneOf_on_object_with_alternative_required_fields() {
+
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "age": { "type": number },
+                "dateOfBirth": { "type": "string", "format": "date" }
+              },
+              "oneOf": [
+                { "required": ["age"] },
+                { "required": ["dateOfBirth"] }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("age", JsonSchema.number())
+                    .property("dateOfBirth", JsonSchema.string().format(Format.DATE))
+                    .oneOf(JsonSchema.required("age"), JsonSchema.required("dateOfBirth"))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_support_oneOf_on_property_with_different_constraints() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "age": {
+                  "type": "integer",
+                  "oneOf": [
+                    {
+                      "minimum": 18,
+                      "maximum": 60
+                    },
+                    {
+                      "minimum": 65
+                    }
+                  ]
+                }
+              }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("name", JsonSchema.string())
+                    .property("age", JsonSchema.integer().oneOf(
+                        JsonSchema.integer().minimum(18).maximum(60),
+                        JsonSchema.integer().minimum(65)))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_support_anyOf_on_object_with_alternative_required_fields() {
+
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "age": {
+                  "type": "integer"
+                },
+                "employeeType": {
+                  "enum": [
+                    "full-time",
+                    "part-time"
+                  ]
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "salary"
+                  ]
+                },
+                {
+                  "required": [
+                    "hourlyRate"
+                  ]
+                }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("name", JsonSchema.string())
+                    .property("age", JsonSchema.integer())
+                    .property("employeeType", JsonSchema.enumeration("full-time", "part-time"))
+                    .anyOf(JsonSchema.required("salary"), JsonSchema.required("hourlyRate"))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_remove_nullable_and_description_from_oneOf_alternatives() {
+
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "test": {
+                  "type": "string",
+                  "oneOf": [{ "maxLength": 1}]
+                }
+              }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("test", JsonSchema.string().oneOf(JsonSchema.string("test").nullable().maxLength(1)))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_throw_exception_when_using_unsupported_methods_on_constant_schema() {
+        assertThrows(UnsupportedOperationException.class, () -> JsonSchema.constant("test").description("test"));
+        assertThrows(UnsupportedOperationException.class, () -> JsonSchema.constant("test").nullable());
+        assertThrows(UnsupportedOperationException.class, () -> JsonSchema.constant("test").oneOf(JsonSchema.constant("test")));
+        assertThrows(UnsupportedOperationException.class, () -> JsonSchema.constant("test").oneOf(List.of(JsonSchema.constant("test"))));
+    }
+
+    @Test
+    void should_throw_exception_when_using_unsupported_methods_on_required_schema() {
+        assertThrows(UnsupportedOperationException.class, () -> JsonSchema.required("test").description("test"));
+        assertThrows(UnsupportedOperationException.class, () -> JsonSchema.required("test").nullable());
+        assertThrows(UnsupportedOperationException.class, () -> JsonSchema.required("test").oneOf(JsonSchema.required("test")));
+        assertThrows(UnsupportedOperationException.class, () -> JsonSchema.required("test").oneOf(List.of(JsonSchema.required("test"))));
+    }
+
+    @Test
+    void should_support_oneOf_on_array_with_different_item_types() {
+        System.out.println(Json.toJson(
+            JsonSchema.array().items(JsonSchema.string())
+                .oneOf(
+                    JsonSchema.array().items(JsonSchema.string()).minItems(1),
+                    JsonSchema.array().items(JsonSchema.number()).minItems(1)
+                )
+                .build()
+        ));
+        JSONAssert.assertEquals("""
+            {
+              "type": "array",
+              "oneOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                },
+                {
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 1
+                }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.array()
+                    .oneOf(
+                        JsonSchema.array().items(JsonSchema.string()).minItems(1),
+                        JsonSchema.array().items(JsonSchema.number()).minItems(1)
+                    )
+                    .build()
+            ), true);
+    }
 }
