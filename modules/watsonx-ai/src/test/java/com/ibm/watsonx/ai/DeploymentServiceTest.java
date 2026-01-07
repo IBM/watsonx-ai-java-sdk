@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.ExecutableTool;
+import com.ibm.watsonx.ai.chat.ToolRegistry;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -60,6 +63,7 @@ import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
@@ -2015,5 +2019,93 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
         });
+    }
+
+    @Test
+    void should_handle_tool_calls_using_tool_registry() {
+
+        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 10)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.262Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+
+                        id: 2
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"id":"ADvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": \\"Germany\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z","usage":{"completion_tokens":23,"prompt_tokens":76,"total_tokens":99}}
+                        """)));
+
+        AtomicInteger processedToolCallCount = new AtomicInteger();
+        var tool = new ExecutableTool() {
+
+            @Override
+            public String name() {
+                return "get_current_time";
+            }
+
+            @Override
+            public Tool schema() {
+                return Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
+            }
+
+            @Override
+            public String execute(ToolArguments args) {
+                processedToolCallCount.incrementAndGet();
+                return "";
+            }
+
+        };
+
+        var toolRegistry = ToolRegistry.builder().register(tool).build();
+        var deploymentService = DeploymentService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticator(mockAuthenticator)
+            .tools(tool)
+            .build();
+
+        CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+        AtomicInteger completedToolCallCount = new AtomicInteger();
+        ChatRequest chatRequest = ChatRequest.builder()
+            .deploymentId("my-deployment-id")
+            .messages(UserMessage.text("Message"))
+            .build();
+        deploymentService.chatStreaming(chatRequest, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                future.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                completedToolCallCount.incrementAndGet();
+            }
+        });
+
+        ChatResponse chatResponse = assertDoesNotThrow(() -> future.get());
+        AssistantMessage assistantMessage = chatResponse.toAssistantMessage();
+        assistantMessage.processTools(toolRegistry::execute);
+        assertEquals(2, processedToolCallCount.get());
+        assertEquals(2, completedToolCallCount.get());
+        assertEquals("tool_calls", chatResponse.finishReason().value());
+        assertEquals(23, chatResponse.usage().completionTokens());
+        assertEquals(76, chatResponse.usage().promptTokens());
+        assertEquals(99, chatResponse.usage().totalTokens());
     }
 }
