@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.ToolMessage;
@@ -19,6 +20,7 @@ public class ToolExecutorTest {
     void should_process_tool_calls_and_return_tool_messages() {
         var assistantMessage = new AssistantMessage(null, null, null, null, List.of(ToolCall.of("id", "name", "{ \"code\": \"code\"}")));
         var toolMessages = assistantMessage.processTools((toolName, toolArgs) -> {
+            JSONAssert.assertEquals("{ \"code\": \"code\"}", toolArgs.toString(), true);
             assertEquals("name", toolName);
             assertEquals("code", toolArgs.get("code"));
             return "result";

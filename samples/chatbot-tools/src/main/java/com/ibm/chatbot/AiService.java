@@ -7,6 +7,7 @@ package com.ibm.chatbot;
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatService;
@@ -77,7 +78,7 @@ public class AiService {
     public String chat(String userInput) {
         memory.addMessage(UserMessage.text(userInput));
 
-        var response = chatService.chat(memory.getMemory(), PARAMETERS, EMAIL_TOOL);
+        var response = chatService.chat(memory.getMemory(), PARAMETERS, List.of(EMAIL_TOOL));
         var assistantMessage = response.toAssistantMessage();
         memory.addMessage(assistantMessage);
 
@@ -86,7 +87,7 @@ public class AiService {
                 (name, args) -> Tools.sendEmail(args.get("to"), args.get("subject"), args.get("body"))
             );
             memory.addMessages(toolMessages);
-            assistantMessage = chatService.chat(memory.getMemory(), PARAMETERS, EMAIL_TOOL).toAssistantMessage();
+            assistantMessage = chatService.chat(memory.getMemory(), PARAMETERS, List.of(EMAIL_TOOL)).toAssistantMessage();
             memory.addMessage(assistantMessage);
         }
 
