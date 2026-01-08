@@ -42,7 +42,7 @@ class DefaultLegacyRestClient extends CP4DRestClient {
             return parseTokenResponse(response);
 
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
