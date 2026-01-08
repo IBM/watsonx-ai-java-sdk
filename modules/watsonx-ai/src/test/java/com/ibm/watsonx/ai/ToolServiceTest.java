@@ -466,7 +466,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
             var python = new PythonInterpreterTool(toolService, "my-deployment-id");
 
-            var result = python.execute("print(\"Hello World\")");
+            var result = python.run("print(\"Hello World\")");
             assertEquals("Hello World!", result);
 
             JSONAssert.assertEquals(

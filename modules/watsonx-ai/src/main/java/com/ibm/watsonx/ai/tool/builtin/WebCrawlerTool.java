@@ -5,9 +5,12 @@
 package com.ibm.watsonx.ai.tool.builtin;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import java.util.Map;
+import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.tool.ToolRequest;
@@ -17,13 +20,11 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * Tool for fetching the content of web pages.
  */
 @Experimental
-public class WebCrawlerTool {
+public class WebCrawlerTool implements ExecutableTool {
 
-    /**
-     * Pre-configured tool definition.
-     */
-    public static final Tool TOOL_SCHEMA = Tool.of(
-        "webcrawler",
+    private static final String TOOL_SCHEMA_NAME = "webcrawler";
+    private static final Tool TOOL_SCHEMA = Tool.of(
+        TOOL_SCHEMA_NAME,
         "Fetches and extracts content from a specific webpage URL. Use this tool when you need to retrieve, read, or summarize the content of a known webpage. Do not use for web search or discovering new URLs.",
         JsonSchema.object()
             .property(
@@ -43,6 +44,24 @@ public class WebCrawlerTool {
      */
     public WebCrawlerTool(ToolService toolService) {
         this.toolService = requireNonNull(toolService, "ToolService can't be null");
+    }
+
+    @Override
+    public String name() {
+        return TOOL_SCHEMA_NAME;
+    }
+
+    @Override
+    public Tool schema() {
+        return TOOL_SCHEMA;
+    }
+
+    @Override
+    public String execute(ToolArguments args) {
+        if (isNull(args) || !args.contains("url"))
+            throw new IllegalArgumentException("url argument is required");
+
+        return process(args.get("url"));
     }
 
     /**

@@ -244,6 +244,15 @@ public final class ChatRequest {
         /**
          * Sets the tools available for invocation by the model.
          *
+         * @param executableTools list of {@link ExecutableTool} objects
+         */
+        public Builder tools(ExecutableTool... executableTools) {
+            return tools(Arrays.stream(executableTools).map(ExecutableTool::schema).toList());
+        }
+
+        /**
+         * Sets the tools available for invocation by the model.
+         *
          * @param tools list of {@link Tool} objects
          */
         public Builder tools(Tool... tools) {

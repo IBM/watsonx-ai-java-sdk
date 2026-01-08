@@ -538,11 +538,20 @@ public class ChatService extends CryptoService implements ChatProvider {
 
         /**
          * Sets the default tools that will be available to the model during chat interactions.
+         *
+         * @param executableTools list of {@link ExecutableTool} objects to set as defaults
+         */
+        public Builder tools(ExecutableTool... executableTools) {
+            return tools(Arrays.stream(executableTools).map(ExecutableTool::schema).toList());
+        }
+
+        /**
+         * Sets the default tools that will be available to the model during chat interactions.
          * <p>
          * These tools will be used in all chat requests unless explicitly overridden by passing tools directly to the chat methods. If tools are
          * provided in the chat method call, they will take precedence over these default tools.
          *
-         * @param tools varargs of {@link Tool} objects to set as defaults
+         * @param tools list of {@link Tool} objects to set as defaults
          */
         public Builder tools(Tool... tools) {
             return tools(Arrays.asList(tools));

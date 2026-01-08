@@ -5,13 +5,17 @@
 package com.ibm.watsonx.ai.tool.builtin;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.List;
 import java.util.Map;
+import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Experimental;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
@@ -20,20 +24,18 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * Tool to search online for trends, news, current events, real-time information, or research topics.
  */
 @Experimental
-public class GoogleSearchTool {
+public class GoogleSearchTool implements ExecutableTool {
 
-    public record GoogleSearchResult(String title, String description, String url) {}
-
-    /**
-     * Pre-configured tool definition.
-     */
-    public static final Tool TOOL_SCHEMA = Tool.of(
+    private static final String TOOL_SCHEMA_NAME = "google_search";
+    private static final Tool TOOL_SCHEMA = Tool.of(
         "google_search",
         "Search for online trends, news, current events, real-time information, or research topics.",
         JsonSchema.object()
             .property("query", JsonSchema.string("Google search query"))
             .required("query")
             .build());
+
+    public record GoogleSearchResult(String title, String description, String url) {}
 
     private final ToolService toolService;
 
@@ -44,6 +46,25 @@ public class GoogleSearchTool {
      */
     public GoogleSearchTool(ToolService toolService) {
         this.toolService = requireNonNull(toolService, "ToolService can't be null");
+    }
+
+    @Override
+    public String name() {
+        return TOOL_SCHEMA_NAME;
+    }
+
+    @Override
+    public Tool schema() {
+        return TOOL_SCHEMA;
+    }
+
+    @Override
+    public String execute(ToolArguments args) {
+        if (isNull(args) || !args.contains("query"))
+            throw new IllegalArgumentException("query argument is required");
+
+        var result = search(args.get("query"));
+        return Json.prettyPrint(result);
     }
 
     /**

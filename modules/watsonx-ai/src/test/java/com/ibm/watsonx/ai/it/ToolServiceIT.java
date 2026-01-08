@@ -137,7 +137,7 @@ public class ToolServiceIT {
     void should_execute_python_code_and_return_output() {
         String deploymentId = System.getenv("PYTHON_INTERPRETER_DEPLOYMENT_ID");
         PythonInterpreterTool pythonInterpreterTool = new PythonInterpreterTool(toolService, deploymentId);
-        String result = pythonInterpreterTool.execute("print(\"Hello World!\")");
+        String result = pythonInterpreterTool.run("print(\"Hello World!\")");
         assertNotNull(result);
         assertEquals("Hello World!", result);
     }
@@ -170,7 +170,7 @@ public class ToolServiceIT {
             .modelId("ibm/granite-4-h-small")
             .logRequests(true)
             .logResponses(true)
-            .tools(GoogleSearchTool.TOOL_SCHEMA, WebCrawlerTool.TOOL_SCHEMA)
+            .tools(googleSearchTool.schema(), webCrawlerTool.schema())
             .build();
 
         List<ChatMessage> messages = new ArrayList<>();
@@ -224,14 +224,14 @@ public class ToolServiceIT {
             .messages(
                 SystemMessage.of("You are an helpful assistant. Use python to solve mathematical problems."),
                 UserMessage.text("Tell me the value of the square root of (124 * 2 + 125) / 3"))
-            .tools(PythonInterpreterTool.TOOL_SCHEMA);
+            .tools(pythonInterpreterTool.schema());
 
         var assistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
         chatRequest.addMessages(assistantMessage);
 
         if (assistantMessage.hasToolCalls()) {
             var toolMessages =
-                assistantMessage.processTools((toolName, toolArgs) -> pythonInterpreterTool.execute(toolArgs.get("code")));
+                assistantMessage.processTools((toolName, toolArgs) -> pythonInterpreterTool.run(toolArgs.get("code")));
             chatRequest.addMessages(toolMessages);
             var followUpAssistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
             chatRequest.addMessages(followUpAssistantMessage);
@@ -244,7 +244,7 @@ public class ToolServiceIT {
 
         if (assistantMessage.hasToolCalls()) {
             var toolMessages =
-                assistantMessage.processTools((toolName, toolArgs) -> pythonInterpreterTool.execute(toolArgs.get("code")));
+                assistantMessage.processTools((toolName, toolArgs) -> pythonInterpreterTool.run(toolArgs.get("code")));
             chatRequest.addMessages(toolMessages);
             assistantMessage = chatService.chat(chatRequest.build()).toAssistantMessage();
         }
