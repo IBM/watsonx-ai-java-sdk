@@ -75,7 +75,7 @@ public class IBMCloudAuthenticator implements Authenticator {
         TokenResponse currentToken = token.get();
 
         if (!isExpired(currentToken))
-            return completedFuture(token.get().accessToken());
+            return completedFuture(currentToken.accessToken());
 
         return client.asyncToken(apiKey, grantType).thenApply(identityTokenResponse -> {
             token.getAndSet(identityTokenResponse);
@@ -120,11 +120,7 @@ public class IBMCloudAuthenticator implements Authenticator {
         Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
         Date now = new Date();
 
-        if (expiration.after(now)) {
-            return false;
-        } else {
-            return true;
-        }
+        return !expiration.after(now);
     }
 
     /**
