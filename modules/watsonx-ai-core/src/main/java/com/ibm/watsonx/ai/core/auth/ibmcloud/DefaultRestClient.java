@@ -14,6 +14,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
@@ -48,8 +49,8 @@ final class DefaultRestClient extends IBMCloudRestClient {
     @Override
     public CompletableFuture<TokenResponse> asyncToken(String apiKey, String grantType) {
         return asyncHttpClient.send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString())
-            .thenApplyAsync(response -> fromJson(response.body(), TokenResponse.class),
-                ExecutorProvider.cpuExecutor());
+            .thenApplyAsync(response -> fromJson(response.body(), TokenResponse.class), ExecutorProvider.cpuExecutor())
+            .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
     }
 
     /*
