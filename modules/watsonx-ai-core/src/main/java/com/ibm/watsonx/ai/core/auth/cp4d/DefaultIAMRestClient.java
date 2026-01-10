@@ -44,7 +44,7 @@ class DefaultIAMRestClient extends CP4DRestClient {
             return createTokenResponse(syncHttpClient.send(httpRequest, BodyHandlers.ofString()), tokenResponse);
 
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 

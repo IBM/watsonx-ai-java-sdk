@@ -138,7 +138,8 @@ public class CP4DAuthenticator implements Authenticator {
         return switch(authMode) {
             case IAM -> {
                 Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
-                yield expiration.after(new Date()) ? false : true;
+                Date now = new Date();
+                yield now.after(expiration);
             }
             case LEGACY, ZEN_API_KEY -> false;
         };

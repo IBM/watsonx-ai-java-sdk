@@ -42,7 +42,7 @@ final class DefaultRestClient extends IBMCloudRestClient {
             return fromJson(response.body(), TokenResponse.class);
 
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 

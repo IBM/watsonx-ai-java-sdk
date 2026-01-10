@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -261,9 +262,8 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
                         .build();
 
                     var ex = assertThrows(RuntimeException.class, () -> authenticator.token());
-                    assertEquals(ex.getMessage(), "IOException");
-
-                    // Test lock release.
+                    assertInstanceOf(IOException.class, ex.getCause());
+                    assertEquals(ex.getCause().getMessage(), "IOException");
                     assertEquals("my_super_token", authenticator.token());
                 } catch (Exception e) {
                     fail(e);
