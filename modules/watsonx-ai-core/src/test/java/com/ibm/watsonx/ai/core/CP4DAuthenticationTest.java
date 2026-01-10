@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core;
 import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.IAM;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -330,7 +331,8 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .build();
 
                     var ex = assertThrows(RuntimeException.class, () -> authenticator.token());
-                    assertEquals(ex.getMessage(), "IOException");
+                    assertInstanceOf(IOException.class, ex.getCause());
+                    assertEquals(ex.getCause().getMessage(), "IOException");
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -353,7 +355,8 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .build();
 
                     var ex = assertThrows(RuntimeException.class, () -> authenticator.token());
-                    assertEquals(ex.getMessage(), "IOException");
+                    assertInstanceOf(IOException.class, ex.getCause());
+                    assertEquals(ex.getCause().getMessage(), "IOException");
                 } catch (Exception e) {
                     fail(e);
                 }
