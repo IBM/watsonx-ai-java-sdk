@@ -120,7 +120,7 @@ public class IBMCloudAuthenticator implements Authenticator {
         Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
         Date now = new Date();
 
-        return !expiration.after(now);
+        return now.after(expiration);
     }
 
     /**
