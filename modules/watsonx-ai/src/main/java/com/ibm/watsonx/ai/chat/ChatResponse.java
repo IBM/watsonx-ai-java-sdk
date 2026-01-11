@@ -20,13 +20,23 @@ public final class ChatResponse {
     public static record ResultChoice(Integer index, ResultMessage message, String finishReason) {
 
         /**
-         * Returns a copy of this {@link ResultChoice} with a result message.
+         * Returns a copy of this {@link ResultChoice} with a new result message.
          *
-         * @param newResultMessage the new result message
+         * @param resultMessage the new result message
          * @return a new {@link ResultChoice} instance
          */
-        public ResultChoice withResultMessage(ResultMessage newResultMessage) {
-            return new ResultChoice(index, newResultMessage, finishReason);
+        public ResultChoice withResultMessage(ResultMessage resultMessage) {
+            return new ResultChoice(index, resultMessage, finishReason);
+        }
+
+        /**
+         * Returns a copy of this {@link ResultChoice} with a new finish reason.
+         *
+         * @param finishReason the new finish reason
+         * @return a new {@link ResultChoice} instance
+         */
+        public ResultChoice withFinishReason(FinishReason finishReason) {
+            return new ResultChoice(index, message, finishReason.value());
         }
     }
 

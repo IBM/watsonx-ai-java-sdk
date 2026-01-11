@@ -61,7 +61,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
 
     private ChatParameters(Builder builder) {
         super(builder);
-        toolChoiceOption = nonNull(builder.toolChoiceOption) ? builder.toolChoiceOption.type() : null;
+        toolChoiceOption = nonNull(builder.toolChoiceOption) ? builder.toolChoiceOption.value() : null;
         frequencyPenalty = builder.frequencyPenalty;
         logitBias = builder.logitBias;
         logprobs = builder.logprobs;
@@ -77,7 +77,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         context = builder.context;
 
         if (nonNull(builder.responseFormat)) {
-            responseFormat = builder.responseFormat.type();
+            responseFormat = builder.responseFormat.value();
             jsonSchema = builder.jsonSchema;
         } else {
             responseFormat = null;
@@ -615,14 +615,14 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         JSON("json_object"),
         JSON_SCHEMA("json_schema");
 
-        private final String type;
+        private final String value;
 
-        ResponseFormat(String type) {
-            this.type = type;
+        ResponseFormat(String value) {
+            this.value = value;
         }
 
-        public String type() {
-            return type;
+        public String value() {
+            return value;
         }
     }
 
@@ -645,14 +645,14 @@ public final class ChatParameters extends WatsonxCryptoParameters {
          */
         NONE("none");
 
-        private final String type;
+        private final String value;
 
-        ToolChoiceOption(String type) {
-            this.type = type;
+        ToolChoiceOption(String value) {
+            this.value = value;
         }
 
-        public String type() {
-            return type;
+        public String value() {
+            return value;
         }
     }
 }
