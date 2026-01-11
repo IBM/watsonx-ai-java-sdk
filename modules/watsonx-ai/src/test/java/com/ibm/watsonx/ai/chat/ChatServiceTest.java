@@ -182,7 +182,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             assertEquals(0, chatResponse.choices().get(0).index());
             assertEquals("assistant", chatResponse.choices().get(0).message().role());
             assertEquals("Hello!!!", chatResponse.choices().get(0).message().content());
-            assertEquals("stop", chatResponse.choices().get(0).finishReason());
+            assertEquals("tool_calls", chatResponse.choices().get(0).finishReason());
             assertEquals(1749288614, chatResponse.created());
             assertEquals("2025-06-07T09:30:15.122Z", chatResponse.createdAt());
             assertNotNull(chatResponse.usage());

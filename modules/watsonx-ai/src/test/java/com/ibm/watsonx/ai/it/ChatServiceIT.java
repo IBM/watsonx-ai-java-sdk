@@ -42,6 +42,7 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -451,7 +452,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .modelId("ibm/granite-4-h-small")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -477,6 +478,7 @@ public class ChatServiceIT {
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
             assertEquals(1, assistantMessage.toolCalls().size());
+            assertEquals(chatResponse.choices().get(0).finishReason(), FinishReason.TOOL_CALLS.value());
         }
 
         @Test
@@ -1202,6 +1204,7 @@ public class ChatServiceIT {
 
             ChatParameters parameters = ChatParameters.builder()
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
+                .maxCompletionTokens(0)
                 .build();
 
             ChatRequest request = ChatRequest.builder()
@@ -1216,6 +1219,8 @@ public class ChatServiceIT {
                 .build();
 
             CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<CompletedToolCall> futureToolCall = new CompletableFuture<>();
+
             assertDoesNotThrow(() -> chatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -1227,13 +1232,21 @@ public class ChatServiceIT {
                 }
 
                 @Override
+                public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                    futureToolCall.complete(completeToolCall);
+                }
+
+                @Override
                 public void onError(Throwable error) {}
             }));
 
             var chatResponse = assertDoesNotThrow(() -> future.get(10, TimeUnit.SECONDS));
+            var completedToolCall = assertDoesNotThrow(() -> futureToolCall.get(3, TimeUnit.SECONDS));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
+            assertNotNull(completedToolCall);
+            assertEquals(chatResponse.choices().get(0).finishReason(), FinishReason.TOOL_CALLS.value());
             assertEquals(1, assistantMessage.toolCalls().size());
         }
 

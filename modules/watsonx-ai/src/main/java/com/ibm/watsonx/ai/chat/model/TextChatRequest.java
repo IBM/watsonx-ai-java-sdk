@@ -74,7 +74,7 @@ public final class TextChatRequest {
         reasoningEffort = builder.reasoningEffort;
 
         if (nonNull(builder.responseFormat)) {
-            responseFormat = builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.type())
+            responseFormat = builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.value())
                 ? Map.of("type", builder.responseFormat, "json_schema", builder.jsonSchema)
                 : Map.of("type", builder.responseFormat);
         } else {

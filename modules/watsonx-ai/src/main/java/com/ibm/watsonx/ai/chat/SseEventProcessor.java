@@ -20,6 +20,7 @@ import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEv
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
@@ -166,9 +167,29 @@ public class SseEventProcessor {
             }
         }
 
-        // Nothing to process.
-        if (chunk.choices().size() == 0)
-            return ProcessResult.empty();
+        if (chunk.choices().size() == 0) {
+
+            // For certain models, watsonx.ai does not return FinishReason.TOOL_CHOICE when ToolChoiceOption.REQUIRED is set.
+            // Therefore, this check is required to ensure that ChatHandler.onCompleteToolCall is called for the last tool in the
+            // StreamingToolFetcher. Lines #301–#304 are not enough.
+
+            if (toolFetchers.isEmpty())
+                return ProcessResult.empty();
+
+            toolFetchers.keySet().forEach(messageIndex -> {
+
+                if (nonNull(finishReasons.get(messageIndex)))
+                    // FinishReason is not null, so the tool call has already been processed.
+                    return;
+
+                finishReasons.put(messageIndex, FinishReason.TOOL_CALLS.value());
+                var tools = toolFetchers.get(messageIndex);
+                events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
+            });
+
+
+            return events.isEmpty() ? ProcessResult.empty() : ProcessResult.events(events);
+        }
 
         var message = chunk.choices().get(0);
         var messageIndex = message.index();

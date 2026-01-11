@@ -22,7 +22,9 @@ import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
@@ -125,9 +127,17 @@ public class ChatService extends CryptoService implements ChatProvider {
                 .build();
         }
 
-        return chatResponse.toBuilder()
-            .extractionTags(extractionTags)
-            .build();
+        var response = chatResponse.toBuilder();
+
+        // For certain models, watsonx.ai does not return FinishReason.TOOL_CHOICE when ToolChoiceOption.REQUIRED is set
+        if (ToolChoiceOption.REQUIRED.value().equals(textChatRequest.toolChoiceOption()))
+            response.choices(
+                chatResponse.choices().stream()
+                    .map(resultChoice -> resultChoice.withFinishReason(FinishReason.TOOL_CALLS))
+                    .toList()
+            );
+
+        return response.extractionTags(extractionTags).build();
     }
 
     @Override
