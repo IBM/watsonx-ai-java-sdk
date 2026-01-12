@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>deployment</artifactId>
-  <version>0.16.0</version>
+  <version>0.17.0</version>
   <name>Deployment</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>sample-parent</artifactId>
-    <version>0.16.0</version>
+    <version>0.17.0</version>
     <relativePath>../</relativePath>
   </parent>
 
