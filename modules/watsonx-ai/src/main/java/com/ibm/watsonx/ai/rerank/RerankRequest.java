@@ -49,5 +49,5 @@ public record RerankRequest(
      * @param inputs Whether to include input texts in the response.
      * @param query Whether to include the query in the response.
      */
-    public record ReturnOptions(Integer topN, boolean inputs, Boolean query) {}
+    public record ReturnOptions(Integer topN, Boolean inputs, Boolean query) {}
 }
