@@ -261,48 +261,16 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var tools = isNull(chatRequest.tools()) ? defaultTools : chatRequest.tools();
         tools = nonNull(tools) && !tools.isEmpty() ? tools : null;
         var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
-
-        Boolean includeReasoning = null;
-        String thinkingEffort = null;
-        Map<String, Object> chatTemplateKwargs = null;
-        if (nonNull(chatRequest.thinking())) {
-            var thinking = chatRequest.thinking();
-            chatTemplateKwargs = Map.of("thinking", true);
-            includeReasoning = thinking.includeReasoning();
-            thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
-        }
 
         logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 
+        // Deployment text chat API only accepts: messages, context, tools, tool_choice, tool_choice_option
         return TextChatRequest.builder()
             .messages(messages)
             .tools(tools)
             .toolChoiceOption(getOrDefault(parameters.toolChoiceOption(), defaultParameters.toolChoiceOption()))
             .toolChoice(getOrDefault(parameters.toolChoice(), defaultParameters.toolChoice()))
-            .frequencyPenalty(getOrDefault(parameters.frequencyPenalty(), defaultParameters.frequencyPenalty()))
-            .logitBias(getOrDefault(parameters.logitBias(), defaultParameters.logitBias()))
-            .logprobs(getOrDefault(parameters.logprobs(), defaultParameters.logprobs()))
-            .topLogprobs(getOrDefault(parameters.topLogprobs(), defaultParameters.topLogprobs()))
-            .maxCompletionTokens(getOrDefault(parameters.maxCompletionTokens(), defaultParameters.maxCompletionTokens()))
-            .n(getOrDefault(parameters.n(), defaultParameters.n()))
-            .presencePenalty(getOrDefault(parameters.presencePenalty(), defaultParameters.presencePenalty()))
-            .seed(getOrDefault(parameters.seed(), defaultParameters.seed()))
-            .stop(getOrDefault(parameters.stop(), defaultParameters.stop()))
-            .temperature(getOrDefault(parameters.temperature(), defaultParameters.temperature()))
-            .topP(getOrDefault(parameters.topP(), defaultParameters.topP()))
-            .responseFormat(getOrDefault(parameters.responseFormat(), defaultParameters.responseFormat()))
-            .jsonSchema(getOrDefault(parameters.jsonSchema(), defaultParameters.jsonSchema()))
             .context(getOrDefault(parameters.context(), defaultParameters.context()))
-            .timeLimit(getOrDefault(parameters.timeLimit(), timeout.toMillis()))
-            .guidedChoice(getOrDefault(parameters.guidedChoice(), defaultParameters.guidedChoice()))
-            .guidedRegex(getOrDefault(parameters.guidedRegex(), defaultParameters.guidedRegex()))
-            .guidedGrammar(getOrDefault(parameters.guidedGrammar(), defaultParameters.guidedGrammar()))
-            .repetitionPenalty(getOrDefault(parameters.repetitionPenalty(), defaultParameters.repetitionPenalty()))
-            .lengthPenalty(getOrDefault(parameters.lengthPenalty(), defaultParameters.lengthPenalty()))
-            .includeReasoning(includeReasoning)
-            .reasoningEffort(thinkingEffort)
-            .chatTemplateKwargs(chatTemplateKwargs)
             .build();
     }
 
