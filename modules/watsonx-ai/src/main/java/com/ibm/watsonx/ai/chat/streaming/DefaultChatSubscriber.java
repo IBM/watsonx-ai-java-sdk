@@ -5,14 +5,10 @@
 package com.ibm.watsonx.ai.chat.streaming;
 
 import static java.util.Objects.nonNull;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
-import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
-import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.ErrorEvent;
-import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
-import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
-import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEvent;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
@@ -24,9 +20,7 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * {@link ExecutorProvider#callbackExecutor()}, which automatically switches to virtual threads on Java 21+ for improved scalability, or uses a cached
  * thread pool on earlier Java versions.
  */
-public class DefaultChatSubscriber implements ChatSubscriber {
-    private final SseEventProcessor processor;
-    private final ChatHandlerDecorator handler;
+public class DefaultChatSubscriber extends ChatSubscriber {
 
     /**
      * Creates a new DefaultChatSubscriber.
@@ -35,39 +29,12 @@ public class DefaultChatSubscriber implements ChatSubscriber {
      * @param handler the decorated handler that executes user callbacks
      */
     public DefaultChatSubscriber(SseEventProcessor processor, ChatHandlerDecorator handler) {
-        this.processor = processor;
-        this.handler = handler;
-    }
-
-    @Override
-    public void onNext(String partialMessage) {
-        var result = processor.processChunk(partialMessage);
-
-        if (result.hasError()) {
-            Throwable error = result.error();
-            if (error instanceof RuntimeException re)
-                throw re;
-            throw new RuntimeException(error);
-        }
-
-        for (var event : result.events()) {
-            if (event instanceof PartialResponseEvent e) {
-                handler.onPartialResponse(e.content(), e.chunk());
-            } else if (event instanceof PartialThinkingEvent e) {
-                handler.onPartialThinking(e.content(), e.chunk());
-            } else if (event instanceof PartialToolCallEvent e) {
-                handler.onPartialToolCall(e.toolCall());
-            } else if (event instanceof CompleteToolCallEvent e) {
-                handler.onCompleteToolCall(e.completeToolCall());
-            } else if (event instanceof ErrorEvent e) {
-                handler.onError(e.error());
-            }
-        }
+        super(processor, handler);
     }
 
     @Override
     public CompletableFuture<ChatResponse> onComplete() {
-        return handler.awaitCallbacks()
+        return awaitCallbacks()
             .thenCompose(completeToolCalls -> {
                 var response = processor.buildResponse();
                 if (nonNull(completeToolCalls) && !completeToolCalls.isEmpty()) {
@@ -83,13 +50,32 @@ public class DefaultChatSubscriber implements ChatSubscriber {
                 } else {
                     handler.onCompleteResponse(response);
                 }
-                return handler.awaitCallbacks().thenApply(ignored -> response);
+                return awaitCallbacks().thenApply(ignored -> response);
             });
     }
 
     @Override
     public CompletableFuture<Void> onError(Throwable throwable) {
         handler.onError(throwable);
-        return handler.awaitCallbacks().thenApply(v -> null);
+        return awaitCallbacks().thenApply(v -> null);
+    }
+
+    /**
+     * Waits for all pending handler callbacks to complete.
+     * <p>
+     * This method delegates to {@link ChatHandlerDecorator#awaitCallbacks()} to ensure that:
+     * <ul>
+     * <li>All parallel tool call callbacks have finished executing</li>
+     * <li>The sequential callback chain has completed</li>
+     * </ul>
+     *
+     * @return a CompletableFuture that resolves to a list of all processed {@link CompletedToolCall} objects
+     */
+    private CompletableFuture<List<CompletedToolCall>> awaitCallbacks() {
+        // This cast is safe because the constructor enforces ChatHandlerDecorator type
+        if (!(handler instanceof ChatHandlerDecorator handlerDecorator))
+            throw new IllegalStateException("Handler must be a ChatHandlerDecorator");
+
+        return handlerDecorator.awaitCallbacks();
     }
 }
