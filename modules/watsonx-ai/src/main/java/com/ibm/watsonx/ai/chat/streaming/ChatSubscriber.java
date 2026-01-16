@@ -4,71 +4,86 @@
  */
 package com.ibm.watsonx.ai.chat.streaming;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.SseEventProcessor;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.ErrorEvent;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEvent;
 
 /**
- * Subscriber abstraction for consuming raw Server-Sent Events.
+ * Abstract base class for consuming and processing Server-Sent Events (SSE) in chat streaming operations.
+ * <p>
+ * This class providing a common implementation for processing SSE chunks and dispatching events to the handler, while allowing subclasses to
+ * customize error handling and completion behavior.
  */
-public interface ChatSubscriber {
-
+public abstract class ChatSubscriber {
     /**
-     * Called when a new SSE message chunk is received from the server.
-     *
-     * @param partialMessage the raw SSE event payload (e.g., "data: {...}")
+     * The SSE event processor that parses and transforms raw SSE chunks into domain events.
      */
-    void onNext(String partialMessage);
+    protected final SseEventProcessor processor;
 
     /**
-     * Called if an error occurs during streaming.
+     * The handler that receives callbacks for chat events.
+     */
+    protected final ChatHandler handler;
+
+    /**
+     * Constructs a new ChatSubscriber with the specified processor and handler.
+     *
+     * @param processor the SSE event processor for parsing chunks
+     * @param handler the handler for receiving chat events
+     */
+    protected ChatSubscriber(SseEventProcessor processor, ChatHandler handler) {
+        this.processor = processor;
+        this.handler = handler;
+    }
+
+    /**
+     * Processes a new SSE message chunk and dispatches resulting events to the handler.
+     *
+     * @param partialMessage the raw SSE event payload
+     */
+    public void onNext(String partialMessage) {
+        var result = processor.processChunk(partialMessage);
+
+        if (result.hasError()) {
+            Throwable error = result.error();
+            if (error instanceof RuntimeException re)
+                throw re;
+            throw new RuntimeException(error);
+        }
+
+        for (var event : result.events()) {
+            if (event instanceof PartialResponseEvent e) {
+                handler.onPartialResponse(e.content(), e.chunk());
+            } else if (event instanceof PartialThinkingEvent e) {
+                handler.onPartialThinking(e.content(), e.chunk());
+            } else if (event instanceof PartialToolCallEvent e) {
+                handler.onPartialToolCall(e.toolCall());
+            } else if (event instanceof CompleteToolCallEvent e) {
+                handler.onCompleteToolCall(e.completeToolCall());
+            } else if (event instanceof ErrorEvent e) {
+                handler.onError(e.error());
+            }
+        }
+    }
+
+    /**
+     * Handles errors that occur during the streaming session.
      *
      * @param throwable the error that occurred
+     * @return a CompletableFuture that completes when error handling is finished
      */
-    CompletableFuture<Void> onError(Throwable throwable);
+    public abstract CompletableFuture<Void> onError(Throwable throwable);
 
     /**
-     * Called once the streaming session has completed successfully.
+     * Handles the completion of the streaming session.
      *
      * @return a CompletableFuture that completes with the final {@link ChatResponse}
      */
-    CompletableFuture<ChatResponse> onComplete();
-
-    /**
-     * Builds a map indicating whether each tool has parameters.
-     *
-     * @param tools the list of available {@link Tool}s
-     * @return a map where keys are tool names and values indicate if the tool has parameters
-     */
-    static Map<String, Boolean> toolHasParameters(List<Tool> tools) {
-        if (isNull(tools) || tools.size() == 0)
-            return Map.of();
-
-        return tools.stream().collect(toMap(
-            tool -> tool.function().name(),
-            Tool::hasParameters
-        ));
-    }
-
-    /**
-     * Handles an error by unwrapping the root cause and notifying the {@link ChatHandler}.
-     * <p>
-     * This method extracts the underlying cause from the throwable (if present) and invokes the handler's {@code onError} callback. It is designed to
-     * be used in {@link CompletableFuture} exception handlers, particularly with {@code exceptionally} or {@code completeExceptionally}.
-     *
-     * @param t the {@link Throwable} to handle (typically a {@link java.util.concurrent.CompletionException})
-     * @param handler the {@link ChatHandler} that should be notified of the error
-     * @return the unwrapped {@link Throwable} (the cause if present, otherwise the original throwable)
-     */
-    static Throwable handleError(Throwable t, ChatHandler handler) {
-        t = nonNull(t.getCause()) ? t.getCause() : t;
-        handler.onError(t);
-        return t;
-    }
+    public abstract CompletableFuture<ChatResponse> onComplete();
 }
