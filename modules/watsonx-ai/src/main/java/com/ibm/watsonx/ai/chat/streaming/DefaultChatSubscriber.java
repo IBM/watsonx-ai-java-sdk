@@ -7,6 +7,8 @@ package com.ibm.watsonx.ai.chat.streaming;
 import static java.util.Objects.nonNull;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Flow;
+import java.util.concurrent.Flow.Subscription;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
@@ -58,6 +60,67 @@ public class DefaultChatSubscriber extends ChatSubscriber {
     public CompletableFuture<Void> onError(Throwable throwable) {
         handler.onError(throwable);
         return awaitCallbacks().thenApply(v -> null);
+    }
+
+    /**
+     * Creates a subscriber that listens to raw SSE messages from the chat stream.
+     */
+    public Flow.Subscriber<String> asFlowSubscriber(
+        CompletableFuture<ChatResponse> response,
+        boolean failOnFirstError) {
+
+        return new Flow.Subscriber<String>() {
+            private Flow.Subscription subscription;
+            private volatile boolean continueProcessing = true;
+
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                this.subscription = subscription;
+                this.subscription.request(1);
+            }
+
+            @Override
+            public void onNext(String partialMessage) {
+                try {
+
+                    DefaultChatSubscriber.this.onNext(partialMessage);
+
+                } catch (RuntimeException e) {
+
+                    Throwable t = nonNull(e.getCause()) ? e.getCause() : e;
+                    continueProcessing = failOnFirstError;
+                    DefaultChatSubscriber.this.onError(t).whenComplete((v, err) -> {
+                        if (!continueProcessing)
+                            response.completeExceptionally(t);
+                    });
+
+                } finally {
+                    if (continueProcessing)
+                        subscription.request(1);
+                    else {
+                        subscription.cancel();
+                    }
+                }
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                DefaultChatSubscriber.this.onError(throwable);
+            }
+
+            @Override
+            public void onComplete() {
+                DefaultChatSubscriber.this.onComplete()
+                    .whenComplete((chatResponse, error) -> {
+                        if (nonNull(error)) {
+                            error = nonNull(error.getCause()) ? error.getCause() : error;
+                            DefaultChatSubscriber.this.onError(error);
+                            response.completeExceptionally(error);
+                        } else
+                            response.complete(chatResponse);
+                    });
+            }
+        };
     }
 
     /**

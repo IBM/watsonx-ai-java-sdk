@@ -26,7 +26,6 @@ import com.ibm.watsonx.ai.chat.SseEventProcessor;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
-import com.ibm.watsonx.ai.chat.streaming.ChatSubscriber;
 import com.ibm.watsonx.ai.chat.streaming.DefaultChatSubscriber;
 import com.ibm.watsonx.ai.chat.streaming.StreamingUtils;
 import com.ibm.watsonx.ai.core.SseEventLogger;
@@ -197,7 +196,7 @@ final class DefaultRestClient extends DeploymentRestClient {
                 new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
             );
 
-        var subscriber = subscriber(chatSubscriber, response, !handler.failOnFirstError());
+        var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());
         asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
             : BodySubscribers.fromLineSubscriber(subscriber))
@@ -280,70 +279,6 @@ final class DefaultRestClient extends DeploymentRestClient {
             @Override
             public void onComplete() {
                 chatSubscriber.onComplete();
-            }
-        };
-    }
-
-    /**
-     * Creates a subscriber that listens to raw SSE messages from the chat stream, and delegates processing to a {@link ChatSubscriber}.
-     */
-    private Flow.Subscriber<String> subscriber(
-        ChatSubscriber chatSubscriber,
-        CompletableFuture<ChatResponse> response,
-        boolean failOnFirstError) {
-
-        return new Flow.Subscriber<String>() {
-            private Flow.Subscription subscription;
-            private volatile boolean continueProcessing = true;
-
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                this.subscription = subscription;
-                this.subscription.request(1);
-            }
-
-            @Override
-            public void onNext(String partialMessage) {
-                try {
-
-                    chatSubscriber.onNext(partialMessage);
-
-                } catch (RuntimeException e) {
-
-                    Throwable t = nonNull(e.getCause()) ? e.getCause() : e;
-                    continueProcessing = failOnFirstError;
-                    chatSubscriber.onError(t)
-                        .whenComplete((v, err) -> {
-                            if (!continueProcessing) {
-                                response.completeExceptionally(t);
-                            }
-                        });
-
-                } finally {
-                    if (continueProcessing)
-                        subscription.request(1);
-                    else {
-                        subscription.cancel();
-                    }
-                }
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                chatSubscriber.onError(throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                chatSubscriber.onComplete()
-                    .whenComplete((chatResponse, error) -> {
-                        if (nonNull(error)) {
-                            error = nonNull(error.getCause()) ? error.getCause() : error;
-                            chatSubscriber.onError(error);
-                            response.completeExceptionally(error);
-                        } else
-                            response.complete(chatResponse);
-                    });
             }
         };
     }
