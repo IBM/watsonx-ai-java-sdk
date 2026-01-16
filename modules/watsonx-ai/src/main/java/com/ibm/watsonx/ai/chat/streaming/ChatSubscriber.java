@@ -4,15 +4,8 @@
  */
 package com.ibm.watsonx.ai.chat.streaming;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.model.Tool;
 
 /**
  * Subscriber abstraction for consuming raw Server-Sent Events.
@@ -39,36 +32,4 @@ public interface ChatSubscriber {
      * @return a CompletableFuture that completes with the final {@link ChatResponse}
      */
     CompletableFuture<ChatResponse> onComplete();
-
-    /**
-     * Builds a map indicating whether each tool has parameters.
-     *
-     * @param tools the list of available {@link Tool}s
-     * @return a map where keys are tool names and values indicate if the tool has parameters
-     */
-    static Map<String, Boolean> toolHasParameters(List<Tool> tools) {
-        if (isNull(tools) || tools.size() == 0)
-            return Map.of();
-
-        return tools.stream().collect(toMap(
-            tool -> tool.function().name(),
-            Tool::hasParameters
-        ));
-    }
-
-    /**
-     * Handles an error by unwrapping the root cause and notifying the {@link ChatHandler}.
-     * <p>
-     * This method extracts the underlying cause from the throwable (if present) and invokes the handler's {@code onError} callback. It is designed to
-     * be used in {@link CompletableFuture} exception handlers, particularly with {@code exceptionally} or {@code completeExceptionally}.
-     *
-     * @param t the {@link Throwable} to handle (typically a {@link java.util.concurrent.CompletionException})
-     * @param handler the {@link ChatHandler} that should be notified of the error
-     * @return the unwrapped {@link Throwable} (the cause if present, otherwise the original throwable)
-     */
-    static Throwable handleError(Throwable t, ChatHandler handler) {
-        t = nonNull(t.getCause()) ? t.getCause() : t;
-        handler.onError(t);
-        return t;
-    }
 }

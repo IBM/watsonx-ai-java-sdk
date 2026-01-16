@@ -28,6 +28,7 @@ import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.streaming.ChatSubscriber;
 import com.ibm.watsonx.ai.chat.streaming.DefaultChatSubscriber;
+import com.ibm.watsonx.ai.chat.streaming.StreamingUtils;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -192,7 +193,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
         var chatSubscriber =
             new DefaultChatSubscriber(
-                new SseEventProcessor(ChatSubscriber.toolHasParameters(textChatRequest.tools()), context.extractionTags()),
+                new SseEventProcessor(textChatRequest.tools(), context.extractionTags()),
                 new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
             );
 
@@ -202,7 +203,7 @@ final class DefaultRestClient extends DeploymentRestClient {
             : BodySubscribers.fromLineSubscriber(subscriber))
             .thenAccept(r -> {})
             .exceptionally(t -> {
-                response.completeExceptionally(ChatSubscriber.handleError(t, handler));
+                response.completeExceptionally(StreamingUtils.handleError(t, handler));
                 return null;
             });
         return response;

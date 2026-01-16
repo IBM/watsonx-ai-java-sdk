@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.chat;
 import static com.ibm.watsonx.ai.chat.model.FinishReason.TOOL_CALLS;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
+import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.streaming.StreamingToolFetcher;
@@ -119,13 +121,13 @@ public class SseEventProcessor {
     }
 
     /**
-     * Creates a new ChatStreamProcessor for a streaming session.
+     * Creates a new SseEventProcessor for a streaming session.
      *
-     * @param toolHasParameters map indicating which tools have parameters
+     * @param tools the list of available {@link Tool}s
      * @param extractionTags optional tags for extracting thinking content from the response
      */
-    public SseEventProcessor(Map<String, Boolean> toolHasParameters, ExtractionTags extractionTags) {
-        this.toolHasParameters = toolHasParameters;
+    public SseEventProcessor(List<Tool> tools, ExtractionTags extractionTags) {
+        this.toolHasParameters = toolHasParameters(tools);
         this.extractionTags = extractionTags;
         stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
     }
@@ -350,5 +352,21 @@ public class SseEventProcessor {
             .usage(chatUsage)
             .choices(choices)
             .build();
+    }
+
+    /**
+     * Builds a map indicating whether each tool has parameters.
+     *
+     * @param tools the list of available {@link Tool}s
+     * @return a map where keys are tool names and values indicate if the tool has parameters
+     */
+    private static Map<String, Boolean> toolHasParameters(List<Tool> tools) {
+        if (isNull(tools) || tools.size() == 0)
+            return Map.of();
+
+        return tools.stream().collect(toMap(
+            tool -> tool.function().name(),
+            Tool::hasParameters
+        ));
     }
 }
