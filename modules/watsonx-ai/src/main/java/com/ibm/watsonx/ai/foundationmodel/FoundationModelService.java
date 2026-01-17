@@ -6,9 +6,11 @@ package com.ibm.watsonx.ai.foundationmodel;
 
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
+import java.util.Optional;
 import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
+import com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression;
 
 /**
  * Service class to interact with IBM watsonx.ai Foundation Models APIs.
@@ -20,8 +22,7 @@ import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
  *     .baseUrl("https://...") // or use CloudRegion
  *     .build();
  *
- * var result =
- *     service.getModelDetails("meta-llama/llama-3-3-70b-instruct").orElseThrow();
+ * var result = service.getModel("meta-llama/llama-3-3-70b-instruct").orElseThrow();
  * var maxOutputTokens = result.maxOutputTokens();
  * var maxSequenceLength = result.maxSequenceLength();
  * }</pre>
@@ -53,6 +54,20 @@ public class FoundationModelService extends WatsonxService {
      */
     public FoundationModelResponse<FoundationModel> getModels() {
         return getModels(FoundationModelParameters.builder().build());
+    }
+
+    /**
+     * Retrieves a foundation model by its unique model id.
+     *
+     * @param modelId the unique identifier of the foundation model.
+     * @return an {@link Optional} containing the {@link FoundationModel} if found.
+     */
+    public Optional<FoundationModel> getModel(String modelId) {
+        requireNonNullElse(modelId, "The modelId must be provided");
+        var resources = getModels(Filter.of(Expression.modelId(modelId))).resources();
+        return resources.isEmpty()
+            ? Optional.empty()
+            : Optional.of(resources.get(0));
     }
 
     /**

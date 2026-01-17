@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
  * // excluding any models that also support the embedding function.
  * var filter = Filter.and(
  *     function("rerank"),
- *     not(Expression.function("embedding"))
+ *     not(function("embedding"))
  * );
  * }</pre>
  *

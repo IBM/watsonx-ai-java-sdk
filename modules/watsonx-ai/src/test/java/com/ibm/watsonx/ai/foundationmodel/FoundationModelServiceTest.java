@@ -10,6 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.jsonResponse;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -44,6 +45,45 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
             .build();
 
         JSONAssert.assertEquals(EXPECTED, toJson(service.getModels()), true);
+    }
+
+    @Test
+    void should_return_model_by_id() throws Exception {
+
+        String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
+
+        var queryParameters =
+            """
+                version=%s\
+                &filters=modelid_test""".formatted(API_VERSION);
+
+        wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters))
+            .withHeader("Accept", equalTo("application/json"))
+            .willReturn(jsonResponse(EXPECTED, 200))
+        );
+
+        var service = FoundationModelService.builder()
+            .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
+            .build();
+
+        var result = service.getModel("test");
+        assertTrue(result.isPresent());
+        assertEquals("core42/jais-13b-chat", result.get().modelId());
+        assertEquals(2048, result.get().maxSequenceLength());
+        assertEquals(2048, result.get().maxOutputTokens());
+
+        wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters))
+            .withHeader("Accept", equalTo("application/json"))
+            .willReturn(jsonResponse("""
+                {
+                    "total_count": 0,
+                    "limit": 100,
+                    "resources": []
+                }""", 200))
+        );
+
+        result = service.getModel("test");
+        assertFalse(result.isPresent());
     }
 
     @Test
