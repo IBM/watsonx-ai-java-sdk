@@ -28,7 +28,7 @@ public class GoogleSearchTool implements ExecutableTool {
 
     private static final String TOOL_SCHEMA_NAME = "google_search";
     private static final Tool TOOL_SCHEMA = Tool.of(
-        "google_search",
+        TOOL_SCHEMA_NAME,
         "Search for online trends, news, current events, real-time information, or research topics.",
         JsonSchema.object()
             .property("query", JsonSchema.string("Google search query"))
@@ -86,7 +86,7 @@ public class GoogleSearchTool implements ExecutableTool {
      */
     public List<GoogleSearchResult> search(String query, Integer maxResults) {
 
-        requireNonNull(query, "input can't be null");
+        requireNonNull(query, "query can't be null");
         maxResults = requireNonNullElse(maxResults, 10);
 
         var structuredInput = Map.<String, Object>of("q", query);

@@ -29,6 +29,7 @@ import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.PythonInterpreterTool;
+import com.ibm.watsonx.ai.tool.builtin.RAGQueryTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
@@ -57,15 +58,19 @@ public class ToolRegistryTest {
         var weatherTool = new WeatherTool(mockToolService);
         var webCrawlerTool = new WebCrawlerTool(mockToolService);
         var wikipediaTool = new WikipediaTool(mockToolService);
-
-
-        var toolRegistry = ToolRegistry.builder()
-            .register(googleSearchTool, pythonInterpreterTool, tavilySearchTool, weatherTool, webCrawlerTool, wikipediaTool)
+        var ragQueryTool = RAGQueryTool.builder()
+            .toolService(mockToolService)
+            .projectId("project-id")
+            .vectorIndexIds("index-1")
             .build();
 
-        assertEquals(6, toolRegistry.tools().size());
+        var toolRegistry = ToolRegistry.builder()
+            .register(googleSearchTool, pythonInterpreterTool, tavilySearchTool, weatherTool, webCrawlerTool, wikipediaTool, ragQueryTool)
+            .build();
+
+        assertEquals(7, toolRegistry.tools().size());
         assertEquals(1, toolRegistry.tools(webCrawlerTool.name()).size());
-        assertEquals(6, toolRegistry.tools(Set.of()).size());
+        assertEquals(7, toolRegistry.tools(Set.of()).size());
     }
 
     @Test
@@ -84,9 +89,14 @@ public class ToolRegistryTest {
         var weatherTool = new WeatherTool(mockToolService);
         var webCrawlerTool = new WebCrawlerTool(mockToolService);
         var wikipediaTool = new WikipediaTool(mockToolService);
+        var ragQueryTool = RAGQueryTool.builder()
+            .toolService(mockToolService)
+            .projectId("project-id")
+            .vectorIndexIds("index-1")
+            .build();
 
         var toolRegistry = ToolRegistry.builder()
-            .register(googleSearchTool, pythonInterpreterTool, tavilySearchTool, weatherTool, webCrawlerTool, wikipediaTool)
+            .register(googleSearchTool, pythonInterpreterTool, tavilySearchTool, weatherTool, webCrawlerTool, wikipediaTool, ragQueryTool)
             .build();
 
         try (var mockedJson = mockStatic(Json.class)) {
@@ -117,7 +127,10 @@ public class ToolRegistryTest {
             var wikipediaResult = toolRegistry.execute("wikipedia", mockToolArguments);
             assertNotNull(wikipediaResult);
 
-            verify(mockToolService, times(7)).run(any(ToolRequest.class));
+            var ragQueryResult = toolRegistry.execute("rag_query", mockToolArguments);
+            assertNotNull(ragQueryResult);
+
+            verify(mockToolService, times(8)).run(any(ToolRequest.class));
         }
     }
 
@@ -134,9 +147,14 @@ public class ToolRegistryTest {
         var weatherTool = new WeatherTool(mockToolService);
         var webCrawlerTool = new WebCrawlerTool(mockToolService);
         var wikipediaTool = new WikipediaTool(mockToolService);
+        var ragQueryTool = RAGQueryTool.builder()
+            .toolService(mockToolService)
+            .projectId("project-id")
+            .vectorIndexIds("index-1")
+            .build();
 
         var toolRegistry = ToolRegistry.builder()
-            .register(googleSearchTool, pythonInterpreterTool, tavilySearchTool, weatherTool, webCrawlerTool, wikipediaTool)
+            .register(googleSearchTool, pythonInterpreterTool, tavilySearchTool, weatherTool, webCrawlerTool, wikipediaTool, ragQueryTool)
             .build();
 
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("google_search", mockToolArguments));
@@ -145,6 +163,7 @@ public class ToolRegistryTest {
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("weather", mockToolArguments));
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("webcrawler", mockToolArguments));
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("wikipedia", mockToolArguments));
+        assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("rag_query", mockToolArguments));
 
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("google_search", null));
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("python_interpreter", null));
@@ -152,6 +171,7 @@ public class ToolRegistryTest {
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("weather", null));
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("webcrawler", null));
         assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("wikipedia", null));
+        assertThrows(IllegalArgumentException.class, () -> toolRegistry.execute("rag_query", null));
     }
 
     @Test
