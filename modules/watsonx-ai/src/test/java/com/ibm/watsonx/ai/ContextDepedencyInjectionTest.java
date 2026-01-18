@@ -22,6 +22,7 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.PythonInterpreterTool;
+import com.ibm.watsonx.ai.tool.builtin.RAGQueryTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
@@ -78,7 +79,7 @@ public class ContextDepedencyInjectionTest {
     GoogleSearchTool googleSearchTool;
 
     @Inject
-    PythonInterpreterTool pythonInterpreterTool;;
+    PythonInterpreterTool pythonInterpreterTool;
 
     @Inject
     TavilySearchTool tavilySearchTool;
@@ -91,6 +92,9 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     WikipediaTool wikipediaTool;
+
+    @Inject
+    RAGQueryTool ragQueryTool;
 
     @Test
     void should_inject_chat_service() {
@@ -150,6 +154,36 @@ public class ContextDepedencyInjectionTest {
     @Test
     void should_inject_google_search_tool() {
         assertNotNull(googleSearchTool);
+    }
+
+    @Test
+    void should_inject_python_interpreter_tool() {
+        assertNotNull(pythonInterpreterTool);
+    }
+
+    @Test
+    void should_inject_tavily_search_tool() {
+        assertNotNull(tavilySearchTool);
+    }
+
+    @Test
+    void should_inject_weather_tool() {
+        assertNotNull(weatherTool);
+    }
+
+    @Test
+    void should_inject_web_crawler_tool() {
+        assertNotNull(webCrawlerTool);
+    }
+
+    @Test
+    void should_inject_wikipedia_tool() {
+        assertNotNull(wikipediaTool);
+    }
+
+    @Test
+    void should_inject_rag_query_tool() {
+        assertNotNull(ragQueryTool);
     }
 
     @ApplicationScoped
@@ -288,6 +322,15 @@ public class ContextDepedencyInjectionTest {
         @Produces
         public WikipediaTool produceWikipediaTool() {
             return new WikipediaTool(produceToolService());
+        }
+
+        @Produces
+        public RAGQueryTool produceRagQueryTool() {
+            return RAGQueryTool.builder()
+                .toolService(produceToolService())
+                .projectId("project-id")
+                .vectorIndexIds("vector-index-1")
+                .build();
         }
     }
 }

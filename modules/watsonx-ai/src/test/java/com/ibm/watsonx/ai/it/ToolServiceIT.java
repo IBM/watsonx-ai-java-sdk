@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.chat.ToolRegistry;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.ToolArguments;
@@ -28,6 +29,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool.GoogleSearchResult;
 import com.ibm.watsonx.ai.tool.builtin.PythonInterpreterTool;
+import com.ibm.watsonx.ai.tool.builtin.RAGQueryTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool.TavilySearchResult;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
@@ -250,5 +252,57 @@ public class ToolServiceIT {
         }
 
         assertTrue(assistantMessage.content().contains("33."));
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "VECTOR_INDEX_ID", matches = ".+")
+    void should_use_rag_query_tool() {
+
+        String API_KEY = System.getenv("WATSONX_API_KEY");
+        String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
+        String URL = System.getenv("WATSONX_URL");
+        String VECTOR_INDEX_ID = System.getenv("VECTOR_INDEX_ID");
+
+        RAGQueryTool ragQueryTool = RAGQueryTool.builder()
+            .toolService(toolService)
+            .projectId(PROJECT_ID)
+            .vectorIndexIds(VECTOR_INDEX_ID)
+            .description("The stored document provides information about project.")
+            .build();
+
+        ToolRegistry toolRegistry = ToolRegistry.builder()
+            .beforeExecution((toolName, toolArgs) -> System.out.println("Executing tool: " + toolName + " with args: " + toolArgs))
+            .register(ragQueryTool)
+            .build();
+
+        assertTrue(ragQueryTool.query("Tell me the name of the Java framework used in this project").contains("Quarkus"));
+
+        var chatService = ChatService.builder()
+            .baseUrl(URL)
+            .apiKey(API_KEY)
+            .projectId(PROJECT_ID)
+            .modelId("ibm/granite-4-h-small")
+            .tools(toolRegistry.tools())
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(SystemMessage.of("Your are an helpful asssistant.\nYour goal is to answer user's questions."));
+        messages.add(UserMessage.text("Tell me the name of the Java framework used in this project"));
+
+        var assistantMessage = chatService.chat(messages).toAssistantMessage();
+        messages.add(assistantMessage);
+
+        if (assistantMessage.hasToolCalls()) {
+            var toolMessage = assistantMessage.processTools(toolRegistry::execute);
+            messages.addAll(toolMessage);
+            assistantMessage = chatService.chat(messages).toAssistantMessage();
+        }
+
+        assertTrue(assistantMessage.content().contains("Quarkus"));
     }
 }

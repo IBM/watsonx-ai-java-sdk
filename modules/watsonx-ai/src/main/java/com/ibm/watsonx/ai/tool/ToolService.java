@@ -13,6 +13,7 @@ import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.PythonInterpreterTool;
+import com.ibm.watsonx.ai.tool.builtin.RAGQueryTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
@@ -47,6 +48,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  * @see WebCrawlerTool
  * @see WikipediaTool
  * @see PythonInterpreterTool
+ * @see RAGQueryTool
  * @see Authenticator
  */
 @Experimental

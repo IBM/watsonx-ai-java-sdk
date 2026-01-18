@@ -24,12 +24,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
+import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.tool.ToolParameters;
 import com.ibm.watsonx.ai.tool.ToolRequest;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 import com.ibm.watsonx.ai.tool.builtin.PythonInterpreterTool;
+import com.ibm.watsonx.ai.tool.builtin.RAGQueryTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
@@ -474,6 +479,150 @@ public class ToolServiceTest extends AbstractWatsonxTest {
                     "PythonInterpreter",
                     Map.of("code", "print(\"Hello World\")"),
                     Map.of("deploymentId", "my-deployment-id")
+                )),
+                bodyPublisherToString(mockHttpRequest),
+                true
+            );
+        });
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_not_create_an_instance_of_rag_query_tool_without_mandatory_parameters() {
+
+        var ex = assertThrows(NullPointerException.class, () -> RAGQueryTool.builder().build());
+        assertEquals(ex.getMessage(), "ToolService cannot be null");
+
+        var toolService = ToolService.builder()
+            .baseUrl(CloudRegion.DALLAS)
+            .authenticator(mockAuthenticator)
+            .build();
+
+        ex = assertThrows(NullPointerException.class, () -> RAGQueryTool.builder().toolService(toolService).build());
+        assertEquals(ex.getMessage(), "vectorIndexIds cannot be null");
+
+        var ex2 =
+            assertThrows(IllegalArgumentException.class, () -> RAGQueryTool.builder().toolService(toolService).vectorIndexIds(List.of()).build());
+        assertEquals(ex2.getMessage(), "Either projectId or spaceId must be provided");
+
+        ex2 =
+            assertThrows(IllegalArgumentException.class,
+                () -> RAGQueryTool.builder().toolService(toolService).projectId("project-id").vectorIndexIds(List.of()).build());
+        assertEquals(ex2.getMessage(), "At least one vector index id must be provided");
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_create_an_instance_of_rag_query_with_a_custom_schema_description() {
+
+        var toolService = ToolService.builder()
+            .baseUrl(CloudRegion.DALLAS)
+            .authenticator(mockAuthenticator)
+            .build();
+
+        var ragQueryTool = RAGQueryTool.builder()
+            .toolService(toolService)
+            .projectId("project-id")
+            .vectorIndexIds("index-1")
+            .description("custom-description")
+            .build();
+
+        JSONAssert.assertEquals(
+            toJson(Tool.of(
+                "rag_query",
+                """
+                    Use this tool to retrieve relevant information from indexed documents using semantic search.
+                    custom-description""",
+                JsonSchema.object()
+                    .property("input",
+                        JsonSchema.string("User question or search query optimized for semantic similarity search in vector databases"))
+                    .required("input")
+                    .build())
+            ),
+            toJson(ragQueryTool.schema()),
+            true
+        );
+    }
+
+    @Test
+    void should_query_rag_with_single_vector_index() {
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(
+            """
+                {
+                  "output": "RAG TEST"
+                }""");
+
+        withWatsonxServiceMock(() -> {
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var toolService = ToolService.builder()
+                .baseUrl(CloudRegion.DALLAS)
+                .authenticator(mockAuthenticator)
+                .build();
+
+            var ragQueryTool = RAGQueryTool.builder()
+                .toolService(toolService)
+                .projectId("project-id")
+                .vectorIndexIds("index-1")
+                .build();
+
+            var result = ragQueryTool.query("Tell me more about the project");
+            assertEquals("RAG TEST", result);
+
+            JSONAssert.assertEquals(
+                toJson(ToolRequest.unstructuredInput(
+                    "RAGQuery",
+                    "Tell me more about the project",
+                    Map.of(
+                        "projectId", "project-id",
+                        "vectorIndexId", "index-1"
+                    )
+                )),
+                bodyPublisherToString(mockHttpRequest),
+                true
+            );
+        });
+    }
+
+    @Test
+    void should_query_rag_with_multiple_vector_indexs() {
+
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(
+            """
+                {
+                  "output": "RAG TEST"
+                }""");
+
+        withWatsonxServiceMock(() -> {
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var toolService = ToolService.builder()
+                .baseUrl(CloudRegion.DALLAS)
+                .authenticator(mockAuthenticator)
+                .build();
+
+            var ragQueryTool = RAGQueryTool.builder()
+                .toolService(toolService)
+                .spaceId("space-id")
+                .vectorIndexIds("index-1", "index-2")
+                .build();
+
+            var result = ragQueryTool.query("Tell me more about the project");
+            assertEquals("RAG TEST", result);
+
+            JSONAssert.assertEquals(
+                toJson(ToolRequest.unstructuredInput(
+                    "RAGQuery",
+                    "Tell me more about the project",
+                    Map.of(
+                        "spaceId", "space-id",
+                        "vectorIndexIds", List.of("index-1", "index-2")
+                    )
                 )),
                 bodyPublisherToString(mockHttpRequest),
                 true
