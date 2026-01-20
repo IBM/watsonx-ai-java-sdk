@@ -5,9 +5,14 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <name>watsonx-ai</name>
-  <groupId>com.ibm.watsonx</groupId>
   <artifactId>watsonx-ai</artifactId>
-  <version>999-SNAPSHOT</version>
+  <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
+
+  <scm>
+    <connection>scm:git:git://github.com/IBM/watsonx-ai-java-sdk.git</connection>
+    <developerConnection>scm:git:ssh://github.com/IBM/watsonx-ai-java-sdk.git</developerConnection>
+    <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
+  </scm>
 
   <description>
   Service layer implementation of the watsonx.ai SDK. This module contains the service 

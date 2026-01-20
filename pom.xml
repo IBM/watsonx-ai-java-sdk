@@ -10,6 +10,11 @@
   <packaging>pom</packaging>
   <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
   <description>Java client library and SDK for IBM watsonx.ai</description>
+  <scm>
+    <connection>scm:git:git://github.com/IBM/watsonx-ai-java-sdk.git</connection>
+    <developerConnection>scm:git:ssh://github.com/IBM/watsonx-ai-java-sdk.git</developerConnection>
+    <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
+  </scm>
 
   <modules>
     <module>modules/watsonx-ai-core</module>
@@ -344,11 +349,5 @@
       <email>andrea.dimaio@it.ibm.com</email>
     </developer>
   </developers>
-
-  <scm>
-    <connection>scm:git:git://github.com:IBM/watsonx-ai-java-sdk.git</connection>
-    <developerConnection>scm:git:ssh://github.com:IBM/watsonx-ai-java-sdk.git</developerConnection>
-    <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
-  </scm>
 
 </project>
