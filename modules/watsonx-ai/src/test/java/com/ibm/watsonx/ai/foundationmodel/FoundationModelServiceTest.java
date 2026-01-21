@@ -32,7 +32,8 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     @Test
     void should_return_models_when_no_parameters_provided() throws Exception {
 
-        String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
+        String EXPECTED =
+            new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes()).replace("${VERSION}", API_VERSION);
 
         var queryParameters = "version=%s".formatted(API_VERSION);
         wireMock.stubFor(get("%s/foundation_model_specs?%s".formatted(ML_API_PATH, queryParameters))
@@ -50,7 +51,8 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     @Test
     void should_return_model_by_id() throws Exception {
 
-        String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
+        String EXPECTED =
+            new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes()).replace("${VERSION}", API_VERSION);
 
         var queryParameters =
             """
@@ -89,7 +91,8 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     @Test
     void should_return_models_when_only_filter_parameter_provided() throws Exception {
 
-        String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
+        String EXPECTED =
+            new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes()).replace("${VERSION}", API_VERSION);
 
         var queryParameters =
             """
@@ -115,7 +118,8 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     @Test
     void should_return_models_with_complete_metadata_when_all_parameters_provided() throws Exception {
 
-        String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes());
+        String EXPECTED =
+            new String(ClassLoader.getSystemResourceAsStream("foundation_model_response.json").readAllBytes()).replace("${VERSION}", API_VERSION);
 
         var queryParameters =
             """
@@ -199,7 +203,8 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
     @Test
     void should_return_tasks_with_complete_metadata_when_parameters_provided() throws Exception {
 
-        String EXPECTED = new String(ClassLoader.getSystemResourceAsStream("foundation_model_tasks_response.json").readAllBytes());
+        String EXPECTED =
+            new String(ClassLoader.getSystemResourceAsStream("foundation_model_tasks_response.json").readAllBytes()).formatted(API_VERSION);
 
         var queryParameters =
             """
