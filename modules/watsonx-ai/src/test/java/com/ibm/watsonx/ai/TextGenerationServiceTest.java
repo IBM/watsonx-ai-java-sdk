@@ -428,10 +428,9 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     @Test
     void should_stream_text_generation_correctly() throws Exception {
 
-        final String VERSION = "2020-03-15";
         var httpPort = wireMock.getPort();
 
-        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=%s".formatted(VERSION))
+        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
             .withRequestBody(equalToJson(
@@ -491,7 +490,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             .logResponses(true)
             .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
             .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
-            .version(VERSION)
+            .version(API_VERSION)
             .build();
 
 
@@ -534,7 +533,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     @Test
     void should_use_correct_executors() throws Exception {
 
-        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=2025-12-05")
+        wireMock.stubFor(post("/ml/v1/text/generation_stream?version=%s".formatted(API_VERSION))
 
             .willReturn(aResponse()
                 .withStatus(200)
