@@ -10,6 +10,7 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
+import com.ibm.watsonx.ai.tool.builtin.RAGQueryTool;
 import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
@@ -26,6 +27,7 @@ public class App {
             var url = URI.create(config.getValue("WATSONX_WX_URL", String.class));
             var watsonxApiKey = config.getValue("WATSONX_API_KEY", String.class);
             var tavilyApiKey = config.getOptionalValue("TAVILY_SEARCH_API_KEY", String.class);
+            var vectorIndex = config.getOptionalValue("WATSONX_VECTOR_INDEX_ID", String.class);
 
             ToolService toolService = ToolService.builder()
                 .apiKey(watsonxApiKey)
@@ -60,6 +62,24 @@ public class App {
                     --------------------------------\n""".formatted(tavilySearchResult.url(), tavilySearchResult.title(),
                     tavilySearchResult.content(),
                     tavilySearchResult.score()));
+            }
+
+            if (vectorIndex.isPresent()) {
+
+                var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+
+                RAGQueryTool ragQueryTool = RAGQueryTool.builder()
+                    .toolService(toolService)
+                    .projectId(projectId)
+                    .vectorIndexIds(vectorIndex.get())
+                    .build();
+
+                var ragQueryResult = ragQueryTool.query("Quarkus");
+                System.out.println("""
+                    ----- RAG QUERY TOOL RESULT -----
+                    %s
+                    ...
+                    --------------------------------\n""".formatted(ragQueryResult.substring(0, 150)));
             }
 
             var webCrawlerResult = webCrawlerTool.process("https://github.com/IBM/watsonx-ai-java-sdk");

@@ -13,7 +13,7 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        FoundationModel foundationModel = aiService.getModel();
+        FoundationModel foundationModel = aiService.getModelDetails();
         System.out.println("Welcome to the IBM Watsonx Assistant Chatbot!");
         System.out.println("""
             ---------------------------------------------

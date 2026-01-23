@@ -4,7 +4,6 @@
  */
 package com.ibm.chatbot;
 
-import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import java.net.URI;
 import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
@@ -17,7 +16,6 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
-import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
 public class AiService {
 
@@ -68,7 +66,7 @@ public class AiService {
         return response;
     }
 
-    public FoundationModel getModel() {
-        return foundationModelService.getModels(Filter.of(modelId(modelId))).resources().get(0);
+    public FoundationModel getModelDetails() {
+        return foundationModelService.getModel(modelId).orElseThrow();
     }
 }
