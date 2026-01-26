@@ -1,6 +1,6 @@
 # Watsonx Utility Tools Sample
 
-This sample demonstrates how to use IBM watsonx.ai Utility Agent Tools through the Java SDK. It shows how to invoke built-in tools like `GoogleSearchTool`, `WebCrawlerTool`, `WikipediaTool` and `WeatherTool`.
+This sample demonstrates how to use IBM watsonx.ai Utility Agent Tools through the Java SDK. It shows how to invoke built-in tools like `GoogleSearchTool`, `TavilySearchTool`, `RAGQueryTool`, `WebCrawlerTool`, `WikipediaTool` and `WeatherTool`.
 
 ## Prerequisites
 
@@ -9,8 +9,10 @@ Before running the application, set the following environment variables or creat
 | Variable                  | Required | Description |
 |---------------------------|----------|-------------|
 | `WATSONX_API_KEY`         | Yes      | Your watsonx.ai API key |
-| `WATSONX_WX_URL`             | Yes      | The base URL for the watsonx.ai service. See list of endpoints below. |
+| `WATSONX_WX_URL`          | Yes      | The base URL for the watsonx.ai service. See list of endpoints below. |
 | `TAVILY_SEARCH_API_KEY`   | No       | Tavily API Key. If not set, the `TavilySearchTool` will be disabled. |
+| `WATSONX_VECTOR_INDEX_ID` | No       | Vector Index id for RAG queries. If not set, the `RAGQueryTool` will be disabled. |
+| `WATSONX_PROJECT_ID`      | No       | Project id required when using `RAGQueryTool`. |
 
 > **NOTE**: This is a partial list of watsonx.ai endpoint URLs, see the [documentation](https://cloud.ibm.com/apidocs/watsonx-ai#endpoint-url) for the full list:  
 > - **Dallas**: `https://api.dataplatform.cloud.ibm.com/wx`  
