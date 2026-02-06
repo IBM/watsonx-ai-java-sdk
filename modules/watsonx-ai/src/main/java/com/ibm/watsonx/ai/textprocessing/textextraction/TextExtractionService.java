@@ -537,7 +537,7 @@ public class TextExtractionService extends ProjectService {
         CosReference resultReference = this.resultReference;
         Parameters params = null;
         Map<String, Object> custom = null;
-        Duration timeout = Duration.ofSeconds(60);
+        Duration timeout = this.timeout;
         String transactionId = null;
 
         if (nonNull(parameters)) {
@@ -551,7 +551,7 @@ public class TextExtractionService extends ProjectService {
             resultReference = requireNonNullElse(parameters.resultReference(), this.resultReference);
             params = parameters.toParameters();
             custom = parameters.custom();
-            timeout = requireNonNullElse(parameters.timeout(), Duration.ofSeconds(60));
+            timeout = requireNonNullElse(parameters.timeout(), timeout);
             transactionId = parameters.transactionId();
         } else {
             params = Parameters.of(requestedOutputs);
