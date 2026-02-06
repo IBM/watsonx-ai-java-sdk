@@ -2,7 +2,7 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textprocessing;
+package com.ibm.watsonx.ai.core;
 
 /**
  * Enum representing supported languages with their corresponding ISO 639 language codes.
@@ -85,4 +85,5 @@ public enum Language {
     public String isoCode() {
         return isoCode;
     }
+
 }

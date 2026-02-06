@@ -25,6 +25,7 @@ import com.ibm.watsonx.ai.client.impl.CustomTextGenerationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTimeSeriesRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTokenizationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomToolRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomTranscriptionRestClient;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
@@ -40,6 +41,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
+import com.ibm.watsonx.ai.transcription.TranscriptionService;
 import com.ibm.watsonx.ai.utils.ServiceLoaderUtils;
 
 public class CustomRestClientTest {
@@ -331,5 +333,23 @@ public class CustomRestClientTest {
         clientField.setAccessible(true);
         var client = clientField.get(detectionService);
         assertTrue(client instanceof CustomDetectionRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.transcription.TranscriptionRestClient$TranscriptionRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_transcription_service() throws Exception {
+
+        TranscriptionService transcriptionService = TranscriptionService.builder()
+            .apiKey("test")
+            .baseUrl("http://localhost")
+            .modelId("openai/whisper-tiny")
+            .projectId("project-id")
+            .build();
+
+        Class<TranscriptionService> clazz = TranscriptionService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(transcriptionService);
+        assertTrue(client instanceof CustomTranscriptionRestClient);
     }
 }

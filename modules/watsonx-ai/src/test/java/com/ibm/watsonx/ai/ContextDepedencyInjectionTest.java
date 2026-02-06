@@ -27,6 +27,7 @@ import com.ibm.watsonx.ai.tool.builtin.TavilySearchTool;
 import com.ibm.watsonx.ai.tool.builtin.WeatherTool;
 import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
 import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
+import com.ibm.watsonx.ai.transcription.TranscriptionService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
@@ -71,6 +72,9 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     TimeSeriesService timeSeriesService;
+
+    @Inject
+    TranscriptionService transcriptionService;
 
     @Inject
     ToolService toolService;
@@ -144,6 +148,11 @@ public class ContextDepedencyInjectionTest {
     @Test
     void should_inject_time_series_service() {
         assertNotNull(timeSeriesService);
+    }
+
+    @Test
+    void should_inject_transcription_service() {
+        assertNotNull(transcriptionService);
     }
 
     @Test
@@ -279,6 +288,16 @@ public class ContextDepedencyInjectionTest {
         @Produces
         public TimeSeriesService produceTimeSeriesService() {
             return TimeSeriesService.builder()
+                .baseUrl("https://example.com")
+                .apiKey("api-key")
+                .projectId("project-id")
+                .modelId("model-id")
+                .build();
+        }
+
+        @Produces
+        public TranscriptionService produceTranscriptionService() {
+            return TranscriptionService.builder()
                 .baseUrl("https://example.com")
                 .apiKey("api-key")
                 .projectId("project-id")
