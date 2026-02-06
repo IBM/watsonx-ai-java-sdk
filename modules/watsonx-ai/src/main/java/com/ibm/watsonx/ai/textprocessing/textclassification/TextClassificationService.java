@@ -465,7 +465,7 @@ public class TextClassificationService extends ProjectService {
         CosReference documentReference = this.documentReference;
         Parameters params = null;
         Map<String, Object> custom = null;
-        Duration timeout = Duration.ofSeconds(60);
+        Duration timeout = this.timeout;
         String transactionId = null;
 
         if (nonNull(parameters)) {
@@ -475,7 +475,7 @@ public class TextClassificationService extends ProjectService {
             documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
             params = parameters.toParameters();
             custom = parameters.custom();
-            timeout = requireNonNullElse(parameters.timeout(), Duration.ofSeconds(60));
+            timeout = requireNonNullElse(parameters.timeout(), timeout);
             transactionId = parameters.transactionId();
         }
 
