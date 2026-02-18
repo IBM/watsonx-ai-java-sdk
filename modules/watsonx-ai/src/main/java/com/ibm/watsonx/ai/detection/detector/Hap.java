@@ -37,6 +37,16 @@ public final class Hap extends BaseDetector {
     }
 
     /**
+     * Returns a {@link Hap} detector instance configured with the specified threshold.
+     *
+     * @param threshold the detection threshold value to configure
+     * @return a {@link Hap} instance with the specified threshold
+     */
+    public static Hap ofThreshold(double threshold) {
+        return builder().threshold(threshold).build();
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>
