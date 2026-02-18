@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.core.spi.json;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * A utility class that captures and retains generic type information at runtime.
@@ -31,11 +32,56 @@ public abstract class TypeToken<T> {
     }
 
     /**
+     * Constructs a new {@code TypeToken} with an explicitly provided type.
+     * <p>
+     * This constructor is used internally by factory methods to create {@code TypeToken} instances with programmatically constructed parameterized
+     * types.
+     *
+     * @param type the type to be captured by this token
+     */
+    private TypeToken(Type type) {
+        this.type = type;
+    }
+
+    /**
      * Returns the captured {@link Type} represented by this {@code TypeToken}.
      *
      * @return the generic type
      */
     public Type getType() {
         return type;
+    }
+
+    /**
+     * Creates a {@code TypeToken} for {@code List<T>}.
+     * <p>
+     * Example usage:
+     *
+     * <pre>{@code
+     * List<String> result = Json.fromJson(json, TypeToken.listOf(String.class));
+     * }</pre>
+     *
+     * @param <T> the element type of the list
+     * @param elementType the class of the list elements
+     * @return a {@code TypeToken} representing {@code List<T>}
+     */
+    public static <T> TypeToken<List<T>> listOf(Class<T> elementType) {
+        ParameterizedType listType = new ParameterizedType() {
+            @Override
+            public Type[] getActualTypeArguments() {
+                return new Type[] { elementType };
+            }
+
+            @Override
+            public Type getRawType() {
+                return List.class;
+            }
+
+            @Override
+            public Type getOwnerType() {
+                return null;
+            }
+        };
+        return new TypeToken<>(listType) {};
     }
 }
