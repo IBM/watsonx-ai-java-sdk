@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import com.ibm.watsonx.ai.chat.ToolExecutor;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
  * Represents a message authored by the assistant within a chat interaction.
@@ -115,8 +116,8 @@ public record AssistantMessage(
     /**
      * Deserializes the textual content of the {@code AssistantMessage} into a Java object.
      * <p>
-     * Note: This method assumes the content is a valid JSON string matching the structure of the given class. If the content is not valid JSON or
-     * does not match the structure of {@code clazz}, a parsing exception may be thrown.
+     * <b>Note:</b> This method assumes the content is a valid JSON string matching the structure of the given class. If the content is not valid JSON
+     * or does not match the structure of {@code clazz}, a parsing exception may be thrown.
      *
      * @param <T> the type of the object to return
      * @param clazz the target class for deserialization
@@ -125,6 +126,31 @@ public record AssistantMessage(
     public <T> T toObject(Class<T> clazz) {
         requireNonNull(clazz);
         return Json.fromJson(content, clazz);
+    }
+
+    /**
+     * Deserializes the textual content of the {@code AssistantMessage} into a Java object with generic type information.
+     * <p>
+     * <b>Note:</b> This method assumes the content is a valid JSON string matching the structure of the given type. If the content is not valid JSON
+     * or does not match the structure of the type, a parsing exception may be thrown.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * // Using the convenience factory method for lists
+     * List<String> items = assistantMessage.toObject(TypeToken.listOf(String.class));
+     *
+     * // Using anonymous class syntax for complex types
+     * Map<String, Object> data = assistantMessage.toObject(new TypeToken<Map<String, Object>>() {});
+     * }</pre>
+     *
+     * @param <T> the type of the object to return
+     * @param typeToken the {@link TypeToken} capturing the target generic type
+     * @return an instance of {@code T} parsed from the response content
+     */
+    public <T> T toObject(TypeToken<T> typeToken) {
+        requireNonNull(typeToken);
+        return Json.fromJson(content, typeToken);
     }
 
     /**

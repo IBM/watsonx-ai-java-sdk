@@ -59,4 +59,20 @@ public class JsonTest {
         var json = "{ \"name\": \"Alan\"}";
         assertTrue(Json.isValidObject(json));
     }
+
+    @Test
+    void should_deserialize_json_array_to_list_using_type_token() {
+        record User(String name) {}
+        ;
+        var json = "[{ \"name\": \"Alan\"}]";
+        var result = Json.fromJson(json, TypeToken.listOf(User.class));
+        assertTrue(result.size() == 1);
+        assertEquals("Alan", result.get(0).name());
+
+        json = "[ \"Alan\", \"Wake\"]";
+        var result2 = Json.fromJson(json, TypeToken.listOf(String.class));
+        assertTrue(result2.size() == 2);
+        assertEquals("Alan", result2.get(0));
+        assertEquals("Wake", result2.get(1));
+    }
 }
