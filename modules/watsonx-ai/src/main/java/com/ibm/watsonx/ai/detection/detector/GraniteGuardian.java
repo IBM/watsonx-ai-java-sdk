@@ -37,6 +37,16 @@ public final class GraniteGuardian extends BaseDetector {
     }
 
     /**
+     * Returns a {@link GraniteGuardian} detector instance configured with the specified threshold.
+     *
+     * @param threshold the detection threshold value to configure
+     * @return a {@link GraniteGuardian} instance with the specified threshold
+     */
+    public static GraniteGuardian ofThreshold(double threshold) {
+        return builder().threshold(threshold).build();
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>
