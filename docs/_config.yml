@@ -5,10 +5,10 @@ theme: just-the-docs
 markdown: kramdown
 permalink: pretty
 logo: "/assets/images/ibm-logo.svg"
-favicon_ico: "/assets/images/favicon.ico"
+baseurl: "/watsonx-ai-java-sdk"
 
 # Just the Docs configuration
-color_scheme: nil # Use custom Carbon styling
+color_scheme: nil
 search_enabled: true
 search_tokenizer_separator: /[\s/]+/
 nav_sort: case_insensitive
@@ -20,9 +20,3 @@ back_to_top_text: "Back to top"
 aux_links:
   "GitHub":
     - "https://github.com/IBM/watsonx-ai-java-sdk"
-
-nav_enabled: true
-toc:
-  enabled: true
-  min_level: 2
-  max_level: 4
