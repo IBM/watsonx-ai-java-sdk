@@ -11,21 +11,21 @@ Welcome to the **IBM watsonx.ai Java SDK** documentation.
 
 ## Overview
 
-The IBM watsonx.ai Java SDK is an open-source client library for [IBM watsonx.ai](https://www.ibm.com/watsonx), an enterprise-grade AI platform for building, training, and deploying AI models at scale. It provides a unified Java interface to the watsonx.ai ecosystem and works with both **IBM watsonx.ai for IBM Cloud** and **IBM watsonx.ai software** (on-premises deployments).
+The **IBM watsonx.ai Java SDK** is an open-source client library for [IBM watsonx.ai](https://www.ibm.com/watsonx), an enterprise-grade AI platform for building, training, and deploying AI models at scale. It provides a unified Java interface to the watsonx.ai ecosystem and works with both **IBM Cloud** and **CP4D** (on-premises deployments).
 
 | Service | Description |
 |---------|-------------|
-| **[Chat](chat-service)** | Conversational AI with multi-turn dialogue, streaming, tool calling, vision, and reasoning |
-| **[Embedding](embedding-service)** | Dense vector representations for semantic search, similarity, and RAG |
-| **[Rerank](rerank-service)** | Relevance scoring and reordering of candidate documents |
-| **[Detection](detection-service)** | Identification of harmful content (HAP), PII, and safety violations |
-| **[Tokenization](tokenization-service)** | Token counting and analysis for any model |
-| **[Foundation Model](foundation-model-service)** | Browse and query the watsonx.ai model catalog |
-| **[Text Classification](text-classification-service)** | Document classification from IBM Cloud Object Storage |
-| **[Text Extraction](text-extraction-service)** | Structured data extraction from documents in IBM Cloud Object Storage |
-| **[Time Series](time-series-service)** | Time series forecasting using IBM Granite TTM models |
-| **[Tool](tool-service)** | Server-side utility tools for agentic workflows |
-| **[Deployment](deployment-service)** | Chat, text generation, and forecasting via deployed model endpoints |
+| **[Chat](services/chat-service)** | Conversational AI with multi-turn dialogue, streaming, tool calling, vision, and reasoning |
+| **[Embedding](services/embedding-service)** | Dense vector representations for semantic search, similarity, and RAG |
+| **[Rerank](services/rerank-service)** | Relevance scoring and reordering of candidate documents |
+| **[Detection](services/detection-service)** | Identification of harmful content (HAP), PII, and safety violations |
+| **[Tokenization](services/tokenization-service)** | Token counting and analysis for any model |
+| **[Foundation Model](services/foundation-model-service)** | Browse and query the watsonx.ai model catalog |
+| **[Text Classification](services/text-classification-service)** | Document classification from IBM Cloud Object Storage |
+| **[Text Extraction](services/text-extraction-service)** | Structured data extraction from documents in IBM Cloud Object Storage |
+| **[Time Series](services/time-series-service)** | Time series forecasting using IBM Granite TTM models |
+| **[Tool](services/tool-service)** | Server-side utility tools for agentic workflows |
+| **[Deployment](services/deployment-service)** | Chat, text generation, and forecasting via deployed model endpoints |
 
 ---
 
@@ -77,7 +77,7 @@ System.out.println(response.content());
 
 ## Framework Integrations
 
-The IBM watsonx.ai Java SDK is also integrated with popular LLM application frameworks, enabling seamless usage within agentic and AI-powered applications.
+The **IBM watsonx.ai Java SDK** is also integrated with popular LLM application frameworks, enabling seamless usage within agentic and AI-powered applications.
 
 Developers can leverage `watsonx.ai` models through:
 

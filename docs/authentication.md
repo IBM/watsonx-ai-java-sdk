@@ -7,7 +7,7 @@ permalink: /authentication
 
 # Authentication
 
-Most services in the IBM watsonx.ai require authentication. The SDK uses the `Authenticator` interface as the single abstraction for token-based auth — every service that needs authentication accepts an `Authenticator` instance.
+Most services in the **IBM watsonx.ai** require authentication. The SDK uses the `Authenticator` interface as the single abstraction for token-based auth — every service that needs authentication accepts an `Authenticator` instance.
 
 ---
 

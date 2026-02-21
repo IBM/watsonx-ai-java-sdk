@@ -8,7 +8,7 @@ permalink: /advanced/http-client/
 
 # HTTP Client
 
-By default, the IBM watsonx.ai Java SDK uses the **Java built-in `HttpClient`**. No additional dependencies are required. Every service builder exposes a `httpClient(HttpClient)` method that lets you replace or configure the underlying client when the defaults are not sufficient.
+By default, the **IBM watsonx.ai Java SDK** uses the Java built-in `HttpClient`. No additional dependencies are required. Every service builder exposes a `httpClient(HttpClient)` method that lets you replace or configure the underlying client when the defaults are not sufficient.
 
 ---
 
