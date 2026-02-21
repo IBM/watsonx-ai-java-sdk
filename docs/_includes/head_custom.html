@@ -1,0 +1,12 @@
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".nav-list-item").forEach(function (item) {
+      var expander = item.querySelector(":scope > .nav-list-expander");
+      var link = item.querySelector(":scope > a");
+      if (expander && link && link.getAttribute("href") === "/watsonx-ai-java-sdk/services/") {
+        expander.setAttribute("aria-expanded", "true");
+        item.classList.add("active");
+      }
+    });
+  });
+</script>

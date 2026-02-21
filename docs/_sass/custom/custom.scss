@@ -1,0 +1,361 @@
+// IBM Carbon Design System customization for Just the Docs
+// Carbon Design System colors and tokens
+
+$ibm-blue-60: #0f62fe;
+$ibm-blue-70: #0043ce;
+$ibm-blue-80: #002d9c;
+$ibm-gray-10: #f4f4f4;
+$ibm-gray-20: #e0e0e0;
+$ibm-gray-30: #c6c6c6;
+$ibm-gray-50: #8d8d8d;
+$ibm-gray-70: #525252;
+$ibm-gray-80: #393939;
+$ibm-gray-90: #262626;
+$ibm-gray-100: #161616;
+$ibm-white: #ffffff;
+$ibm-text-primary: #161616;
+$ibm-text-secondary: #525252;
+$ibm-text-on-color: #ffffff;
+
+$sidebar-bg: #f4f4f4;
+$sidebar-text: #161616;
+$sidebar-text-secondary: #525252;
+$sidebar-hover-bg: #e0e0e0;
+$sidebar-active-bg: #0f62fe;
+$sidebar-active-text: #ffffff;
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+$body-font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !default;
+$mono-font-family: 'IBM Plex Mono', "SFMono-Regular", Menlo, Consolas, monospace !default;
+$link-color: $ibm-blue-60;
+$btn-primary-color: $ibm-blue-60;
+$base-button-color: $ibm-gray-10;
+$sidebar-color: $ibm-gray-100;
+$nav-list-link-color: $ibm-gray-30;
+$nav-list-link-color-hover: $ibm-white;
+$nav-list-link-color-active: $ibm-white;
+
+body {
+  font-family: $body-font-family;
+  color: $ibm-text-primary;
+}
+
+svg {
+  color: $ibm-blue-60;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: $body-font-family;
+  font-weight: 600;
+  color: $ibm-text-primary;
+}
+
+a {
+  color: $ibm-blue-60;
+
+  &:hover {
+    text-decoration-color: $ibm-blue-60 !important;
+    color: $ibm-blue-70;
+  }
+}
+
+code {
+  font-family: $mono-font-family;
+  background-color: $ibm-gray-10;
+  color: $ibm-text-primary;
+  border-radius: 2px;
+  padding: 0.2em 0.4em;
+  border: none;
+}
+
+pre {
+  background-color: $ibm-gray-10;
+  border: none;
+  border-radius: 2px;
+
+  code {
+    background-color: transparent;
+    border: none;
+  }
+}
+
+table {
+  border-collapse: collapse;
+  border: none;
+
+  th {
+    background-color: $ibm-gray-10;
+    color: $ibm-text-primary;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border: none;
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border: none;
+    vertical-align: top;
+  }
+
+  tr {
+    border: none;
+
+    &:hover {
+      background-color: rgba(15, 98, 254, 0.05);
+    }
+  }
+
+  thead tr {
+    border-bottom: 2px solid $ibm-gray-30;
+  }
+}
+
+.btn {
+  font-family: $body-font-family;
+  font-weight: 500;
+  border-radius: 0;
+  transition: background-color 0.15s ease-in-out;
+
+  &.btn-primary {
+    background-color: $ibm-blue-60;
+    color: $ibm-text-on-color;
+
+    &:hover {
+      background-color: $ibm-blue-70;
+    }
+  }
+}
+
+.side-bar {
+  background-color: $sidebar-bg;
+  border-right: none;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+
+  .site-title {
+    color: $sidebar-text;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 1rem;
+  }
+
+  .site-header {
+    border-bottom: none;
+    padding: 1rem 0;
+    background-color: $sidebar-bg;
+  }
+
+  .site-logo {
+    margin-bottom: 0.5rem;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+
+    img {
+      display: block;
+      margin: 0 auto;
+      pointer-events: none;
+    }
+  }
+
+  .site-title {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .nav-list {
+    .nav-list-item {
+      .nav-list-link {
+        color: $sidebar-text-secondary;
+        border-radius: 0;
+        margin: 0;
+        padding-left: 1rem;
+        border-left: 3px solid transparent;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background-color: $sidebar-hover-bg;
+          color: $sidebar-text;
+          border-left-color: $ibm-gray-30;
+        }
+
+        &.active {
+          background-color: rgba(15, 98, 254, 0.1);
+          color: $ibm-blue-60;
+          font-weight: 600;
+          border-left-color: $ibm-blue-60;
+        }
+      }
+    }
+  }
+}
+
+.search {
+  padding: 0.5rem 0rem;
+  position: relative;
+  background-color: $sidebar-bg;
+}
+
+.search-input-wrap {
+  position: relative;
+}
+
+.search-input {
+  background-color: $ibm-white;
+  border: none;
+  color: $ibm-text-primary;
+  border-radius: 0;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+}
+
+.search-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: $ibm-gray-50;
+  font-size: 0.875rem;
+  padding-left: 0.5rem;
+}
+
+.search-label .search-icon use {
+  fill: gray !important;  /* Forza il colore grigio */
+}
+
+
+.aux-nav {
+  padding: 0.5rem 1rem;
+  background-color: $sidebar-bg;
+
+  .aux-nav-list {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .aux-nav-list-item {
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+      background-color: transparent;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0;
+      border: none;
+      transition: all 0.15s ease;
+      min-width: 32px;
+      min-height: 32px;
+
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 16 16' fill='%23161616'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 24px 24px;
+
+      &:hover {
+        opacity: 0.6;
+      }
+
+      &:active {
+        opacity: 0.4;
+      }
+    }
+  }
+}
+
+.site-header {
+  background-color: $ibm-white;
+  border-bottom: 1px solid $ibm-gray-20;
+  padding: 0;
+}
+
+.main-content {
+  h1:first-of-type {
+    margin-top: 0;
+  }
+}
+
+blockquote {
+  border-left: 4px solid $ibm-blue-60;
+  background-color: $ibm-gray-10;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+
+  p {
+    margin: 0;
+  }
+}
+
+.label {
+  border-radius: 2px;
+  font-family: $mono-font-family;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25em 0.5em;
+}
+
+.site-footer {
+  color: $ibm-text-secondary;
+  border-top: 1px solid $ibm-gray-20;
+}
+
+@media (max-width: 50rem) {
+  .side-bar {
+    border-right: none;
+    border-bottom: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.site-button {
+  color: $ibm-white;
+  border: none;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  border-radius: 0;
+
+  &:hover {
+    background-color: $ibm-blue-70;
+  }
+}
+
+.breadcrumb-nav {
+  ol {
+    li {
+      a {
+        color: $ibm-blue-60;
+
+        &:hover {
+          color: $ibm-blue-70;
+        }
+      }
+    }
+  }
+}
+
+.main-content {
+  border: none;
+
+  img {
+    border: none;
+  }
+}
+
+.site-footer {
+  border-top: none;
+  background-color: $ibm-gray-10;
+  padding: 1.5rem 0;
+}

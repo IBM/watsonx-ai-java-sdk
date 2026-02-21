@@ -1,3 +1,5 @@
+[![Documentation](https://img.shields.io/badge/docs-online-blue)](https://ibm.github.io/watsonx-ai-java-sdk/)
+
 # IBM watsonx.ai Java SDK
 
 IBM watsonx.ai Java SDK is a client library that interacts with the [IBM watsonx.ai APIs](https://cloud.ibm.com/apidocs/watsonx-ai).

@@ -37,6 +37,10 @@ jobs:
           ./mvnw versions:set -DnewVersion=${{env.CURRENT_VERSION}}
           ./mvnw versions:set -f samples/pom.xml -DnewVersion=${{env.CURRENT_VERSION}}
 
+      - name: Update watsonx_version in _config.yml
+        run: |
+          sed -i "s/^watsonx_version:.*$/watsonx_version: \"${{ env.CURRENT_VERSION }}\"/" docs/_config.yml
+
       - name: Commit and push release updates
         uses: ./.github/actions/commit-push
         with:
