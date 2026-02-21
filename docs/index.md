@@ -11,7 +11,7 @@ Welcome to the **IBM watsonx.ai Java SDK** documentation.
 
 ## Overview
 
-The IBM watsonx.ai Java SDK is an open-source client library for [IBM watsonx.ai](https://www.ibm.com/watsonx), an enterprise-grade AI platform for building, training, and deploying AI models at scale. It provides a unified Java interface to the watsonx.ai ecosystem and works with both **IBM watsonx.ai for IBM Cloud** and **IBM watsonx.ai software** (on-premises deployments).
+The **IBM watsonx.ai Java SDK** is an open-source client library for [IBM watsonx.ai](https://www.ibm.com/watsonx), an enterprise-grade AI platform for building, training, and deploying AI models at scale. It provides a unified Java interface to the watsonx.ai ecosystem and works with both **IBM Cloud** and **CP4D** (on-premises deployments).
 
 | Service | Description |
 |---------|-------------|
@@ -77,7 +77,7 @@ System.out.println(response.content());
 
 ## Framework Integrations
 
-The IBM watsonx.ai Java SDK is also integrated with popular LLM application frameworks, enabling seamless usage within agentic and AI-powered applications.
+The **IBM watsonx.ai Java SDK** is also integrated with popular LLM application frameworks, enabling seamless usage within agentic and AI-powered applications.
 
 Developers can leverage `watsonx.ai` models through:
 

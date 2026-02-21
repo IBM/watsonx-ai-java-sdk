@@ -8,7 +8,7 @@ permalink: /advanced/spi/
 
 # Service Provider Interface
 
-The IBM watsonx.ai Java SDK exposes several Service Provider Interfaces that allow framework integrators to replace or customize its core infrastructure — HTTP transport, thread management, and JSON serialization — without changing any application code. All SPIs are resolved at runtime via the Java `ServiceLoader` mechanism.
+The **IBM watsonx.ai Java SDK** exposes several **Service Provider Interfaces** that allow framework integrators to replace or customize its core infrastructure — HTTP transport, thread management, and JSON serialization — without changing any application code. All SPIs are resolved at runtime via the Java `ServiceLoader` mechanism.
 
 ---
 
