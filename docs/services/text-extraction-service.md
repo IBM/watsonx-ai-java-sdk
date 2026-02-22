@@ -26,9 +26,9 @@ TextExtractionParameters parameters = TextExtractionParameters.builder()
     .requestedOutputs(Type.MD)
     .mode(Mode.HIGH_QUALITY)
     .languages(Language.ENGLISH)
-    .build()
+    .build();
 
-String text = service.uploadExtractAndFetch(new File("path/to/file.pdf"), parmeters);
+String text = service.uploadExtractAndFetch(new File("path/to/file.pdf"), parameters);
 System.out.println(text);
 // → # Contract
 // → ...
@@ -67,7 +67,7 @@ TextExtractionService service = TextExtractionService.builder()
 
 ### Using a Separate COS Authenticator
 
-If your Cloud Object Storage uses different credentials than your watsonx.ai service:
+If your Cloud Object Storage uses different credentials than your watsonx.ai service, provide a dedicated `cosAuthenticator`:
 
 ```java
 TextExtractionService service = TextExtractionService.builder()
@@ -109,16 +109,18 @@ TextExtractionService service = TextExtractionService.builder()
 
 ### Synchronous Extraction
 
-The simplest way to extract text from a file is to use the `uploadExtractAndFetch` method. This uploads a file, runs extraction and retrieves the text content in one call. If not specified, the output defaults to `Markdown`.
+`uploadExtractAndFetch` uploads a document, runs extraction, and returns the text content in one call. If no output format is specified, it defaults to `Markdown`.
+
+**From a local file:**
 
 ```java
 String text = service.uploadExtractAndFetch(new File("path/to/file.pdf"));
 ```
 
-If you need to customize the extraction, use `TextExtractionParameters`:
+With parameters:
 
 ```java
-var parameters =  TextExtractionParameters.builder()
+var parameters = TextExtractionParameters.builder()
     .requestedOutputs(Type.MD)
     .mode(Mode.HIGH_QUALITY)
     .languages(Language.ENGLISH)
@@ -127,9 +129,40 @@ var parameters =  TextExtractionParameters.builder()
 String text = service.uploadExtractAndFetch(new File("path/to/file.pdf"), parameters);
 ```
 
+**From an InputStream** — useful for documents from web uploads or streaming sources:
+
+```java
+TextExtractionParameters parameters = TextExtractionParameters.builder()
+    .requestedOutputs(Type.MD)
+    .mode(Mode.HIGH_QUALITY)
+    .build();
+
+String text = service.uploadExtractAndFetch(inputStream, "fileName.pdf", parameters);
+```
+
+**From a file already in COS** — skip the upload step entirely:
+
+```java
+String text = service.extractAndFetch("path/to/cosFile.pdf");
+```
+
+**Automatic file cleanup** — use `removeUploadedFile` and `removeOutputFile` to delete COS files asynchronously after extraction:
+
+```java
+var parameters = TextExtractionParameters.builder()
+    .requestedOutputs(Type.MD)
+    .removeUploadedFile(true)   // delete input file after extraction
+    .removeOutputFile(true)     // delete output file after reading
+    .build();
+
+String text = service.uploadExtractAndFetch(new File("path/to/file.pdf"), parameters);
+```
+
+> **Note:** `removeUploadedFile` and `removeOutputFile` are only supported with the synchronous variants (`uploadExtractAndFetch` / `extractAndFetch`). They cannot be used with `uploadAndStartExtraction`.
+
 ### Asynchronous Extraction
 
-For long-running operations, you can start the extraction process and then poll until it is complete.
+For long-running operations, start the job and poll until it completes:
 
 ```java
 var parameters = TextExtractionParameters.builder()
@@ -150,82 +183,82 @@ while (!status.equals(Status.COMPLETED.value()) && !status.equals(Status.FAILED.
 }
 
 if (status.equals(Status.COMPLETED.value())) {
-    // Read the output file from COS
     String outputPath = response.entity().resultsReference().location().fileName();
     String text = service.readFile(OUTPUT_BUCKET_NAME, outputPath);
     System.out.println(text);
-} else 
+} else
     System.err.println("Failed: " + response.entity().results().error().message());
 ```
 
 > **Note:** Extraction results are retained for **2 days**. After that, `fetchExtractionRequest` will no longer return results for the given ID.
 
+### Multiple Output Formats
 
-### Extracting from an InputStream
-
-Process documents from web uploads or streaming sources:
-
-```java
-TextExtractionParameters parameters =  TextExtractionParameters.builder()
-    .requestedOutputs(Type.MD)
-    .mode(Mode.HIGH_QUALITY)
-    .build();
-
-String text = service.uploadExtractAndFetch(inputStream, "fileName.pdf", parameters);
-```
-
-### Extracting a document already uploaded
-
-If the document is already stored in your COS bucket, skip the upload step:
-
-```java
-String text = service.extractAndFetch("path/to/cosFile.pdf");
-```
-
-### Requesting Multiple Output Formats
-
-You can specify multiple output formats for a single extraction by using the `uploadAndStartExtraction` method (not `uploadExtractAndFetch`).
+Request multiple output formats in a single extraction using `uploadAndStartExtraction`. Set `outputFileName` to a directory path ending with `/` to group all outputs together:
 
 ```java
 var parameters = TextExtractionParameters.builder()
     .requestedOutputs(Type.PLAIN_TEXT, Type.JSON, Type.HTML)
     .mode(Mode.HIGH_QUALITY)
-    .outputFileName("output/") // directory prefix for all output files
+    .outputFileName("output/")
     .build();
 
-File file = new File("path/to/file.pdf")
-TextExtractionResponse response = service.uploadAndStartExtraction(file, parameters);
+TextExtractionResponse response = service.uploadAndStartExtraction(new File("path/to/file.pdf"), parameters);
 
 // Wait for completion, then read each output file
-// ...
-
 // Files will be: output/plain.txt, output/assembly.json, output/assembly.html
 String plainText = service.readFile(RESULTS_BUCKET, "output/plain.txt");
-String json = service.readFile(RESULTS_BUCKET, "output/assembly.json");
-String html = service.readFile(RESULTS_BUCKET, "output/assembly.html");
-
-System.out.println(plainText);
-System.out.println(json);
-System.out.println(html);
+String json      = service.readFile(RESULTS_BUCKET, "output/assembly.json");
+String html      = service.readFile(RESULTS_BUCKET, "output/assembly.html");
 ```
 
-### Output File Naming Conventions
+### OCR from Images
+
+Use `Mode.HIGH_QUALITY` for best OCR results on image files:
+
+```java
+var parameters = TextExtractionParameters.builder()
+    .mode(Mode.HIGH_QUALITY)
+    .requestedOutputs(Type.PLAIN_TEXT)
+    .build();
+
+String text = service.uploadExtractAndFetch(new File("path/to/image.png"), parameters);
+```
+
+### Managing Requests
+
+Use `deleteRequest` to cancel or remove an extraction job. Pass `hardDelete(true)` to also remove the job metadata:
+
+```java
+TextExtractionResponse response = service.uploadAndStartExtraction(new File("invoice.pdf"));
+
+boolean deleted = service.deleteRequest(
+    response.metadata().id(),
+    TextExtractionDeleteParameters.builder()
+        .hardDelete(true)
+        .build()
+);
+
+System.out.println("Deleted: " + deleted); // → true
+```
+
+---
+
+## Output Files
+
+### File Naming Conventions
 
 The output file name is derived from the input file name. When requesting a **single output**, the extension is replaced automatically:
 
-| Output Type  | Output File Name |
+| Output Type | Output File Name |
 |-------------|------------------|
-| `Type.MD` | `<input_name>.md`|
-| `Type.HTML`  | `<input_name>.html` |
-| `Type.PLAIN_TEXT`  | `<input_name>.txt` |
-| `Type.JSON`  | `<input_name>.json` |
-| `Type.PAGE_IMAGES`  | `page_images/<page>.png` |
+| `Type.MD` | `<input_name>.md` |
+| `Type.HTML` | `<input_name>.html` |
+| `Type.PLAIN_TEXT` | `<input_name>.txt` |
+| `Type.JSON` | `<input_name>.json` |
+| `Type.PAGE_IMAGES` | `page_images/<page>.png` |
 
-When requesting **multiple outputs**, set `outputFileName` to a directory path ending with `/`.
-
-All output files are written into that directory using their default names.
-
-For example, with `outputFileName("results/")` and outputs `PLAIN_TEXT`, `JSON`, `HTML`:
+When requesting **multiple outputs**, set `outputFileName` to a directory path ending with `/`. All output files are written into that directory using their default names. For example, with `outputFileName("results/")` and outputs `PLAIN_TEXT`, `JSON`, `HTML`:
 
 ```
 results/plain.txt
@@ -237,44 +270,45 @@ results/page_images/*.png                (if PAGE_IMAGES is requested)
 
 If `outputFileName` is not set, output files are written to the root of the `resultReference` bucket.
 
-### Extracting Text from Images (OCR)
+### Output Types
 
-Use `Mode.HIGH_QUALITY` for best OCR results on image files.
+| Value | API String | Description |
+|-------|------------|-------------|
+| `Type.JSON` | `assembly` | Full structured JSON output including KVP data. Required for key-value pair results |
+| `Type.MD` | `md` | Markdown (default) |
+| `Type.HTML` | `html` | HTML |
+| `Type.PLAIN_TEXT` | `plain_text` | Plain text |
+| `Type.PAGE_IMAGES` | `page_images` | Individual page images. Cannot be used with `uploadExtractAndFetch` |
 
-```java
-var parameters = TextExtractionParameters.builder()
-    .mode(Mode.HIGH_QUALITY)
-    .requestedOutputs(Type.PLAIN_TEXT)
-    .build();
+### Embedded Images
 
-String text = service.uploadExtractAndFetch(new File("path/to/image.png"), parameters);
-```
+Controls how images embedded in the document are handled in the extracted output. Applies to Markdown and JSON formats.
 
-### Automatic File Cleanup
+| Value | Image in output | Markdown output | JSON output |
+|-------|----------------|-----------------|-------------|
+| `DISABLED` | No | None | None |
+| `ENABLED_PLACEHOLDER` | Yes | Link to image location | Image in `pictures` structure; `picture.text` empty; generic placeholder token IDs in `picture.children_ids` |
+| `ENABLED_TEXT` | Yes | Text extracted directly from the image | Image in `pictures`; OCR text in `picture.text`; token IDs in `picture.children_ids` |
+| `ENABLED_VERBALIZATION` | Yes | Link + textual description of the image | Image in `pictures`; natural language description in `picture.verbalization` (only for verbalized images); token IDs in `picture.children_ids` |
+| `ENABLED_VERBALIZATION_ALL` | Yes | Link + textual description of the image | Same as `ENABLED_VERBALIZATION`, but **all** embedded images are verbalized, not just graphs, charts, and screenshots |
 
-Use `removeUploadedFile` and `removeOutputFile` to delete COS files asynchronously after extraction:
+> Images extracted in any mode are stored as `.png` files in the `embedded_images_assembly/` folder within the output location.
 
-```java
-var parameters = TextExtractionParameters.builder()
-    .requestedOutputs(Type.MD)
-    .removeUploadedFile(true)   // delete input file after extraction
-    .removeOutputFile(true)     // delete output file after reading
-    .build();
+---
 
-String text = service.uploadExtractAndFetch(new File("path/to/file.pdf"), parameters);
-```
+## Key-Value Pair Extraction
 
-> **Note:** `removeUploadedFile` and `removeOutputFile` are only supported with the synchronous (`uploadExtractAndFetch` / `extractAndFetch`) variants. They cannot be used with `uploadAndStartExtraction`.
+KVP extraction pulls structured field data out of documents alongside the text. It requires `kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)` and `Type.JSON` as output format — results are only included in the JSON output.
 
-### Key-Value Pair Extraction
+### Basic KVP Extraction
 
-Extract structured key-value data with a custom schema using `kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)`. KVP results are only available in the JSON (`Type.JSON`) output format:
+Define a schema, attach it to a `TextExtractionSemanticConfig`, and pass it to the parameters:
 
 ```java
 KvpFields fields = KvpFields.builder()
-    .add("invoice_md", KvpField.of("The date when the invoice was issued.", "2024-07-10"))
+    .add("invoice_date",   KvpField.of("The date when the invoice was issued.", "2024-07-10"))
     .add("invoice_number", KvpField.of("The unique invoice identifier.", "INV-2024-001"))
-    .add("total_amount", KvpField.of("The total amount due.", "1250.50"))
+    .add("total_amount",   KvpField.of("The total amount due.", "1250.50"))
     .build();
 
 Schema schema = Schema.builder()
@@ -297,12 +331,32 @@ TextExtractionParameters parameters = TextExtractionParameters.builder()
     .semanticConfig(semanticConfig)
     .build();
 
-String json = service.uploadExtractAndFetch(new File("path/to/file.pdf"), parameters);
+String json = service.uploadExtractAndFetch(new File("invoice.pdf"), parameters);
 ```
+
+### Extraction Methods
+
+Two methods can be enabled independently or together when using `GENERIC_WITH_SEMANTIC`:
+
+| Method | Parameter | Behaviour |
+|--------|-----------|-----------|
+| Schema-based | `enableSchemaKvp(true)` | Classifies each page into a schema type and extracts only the defined fields. Higher accuracy for known document types |
+| Generic | `enableGenericKvp(true)` | Broad sweep: extracts any labelled data regardless of schema. Useful for unknown document formats |
+
+Both are active by default. If you only want schema-based results, set `enableGenericKvp(false)` to avoid duplicate extractions.
+
+### Schema Merge Strategy
+
+Controls how custom schemas interact with the built-in pre-defined ones:
+
+| Strategy | Behaviour | When to use |
+|----------|-----------|-------------|
+| `SchemaMergeStrategy.REPLACE` | Only your custom schemas are used; all pre-defined schemas are ignored | You have a known document format with unique fields, or your custom schema conflicts with a pre-defined one |
+| `SchemaMergeStrategy.MERGE` | Your custom schemas are combined with the pre-defined ones | You want to supplement pre-defined document types with additional custom schemas |
 
 ### Using a Custom Foundation Model
 
-Override the default model (`mistral-small-3-1-24b-instruct-2503`) for all tasks or for specific pipeline stages:
+Override the default model (`mistral-small-3-1-24b-instruct-2503`) globally with `defaultModelName`, or per pipeline task with `taskModelNameOverride`:
 
 ```java
 TextExtractionSemanticConfig semanticConfig = TextExtractionSemanticConfig.builder()
@@ -325,36 +379,24 @@ TextExtractionParameters parameters = TextExtractionParameters.builder()
 String json = service.uploadExtractAndFetch(new File("invoice.pdf"), parameters);
 ```
 
-### Deleting an Extraction Request
-
-Use the `deleteRequest` method to delete a running request. To also remove the job metadata, use the `hardDelete(true)` method. 
-
-```java
-TextExtractionResponse response = service.uploadAndStartExtraction(new File("invoice.pdf"));
-TextExtractionDeleteParameters parameters = TextExtractionDeleteParameters.builder()
-    .hardDelete(true)
-    .build();
-
-boolean deleted = service.deleteRequest(response.metadata().id(), parameters);
-System.out.println("Deleted: " + deleted); // → true
-```
+Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`, `create_schema`, `create_schema_page_merger`, `improve_schema_description`, `cluster_schemas`, `merge_schemas`.
 
 ---
 
 ## Extraction Parameters
 
-The `TextExtractionParameters` class controls how extraction is performed.
+`TextExtractionParameters` controls how extraction is performed per request.
 
 ### Builder Reference
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `requestedOutputs` | Type | Output format(s) to generate. Defaults to `MD` if not set |
-| `mode` | Mode | Processing quality: `STANDARD` (faster, may lack some details) or `HIGH_QUALITY` (preserves all data structures, slower) |
+| `mode` | Mode | Processing quality: `STANDARD` (faster) or `HIGH_QUALITY` (preserves all data structures, slower) |
 | `ocrMode` | OcrMode | OCR mode: `DISABLED`, `ENABLED`, `FORCED`, or `AUTO` (service decides) |
 | `autoRotationCorrection` | Boolean | Automatically correct document rotation before OCR |
 | `languages` | Language | Expected languages in the document (ISO 639) |
-| `kvpMode` | KvpMode | Key-value pair extraction mode (see below). Disabled by default. Results are only included in `Type.JSON` output |
+| `kvpMode` | KvpMode | Key-value pair extraction mode. Disabled by default. Results are only included in `Type.JSON` output |
 | `semanticConfig` | TextExtractionSemanticConfig | Semantic configuration for schema-based KVP extraction |
 | `createEmbeddedImages` | EmbeddedImageMode | How images embedded in the document are handled in output |
 | `outputDpi` | Integer | DPI for extracted page images |
@@ -370,87 +412,34 @@ The `TextExtractionParameters` class controls how extraction is performed.
 | `spaceId` | String | Override the default space ID |
 | `transactionId` | String | Request tracking ID |
 
-### Output Types (Type)
-
-| Value | API String | Description |
-|-------|------------|-------------|
-| `Type.JSON` | `assembly` | Full structured JSON output including KVP data. Required for key-value pair results |
-| `Type.MD` | `md` | Markdown (default) |
-| `Type.HTML` | `html` | HTML |
-| `Type.PLAIN_TEXT` | `plain_text` | Plain text |
-| `Type.PAGE_IMAGES` | `page_images` | Individual page images. Cannot be used with `uploadExtractAndFetch` |
-
-### Processing Modes (Mode)
+### Processing Modes
 
 | Value | Description |
 |-------|-------------|
 | `Mode.STANDARD` | Faster processing with standard accuracy |
 | `Mode.HIGH_QUALITY` | Slower processing with higher accuracy |
 
-### KVP Modes (KvpMode)
+### KVP Modes
 
 | Value | Description |
 |-------|-------------|
 | `KvpMode.DISABLED` | Key-value pair extraction is disabled (default) |
-| `KvpMode.GENERIC_WITH_SEMANTIC` | Extract generic and schema-based KVP data using a general purpose foundation model. Use with `semanticConfig` to configure the extraction pipeline |
+| `KvpMode.GENERIC_WITH_SEMANTIC` | Extract generic and schema-based KVP data. Use with `semanticConfig` to configure the extraction pipeline |
 
-### Embedded Image Modes (EmbeddedImageMode)
+### OCR Modes
 
-Controls how images embedded in the document are handled in the extracted output. Applies to Markdown and JSON formats.
-
-| Value | Image in output | Markdown output | JSON output |
-|-------|----------------|-----------------|-------------|
-| `DISABLED` | No | None | None |
-| `ENABLED_PLACEHOLDER` | Yes | Link to image location | Image in `pictures` structure; `picture.text` empty; generic placeholder token IDs in `picture.children_ids` |
-| `ENABLED_TEXT` | Yes | Text extracted directly from the image | Image in `pictures`; OCR text in `picture.text`; token IDs in `picture.children_ids` |
-| `ENABLED_VERBALIZATION` | Yes | Link + textual description of the image | Image in `pictures`; natural language description in `picture.verbalization` (only for verbalized images); token IDs in `picture.children_ids` |
-| `ENABLED_VERBALIZATION_ALL` | Yes | Link + textual description of the image | Same as `ENABLED_VERBALIZATION`, but **all** embedded images are verbalized, not just graphs, charts, and screenshots |
-
-> Images extracted in any mode are stored as `.png` files in the `embedded_images_assembly/` folder within the output location.
-
----
-
-## Semantic Configuration
-
-The `TextExtractionSemanticConfig` controls the KVP extraction pipeline when `kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)` is set. All parameters are inherited from the shared `SemanticConfig` base class.
-
-### Builder Reference
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `schemas` | Schema... | One or more custom schema definitions |
-| `schemasMergeStrategy` | SchemaMergeStrategy | How custom schemas interact with pre-defined schemas (`REPLACE` or `MERGE`) |
-| `enableSchemaKvp` | Boolean | Enable schema-based extraction: targets specific fields defined in schemas |
-| `enableGenericKvp` | Boolean | Enable generic extraction: broad sweep for any labelled key-value data |
-| `enableTextHints` | Boolean | Enable text hint signals during extraction |
-| `groundingMode` | String | Bounding box precision: `"fast"` (lower precision, faster) or `"precise"` (higher precision, higher compute cost) |
-| `forceSchemaName` | String | Skip document classification and apply the named schema directly. Must exactly match a `documentType` |
-| `defaultModelName` | String | Override the default foundation model for all pipeline tasks |
-| `taskModelNameOverride` | Map\<String, Object\> | Override the model for specific tasks: `classification_exact`, `extraction`, `create_schema`, `create_schema_page_merger`, `improve_schema_description`, `cluster_schemas`, `merge_schemas` |
-
-### Choosing an Extraction Method
-
-By default, both methods are active when using `GENERIC_WITH_SEMANTIC`
-
-| Method | Parameter | Behaviour |
-|--------|-----------|-----------|
-| Schema-based | `enableSchemaKvp(true)` | Classifies each page into a schema type and extracts only the defined fields. Higher accuracy for known document types |
-| Generic | `enableGenericKvp(true)` | Broad sweep: extracts any labelled data regardless of schema. Useful for unknown document formats |
-
-> **Note:** When both methods are active, a value may be extracted twice. To avoid duplicates, set `enableGenericKvp(false)` when only schema-based extraction is needed.
-
-### Controlling Schema Interaction
-
-| Strategy | Behaviour | Recommended when |
-|----------|-----------|-----------------|
-| `SchemaMergeStrategy.REPLACE` | Only your custom schemas are used; all pre-defined schemas are ignored | You have a known document format with unique fields, or your custom schema conflicts with a pre-defined one |
-| `SchemaMergeStrategy.MERGE` | Your custom schemas are combined with the pre-defined ones | You want to supplement pre-defined document types with additional custom schemas |
+| Value | Sent to API | Description |
+|-------|-------------|-------------|
+| `OcrMode.AUTO` | *(not sent)* | Service automatically selects the best OCR option |
+| `OcrMode.DISABLED` | `"disabled"` | OCR is disabled; document must contain native text |
+| `OcrMode.ENABLED` | `"enabled"` | OCR is applied when the service determines it is needed |
+| `OcrMode.FORCED` | `"forced"` | OCR is always applied regardless of document content |
 
 ---
 
 ## TextExtractionResponse
 
-The `TextExtractionResponse` is returned by `startExtraction`, `uploadAndStartExtraction`, and `fetchExtractionRequest`.
+Returned by `startExtraction`, `uploadAndStartExtraction`, and `fetchExtractionRequest`.
 
 | Field | Type | Description |
 |-------|------|-------------|

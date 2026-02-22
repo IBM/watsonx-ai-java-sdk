@@ -24,6 +24,7 @@ ChatResponse response = chatService.chat("Hello! How are you?");
 System.out.println(response.toAssistantMessage().content());
 // → Hello! How can I help you today?
 ```
+
 > **Note:** To see the list of available models, refer to [Supported Foundation Models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx).
 
 ---
@@ -127,16 +128,12 @@ var chatService = ChatService.builder()
 
 ## Message Types
 
-The `ChatService` uses structured **message objects** to represent all interactions in a conversation. Each message type serves a specific role, ensuring that the conversation flows are consistent and easy to manage.
+The `ChatService` uses structured **message objects** to represent all interactions in a conversation. Each message type serves a specific role, ensuring that conversation flows are consistent and easy to manage.
 
-The message types are:
-
-- **SystemMessage** – defines the assistant's behavior and personality before the conversation begins. Use this to prime the model with instructions or context.  
-- **UserMessage** – represents input from a user, which can include text, images, video, or audio. A single `UserMessage` can contain multiple content elements.  
-- **AssistantMessage** – represents a response from the assistant, which can include text, reasoning information, and any tool calls executed during the conversation.  
+- **SystemMessage** – defines the assistant's behavior and personality before the conversation begins. Use this to prime the model with instructions or context.
+- **UserMessage** – represents input from a user, which can include text, images, video, or audio. A single `UserMessage` can contain multiple content elements.
+- **AssistantMessage** – represents a response from the assistant, which can include text, reasoning information, and any tool calls executed during the conversation.
 - **ToolMessage** – represents a response from a tool invoked by the assistant.
-
-These message types help manage **multi-turn conversations**, tool invocations, and structured outputs in a clear and consistent way.
 
 > **Tip:** Always start your conversation with a `SystemMessage` to set clear instructions for the assistant. Default behavior, content, and context can then be extended with `UserMessage` inputs, and responses are represented by `AssistantMessage` and `ToolMessage`.
 
@@ -185,7 +182,7 @@ List<ToolCall> tools = assistantMessage.toolCalls();
 
 ### Simple Chat
 
-Let's start with the simplest possible interaction - sending a single message and getting a response. This is perfect for one-off questions or when you don't need to maintain conversation history.
+The simplest possible interaction — send a single message and get a response. This is perfect for one-off questions or when you don't need to maintain conversation history.
 
 ```java
 ChatResponse response = chatService.chat("What is the capital of France?");
@@ -195,7 +192,7 @@ System.out.println(response.toAssistantMessage().content());
 
 ### Multi-Turn Conversation
 
-For more natural interactions, you'll want to maintain conversation history. This allows the model to remember previous messages and provide context-aware responses. Here's how to build a conversation where each message builds on the previous ones.
+For more natural interactions, maintain a conversation history so the model can remember previous messages and provide context-aware responses.
 
 ```java
 var conversation = new ArrayList<ChatMessage>();
@@ -217,7 +214,7 @@ System.out.println(response.toAssistantMessage().content());
 
 ### Customizing Generation Parameters
 
-Sometimes you need more control over how the model generates responses. Maybe you want shorter answers, more creative output, or deterministic results. Parameters let you fine-tune the generation behavior to match your needs.
+Parameters let you fine-tune the generation behavior — shorter answers, more creative output, or deterministic results.
 
 ```java
 var parameters = ChatParameters.builder()
@@ -234,9 +231,15 @@ List<ChatMessage> messages = List.of(
 var response = chatService.chat(messages, parameters);
 ```
 
-### Streaming Responses
+---
 
-When building interactive applications, waiting for the complete response can feel slow. Streaming lets you display text as it's generated, creating a more responsive user experience - just like typing appears chunk by chunk.
+## Streaming
+
+Streaming lets you display text as it's generated instead of waiting for the complete response, creating a more responsive user experience.
+
+### Simple Streaming
+
+Pass a `Consumer<String>` to receive each text chunk as it arrives:
 
 ```java
 CompletableFuture<ChatResponse> future = chatService.chatStreaming(
@@ -249,7 +252,7 @@ ChatResponse finalResponse = future.get();
 
 ### Streaming with ChatHandler
 
-For more sophisticated applications, you might need access to additional information during streaming - like response metadata, finish reasons, or error handling. The `ChatHandler` interface gives you complete control over the streaming process.
+For more control over the streaming process — metadata, finish reasons, tool call fragments, error handling — implement `ChatHandler`:
 
 ```java
 chatService.chatStreaming(
@@ -283,11 +286,17 @@ chatService.chatStreaming(
 | `onPartialThinking` | No | Called for each chunk of reasoning content |
 | `failOnFirstError` | No | Return `true` to stop streaming on first error (default: `false`) |
 
-> **Threading note:** All callbacks execute sequentially. On `Java 21+`, virtual threads are used by default. Custom executors can be configured via `CallbackExecutorProvider` SPI.
+> **Threading note:** All callbacks execute sequentially. On Java 21+, virtual threads are used by default. Custom executors can be configured via the `CallbackExecutorProvider` SPI.
 
-### Tool Calling
+---
 
-One of the most powerful features is enabling the model to call external functions. Instead of just generating text, the model can decide when it needs to perform actions - like sending emails, querying databases, or calling APIs. Here's how to define a tool and let the model use it.
+## Tool Calling
+
+Tool calling enables the model to invoke external functions instead of just generating text. The model decides when an action is needed — querying a database, calling an API, sending a message — and returns a structured tool call that your code executes.
+
+### Basic Tool Calling
+
+Define a tool, pass it to the request, and handle the tool call in a loop:
 
 ```java
 Tool emailTool = Tool.of(
@@ -324,38 +333,118 @@ System.out.println(response.toAssistantMessage().content());
 // → The email has been sent successfully to john@example.com.
 ```
 
+### Guided Choice (Constrained Output)
+
+When you need the model to choose from a specific set of options, use guided choice. This is ideal for classification tasks, yes/no questions, or any scenario where you want to constrain the possible outputs.
+
+```java
+ChatParameters parameters = ChatParameters.builder()
+    .guidedChoice("Yes", "No")
+    .build();
+
+ChatRequest request = ChatRequest.builder()
+    .messages(UserMessage.text("Is 2 + 2 equal to 5?"))
+    .parameters(parameters)
+    .build();
+
+String answer = chatService.chat(request).toAssistantMessage().content();
+System.out.println(answer);
+// → "No"
+```
+
+---
+
+## Interceptors
+
+Interceptors run automatically after every non-streaming response, before the result is returned to your application. They are configured once on the service builder and apply transparently to all subsequent calls. Both are `@FunctionalInterface` — pass a lambda directly.
+
 ### Message Interceptor
 
-The `MessageInterceptor` allows you to modify or sanitize the assistant's text content before it's returned to your application. This is useful for removing unwanted formatting, filtering content, or applying transformations.
+`MessageInterceptor` lets you modify or sanitize the assistant's text content. Common uses: stripping whitespace, filtering unwanted patterns, normalizing formatting.
 
-> **Important:** `MessageInterceptor` only works with **non-streaming** chat requests. For streaming requests, you need to process the content directly in the `ChatHandler` callbacks.
+> **Note:** `MessageInterceptor` applies to **non-streaming** requests only. For streaming, process the content directly inside `ChatHandler` callbacks.
 
 ```java
 ChatService chatService = ChatService.builder()
     // ...
-    .messageInterceptor((ctx, message) -> message.strip().replaceAll("\\s+", " ")).build();
+    .messageInterceptor((ctx, message) -> message == null ? "" : message.strip())
+    .build();
 ```
 
 ### Tool Interceptor
 
-The `ToolInterceptor` allows you to modify tool call arguments before they're executed. This is useful for validation, normalization, adding default values, or logging tool calls.
+`ToolInterceptor` lets you modify tool call arguments before they are executed or returned. Common uses: input validation, unwrapping double-encoded JSON, normalizing values.
 
 ```java
 ChatService chatService = ChatService.builder()
     // ...
     .toolInterceptor((ctx, functionCall) -> {
-        // Modify arguments before execution
-        return functionCall.withArguments(...);
+        var args = functionCall.arguments();
+        // Unwrap double-encoded JSON strings if present
+        return args != null && args.startsWith("\"")
+            ? functionCall.withArguments(Json.fromJson(args, String.class))
+            : functionCall;
     })
     .build();
 ```
 
-### Structured JSON Output
+### InterceptorContext
 
-When you need the model to return data in a specific format (like for APIs or data processing), you can request **JSON** output. This is perfect for extracting structured information from text or generating data that other systems can consume.
+Both interceptors receive an `InterceptorContext` as their first argument, which provides access to the current request, the current response, and a way to invoke the model again.
+
+| Method | Description |
+|--------|-------------|
+| `ctx.request()` | The original `ChatRequest` that triggered this response |
+| `ctx.response()` | An `Optional<ChatResponse>` with the current response |
+| `ctx.invoke(ChatRequest)` | Sends a new request to the model and returns its response |
+
+`ctx.invoke()` reuses the same `ChatService` instance — same model, project, base URL, and default parameters — so you can add a second reasoning step without instantiating anything new. Per-request overrides are still possible via `ChatParameters`:
 
 ```java
-record Response(String name, List<String> useCases) {};
+ChatService chatService = ChatService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl(CloudRegion.DALLAS)
+    .modelId("ibm/granite-4-h-small")
+    .messageInterceptor((ctx, message) -> {
+
+        // Override the model just for this verification call
+        var verificationParams = ChatParameters.builder()
+            .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+            .guidedChoice("PASS", "FAIL")
+            .build();
+
+        var verificationRequest = ChatRequest.builder()
+            .parameters(verificationParams)
+            .messages(
+                SystemMessage.of("You are a fact-checker. Reply with PASS or FAIL."),
+                UserMessage.text("Is this response factually correct?\n\n" + message))
+            .build();
+
+        var verdict = ctx.invoke(verificationRequest).toAssistantMessage().content();
+        return verdict.equals("FAIL")
+            ? "I'm not confident in my answer. Please consult an expert."
+            : message;
+    })
+    .build();
+
+chatService.chat("Does water boil on the Moon?");
+```
+
+> `ctx.invoke()` counts as a separate API call and consumes additional tokens. Use it when the benefit — validation, rewriting, classification — justifies the cost.
+
+---
+
+## Structured Output
+
+When you need the model to return data in a specific format, use structured output. The model is constrained to produce valid JSON, making it straightforward to deserialize the response directly into your domain objects.
+
+### JSON Mode
+
+Enable JSON mode to instruct the model to always produce a valid JSON object. Define the expected structure in your system prompt:
+
+```java
+record Response(String name, List<String> useCases) {}
 
 ChatParameters parameters = ChatParameters.builder()
     .responseAsJson()
@@ -364,20 +453,22 @@ ChatParameters parameters = ChatParameters.builder()
 List<ChatMessage> messages = List.of(
     SystemMessage.of("You are a helpful assistant that outputs JSON"),
     UserMessage.text("""
-        Give me a programming language with their use cases
-        Use the following json format as result:
+        Give me a programming language with their use cases.
+        Use the following JSON format:
         {
             "name": ...
             "use_cases": [...]
         }""")
-    );
+);
 
 ChatResponse response = chatService.chat(messages, parameters);
 System.out.println(response.toAssistantMessage().toObject(Response.class));
-// → Response[name=Python, useCases=[Web development, Data analysis, Machine learning, Artificial intelligence, Scientific computing, Automation and scripting, Rapid application development]]
+// → Response[name=Python, useCases=[Web development, Data analysis, ...]]
 ```
 
-For even more control over **JSON output**, you can provide a schema that defines exactly what structure you expect. The model will generate **JSON** that conforms to your **schema**, ensuring consistency and making it easier to process the results.
+### JSON Schema Mode
+
+For stricter control, provide a schema that defines exactly what structure you expect. The model will generate output that conforms to the schema:
 
 ```java
 JsonSchema schema = JsonSchema.array().items(JsonSchema.string()).build();
@@ -396,11 +487,14 @@ var languages = response.toAssistantMessage().toObject(TypeToken.listOf(String.c
 System.out.println(languages);
 // → ["Python", "JavaScript", "Java"]
 ```
-> **Important:** By default, `Jackson` uses `snake_case` for JSON property names. Make sure that the field names in your prompt and schema follow the `snake_case` convention (e.g., **use_cases** instead of **useCases**) to ensure proper deserialization.
 
-### Vision Capabilities
+> **Note:** By default, Jackson uses `snake_case` for JSON property names. Make sure the field names in your prompt and schema follow the same convention (e.g., `use_cases` instead of `useCases`) to ensure correct deserialization.
 
-Vision-enabled models can analyze images alongside text. This is useful for image description, visual question answering, OCR, and more. Simply include an image in your user message.
+---
+
+## Vision
+
+Vision-enabled models can analyze images alongside text — useful for image description, visual question answering, OCR, and more. Include an image directly in the `UserMessage`:
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -414,46 +508,27 @@ var message = UserMessage.image(
     "Give a short description of the image",
     Paths.get("/path/to/image.jpg")
 );
-    
+
 var response = chatService.chat(message);
 System.out.println(response.toAssistantMessage().content());
 ```
 
 > **Model compatibility:** Not all models support vision. Check the [Supported Foundation Models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx) page before using this feature.
 
-### Guided Choice (Constrained Output)
-
-When you need the model to choose from a specific set of options, use guided choice. This is perfect for classification tasks, **yes/no** questions, or any scenario where you want to limit the possible outputs.
-
-```java
-ChatParameters parameters = ChatParameters.builder()
-    .guidedChoice("Yes", "No")
-    .build();
-
-ChatRequest request = ChatRequest.builder()
-    .messages(UserMessage.text("Is 2 + 2 equal to 5?"))
-    .parameters(parameters)
-    .build();
-
-String answer = chatService.chat(request).toAssistantMessage().content();
-System.out.println(answer); 
-// → "No"
-```
-
 ---
 
 ## Reasoning / Thinking Mode
 
-Some foundation models can include internal reasoning (also called "thinking") steps as part of their responses. Depending on the model, this reasoning may be embedded in the same text as the final response, or returned separately in a dedicated field.
+Some foundation models can include internal reasoning (also called "thinking") steps as part of their response. Depending on the model, this reasoning may be embedded in the same text as the final response, or returned separately in a dedicated field.
 
-There are **two configuration modes** to enable reasoning:
+There are two configuration modes:
 
-- **ExtractionTags** - For models that return reasoning and response in the same text block
-- **ThinkingEffort/Boolean** - For models that already separate reasoning and response automatically
+- **ExtractionTags** — for models that return reasoning and response in the same text block.
+- **ThinkingEffort / Boolean** — for models that already separate reasoning and response automatically.
 
 ### Models that mix reasoning and response in the same text
 
-Use `ExtractionTags` when the model outputs reasoning and response in the same text string. The tags define XML-like markers used to separate the reasoning from the final response.
+Use `ExtractionTags` when the model outputs reasoning and response together as a single string. The tags define XML-like markers used to separate the two parts:
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -476,8 +551,8 @@ System.out.println("Answer:    " + message.content());
 ```
 
 **Tag behavior:**
-- Both tags specified: extract reasoning from the first tag, response from the second
-- Only the reasoning tag specified: everything outside that tag is treated as the response
+- Both tags specified: extract reasoning from the first tag, response from the second.
+- Only the reasoning tag specified: everything outside that tag is treated as the response.
 
 **Streaming with ExtractionTags:**
 
@@ -497,7 +572,7 @@ chatService.chatStreaming(request, new ChatHandler() {
 
 ### Models that return reasoning and response as separate fields
 
-For models that already return reasoning and response as separate fields, use `ThinkingEffort` to control how much reasoning the model applies during generation, or simply enable it with a boolean flag.
+For models that already separate reasoning from response, use `ThinkingEffort` to control how much reasoning the model applies, or enable it with a boolean flag:
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -521,7 +596,7 @@ System.out.println("Answer:    " + message.content());
 
 ## ToolRegistry
 
-When working with multiple tools, the `ToolRegistry` provides a convenient way to register, manage, and execute tools automatically. This approach simplifies tool handling by centralizing tool definitions and execution logic, making your code cleaner and more maintainable.
+When working with multiple tools, `ToolRegistry` centralizes tool definitions and execution logic, making the agentic loop cleaner and easier to maintain.
 
 ### Basic Usage
 
@@ -562,14 +637,14 @@ System.out.println(assistant.content());
 
 ### Creating Custom Tools
 
-In order to create your own tools in combination with the `ToolRegistry`, you need to implement the `ExecutableTool` interface:
+Implement `ExecutableTool` to define your own tools for use with `ToolRegistry`:
 
 ```java
 public class WeatherTool implements ExecutableTool {
 
     @Override
-    public String name() { 
-        return "get_weather"; 
+    public String name() {
+        return "get_weather";
     }
 
     @Override
@@ -607,9 +682,9 @@ ToolRegistry registry = ToolRegistry.builder()
     .build();
 ```
 
-#### Selective Tool Registration
+### Selective Tool Registration
 
-You can register specific tools for different conversations:
+Register all tools once and expose only a subset for a given conversation:
 
 ```java
 ToolRegistry registry = ToolRegistry.builder()
@@ -618,12 +693,12 @@ ToolRegistry registry = ToolRegistry.builder()
 
 // Use all tools
 ChatService chatService = ChatService.builder()
-    .tools(registry.tools())  // All 3 tools
+    .tools(registry.tools())
     .build();
 
 // Use only specific tools
 ChatService limitedService = ChatService.builder()
-    .tools(registry.tools("get_weather", "search"))  // Only 2 tools
+    .tools(registry.tools("get_weather", "search"))
     .build();
 ```
 
@@ -631,7 +706,7 @@ ChatService limitedService = ChatService.builder()
 
 ## Chat Parameters
 
-The `ChatParameters` class allows you to customize and fine-tune the behavior of chat requests sent to the foundation model. By configuring these parameters, you can control aspects such as response length, creativity, repetition handling, output format, and more. This flexibility enables you to tailor the model's generation to match your specific use case requirements.
+`ChatParameters` allows you to fine-tune the behavior of chat requests — response length, creativity, repetition handling, output format, and more.
 
 ### Builder Reference
 
