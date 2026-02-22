@@ -60,7 +60,7 @@ TextClassificationService service = TextClassificationService.builder()
 
 ### Using a Separate COS Authenticator
 
-If your **Cloud Object Storage** uses different credentials than your **watsonx.ai** service, you can provide a dedicated `cosAuthenticator`:
+If your **Cloud Object Storage** uses different credentials than your **watsonx.ai** service, provide a dedicated `cosAuthenticator`:
 
 ```java
 TextClassificationService service = TextClassificationService.builder()
@@ -102,6 +102,8 @@ TextClassificationService service = TextClassificationService.builder()
 
 The simplest way to classify a document is to use the `uploadClassifyAndFetch` method. This uploads a file and runs classification in one call.
 
+**From a local file:**
+
 ```java
 ClassificationResult result = service.uploadClassifyAndFetch(new File("invoice.pdf"));
 System.out.println("Status:          " + result.status());
@@ -112,17 +114,44 @@ System.out.println("Pages Processed: " + result.numberPagesProcessed());
 // → Document Type:   Invoice
 // → Classified:      true
 // → Pages Processed: 1
-
-// Clean up the uploaded file manually if removeUploadedFile is not set
-service.deleteFile(BUCKET_NAME, "invoice.pdf");
 ```
+
+**From an InputStream** — useful for documents from web uploads or streaming sources:
+
+```java
+InputStream inputStream = new FileInputStream("invoice.pdf");
+ClassificationResult result = service.uploadClassifyAndFetch(inputStream, "invoice.pdf");
+System.out.println("Document Type: " + result.documentType());
+// → Document Type: Invoice
+```
+
+**From a file already in COS** — skip the upload step entirely:
+
+```java
+ClassificationResult result = service.classifyAndFetch("invoice.pdf");
+System.out.println("Document Type: " + result.documentType());
+// → Document Type: Invoice
+```
+
+**Automatic file cleanup** — set `removeUploadedFile(true)` to delete the uploaded file from COS asynchronously after classification completes:
+
+```java
+var parameters = TextClassificationParameters.builder()
+    .languages(Language.ENGLISH)
+    .removeUploadedFile(true)
+    .build();
+
+service.uploadClassifyAndFetch(new File("path/to/invoice.pdf"), parameters);
+```
+
+> **Note:** `removeUploadedFile` is only supported with the synchronous variants. For other cases, call `service.deleteFile(BUCKET_NAME, fileName)` manually after processing.
 
 ### Asynchronous Classification
 
-For long-running operations, you can start the classification process and then poll until it is complete.
+For long-running operations, start the job and poll until it completes:
 
 ```java
-TextClassificationResponse response = service.uploadAndStartClassification(new File("path/to/invoice.pdf"));
+TextClassificationResponse response = service.uploadAndStartClassification(new File("invoice.pdf"));
 
 String requestId = response.metadata().id();
 String status = response.entity().results().status();
@@ -133,55 +162,44 @@ while (!status.equals(Status.COMPLETED.value()) && !status.equals(Status.FAILED.
     status = response.entity().results().status();
 }
 
-if (status.equals(Status.COMPLETED.value())) 
+if (status.equals(Status.COMPLETED.value()))
     System.out.println("Document Type: " + response.entity().results().documentType());
 else
     System.err.println("Failed: " + response.entity().results().error().message());
-   
+
 service.deleteFile(BUCKET_NAME, "invoice.pdf");
 // → Document Type: Invoice
 ```
 
-### Automatic File Cleanup
+### Managing Requests
 
-Set `removeUploadedFile(true)` to have the service delete the uploaded file asynchronously after classification completes:
-
-```java
-
-var parameters = TextClassificationParameters.builder()
-    .languages(Language.ENGLISH)
-    .removeUploadedFile(true) // This option deletes the file after classification
-    .build();
-
-service.uploadClassifyAndFetch(new File("path/to/invoice.pdf"), parameters);
-```
-
-> **Note:** `removeUploadedFile` is only supported with the synchronous variants.
-
-### Classifying from an InputStream
-
-Useful for processing documents from web uploads or streaming sources:
+Use `deleteRequest` to cancel or remove a classification job. Pass `hardDelete(true)` to also remove the job metadata:
 
 ```java
-InputStream inputStream = new FileInputStream("invoice.pdf");
-ClassificationResult result = service.uploadClassifyAndFetch(inputStream,"invoice.pdf");
-System.out.println("Document Type: " + result.documentType());
-// → Document Type: Invoice
+TextClassificationResponse response = service.uploadAndStartClassification(new File("invoice.pdf"));
+
+boolean deleted = service.deleteRequest(
+    response.metadata().id(),
+    TextClassificationDeleteParameters.builder()
+        .hardDelete(true)
+        .build()
+);
+
+System.out.println("Deleted: " + deleted);
+// → Deleted: true
 ```
 
-### Classifying a document already uploaded
+> Deleting a non-existent ID returns `false`.
 
-If the document is already stored in your COS bucket, skip the upload step:
+---
 
-```java
-ClassificationResult result = service.classifyAndFetch("invoice.pdf");
-System.out.println("Document Type: " + result.documentType());
-// → Document Type: Invoice
-```
+## Custom Schemas
 
-### Custom Schema Classification
+By default, the service classifies documents against a set of pre-defined schemas. When your documents have domain-specific structures, you can define custom schemas and control how they interact with the built-in ones.
 
-Define custom document schemas to classify domain-specific documents. Use `SchemaMergeStrategy.REPLACE` to replace built-in schemas entirely:
+### Defining a Schema
+
+A `Schema` describes a document type. Use `fields` for variable-layout documents (fields can appear anywhere on the page) or `pages` for fixed-layout documents with consistent field positions. The two are mutually exclusive.
 
 ```java
 KvpFields fields = KvpFields.builder()
@@ -191,12 +209,25 @@ KvpFields fields = KvpFields.builder()
     .build();
 
 Schema customSchema = Schema.builder()
-    .documentDescription("A vendor-issued invoice listing purchased items, prices, and payment information")
     .documentType("My-Invoice")
+    .documentDescription("A vendor-issued invoice listing purchased items, prices, and payment information")
     .fields(fields)
     .additionalPromptInstructions("The document contains a table with all the data")
     .build();
+```
 
+Each `KvpField` accepts a description and an example value. You can also pass `availableOptions` to restrict a field to a set of allowed values.
+
+### Schema Merge Strategy
+
+`schemasMergeStrategy` controls how custom schemas interact with the built-in pre-defined ones:
+
+| Strategy | Description | When to use |
+|----------|-------------|-------------|
+| `SchemaMergeStrategy.REPLACE` | Ignores all pre-defined schemas; classifies only against your custom schemas | When your documents have unique fields or you want to prevent accidental matching with a similar pre-defined schema |
+| `SchemaMergeStrategy.MERGE` | Combines your custom schemas with the existing pre-defined ones | When you want to extend the catalog with new document types while still benefiting from pre-defined schemas |
+
+```java
 TextClassificationSemanticConfig semanticConfig = TextClassificationSemanticConfig.builder()
     .schemasMergeStrategy(SchemaMergeStrategy.REPLACE)
     .schemas(customSchema)
@@ -208,38 +239,55 @@ TextClassificationParameters parameters = TextClassificationParameters.builder()
     .build();
 
 // Matching document
-ClassificationResult result = service.uploadClassifyAndFetch(new File("path/to/invoice.pdf"), parameters);
+ClassificationResult result = service.uploadClassifyAndFetch(new File("invoice.pdf"), parameters);
 System.out.println(result.documentClassified()); // → true
 System.out.println(result.documentType());       // → My-Invoice
 
 // Non-matching document
-result = service.uploadClassifyAndFetch(new File("path/to/noinvoice.pdf"), parameters);
+result = service.uploadClassifyAndFetch(new File("noinvoice.pdf"), parameters);
 System.out.println(result.documentClassified()); // → false
 System.out.println(result.documentType());       // → (blank)
 ```
 
+### Extraction Methods
+
+Two extraction methods can be enabled independently or together:
+
+**Schema-based extraction** (`enableSchemaKvp: true`) classifies each page into a known document type and extracts only the fields declared in the matching schema. Use this when you have domain-specific knowledge of the document structure — it increases accuracy for known document types.
+
+**Generic extraction** (`enableGenericKvp: true`) performs a broad sweep and extracts any content that can be represented as key-value pairs, regardless of document type. Use this when you have no prior knowledge of the document structure.
+
+Both are active by default. If you only want schema-based results, set `enableGenericKvp(false)` to avoid duplicate extractions.
+
+### Choosing Between `fields` and `pages`
+
+| | `fields` | `pages` |
+|--|---------|---------|
+| **Use for** | Variable-layout documents where fields can appear anywhere | Fixed-layout documents with consistent field positions |
+| **How it works** | Model scans the entire document for matching fields | Model targets only the specified bounding box regions |
+| **Defined with** | `KvpFields` | `KvpPage` + `KvpSlice` with normalized bbox (0.0–100.0) |
+
 ### Using a Custom Foundation Model
 
-By default the service uses `mistral-small-3-1-24b-instruct-2503`. You can override this with any compatible vision model via `defaultModelName`, or target individual pipeline tasks with `taskModelNameOverride`:
+By default the service uses `mistral-small-3-1-24b-instruct-2503`. Override it globally with `defaultModelName`, or per pipeline task with `taskModelNameOverride`:
 
 ```java
-Schema customSchema = Schema.builder()
-    .documentType("Invoice")
-    .documentDescription("A vendor-issued invoice listing purchased items and payment information.")
-    .fields(
-        KvpFields.builder()
-            .add("invoice_number", KvpField.of("The unique invoice identifier.", "INV-2024-001"))
-            .add("total_amount", KvpField.of("The total amount due.", "1250.50"))
-            .build()
-        )
-    .build();
-
 TextClassificationSemanticConfig semanticConfig = TextClassificationSemanticConfig.builder()
     .schemasMergeStrategy(SchemaMergeStrategy.REPLACE)
-    .schemas(customSchema)
+    .schemas(
+        Schema.builder()
+            .documentType("Invoice")
+            .documentDescription("A vendor-issued invoice listing purchased items and payment information.")
+            .fields(
+                KvpFields.builder()
+                    .add("invoice_number", KvpField.of("The unique invoice identifier.", "INV-2024-001"))
+                    .add("total_amount", KvpField.of("The total amount due.", "1250.50"))
+                    .build()
+            )
+            .build()
+    )
     .defaultModelName("mistral-large-2512")
-    .taskModelNameOverride(
-        Map.of(
+    .taskModelNameOverride(Map.of(
         "classification_exact", "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
         "extraction", "mistral-large-2512"
     ))
@@ -255,40 +303,22 @@ ClassificationResult result = service.uploadClassifyAndFetch(
 
 System.out.println("Document Type: " + result.documentType());
 // → Document Type: Invoice
-System.out.println("Classified:    " + result.documentClassified());
-// → Classified: true
 ```
 
-### Deleting a Classification Request
-
-Use the `deleteRequest` method to delete a running request. To also remove the job metadata, use the `hardDelete(true)` method. 
-
-```java
-TextClassificationResponse response = service.uploadAndStartClassification(new File("invoice.pdf"));
-
-boolean deleted = service.deleteRequest(
-    response.metadata().id(),
-    TextClassificationDeleteParameters.builder()
-        .hardDelete(true)
-        .build()
-);
-
-// Deleting a non-existent ID returns false.
-System.out.println("Deleted: " + deleted); // → Deleted: true
-```
+Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`, `create_schema`, `create_schema_page_merger`, `improve_schema_description`, `cluster_schemas`, `merge_schemas`.
 
 ---
 
 ## Classification Parameters
 
-The `TextClassificationParameters` class controls how classification is performed.
+`TextClassificationParameters` controls how classification is performed per request.
 
 ### Builder Reference
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `classificationMode` | ClassificationMode | `EXACT` returns the matched schema name; `BINARY` returns only whether a match was found |
-| `ocrMode` | OcrMode | OCR processing mode: `DISABLED`, `ENABLED`, or `FORCED`. Leaving it unset allows the service to select the best option automatically. |
+| `ocrMode` | OcrMode | OCR processing mode: `DISABLED`, `ENABLED`, or `FORCED`. Leaving unset lets the service choose automatically |
 | `autoRotationCorrection` | Boolean | Automatically correct document rotation before OCR |
 | `languages` | Language... | Expected languages in the document (ISO 639) |
 | `semanticConfig` | TextClassificationSemanticConfig | Custom schema and semantic classification settings |
@@ -307,84 +337,11 @@ The `TextClassificationParameters` class controls how classification is performe
 | `ClassificationMode.EXACT` | Returns the exact schema name the document is classified to |
 | `ClassificationMode.BINARY` | Returns only whether the document matches any known schema |
 
----
-
-## Semantic Configuration
-
-`TextClassificationSemanticConfig` lets you customize the classification behavior, control which extraction methods are used, and define custom document schemas.
-
-### Builder Reference
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `schemas` | Schema... | One or more custom document schemas |
-| `schemasMergeStrategy` | SchemaMergeStrategy | How custom schemas interact with pre-defined ones (see below) |
-| `enableSchemaKvp` | Boolean | Enable schema-based extraction, which targets specific fields using pre-defined or custom schemas |
-| `enableGenericKvp` | Boolean | Enable generic extraction, which broadly identifies any key-value pairs without domain-specific knowledge |
-| `enableTextHints` | Boolean | Enable text hint signals to improve extraction accuracy |
-| `groundingMode` | String | Precision of bounding box location data included with results: `"fast"` (lower precision, faster) or `"precise"` (higher precision, higher compute cost) |
-| `forceSchemaName` | String | Skip document classification and directly apply the named schema. Must exactly match a `documentType` from a pre-defined or custom schema. |
-| `defaultModelName` | String | Default foundation model to use for classification |
-| `taskModelNameOverride` | Map\<String, Object\> | Override the model for specific pipeline tasks. Supported keys: `classification_exact`, `extraction`, `create_schema`, `create_schema_page_merger`, `improve_schema_description`, `cluster_schemas`, `merge_schemas` |
-
-### Controlling Schema Interaction with SchemaMergeStrategy
-
-The `schemasMergeStrategy` field controls how custom schemas interact with the built-in pre-defined schemas:
-
-| Strategy | Description | When to use |
-|----------|-------------|-------------|
-| `SchemaMergeStrategy.REPLACE` | Ignores all pre-defined schemas and only uses the custom schemas you provide. The document is classified against your custom schema descriptions. | When your document has unique fields best described by a custom schema, or when you want to prevent accidental matching with a similar pre-defined schema (e.g., a custom invoice with business-specific fields). |
-| `SchemaMergeStrategy.MERGE` | Combines your custom schemas with the existing pre-defined schemas. | When you want to extend the catalog with new document types while still benefiting from pre-defined schemas. |
-
-### Choosing an Extraction Method
-
-By default, both `enableSchemaKvp` and `enableGenericKvp` are active. You can enable one or both depending on your use case:
-
-**Schema-based extraction** (`enableSchemaKvp: true`) targets specific fields defined in your schemas. It classifies each page into a known document type and extracts only the fields declared in the matching schema. This increases accuracy for known document types.
-
-**Generic extraction** (`enableGenericKvp: true`) performs a broad sweep of the document and extracts any content that can be represented as key-value pairs, regardless of document type. Useful when you have no domain-specific knowledge of the document.
-
-> **Note:** When both methods are active, a value may be extracted twice. If you only want schema-based results, set `enableGenericKvp(false)`.
-
-## Schema Reference
-
-The `Schema` class defines the structure of a custom document type for classification.
-
-### Builder Reference
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `documentType` | String | Short title for the document type (e.g., `"Invoice"`, `"Passport"`) |
-| `documentDescription` | String | One or two sentence description to help the model understand the document |
-| `fields` | KvpFields | Field-based schema for variable-layout documents. **Mutually exclusive with `pages`** |
-| `pages` | KvpPage | Page-based schema for fixed-layout documents. **Mutually exclusive with `fields`** |
-| `additionalPromptInstructions` | String | Optional extra instructions appended to the model prompt to guide extraction |
-
-### KvpFields and KvpField
-
-`KvpFields` is a collection of named field definitions. Each `KvpField` describes what to extract:
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `description` | String | Description of the field to help the model identify it |
-| `example` | String | Example value illustrating expected format |
-| `availableOptions` | List\<String\> | Optional list of allowed values for enumerated fields |
-
-### Choosing Between fields and pages
-
-| | `fields` | `pages` |
-|--|---------|---------|
-| **Use for** | Variable-layout documents where fields can appear anywhere | Fixed-layout documents with consistent field positions |
-| **How it works** | Model scans the entire document for matching fields | Model targets only the specified bounding box regions |
-| **Defined with** | `KvpFields` | `KvpPage` + `KvpSlice` with normalized bbox (0.0–100.0) |
-
----
-
-## OcrMode Reference
+### OCR Modes
 
 | Value | Sent to API | Description |
 |-------|-------------|-------------|
-| `OcrMode.AUTO` | *(empty, not sent)* | Service automatically selects the best OCR option |
+| `OcrMode.AUTO` | *(not sent)* | Service automatically selects the best OCR option |
 | `OcrMode.DISABLED` | `"disabled"` | OCR is disabled; document must contain native text |
 | `OcrMode.ENABLED` | `"enabled"` | OCR is applied when the service determines it is needed |
 | `OcrMode.FORCED` | `"forced"` | OCR is always applied regardless of document content |
@@ -393,7 +350,7 @@ The `Schema` class defines the structure of a custom document type for classific
 
 ## TextClassificationResponse
 
-The `TextClassificationResponse` is returned by `startClassification`, `uploadAndStartClassification`, and `fetchClassificationRequest`.
+Returned by `startClassification`, `uploadAndStartClassification`, and `fetchClassificationRequest`.
 
 | Field | Type | Description |
 |-------|------|-------------|
