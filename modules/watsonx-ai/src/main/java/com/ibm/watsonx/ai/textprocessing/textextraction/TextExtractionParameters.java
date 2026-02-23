@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.core.Language;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
-import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
 
 /**
