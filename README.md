@@ -1,25 +1,23 @@
+[![Maven Central](https://img.shields.io/maven-central/v/com.ibm.watsonx/watsonx-ai.svg)](https://central.sonatype.com/artifact/com.ibm.watsonx/watsonx-ai)
+[![Java Version](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://adoptium.net/temurin/releases/?version=17&os=any&arch=any)
 [![Documentation](https://img.shields.io/badge/docs-online-blue)](https://ibm.github.io/watsonx-ai-java-sdk/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # IBM watsonx.ai Java SDK
 
-IBM watsonx.ai Java SDK is a client library that interacts with the [IBM watsonx.ai APIs](https://cloud.ibm.com/apidocs/watsonx-ai).
-
-## Features
-
-This Java SDK provides a convenient abstraction over the HTTP APIs offered by `watsonx.ai`, simplifying common tasks such as request construction and response handling. It helps developers integrate with the service more easily, so they can focus on building their applications.
+The **IBM watsonx.ai Java SDK** is an open-source client library that interacts with [IBM watsonx.ai](https://cloud.ibm.com/apidocs/watsonx-ai), an enterprise-grade AI platform for building, training, and deploying AI models at scale.
 
 ## Prerequisites
 
-- A [watsonx.ai](https://www.ibm.com/watsonx/get-started) service instance.
-- Java 17 or higher.
+Before getting started, ensure you have:
 
-## Samples
+- A [watsonx.ai](https://www.ibm.com/watsonx/get-started) service instance (IBM Cloud or on-premises)
+- Java 17 or higher
+- Maven or Gradle
 
-Examples of usage are available in the [samples/](samples) directory.
+## Installation
 
-## Getting Started
-
-To use the watsonx.ai Java SDK, add the following Maven dependency:
+Add the SDK to your **Maven** project:
 
 ```xml
 <dependency>
@@ -29,42 +27,76 @@ To use the watsonx.ai Java SDK, add the following Maven dependency:
 </dependency>
 ```
 
+Or for **Gradle**:
+
+```gradle
+implementation 'com.ibm.watsonx:watsonx-ai:0.18.0'
+```
+
+## Quick Start
+
+Build and run your first watsonx.ai-powered chat:
+
+```java
+ChatService chatService = ChatService.builder()
+    .apiKey(System.getenv("WATSONX_API_KEY"))
+    .projectId(System.getenv("WATSONX_PROJECT_ID"))
+    .baseUrl(CloudRegion.DALLAS)
+    .modelId("ibm/granite-4-h-small")
+    .build();
+
+AssistantMessage response = chatService
+    .chat("Tell me a joke")
+    .toAssistantMessage();
+
+System.out.println(response.content());
+```
+
+See the [documentation](https://ibm.github.io/watsonx-ai-java-sdk/) for advanced usage.
+
+## Samples
+
+Examples of usage are available in the [samples/](samples) directory.
+
+## Framework Integrations
+
+The SDK is integrated with popular Java AI frameworks:
+
+- **[LangChain4j](https://docs.langchain4j.dev/)** – Use watsonx.ai models in Java LLM workflows (chat, embeddings, tools, RAG).
+- **[Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)** – Build cloud-native AI services with Quarkus.
+- **[Apache Camel](https://camel.apache.org/components/ibm-watsonx-ai-component.html)** – Integrate watsonx.ai into enterprise integration routes.
+
 ## Contributing
 
-We welcome contributions to this project!
+We welcome contributions! Please follow these guidelines when submitting a patch:
 
-To ensure a smooth contribution process, please follow these guidelines:
+**License header**: all source files must include an SPDX header for Apache License 2.0:
 
-- All source files must include a license header using the SPDX format for the Apache License 2.0:
+```
+/*
+ * Copyright 2025 IBM Corporation
+ * SPDX-License-Identifier: Apache-2.0
+ */
+```
 
-  ```
-  /*
-   * Copyright 2025 IBM Corporation
-   * SPDX-License-Identifier: Apache-2.0
-   */
-  ```
-  This header, along with code formatting, is automatically applied to source files using the following command:
+The header and code formatting are applied automatically by running:
 
-  ```
-  ./mvnw compile
-  ```
+```
+./mvnw compile
+```
 
-- When submitting a patch, you must include a Signed-off-by line in your commit message,
-  indicating that you agree to the DCO:
+**DCO sign-off**: include a `Signed-off-by` line in your commit message:
 
-  ```
-  Signed-off-by: Your Name <your.email@example.com>
-  ```
+```
+Signed-off-by: Your Name <your.email@example.com>
+```
 
-  You can automatically add this line by using the `-s` flag with git commit:
+Add it automatically with:
 
-  ```
-  git commit -s
-  ```
-
-Feel free to submit issues and pull requests. We appreciate your contributions!
+```
+git commit -s
+```
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
+Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
