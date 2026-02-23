@@ -44,7 +44,7 @@
     <build-helper-maven-plugin-version>3.6.1</build-helper-maven-plugin-version>
     <license-maven-plugin-version>5.0.0</license-maven-plugin-version>
     <formatter-maven-plugin-version>2.29.0</formatter-maven-plugin-version>
-    <maven-surefire-plugin-version>3.5.4</maven-surefire-plugin-version>
+    <maven-surefire-plugin-version>3.5.5</maven-surefire-plugin-version>
   </properties>
 
   <dependencies>
