@@ -131,5 +131,3 @@ ChatService chatService = ChatService.builder()
     .logResponses(true)
     .build();
 ```
-
-Logging uses the standard Java `java.util.logging` infrastructure. Both flags default to `false`.
