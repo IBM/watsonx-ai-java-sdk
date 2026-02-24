@@ -60,11 +60,11 @@ Examples of usage are available in the [samples/](samples) directory.
 
 ## Framework Integrations
 
-The SDK is integrated with popular Java AI frameworks:
+The SDK integrates seamlessly with popular Java frameworks:
 
-- **[LangChain4j](https://docs.langchain4j.dev/)** – Use watsonx.ai models in Java LLM workflows (chat, embeddings, tools, RAG).
-- **[Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)** – Build cloud-native AI services with Quarkus.
-- **[Apache Camel](https://camel.apache.org/components/ibm-watsonx-ai-component.html)** – Integrate watsonx.ai into enterprise integration routes.
+- **[LangChain4j](https://docs.langchain4j.dev/)** – Native integration for building LLM-powered applications in Java.
+- **[Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)** – Optimized integration for building LLM-powered applications with Quarkus.
+- **[Apache Camel](https://camel.apache.org/components/ibm-watsonx-ai-component.html)** – Integrate AI capabilities into enterprise integration patterns and workflows.
 
 ## Contributing
 
