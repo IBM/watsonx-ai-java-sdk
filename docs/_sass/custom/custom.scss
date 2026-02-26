@@ -179,7 +179,6 @@ table {
         margin: 0;
         padding-left: 1rem;
         border-left: 3px solid transparent;
-        transition: all 0.15s ease;
 
         &:hover {
           background-color: $sidebar-hover-bg;
@@ -230,7 +229,8 @@ table {
 }
 
 .search-label .search-icon use {
-  fill: gray !important;  /* Forza il colore grigio */
+  fill: gray !important;
+  /* Forza il colore grigio */
 }
 
 
@@ -358,4 +358,210 @@ blockquote {
   border-top: none;
   background-color: $ibm-gray-10;
   padding: 1.5rem 0;
+}
+
+#theme-dropdown {
+  position: relative;
+  align-self: center;
+
+  @media (max-width: 49.999rem) {
+    display: block;
+    padding: 0.5rem 1rem;
+
+    #theme-toggle {
+      font-size: 1.2rem;
+    }
+
+    .theme-menu {
+      left: 0;
+      right: auto;
+    }
+  }
+}
+
+.theme-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  border: 1px solid $ibm-gray-20;
+  background-color: $ibm-white;
+  border-radius: 4px;
+  padding: 0.25rem 0;
+  z-index: 100;
+  min-width: 7rem;
+
+  button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    font-family: $body-font-family;
+    font-size: 0.875rem;
+    color: $ibm-text-primary;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: $ibm-gray-10;
+    }
+  }
+}
+
+// Light mode default styles
+.main-header {
+  background-color: $ibm-gray-10 !important;
+}
+
+// IBM Carbon dark-mode overrides using data-theme attribute
+// This allows instant theme switching without CSS file swaps
+[data-theme="dark"] {
+  // IBM Carbon dark palette
+  $d-bg:         #161616; // gray-100 — page background
+  $d-sidebar-bg: #262626; // gray-90  — sidebar / header
+  $d-layer:      #393939; // gray-80  — raised surfaces, hover
+  $d-text:       #f4f4f4; // gray-10  — primary text
+  $d-text-sec:   #c6c6c6; // gray-30  — secondary text
+  $d-border:     #525252; // gray-70  — borders
+  $d-link:       #78a9ff; // blue-40  — links
+  $d-link-hover: #a6c8ff; // blue-30  — link hover
+
+  body {
+    color: $d-text;
+    background-color: $d-bg;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: $d-text;
+  }
+
+  a {
+    color: $d-link;
+
+    &:hover {
+      color: $d-link-hover;
+      text-decoration-color: $d-link-hover !important;
+    }
+  }
+
+  code {
+    background-color: $d-layer;
+    color: $d-text;
+  }
+
+  pre {
+    background-color: $d-layer;
+
+    code {
+      background-color: transparent;
+    }
+  }
+
+  table {
+    th {
+      background-color: $d-sidebar-bg;
+      color: $d-text;
+    }
+
+    thead tr {
+      border-bottom: 2px solid $d-border;
+    }
+
+    tr:hover {
+      background-color: rgba(120, 169, 255, 0.05);
+    }
+  }
+
+  blockquote {
+    background-color: $d-sidebar-bg;
+    border-left-color: $d-link;
+
+    p {
+      color: $d-text-sec;
+    }
+  }
+
+  .main-header {
+    background-color: $d-sidebar-bg !important;
+  }
+
+  .highlight {
+    background-color: $d-layer;
+  }
+
+  .side-bar {
+    background-color: $d-sidebar-bg;
+
+    .site-title {
+      color: $d-text;
+    }
+
+    .site-header {
+      background-color: $d-sidebar-bg;
+    }
+
+    .nav-list .nav-list-item .nav-list-link {
+      color: $d-text-sec;
+
+      &:hover {
+        background-color: $d-layer;
+        color: $d-text;
+        border-left-color: $d-border;
+      }
+
+      &.active {
+        background-color: rgba(120, 169, 255, 0.1);
+        color: $d-link;
+        border-left-color: $d-link;
+      }
+    }
+  }
+
+  .search {
+    background-color: $d-sidebar-bg;
+  }
+
+  .search-input {
+    background-color: $d-layer;
+    color: $d-text;
+    border: 1px solid $d-border;
+  }
+
+  .aux-nav {
+    background-color: $d-sidebar-bg;
+
+    // Swap the embedded GitHub SVG to a light fill for dark backgrounds.
+    .aux-nav-list-item a {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 16 16' fill='%23f4f4f4'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z'/%3E%3C/svg%3E");
+    }
+  }
+
+  .site-header {
+    background-color: $d-bg;
+    border-bottom-color: $d-border;
+  }
+
+  .site-footer {
+    background-color: $d-sidebar-bg;
+    color: $d-text-sec;
+  }
+
+  .theme-menu {
+    background-color: $d-sidebar-bg;
+    border-color: $d-border;
+
+    button {
+      color: $d-text;
+
+      &:hover {
+        background-color: $d-layer;
+      }
+    }
+  }
 }
