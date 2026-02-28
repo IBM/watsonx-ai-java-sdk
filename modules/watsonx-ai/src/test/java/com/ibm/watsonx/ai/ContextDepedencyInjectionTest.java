@@ -9,6 +9,7 @@ import org.jboss.weld.junit5.EnableWeld;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
@@ -40,7 +41,8 @@ public class ContextDepedencyInjectionTest {
         .from(Producer.class, ChatService.class, DeploymentService.class,
             DetectionService.class, EmbeddingService.class, FoundationModelService.class,
             RerankService.class, TextGenerationService.class, TextClassificationService.class,
-            TextExtractionService.class, TimeSeriesService.class, FileService.class, ToolService.class)
+            TextExtractionService.class, TimeSeriesService.class, FileService.class,
+            BatchService.class, ToolService.class)
         .build();
 
     @Inject
@@ -75,6 +77,9 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     FileService fileService;
+
+    @Inject
+    BatchService batchService;
 
     @Inject
     ToolService toolService;
@@ -153,6 +158,11 @@ public class ContextDepedencyInjectionTest {
     @Test
     void should_inject_file_service() {
         assertNotNull(fileService);
+    }
+
+    @Test
+    void should_inject_batch_service() {
+        assertNotNull(batchService);
     }
 
     @Test
@@ -301,6 +311,16 @@ public class ContextDepedencyInjectionTest {
                 .baseUrl("https://example.com")
                 .apiKey("api-key")
                 .projectId("project-id")
+                .build();
+        }
+
+        @Produces
+        public BatchService produceBatchService() {
+            return BatchService.builder()
+                .baseUrl("https://example.com")
+                .apiKey("api-key")
+                .projectId("project-id")
+                .endpoint("endpoint")
                 .build();
         }
 
