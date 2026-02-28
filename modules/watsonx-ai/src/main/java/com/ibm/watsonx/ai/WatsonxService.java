@@ -17,6 +17,7 @@ import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
+import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
@@ -42,6 +43,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see FoundationModelService
  * @see ToolService
  * @see DetectionService
+ * @see FileService
  */
 public abstract class WatsonxService {
 
