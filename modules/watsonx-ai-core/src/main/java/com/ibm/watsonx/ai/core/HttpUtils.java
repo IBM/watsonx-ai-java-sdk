@@ -114,25 +114,42 @@ public final class HttpUtils {
 
         if (contentType.contains("application/json")) {
 
-            // Today the Agent Tool APIs doesn't return a WatsonxError.
-            // Check if the behavior is present even after the APIs are no longer in beta.
-
             var error = fromJson(body, WatsonxError.class);
+            var genericError = fromJson(body, Map.class);
 
             if (isNull(error.trace())) {
-                var genericError = fromJson(body, Map.class);
                 if (genericError.containsKey("errorCode"))
+                    // IAM Authentication API errors use a non-standard format with "errorCode" and "errorMessage" fields.
                     return parseIAMError(statusCode, genericError);
                 else if (genericError.containsKey("code"))
+                    // Agent Tool APIs (beta) return errors with a "code" field instead of the standard "errors" array.
+                    // TODO: verify if this behavior persists once the Agent Tool APIs are no longer in beta.
                     return parseToolError(genericError);
-            } else
-                return error;
+            } else {
+                // File Service API errors use a non-standard format: they include a "trace" field but use "status"
+                // instead of "status_code", and nest the error details under an "error" object instead of "errors" array.
+                return isNull(error.statusCode()) && genericError.containsKey("error") ? parseFileError(genericError) : error;
+            }
         }
 
         if (contentType.contains("application/xml"))
             return parseXmlError(body);
 
         throw new RuntimeException(body);
+    }
+
+    /**
+     * Parses an error response from the File Service APIs into a {@link WatsonxError} with a standardized format.
+     *
+     * @param body the raw JSON error response as a String.
+     * @return An instance of {@link WatsonxError} parsed from the body.
+     */
+    private static WatsonxError parseFileError(Map<?, ?> body) {
+        var error = (Map<?, ?>) body.get("error");
+        return new WatsonxError(
+            (Integer) body.get("status"),
+            (String) body.get("trace"),
+            List.of(new Error((String) error.get("code"), (String) error.get("message"), null)));
     }
 
     /**

@@ -13,6 +13,7 @@ import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
+import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
@@ -39,7 +40,7 @@ public class ContextDepedencyInjectionTest {
         .from(Producer.class, ChatService.class, DeploymentService.class,
             DetectionService.class, EmbeddingService.class, FoundationModelService.class,
             RerankService.class, TextGenerationService.class, TextClassificationService.class,
-            TextExtractionService.class, TimeSeriesService.class, ToolService.class)
+            TextExtractionService.class, TimeSeriesService.class, FileService.class, ToolService.class)
         .build();
 
     @Inject
@@ -71,6 +72,9 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     TimeSeriesService timeSeriesService;
+
+    @Inject
+    FileService fileService;
 
     @Inject
     ToolService toolService;
@@ -144,6 +148,11 @@ public class ContextDepedencyInjectionTest {
     @Test
     void should_inject_time_series_service() {
         assertNotNull(timeSeriesService);
+    }
+
+    @Test
+    void should_inject_file_service() {
+        assertNotNull(fileService);
     }
 
     @Test
@@ -283,6 +292,15 @@ public class ContextDepedencyInjectionTest {
                 .apiKey("api-key")
                 .projectId("project-id")
                 .modelId("model-id")
+                .build();
+        }
+
+        @Produces
+        public FileService produceFileService() {
+            return FileService.builder()
+                .baseUrl("https://example.com")
+                .apiKey("api-key")
+                .projectId("project-id")
                 .build();
         }
 

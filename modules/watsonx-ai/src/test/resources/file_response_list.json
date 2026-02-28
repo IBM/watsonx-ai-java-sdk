@@ -1,0 +1,26 @@
+{
+    "object": "list",
+    "data": [
+        {
+            "id": "file-AQIDkP4L79L9Wyuo--GR5E26LgIzQVFNSGNBTlB6OTRiNm5GTl9KeFY2ajVfOE9PUUEwMFVpRzBzZTBjbGpLYWN4T0tWTUxj",
+            "object": "file",
+            "bytes": 636,
+            "created_at": 1772182720153,
+            "expires_at": 1774774720153,
+            "filename": "mydata.jsonl",
+            "purpose": "batch"
+        },
+        {
+            "id": "file-AQIDkP4L79L9Wyuo--GR5E26LgIzQVFNSGNBTlB6OTRiNm5GTl9KeFY2ajVfOE9PUUEzZDFMVnRSLWtDOG51eXNDQ0ZLSHhN",
+            "object": "file",
+            "bytes": 690,
+            "created_at": 1772183337166,
+            "expires_at": 1774775337166,
+            "filename": "mydata.jsonl",
+            "purpose": "batch"
+        }
+    ],
+    "first_id": "batch-AQIDkP4L79L9Wyuo--GR5E26LgOtk0emSyJDzrBhZgrBeCdG",
+    "last_id": "batch-AQIDkP4L79L9Wyuo--GR5E26LgNxIaxfuIVHz4xDlIrY0ouV",
+    "has_more": false
+}
