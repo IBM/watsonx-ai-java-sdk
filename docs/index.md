@@ -26,6 +26,7 @@ The **IBM watsonx.ai Java SDK** is an open-source client library for [IBM watson
 | **[Time Series](services/time-series-service)** | Time series forecasting using IBM Granite TTM models |
 | **[Tool](services/tool-service)** | Server-side utility tools for agentic workflows |
 | **[Deployment](services/deployment-service)** | Chat, text generation, and forecasting via deployed model endpoints |
+| **[File](services/file-service)** | Upload, list, and retrieve files for use in batch processing jobs |
 
 ---
 
