@@ -875,7 +875,8 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                                     "code": "text_classification_event_does_not_exist",
                                     "message": "Text classification request does not exist."
                                 }
-                            ]
+                            ],
+                            "status_code": 404
                         }
                     """)
             ));

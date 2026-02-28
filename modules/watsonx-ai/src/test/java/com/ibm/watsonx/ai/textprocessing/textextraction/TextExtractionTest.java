@@ -1828,7 +1828,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                                     "code": "text_extraction_event_does_not_exist",
                                     "message": "Text extraction request does not exist."
                                 }
-                            ]
+                            ],
+                            "status_code": 404
                         }
                     """)
             ));

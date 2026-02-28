@@ -137,6 +137,100 @@ public class HttpUtilsTest {
     }
 
     @Test
+    void should_parse_iam_error_body_correctly_from_json() {
+        String jsonBody = """
+            {
+                "errorCode": "BXNIM0415E",
+                "errorMessage": "Provided API key could not be found",
+                "errorDetails": "The API key provided in the request could not be found"
+            }""";
+
+        WatsonxError result = HttpUtils.parseErrorBody(401, jsonBody, "application/json");
+        assertEquals(401, result.statusCode());
+        assertEquals(1, result.errors().size());
+        assertEquals("BXNIM0415E", result.errors().get(0).code());
+        assertEquals("Provided API key could not be found", result.errors().get(0).message());
+        assertEquals("The API key provided in the request could not be found", result.errors().get(0).moreInfo());
+    }
+
+    @Test
+    void should_parse_iam_error_body_without_error_details_correctly_from_json() {
+        String jsonBody = """
+            {
+                "errorCode": "BXNIM0415E",
+                "errorMessage": "Provided API key could not be found"
+            }""";
+
+        WatsonxError result = HttpUtils.parseErrorBody(401, jsonBody, "application/json");
+        assertEquals(401, result.statusCode());
+        assertEquals(1, result.errors().size());
+        assertEquals("BXNIM0415E", result.errors().get(0).code());
+        assertEquals("Provided API key could not be found", result.errors().get(0).message());
+        assertEquals(null, result.errors().get(0).moreInfo());
+    }
+
+    @Test
+    void should_parse_tool_error_body_with_expired_jwt_correctly_from_json() {
+        String jsonBody = """
+            {
+                "code": 401,
+                "message": "Unauthorized",
+                "description": "jwt expired"
+            }""";
+
+        WatsonxError result = HttpUtils.parseErrorBody(401, jsonBody, "application/json");
+        assertEquals(401, result.statusCode());
+        assertEquals(1, result.errors().size());
+        assertEquals(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED.value(), result.errors().get(0).code());
+        assertEquals("Unauthorized", result.errors().get(0).message());
+        assertEquals("jwt expired", result.errors().get(0).moreInfo());
+    }
+
+    @Test
+    void should_parse_tool_error_body_correctly_from_json() {
+        String jsonBody = """
+            {
+                "code": 403,
+                "message": "Forbidden",
+                "description": "Access denied"
+            }""";
+
+        WatsonxError result = HttpUtils.parseErrorBody(403, jsonBody, "application/json");
+        assertEquals(403, result.statusCode());
+        assertEquals(1, result.errors().size());
+        assertEquals(WatsonxError.Code.UNCLASSIFIED.value(), result.errors().get(0).code());
+        assertEquals("Forbidden", result.errors().get(0).message());
+        assertEquals("Access denied", result.errors().get(0).moreInfo());
+    }
+
+    @Test
+    void should_parse_file_service_error_body_correctly_from_json() {
+        String jsonBody = """
+            {
+                "message": "401 Failed to authenticate the request due to an expired token",
+                "status": 401,
+                "error": {
+                    "message": "Failed to authenticate the request due to an expired token",
+                    "type": "authentication_error",
+                    "param": null,
+                    "code": "authentication_token_expired"
+                },
+                "code": "authentication_token_expired",
+                "param": null,
+                "type": "authentication_error",
+                "more_info": "https://cloud.ibm.com/apidocs/watsonx-ai#upload_file",
+                "trace": "c8d777a8fe6551b6069a8cef52c52956"
+            }""";
+
+        WatsonxError result = HttpUtils.parseErrorBody(401, jsonBody, "application/json");
+        assertEquals(401, result.statusCode());
+        assertEquals("c8d777a8fe6551b6069a8cef52c52956", result.trace());
+        assertEquals(1, result.errors().size());
+        assertEquals("authentication_token_expired", result.errors().get(0).code());
+        assertEquals("Failed to authenticate the request due to an expired token", result.errors().get(0).message());
+    }
+
+    @Test
     void should_throw_runtime_exception_when_parsing_error_body_with_unsupported_content_type() {
         assertThrows(RuntimeException.class, () -> {
             HttpUtils.parseErrorBody(500, "test body", "text/plain");

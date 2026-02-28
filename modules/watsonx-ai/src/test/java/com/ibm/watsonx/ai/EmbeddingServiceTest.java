@@ -221,14 +221,16 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
         when(mockSecureHttpClient.send(any(), any())).thenThrow(new IOException("IOException"));
 
-        var chatService = EmbeddingService.builder()
-            .baseUrl(CloudRegion.DALLAS)
-            .authenticator(mockAuthenticator)
-            .projectId("project-id")
-            .modelId("model-id")
-            .build();
+        withWatsonxServiceMock(() -> {
+            var embeddingService = EmbeddingService.builder()
+                .baseUrl(CloudRegion.DALLAS)
+                .authenticator(mockAuthenticator)
+                .projectId("project-id")
+                .modelId("model-id")
+                .build();
 
-        assertThrows(RuntimeException.class, () -> chatService.embedding("test"), "IOException");
+            assertThrows(RuntimeException.class, () -> embeddingService.embedding("test"), "IOException");
+        });
     }
 
     @Test

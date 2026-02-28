@@ -16,6 +16,7 @@ import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
+import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
@@ -604,6 +605,57 @@ public class CustomHttpClientTest {
                     .build();
 
                 Object restclient = getFieldValue(timeSeriesService, "client");
+                assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void should_use_custom_http_client_for_file_service() throws Exception {
+
+        HttpClient customClient = HttpClient.newHttpClient();
+        FileService fileService = FileService.builder()
+            .baseUrl("https://localhost")
+            .apiKey("apiKey")
+            .projectId("projectId")
+            .httpClient(customClient)
+            .build();
+
+        Object restclient = getFieldValue(fileService, "client");
+        assertEquals(customClient, getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(restclient, "httpClient"));
+
+        Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+        assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_default_http_client_for_file_service() throws Exception {
+
+        Stream.of(true, false).forEach(verifySsl -> {
+
+            try {
+
+                HttpClient customClient = HttpClient.newHttpClient();
+                FileService fileService = FileService.builder()
+                    .baseUrl("https://localhost")
+                    .apiKey("apiKey")
+                    .projectId("projectId")
+                    .verifySsl(verifySsl)
+                    .build();
+
+                Object restclient = getFieldValue(fileService, "client");
                 assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
                 assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
 
