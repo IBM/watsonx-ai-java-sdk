@@ -42,6 +42,14 @@ public abstract class FileRestClient extends WatsonxRestClient {
     public abstract String retrieve(FileRetrieveRequest fileRetrieveRequest);
 
     /**
+     * Deletes an uploaded file by its identifier.
+     *
+     * @param fileDeleteRequest the {@link FileDeleteRequest} object.
+     * @return a {@link FileDeleteResponse} confirming the deletion.
+     */
+    public abstract FileDeleteResponse delete(FileDeleteRequest fileDeleteRequest);
+
+    /**
      * Creates a new {@link Builder} using the first available {@link FileRestClientBuilderFactory} discovered via {@link ServiceLoader}.
      * <p>
      * If no factory is found, falls back to the default {@link DefaultRestClient}.

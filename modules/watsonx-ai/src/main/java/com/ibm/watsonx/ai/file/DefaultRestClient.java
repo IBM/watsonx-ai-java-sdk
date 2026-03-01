@@ -135,6 +135,33 @@ final class DefaultRestClient extends FileRestClient {
         }
     }
 
+    @Override
+    public FileDeleteResponse delete(FileDeleteRequest request) {
+
+        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/files/%s?version=%s".formatted(request.fileId(), version)))
+            .DELETE()
+            .timeout(timeout)
+            .header("Accept", "application/json");
+
+        if (nonNull(request.projectId()))
+            httpRequest.header("X-IBM-Project-ID", request.projectId());
+
+        if (nonNull(request.spaceId()))
+            httpRequest.header("X-IBM-Space-ID", request.spaceId());
+
+        if (nonNull(request.transactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, request.transactionId());
+
+        try {
+
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return fromJson(httpResponse.body(), FileDeleteResponse.class);
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Returns a new {@link Builder} instance.
      */

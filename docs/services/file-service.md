@@ -33,6 +33,7 @@ The `FileService` enables you to:
 - Upload files from a local path, `File`, or `InputStream`.
 - List uploaded files with optional filtering by purpose, sort order, and pagination.
 - Retrieve the raw content of an uploaded file by its identifier.
+- Delete uploaded files by identifier.
 
 ### Relationship with BatchService
 
@@ -162,6 +163,28 @@ String content = fileService.retrieve(
 );
 ```
 
+### Deleting a File
+
+Delete a file by its identifier:
+
+```java
+FileDeleteResponse response = fileService.delete("file-AQIDkP4L...");
+System.out.println(response.deleted()); // → true
+```
+
+With full control via `FileDeleteRequest` — override `project_id`, `space_id`, and `transaction_id`:
+
+```java
+FileDeleteResponse response = fileService.delete(
+    FileDeleteRequest.builder()
+        .fileId("file-AQIDkP4L...")
+        .projectId("my-project-id")
+        .spaceId("my-space-id")
+        .transactionId("my-transaction-id")
+        .build()
+);
+```
+
 ---
 
 ## FileData
@@ -189,6 +212,16 @@ Returned by `list()`.
 | `firstId()` | String | ID of the first file in the current page |
 | `lastId()` | String | ID of the last file — use as `after` cursor for the next page |
 | `hasMore()` | Boolean | Whether more files are available beyond this page |
+
+## FileDeleteResponse
+
+Returned by `delete()`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id()` | String | Identifier of the deleted file |
+| `object()` | String | Always `"file"` |
+| `deleted()` | Boolean | `true` if the file was successfully deleted |
 
 ---
 
