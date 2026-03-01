@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>chatbot-with-tool-registry</artifactId>
-  <version>0.18.0</version>
+  <version>0.19.0</version>
   <name>Chatbot Tool</name>
 
   <parent>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>sample-parent</artifactId>
-    <version>0.18.0</version>
+    <version>0.19.0</version>
     <relativePath>../</relativePath>
   </parent>
 

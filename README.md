@@ -23,14 +23,14 @@ Add the SDK to your **Maven** project:
 <dependency>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>watsonx-ai</artifactId>
-    <version>0.18.0</version>
+    <version>0.19.0</version>
 </dependency>
 ```
 
 Or for **Gradle**:
 
 ```gradle
-implementation 'com.ibm.watsonx:watsonx-ai:0.18.0'
+implementation 'com.ibm.watsonx:watsonx-ai:0.19.0'
 ```
 
 ## Quick Start

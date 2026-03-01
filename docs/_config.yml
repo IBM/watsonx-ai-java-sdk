@@ -1,6 +1,6 @@
 title: IBM watsonx.ai
 description: Java SDK for watsonx.ai
-watsonx_version: "0.18.0"
+watsonx_version: "0.19.0"
 theme: just-the-docs
 markdown: kramdown
 permalink: pretty
