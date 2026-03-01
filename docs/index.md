@@ -27,6 +27,7 @@ The **IBM watsonx.ai Java SDK** is an open-source client library for [IBM watson
 | **[Tool](services/tool-service)** | Server-side utility tools for agentic workflows |
 | **[Deployment](services/deployment-service)** | Chat, text generation, and forecasting via deployed model endpoints |
 | **[File](services/file-service)** | Upload, list, and retrieve files for use in batch processing jobs |
+| **[Batch](services/batch-service)** | High-volume asynchronous inference from JSONL input files |
 
 ---
 
