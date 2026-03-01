@@ -262,6 +262,8 @@ Returned per-item by `submitAndFetch()`. Each entry corresponds to one line in t
 
 `response().statusCode()` contains the HTTP status for this individual request. `response().body()` is deserialized into the class passed to `submitAndFetch()` (e.g., `ChatResponse.class`).
 
+> **Note:** The order of results is not guaranteed to match the order of requests in the input file. Always use `customId()` to correlate each result with its corresponding input.
+
 ---
 
 ## Status

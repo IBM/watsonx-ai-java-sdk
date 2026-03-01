@@ -321,6 +321,7 @@ public class ContextDepedencyInjectionTest {
                 .apiKey("api-key")
                 .projectId("project-id")
                 .endpoint("endpoint")
+                .fileService(produceFileService())
                 .build();
         }
 

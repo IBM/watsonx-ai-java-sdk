@@ -30,6 +30,8 @@ public class BatchCreateRequest extends WatsonxParameters {
     private final String endpoint;
     private final String completionWindow;
     private final Map<String, Object> metadata;
+    private final Boolean removeUploadedFile;
+    private final Boolean removeOutputFile;
     private final Duration timeout;
 
     private BatchCreateRequest(Builder builder) {
@@ -38,6 +40,8 @@ public class BatchCreateRequest extends WatsonxParameters {
         endpoint = builder.endpoint;
         completionWindow = requireNonNullElse(builder.completionWindow, "24h");
         metadata = builder.metadata;
+        removeUploadedFile = builder.removeUploadedFile;
+        removeOutputFile = builder.removeOutputFile;
         timeout = builder.timeout;
     }
 
@@ -75,6 +79,24 @@ public class BatchCreateRequest extends WatsonxParameters {
      */
     public Map<String, Object> metadata() {
         return metadata;
+    }
+
+    /**
+     * Returns whether the uploaded input file should be automatically deleted after the batch job completes.
+     *
+     * @return {@code true} if the input file should be deleted, {@code false} otherwise
+     */
+    public Boolean removeUploadedFile() {
+        return removeUploadedFile;
+    }
+
+    /**
+     * Returns whether the output file should be automatically deleted after the batch job completes.
+     *
+     * @return {@code true} if the output file should be deleted, {@code false} otherwise
+     */
+    public Boolean removeOutputFile() {
+        return removeOutputFile;
     }
 
     /**
@@ -123,6 +145,8 @@ public class BatchCreateRequest extends WatsonxParameters {
         private String endpoint;
         private String completionWindow;
         private Map<String, Object> metadata;
+        private Boolean removeUploadedFile;
+        private Boolean removeOutputFile;
         private Duration timeout;
 
         private Builder() {}
@@ -142,6 +166,10 @@ public class BatchCreateRequest extends WatsonxParameters {
                 completionWindow = request.completionWindow;
             if (nonNull(request.metadata))
                 metadata = request.metadata;
+            if (nonNull(request.removeUploadedFile))
+                removeUploadedFile = request.removeUploadedFile;
+            if (nonNull(request.removeOutputFile))
+                removeOutputFile = request.removeOutputFile;
             if (nonNull(request.timeout))
                 timeout = request.timeout;
         }
@@ -183,6 +211,30 @@ public class BatchCreateRequest extends WatsonxParameters {
          */
         public Builder metadata(Map<String, Object> metadata) {
             this.metadata = metadata;
+            return this;
+        }
+
+        /**
+         * Sets whether the uploaded input file should be automatically deleted after the batch job completes.
+         * <p>
+         * Only supported when using {@code submitAndFetch}.
+         *
+         * @param removeUploadedFile {@code true} to delete the input file after completion
+         */
+        public Builder removeUploadedFile(Boolean removeUploadedFile) {
+            this.removeUploadedFile = removeUploadedFile;
+            return this;
+        }
+
+        /**
+         * Sets whether the output file should be automatically deleted after the batch job completes.
+         * <p>
+         * Only supported when using {@code submitAndFetch}.
+         *
+         * @param removeOutputFile {@code true} to delete the output file after completion
+         */
+        public Builder removeOutputFile(Boolean removeOutputFile) {
+            this.removeOutputFile = removeOutputFile;
             return this;
         }
 
