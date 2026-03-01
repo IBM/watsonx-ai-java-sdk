@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.net.http.HttpClient;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
@@ -656,6 +657,59 @@ public class CustomHttpClientTest {
                     .build();
 
                 Object restclient = getFieldValue(fileService, "client");
+                assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void should_use_custom_http_client_for_batch_service() throws Exception {
+
+        HttpClient customClient = HttpClient.newHttpClient();
+        BatchService batchService = BatchService.builder()
+            .baseUrl("https://localhost")
+            .apiKey("apiKey")
+            .projectId("projectId")
+            .httpClient(customClient)
+            .endpoint("test")
+            .build();
+
+        Object restclient = getFieldValue(batchService, "client");
+        assertEquals(customClient, getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(restclient, "httpClient"));
+
+        Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+        assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_default_http_client_for_batch_service() throws Exception {
+
+        Stream.of(true, false).forEach(verifySsl -> {
+
+            try {
+
+                HttpClient customClient = HttpClient.newHttpClient();
+                BatchService batchService = BatchService.builder()
+                    .baseUrl("https://localhost")
+                    .apiKey("apiKey")
+                    .projectId("projectId")
+                    .verifySsl(verifySsl)
+                    .endpoint("endpoint")
+                    .build();
+
+                Object restclient = getFieldValue(batchService, "client");
                 assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
                 assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
 

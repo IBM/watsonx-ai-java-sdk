@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
@@ -44,6 +45,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see ToolService
  * @see DetectionService
  * @see FileService
+ * @see BatchService
  */
 public abstract class WatsonxService {
 

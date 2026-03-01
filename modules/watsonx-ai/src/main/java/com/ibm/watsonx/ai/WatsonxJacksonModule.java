@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -123,6 +124,9 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(InputSchema.Builder.class, InputSchemaBuilderMixin.class);
         setMixInAnnotation(TimeSeriesParameters.class, TimeSeriesParametersMixin.class);
         setMixInAnnotation(TimeSeriesParameters.Builder.class, TimeSeriesParametersBuilderMixin.class);
+
+        // --- Batch Mixin --- //
+        setMixInAnnotation(BatchCreateRequest.class, BatchCreateRequestMixin.class);
     }
 
     @JsonDeserialize(builder = Moderation.Builder.class)
@@ -585,4 +589,32 @@ public class WatsonxJacksonModule extends SimpleModule {
         @JsonAnySetter
         public abstract KvpFields.Builder add(String key, KvpFields.KvpField value);
     }
+
+    @JsonDeserialize(builder = BatchCreateRequest.Builder.class)
+    public abstract static class BatchCreateRequestMixin {
+
+        @JsonProperty("input_file_id")
+        abstract String inputFileId();
+
+        @JsonProperty("endpoint")
+        abstract String endpoint();
+
+        @JsonProperty("completion_window")
+        abstract String completionWindow();
+
+        @JsonProperty("metadata")
+        abstract Map<String, Object> metadata();
+
+        @JsonIgnore
+        abstract String projectId();
+
+        @JsonIgnore
+        abstract String spaceId();
+
+        @JsonIgnore
+        abstract String transactionId();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class BatchCreateRequestBuilderMixin {}
 }

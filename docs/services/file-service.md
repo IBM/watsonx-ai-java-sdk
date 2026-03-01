@@ -34,6 +34,15 @@ The `FileService` enables you to:
 - List uploaded files with optional filtering by purpose, sort order, and pagination.
 - Retrieve the raw content of an uploaded file by its identifier.
 
+### Relationship with BatchService
+
+`FileService` is the foundation layer for batch processing. While it can be used standalone, it is most commonly used together with [`BatchService`](batch-service), which depends on it for two operations:
+
+- **Upload** — `BatchService` calls `FileService.upload()` internally when you submit a job via `Path`, `File`, or `InputStream`.
+- **Retrieval** — `BatchService` calls `FileService.retrieve()` internally when using `submitAndFetch()` to read the output file once the job completes.
+
+You can also use `FileService` directly to manage files independently of the batch lifecycle — for example, to inspect an output file manually or to pre-upload a file before submitting multiple jobs against it.
+
 ---
 
 ## Service Configuration
@@ -203,3 +212,5 @@ Returned by `list()`.
 ## Related Resources
 
 - [Files APIs Reference](https://cloud.ibm.com/apidocs/watsonx-ai#upload-batch-file)
+- [Batch Service](../batch-service)
+- [Sample Code](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/batch)

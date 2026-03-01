@@ -1,0 +1,18 @@
+{
+    "id": "batch-AQIDkP4L79L9Wyuo--GR5E26LgOtk0emSyJDzrBhZgrBeCdG",
+    "object": "batch",
+    "endpoint": "/v1/chat/completions",
+    "input_file_id": "file-AQIDkP4L79L9Wyuo--GR5E26LgIzQVFNSGNBTlB6OTRiNm5GTl9KeFY2ajVfOE9PUUF5c2ktMWxzZ1VKUHZYT1J4blM2WlZF",
+    "completion_window": "24h",
+    "status": "completed",
+    "output_file_id": "file-AQIDkP4L79L9Wyuo--GR5E26LgIzQVFNSGNBTlB6OTRiNm5GTl9KeFY2ajVfOE9PUUEzbzhTa01XaGtlWmczN0dHbHZGTFFZ",
+    "created_at": 1772183793,
+    "in_progress_at": 1772183793,
+    "expires_at": 1772270193,
+    "completed_at": 1772183802,
+    "request_counts": {
+        "total": 3,
+        "completed": 3,
+        "failed": 0
+    }
+}

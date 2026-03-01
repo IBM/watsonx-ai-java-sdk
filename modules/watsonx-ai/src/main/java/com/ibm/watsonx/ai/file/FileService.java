@@ -8,7 +8,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
@@ -68,9 +68,9 @@ public class FileService extends ProjectService {
      * @return a {@link FileData} object containing the metadata of the uploaded file
      */
     public FileData upload(File file) {
-        try {
-            return upload(new FileInputStream(file), file.getName());
-        } catch (FileNotFoundException e) {
+        try (var is = new FileInputStream(file)) {
+            return upload(is, file.getName());
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

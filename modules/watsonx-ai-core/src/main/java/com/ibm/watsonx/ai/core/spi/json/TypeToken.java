@@ -54,12 +54,6 @@ public abstract class TypeToken<T> {
 
     /**
      * Creates a {@code TypeToken} for {@code List<T>}.
-     * <p>
-     * Example usage:
-     *
-     * <pre>{@code
-     * List<String> result = Json.fromJson(json, TypeToken.listOf(String.class));
-     * }</pre>
      *
      * @param <T> the element type of the list
      * @param elementType the class of the list elements
@@ -84,4 +78,32 @@ public abstract class TypeToken<T> {
         };
         return new TypeToken<>(listType) {};
     }
+
+    /**
+     * Creates a {@code TypeToken} for a parameterized type {@code rawType<typeArgument>}.
+     *
+     * @param rawType the raw class
+     * @param typeArgument the actual type argument to use
+     * @return a {@code TypeToken} representing {@code rawType<typeArgument>}
+     */
+    public static <T> TypeToken<T> parameterizedOf(Class<?> rawType, Class<?> typeArgument) {
+        ParameterizedType parameterizedType = new ParameterizedType() {
+            @Override
+            public Type[] getActualTypeArguments() {
+                return new Type[] { typeArgument };
+            }
+
+            @Override
+            public Type getRawType() {
+                return rawType;
+            }
+
+            @Override
+            public Type getOwnerType() {
+                return null;
+            }
+        };
+        return new TypeToken<>(parameterizedType) {};
+    }
 }
+
