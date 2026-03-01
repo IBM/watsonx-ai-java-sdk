@@ -8,6 +8,7 @@ import static com.ibm.watsonx.ai.utils.Utils.getFieldValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 import java.net.http.HttpClient;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -673,6 +674,7 @@ public class CustomHttpClientTest {
     @Test
     void should_use_custom_http_client_for_batch_service() throws Exception {
 
+        var fileService = mock(FileService.class);
         HttpClient customClient = HttpClient.newHttpClient();
         BatchService batchService = BatchService.builder()
             .baseUrl("https://localhost")
@@ -680,6 +682,7 @@ public class CustomHttpClientTest {
             .projectId("projectId")
             .httpClient(customClient)
             .endpoint("test")
+            .fileService(fileService)
             .build();
 
         Object restclient = getFieldValue(batchService, "client");
@@ -696,6 +699,7 @@ public class CustomHttpClientTest {
     @Test
     void should_use_default_http_client_for_batch_service() throws Exception {
 
+        var fileService = mock(FileService.class);
         Stream.of(true, false).forEach(verifySsl -> {
 
             try {
@@ -707,6 +711,7 @@ public class CustomHttpClientTest {
                     .projectId("projectId")
                     .verifySsl(verifySsl)
                     .endpoint("endpoint")
+                    .fileService(fileService)
                     .build();
 
                 Object restclient = getFieldValue(batchService, "client");

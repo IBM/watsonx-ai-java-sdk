@@ -48,8 +48,9 @@ public class BatchServiceIT {
         .build();
 
     @Test
-    void should_create_a_batch() throws Exception {
+    void should_submit_a_batch_and_get_results() throws Exception {
 
+        var before = fileService.list().data().size();
         var path = Path.of(ClassLoader.getSystemResource("file_to_upload.jsonl").toURI());
         FileData fileData = fileService.upload(path);
 
@@ -60,6 +61,8 @@ public class BatchServiceIT {
         var batch = batchService.submitAndFetch(request, ChatResponse.class);
         assertEquals(3, batch.size());
         assertNotNull(batch.get(0).response().body().toAssistantMessage().content());
+        var after = fileService.list().data().size();
+        assertEquals(before, after);
     }
 
     @Test

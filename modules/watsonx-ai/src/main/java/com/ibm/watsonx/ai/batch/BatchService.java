@@ -7,18 +7,26 @@ package com.ibm.watsonx.ai.batch;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.concurrent.CompletableFuture.allOf;
+import static java.util.concurrent.CompletableFuture.runAsync;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
+import com.ibm.watsonx.ai.file.FileDeleteRequest;
 import com.ibm.watsonx.ai.file.FileService;
 
 /**
@@ -46,12 +54,17 @@ import com.ibm.watsonx.ai.file.FileService;
 public class BatchService extends ProjectService {
     private final BatchRestClient client;
     private final FileService fileService;
+    private final boolean removeUploadedFile;
+    private final boolean removeOutputFile;
     private final String endpoint;
 
     private BatchService(Builder builder) {
         super(builder);
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
+        fileService = requireNonNull(builder.fileService, "file service cannot be null");
         endpoint = requireNonNull(builder.endpoint, "the default endpoint cannot be null");
+        removeOutputFile = requireNonNullElse(builder.removeOutputFile, true);
+        removeUploadedFile = requireNonNullElse(builder.removeUploadedFile, true);
         client = BatchRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
@@ -62,7 +75,6 @@ public class BatchService extends ProjectService {
             .httpClient(httpClient)
             .verifySsl(verifySsl)
             .build();
-        fileService = builder.fileService;
     }
 
     /**
@@ -260,12 +272,19 @@ public class BatchService extends ProjectService {
     public <T> List<BatchResult<T>> submitAndFetch(BatchCreateRequest request, Class<T> clazz) {
         requireNonNull(fileService, "To wait for the completion of a batch operation, it is necessary to set the FileService");
 
-        var batchData = submit(request);
+        var batchData = submit(
+            BatchCreateRequest.builder(request)
+                .removeUploadedFile(false)
+                .removeOutputFile(false)
+                .build());
+
         var timeout = requireNonNullElse(request.timeout(), this.timeout);
         var sleepTime = 100;
         var endTime = LocalTime.now().plus(timeout);
         var projectSpace = resolveProjectSpace(request);
         var status = Status.fromValue(batchData.status());
+        var removeUploadedFile = nonNull(request.removeUploadedFile()) ? request.removeUploadedFile() : this.removeUploadedFile;
+        var removeOutputFile = nonNull(request.removeOutputFile()) ? request.removeOutputFile() : this.removeOutputFile;
 
         while (status != Status.COMPLETED && status != Status.FAILED) {
 
@@ -289,20 +308,36 @@ public class BatchService extends ProjectService {
                     .batchId(batchData.id())
                     .projectId(projectSpace.projectId())
                     .spaceId(projectSpace.spaceId())
+                    .transactionId(request.transactionId())
                     .build());
 
             status = Status.fromValue(batchData.status());
         }
 
-        if (status == Status.FAILED)
+        if (status == Status.FAILED) {
+            deleteFile(
+                removeUploadedFile ? batchData.inputFileId() : null,
+                null,
+                request.transactionId(),
+                timeout
+            );
             throw new RuntimeException("The batch operation failed: %s".formatted(batchData));
+        }
 
         var batchOutput = fileService.retrieve(batchData.outputFileId());
-
-        return batchOutput.lines()
+        var result = batchOutput.lines()
             .filter(line -> !line.isBlank())
             .map(line -> Json.<BatchResult<T>>fromJson(line, TypeToken.parameterizedOf(BatchResult.class, clazz)))
             .toList();
+
+        deleteFile(
+            removeUploadedFile ? batchData.inputFileId() : null,
+            removeOutputFile ? batchData.outputFileId() : null,
+            request.transactionId(),
+            timeout
+        );
+
+        return result;
     }
 
     /**
@@ -317,6 +352,14 @@ public class BatchService extends ProjectService {
 
         var projectSpace = resolveProjectSpace(request);
         var endpoint = nonNull(request.endpoint()) ? request.endpoint() : this.endpoint;
+        var removeUploadedFile = requireNonNullElse(request.removeUploadedFile(), false);
+        var removeOutputFile = requireNonNullElse(request.removeOutputFile(), false);
+
+        if (removeUploadedFile)
+            throw new IllegalArgumentException("removeUploadedFile is not supported for the async method");
+
+        if (removeOutputFile)
+            throw new IllegalArgumentException("removeOutputFile is not supported for the async method");
 
         return client.submit(
             BatchCreateRequest.builder(request)
@@ -416,6 +459,46 @@ public class BatchService extends ProjectService {
     }
 
     /**
+     * Deletes the input and/or output files associated with a completed batch job.
+     * <p>
+     * Each non-null file identifier is deleted concurrently. The method blocks until all deletions complete or the timeout expires.
+     *
+     * @param inputFileId the identifier of the input file to delete, or {@code null} to skip
+     * @param outputFileId the identifier of the output file to delete, or {@code null} to skip
+     * @param transactionId optional transaction identifier to propagate to the delete requests
+     * @param timeout the maximum time to wait for all deletions to complete
+     */
+    private void deleteFile(String inputFileId, String outputFileId, String transactionId, Duration timeout) {
+
+        var futures = new ArrayList<CompletableFuture<Void>>();
+
+        if (nonNull(inputFileId)) {
+            var request = FileDeleteRequest.builder()
+                .fileId(inputFileId)
+                .transactionId(transactionId)
+                .build();
+
+            futures.add(runAsync(() -> fileService.delete(request), ExecutorProvider.callbackExecutor()));
+        }
+
+
+        if (nonNull(outputFileId)) {
+            var request = FileDeleteRequest.builder()
+                .fileId(outputFileId)
+                .transactionId(transactionId)
+                .build();
+
+            futures.add(runAsync(() -> fileService.delete(request), ExecutorProvider.callbackExecutor()));
+        }
+
+        try {
+            allOf(futures.toArray(new CompletableFuture[0])).get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Validates the inputs, uploads the file via {@link FileService}, and builds a {@link BatchCreateRequest} with the assigned {@code fileId}.
      *
      * @param inputStream the input stream of the file to upload
@@ -425,7 +508,6 @@ public class BatchService extends ProjectService {
      * @throws IllegalArgumentException if {@code parameters.inputFileId} is already set
      */
     private BatchCreateRequest prepareRequest(InputStream inputStream, String fileName, BatchCreateRequest parameters) {
-        requireNonNull(fileService, "To upload a file it is mandatory to set the FileService");
         requireNonNull(inputStream, "inputstream cannot be null");
         requireNonNull(fileName, "fileName cannot be null");
         parameters = requireNonNullElse(parameters, BatchCreateRequest.builder().build());
@@ -465,6 +547,8 @@ public class BatchService extends ProjectService {
     public final static class Builder extends ProjectService.Builder<Builder> {
         private FileService fileService;
         private String endpoint;
+        private Boolean removeUploadedFile;
+        private Boolean removeOutputFile;
 
         private Builder() {}
 
@@ -492,6 +576,28 @@ public class BatchService extends ProjectService {
          */
         public Builder endpoint(String endpoint) {
             this.endpoint = endpoint;
+            return this;
+        }
+
+        /**
+         * Sets whether the uploaded input file should be automatically deleted after the batch job completes.
+         *
+         * @param removeUploadedFile {@code true} to delete the input file after completion
+         * @return this builder
+         */
+        public Builder removeUploadedFile(Boolean removeUploadedFile) {
+            this.removeUploadedFile = removeUploadedFile;
+            return this;
+        }
+
+        /**
+         * Sets whether the output file should be automatically deleted after the batch job completes.
+         *
+         * @param removeOutputFile {@code true} to delete the output file after completion
+         * @return this builder
+         */
+        public Builder removeOutputFile(Boolean removeOutputFile) {
+            this.removeOutputFile = removeOutputFile;
             return this;
         }
 
