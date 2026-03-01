@@ -192,6 +192,37 @@ public class FileService extends ProjectService {
     }
 
     /**
+     * Deletes an uploaded file by its identifier.
+     *
+     * @param fileId the identifier of the file to delete
+     * @return a {@link FileDeleteResponse} confirming the deletion
+     */
+    public FileDeleteResponse delete(String fileId) {
+        return delete(
+            FileDeleteRequest.builder()
+                .fileId(fileId)
+                .build());
+    }
+
+    /**
+     * Deletes an uploaded file using the provided {@link FileDeleteRequest}.
+     *
+     * @param request the {@link FileDeleteRequest} object
+     * @return a {@link FileDeleteResponse} confirming the deletion
+     */
+    public FileDeleteResponse delete(FileDeleteRequest request) {
+        requireNonNull(request, "request cannot be null");
+        requireNonNull(request.fileId(), "request.fileId cannot be null");
+        ProjectSpace projectSpace = resolveProjectSpace(request);
+        return client.delete(FileDeleteRequest.builder()
+            .projectId(projectSpace.projectId())
+            .spaceId(projectSpace.spaceId())
+            .transactionId(request.transactionId())
+            .fileId(request.fileId())
+            .build());
+    }
+
+    /**
      * Returns a new {@link Builder} instance.
      * <p>
      * <b>Example usage:</b>

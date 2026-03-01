@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai;
 import static com.github.tomakehurst.wiremock.client.WireMock.aMultipart;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -37,6 +38,7 @@ import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.file.FileDeleteRequest;
 import com.ibm.watsonx.ai.file.FileListRequest;
 import com.ibm.watsonx.ai.file.FileRetrieveRequest;
 import com.ibm.watsonx.ai.file.FileService;
@@ -283,6 +285,75 @@ public class FileServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_delete_a_file() {
+
+        var RESPONSE = """
+            {
+                "id": "my-id",
+                "deleted": true,
+                "object": "file"
+            }""";
+
+        Stream.of(Map.entry("X-IBM-Project-ID", PROJECT_ID), Map.entry("X-IBM-Space-ID", SPACE_ID)).forEach(header -> {
+
+            wireMock.stubFor(delete("/ml/v1/files/%s?version=%s".formatted("my-id", API_VERSION))
+                .withHeader(header.getKey(), equalTo(header.getValue()))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody(RESPONSE)));
+
+            var builder = FileService.builder()
+                .authenticator(mockAuthenticator)
+                .baseUrl(BASE_URL);
+
+            if (header.getKey().equals("X-IBM-Project-ID"))
+                builder.projectId(PROJECT_ID);
+            else
+                builder.spaceId(SPACE_ID);
+
+            var fileService = builder.build();
+            JSONAssert.assertEquals(RESPONSE, Json.toJson(fileService.delete("my-id")), true);
+        });
+    }
+
+    @Test
+    void should_delete_a_file_with_parameters() {
+
+        var RESPONSE = """
+            {
+                "id": "my-id",
+                "deleted": true,
+                "object": "file"
+            }""";
+
+
+        wireMock.stubFor(delete("/ml/v1/files/%s?version=%s".formatted("my-id", API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo("new-project-id"))
+            .withHeader("X-IBM-Space-ID", equalTo("new-space-id"))
+            .withHeader(TRANSACTION_ID_HEADER, equalTo("transaction-id"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(RESPONSE)));
+
+        var fileService = FileService.builder()
+            .authenticator(mockAuthenticator)
+            .baseUrl(BASE_URL)
+            .projectId(PROJECT_ID)
+            .spaceId(SPACE_ID)
+            .build();
+
+        var response = fileService.delete(
+            FileDeleteRequest.builder()
+                .fileId("my-id")
+                .transactionId("transaction-id")
+                .projectId("new-project-id")
+                .spaceId("new-space-id")
+                .build());
+
+        JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
+    }
+
+    @Test
     void should_retrieve_the_content_of_a_file_with_overridden_parameters() {
 
         var RESPONSE = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
@@ -396,6 +467,7 @@ public class FileServiceTest extends AbstractWatsonxTest {
             assertThrows(RuntimeException.class, () -> fileService.upload(path), "IOException");
             assertThrows(RuntimeException.class, () -> fileService.list(), "IOException");
             assertThrows(RuntimeException.class, () -> fileService.retrieve("file-id"), "IOException");
+            assertThrows(RuntimeException.class, () -> fileService.delete("file-id"), "IOException");
         });
     }
 }

@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
@@ -79,5 +80,13 @@ public class FileServiceIT {
         assertNotNull(fileListResponse.firstId());
         assertNotNull(fileListResponse.lastId());
         assertNotNull(fileListResponse.hasMore());
+    }
+
+    @Test
+    void should_delete_files() throws Exception {
+        var files = fileService.list();
+        for (var file : files.data())
+            assertTrue(fileService.delete(file.id()).deleted());
+        assertEquals(0, fileService.list().data().size());
     }
 }
