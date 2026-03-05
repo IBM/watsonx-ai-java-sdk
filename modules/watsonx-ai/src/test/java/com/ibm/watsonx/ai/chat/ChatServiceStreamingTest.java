@@ -107,6 +107,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .withRequestBody(equalToJson("""
                 {
                     "model_id": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
+                    "model": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
                     "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
                     "messages": [
                         {
@@ -238,6 +239,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .withRequestBody(equalToJson("""
                 {
                   "model_id" : "ibm/granite-3-3-8b-instruct",
+                  "model": "ibm/granite-3-3-8b-instruct",
                   "project_id" : "63dc4cf1-252f-424b-b52d-5cdd9814987f",
                   "messages" : [ {
                     "role" : "user",
@@ -455,6 +457,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .withRequestBody(equalToJson("""
                   {
                     "model_id": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
+                    "model": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8",
                     "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
                     "messages": [
                         {
@@ -1220,6 +1223,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 """
                     {
                       "model_id": "model-id",
+                      "model": "model-id",
                       "project_id": "project-id",
                       "messages": [
                         {
@@ -1256,6 +1260,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 """
                     {
                       "model_id": "model-id",
+                      "model": "model-id",
                       "project_id": "project-id",
                       "messages": [
                         {
@@ -1343,6 +1348,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         String FIRST_CALL = """
             {
               "model_id" : "model-id",
+              "model": "model-id",
               "project_id" : "project-id",
               "messages" : [ {
                 "role" : "user",
@@ -1357,6 +1363,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         String SECOND_CALL = """
             {
               "model_id" : "model-id",
+              "model": "model-id",
               "project_id" : "project-id",
               "messages" : [ {
                 "role" : "user",
@@ -1556,6 +1563,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         String REQUEST = """
             {
                 "model_id": "ibm/granite-4-h-small",
+                "model": "ibm/granite-4-h-small",
                 "project_id": "project-id",
                 "messages": [
                     {
@@ -1706,6 +1714,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         String REQUEST = """
             {
                 "model_id": "ibm/granite-4-h-small",
+                "model": "ibm/granite-4-h-small",
                 "project_id": "project-id",
                 "messages": [
                     {
@@ -2027,6 +2036,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 """
                     {
                       "model_id": "ibm/granite-4-h-small",
+                      "model": "ibm/granite-4-h-small",
                       "project_id": "project-id",
                       "messages": [
                         {

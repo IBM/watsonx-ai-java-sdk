@@ -18,6 +18,7 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters.ResponseFormat;
 public final class TextChatRequest {
 
     private final String modelId;
+    private final String model;
     private final String spaceId;
     private final String projectId;
     private final List<ChatMessage> messages;
@@ -50,6 +51,7 @@ public final class TextChatRequest {
 
     private TextChatRequest(Builder builder) {
         modelId = builder.modelId;
+        model = builder.modelId;
         spaceId = builder.spaceId;
         projectId = builder.projectId;
         messages = builder.messages;
@@ -91,6 +93,10 @@ public final class TextChatRequest {
 
     public String modelId() {
         return modelId;
+    }
+
+    public String model() {
+        return model;
     }
 
     public String spaceId() {

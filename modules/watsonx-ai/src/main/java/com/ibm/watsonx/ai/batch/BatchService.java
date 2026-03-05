@@ -9,6 +9,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.runAsync;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,10 +19,14 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.chat.ChatRequest;
+import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.ChatUtility;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
@@ -338,6 +343,41 @@ public class BatchService extends ProjectService {
         );
 
         return result;
+    }
+
+    /**
+     * Submits a batch of chat requests, waits for completion, and returns the results.
+     * <p>
+     * The returned results maintains the same order as the input requests list.
+     *
+     * @param requests the list of {@link ChatRequest} objects to process in batch
+     * @return a list of {@link BatchResult} containing the {@link ChatResponse} for each request
+     */
+    public List<BatchResult<ChatResponse>> submitChatRequestsAndFetch(List<ChatRequest> requests) {
+
+        // Create the JSONL strings
+        var jsonl = new StringJoiner("\n");
+        for (var i = 0; i < requests.size(); i++) {
+            var request = requests.get(i);
+            var json = Json.toJson(ChatUtility.buildTextChatRequest(request, null));
+            jsonl.add("{\"custom_id\": \"%s\", \"method\": \"POST\", \"url\":\"/v1/chat/completions\", \"body\":%s}".formatted(i, json));
+        }
+        jsonl.add("");
+
+        var parameters = BatchCreateRequest.builder()
+            .endpoint("/v1/chat/completions")
+            .build();
+
+        try (var inputStream = new ByteArrayInputStream(jsonl.toString().getBytes())) {
+
+            // Sort results by custom_id (numerically) to maintain input order
+            return submitAndFetch(inputStream, UUID.randomUUID().toString(), parameters, ChatResponse.class).stream()
+                .sorted((a, b) -> Integer.compare(Integer.parseInt(a.customId()), Integer.parseInt(b.customId())))
+                .toList();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

@@ -8,11 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.batch.BatchService;
+import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.file.FileData;
@@ -63,6 +69,35 @@ public class BatchServiceIT {
         assertNotNull(batch.get(0).response().body().toAssistantMessage().content());
         var after = fileService.list().data().size();
         assertEquals(before, after);
+    }
+
+    @Test
+    void should_submit_a_chat_response_batch_and_get_results() throws Exception {
+
+        var parameters = ChatParameters.builder()
+            .modelId("ibm/granite-4-h-small")
+            .temperature(0.0)
+            .maxCompletionTokens(0)
+            .build();
+
+        var chatRequests =
+            Stream.of("Italy", "French", "Germany")
+                .map(city -> {
+                    var messages = List.of(
+                        SystemMessage.of("You are an helpful assistant"),
+                        UserMessage.text("What is the capital of %s? Answer with only the name of the city.".formatted(city))
+                    );
+                    return ChatRequest.builder()
+                        .parameters(parameters)
+                        .messages(messages)
+                        .build();
+                })
+                .toList();
+
+        var result = batchService.submitChatRequestsAndFetch(chatRequests);
+        assertEquals("Rome", result.get(0).response().body().toAssistantMessage().content());
+        assertEquals("Paris", result.get(1).response().body().toAssistantMessage().content());
+        assertEquals("Berlin", result.get(2).response().body().toAssistantMessage().content());
     }
 
     @Test
