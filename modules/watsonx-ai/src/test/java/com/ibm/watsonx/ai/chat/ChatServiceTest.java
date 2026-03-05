@@ -200,6 +200,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             String expectedBody = """
                 {
                    "model_id":"my-super-model",
+                   "model": "my-super-model",
                    "space_id":"space-id",
                    "project_id":"project-id",
                    "messages":[
@@ -309,7 +310,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         "id": "chatcmpl-43962cc06e5346ccbd653a04a48e4b5b",
                         "object" : "chat.completion",
                         "model_id" : "my-super-model",
-                        "model" : "my-super-model-model",
+                        "model" : "my-super-model",
                         "choices" : [ {
                         "index" : 0,
                         "message" : {
@@ -1040,8 +1041,9 @@ public class ChatServiceTest extends AbstractWatsonxTest {
     void should_return_text_result_after_tool_call_with_output() throws Exception {
 
         final String REQUEST = """
-                 {
+            {
               "model_id" : "ibm/granite-3-8b-instruct",
+              "model": "ibm/granite-3-8b-instruct",
               "project_id" : "63dc4cf1-252f-424b-b52d-5cdd9814987f",
               "messages" : [ {
                 "role" : "user",

@@ -8,7 +8,6 @@ on:
       - '.gitignore'
       - 'CODEOWNERS'
       - 'LICENSE'
-      - '*.md'
       - '*.txt'
       - '.all-contributorsrc'
       

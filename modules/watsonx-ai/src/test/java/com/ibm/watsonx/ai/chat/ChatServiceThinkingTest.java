@@ -83,6 +83,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                      {
                         "model_id": "ibm/granite-3-3-8b-instruct",
+                        "model": "ibm/granite-3-3-8b-instruct",
                         "project_id": "project-id",
                         "messages": [
                             {
@@ -148,6 +149,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                     {
                         "model_id": "openai/gpt-oss-120b",
+                        "model": "openai/gpt-oss-120b",
                         "project_id": "project-id",
                         "messages": [
                             {
@@ -203,6 +205,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         .withRequestBody(equalToJson("""
                             {
                                 "model_id": "openai/gpt-oss-120b",
+                                "model": "openai/gpt-oss-120b",
                                 "project_id": "project-id",
                                 "messages": [
                                     {
@@ -256,6 +259,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                     {
                         "model_id": "openai/gpt-oss-120b",
+                        "model": "openai/gpt-oss-120b",
                         "project_id": "project-id",
                         "messages": [
                             {
@@ -332,6 +336,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                     {
                         "model_id": "openai/gpt-oss-120b",
+                        "model": "openai/gpt-oss-120b",
                         "project_id": "project-id",
                         "messages": [
                             {
@@ -397,6 +402,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                     {
                         "model_id": "ibm/granite-3-3-8b-instruct",
+                        "model": "ibm/granite-3-3-8b-instruct",
                         "project_id": "project-id",
                         "messages": [
                             {
@@ -517,6 +523,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                     {
                         "model_id": "ibm/granite-3-3-8b-instruct",
+                        "model": "ibm/granite-3-3-8b-instruct",
                         "project_id": "project-id",
                         "messages": [
                             {
@@ -645,6 +652,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                     {
                         "model_id": "openai/gpt-oss-120b",
+                        "model": "openai/gpt-oss-120b",
                         "project_id": "project-id",
                         "messages": [
                             {
@@ -729,6 +737,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         .withRequestBody(equalToJson("""
                             {
                                 "model_id": "openai/gpt-oss-120b",
+                                "model": "openai/gpt-oss-120b",
                                 "project_id": "project-id",
                                 "messages": [
                                     {
@@ -811,6 +820,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                     {
                         "model_id": "openai/gpt-oss-120b",
+                        "model": "openai/gpt-oss-120b",
                         "project_id": "project-id",
                         "messages": [
                             {
@@ -954,6 +964,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .withRequestBody(equalToJson("""
                     {
                         "model_id": "openai/gpt-oss-120b",
+                        "model": "openai/gpt-oss-120b",
                         "project_id": "project-id",
                         "messages": [
                             {

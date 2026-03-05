@@ -4,14 +4,12 @@
  */
 package com.ibm.watsonx.ai.chat;
 
-import static com.ibm.watsonx.ai.core.Utils.getOrDefault;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNullElse;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -23,10 +21,8 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
-import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
-import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
@@ -69,7 +65,17 @@ public class ChatService extends CryptoService implements ChatProvider {
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
         defaultTools = builder.defaultTools;
-        defaultParameters = requireNonNullElse(builder.defaultParameters, ChatParameters.builder().build());
+
+        var defaultParametersBuilder = nonNull(builder.defaultParameters)
+            ? builder.defaultParameters.toBuilder()
+                .timeLimit(nonNull(builder.defaultParameters.timeLimit()) ? Duration.ofMillis(builder.defaultParameters.timeLimit()) : timeout)
+            : ChatParameters.builder()
+                .timeLimit(timeout);
+
+        defaultParameters = defaultParametersBuilder.modelId(modelId)
+            .projectId(projectId)
+            .spaceId(spaceId)
+            .build();
 
         client = ChatRestClient.builder()
             .baseUrl(baseUrl)
@@ -108,7 +114,7 @@ public class ChatService extends CryptoService implements ChatProvider {
         if (nonNull(chatRequest.deploymentId()))
             logger.info("The deploymentId parameter can not be used with the ChatService. Use the DeploymentService instead");
 
-        var textChatRequest = buildTextChatRequest(chatRequest);
+        var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
         var chatResponse = client.chat(transactionId, textChatRequest);
@@ -148,7 +154,7 @@ public class ChatService extends CryptoService implements ChatProvider {
         if (nonNull(chatRequest.deploymentId()))
             logger.info("The deploymentId parameter can not be used with the ChatService. Use the DeploymentService instead");
 
-        var textChatRequest = buildTextChatRequest(chatRequest);
+        var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
         var context = ChatClientContext.builder()
@@ -407,74 +413,6 @@ public class ChatService extends CryptoService implements ChatProvider {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * Builds a {@link TextChatRequest} from the provided {@link ChatRequest}.
-     *
-     * @param chatRequest the {@link ChatRequest} object
-     * @return a fully constructed {@link TextChatRequest} object
-     */
-    private TextChatRequest buildTextChatRequest(ChatRequest chatRequest) {
-
-        var messages = chatRequest.messages();
-        var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
-        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
-
-        if (messages.stream().anyMatch(ControlMessage.class::isInstance)
-            && (isNull(chatRequest.thinking()) || isNull(chatRequest.thinking().extractionTags())))
-            throw new IllegalArgumentException("Extraction tags are required when using control messages");
-
-        var projectSpace = resolveProjectSpace(parameters);
-        var projectId = projectSpace.projectId();
-        var spaceId = projectSpace.spaceId();
-        var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
-        var timeout = requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis());
-
-        Boolean includeReasoning = null;
-        String thinkingEffort = null;
-        Map<String, Object> chatTemplateKwargs = null;
-        if (nonNull(chatRequest.thinking())) {
-            var thinking = chatRequest.thinking();
-            includeReasoning = thinking.includeReasoning();
-            thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
-            if (nonNull(thinking.enabled()))
-                chatTemplateKwargs = Map.of("thinking", thinking.enabled());
-        }
-
-        return TextChatRequest.builder()
-            .modelId(modelId)
-            .projectId(projectId)
-            .spaceId(spaceId)
-            .messages(messages)
-            .tools(tools)
-            .toolChoiceOption(getOrDefault(parameters.toolChoiceOption(), defaultParameters.toolChoiceOption()))
-            .toolChoice(getOrDefault(parameters.toolChoice(), defaultParameters.toolChoice()))
-            .frequencyPenalty(getOrDefault(parameters.frequencyPenalty(), defaultParameters.frequencyPenalty()))
-            .logitBias(getOrDefault(parameters.logitBias(), defaultParameters.logitBias()))
-            .logprobs(getOrDefault(parameters.logprobs(), defaultParameters.logprobs()))
-            .topLogprobs(getOrDefault(parameters.topLogprobs(), defaultParameters.topLogprobs()))
-            .maxCompletionTokens(getOrDefault(parameters.maxCompletionTokens(), defaultParameters.maxCompletionTokens()))
-            .n(getOrDefault(parameters.n(), defaultParameters.n()))
-            .presencePenalty(getOrDefault(parameters.presencePenalty(), defaultParameters.presencePenalty()))
-            .seed(getOrDefault(parameters.seed(), defaultParameters.seed()))
-            .stop(getOrDefault(parameters.stop(), defaultParameters.stop()))
-            .temperature(getOrDefault(parameters.temperature(), defaultParameters.temperature()))
-            .topP(getOrDefault(parameters.topP(), defaultParameters.topP()))
-            .responseFormat(getOrDefault(parameters.responseFormat(), defaultParameters.responseFormat()))
-            .jsonSchema(getOrDefault(parameters.jsonSchema(), defaultParameters.jsonSchema()))
-            .context(getOrDefault(parameters.context(), defaultParameters.context()))
-            .timeLimit(getOrDefault(parameters.timeLimit(), timeout))
-            .guidedChoice(getOrDefault(parameters.guidedChoice(), defaultParameters.guidedChoice()))
-            .guidedRegex(getOrDefault(parameters.guidedRegex(), defaultParameters.guidedRegex()))
-            .guidedGrammar(getOrDefault(parameters.guidedGrammar(), defaultParameters.guidedGrammar()))
-            .repetitionPenalty(getOrDefault(parameters.repetitionPenalty(), defaultParameters.repetitionPenalty()))
-            .lengthPenalty(getOrDefault(parameters.lengthPenalty(), defaultParameters.lengthPenalty()))
-            .includeReasoning(includeReasoning)
-            .reasoningEffort(thinkingEffort)
-            .chatTemplateKwargs(chatTemplateKwargs)
-            .crypto(getOrDefault(parameters.crypto(), defaultParameters.crypto()))
-            .build();
     }
 
     /**

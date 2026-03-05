@@ -56,6 +56,7 @@ The `BatchService` enables you to:
 
 - Submit batch jobs from a `Path`, `File`, `InputStream`, or a pre-uploaded `file_id`.
 - Wait for job completion and retrieve deserialized results with `submitAndFetch()`.
+- Automatically clean up input and output files after `submitAndFetch()` completes.
 - List, retrieve, and cancel batch jobs.
 
 ---
@@ -145,6 +146,36 @@ List<BatchResult<ChatResponse>> results = batchService.submitAndFetch(
     ChatResponse.class
 );
 ```
+
+### Batch Chat Requests
+
+`submitChatRequestsAndFetch()` is a higher-level convenience method that accepts a list of `ChatRequest` objects directly, builds the JSONL input internally, and returns results in the **same order as the input list**.
+
+```java
+var parameters = ChatParameters.builder()
+    .modelId("ibm/granite-4-h-small")
+    .temperature(0.0)
+    .maxCompletionTokens(0)
+    .build();
+
+List<ChatRequest> requests = Stream.of("Italy", "France", "Germany")
+    .map(country -> ChatRequest.builder()
+        .parameters(parameters)
+        .messages(List.of(
+            SystemMessage.of("You are a helpful assistant."),
+            UserMessage.text("What is the capital of " + country + "? Answer with only the city name.")
+        ))
+        .build())
+    .toList();
+
+List<BatchResult<ChatResponse>> results = batchService.submitChatRequestsAndFetch(requests);
+
+System.out.println(results.get(0).response().body().toAssistantMessage().content()); // → Rome
+System.out.println(results.get(1).response().body().toAssistantMessage().content()); // → Paris
+System.out.println(results.get(2).response().body().toAssistantMessage().content()); // → Berlin
+```
+
+> Unlike `submitAndFetch()`, the results returned by `submitChatRequestsAndFetch()` are guaranteed to be in the same order as the input requests.
 
 ### Submit Without Waiting
 
@@ -261,8 +292,6 @@ Returned per-item by `submitAndFetch()`. Each entry corresponds to one line in t
 | `processedAt()` | Long | Unix timestamp when this request was processed |
 
 `response().statusCode()` contains the HTTP status for this individual request. `response().body()` is deserialized into the class passed to `submitAndFetch()` (e.g., `ChatResponse.class`).
-
-> **Note:** The order of results is not guaranteed to match the order of requests in the input file. Always use `customId()` to correlate each result with its corresponding input.
 
 ---
 

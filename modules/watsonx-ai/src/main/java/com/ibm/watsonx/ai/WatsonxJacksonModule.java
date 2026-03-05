@@ -329,6 +329,9 @@ public class WatsonxJacksonModule extends SimpleModule {
         @JsonProperty("model_id")
         abstract String modelId();
 
+        @JsonProperty("model")
+        abstract String model();
+
         @JsonProperty("space_id")
         abstract String spaceId();
 

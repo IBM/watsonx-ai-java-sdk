@@ -25,6 +25,7 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,11 @@ import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.batch.BatchListRequest;
 import com.ibm.watsonx.ai.batch.BatchRetrieveRequest;
 import com.ibm.watsonx.ai.batch.BatchService;
+import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.SystemMessage;
+import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.file.FileService;
@@ -1360,7 +1365,6 @@ public class BatchServiceTest extends AbstractWatsonxTest {
     @Test
     void should_list_batches_with_limit() {
 
-
         wireMock.stubFor(get("/ml/v1/batches?version=%s&limit=2".formatted(API_VERSION))
             .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
             .withHeader("X-IBM-Space-ID", equalTo(SPACE_ID))
@@ -1461,25 +1465,6 @@ public class BatchServiceTest extends AbstractWatsonxTest {
 
         assertEquals(3, results.size());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
-    }
-
-
-    private void stubFileUpload(String headerKey, String headerValue) {
-        wireMock.stubFor(post("/ml/v1/files?version=%s".formatted(API_VERSION))
-            .withHeader(headerKey, equalTo(headerValue))
-            .withMultipartRequestBody(
-                aMultipart()
-                    .withName("purpose")
-                    .withBody(equalTo("batch"))
-            )
-            .withMultipartRequestBody(
-                aMultipart()
-                    .withName("file")
-                    .withHeader("Content-Type", containing("application/octet-stream"))
-            )
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBody(FILE_UPLOAD_RESPONSE)));
     }
 
     @Test
@@ -1614,6 +1599,78 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         assertThrows(IllegalArgumentException.class, () -> batchService.submit(request), "removeOutputFile is not supported for the async method");
     }
 
+    @Test
+    void should_batch_chat_responses() {
+
+        stubFileUpload("X-IBM-Project-ID", PROJECT_ID);
+
+        wireMock.stubFor(post("/ml/v1/batches?version=%s".formatted(API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(SUBMIT_RESPONSE)));
+
+        // Mock the output file with results in non-sequential order (2, 0, 1) to test sorting
+        wireMock.stubFor(get("/ml/v1/files/%s/content?version=%s".formatted(OUTPUT_FILE_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                            {"id":"batch-result-2","custom_id":"2","response":{"status_code":200,"request_id":"req-2","body":{"id":"chatcmpl-2","object":"chat.completion","choices":[{"index":0,"message":{"content":"Berlin","role":"assistant"},"finish_reason":"stop"}],"created":1772183793,"model":"ibm/granite-4-h-small","usage":{"completion_tokens":5,"prompt_tokens":30,"total_tokens":35}}},"processed_at":1772183795}
+                            {"id":"batch-result-0","custom_id":"0","response":{"status_code":200,"request_id":"req-0","body":{"id":"chatcmpl-0","object":"chat.completion","choices":[{"index":0,"message":{"content":"Rome","role":"assistant"},"finish_reason":"stop"}],"created":1772183793,"model":"ibm/granite-4-h-small","usage":{"completion_tokens":5,"prompt_tokens":30,"total_tokens":35}}},"processed_at":1772183793}
+                            {"id":"batch-result-1","custom_id":"1","response":{"status_code":200,"request_id":"req-1","body":{"id":"chatcmpl-1","object":"chat.completion","choices":[{"index":0,"message":{"content":"Paris","role":"assistant"},"finish_reason":"stop"}],"created":1772183793,"model":"ibm/granite-4-h-small","usage":{"completion_tokens":5,"prompt_tokens":30,"total_tokens":35}}},"processed_at":1772183794}
+                        """)));
+
+        wireMock.stubFor(delete("/ml/v1/files/%s?version=%s".formatted(FILE_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(FILE_DELETE_RESPONSE)));
+
+        wireMock.stubFor(delete("/ml/v1/files/%s?version=%s".formatted(OUTPUT_FILE_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(FILE_DELETE_RESPONSE)));
+
+        var batchService = buildBatchService("X-IBM-Project-ID", PROJECT_ID, buildFileService("X-IBM-Project-ID", PROJECT_ID));
+
+        var parameters = ChatParameters.builder()
+            .modelId("ibm/granite-4-h-small")
+            .temperature(0.0)
+            .maxCompletionTokens(0)
+            .build();
+
+        var chatRequests =
+            Stream.of("Italy", "French", "Germany")
+                .map(city -> {
+                    var messages = List.of(
+                        SystemMessage.of("You are an helpful assistant"),
+                        UserMessage.text("What is the capital of %s? Answer with only the name of the city.".formatted(city))
+                    );
+                    return ChatRequest.builder()
+                        .parameters(parameters)
+                        .messages(messages)
+                        .build();
+                })
+                .toList();
+
+        var results = batchService.submitChatRequestsAndFetch(chatRequests);
+
+        assertEquals(3, results.size());
+        assertEquals("0", results.get(0).customId());
+        assertEquals("1", results.get(1).customId());
+        assertEquals("2", results.get(2).customId());
+        assertEquals(200, results.get(0).response().statusCode());
+        assertEquals("Rome", results.get(0).response().body().toAssistantMessage().content());
+        assertEquals(200, results.get(1).response().statusCode());
+        assertEquals("Paris", results.get(1).response().body().toAssistantMessage().content());
+        assertEquals(200, results.get(2).response().statusCode());
+        assertEquals("Berlin", results.get(2).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
+    }
+
     private FileService buildFileService(String headerKey, String headerValue) {
         var builder = FileService.builder()
             .authenticator(mockAuthenticator)
@@ -1636,5 +1693,27 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         else
             builder.spaceId(headerValue);
         return builder.build();
+    }
+
+    private void stubFileUpload(String headerKey, String headerValue) {
+        stubFileUpload(headerKey, headerValue, FILE_UPLOAD_RESPONSE);
+    }
+
+    private void stubFileUpload(String headerKey, String headerValue, String response) {
+        wireMock.stubFor(post("/ml/v1/files?version=%s".formatted(API_VERSION))
+            .withHeader(headerKey, equalTo(headerValue))
+            .withMultipartRequestBody(
+                aMultipart()
+                    .withName("purpose")
+                    .withBody(equalTo("batch"))
+            )
+            .withMultipartRequestBody(
+                aMultipart()
+                    .withName("file")
+                    .withHeader("Content-Type", containing("application/octet-stream"))
+            )
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(response)));
     }
 }

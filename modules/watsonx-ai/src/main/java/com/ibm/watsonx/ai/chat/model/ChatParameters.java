@@ -217,7 +217,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
             .transactionId(transactionId)
             .crypto(crypto);
 
-        builder.responseFormat = nonNull(responseFormat) ? ResponseFormat.valueOf(responseFormat.toUpperCase()) : null;
+        builder.responseFormat = nonNull(responseFormat) ? ResponseFormat.from(responseFormat) : null;
         builder.jsonSchema = jsonSchema;
         return builder;
     }
@@ -619,6 +619,15 @@ public final class ChatParameters extends WatsonxCryptoParameters {
 
         ResponseFormat(String value) {
             this.value = value;
+        }
+
+        public static ResponseFormat from(String value) {
+            for (ResponseFormat format : ResponseFormat.values()) {
+                if (format.value.equals(value)) {
+                    return format;
+                }
+            }
+            throw new IllegalArgumentException("Unknown response format: " + value);
         }
 
         public String value() {
