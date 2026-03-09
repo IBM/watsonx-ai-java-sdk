@@ -96,7 +96,7 @@ ChatService chatService = ChatService.builder()
 
 ### Advanced Configuration
 
-You can configure **default parameters** and **tools** that will automatically apply to every chat request created by this `ChatService` instance. These defaults simplify reuse and ensure consistent behavior across multiple calls.
+You can configure **default parameters** and **tools** that will automatically apply to every chat request created by a `ChatService` instance. These defaults simplify reuse and ensure consistent behavior across multiple calls.
 
 ```java
 ChatParameters defaultParameters = ChatParameters.builder()
@@ -698,7 +698,7 @@ ChatService chatService = ChatService.builder()
 
 // Use only specific tools
 ChatService limitedService = ChatService.builder()
-    .tools(registry.tools("get_weather", "search"))
+    .tools(registry.tools(WeatherTool.class, SearchTool.class))
     .build();
 ```
 
