@@ -70,6 +70,7 @@ public class ToolRegistryTest {
 
         assertEquals(7, toolRegistry.tools().size());
         assertEquals(1, toolRegistry.tools(webCrawlerTool.name()).size());
+        assertEquals(1, toolRegistry.tools(WebCrawlerTool.class).size());
         assertEquals(7, toolRegistry.tools(Set.of()).size());
     }
 

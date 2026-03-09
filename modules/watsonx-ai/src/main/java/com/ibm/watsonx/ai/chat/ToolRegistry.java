@@ -91,7 +91,7 @@ public class ToolRegistry implements ToolExecutor {
     }
 
     /**
-     * Returns the schemas of all registered tools.
+     * Returns all registered tools.
      *
      * @return a list of tool schemas for all registered tools
      */
@@ -100,7 +100,7 @@ public class ToolRegistry implements ToolExecutor {
     }
 
     /**
-     * Returns the schemas of tools matching the specified names.
+     * Returns the tools that match the specified names.
      *
      * @param names the tool names to include
      * @return a list of tool schemas for the matching tools
@@ -110,7 +110,7 @@ public class ToolRegistry implements ToolExecutor {
     }
 
     /**
-     * Returns the schemas of tools matching the specified names.
+     * Returns the tools that match the specified names.
      * <p>
      * If the provided set is {@code null} or empty, all registered tool schemas are returned. Unmatched names are silently ignored.
      *
@@ -124,6 +124,24 @@ public class ToolRegistry implements ToolExecutor {
             stream = stream.filter(tool -> names.contains(tool.name()));
 
         return stream.map(ExecutableTool::schema).toList();
+    }
+
+    /**
+     * Returns the tools that match the specified tool classes.
+     *
+     * @param toolClasses the tool classes to filter by
+     * @return a list of tool schemas for the matching tools
+     */
+    @SafeVarargs
+    public final List<Tool> tools(Class<? extends ExecutableTool>... toolClasses) {
+        Set<Class<? extends ExecutableTool>> classes = Set.of(toolClasses);
+
+        var toolNames = tools.values().stream()
+            .filter(tool -> classes.stream().anyMatch(clazz -> clazz.isAssignableFrom(tool.getClass())))
+            .map(ExecutableTool::name)
+            .collect(Collectors.toSet());
+
+        return tools(toolNames);
     }
 
     /**

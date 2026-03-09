@@ -31,6 +31,8 @@ Every service delegates HTTP communication to an abstract `RestClient`. The conc
 | `FoundationModelService` | `FoundationModelRestClient` |
 | `ToolService` | `ToolRestClient` |
 | `DeploymentService` | `DeploymentRestClient` |
+| `FileService` | `FileRestClient` |
+| `BatchService` | `BatchRestClient` |
 
 Each `RestClient` performs the lookup this way:
 
