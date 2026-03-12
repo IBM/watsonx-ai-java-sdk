@@ -28,16 +28,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
+import com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 @ExtendWith(MockitoExtension.class)
-public class BearerInterceptorTest extends AbstractWatsonxTest {
+@MockitoSettings(strictness = Strictness.LENIENT)
+public class AuthenticationInterceptorTest extends AbstractWatsonxTest {
 
     @Nested
     class Sync {
@@ -46,6 +49,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
         void should_send_request_with_bearer_token() throws Exception {
 
             when(mockAuthenticator.token()).thenReturn("my_super_token");
+            when(mockAuthenticator.scheme()).thenReturn("Bearer");
             when(mockHttpResponse.statusCode()).thenReturn(200);
 
             withWatsonxServiceMock(() -> {
@@ -54,7 +58,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
                 var client = SyncHttpClient.builder()
                     .httpClient(mockSecureHttpClient)
-                    .interceptor(new BearerInterceptor(mockAuthenticator))
+                    .interceptor(new AuthenticationInterceptor(mockAuthenticator))
                     .build();
 
                 try {
@@ -77,6 +81,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
             var cp4dAuthenticatorMock = mock(CP4DAuthenticator.class);
             when(cp4dAuthenticatorMock.token()).thenReturn("#1234");
             when(cp4dAuthenticatorMock.isAuthMode(AuthMode.ZEN_API_KEY)).thenReturn(true);
+            when(cp4dAuthenticatorMock.scheme()).thenReturn("ZenApiKey");
             when(mockHttpResponse.statusCode()).thenReturn(200);
 
             withWatsonxServiceMock(() -> {
@@ -85,7 +90,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
                 var client = SyncHttpClient.builder()
                     .httpClient(mockSecureHttpClient)
-                    .interceptor(new BearerInterceptor(cp4dAuthenticatorMock))
+                    .interceptor(new AuthenticationInterceptor(cp4dAuthenticatorMock))
                     .build();
 
                 try {
@@ -111,7 +116,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
                 var client = SyncHttpClient.builder()
                     .httpClient(mockSecureHttpClient)
-                    .interceptor(new BearerInterceptor(mockAuthenticator))
+                    .interceptor(new AuthenticationInterceptor(mockAuthenticator))
                     .build();
 
                 try {
@@ -136,13 +141,14 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
         void should_send_request_with_bearer_token() throws Exception {
 
             when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my_super_token"));
+            when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
             withWatsonxServiceMock(() -> {
                 mockHttpClientAsyncSend(mockHttpRequest.capture(), any());
 
                 var client = AsyncHttpClient.builder()
                     .httpClient(mockSecureHttpClient)
-                    .interceptor(new BearerInterceptor(mockAuthenticator))
+                    .interceptor(new AuthenticationInterceptor(mockAuthenticator))
                     .build();
 
                 var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
@@ -159,6 +165,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
             var cp4dAuthenticatorMock = mock(CP4DAuthenticator.class);
             when(cp4dAuthenticatorMock.asyncToken()).thenReturn(completedFuture("#1234"));
+            when(cp4dAuthenticatorMock.scheme()).thenReturn("ZenApiKey");
             when(cp4dAuthenticatorMock.isAuthMode(AuthMode.ZEN_API_KEY)).thenReturn(true);
 
             withWatsonxServiceMock(() -> {
@@ -167,7 +174,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
                 var client = AsyncHttpClient.builder()
                     .httpClient(mockSecureHttpClient)
-                    .interceptor(new BearerInterceptor(cp4dAuthenticatorMock))
+                    .interceptor(new AuthenticationInterceptor(cp4dAuthenticatorMock))
                     .build();
 
                 var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
@@ -188,7 +195,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
                 var client = AsyncHttpClient.builder()
                     .httpClient(mockSecureHttpClient)
-                    .interceptor(new BearerInterceptor(mockAuthenticator))
+                    .interceptor(new AuthenticationInterceptor(mockAuthenticator))
                     .build();
 
                 var fakeRequest = HttpRequest.newBuilder(URI.create("http://test"))
@@ -222,7 +229,7 @@ public class BearerInterceptorTest extends AbstractWatsonxTest {
 
                     var client = AsyncHttpClient.builder()
                         .httpClient(mockSecureHttpClient)
-                        .interceptor(new BearerInterceptor(mockAuthenticator))
+                        .interceptor(new AuthenticationInterceptor(mockAuthenticator))
                         .interceptor(new AsyncHttpInterceptor() {
                             @Override
                             public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,

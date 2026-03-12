@@ -92,6 +92,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
     @BeforeEach
     void setUp() {
         when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
         BASE_URL = "http://localhost:%s".formatted(wireMock.getPort());
 
     }

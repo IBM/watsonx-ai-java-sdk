@@ -32,4 +32,9 @@ public interface Authenticator {
      * @return a {@link CompletableFuture} that will complete with the access token
      */
     CompletableFuture<String> asyncToken();
+
+    /**
+     * Returns the authentication scheme to be used in the Authorization header.
+     */
+    String scheme();
 }

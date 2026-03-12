@@ -92,6 +92,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     @BeforeEach
     void setup() {
         when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
         when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
     }
 

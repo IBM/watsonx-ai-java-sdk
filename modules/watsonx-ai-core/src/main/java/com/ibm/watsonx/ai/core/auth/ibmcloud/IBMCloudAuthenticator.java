@@ -30,6 +30,8 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * }</pre>
  */
 public class IBMCloudAuthenticator implements Authenticator {
+    private static final String SCHEME = "Bearer";
+
     private final URI baseUrl;
     private final String apiKey;
     private final String grantType;
@@ -81,6 +83,11 @@ public class IBMCloudAuthenticator implements Authenticator {
             token.getAndSet(identityTokenResponse);
             return identityTokenResponse.accessToken();
         });
+    }
+
+    @Override
+    public String scheme() {
+        return SCHEME;
     }
 
     /**

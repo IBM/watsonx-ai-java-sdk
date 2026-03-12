@@ -47,6 +47,7 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     @BeforeEach
     void setup() {
         when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
     }
 
     @Test

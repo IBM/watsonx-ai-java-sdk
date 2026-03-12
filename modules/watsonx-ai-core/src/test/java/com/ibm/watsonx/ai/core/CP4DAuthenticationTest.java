@@ -720,4 +720,36 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
             });
         }
     }
+
+    @Test
+    void should_return_the_correct_scheme() {
+
+        CP4DAuthenticator authenticator = CP4DAuthenticator.builder()
+            .username("username")
+            .baseUrl(URI.create("http://my-url"))
+            .apiKey("api_key")
+            .authMode(AuthMode.ZEN_API_KEY)
+            .build();
+
+        assertEquals("ZenApiKey", authenticator.scheme());
+
+        authenticator = CP4DAuthenticator.builder()
+            .baseUrl("http://my-url/")
+            .username("username")
+            .password("password")
+            .authMode(AuthMode.IAM)
+            .build();
+
+        assertEquals("Bearer", authenticator.scheme());
+
+        authenticator = CP4DAuthenticator.builder()
+            .username("username")
+            .baseUrl(URI.create("http://my-url"))
+            .apiKey("my_super_api_key")
+            .timeout(Duration.ofSeconds(10))
+            .authMode(AuthMode.LEGACY)
+            .build();
+
+        assertEquals("Bearer", authenticator.scheme());
+    }
 }
