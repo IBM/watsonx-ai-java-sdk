@@ -10,7 +10,7 @@ import java.net.http.HttpClient;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.http.interceptors.BearerInterceptor;
+import com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
@@ -22,7 +22,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
  * <ul>
  * <li>{@link RetryInterceptor#ON_TOKEN_EXPIRED} – retry on expired authentication tokens</li>
  * <li>{@link RetryInterceptor#ON_RETRYABLE_STATUS_CODES} – retry on retryable status codes (5xx, etc.)</li>
- * <li>{@link BearerInterceptor} – attach an IAM or custom {@link Authenticator}</li>
+ * <li>{@link AuthenticationInterceptor} – attach an IAM or custom {@link Authenticator}</li>
  * <li>{@link LoggerInterceptor} – optional request/response logging</li>
  * </ul>
  */
@@ -45,7 +45,7 @@ public final class HttpClientFactory {
         builder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
 
         if (nonNull(authenticator)) {
-            builder.interceptor(new BearerInterceptor(authenticator));
+            builder.interceptor(new AuthenticationInterceptor(authenticator));
         }
 
         builder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
@@ -77,7 +77,7 @@ public final class HttpClientFactory {
         builder.interceptor(RetryInterceptor.ON_TOKEN_EXPIRED);
 
         if (nonNull(authenticator)) {
-            builder.interceptor(new BearerInterceptor(authenticator));
+            builder.interceptor(new AuthenticationInterceptor(authenticator));
         }
 
         builder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);

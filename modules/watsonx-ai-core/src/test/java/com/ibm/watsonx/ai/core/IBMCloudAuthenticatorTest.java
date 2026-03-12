@@ -392,4 +392,10 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
             });
         }
     }
+
+    @Test
+    void should_return_the_correct_scheme() {
+        var authenticator = IBMCloudAuthenticator.withKey("api-key");
+        assertEquals("Bearer", authenticator.scheme());
+    }
 }

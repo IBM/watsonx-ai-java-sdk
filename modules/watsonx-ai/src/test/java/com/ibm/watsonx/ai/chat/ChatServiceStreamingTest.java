@@ -62,6 +62,8 @@ import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
@@ -97,6 +99,7 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 @ExtendWith(MockitoExtension.class)
 public class ChatServiceStreamingTest extends AbstractWatsonxTest {
+
 
     @Test
     void should_stream_chat_response_in_chunks_correctly() throws Exception {
@@ -1034,6 +1037,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     }
 
     @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
     void should_validate_chat_service_parameters_and_throw_exceptions() {
 
         var chatHandler = new ChatHandler() {
@@ -2142,6 +2146,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
         when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)

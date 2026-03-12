@@ -19,11 +19,14 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public abstract class AbstractWatsonxTest {
 
     protected static final String ML_API_PATH = "/ml/v1";
@@ -53,6 +56,7 @@ public abstract class AbstractWatsonxTest {
 
     @BeforeEach
     void setUp() {
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
         resetHttpClient();
     }
 

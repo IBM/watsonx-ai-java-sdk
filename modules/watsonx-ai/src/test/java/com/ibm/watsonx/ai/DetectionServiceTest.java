@@ -152,6 +152,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
     void should_detect_pii_and_hap_entities_request() {
 
         when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
         wireMock.stubFor(post("/ml/v1/text/detection?version=%s".formatted(API_VERSION))
             .withRequestBody(equalToJson("""
@@ -269,6 +270,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
             }""";
 
         when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
         wireMock.stubFor(post("/ml/v1/text/detection?version=%s".formatted(API_VERSION))
             .withRequestBody(equalToJson("""

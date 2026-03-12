@@ -483,6 +483,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
 
         when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
         var textGenerationService = TextGenerationService.builder()
             .authenticator(mockAuthenticator)

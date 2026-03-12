@@ -930,6 +930,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         var cosAuthenticator = mock(Authenticator.class);
         when(cosAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("custom-token"));
+        when(cosAuthenticator.scheme()).thenReturn("Bearer");
         when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
         cosServer.resetAll();
 
@@ -991,6 +992,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         var cosAuthenticator = mock(Authenticator.class);
         when(cosAuthenticator.token()).thenReturn("custom-token");
+        when(cosAuthenticator.scheme()).thenReturn("Bearer");
 
         var classificationService = TextClassificationService.builder()
             .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))

@@ -200,6 +200,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void should_build_text_extraction_parameters_and_start_extraction() throws Exception {
 
         when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
         var PARAMETERS = """
             "parameters": {
@@ -2020,6 +2021,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         var cosAuthenticator = mock(Authenticator.class);
         when(cosAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("custom-token"));
+        when(cosAuthenticator.scheme()).thenReturn("Bearer");
+
         cosServer.resetAll();
 
         var textExtractionService = TextExtractionService.builder()
@@ -2083,6 +2086,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         var cosAuthenticator = mock(Authenticator.class);
         when(cosAuthenticator.token()).thenReturn("my-custom-token");
+        when(cosAuthenticator.scheme()).thenReturn("Bearer");
 
         var textExtractionService = TextExtractionService.builder()
             .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))

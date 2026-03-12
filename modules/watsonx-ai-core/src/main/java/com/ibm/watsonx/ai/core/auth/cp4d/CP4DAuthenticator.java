@@ -34,6 +34,9 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * }</pre>
  */
 public class CP4DAuthenticator implements Authenticator {
+    private static final String BEARER_SCHEME = "Bearer";
+    private static final String ZEN_API_SCHEME = "ZenApiKey";
+
     private final URI baseUrl;
     private final String username;
     private final String password;
@@ -96,6 +99,11 @@ public class CP4DAuthenticator implements Authenticator {
             token.getAndSet(identityTokenResponse);
             return identityTokenResponse.accessToken();
         });
+    }
+
+    @Override
+    public String scheme() {
+        return authMode == AuthMode.ZEN_API_KEY ? ZEN_API_SCHEME : BEARER_SCHEME;
     }
 
     /**
