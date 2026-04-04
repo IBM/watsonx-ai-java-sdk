@@ -23,6 +23,7 @@ import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.core.RetryConfig;
+import com.ibm.watsonx.ai.core.exception.AuthenticationTokenExpiredException;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
@@ -51,8 +52,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
             WatsonxException.class,
             ex -> {
                 var e = (WatsonxException) ex;
-                boolean watsonxTokenExpired = e.statusCode() == 401 && e.details().map(detail -> detail.errors().stream()
-                    .anyMatch(err -> err.is(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED))).orElse(false);
+                boolean watsonxTokenExpired = ex instanceof AuthenticationTokenExpiredException;
                 boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(detail -> detail.errors().stream()
                     .anyMatch(err -> err.is(WatsonxError.Code.COS_ACCESS_DENIED))).orElse(false);
                 return watsonxTokenExpired || cosTokenExpired;
@@ -130,7 +130,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
                 var shouldRetry =
                     retryOn.stream().anyMatch(retryOn -> {
-                        if (!retryOn.clazz().equals(e.getClass()))
+                        if (!retryOn.clazz().isInstance(e))
                             return false;
                         return retryOn.predicate()
                             .map(p -> p.test(e))
@@ -169,7 +169,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
                 Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
 
-                var shouldRetry = retryOn.stream().anyMatch(retry -> retry.clazz().equals(cause.getClass()) &&
+                var shouldRetry = retryOn.stream().anyMatch(retry -> retry.clazz().isInstance(cause) &&
                     retry.predicate().map(p -> p.test(cause)).orElse(true)
                 );
 

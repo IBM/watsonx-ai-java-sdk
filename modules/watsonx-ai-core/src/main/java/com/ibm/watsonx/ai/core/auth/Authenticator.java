@@ -34,7 +34,7 @@ public interface Authenticator {
     CompletableFuture<String> asyncToken();
 
     /**
-     * Returns the authentication scheme to be used in the Authorization header.
+     * Returns the authentication scheme.
      */
     String scheme();
 }

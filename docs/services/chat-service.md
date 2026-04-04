@@ -20,7 +20,7 @@ ChatService chatService = ChatService.builder()
     .modelId("ibm/granite-4-h-small")
     .build();
 
-ChatResponse response = chatService.chat("Hello! How are you?");
+ChatResponse response = chatService.chat("Hello!");
 System.out.println(response.toAssistantMessage().content());
 // → Hello! How can I help you today?
 ```
