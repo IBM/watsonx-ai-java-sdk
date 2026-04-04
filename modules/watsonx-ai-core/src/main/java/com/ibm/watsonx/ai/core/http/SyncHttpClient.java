@@ -109,7 +109,7 @@ public final class SyncHttpClient extends BaseHttpClient {
                 .orElseThrow(() -> new WatsonxException(body, statusCode, null));
 
             WatsonxError details = HttpUtils.parseErrorBody(statusCode, body, contentType);
-            throw new WatsonxException(body, statusCode, details);
+            throw HttpUtils.mapWatsonxException(new WatsonxException(body, statusCode, details));
         }
 
         @Override

@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 
@@ -235,5 +236,18 @@ public class HttpUtilsTest {
         assertThrows(RuntimeException.class, () -> {
             HttpUtils.parseErrorBody(500, "test body", "text/plain");
         });
+    }
+
+    @Test
+    void should_throw_original_exception_when_mapping_watsonx_exception_with_no_details_or_empty_errors() {
+        var ex = assertThrows(RuntimeException.class, () -> HttpUtils.mapWatsonxException(new WatsonxException("no_details", 500, null))
+        );
+        assertEquals("no_details", ex.getMessage());
+
+
+        ex = assertThrows(RuntimeException.class,
+            () -> HttpUtils.mapWatsonxException(new WatsonxException("no_details", 500, new WatsonxError(500, "", List.of())))
+        );
+        assertEquals("no_details", ex.getMessage());
     }
 }

@@ -58,7 +58,7 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.VideoContent;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.AuthenticationTokenExpiredException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 @ExtendWith(MockitoExtension.class)
@@ -1667,7 +1667,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             List.of(new WatsonxError.Error("authentication_token_expired", "Failed to authenticate the request due to an expired token", ""));
         WatsonxError detail = new WatsonxError(401, "57ed27e71f8e27dc25f00800a80b9529", errors);
         when(mockAuthenticator.token())
-            .thenThrow(new WatsonxException("Failed to authenticate the request due to an expired token", 401, detail))
+            .thenThrow(new AuthenticationTokenExpiredException("Failed to authenticate the request due to an expired token", 401, detail))
             .thenReturn("my-super-token");
 
         wireMock.stubFor(post("/ml/v1/text/chat?version=" + API_VERSION)

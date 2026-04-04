@@ -23,7 +23,19 @@ import java.util.stream.Stream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import com.ibm.watsonx.ai.core.exception.AuthenticationTokenExpiredException;
+import com.ibm.watsonx.ai.core.exception.AuthorizationRejectedException;
+import com.ibm.watsonx.ai.core.exception.InvalidInputArgumentException;
+import com.ibm.watsonx.ai.core.exception.InvalidRequestEntityException;
+import com.ibm.watsonx.ai.core.exception.JsonTypeErrorException;
+import com.ibm.watsonx.ai.core.exception.JsonValidationErrorException;
+import com.ibm.watsonx.ai.core.exception.ModelNoSupportForFunctionException;
+import com.ibm.watsonx.ai.core.exception.ModelNotSupportedException;
+import com.ibm.watsonx.ai.core.exception.TokenQuotaReachedException;
+import com.ibm.watsonx.ai.core.exception.UserAuthorizationFailedException;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Code;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 
 /**
@@ -136,6 +148,39 @@ public final class HttpUtils {
             return parseXmlError(body);
 
         throw new RuntimeException(body);
+    }
+
+    /**
+     * Maps a generic {@link WatsonxException} to a more specific exception based on the {@link WatsonxError.Code}.
+     *
+     * @param exception the generic {@link WatsonxException} to map
+     * @throws WatsonxException one of the specific exceptions or the original exception if unclassified
+     */
+    public static WatsonxException mapWatsonxException(WatsonxException exception) {
+        var details = exception.details().orElseThrow(() -> exception);
+
+        if (details.errors() == null || details.errors().isEmpty())
+            throw exception;
+
+        try {
+            Code code = Code.valueOf(details.errors().get(0).code().toUpperCase());
+            return switch(code) {
+                case AUTHENTICATION_TOKEN_EXPIRED -> new AuthenticationTokenExpiredException(exception);
+                case AUTHORIZATION_REJECTED -> new AuthorizationRejectedException(exception);
+                case INVALID_INPUT_ARGUMENT -> new InvalidInputArgumentException(exception);
+                case INVALID_REQUEST_ENTITY -> new InvalidRequestEntityException(exception);
+                case JSON_TYPE_ERROR -> new JsonTypeErrorException(exception);
+                case JSON_VALIDATION_ERROR -> new JsonValidationErrorException(exception);
+                case MODEL_NOT_SUPPORTED -> new ModelNotSupportedException(exception);
+                case MODEL_NO_SUPPORT_FOR_FUNCTION -> new ModelNoSupportForFunctionException(exception);
+                case TOKEN_QUOTA_REACHED -> new TokenQuotaReachedException(exception);
+                case USER_AUTHORIZATION_FAILED -> new UserAuthorizationFailedException(exception);
+                case COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST, TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST,
+                    UNCLASSIFIED -> throw exception;
+            };
+        } catch (Exception e) {
+            return exception;
+        }
     }
 
     /**
