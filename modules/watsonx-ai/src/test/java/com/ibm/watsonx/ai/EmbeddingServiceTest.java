@@ -4,13 +4,18 @@
  */
 package com.ibm.watsonx.ai;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -282,5 +287,104 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
             embeddingService.embedding(inputs, parameters);
             JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
         });
+    }
+
+    @Test
+    void should_handle_parallel_requests_for_large_input_batches() throws Exception {
+
+        final String RESPONSE_BATCH_1 = """
+            {
+              "model_id": "%s",
+              "results": [
+                {
+                  "embedding": [-0.001, -0.002, -0.003]
+                }
+              ],
+              "created_at": "2024-02-21T17:32:28Z",
+              "input_token_count": 1000
+            }""".formatted(MODEL_ID);
+
+        final String RESPONSE_BATCH_2 = """
+            {
+              "model_id": "%s",
+              "results": [
+                {
+                  "embedding": [-0.004, -0.005, -0.006]
+                }
+              ],
+              "created_at": "2024-02-21T17:32:29Z",
+              "input_token_count": 1000
+            }""".formatted(MODEL_ID);
+
+        final String RESPONSE_BATCH_3 = """
+            {
+              "model_id": "%s",
+              "results": [
+                {
+                  "embedding": [-0.007, -0.008, -0.009]
+                }
+              ],
+              "created_at": "2024-02-21T17:32:30Z",
+              "input_token_count": 500
+            }""".formatted(MODEL_ID);
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        String BASE_URL = "http://localhost:%s".formatted(wireMock.getPort());
+        String path = "/ml/v1/text/embeddings?version=%s".formatted(API_VERSION);
+
+        wireMock.stubFor(post(path)
+            .withRequestBody(containing("\"Input text 0\""))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE_BATCH_1)));
+
+        wireMock.stubFor(post(path)
+            .withRequestBody(containing("\"Input text 1000\""))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE_BATCH_2)));
+
+        wireMock.stubFor(post(path)
+            .withRequestBody(containing("\"Input text 2000\""))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE_BATCH_3)));
+
+        var embeddingService = EmbeddingService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId(MODEL_ID)
+            .projectId(PROJECT_ID)
+            .baseUrl(BASE_URL)
+            .build();
+
+        List<String> inputs = new ArrayList<>();
+        for (int i = 0; i < 2500; i++)
+            inputs.add("Input text " + i);
+
+        var response = embeddingService.embedding(inputs);
+
+        assertEquals(MODEL_ID, response.modelId());
+        assertEquals(3, response.results().size());
+        assertEquals(2500, response.inputTokenCount());
+        assertNotNull(response.createdAt());
+
+        assertEquals(3, response.results().get(0).embedding().size());
+        assertEquals(-0.001f, response.results().get(0).embedding().get(0));
+        assertEquals(-0.002f, response.results().get(0).embedding().get(1));
+        assertEquals(-0.003f, response.results().get(0).embedding().get(2));
+
+        assertEquals(3, response.results().get(1).embedding().size());
+        assertEquals(-0.004f, response.results().get(1).embedding().get(0));
+        assertEquals(-0.005f, response.results().get(1).embedding().get(1));
+        assertEquals(-0.006f, response.results().get(1).embedding().get(2));
+
+        assertEquals(3, response.results().get(2).embedding().size());
+        assertEquals(-0.007f, response.results().get(2).embedding().get(0));
+        assertEquals(-0.008f, response.results().get(2).embedding().get(1));
+        assertEquals(-0.009f, response.results().get(2).embedding().get(2));
     }
 }

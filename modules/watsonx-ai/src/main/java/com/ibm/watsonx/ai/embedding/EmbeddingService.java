@@ -7,12 +7,16 @@ package com.ibm.watsonx.ai.embedding;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.concurrent.CompletableFuture.allOf;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.Crypto;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 
 /**
@@ -89,33 +93,37 @@ public class EmbeddingService extends ModelService {
         requireNonNull(inputs, "Inputs cannot be null");
 
         ProjectSpace projectSpace = resolveProjectSpace(parameters);
-        String projectId = projectSpace.projectId();
-        String spaceId = projectSpace.spaceId();
-        String modelId = this.modelId;
-        String transactionId = null;
-        Crypto crypto = null;
-        Parameters requestParameters = null;
+        final String projectId = projectSpace.projectId();
+        final String spaceId = projectSpace.spaceId();
+        final String modelId = nonNull(parameters) ? requireNonNullElse(parameters.modelId(), this.modelId) : this.modelId;
+        final Crypto crypto = nonNull(parameters) && nonNull(parameters.crypto()) ? new Crypto(parameters.crypto()) : null;
+        final String transactionId = nonNull(parameters) ? parameters.transactionId() : null;
+        final Parameters requestParameters = nonNull(parameters) ? parameters.toEmbeddingRequestParameters() : null;
 
-        if (nonNull(parameters)) {
-            modelId = requireNonNullElse(parameters.modelId(), this.modelId);
-            transactionId = parameters.transactionId();
-            requestParameters = parameters.toEmbeddingRequestParameters();
-            crypto = nonNull(parameters.crypto()) ? new Crypto(parameters.crypto()) : null;
+        if (inputs.size() <= MAX_SIZE) {
+            var embeddingRequest = new EmbeddingRequest(modelId, spaceId, projectId, inputs, requestParameters, crypto);
+            return client.embedding(transactionId, embeddingRequest);
         }
 
+        // Watsonx.ai embedding API allows a maximum of 1000 elements per request.
+        // Process multiple batches in parallel.
+        List<CompletableFuture<EmbeddingResponse>> futures = new ArrayList<>();
+
+        for (int fromIndex = 0; fromIndex < inputs.size(); fromIndex += MAX_SIZE) {
+            var toIndex = Math.min(fromIndex + MAX_SIZE, inputs.size());
+            var subList = inputs.subList(fromIndex, toIndex);
+            var embeddingRequest = new EmbeddingRequest(modelId, spaceId, projectId, subList, requestParameters, crypto);
+            futures.add(supplyAsync(() -> client.embedding(transactionId, embeddingRequest), ExecutorProvider.callbackExecutor()));
+        }
+
+        allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        // Aggregate results from all completed futures
         int inputTokenCount = 0;
         String createdAt = null;
         List<EmbeddingResponse.Result> results = new ArrayList<>();
-
-        // Watsonx.ai embedding API allows a maximum of 1000 elements per request.
-        for (int fromIndex = 0; fromIndex < inputs.size(); fromIndex += MAX_SIZE) {
-            int toIndex = Math.min(fromIndex + MAX_SIZE, inputs.size());
-            List<String> subList = inputs.subList(fromIndex, toIndex);
-
-            var embeddingRequest =
-                new EmbeddingRequest(modelId, spaceId, projectId, subList, requestParameters, crypto);
-
-            var response = client.embedding(transactionId, embeddingRequest);
+        for (var future : futures) {
+            var response = future.join();
             results.addAll(response.results());
             inputTokenCount += response.inputTokenCount();
             createdAt = response.createdAt();
