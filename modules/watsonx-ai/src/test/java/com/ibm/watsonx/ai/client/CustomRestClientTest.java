@@ -8,14 +8,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.client.impl.CustomBatchRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomCP4DIAMRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomCP4DLegacyRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomCP4DZenRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomChatRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient;
-import com.ibm.watsonx.ai.client.impl.CustomDetectionRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomEmbeddingRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomFileRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomFoundationModelRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomRerankRestClient;
@@ -30,8 +32,8 @@ import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
-import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
+import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
@@ -317,19 +319,44 @@ public class CustomRestClientTest {
     }
 
     @Test
-    // com.ibm.watsonx.ai.detection.DetectionRestClient$DetectionRestClientBuilderFactory
-    public void should_use_custom_rest_client_when_building_detection_service() throws Exception {
+    // com.ibm.watsonx.ai.file.FileRestClient$FileRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_file_service() throws Exception {
 
-        DetectionService detectionService = DetectionService.builder()
+        FileService fileService = FileService.builder()
             .apiKey("test")
             .baseUrl("http://localhost")
             .projectId("project-id")
             .build();
 
-        Class<DetectionService> clazz = DetectionService.class;
+        Class<FileService> clazz = FileService.class;
         var clientField = clazz.getDeclaredField("client");
         clientField.setAccessible(true);
-        var client = clientField.get(detectionService);
-        assertTrue(client instanceof CustomDetectionRestClient);
+        var client = clientField.get(fileService);
+        assertTrue(client instanceof CustomFileRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.batch.BatchRestClient$BatchRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_batch_service() throws Exception {
+
+        FileService fileService = FileService.builder()
+            .apiKey("test")
+            .baseUrl("http://localhost")
+            .projectId("project-id")
+            .build();
+
+        BatchService batchService = BatchService.builder()
+            .apiKey("test")
+            .baseUrl("http://localhost")
+            .projectId("project-id")
+            .endpoint("/v1/chat/completions")
+            .fileService(fileService)
+            .build();
+
+        Class<BatchService> clazz = BatchService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(batchService);
+        assertTrue(client instanceof CustomBatchRestClient);
     }
 }

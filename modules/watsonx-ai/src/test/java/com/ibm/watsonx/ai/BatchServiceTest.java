@@ -1694,6 +1694,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
                 .toList();
 
         var results = batchService.submitChatRequestsAndFetch(chatRequests);
+        assertDoesNotThrow(() -> Thread.sleep(200)); // Wait for async files deletion to complete
 
         assertEquals(3, results.size());
         assertEquals("0", results.get(0).customId());
