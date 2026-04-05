@@ -689,6 +689,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_classification_timeout_exceeded() throws Exception {
 
+        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
 
         watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
@@ -725,9 +726,20 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(JOB.formatted("completed"))
             ));
 
+        watsonxServer
+            .stubFor(delete("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+                .withHeader("Authorization", equalTo("Bearer token"))
+                .willReturn(aResponse()
+                    .withStatus(204)
+                ));
+
+        cosServer.stubFor(delete("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200)));
 
         TextClassificationParameters parameters = TextClassificationParameters.builder()
             .timeout(Duration.ofMillis(100))
+            .removeUploadedFile(true)
             .build();
 
         var ex = assertThrows(

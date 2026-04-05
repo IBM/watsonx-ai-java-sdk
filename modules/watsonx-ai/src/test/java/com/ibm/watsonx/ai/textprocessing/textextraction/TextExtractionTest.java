@@ -1558,8 +1558,9 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_extraction_timeout_exceeded() {
 
-        when(mockAuthenticator.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .inScenario("long_response")
@@ -1602,8 +1603,20 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .willReturn(aResponse().withStatus(200).withBody("Hello")));
 
+        watsonxServer
+            .stubFor(delete("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+                .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                .willReturn(aResponse()
+                    .withStatus(204)
+                ));
+
+        cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
         TextExtractionParameters options = TextExtractionParameters.builder()
             .timeout(Duration.ofMillis(100))
+            .removeUploadedFile(true)
             .build();
 
         var ex = assertThrows(

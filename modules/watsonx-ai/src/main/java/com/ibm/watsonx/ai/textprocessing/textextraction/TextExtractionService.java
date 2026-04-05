@@ -608,13 +608,36 @@ public class TextExtractionService extends ProjectService {
         Status status;
         long sleepTime = 100;
         LocalTime endTime = LocalTime.now().plus(timeout);
+        String processId = null;
 
         do {
 
-            if (LocalTime.now().isAfter(endTime))
+            if (LocalTime.now().isAfter(endTime)) {
+
+                if (nonNull(processId)) {
+                    deleteRequest(
+                        processId,
+                        TextExtractionDeleteParameters.builder()
+                            .projectId(projectId)
+                            .spaceId(spaceId)
+                            .transactionId(transactionId)
+                            .build()
+                    );
+                }
+
+                if (removeUploadedFile) {
+                    try {
+                        var encodedFileName = new URI(null, null, path, null).toASCIIString();
+                        client.asyncDeleteFile(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
+                    } catch (URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
                 throw new TextExtractionException("timeout",
                     "Execution to extract %s file took longer than the timeout set by %s milliseconds"
                         .formatted(path, timeout.toMillis()));
+            }
 
             try {
 
@@ -626,7 +649,7 @@ public class TextExtractionService extends ProjectService {
                 throw new TextExtractionException("interrupted", e.getMessage());
             }
 
-            var processId = response.metadata().id();
+            processId = response.metadata().id();
             response = fetchExtractionRequest(requestId, processId, TextExtractionFetchParameters.builder()
                 .projectId(projectId)
                 .spaceId(spaceId)
