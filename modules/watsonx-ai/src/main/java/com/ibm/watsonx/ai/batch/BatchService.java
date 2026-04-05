@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
@@ -521,7 +520,6 @@ public class BatchService extends ProjectService {
             futures.add(runAsync(() -> fileService.delete(request), ExecutorProvider.callbackExecutor()));
         }
 
-
         if (nonNull(outputFileId)) {
             var request = FileDeleteRequest.builder()
                 .fileId(outputFileId)
@@ -531,11 +529,7 @@ public class BatchService extends ProjectService {
             futures.add(runAsync(() -> fileService.delete(request), ExecutorProvider.callbackExecutor()));
         }
 
-        try {
-            allOf(futures.toArray(new CompletableFuture[0])).get(timeout.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
     /**
