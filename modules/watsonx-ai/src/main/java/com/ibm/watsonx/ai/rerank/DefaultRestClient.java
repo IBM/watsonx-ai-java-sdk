@@ -31,7 +31,7 @@ final class DefaultRestClient extends RerankRestClient {
     }
 
     @Override
-    public RerankResponse rerank(String transactionId, RerankRequest request) {
+    public RerankResponse rerank(String transactionId, RerankPayload request) {
 
         var httpRequest = HttpRequest
             .newBuilder(URI.create(baseUrl + "/ml/v1/text/rerank?version=%s".formatted(version)))

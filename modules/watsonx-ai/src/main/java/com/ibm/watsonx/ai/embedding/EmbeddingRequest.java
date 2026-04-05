@@ -4,8 +4,6 @@
  */
 package com.ibm.watsonx.ai.embedding;
 
-import static java.util.Objects.requireNonNullElse;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,8 +24,8 @@ import java.util.List;
  * }</pre>
  */
 public final class EmbeddingRequest {
-    private List<String> inputs;
-    private EmbeddingParameters parameters;
+    private final List<String> inputs;
+    private final EmbeddingParameters parameters;
 
     private EmbeddingRequest(Builder builder) {
         inputs = builder.inputs;
@@ -94,8 +92,7 @@ public final class EmbeddingRequest {
          * @param inputs the list of input texts to embed
          */
         public Builder inputs(List<String> inputs) {
-            this.inputs = requireNonNullElse(this.inputs, new ArrayList<>());
-            this.inputs.addAll(inputs);
+            this.inputs = inputs;
             return this;
         }
 

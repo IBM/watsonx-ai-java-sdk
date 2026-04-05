@@ -4,7 +4,7 @@
  */
 package com.ibm.watsonx.ai.client.impl;
 
-import com.ibm.watsonx.ai.rerank.RerankRequest;
+import com.ibm.watsonx.ai.rerank.RerankPayload;
 import com.ibm.watsonx.ai.rerank.RerankResponse;
 import com.ibm.watsonx.ai.rerank.RerankRestClient;
 
@@ -15,7 +15,7 @@ public class CustomRerankRestClient extends RerankRestClient {
     }
 
     @Override
-    public RerankResponse rerank(String transactionId, RerankRequest request) {
+    public RerankResponse rerank(String transactionId, RerankPayload request) {
         throw new UnsupportedOperationException("Unimplemented method 'rerank'");
     }
 

@@ -11,8 +11,8 @@ import java.util.List;
 import com.ibm.watsonx.ai.Crypto;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
-import com.ibm.watsonx.ai.rerank.RerankRequest.Parameters;
-import com.ibm.watsonx.ai.rerank.RerankRequest.RerankInput;
+import com.ibm.watsonx.ai.rerank.RerankPayload.Parameters;
+import com.ibm.watsonx.ai.rerank.RerankPayload.RerankInput;
 
 
 /**
@@ -79,10 +79,27 @@ public class RerankService extends ModelService {
      * @return The {@link RerankResponse} containing the reranked results.
      */
     public RerankResponse rerank(String query, List<String> inputs, RerankParameters parameters) {
+        return rerank(
+            RerankRequest.builder()
+                .query(query)
+                .inputs(inputs)
+                .parameters(parameters)
+                .build());
+    }
 
-        requireNonNull(query, "Query cannot be null");
-        requireNonNull(inputs, "Inputs cannot be null");
+    /**
+     * Performs a reranking operation using the specified request.
+     *
+     * @param request The rerank request.
+     * @return The {@link RerankResponse} containing the reranked results.
+     */
+    public RerankResponse rerank(RerankRequest request) {
 
+        requireNonNull(request, "Request cannot be null");
+        requireNonNull(request.query(), "Query cannot be null");
+        requireNonNull(request.inputs(), "Inputs cannot be null");
+
+        RerankParameters parameters = request.parameters();
         ProjectSpace projectSpace = resolveProjectSpace(parameters);
         String projectId = projectSpace.projectId();
         String spaceId = projectSpace.spaceId();
@@ -98,10 +115,10 @@ public class RerankService extends ModelService {
             crypto = nonNull(parameters.crypto()) ? new Crypto(parameters.crypto()) : null;
         }
 
-        var rerankRequest = new RerankRequest(
+        var rerankRequest = new RerankPayload(
             modelId,
-            inputs.stream().map(RerankInput::new).toList(),
-            query,
+            request.inputs().stream().map(RerankInput::new).toList(),
+            request.query(),
             spaceId,
             projectId,
             requestParameters,

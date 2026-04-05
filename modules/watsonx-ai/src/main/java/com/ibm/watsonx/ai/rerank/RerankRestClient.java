@@ -24,7 +24,7 @@ public abstract class RerankRestClient extends WatsonxRestClient {
      * @param request the rerank request payload
      * @return A {@link RerankResponse} containing the reranked results.
      */
-    public abstract RerankResponse rerank(String transactionId, RerankRequest request);
+    public abstract RerankResponse rerank(String transactionId, RerankPayload request);
 
     /**
      * Creates a new {@link Builder} using the first available {@link RerankRestClientBuilderFactory} discovered via {@link ServiceLoader}.
