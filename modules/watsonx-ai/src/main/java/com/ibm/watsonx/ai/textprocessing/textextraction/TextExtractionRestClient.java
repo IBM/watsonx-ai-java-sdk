@@ -47,7 +47,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @param request the {@link DeleteFileRequest} containing bucket and file information.
      * @return a {@link CompletableFuture} that resolves to {@code true} if the file was successfully deleted, {@code false} otherwise.
      */
-    public abstract CompletableFuture<Boolean> asyncDeleteFile(DeleteFileRequest request);
+    public abstract CompletableFuture<Boolean> deleteFileAsync(DeleteFileRequest request);
 
     /**
      * Reads the content of a file from the specified COS bucket.

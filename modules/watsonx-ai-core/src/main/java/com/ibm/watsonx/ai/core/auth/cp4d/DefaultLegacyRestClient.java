@@ -47,7 +47,7 @@ class DefaultLegacyRestClient extends CP4DRestClient {
     }
 
     @Override
-    public CompletableFuture<TokenResponse> asyncToken(TokenRequest request) {
+    public CompletableFuture<TokenResponse> tokenAsync(TokenRequest request) {
         return asyncHttpClient
             .send(createTokenRequest(request), BodyHandlers.ofString())
             .thenApplyAsync(this::parseTokenResponse, ExecutorProvider.cpuExecutor())

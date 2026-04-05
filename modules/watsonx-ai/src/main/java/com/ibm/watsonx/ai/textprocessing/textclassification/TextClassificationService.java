@@ -525,7 +525,7 @@ public class TextClassificationService extends ProjectService {
                 if (removeUploadedFile) {
                     try {
                         var encodedFileName = new URI(null, null, path, null).toASCIIString();
-                        client.asyncDeleteFile(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
+                        client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
                     } catch (URISyntaxException e) {
                         throw new RuntimeException(e);
                     }
@@ -598,7 +598,7 @@ public class TextClassificationService extends ProjectService {
                 try {
                     var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
                     var request = DeleteFileRequest.of(requestId, documentBucketName, encodedFileName);
-                    client.asyncDeleteFile(request);
+                    client.deleteFileAsync(request);
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
                 }

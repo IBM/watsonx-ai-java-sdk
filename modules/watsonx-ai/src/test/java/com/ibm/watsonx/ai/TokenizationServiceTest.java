@@ -40,7 +40,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     @BeforeEach
     void setUp() {
         when(mockAuthenticator.token()).thenReturn("my-super-token");
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
     }
 
     @Test
@@ -111,7 +111,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
                 .build();
 
             try {
-                var response = tokenizationService.asyncTokenize("Write a tagline for an alumni association: Together we").get();
+                var response = tokenizationService.tokenizeAsync("Write a tagline for an alumni association: Together we").get();
                 JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
                 JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
             } catch (Exception e) {
@@ -330,7 +330,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
                     .build();
 
                 try {
-                    tokenizationService.asyncTokenize("input")
+                    tokenizationService.tokenizeAsync("input")
                         .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
                         .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
                         .get(3, TimeUnit.SECONDS);

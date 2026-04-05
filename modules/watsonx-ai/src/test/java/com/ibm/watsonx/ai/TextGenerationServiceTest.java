@@ -482,7 +482,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                         """)));
 
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
         when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
         var textGenerationService = TextGenerationService.builder()
@@ -576,7 +576,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
         List<String> threadNames = new ArrayList<>();
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-token"));
 
         Executor ioExecutor = Executors.newSingleThreadExecutor(r -> new Thread(() -> {
             threadNames.add(Thread.currentThread().getName());

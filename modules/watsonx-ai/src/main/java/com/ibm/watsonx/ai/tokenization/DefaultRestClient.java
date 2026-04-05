@@ -60,7 +60,7 @@ final class DefaultRestClient extends TokenizationRestClient {
     }
 
     @Override
-    public CompletableFuture<TokenizationResponse> asyncTokenize(String transactionId, TokenizationRequest request) {
+    public CompletableFuture<TokenizationResponse> tokenizeAsync(String transactionId, TokenizationRequest request) {
 
         var httpRequest = HttpRequest
             .newBuilder(URI.create(baseUrl + "/ml/v1/text/tokenization?version=%s".formatted(version)))

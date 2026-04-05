@@ -140,7 +140,7 @@ final class DefaultRestClient extends TextClassificationRestClient {
     @Override
     public boolean deleteFile(DeleteFileRequest request) {
         try {
-            return asyncDeleteFile(request).get();
+            return deleteFileAsync(request).get();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
@@ -152,7 +152,7 @@ final class DefaultRestClient extends TextClassificationRestClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> asyncDeleteFile(DeleteFileRequest request) {
+    public CompletableFuture<Boolean> deleteFileAsync(DeleteFileRequest request) {
         try {
 
             var fileName = request.fileName();

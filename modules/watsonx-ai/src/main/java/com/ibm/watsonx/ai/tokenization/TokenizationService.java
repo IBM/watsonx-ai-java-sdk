@@ -67,8 +67,8 @@ public class TokenizationService extends ModelService {
      * @param input The input string to tokenize
      * @return The tokenization response.
      */
-    public CompletableFuture<TokenizationResponse> asyncTokenize(String input) {
-        return asyncTokenize(input, null);
+    public CompletableFuture<TokenizationResponse> tokenizeAsync(String input) {
+        return tokenizeAsync(input, null);
     }
 
     /**
@@ -91,10 +91,10 @@ public class TokenizationService extends ModelService {
      * @param parameters Tokenization parameters.
      * @return The tokenization response.
      */
-    public CompletableFuture<TokenizationResponse> asyncTokenize(String input, TokenizationParameters parameters) {
+    public CompletableFuture<TokenizationResponse> tokenizeAsync(String input, TokenizationParameters parameters) {
         var tokenizationRequest = buildTokenizationRequest(input, parameters);
         var transactionId = nonNull(parameters) ? parameters.transactionId() : null;
-        return client.asyncTokenize(transactionId, tokenizationRequest);
+        return client.tokenizeAsync(transactionId, tokenizationRequest);
     }
 
     /**

@@ -596,7 +596,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     @Test
     void should_remove_uploaded_file_after_classification() throws Exception {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
         mockServers(true);
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
 
@@ -689,7 +689,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_classification_timeout_exceeded() throws Exception {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
 
         watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
@@ -756,7 +756,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_classification_job_fails() throws Exception {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
         var JOB_ERROR = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job_error.json").toURI()));
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
@@ -903,7 +903,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     void should_delete_file() throws Exception {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
         cosServer.resetAll();
 
         cosServer.stubFor(delete("/%s/%s".formatted("my-bucket", "test.pdf"))
@@ -941,9 +941,9 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     void should_delete_file_with_custom_api_key() throws Exception {
 
         var cosAuthenticator = mock(Authenticator.class);
-        when(cosAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("custom-token"));
+        when(cosAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("custom-token"));
         when(cosAuthenticator.scheme()).thenReturn("Bearer");
-        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
         cosServer.resetAll();
 
         var classificationService = TextClassificationService.builder()

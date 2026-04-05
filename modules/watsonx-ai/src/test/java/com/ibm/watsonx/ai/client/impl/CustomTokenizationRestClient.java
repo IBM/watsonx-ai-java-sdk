@@ -21,8 +21,8 @@ public class CustomTokenizationRestClient extends TokenizationRestClient {
     }
 
     @Override
-    public CompletableFuture<TokenizationResponse> asyncTokenize(String transactionId, TokenizationRequest request) {
-        throw new UnsupportedOperationException("Unimplemented method 'asyncTokenize'");
+    public CompletableFuture<TokenizationResponse> tokenizeAsync(String transactionId, TokenizationRequest request) {
+        throw new UnsupportedOperationException("Unimplemented method 'tokenizeAsync'");
     }
 
     public static final class CustomTokenizationRestClientBuilderFactory implements TokenizationRestClientBuilderFactory {

@@ -35,7 +35,7 @@ public abstract class TokenizationRestClient extends WatsonxRestClient {
      * @return A {@link CompletableFuture} resolving to a {@link TokenizationResponse} containing the tokenized representation of the input text and
      *         related metadata.
      */
-    public abstract CompletableFuture<TokenizationResponse> asyncTokenize(String transactionId, TokenizationRequest request);
+    public abstract CompletableFuture<TokenizationResponse> tokenizeAsync(String transactionId, TokenizationRequest request);
 
     /**
      * Creates a new {@link Builder} using the first available {@link TokenizationRestClientBuilderFactory} discovered via {@link ServiceLoader}.

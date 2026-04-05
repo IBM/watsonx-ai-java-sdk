@@ -72,14 +72,14 @@ public class IBMCloudAuthenticator implements Authenticator {
     }
 
     @Override
-    public CompletableFuture<String> asyncToken() {
+    public CompletableFuture<String> tokenAsync() {
 
         TokenResponse currentToken = token.get();
 
         if (!isExpired(currentToken))
             return completedFuture(currentToken.accessToken());
 
-        return client.asyncToken(apiKey, grantType).thenApply(identityTokenResponse -> {
+        return client.tokenAsync(apiKey, grantType).thenApply(identityTokenResponse -> {
             token.getAndSet(identityTokenResponse);
             return identityTokenResponse.accessToken();
         });

@@ -56,7 +56,7 @@ public class TokenizationServiceIT {
     @Test
     void should_return_tokens_asynchronously_when_text_is_provided() throws Exception {
 
-        var response = tokenizationService.asyncTokenize(
+        var response = tokenizationService.tokenizeAsync(
             "Tokenize this!",
             TokenizationParameters.builder()
                 .returnTokens(true)

@@ -40,7 +40,7 @@ public abstract class CP4DRestClient {
      *
      * @return a {@link CompletableFuture} that contains the token and related metadata
      */
-    public abstract CompletableFuture<TokenResponse> asyncToken(TokenRequest request);
+    public abstract CompletableFuture<TokenResponse> tokenAsync(TokenRequest request);
 
     /**
      * Creates a new {@link Builder} by loading the first available {@code CP4D*RestClientBuilderFactory} discovered via {@link ServiceLoader},

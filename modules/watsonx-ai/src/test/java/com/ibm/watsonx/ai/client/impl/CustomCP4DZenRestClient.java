@@ -21,8 +21,8 @@ public class CustomCP4DZenRestClient extends CP4DRestClient {
     }
 
     @Override
-    public CompletableFuture<TokenResponse> asyncToken(TokenRequest request) {
-        throw new UnsupportedOperationException("Unimplemented method 'asyncToken'");
+    public CompletableFuture<TokenResponse> tokenAsync(TokenRequest request) {
+        throw new UnsupportedOperationException("Unimplemented method 'tokenAsync'");
     }
 
     public static final class CustomCP4DZenRestClientBuilderFactory implements CP4DRestClient.CP4DZenRestClientBuilderFactory {
