@@ -80,7 +80,7 @@ public class ChatServiceIT {
                 .baseUrl(URL)
                 .apiKey(API_KEY)
                 .projectId(PROJECT_ID)
-                .modelId("ibm/granite-3-3-8b-instruct")
+                .modelId("ibm/granite-4-h-small")
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -120,7 +120,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("ibm/granite-3-3-8b-instruct")
+                .modelId("ibm/granite-4-h-small")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -362,7 +362,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("ibm/granite-4-h-small")
+                .modelId("mistralai/mistral-medium-2505")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -540,7 +540,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("ibm/granite-4-h-small")
+                .modelId("mistralai/mistral-medium-2505")
                 .apiKey(API_KEY)
                 .logRequests(true)
                 .logResponses(true)
@@ -1497,7 +1497,7 @@ public class ChatServiceIT {
                     "get_current_time",
                     "Get the current time",
                     JsonSchema.object()
-                        .property("name", JsonSchema.string("Name of the country"))
+                        .property("country", JsonSchema.string("Name of the country"))
                         .required("country")
                 ));
 
