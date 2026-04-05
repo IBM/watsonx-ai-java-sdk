@@ -8,8 +8,8 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
@@ -208,7 +208,7 @@ public final class ChatRequest {
          */
         public Builder messages(List<? extends ChatMessage> messages) {
             if (nonNull(messages))
-                this.messages = new LinkedList<>(messages);
+                this.messages = new ArrayList<>(messages);
             return this;
         }
 
@@ -236,7 +236,7 @@ public final class ChatRequest {
             if (isNull(messages) || messages.isEmpty())
                 return this;
 
-            this.messages = requireNonNullElse(this.messages, new LinkedList<>());
+            this.messages = requireNonNullElse(this.messages, new ArrayList<>());
             this.messages.addAll(messages);
             return this;
         }

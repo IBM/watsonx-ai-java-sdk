@@ -8,7 +8,6 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.CompletableFuture.allOf;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,8 +15,6 @@ import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.Crypto;
 import com.ibm.watsonx.ai.WatsonxService.ModelService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
-import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
 
 /**
  * Service class to interact with IBM watsonx.ai Text Embeddings APIs.
@@ -89,9 +86,27 @@ public class EmbeddingService extends ModelService {
      * @return An EmbeddingResponse object containing the embedding results.
      */
     public EmbeddingResponse embedding(List<String> inputs, EmbeddingParameters parameters) {
+        return embedding(
+            EmbeddingRequest.builder()
+                .inputs(inputs)
+                .parameters(parameters)
+                .build()
+        );
+    }
 
-        requireNonNull(inputs, "Inputs cannot be null");
+    /**
+     * Embeds the provided request into a vector space and returns the embedding results.
+     *
+     * @param request The request to be embedded.
+     * @return An EmbeddingResponse object containing the embedding results.
+     */
+    public EmbeddingResponse embedding(EmbeddingRequest request) {
 
+        requireNonNull(request, "Request cannot be null");
+        requireNonNull(request.inputs(), "Inputs cannot be null");
+
+        EmbeddingParameters parameters = request.parameters();
+        List<String> inputs = request.inputs();
         ProjectSpace projectSpace = resolveProjectSpace(parameters);
         final String projectId = projectSpace.projectId();
         final String spaceId = projectSpace.spaceId();
@@ -101,7 +116,7 @@ public class EmbeddingService extends ModelService {
         final Parameters requestParameters = nonNull(parameters) ? parameters.toEmbeddingRequestParameters() : null;
 
         if (inputs.size() <= MAX_SIZE) {
-            var embeddingRequest = new EmbeddingRequest(modelId, spaceId, projectId, inputs, requestParameters, crypto);
+            var embeddingRequest = new EmbeddingPayload(modelId, spaceId, projectId, inputs, requestParameters, crypto);
             return client.embedding(transactionId, embeddingRequest);
         }
 
@@ -112,8 +127,8 @@ public class EmbeddingService extends ModelService {
         for (int fromIndex = 0; fromIndex < inputs.size(); fromIndex += MAX_SIZE) {
             var toIndex = Math.min(fromIndex + MAX_SIZE, inputs.size());
             var subList = inputs.subList(fromIndex, toIndex);
-            var embeddingRequest = new EmbeddingRequest(modelId, spaceId, projectId, subList, requestParameters, crypto);
-            futures.add(supplyAsync(() -> client.embedding(transactionId, embeddingRequest), ExecutorProvider.callbackExecutor()));
+            var embeddingRequest = new EmbeddingPayload(modelId, spaceId, projectId, subList, requestParameters, crypto);
+            futures.add(client.embeddingAsync(transactionId, embeddingRequest));
         }
 
         allOf(futures.toArray(new CompletableFuture[0])).join();
