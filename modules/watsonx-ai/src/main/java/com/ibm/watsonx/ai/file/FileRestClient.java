@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.file;
 
 import java.util.ServiceLoader;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
 
@@ -48,6 +49,14 @@ public abstract class FileRestClient extends WatsonxRestClient {
      * @return a {@link FileDeleteResponse} confirming the deletion.
      */
     public abstract FileDeleteResponse delete(FileDeleteRequest fileDeleteRequest);
+
+    /**
+     * Deletes an uploaded file by its identifier.
+     *
+     * @param fileDeleteRequest the {@link FileDeleteRequest} object.
+     * @return a {@link FileDeleteResponse} confirming the deletion.
+     */
+    public abstract CompletableFuture<FileDeleteResponse> deleteAsync(FileDeleteRequest fileDeleteRequest);
 
     /**
      * Creates a new {@link Builder} using the first available {@link FileRestClientBuilderFactory} discovered via {@link ServiceLoader}.

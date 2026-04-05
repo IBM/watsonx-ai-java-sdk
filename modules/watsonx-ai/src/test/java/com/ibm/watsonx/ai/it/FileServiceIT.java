@@ -40,7 +40,7 @@ public class FileServiceIT {
         .build();
 
     @Test
-    void should_upload_files() throws Exception {
+    void should_upload_fetch_and_delete_files() throws Exception {
 
         var path = Path.of(ClassLoader.getSystemResource("file_to_upload.jsonl").toURI());
         FileData fileData = fileService.upload(path);
@@ -63,10 +63,7 @@ public class FileServiceIT {
         assertEquals("test.txt", fileData.filename());
         assertEquals("batch", fileData.purpose());
         assertEquals(Files.readString(path), fileService.retrieve(fileData.id()));
-    }
 
-    @Test
-    void should_list_files() throws Exception {
         var request = FileListRequest.builder()
             .limit(2)
             .order(Order.DESC)
@@ -80,10 +77,7 @@ public class FileServiceIT {
         assertNotNull(fileListResponse.firstId());
         assertNotNull(fileListResponse.lastId());
         assertNotNull(fileListResponse.hasMore());
-    }
 
-    @Test
-    void should_delete_files() throws Exception {
         var files = fileService.list();
         for (var file : files.data())
             assertTrue(fileService.delete(file.id()).deleted());

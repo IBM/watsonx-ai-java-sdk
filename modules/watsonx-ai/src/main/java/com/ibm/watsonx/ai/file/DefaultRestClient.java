@@ -14,10 +14,15 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
+import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.MultipartBody;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
  * Default implementation of the {@link FileRestClient} abstract class.
@@ -25,11 +30,13 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 final class DefaultRestClient extends FileRestClient {
 
     private final SyncHttpClient syncHttpClient;
+    private final AsyncHttpClient asyncHttpClient;
 
     DefaultRestClient(Builder builder) {
         super(builder);
         requireNonNull(authenticator, "authenticator is mandatory");
         syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
+        asyncHttpClient = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
     }
 
     @Override
@@ -160,6 +167,28 @@ final class DefaultRestClient extends FileRestClient {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public CompletableFuture<FileDeleteResponse> deleteAsync(FileDeleteRequest request) {
+
+        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/files/%s?version=%s".formatted(request.fileId(), version)))
+            .DELETE()
+            .timeout(timeout)
+            .header("Accept", "application/json");
+
+        if (nonNull(request.projectId()))
+            httpRequest.header("X-IBM-Project-ID", request.projectId());
+
+        if (nonNull(request.spaceId()))
+            httpRequest.header("X-IBM-Space-ID", request.spaceId());
+
+        if (nonNull(request.transactionId()))
+            httpRequest.header(TRANSACTION_ID_HEADER, request.transactionId());
+
+        return asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
+            .thenApplyAsync(r -> Json.fromJson(r.body(), FileDeleteResponse.class), ExecutorProvider.cpuExecutor())
+            .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
     }
 
     /**

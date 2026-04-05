@@ -7,28 +7,22 @@ package com.ibm.watsonx.ai.batch;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
-import static java.util.concurrent.CompletableFuture.allOf;
-import static java.util.concurrent.CompletableFuture.runAsync;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatUtility;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.file.FileDeleteRequest;
 import com.ibm.watsonx.ai.file.FileService;
@@ -292,10 +286,25 @@ public class BatchService extends ProjectService {
 
         while (status != Status.COMPLETED && status != Status.FAILED) {
 
-            if (LocalTime.now().isAfter(endTime))
+            if (LocalTime.now().isAfter(endTime)) {
+
+                cancel(
+                    BatchCancelRequest.builder()
+                        .batchId(batchData.id())
+                        .projectId(projectSpace.projectId())
+                        .spaceId(projectSpace.spaceId())
+                        .transactionId(request.transactionId())
+                        .build());
+
+                deleteFile(
+                    removeUploadedFile ? batchData.inputFileId() : null,
+                    null,
+                    request.transactionId());
+
                 throw new RuntimeException(
                     "The execution of the batch operation for the file \"%s\" took longer than the timeout set by %s milliseconds"
                         .formatted(request.inputFileId(), timeout.toMillis()));
+            }
 
             try {
 
@@ -322,8 +331,7 @@ public class BatchService extends ProjectService {
             deleteFile(
                 removeUploadedFile ? batchData.inputFileId() : null,
                 null,
-                request.transactionId(),
-                timeout
+                request.transactionId()
             );
             throw new RuntimeException("The batch operation failed: %s".formatted(batchData));
         }
@@ -337,8 +345,7 @@ public class BatchService extends ProjectService {
         deleteFile(
             removeUploadedFile ? batchData.inputFileId() : null,
             removeOutputFile ? batchData.outputFileId() : null,
-            request.transactionId(),
-            timeout
+            request.transactionId()
         );
 
         return result;
@@ -499,17 +506,12 @@ public class BatchService extends ProjectService {
 
     /**
      * Deletes the input and/or output files associated with a completed batch job.
-     * <p>
-     * Each non-null file identifier is deleted concurrently. The method blocks until all deletions complete or the timeout expires.
      *
      * @param inputFileId the identifier of the input file to delete, or {@code null} to skip
      * @param outputFileId the identifier of the output file to delete, or {@code null} to skip
      * @param transactionId optional transaction identifier to propagate to the delete requests
-     * @param timeout the maximum time to wait for all deletions to complete
      */
-    private void deleteFile(String inputFileId, String outputFileId, String transactionId, Duration timeout) {
-
-        var futures = new ArrayList<CompletableFuture<Void>>();
+    private void deleteFile(String inputFileId, String outputFileId, String transactionId) {
 
         if (nonNull(inputFileId)) {
             var request = FileDeleteRequest.builder()
@@ -517,7 +519,7 @@ public class BatchService extends ProjectService {
                 .transactionId(transactionId)
                 .build();
 
-            futures.add(runAsync(() -> fileService.delete(request), ExecutorProvider.callbackExecutor()));
+            fileService.deleteAsync(request);
         }
 
         if (nonNull(outputFileId)) {
@@ -526,10 +528,8 @@ public class BatchService extends ProjectService {
                 .transactionId(transactionId)
                 .build();
 
-            futures.add(runAsync(() -> fileService.delete(request), ExecutorProvider.callbackExecutor()));
+            fileService.deleteAsync(request);
         }
-
-        allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
     /**

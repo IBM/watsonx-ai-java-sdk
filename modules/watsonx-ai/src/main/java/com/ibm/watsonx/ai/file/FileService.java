@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.WatsonxService.ProjectService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 
@@ -215,6 +216,24 @@ public class FileService extends ProjectService {
         requireNonNull(request.fileId(), "request.fileId cannot be null");
         ProjectSpace projectSpace = resolveProjectSpace(request);
         return client.delete(FileDeleteRequest.builder()
+            .projectId(projectSpace.projectId())
+            .spaceId(projectSpace.spaceId())
+            .transactionId(request.transactionId())
+            .fileId(request.fileId())
+            .build());
+    }
+
+    /**
+     * Deletes an uploaded file using the provided {@link FileDeleteRequest}.
+     *
+     * @param request the {@link FileDeleteRequest} object
+     * @return a {@link FileDeleteResponse} confirming the deletion
+     */
+    public CompletableFuture<FileDeleteResponse> deleteAsync(FileDeleteRequest request) {
+        requireNonNull(request, "request cannot be null");
+        requireNonNull(request.fileId(), "request.fileId cannot be null");
+        ProjectSpace projectSpace = resolveProjectSpace(request);
+        return client.deleteAsync(FileDeleteRequest.builder()
             .projectId(projectSpace.projectId())
             .spaceId(projectSpace.spaceId())
             .transactionId(request.transactionId())
