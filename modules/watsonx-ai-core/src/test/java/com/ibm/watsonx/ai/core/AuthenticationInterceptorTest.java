@@ -140,7 +140,7 @@ public class AuthenticationInterceptorTest extends AbstractWatsonxTest {
         @Test
         void should_send_request_with_bearer_token() throws Exception {
 
-            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my_super_token"));
+            when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my_super_token"));
             when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
             withWatsonxServiceMock(() -> {
@@ -164,7 +164,7 @@ public class AuthenticationInterceptorTest extends AbstractWatsonxTest {
         void should_send_request_with_zen_api_key() throws Exception {
 
             var cp4dAuthenticatorMock = mock(CP4DAuthenticator.class);
-            when(cp4dAuthenticatorMock.asyncToken()).thenReturn(completedFuture("#1234"));
+            when(cp4dAuthenticatorMock.tokenAsync()).thenReturn(completedFuture("#1234"));
             when(cp4dAuthenticatorMock.scheme()).thenReturn("ZenApiKey");
             when(cp4dAuthenticatorMock.isAuthMode(AuthMode.ZEN_API_KEY)).thenReturn(true);
 
@@ -189,7 +189,7 @@ public class AuthenticationInterceptorTest extends AbstractWatsonxTest {
         @Test
         void should_throw_exception_when_bearer_token_is_invalid() {
 
-            when(mockAuthenticator.asyncToken()).thenThrow(new RuntimeException("error"));
+            when(mockAuthenticator.tokenAsync()).thenThrow(new RuntimeException("error"));
 
             withWatsonxServiceMock(() -> {
 
@@ -212,7 +212,7 @@ public class AuthenticationInterceptorTest extends AbstractWatsonxTest {
         @SuppressWarnings("unchecked")
         void should_execute_with_custom_executor() throws Exception {
 
-            when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my_super_token"));
+            when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my_super_token"));
             var threadNames = new ArrayList<>();
 
             var ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {

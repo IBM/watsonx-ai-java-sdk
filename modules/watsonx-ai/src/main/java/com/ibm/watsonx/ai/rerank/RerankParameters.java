@@ -6,8 +6,8 @@ package com.ibm.watsonx.ai.rerank;
 
 import static java.util.Objects.nonNull;
 import com.ibm.watsonx.ai.WatsonxParameters.WatsonxCryptoParameters;
-import com.ibm.watsonx.ai.rerank.RerankRequest.Parameters;
-import com.ibm.watsonx.ai.rerank.RerankRequest.ReturnOptions;
+import com.ibm.watsonx.ai.rerank.RerankPayload.Parameters;
+import com.ibm.watsonx.ai.rerank.RerankPayload.ReturnOptions;
 
 /**
  * Represents a set of parameters used to control the behavior of a rerank operation.

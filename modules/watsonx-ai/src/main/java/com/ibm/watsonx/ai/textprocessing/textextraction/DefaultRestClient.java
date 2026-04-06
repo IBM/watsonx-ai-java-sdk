@@ -48,7 +48,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
     @Override
     public boolean deleteFile(DeleteFileRequest request) throws FileNotFoundException {
         try {
-            return asyncDeleteFile(request).get();
+            return deleteFileAsync(request).get();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
@@ -65,7 +65,7 @@ final class DefaultRestClient extends TextExtractionRestClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> asyncDeleteFile(DeleteFileRequest request) {
+    public CompletableFuture<Boolean> deleteFileAsync(DeleteFileRequest request) {
         try {
 
             var fileName = request.fileName();

@@ -511,7 +511,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     .apiKey("api_key")
                     .build();
 
-                assertEquals("access-token", assertDoesNotThrow(() -> authenticator.asyncToken().get()));
+                assertEquals("access-token", assertDoesNotThrow(() -> authenticator.tokenAsync().get()));
             });
         }
 
@@ -543,7 +543,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .authMode(AuthMode.IAM)
                         .build();
 
-                    String token = authenticator.asyncToken().get();
+                    String token = authenticator.tokenAsync().get();
                     assertEquals("access-token", token);
                     verify(mockSecureHttpClient, times(2)).sendAsync(reqCaptor.capture(), any());
 
@@ -587,9 +587,9 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     .build();
 
                 // Execute the http request.
-                assertDoesNotThrow(() -> authenticator.asyncToken().get());
+                assertDoesNotThrow(() -> authenticator.tokenAsync().get());
                 // Get the value from the cache.
-                assertDoesNotThrow(() -> authenticator.asyncToken().get());
+                assertDoesNotThrow(() -> authenticator.tokenAsync().get());
 
                 verify(mockSecureHttpClient, times(1)).sendAsync(any(), any());
             });
@@ -626,10 +626,10 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .authMode(AuthMode.IAM)
                         .build();
 
-                    var token = authenticator.asyncToken().get();
+                    var token = authenticator.tokenAsync().get();
                     assertEquals("iam-access-token", token);
 
-                    token = authenticator.asyncToken().get();
+                    token = authenticator.tokenAsync().get();
                     assertEquals("iam-access-token", token);
 
                     ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
@@ -663,7 +663,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 .build();
 
             var encoded = Base64.encodeBase64String("username:api_key".getBytes());
-            assertEquals(encoded, assertDoesNotThrow(() -> authenticator.asyncToken().get()));
+            assertEquals(encoded, assertDoesNotThrow(() -> authenticator.tokenAsync().get()));
             assertTrue(authenticator.isAuthMode(AuthMode.ZEN_API_KEY));
         }
 
@@ -706,7 +706,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .apiKey("api_key")
                         .build();
 
-                    assertDoesNotThrow(() -> authenticator.asyncToken()
+                    assertDoesNotThrow(() -> authenticator.tokenAsync()
                         .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
                         .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
                         .get(3, TimeUnit.SECONDS));

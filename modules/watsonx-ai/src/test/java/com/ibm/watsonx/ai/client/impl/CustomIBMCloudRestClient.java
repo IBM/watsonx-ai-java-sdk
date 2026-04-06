@@ -20,8 +20,8 @@ public class CustomIBMCloudRestClient extends IBMCloudRestClient {
     }
 
     @Override
-    public CompletableFuture<TokenResponse> asyncToken(String apiKey, String grantType) {
-        throw new UnsupportedOperationException("Unimplemented method 'asyncToken'");
+    public CompletableFuture<TokenResponse> tokenAsync(String apiKey, String grantType) {
+        throw new UnsupportedOperationException("Unimplemented method 'tokenAsync'");
     }
 
     public static final class CustomIBMCloudRestClientBuilderFactory implements IBMCloudRestClientBuilderFactory {

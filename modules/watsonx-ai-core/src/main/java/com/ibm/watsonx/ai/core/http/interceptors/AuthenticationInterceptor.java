@@ -32,7 +32,7 @@ public final class AuthenticationInterceptor implements SyncHttpInterceptor, Asy
 
     @Override
     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
-        return authenticator.asyncToken()
+        return authenticator.tokenAsync()
             .thenCompose(token -> chain.proceed(requestWithAuthHeader(request, token), bodyHandler));
     }
 

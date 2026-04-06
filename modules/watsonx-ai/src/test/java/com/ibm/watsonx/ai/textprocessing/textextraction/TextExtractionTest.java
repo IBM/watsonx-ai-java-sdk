@@ -1202,7 +1202,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void should_remove_uploaded_and_output_files_after_extraction() throws Exception {
 
         when(mockAuthenticator.token()).thenReturn("my-super-token");
-        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         var outputFileName = "myNewOutput.json";
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
@@ -1558,8 +1558,9 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_extraction_timeout_exceeded() {
 
-        when(mockAuthenticator.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
             .inScenario("long_response")
@@ -1602,8 +1603,20 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
             .willReturn(aResponse().withStatus(200).withBody("Hello")));
 
+        watsonxServer
+            .stubFor(delete("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+                .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                .willReturn(aResponse()
+                    .withStatus(204)
+                ));
+
+        cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
         TextExtractionParameters options = TextExtractionParameters.builder()
             .timeout(Duration.ofMillis(100))
+            .removeUploadedFile(true)
             .build();
 
         var ex = assertThrows(
@@ -1621,7 +1634,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     void should_throw_exception_when_extraction_job_fails() throws Exception {
 
         when(mockAuthenticator.token()).thenReturn("my-super-token");
-        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
         var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
@@ -1982,7 +1995,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     @Test
     void should_delete_file_from_cos_with_retry_on_failure() {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         cosServer.resetAll();
 
@@ -2013,14 +2026,14 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         assertTrue(assertDoesNotThrow(() -> textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME)));
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
-        verify(mockAuthenticator, times(2)).asyncToken();
+        verify(mockAuthenticator, times(2)).tokenAsync();
     }
 
     @Test
     void should_delete_file_with_custom_api_key() {
 
         var cosAuthenticator = mock(Authenticator.class);
-        when(cosAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("custom-token"));
+        when(cosAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("custom-token"));
         when(cosAuthenticator.scheme()).thenReturn("Bearer");
 
         cosServer.resetAll();
@@ -2047,7 +2060,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     @Test
     void should_throw_exception_when_deleting_non_existent_file() {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -2066,7 +2079,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         assertThrows(FileNotFoundException.class, () -> textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
-        verify(mockAuthenticator, times(1)).asyncToken();
+        verify(mockAuthenticator, times(1)).tokenAsync();
     }
 
     @Test

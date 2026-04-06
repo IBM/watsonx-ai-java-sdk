@@ -31,7 +31,7 @@ public interface Authenticator {
      *
      * @return a {@link CompletableFuture} that will complete with the access token
      */
-    CompletableFuture<String> asyncToken();
+    CompletableFuture<String> tokenAsync();
 
     /**
      * Returns the authentication scheme.

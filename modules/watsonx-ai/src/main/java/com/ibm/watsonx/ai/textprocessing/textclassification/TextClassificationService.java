@@ -505,13 +505,36 @@ public class TextClassificationService extends ProjectService {
         Status status;
         long sleepTime = 100;
         LocalTime endTime = LocalTime.now().plus(timeout);
+        String processId = null;
 
         do {
 
-            if (LocalTime.now().isAfter(endTime))
+            if (LocalTime.now().isAfter(endTime)) {
+
+                if (nonNull(processId)) {
+                    deleteRequest(
+                        processId,
+                        TextClassificationDeleteParameters.builder()
+                            .projectId(projectId)
+                            .spaceId(spaceId)
+                            .transactionId(transactionId)
+                            .build()
+                    );
+                }
+
+                if (removeUploadedFile) {
+                    try {
+                        var encodedFileName = new URI(null, null, path, null).toASCIIString();
+                        client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
+                    } catch (URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
                 throw new TextClassificationException("timeout",
                     "The execution of the classification %s file took longer than the timeout set by %s milliseconds"
                         .formatted(path, timeout.toMillis()));
+            }
 
             try {
 
@@ -523,7 +546,7 @@ public class TextClassificationService extends ProjectService {
                 throw new TextClassificationException("interrupted", e.getMessage());
             }
 
-            var processId = response.metadata().id();
+            processId = response.metadata().id();
             response = fetchClassificationRequest(requestId, processId, TextClassificationFetchParameters.builder()
                 .projectId(projectId)
                 .spaceId(spaceId)
@@ -575,7 +598,7 @@ public class TextClassificationService extends ProjectService {
                 try {
                     var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
                     var request = DeleteFileRequest.of(requestId, documentBucketName, encodedFileName);
-                    client.asyncDeleteFile(request);
+                    client.deleteFileAsync(request);
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
                 }

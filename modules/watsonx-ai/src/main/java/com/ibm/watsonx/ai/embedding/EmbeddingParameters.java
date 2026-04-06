@@ -6,8 +6,7 @@ package com.ibm.watsonx.ai.embedding;
 
 import static java.util.Objects.nonNull;
 import com.ibm.watsonx.ai.WatsonxParameters.WatsonxCryptoParameters;
-import com.ibm.watsonx.ai.embedding.EmbeddingRequest.Parameters;
-import com.ibm.watsonx.ai.embedding.EmbeddingRequest.ReturnOptions;
+import com.ibm.watsonx.ai.embedding.Parameters.ReturnOptions;
 
 /**
  * Represents a set of parameters used to control the behavior of embedding generation.

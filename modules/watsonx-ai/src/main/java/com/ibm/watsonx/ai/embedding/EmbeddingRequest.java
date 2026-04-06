@@ -5,33 +5,114 @@
 package com.ibm.watsonx.ai.embedding;
 
 import java.util.List;
-import com.ibm.watsonx.ai.Crypto;
 
 /**
- * Represents a request to generate embeddings from a given model.
+ * Represents an embedding request.
+ * <p>
+ * <b>Example usage:</b>
  *
- * @param modelId the model identifier
- * @param spaceId the space identifier
- * @param projectId the project identifier
- * @param inputs the list of input texts to embed
- * @param parameters the embedding parameters
- * @param crypto the crypto configuration for encryption
+ * <pre>{@code
+ * var parameters = EmbeddingParameters.builder()
+ *     .truncateInputTokens(512)
+ *     .returnOptions(ReturnOptions.builder().inputText(true).build())
+ *     .build();
+ *
+ * EmbeddingRequest request = EmbeddingRequest.builder()
+ *     .inputs("What is watsonx.ai?")
+ *     .parameters(parameters)
+ *     .build();
+ * }</pre>
  */
-public record EmbeddingRequest(String modelId, String spaceId, String projectId,
-    List<String> inputs, Parameters parameters, Crypto crypto) {
+public final class EmbeddingRequest {
+    private final List<String> inputs;
+    private final EmbeddingParameters parameters;
+
+    private EmbeddingRequest(Builder builder) {
+        inputs = builder.inputs;
+        parameters = builder.parameters;
+    }
 
     /**
-     * Parameters for embedding generation.
+     * Returns the input texts to be converted into embeddings.
      *
-     * @param truncateInputTokens the maximum number of tokens accepted per input
-     * @param returnOptions the return options
+     * @return the list of input texts, or {@code null} if not set
      */
-    public record Parameters(Integer truncateInputTokens, ReturnOptions returnOptions) {}
+    public List<String> inputs() {
+        return inputs;
+    }
 
     /**
-     * Return options for embedding generation.
+     * Returns the embedding parameters.
      *
-     * @param inputText whether to include the input text in each result document
+     * @return the embedding parameters, or {@code null} if not set
      */
-    public record ReturnOptions(boolean inputText) {}
+    public EmbeddingParameters parameters() {
+        return parameters;
+    }
+
+    /**
+     * Returns a new {@link Builder} instance.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * var parameters = EmbeddingParameters.builder()
+     *     .truncateInputTokens(512)
+     *     .returnOptions(ReturnOptions.builder().inputText(true).build())
+     *     .build();
+     *
+     * EmbeddingRequest request = EmbeddingRequest.builder()
+     *     .inputs("What is watsonx.ai?")
+     *     .parameters(parameters)
+     *     .build();
+     * }</pre>
+     *
+     * @return {@link Builder} instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder class for constructing {@link EmbeddingRequest} instances.
+     */
+    public final static class Builder {
+        private List<String> inputs;
+        private EmbeddingParameters parameters;
+
+        private Builder() {}
+
+        /**
+         * Sets the input texts for the request, replacing any existing inputs.
+         * <p>
+         * This method completely overwrites the current list of inputs with the provided values.
+         * <p>
+         * Use {@link #addInputs(String...)} or {@link #addInputs(List)} to append inputs instead.
+         *
+         * @param inputs the list of input texts to embed
+         */
+        public Builder inputs(List<String> inputs) {
+            this.inputs = inputs;
+            return this;
+        }
+
+        /**
+         * Sets the parameters controlling the embedding model behavior.
+         *
+         * @param parameters an {@link EmbeddingParameters} instance
+         */
+        public Builder parameters(EmbeddingParameters parameters) {
+            this.parameters = parameters;
+            return this;
+        }
+
+        /**
+         * Builds a {@link EmbeddingRequest} instance using the configured parameters.
+         *
+         * @return a new instance of {@link EmbeddingRequest}
+         */
+        public EmbeddingRequest build() {
+            return new EmbeddingRequest(this);
+        }
+    }
 }

@@ -159,7 +159,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         """)));
 
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -324,7 +324,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         """)));
 
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -641,7 +641,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-75021362a9edcdacca7976b97cc20f0d","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[],"created":1749766697,"model_version":"4.0.0","created_at":"2025-06-12T22:18:18.661Z","usage":{"completion_tokens":49,"prompt_tokens":374,"total_tokens":423}}
                         """)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -934,7 +934,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
                         """)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -996,7 +996,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8", "model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"}]}}
                         """)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -1122,7 +1122,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         "status_code": 404
                     }""")));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -1179,7 +1179,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Hello"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
                         """)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -1302,7 +1302,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         var executor = Executors.newCachedThreadPool();
 
-        when(mockAuthenticator.asyncToken()).thenReturn(CompletableFuture.completedFuture("my-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-token"));
 
         var chatService = ChatService.builder()
             .baseUrl("http://localhost:%s".formatted(wireMock.getPort()))
@@ -1380,7 +1380,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
               "time_limit" : 60000
             }""";
 
-        when(mockAuthenticator.asyncToken())
+        when(mockAuthenticator.tokenAsync())
             .thenReturn(
                 failedFuture(new AuthenticationTokenExpiredException("Failed to authenticate the request due to an expired token", 401, detail)))
             .thenReturn(completedFuture("my-super-token"));
@@ -1516,7 +1516,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 .withChunkedDribbleDelay(5, 200)
                 .withBody(BODY)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-token"));
 
         var chatService = ChatService.builder()
             .baseUrl("http://localhost:%s".formatted(wireMock.getPort()))
@@ -1675,7 +1675,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         """)));
 
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -1778,7 +1778,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         """)));
 
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -1975,7 +1975,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 )));
 
         var toolInterceptor = mock(ToolInterceptor.class);
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
         when(toolInterceptor.intercept(any(InterceptorContext.class), any(CompletedToolCall.class)))
             .thenReturn(new CompletedToolCall("id_1", 0, ToolCall.of("1", "name_1", "{ \"test_1\": \"1\"}")))
             .thenReturn(new CompletedToolCall("id_2", 0, ToolCall.of("2", "name_2", "{ \"test_2\": \"2\"}")));
@@ -2146,7 +2146,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-a83f98dc7a834a4caf1b48af4392d666","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1764859084,"model_version":"4.0.0","created_at":"2025-12-04T14:38:05.559Z","usage":{"completion_tokens":28,"prompt_tokens":192,"total_tokens":220}}
                         """)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
         when(mockAuthenticator.token()).thenReturn("my-super-token");
         when(mockAuthenticator.scheme()).thenReturn("Bearer");
 
@@ -2203,7 +2203,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     @Test
     void should_process_multiple_tool_calls_from_single_stream_chunk() {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse()
@@ -2263,7 +2263,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     @Test
     void should_handle_tool_calls_from_multiple_stream_chunks() {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse()
@@ -2331,7 +2331,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
     @Test
     void should_invoke_tool_calls_in_parallels() {
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse()
@@ -2392,7 +2392,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
     @Test
     void should_invoke_on_error_during_interceptor_call() {
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -2439,7 +2439,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
     @Test
     void should_stream_chat_response_and_process_thinking_and_tool_calls() {
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse()
@@ -2644,7 +2644,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-5d8c131decbb6978cba5df10267aa3ff","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"ao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
                         """)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -2756,7 +2756,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.565Z","usage":{"completion_tokens":49,"prompt_tokens":319,"total_tokens":368}}
                         """)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
 
         var chatService = ChatService.builder()
@@ -2874,7 +2874,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         data: {"id":"chatcmpl-cc34b5ea3120fa9e07b18c5125d66602","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1749764735,"model_version":"3.3.0","created_at":"2025-06-12T21:45:35.565Z","usage":{"completion_tokens":49,"prompt_tokens":319,"total_tokens":368}}
                         """)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -3322,7 +3322,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     @Test
     void should_not_invoke_onError_when_toolInterceptor_catches_exception() throws Exception {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .willReturn(aResponse()
@@ -3384,7 +3384,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 .withChunkedDribbleDelay(81, 5)
                 .withBody(RESPONSE)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -3475,7 +3475,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 .withChunkedDribbleDelay(33, 5)
                 .withBody(RESPONSE)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -3562,7 +3562,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 .withChunkedDribbleDelay(6, 5)
                 .withBody(RESPONSE)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -3594,7 +3594,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 .withChunkedDribbleDelay(101, 5)
                 .withBody(RESPONSE)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
@@ -3731,7 +3731,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 .withChunkedDribbleDelay(101, 5)
                 .withBody(RESPONSE)));
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("my-super-token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
         var interceptorCallCount = new AtomicInteger(0);
         var completedToolCalls = new ConcurrentHashMap<Integer, CompletedToolCall>();
@@ -3806,7 +3806,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     @Test
     void should_handle_tool_calls_using_tool_registry() {
 
-        when(mockAuthenticator.asyncToken()).thenReturn(completedFuture("token"));
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse()

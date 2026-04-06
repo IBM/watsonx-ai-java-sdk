@@ -222,6 +222,11 @@ public class CustomHttpClientTest {
         assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
         assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
         assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+
+        Object asyncCosHttpClient = getFieldValue(restclient, "asyncHttpClient");
+        assertEquals(customClient, getFieldValue(asyncCosHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(asyncCosHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(asyncCosHttpClient, "delegate"));
     }
 
     @Test
@@ -247,6 +252,10 @@ public class CustomHttpClientTest {
                 Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
                 assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
                 assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+                Object asyncHttpClient = getFieldValue(restclient, "asyncHttpClient");
+                assertNotEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(asyncHttpClient, "delegate"));
 
             } catch (Exception e) {
                 fail(e);
@@ -640,6 +649,11 @@ public class CustomHttpClientTest {
         assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
         assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
         assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+
+        Object asyncHttpClient = getFieldValue(restclient, "asyncHttpClient");
+        assertEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(asyncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(asyncHttpClient, "delegate"));
     }
 
     @Test
@@ -664,6 +678,10 @@ public class CustomHttpClientTest {
                 Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
                 assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
                 assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+                Object asyncHttpClient = getFieldValue(restclient, "asyncHttpClient");
+                assertNotEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(asyncHttpClient, "delegate"));
 
             } catch (Exception e) {
                 fail(e);

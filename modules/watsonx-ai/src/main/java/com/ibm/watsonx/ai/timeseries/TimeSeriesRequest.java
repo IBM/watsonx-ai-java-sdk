@@ -10,8 +10,6 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
 /**
  * Represents a time series forecast request.
  * <p>
- * Instances are created using the {@link Builder} pattern:
- * <p>
  * <b>Example usage:</b>
  *
  * <pre>{@code
@@ -84,6 +82,27 @@ public final class TimeSeriesRequest {
 
     /**
      * Returns a new {@link Builder} instance.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * var inputSchema = InputSchema.builder()
+     *     .timestampColumn("date")
+     *     .addIdColumn("ID1")
+     *     .build();
+     *
+     * var data = ForecastData.create()
+     *     .add("date", "2020-01-01T00:00:00")
+     *     .add("date", "2020-01-01T01:00:00")
+     *     .add("date", "2020-01-05T01:00:00")
+     *     .add("ID1", "D1", 3)
+     *     .addAll("TARGET1", 1.46, 2.34, 4.55);
+     *
+     * TimeSeriesRequest request = TimeSeriesRequest.builder()
+     *     .inputSchema(inputSchema)
+     *     .data(data)
+     *     .build();
+     * }</pre>
      *
      * @return {@link Builder} instance
      */

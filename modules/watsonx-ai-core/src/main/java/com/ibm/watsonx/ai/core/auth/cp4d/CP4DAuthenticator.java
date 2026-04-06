@@ -88,14 +88,14 @@ public class CP4DAuthenticator implements Authenticator {
     }
 
     @Override
-    public CompletableFuture<String> asyncToken() {
+    public CompletableFuture<String> tokenAsync() {
 
         TokenResponse currentToken = token.get();
 
         if (!isExpired(currentToken))
             return completedFuture(token.get().accessToken());
 
-        return client.asyncToken(new TokenRequest(username, password, apiKey)).thenApply(identityTokenResponse -> {
+        return client.tokenAsync(new TokenRequest(username, password, apiKey)).thenApply(identityTokenResponse -> {
             token.getAndSet(identityTokenResponse);
             return identityTokenResponse.accessToken();
         });

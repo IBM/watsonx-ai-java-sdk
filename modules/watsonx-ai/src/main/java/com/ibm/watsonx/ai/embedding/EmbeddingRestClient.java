@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.embedding;
 
 import java.util.ServiceLoader;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
 
@@ -21,10 +22,19 @@ public abstract class EmbeddingRestClient extends WatsonxRestClient {
      * Executes an embedding request against the watsonx.ai API.
      *
      * @param transactionId an optional client-provided transaction identifier used for tracing
-     * @param embeddingRequest the structured embedding request payload
+     * @param embeddingPayload the structured embedding request payload
      * @return An {@link EmbeddingResponse} containing the embedding vectors and metadata
      */
-    public abstract EmbeddingResponse embedding(String transactionId, EmbeddingRequest embeddingRequest);
+    public abstract EmbeddingResponse embedding(String transactionId, EmbeddingPayload embeddingPayload);
+
+    /**
+     * Executes an embedding request against the watsonx.ai API.
+     *
+     * @param transactionId an optional client-provided transaction identifier used for tracing
+     * @param embeddingPayload the structured embedding request payload
+     * @return An {@link EmbeddingResponse} containing the embedding vectors and metadata
+     */
+    public abstract CompletableFuture<EmbeddingResponse> embeddingAsync(String transactionId, EmbeddingPayload embeddingPayload);
 
     /**
      * Creates a new {@link Builder} using the first available {@link EmbeddingRestClientBuilderFactory} discovered via {@link ServiceLoader}.

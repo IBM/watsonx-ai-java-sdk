@@ -65,7 +65,7 @@ public abstract class TextClassificationRestClient extends WatsonxRestClient {
      * @param request The {@link DeleteFileRequest} containing bucket and file information.
      * @return A {@link CompletableFuture} that completes with {@code true} if the file was successfully deleted.
      */
-    public abstract CompletableFuture<Boolean> asyncDeleteFile(DeleteFileRequest request);
+    public abstract CompletableFuture<Boolean> deleteFileAsync(DeleteFileRequest request);
 
     /**
      * Uploads a file stream to the specified COS bucket.

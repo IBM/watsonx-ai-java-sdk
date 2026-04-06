@@ -925,6 +925,18 @@ public class BatchServiceTest extends AbstractWatsonxTest {
                 .withStatus(200)
                 .withBody(IN_PROGRESS_RESPONSE)));
 
+        wireMock.stubFor(post("/ml/v1/batches/%s/cancel?version=%s".formatted(BATCH_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody("{}")));
+
+        wireMock.stubFor(delete("/ml/v1/files/%s?version=%s".formatted(FILE_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(FILE_DELETE_RESPONSE)));
+
         var fileService = FileService.builder()
             .authenticator(mockAuthenticator)
             .projectId(PROJECT_ID)
@@ -966,6 +978,18 @@ public class BatchServiceTest extends AbstractWatsonxTest {
             .willReturn(aResponse()
                 .withStatus(200)
                 .withBody(IN_PROGRESS_RESPONSE)));
+
+        wireMock.stubFor(post("/ml/v1/batches/%s/cancel?version=%s".formatted(BATCH_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody("{}")));
+
+        wireMock.stubFor(delete("/ml/v1/files/%s?version=%s".formatted(FILE_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(FILE_DELETE_RESPONSE)));
 
         var fileService = FileService.builder()
             .authenticator(mockAuthenticator)
@@ -1010,6 +1034,18 @@ public class BatchServiceTest extends AbstractWatsonxTest {
             .willReturn(aResponse()
                 .withStatus(200)
                 .withBody(IN_PROGRESS_RESPONSE)));
+
+        wireMock.stubFor(post("/ml/v1/batches/%s/cancel?version=%s".formatted(BATCH_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody("{}")));
+
+        wireMock.stubFor(delete("/ml/v1/files/%s?version=%s".formatted(FILE_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(FILE_DELETE_RESPONSE)));
 
         var fileService = FileService.builder()
             .authenticator(mockAuthenticator)
@@ -1658,6 +1694,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
                 .toList();
 
         var results = batchService.submitChatRequestsAndFetch(chatRequests);
+        assertDoesNotThrow(() -> Thread.sleep(200)); // Wait for async files deletion to complete
 
         assertEquals(3, results.size());
         assertEquals("0", results.get(0).customId());

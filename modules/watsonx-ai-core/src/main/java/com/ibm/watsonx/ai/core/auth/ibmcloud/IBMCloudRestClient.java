@@ -44,7 +44,7 @@ public abstract class IBMCloudRestClient {
      * @param grantType the grant type to use
      * @return a {@link CompletableFuture} that completes with the IAM response or exceptionally on error
      */
-    public abstract CompletableFuture<TokenResponse> asyncToken(String apiKey, String grantType);
+    public abstract CompletableFuture<TokenResponse> tokenAsync(String apiKey, String grantType);
 
     /**
      * Creates a new {@link Builder} using the first available {@link IBMCloudRestClientBuilderFactory} discovered via {@link ServiceLoader}.

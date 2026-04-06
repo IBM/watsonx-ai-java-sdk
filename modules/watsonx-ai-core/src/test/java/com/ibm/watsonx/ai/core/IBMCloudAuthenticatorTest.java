@@ -288,7 +288,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
                     .apiKey("my_super_api_key")
                     .build();
 
-                assertEquals("my_super_token", assertDoesNotThrow(() -> authenticator.asyncToken().get()));
+                assertEquals("my_super_token", assertDoesNotThrow(() -> authenticator.tokenAsync().get()));
                 assertEquals("https://iam.cloud.ibm.com/identity/token", mockHttpRequest.getValue().uri().toString());
                 assertEquals("application/x-www-form-urlencoded",
                     mockHttpRequest.getValue().headers().firstValue("Content-Type").get());
@@ -311,9 +311,9 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
                     .build();
 
                 // Execute the http request.
-                assertDoesNotThrow(() -> authenticator.asyncToken().get());
+                assertDoesNotThrow(() -> authenticator.tokenAsync().get());
                 // Get the value from the cache.
-                assertDoesNotThrow(() -> authenticator.asyncToken().get());
+                assertDoesNotThrow(() -> authenticator.tokenAsync().get());
 
                 verify(mockSecureHttpClient, times(1)).sendAsync(any(), any());
             });
@@ -335,7 +335,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
                     .apiKey("my_super_api_key")
                     .build();
 
-                assertEquals("my_super_token", assertDoesNotThrow(() -> authenticator.asyncToken().get()));
+                assertEquals("my_super_token", assertDoesNotThrow(() -> authenticator.tokenAsync().get()));
                 assertEquals("http://mytest.com/identity/token", mockHttpRequest.getValue().uri().toString());
                 assertEquals("application/x-www-form-urlencoded",
                     mockHttpRequest.getValue().headers().firstValue("Content-Type").get());
@@ -378,7 +378,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
                         .apiKey("my_super_api_key")
                         .build();
 
-                    assertDoesNotThrow(() -> authenticator.asyncToken()
+                    assertDoesNotThrow(() -> authenticator.tokenAsync()
                         .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
                         .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
                         .get(3, TimeUnit.SECONDS));

@@ -4,7 +4,8 @@
  */
 package com.ibm.watsonx.ai.client.impl;
 
-import com.ibm.watsonx.ai.embedding.EmbeddingRequest;
+import java.util.concurrent.CompletableFuture;
+import com.ibm.watsonx.ai.embedding.EmbeddingPayload;
 import com.ibm.watsonx.ai.embedding.EmbeddingResponse;
 import com.ibm.watsonx.ai.embedding.EmbeddingRestClient;
 
@@ -15,8 +16,13 @@ public class CustomEmbeddingRestClient extends EmbeddingRestClient {
     }
 
     @Override
-    public EmbeddingResponse embedding(String transactionId, EmbeddingRequest embeddingRequest) {
+    public EmbeddingResponse embedding(String transactionId, EmbeddingPayload request) {
         throw new UnsupportedOperationException("Unimplemented method 'embedding'");
+    }
+
+    @Override
+    public CompletableFuture<EmbeddingResponse> embeddingAsync(String transactionId, EmbeddingPayload embeddingPayload) {
+        throw new UnsupportedOperationException("Unimplemented method 'embeddingAsync'");
     }
 
     public static final class CustomEmbeddingRestClientBuilderFactory implements EmbeddingRestClientBuilderFactory {

@@ -23,8 +23,8 @@ public class CustomTextExtractionRestClient extends TextExtractionRestClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> asyncDeleteFile(DeleteFileRequest request) {
-        throw new UnsupportedOperationException("Unimplemented method 'asyncDeleteFile'");
+    public CompletableFuture<Boolean> deleteFileAsync(DeleteFileRequest request) {
+        throw new UnsupportedOperationException("Unimplemented method 'deleteFileAsync'");
     }
 
     @Override

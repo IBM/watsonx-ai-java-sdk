@@ -47,7 +47,7 @@ final class DefaultRestClient extends IBMCloudRestClient {
     }
 
     @Override
-    public CompletableFuture<TokenResponse> asyncToken(String apiKey, String grantType) {
+    public CompletableFuture<TokenResponse> tokenAsync(String apiKey, String grantType) {
         return asyncHttpClient.send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString())
             .thenApplyAsync(response -> fromJson(response.body(), TokenResponse.class), ExecutorProvider.cpuExecutor())
             .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());

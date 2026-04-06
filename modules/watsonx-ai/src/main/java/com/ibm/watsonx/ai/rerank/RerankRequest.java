@@ -5,49 +5,136 @@
 package com.ibm.watsonx.ai.rerank;
 
 import java.util.List;
-import com.ibm.watsonx.ai.Crypto;
 
 /**
- * Represents a request to perform text reranking using a specified model.
+ * Represents a rerank request.
+ * <p>
+ * <b>Example usage:</b>
  *
- * @param modelId The identifier of the reranking model to use.
- * @param inputs The list of input texts to be reranked.
- * @param query The query text to rank the inputs against.
- * @param spaceId The deployment space identifier.
- * @param projectId The project identifier.
- * @param parameters Additional parameters for the reranking operation.
- * @param crypto Encryption configuration for sensitive data.
+ * <pre>{@code
+ * var parameters = RerankParameters.builder()
+ *     .topN(3)
+ *     .returnDocuments(true)
+ *     .build();
+ *
+ * RerankRequest request = RerankRequest.builder()
+ *     .query("What is watsonx.ai?")
+ *     .inputs(List.of("Document 1", "Document 2", "Document 3"))
+ *     .parameters(parameters)
+ *     .build();
+ * }</pre>
  */
-public record RerankRequest(
-    String modelId,
-    List<RerankInput> inputs,
-    String query,
-    String spaceId,
-    String projectId,
-    Parameters parameters,
-    Crypto crypto) {
+public final class RerankRequest {
+    private final String query;
+    private final List<String> inputs;
+    private final RerankParameters parameters;
+
+    private RerankRequest(Builder builder) {
+        query = builder.query;
+        inputs = builder.inputs;
+        parameters = builder.parameters;
+    }
 
     /**
-     * Represents a single input text to be reranked.
+     * Returns the query text used for reranking.
      *
-     * @param text The input text content.
+     * @return the query text, or {@code null} if not set
      */
-    public record RerankInput(String text) {}
+    public String query() {
+        return query;
+    }
 
     /**
-     * Additional parameters for controlling the reranking behavior.
+     * Returns the input texts to be reranked.
      *
-     * @param truncateInputTokens Maximum number of tokens per input.
-     * @param returnOptions Options for controlling what data is returned.
+     * @return the list of input texts, or {@code null} if not set
      */
-    public record Parameters(Integer truncateInputTokens, ReturnOptions returnOptions) {}
+    public List<String> inputs() {
+        return inputs;
+    }
 
     /**
-     * Options for controlling what data is included in the response.
+     * Returns the rerank parameters.
      *
-     * @param topN Number of top results to return.
-     * @param inputs Whether to include input texts in the response.
-     * @param query Whether to include the query in the response.
+     * @return the rerank parameters, or {@code null} if not set
      */
-    public record ReturnOptions(Integer topN, Boolean inputs, Boolean query) {}
+    public RerankParameters parameters() {
+        return parameters;
+    }
+
+    /**
+     * Returns a new {@link Builder} instance.
+     * <p>
+     * <b>Example usage:</b>
+     *
+     * <pre>{@code
+     * var parameters = RerankParameters.builder()
+     *     .topN(3)
+     *     .returnDocuments(true)
+     *     .build();
+     *
+     * RerankRequest request = RerankRequest.builder()
+     *     .query("What is watsonx.ai?")
+     *     .inputs(List.of("Document 1", "Document 2", "Document 3"))
+     *     .parameters(parameters)
+     *     .build();
+     * }</pre>
+     *
+     * @return {@link Builder} instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder class for constructing {@link RerankRequest} instances.
+     */
+    public final static class Builder {
+        private String query;
+        private List<String> inputs;
+        private RerankParameters parameters;
+
+        private Builder() {}
+
+        /**
+         * Sets the query text used for reranking.
+         *
+         * @param query the query text
+         */
+        public Builder query(String query) {
+            this.query = query;
+            return this;
+        }
+
+        /**
+         * Sets the input texts for the request, replacing any existing inputs.
+         * <p>
+         * This method completely overwrites the current list of inputs with the provided values.
+         *
+         * @param inputs the list of input texts to rerank
+         */
+        public Builder inputs(List<String> inputs) {
+            this.inputs = inputs;
+            return this;
+        }
+
+        /**
+         * Sets the parameters controlling the rerank model behavior.
+         *
+         * @param parameters an {@link RerankParameters} instance
+         */
+        public Builder parameters(RerankParameters parameters) {
+            this.parameters = parameters;
+            return this;
+        }
+
+        /**
+         * Builds a {@link RerankRequest} instance using the configured parameters.
+         *
+         * @return a new instance of {@link RerankRequest}
+         */
+        public RerankRequest build() {
+            return new RerankRequest(this);
+        }
+    }
 }
