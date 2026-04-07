@@ -913,14 +913,14 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             var response = deploymentService.findById(
                 FindByIdRequest.builder()
-                    .projectId("my-project-id")
+                    .projectId("project-id")
                     .deploymentId("mysuperdeployment")
                     .build()
             );
 
             JSONAssert.assertEquals(EXPECTED_RESPONSE, toJson(response), true);
             assertTrue(mockHttpRequest.getValue().uri().toString().contains("/mysuperdeployment"));
-            assertTrue(mockHttpRequest.getValue().uri().getQuery().contains("my-project-id"));
+            assertTrue(mockHttpRequest.getValue().uri().getQuery().contains("project-id"));
         });
     }
 

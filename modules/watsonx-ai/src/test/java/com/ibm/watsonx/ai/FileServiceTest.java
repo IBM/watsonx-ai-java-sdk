@@ -361,7 +361,7 @@ public class FileServiceTest extends AbstractWatsonxTest {
         var FILE = "file-AQIDkP4L79L9Wyuo--GR5E26LgIzQVFNSGNBTlB6OTRiNm5GTl9KeFY2ajVfOE9PUUEzbzhTa01XaGtlWmczN0dHbHZGTFFZ";
 
         wireMock.stubFor(get("/ml/v1/files/%s/content?version=%s".formatted(FILE, API_VERSION))
-            .withHeader("X-IBM-Project-ID", equalTo("my-project-id"))
+            .withHeader("X-IBM-Project-ID", equalTo("project-id"))
             .withHeader("X-IBM-Space-ID", equalTo("my-space-id"))
             .withHeader(TRANSACTION_ID_HEADER, equalTo("transaction-id"))
             .willReturn(aResponse()
@@ -378,7 +378,7 @@ public class FileServiceTest extends AbstractWatsonxTest {
         var response = fileService.retrieve(
             FileRetrieveRequest.builder()
                 .fileId(FILE)
-                .projectId("my-project-id")
+                .projectId("project-id")
                 .spaceId("my-space-id")
                 .transactionId("transaction-id")
                 .build());

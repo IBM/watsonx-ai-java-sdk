@@ -191,7 +191,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
             {
               "model_id": "my-model-id",
               "input": "Write a tagline for an alumni association: Together we",
-              "project_id": "my-project-id",
+              "project_id": "project-id",
               "space_id": "my-space-id"
             }""";
 
@@ -217,7 +217,7 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
 
             var parameters = TokenizationParameters.builder()
                 .modelId("my-model-id")
-                .projectId("my-project-id")
+                .projectId("project-id")
                 .spaceId("my-space-id")
                 .build();
 

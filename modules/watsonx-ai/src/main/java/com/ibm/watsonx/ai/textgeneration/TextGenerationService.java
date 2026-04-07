@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * TextGenerationService textGenerationService = TextGenerationService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
- *     .projectId("my-project-id")
+ *     .projectId("project-id")
  *     .modelId("ibm/granite-13b-instruct-v2")
  *     .build();
  *
@@ -193,7 +193,7 @@ public class TextGenerationService extends ModelService implements TextGeneratio
      * TextGenerationService textGenerationService = TextGenerationService.builder()
      *     .baseUrl("https://...")      // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
-     *     .projectId("my-project-id")
+     *     .projectId("project-id")
      *     .modelId("ibm/granite-13b-instruct-v2")
      *     .build();
      *

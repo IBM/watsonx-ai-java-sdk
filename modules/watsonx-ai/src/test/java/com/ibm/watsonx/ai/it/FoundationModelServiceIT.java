@@ -6,10 +6,12 @@ package com.ibm.watsonx.ai.it;
 
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import com.ibm.watsonx.ai.foundationmodel.FoundationModelParameters;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
@@ -54,5 +56,29 @@ public class FoundationModelServiceIT {
         assertNotNull(response.first().href());
         assertNotNull(response.resources());
         assertTrue(response.resources().size() > 0);
+    }
+
+    @Test
+    void should_paginate_models_correctly() {
+        var parameters = FoundationModelParameters.builder()
+            .limit(1)
+            .build();
+        var response = foundationModelService.getModels(parameters);
+        assertEquals(1, response.limit());
+        assertEquals(1, response.next().start().orElse(null));
+        var firstModelId = response.resources().get(0).modelId();
+        assertNotNull(firstModelId);
+
+        parameters = FoundationModelParameters.builder()
+            .start(response.next().start().orElse(null))
+            .limit(1)
+            .build();
+
+        response = foundationModelService.getModels(parameters);
+        assertEquals(1, response.limit());
+        assertEquals(2, response.next().start().orElse(null));
+        var secondModelId = response.resources().get(0).modelId();
+        assertNotNull(secondModelId);
+        assertNotEquals(firstModelId, secondModelId);
     }
 }

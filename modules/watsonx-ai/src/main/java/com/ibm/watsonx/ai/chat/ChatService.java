@@ -36,7 +36,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * ChatService chatService = ChatService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
- *     .projectId("my-project-id")
+ *     .projectId("project-id")
  *     .modelId("ibm/granite-4-h-small")
  *     .build();
  *
@@ -399,7 +399,7 @@ public class ChatService extends CryptoService implements ChatProvider {
      * ChatService chatService = ChatService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
-     *     .projectId("my-project-id")
+     *     .projectId("project-id")
      *     .modelId("ibm/granite-4-h-small")
      *     .build();
      *

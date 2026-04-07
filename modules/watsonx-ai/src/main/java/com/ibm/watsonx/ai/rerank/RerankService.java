@@ -24,7 +24,7 @@ import com.ibm.watsonx.ai.rerank.RerankPayload.RerankInput;
  * RerankService rerankService = RerankService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
- *     .projectId("my-project-id")
+ *     .projectId("project-id")
  *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
  *     .build();
  *
@@ -137,7 +137,7 @@ public class RerankService extends ModelService {
      * RerankService rerankService = RerankService.builder()
      *     .baseUrl("https://...")      // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
-     *     .projectId("my-project-id")
+     *     .projectId("project-id")
      *     .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
      *     .build();
      *

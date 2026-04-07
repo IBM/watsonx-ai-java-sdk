@@ -84,10 +84,6 @@ public final class EmbeddingRequest {
 
         /**
          * Sets the input texts for the request, replacing any existing inputs.
-         * <p>
-         * This method completely overwrites the current list of inputs with the provided values.
-         * <p>
-         * Use {@link #addInputs(String...)} or {@link #addInputs(List)} to append inputs instead.
          *
          * @param inputs the list of input texts to embed
          */

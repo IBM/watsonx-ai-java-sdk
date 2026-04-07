@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * <pre>{@code
  * var ragQueryTool = RAGQueryTool.builder()
  *     .toolService(toolService)
- *     .projectId("my-project-id")
+ *     .projectId("project-id")
  *     .vectorIndexIds("index-1")
  *     .description("The document contains information about the watsonx.ai project.")
  *     .build();
@@ -126,7 +126,7 @@ public class RAGQueryTool implements ExecutableTool {
      * <pre>{@code
      * var ragQueryTool = RAGQueryTool.builder()
      *     .toolService(toolService)
-     *     .projectId("my-project-id")
+     *     .projectId("project-id")
      *     .vectorIndexIds("index-1")
      *     .description("The document contains information about the watsonx.ai project.")
      *     .build();
