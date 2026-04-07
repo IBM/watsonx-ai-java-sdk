@@ -1,6 +1,7 @@
 name: Revert to snapshot after release
 
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: ["Release to the Maven repository"]
     types:
@@ -8,7 +9,7 @@ on:
 
 jobs:
   revert:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -35,5 +36,4 @@ jobs:
         uses: ./.github/actions/commit-push
         with:
           commit_message: "Prepare for next development iteration"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
+          token: ${{ secrets.GH_BOT_TOKEN }}
