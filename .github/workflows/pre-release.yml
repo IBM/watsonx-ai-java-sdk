@@ -1,6 +1,7 @@
 name: Prepare release
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [closed]
     paths:
@@ -47,8 +48,7 @@ jobs:
         uses: ./.github/actions/commit-push
         with:
           commit_message: "Prepare release ${{env.CURRENT_VERSION}}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
+          token: ${{ secrets.GH_BOT_TOKEN }}
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
@@ -58,5 +58,4 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{secrets.GH_BOT_TOKEN}}
+          token: ${{ secrets.GH_BOT_TOKEN }}

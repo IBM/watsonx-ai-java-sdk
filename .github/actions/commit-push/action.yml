@@ -4,6 +4,9 @@ inputs:
   commit_message:
     description: "Commit message"
     required: true
+  token:
+    description: "GitHub token"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -14,5 +17,5 @@ runs:
         git config user.email "github-actions@users.noreply.github.com"
         git add .
         git commit -m "${{ inputs.commit_message }}" || echo "Nothing to commit"
-        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+        git remote set-url origin https://x-access-token:${{ inputs.token }}@github.com/${{ github.repository }}.git
         git push origin main

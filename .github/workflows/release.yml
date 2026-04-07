@@ -2,6 +2,7 @@ name: Release to the Maven repository
 run-name: Release ${{ github.ref_name }}
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "*"
