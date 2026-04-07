@@ -17,7 +17,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * DetectionService detectionService = DetectionService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
- *     .projectId("my-project-id")
+ *     .projectId("project-id")
  *     .build();
  *
  * DetectionResponse<DetectionTextResponse> response = detectionService.detect(
@@ -73,7 +73,7 @@ public class DetectionService extends ProjectService {
      * DetectionService detectionService = DetectionService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
-     *     .projectId("my-project-id")
+     *     .projectId("project-id")
      *     .build();
      *
      * DetectionResponse<DetectionTextResponse> response = detectionService.detect(

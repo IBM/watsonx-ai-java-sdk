@@ -1709,6 +1709,17 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
+    @Test
+    void should_throw_exception_when_a_batch_chat_responses_does_not_contain_model_id() {
+        var batchService = buildBatchService("X-IBM-Project-ID", PROJECT_ID, buildFileService("X-IBM-Project-ID", PROJECT_ID));
+        var ex = assertThrows(
+            NullPointerException.class,
+            () -> batchService.submitChatRequestsAndFetch(
+                List.of(ChatRequest.builder().messages(UserMessage.text("Hello")).build()))
+        );
+        assertEquals("The modelId parameter is mandatory", ex.getMessage());
+    }
+
     private FileService buildFileService(String headerKey, String headerValue) {
         var builder = FileService.builder()
             .authenticator(mockAuthenticator)

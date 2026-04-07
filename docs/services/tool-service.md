@@ -242,7 +242,7 @@ Query one or more vector indexes using semantic similarity to retrieve relevant 
 ```java
 RAGQueryTool ragQuery = RAGQueryTool.builder()
     .toolService(toolService)
-    .projectId("my-project-id")
+    .projectId("project-id")
     .vectorIndexIds("index-1")
     .description("The document contains information about the watsonx.ai Java SDK.")
     .build();

@@ -156,7 +156,7 @@ With full control via `FileRetrieveRequest` — override `project_id`, `space_id
 String content = fileService.retrieve(
     FileRetrieveRequest.builder()
         .fileId("file-AQIDkP4L...")
-        .projectId("my-project-id")
+        .projectId("project-id")
         .spaceId("my-space-id")
         .transactionId("my-transaction-id")
         .build()
@@ -178,7 +178,7 @@ With full control via `FileDeleteRequest` — override `project_id`, `space_id`,
 FileDeleteResponse response = fileService.delete(
     FileDeleteRequest.builder()
         .fileId("file-AQIDkP4L...")
-        .projectId("my-project-id")
+        .projectId("project-id")
         .spaceId("my-space-id")
         .transactionId("my-transaction-id")
         .build()

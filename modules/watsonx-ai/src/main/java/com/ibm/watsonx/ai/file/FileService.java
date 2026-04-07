@@ -24,7 +24,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * FileService fileService = FileService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
- *     .projectId("my-project-id")
+ *     .projectId("project-id")
  *     .build();
  *
  * FileData fileData = fileService.upload(Path.of("mydata.jsonl"));
@@ -250,7 +250,7 @@ public class FileService extends ProjectService {
      * FileService fileService = FileService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
-     *     .projectId("my-project-id")
+     *     .projectId("project-id")
      *     .build();
      *
      * FileUploadResponse response = fileService.upload(Path.of("mydata.jsonl"));

@@ -68,7 +68,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
         TimeSeriesService tsService = TimeSeriesService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticator(mockAuthenticator)
-            .projectId("my-project-id")
+            .projectId("project-id")
             .modelId("ibm/granite-ttm-1536-96-r2")
             .build();
 
@@ -90,7 +90,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .withRequestBody(equalToJson("""
                 {
-                    "project_id": "my-project-id",
+                    "project_id": "project-id",
                     "model_id": "ibm/granite-ttm-1536-96-r2",
                     "schema": {
                         "timestamp_column": "date",
@@ -156,7 +156,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
         var BODY = """
             {
-                "project_id": "my-project-id",
+                "project_id": "project-id",
                 "model_id": "my-model-id",
                 "space_id": "my-space-id",
                 "schema": {
@@ -188,7 +188,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
         TimeSeriesService tsService = TimeSeriesService.builder()
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .authenticator(mockAuthenticator)
-            .projectId("my-project-id")
+            .projectId("project-id")
             .modelId("ibm/granite-ttm-1536-96-r2")
             .build();
 
@@ -216,7 +216,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
         var parameters = TimeSeriesParameters.builder()
             .modelId("my-model-id")
-            .projectId("my-project-id")
+            .projectId("project-id")
             .spaceId("my-space-id")
             .predictionLength(512)
             .transactionId("my-transaction-id")
@@ -299,7 +299,7 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
             TimeSeriesService tsService = TimeSeriesService.builder()
                 .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
                 .authenticator(mockAuthenticator)
-                .projectId("my-project-id")
+                .projectId("project-id")
                 .modelId("ibm/granite-ttm-1536-96-r2")
                 .build();
 

@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * EmbeddingService embeddingService = EmbeddingService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
- *     .projectId("my-project-id")
+ *     .projectId("project-id")
  *     .modelId("ibm/granite-embedding-278m-multilingual")
  *     .build();
  *
@@ -156,7 +156,7 @@ public class EmbeddingService extends ModelService {
      * EmbeddingService embeddingService = EmbeddingService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
-     *     .projectId("my-project-id")
+     *     .projectId("project-id")
      *     .modelId("ibm/granite-embedding-278m-multilingual")
      *     .build();
      *

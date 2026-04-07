@@ -132,12 +132,6 @@ public class ChatServiceIT {
                     UserMessage.text("Hello, my name is Andrea"),
                     AssistantMessage.text("Hello Andrea, nice to meet you"),
                     UserMessage.text("What is my name?")
-                )
-                .parameters(
-                    ChatParameters.builder()
-                        .temperature(0.0)
-                        .repetitionPenalty(1.5)
-                        .build()
                 ).build();
 
 

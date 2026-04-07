@@ -36,7 +36,7 @@ import com.ibm.watsonx.ai.file.FileService;
  * BatchService batchService = BatchService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
- *     .projectId("my-project-id")
+ *     .projectId("project-id")
  *     .endpoint("/v1/chat/completions")
  *     .fileService(fileService)
  *     .build();
@@ -365,6 +365,8 @@ public class BatchService extends ProjectService {
         var jsonl = new StringJoiner("\n");
         for (var i = 0; i < requests.size(); i++) {
             var request = requests.get(i);
+            requireNonNull(request.parameters(), "The modelId parameter is mandatory");
+            requireNonNull(request.parameters().modelId(), "The modelId parameter is mandatory");
             var json = Json.toJson(ChatUtility.buildTextChatRequest(request, null));
             jsonl.add("{\"custom_id\": \"%s\", \"method\": \"POST\", \"url\":\"/v1/chat/completions\", \"body\":%s}".formatted(i, json));
         }
@@ -563,7 +565,7 @@ public class BatchService extends ProjectService {
      * BatchService batchService = BatchService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
-     *     .projectId("my-project-id")
+     *     .projectId("project-id")
      *     .endpoint("/v1/chat/completions")
      *     .fileService(fileService)
      *     .build();
