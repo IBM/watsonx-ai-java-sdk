@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.HashMap;
@@ -59,6 +60,7 @@ public class DeploymentServiceIT {
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
     static final String DEPLOYMENT_ID = System.getenv("WATSONX_DEPLOYMENT_ID");
     static final String URL = System.getenv("WATSONX_URL");
+    static final String NVIDIA_DEPLOYMENT_ID = System.getenv("WATSONX_NVIDIA_DEPLOYMENT_ID");
 
     static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
@@ -345,6 +347,30 @@ public class DeploymentServiceIT {
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
             assertEquals(1, assistantMessage.toolCalls().size());
+        }
+
+        @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_NVIDIA_DEPLOYMENT_ID", matches = ".+")
+        void should_return_description_when_video_is_sent_in_chat() {
+
+            var video = assertDoesNotThrow(() -> Path.of(getClass().getClassLoader().getResource("cat.mp4").toURI()));
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .deploymentId(NVIDIA_DEPLOYMENT_ID)
+                .messages(UserMessage.video("Tell me more about this video", video))
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertFalse(assistantMessage.content().isBlank());
+            assertTrue(assistantMessage.content().contains("cat"));
         }
     }
 

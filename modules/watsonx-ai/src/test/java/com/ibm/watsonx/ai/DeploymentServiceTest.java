@@ -2101,7 +2101,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         ChatResponse chatResponse = assertDoesNotThrow(() -> future.get());
         AssistantMessage assistantMessage = chatResponse.toAssistantMessage();
-        assistantMessage.processTools(toolRegistry::execute);
+        assistantMessage.processTools(toolRegistry);
         assertEquals(2, processedToolCallCount.get());
         assertEquals(2, completedToolCallCount.get());
         assertEquals("tool_calls", chatResponse.finishReason().value());
