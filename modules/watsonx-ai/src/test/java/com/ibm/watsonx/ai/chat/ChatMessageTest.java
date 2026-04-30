@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
 import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.chat.model.VideoContent;
 
 public class ChatMessageTest {
 
@@ -66,5 +67,28 @@ public class ChatMessageTest {
         var is = mock(InputStream.class);
         when(is.readAllBytes()).thenThrow(new IOException());
         assertThrows(RuntimeException.class, () -> UserMessage.image("Describe this image", is, "image/jpeg"));
+    }
+
+    @Test
+    void should_create_an_user_message_with_text_and_video_contents() throws IOException, URISyntaxException {
+        var file = new File(ClassLoader.getSystemResource("cat.mp4").toURI());
+        var userMessage = UserMessage.video("Describe this video", file);
+        assertEquals(2, userMessage.content().size());
+        assertEquals("Describe this video", userMessage.content().get(0).toString());
+        var videoContent = ((VideoContent) userMessage.content().get(1)).videoUrl();
+        assertTrue(videoContent.url().startsWith("data:video/mp4;base64,"));
+    }
+
+    @Test
+    void should_throw_runtime_exception_when_video_file_does_not_exist() {
+        var file = new File("non-existent-file.mp4");
+        assertThrows(RuntimeException.class, () -> UserMessage.video("Describe this video", file));
+    }
+
+    @Test
+    void should_throw_runtime_exeception_when_video_file_is_corrupted() throws IOException, URISyntaxException {
+        var is = mock(InputStream.class);
+        when(is.readAllBytes()).thenThrow(new IOException());
+        assertThrows(RuntimeException.class, () -> UserMessage.video("Describe this image", is, "video/mp4"));
     }
 }
