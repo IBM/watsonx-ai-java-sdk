@@ -38,7 +38,7 @@ import com.ibm.watsonx.ai.chat.model.ToolArguments;
  *
  * List<ChatMessages> messages = ...
  * var assistantMessage = chatService.chat(messages).toAssistantMessage();
- * assistantMessage.processTools(toolRegistry::execute);
+ * assistantMessage.processTools(toolRegistry);
  * }</pre>
  *
  * @see ExecutableTool

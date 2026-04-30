@@ -626,7 +626,7 @@ AssistantMessage assistant = chatService.chat(messages).toAssistantMessage();
 messages.add(assistant);
 
 while (assistant.hasToolCalls()) {
-    messages.addAll(assistant.processTools(toolRegistry::execute));
+    messages.addAll(assistant.processTools(toolRegistry));
     assistant = chatService.chat(messages).toAssistantMessage();
     messages.add(assistant);
 }

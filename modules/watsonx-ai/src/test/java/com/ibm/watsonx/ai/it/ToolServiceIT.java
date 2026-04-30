@@ -298,7 +298,7 @@ public class ToolServiceIT {
         messages.add(assistantMessage);
 
         if (assistantMessage.hasToolCalls()) {
-            var toolMessage = assistantMessage.processTools(toolRegistry::execute);
+            var toolMessage = assistantMessage.processTools(toolRegistry);
             messages.addAll(toolMessage);
             assistantMessage = chatService.chat(messages).toAssistantMessage();
         }
