@@ -18,8 +18,10 @@ FoundationModelService service = FoundationModelService.builder()
     .build();
 
 FoundationModel model = service.getModel("meta-llama/llama-3-3-70b-instruct").orElseThrow();
-System.out.println("Max output tokens: " + model.modelId());
-// → Max output tokens: meta-llama/llama-3-3-70b-instruct
+System.out.println("Model ID: " + model.modelId());
+// → Model ID: meta-llama/llama-3-3-70b-instruct
+System.out.println("Max output tokens: " + model.maxOutputTokens());
+// → Max output tokens: 8192
 System.out.println("Max sequence length: " + model.maxSequenceLength());
 // → Max sequence length: 131072
 ```
