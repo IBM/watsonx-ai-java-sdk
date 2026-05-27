@@ -183,8 +183,8 @@ public abstract class SemanticConfig {
          *
          * @param groundingMode the grounding mode to use
          */
-        public T groundingMode(String groundingMode) {
-            this.groundingMode = groundingMode;
+        public T groundingMode(GroundingMode groundingMode) {
+            this.groundingMode = nonNull(groundingMode) ? groundingMode.value : null;
             return (T) this;
         }
 
@@ -229,14 +229,9 @@ public abstract class SemanticConfig {
          *
          * Example:
          *
-         * <pre>{@code
-         * {
-         *   "create_schema": "pixtral-small-something-else"
-         * }
-         * }</pre>
+         * <pre>{@code { "create_schema": "pixtral-small-something-else" } }</pre>
          *
-         * @param taskModelNameOverride a map of task names to custom model names
-         * @return this builder instance
+         * @param taskModelNameOverride a map of task names to custom model names @return this builder instance
          */
         public T taskModelNameOverride(Map<String, Object> taskModelNameOverride) {
             this.taskModelNameOverride = taskModelNameOverride;
@@ -283,6 +278,42 @@ public abstract class SemanticConfig {
     }
 
     /**
+     * Specifies the grounding mode for extracting the physical location (bounding boxes) of key-value pairs within a document.
+     *
+     * @see TextClassificationSemanticConfig
+     * @see TextExtractionSemanticConfig
+     */
+    public enum GroundingMode {
+
+        /**
+         * Prioritizes spatial accuracy. Calculates exact bounding box coordinates that tightly align with the text, at the cost of higher compute
+         * resources and processing time.
+         */
+        PRECISE("precise"),
+
+        /**
+         * Prioritizes processing speed. Calculates approximate bounding box coordinates, resulting in faster extraction times and lower compute
+         * costs.
+         */
+        FAST("fast");
+
+        private String value;
+
+        GroundingMode(String value) {
+            this.value = value;
+        }
+
+        /**
+         * Returns the string representation of the grounding mode.
+         *
+         * @return the string value of the mode ("precise" or "fast")
+         */
+        public String value() {
+            return value;
+        }
+    }
+
+    /**
      * Defines the strategy used to merge predefined and user-defined input schemas for semantic key-value pair.
      * <p>
      * This setting determines how custom schemas provided by the user interact with the existing predefined schemas within the semantic
@@ -310,7 +341,7 @@ public abstract class SemanticConfig {
         }
 
         public String value() {
-            return this.value;
+            return value;
         }
     }
 }
