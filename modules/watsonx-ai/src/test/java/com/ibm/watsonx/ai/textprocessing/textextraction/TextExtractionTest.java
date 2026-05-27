@@ -79,6 +79,7 @@ import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.Metadata;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
 import com.ibm.watsonx.ai.textprocessing.Schema;
+import com.ibm.watsonx.ai.textprocessing.SemanticConfig.GroundingMode;
 import com.ibm.watsonx.ai.textprocessing.SemanticConfig.SchemaMergeStrategy;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.EmbeddedImageMode;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.KvpMode;
@@ -349,7 +350,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .enableGenericKvp(true)
             .enableTextHints(true)
             .enableSchemaKvp(true)
-            .groundingMode("fast")
+            .groundingMode(GroundingMode.FAST)
             .schemasMergeStrategy(SchemaMergeStrategy.MERGE)
             .forceSchemaName("None")
             .schemas(List.of(schema))
