@@ -98,7 +98,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         ],
                         "time_limit": 60000,
                         "chat_template_kwargs" : {
-                            "thinking": true
+                            "thinking": true,
+                            "enable_thinking": true
                         }
                     }"""))
                 .willReturn(aResponse()
@@ -164,7 +165,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         ],
                         "time_limit": 60000,
                         "chat_template_kwargs" : {
-                            "thinking": true
+                            "thinking": true,
+                            "enable_thinking": true
                         }
                     }"""))
                 .willReturn(aResponse()
@@ -220,7 +222,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ],
                                 "time_limit": 60000,
                                 "chat_template_kwargs" : {
-                                    "thinking": true
+                                    "thinking": true,
+                                    "enable_thinking": true
                                 },
                                 "reasoning_effort": "%s"
                             }""".formatted(thinkingEffort.getValue())))
@@ -274,7 +277,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         ],
                         "time_limit": 60000,
                         "chat_template_kwargs" : {
-                            "thinking": false
+                            "thinking": false,
+                            "enable_thinking": false
                         }
                     }"""))
                 .willReturn(aResponse()
@@ -351,7 +355,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         ],
                         "time_limit": 60000,
                         "chat_template_kwargs" : {
-                            "thinking": true
+                            "thinking": true,
+                            "enable_thinking": true
                         },
                         "include_reasoning": true,
                         "reasoning_effort": "low"
@@ -417,7 +422,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         ],
                         "time_limit": 60000,
                         "chat_template_kwargs" : {
-                            "thinking": true
+                            "thinking": true,
+                            "enable_thinking": true
                         }
                     }"""))
                 .willReturn(aResponse()
@@ -538,7 +544,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         ],
                         "time_limit": 60000,
                          "chat_template_kwargs" : {
-                            "thinking": true
+                            "thinking": true,
+                            "enable_thinking": true
                         }
                     }"""))
                 .willReturn(aResponse()
@@ -667,7 +674,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         ],
                         "time_limit": 60000,
                         "chat_template_kwargs" : {
-                            "thinking": true
+                            "thinking": true,
+                            "enable_thinking": true
                         }
                     }"""))
                 .willReturn(aResponse()
@@ -752,7 +760,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ],
                                 "time_limit": 60000,
                                 "chat_template_kwargs" : {
-                                    "thinking": true
+                                    "thinking": true,
+                                    "enable_thinking": true
                                 },
                                 "reasoning_effort": "%s"
                             }""".formatted(thinkingEffort.getValue())))
@@ -979,7 +988,8 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         ],
                         "time_limit": 60000,
                         "chat_template_kwargs" : {
-                            "thinking": true
+                            "thinking": true,
+                            "enable_thinking": true
                         },
                         "include_reasoning": true,
                         "reasoning_effort": "low"

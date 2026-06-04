@@ -342,7 +342,7 @@ public final class ChatResponse {
          *
          * @param extractionTags the extraction tags
          */
-        Builder extractionTags(ExtractionTags extractionTags) {
+        public Builder extractionTags(ExtractionTags extractionTags) {
             this.extractionTags = extractionTags;
             return this;
         }

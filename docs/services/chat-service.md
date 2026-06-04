@@ -519,28 +519,31 @@ System.out.println(response.toAssistantMessage().content());
 
 ## Reasoning / Thinking Mode
 
-Some foundation models can include internal reasoning (also called "thinking") steps as part of their response. Depending on the model, this reasoning may be embedded in the same text as the final response, or returned separately in a dedicated field.
+Some foundation models can include internal reasoning steps as part of their response. Depending on the model, this reasoning may be embedded in the same text as the final response, or returned separately in a dedicated field.
 
 There are two configuration modes:
 
 - **ExtractionTags** — for models that return reasoning and response in the same text block.
-- **ThinkingEffort / Boolean** — for models that already separate reasoning and response automatically.
+- **ThinkingEffort** — for models that already separate reasoning and response automatically.
 
 ### Models that mix reasoning and response in the same text
 
-Use `ExtractionTags` when the model outputs reasoning and response together as a single string. The tags define XML-like markers used to separate the two parts:
+Use `ExtractionTags` when the model outputs reasoning and response together as a single string. Use `Think` and `Response` to specify the exact opening and closing delimiters used by the model:
 
 ```java
-ChatService chatService = ChatService.builder()
-    .apiKey(WATSONX_API_KEY)
-    .projectId(WATSONX_PROJECT_ID)
-    .baseUrl(CloudRegion.DALLAS)
-    .modelId("ibm/granite-3-3-8b-instruct")
-    .build();
-
+// Granite
 ChatRequest request = ChatRequest.builder()
     .messages(UserMessage.text("Why is the sky blue?"))
-    .thinking(ExtractionTags.of("think", "response"))
+    .thinking(ExtractionTags.of(
+        new Think("<think>", "</think>"),
+        new Response("<response>", "</response>")
+    ))
+    .build();
+
+// Gemma-4
+ChatRequest request = ChatRequest.builder()
+    .messages(UserMessage.text("Why is the sky blue?"))
+    .thinking(ExtractionTags.of(new Think("<|channel>thought\n", "<channel|>")))
     .build();
 
 ChatResponse response = chatService.chat(request);
@@ -551,8 +554,8 @@ System.out.println("Answer:    " + message.content());
 ```
 
 **Tag behavior:**
-- Both tags specified: extract reasoning from the first tag, response from the second.
-- Only the reasoning tag specified: everything outside that tag is treated as the response.
+- Both `Think` and `Response` specified: extract reasoning from the first delimiter pair, response from the second.
+- Only `Think` specified: everything outside that delimiter pair is treated as the response.
 
 **Streaming with ExtractionTags:**
 

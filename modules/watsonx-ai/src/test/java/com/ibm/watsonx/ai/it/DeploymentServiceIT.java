@@ -24,7 +24,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -36,6 +35,9 @@ import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
+import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -61,6 +63,8 @@ public class DeploymentServiceIT {
     static final String DEPLOYMENT_ID = System.getenv("WATSONX_DEPLOYMENT_ID");
     static final String URL = System.getenv("WATSONX_URL");
     static final String NVIDIA_DEPLOYMENT_ID = System.getenv("WATSONX_NVIDIA_DEPLOYMENT_ID");
+    static final String GEMMA_DEPLOYMENT_ID = System.getenv("WATSONX_GEMMA_DEPLOYMENT_ID");
+    static final String GRANITE_3_3_DEPLOYMENT_ID = System.getenv("WATSONX_GRANITE_3_3_DEPLOYMENT_ID");
 
     static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
@@ -89,6 +93,100 @@ public class DeploymentServiceIT {
 
     @Nested
     class Chat {
+
+        @Test
+        void should_extract_thinking_and_content_when_control_message_is_sent() {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .timeout(Duration.ofSeconds(30))
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(
+                    ControlMessage.of("thinking"),
+                    UserMessage.text("Why the sky is blue?"))
+                .thinking(ExtractionTags.of("think", "response"))
+                .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
+            var text = chatResponse.choices().get(0).message().content();
+
+            assertNotNull(chatResponse);
+            assertNotNull(text);
+            assertFalse(text.isBlank());
+            assertTrue(text.contains("<think>") && text.contains("</think>"));
+            assertTrue(text.contains("<response>") && text.contains("</response>"));
+
+            var thinkingMessage = chatResponse.toAssistantMessage().thinking();
+            assertNotNull(thinkingMessage);
+            assertFalse(thinkingMessage.isBlank());
+
+            var contentMessage = chatResponse.toAssistantMessage().content();
+            assertNotNull(contentMessage);
+            assertFalse(contentMessage.isBlank());
+
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.content());
+            assertFalse(assistantMessage.content().isBlank());
+            assertFalse(assistantMessage.content().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
+
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().isBlank());
+            assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
+        }
+
+        @Test
+        void should_return_valid_response_when_thinking_is_enabled() {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .timeout(Duration.ofSeconds(30))
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Why the sky is blue?"))
+                .thinking(ExtractionTags.of("think", "response"))
+                .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
+            var text = chatResponse.choices().get(0).message().content();
+
+            assertNotNull(chatResponse);
+            assertNotNull(text);
+            assertFalse(text.isBlank());
+            assertTrue(text.contains("<think>") && text.contains("</think>"));
+            assertTrue(text.contains("<response>") && text.contains("</response>"));
+
+            var thinkingMessage = chatResponse.toAssistantMessage().thinking();
+            assertNotNull(thinkingMessage);
+            assertFalse(thinkingMessage.isBlank());
+
+            var contentMessage = chatResponse.toAssistantMessage().content();
+            assertNotNull(contentMessage);
+            assertFalse(contentMessage.isBlank());
+
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.content());
+            assertFalse(assistantMessage.content().isBlank());
+            assertFalse(assistantMessage.content().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
+
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().isBlank());
+            assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
+        }
 
         @Test
         void should_return_valid_chat_response_when_chat_is_invoked() {
@@ -255,7 +353,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled("deployment doesn't allow image function")
         void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
@@ -281,7 +378,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
             var deploymentService = DeploymentService.builder()
@@ -316,7 +412,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var deploymentService = DeploymentService.builder()
@@ -371,6 +466,32 @@ public class DeploymentServiceIT {
             var assistantMessage = chatResponse.toAssistantMessage();
             assertFalse(assistantMessage.content().isBlank());
             assertTrue(assistantMessage.content().contains("cat"));
+        }
+
+        @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_GEMMA_DEPLOYMENT_ID", matches = ".+")
+        void should_return_answer_using_google_gemma_with_thiking() {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .deploymentId(GEMMA_DEPLOYMENT_ID)
+                .messages(UserMessage.text("Hello"))
+                .tools(Tool.of("tool"))
+                .thinking(ExtractionTags.of(new Think("<|channel>thought\n", "<channel|>")))
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().contains("<|channel>") || assistantMessage.thinking().contains("<channel|>"));
+            assertFalse(assistantMessage.content().isBlank());
+            assertEquals("Hello! How can I help you today?", assistantMessage.content());
         }
     }
 
@@ -583,7 +704,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
@@ -606,6 +726,7 @@ public class DeploymentServiceIT {
                     ImageContent.from(Paths.get(image.toURI()))
                 ))
                 .parameters(parameters)
+                .deploymentId(DEPLOYMENT_ID)
                 .build();
 
             CompletableFuture<String> partialResponseFuture = new CompletableFuture<>();
@@ -639,7 +760,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
             var chatService = DeploymentService.builder()
@@ -650,6 +770,7 @@ public class DeploymentServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
+                .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"Test\" and body \"Hello\""))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -707,8 +828,8 @@ public class DeploymentServiceIT {
                 }
             });
 
-            var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(3, TimeUnit.SECONDS));
-            var toolCall = assertDoesNotThrow(() -> toolCallFuture.get(3, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(10, TimeUnit.SECONDS));
+            var toolCall = assertDoesNotThrow(() -> toolCallFuture.get(10, TimeUnit.SECONDS));
             var fromPartialTool = assertDoesNotThrow(() -> fromPartialToolCallFuture.get(3, TimeUnit.SECONDS));
             assertThrows(TimeoutException.class, () -> throwableFuture.get(1, TimeUnit.SECONDS));
             assertEquals(toolCall.completionId(), chatResponse.id());
@@ -797,7 +918,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var deploymentService = DeploymentService.builder()
@@ -843,6 +963,126 @@ public class DeploymentServiceIT {
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
             assertEquals(1, assistantMessage.toolCalls().size());
+        }
+
+        @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_GEMMA_DEPLOYMENT_ID", matches = ".+")
+        void should_return_answer_using_google_gemma_with_thiking() {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .deploymentId(GEMMA_DEPLOYMENT_ID)
+                .messages(UserMessage.text("Hello"))
+                .tools(Tool.of("tool"))
+                .thinking(ExtractionTags.of(new Think("<|channel>thought\n", "<channel|>")))
+                .build();
+
+            var chatResponse = deploymentService.chatStreaming(request, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+            }).join();
+
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().contains("<|channel>") || assistantMessage.thinking().contains("<channel|>"));
+            assertFalse(assistantMessage.content().isBlank());
+            assertEquals("Hello! How can I help you today?", assistantMessage.content());
+        }
+
+        @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_GRANITE_3_3_DEPLOYMENT_ID", matches = ".+")
+        void should_return_valid_response_when_thinking_is_enabled() {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .timeout(Duration.ofSeconds(30))
+                .build();
+
+            var parameters = ChatParameters.builder()
+                .maxCompletionTokens(0)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Why the sky is blue?"))
+                .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
+                .thinking(ExtractionTags.of("think", "response"))
+                .parameters(parameters)
+                .build();
+
+            CompletableFuture<String> futureThinking = new CompletableFuture<>();
+            CompletableFuture<String> futureContent = new CompletableFuture<>();
+            CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+            CompletableFuture<Throwable> futureError = new CompletableFuture<>();
+            deploymentService.chatStreaming(request, new ChatHandler() {
+                private StringBuilder thinking = new StringBuilder();
+                private StringBuilder response = new StringBuilder();
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    response.append(partialResponse);
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    futureChatResponse.complete(completeResponse);
+                    futureThinking.complete(thinking.toString());
+                    futureContent.complete(response.toString());
+                }
+
+                @Override
+                public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                    thinking.append(partialThinking);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    futureError.completeExceptionally(error);
+                }
+
+            });
+
+            var chatResponse = assertDoesNotThrow(() -> futureChatResponse.get(30, TimeUnit.SECONDS));
+            var text = chatResponse.choices().get(0).message().content();
+            assertNotNull(chatResponse);
+            assertNotNull(text);
+            assertFalse(text.isBlank());
+            assertTrue(text.contains("<think>") && text.contains("</think>"));
+            assertTrue(text.contains("<response>") && text.contains("</response>"));
+
+            var thinkingMessage = chatResponse.toAssistantMessage().thinking();
+            assertNotNull(thinkingMessage);
+            assertFalse(thinkingMessage.isBlank());
+            assertFalse(thinkingMessage.contains("<think>") && text.contains("</think>"));
+
+            var contentMessage = chatResponse.toAssistantMessage().content();
+            assertNotNull(contentMessage);
+            assertFalse(contentMessage.isBlank());
+            assertFalse(contentMessage.contains("<response>") && text.contains("</response>"));
+
+            var thinking = assertDoesNotThrow(() -> futureThinking.get(3, TimeUnit.SECONDS));
+            var content = assertDoesNotThrow(() -> futureContent.get(3, TimeUnit.SECONDS));
+
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.content());
+            assertFalse(assistantMessage.content().isBlank());
+            assertFalse(assistantMessage.content().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
+            assertEquals(content, assistantMessage.content());
+
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().isBlank());
+            assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
+            assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
+            assertEquals(thinking.trim(), assistantMessage.thinking());
+            assertEquals(thinkingMessage, thinking);
+
         }
 
         private ChatHandler createChatHandler(CompletableFuture<String> future) {

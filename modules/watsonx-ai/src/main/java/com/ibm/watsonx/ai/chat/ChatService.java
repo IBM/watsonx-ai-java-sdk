@@ -133,17 +133,17 @@ public class ChatService extends CryptoService implements ChatProvider {
                 .build();
         }
 
-        var response = chatResponse.toBuilder();
+        var chatResponseBuilder = chatResponse.toBuilder();
 
         // For certain models, watsonx.ai does not return FinishReason.TOOL_CHOICE when ToolChoiceOption.REQUIRED is set
         if (ToolChoiceOption.REQUIRED.value().equals(textChatRequest.toolChoiceOption()))
-            response.choices(
+            chatResponseBuilder.choices(
                 chatResponse.choices().stream()
                     .map(resultChoice -> resultChoice.withFinishReason(FinishReason.TOOL_CALLS))
                     .toList()
             );
 
-        return response.extractionTags(extractionTags).build();
+        return chatResponseBuilder.extractionTags(extractionTags).build();
     }
 
     @Override
