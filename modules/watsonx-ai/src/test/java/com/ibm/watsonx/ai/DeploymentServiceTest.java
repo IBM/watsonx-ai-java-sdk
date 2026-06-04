@@ -674,7 +674,8 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                         }
                     ],
                     "chat_template_kwargs" : {
-                        "thinking" : true
+                        "thinking" : true,
+                        "enable_thinking": true
                     },
                     "time_limit": 60000
                 }"""))

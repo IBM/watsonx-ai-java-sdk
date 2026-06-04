@@ -12,8 +12,7 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 
 /**
  * This class tracks the parsing state of a streamed chat response, determining whether the parser is in a {@code reasoning} or {@code response} state
- * or outside any known tags. It processes incoming text chunks, identifies opening and closing XML-like tags, and updates the current state
- * accordingly.
+ * or outside any known tags. It processes incoming text chunks, identifies opening and closing delimiters, and updates the current state accordingly.
  */
 public final class StreamingStateTracker {
 
@@ -33,7 +32,6 @@ public final class StreamingStateTracker {
     private final StringBuilder tagBuffer;
     private final StringBuilder textBuffer;
     private State currentState = State.START;
-    private TagParseState parseState = TagParseState.CONTENT;
 
     /**
      * Creates a new {@code StreamingStateTracker} with the specified tag definitions.
@@ -45,86 +43,81 @@ public final class StreamingStateTracker {
         this.extractionTags = extractionTags;
         tagBuffer = new StringBuilder();
         textBuffer = new StringBuilder();
-        THINKING_START_TAG = "<" + extractionTags.think() + ">";
-        THINKING_CLOSE_TAG = "</" + extractionTags.think() + ">";
-        RESPONSE_START_TAG = isNull(extractionTags.response()) ? null : "<" + extractionTags.response() + ">";
-        RESPONSE_CLOSE_TAG = isNull(extractionTags.response()) ? null : "</" + extractionTags.response() + ">";
+        THINKING_START_TAG = extractionTags.think().opening();
+        THINKING_CLOSE_TAG = extractionTags.think().closing();
+        RESPONSE_START_TAG = isNull(extractionTags.response()) ? null : extractionTags.response().opening();
+        RESPONSE_CLOSE_TAG = isNull(extractionTags.response()) ? null : extractionTags.response().closing();
     }
 
     /**
      * Processes the next streamed text chunk and updates the parsing state.
      * <p>
-     * The parser detects partial or complete XML-like tags and determines whether the current position is inside a {@code reasoning} block, or
-     * {@code response} block.
+     * The parser accumulates characters into a buffer and performs prefix matching against all known delimiters. As soon as the buffer no longer
+     * matches any known delimiter prefix, the non-matching portion is flushed to the text output. When an exact delimiter match is found, the state
+     * is updated accordingly.
      *
      * @param chunk the incoming streamed text
-     * @return a {@link Result} containing the updated state
+     * @return a {@link Result} containing the updated state and any content extracted from the current state
      */
     public synchronized Result update(String chunk) {
         if (chunk.isEmpty())
             return new Result(currentState, Optional.empty());
 
         chunk = decodeUnicodeSymbols(chunk);
+
         if (currentState == State.NO_THINKING)
             return new Result(currentState, Optional.of(chunk));
 
-        char[] chars = chunk.toCharArray();
-        for (char c : chars) {
-            switch(parseState) {
-                case CONTENT -> {
-                    if (c == '<') {
-                        parseState = TagParseState.OPEN_TAG_START;
-                        tagBuffer.setLength(0);
-                        tagBuffer.append(c);
-                    } else {
-                        textBuffer.append(c);
-                    }
-                }
-                case OPEN_TAG_START -> {
-                    if (c == '/') {
-                        parseState = TagParseState.CLOSE_TAG_START;
-                        tagBuffer.append(c);
-                    } else {
-                        parseState = TagParseState.TAG_NAME;
-                        tagBuffer.append(c);
-                    }
-                }
-                case CLOSE_TAG_START, TAG_NAME -> {
-                    tagBuffer.append(c);
-                    String partialTag = tagBuffer.toString();
+        for (int i = 0; i < chunk.length(); i++) {
+            char c = chunk.charAt(i);
+            tagBuffer.append(c);
+            String partial = tagBuffer.toString();
 
-                    boolean matchesAnyPrefix = switch(currentState) {
-                        case NO_THINKING, START, UNKNOWN ->
-                            startsWithAny(partialTag, THINKING_START_TAG, THINKING_CLOSE_TAG,
-                                RESPONSE_START_TAG, RESPONSE_CLOSE_TAG);
-                        case RESPONSE -> startsWithAny(partialTag, RESPONSE_CLOSE_TAG);
-                        case THINKING -> startsWithAny(partialTag, THINKING_CLOSE_TAG);
-                    };
+            // Check if the buffer exactly matches a known delimiter
+            String exactMatch = findExactMatch(partial);
+            if (nonNull(exactMatch)) {
+                handleCompleteTag(exactMatch);
+                tagBuffer.setLength(0);
+                continue;
+            }
 
-                    // Verify whether the current partial tag matches the start of any known tags
-                    if (!matchesAnyPrefix) {
-                        if (currentState == State.START) {
-                            currentState = State.NO_THINKING;
-                        }
-                        parseState = TagParseState.CONTENT;
-                        textBuffer.append(tagBuffer);
-                        tagBuffer.setLength(0);
-                        break;
-                    }
+            // Check if the buffer is still a prefix of any known delimiter
+            if (isPrefixOfAny(partial)) {
+                // Keep accumulating, we might be in the middle of a delimiter
+                continue;
+            }
 
-                    // If tag is complete ('>'), process it
-                    if (c == '>') {
-                        handleCompleteTag(tagBuffer.toString());
-                        tagBuffer.setLength(0);
-                        parseState = TagParseState.CONTENT;
+            // Buffer no longer matches any delimiter prefix, flush all but the last char
+            // The last char could be the start of a new delimiter, so re-evaluate it
+            String toFlush = tagBuffer.substring(0, tagBuffer.length() - 1);
+            textBuffer.append(toFlush);
+            tagBuffer.setLength(0);
+            tagBuffer.append(c);
+
+            // If even the single char isn't a prefix of any delimiter, flush it too
+            if (!isPrefixOfAny(String.valueOf(c))) {
+                textBuffer.append(c);
+                tagBuffer.setLength(0);
+
+                // If we're still in START and nothing matched, switch to NO_THINKING
+                if (currentState == State.START) {
+                    currentState = State.NO_THINKING;
+                    // Flush the remaining chunk directly as content
+                    if (i + 1 < chunk.length()) {
+                        String remaining = chunk.substring(i + 1);
+                        String accumulated = textBuffer.toString();
+                        textBuffer.setLength(0);
+                        return new Result(currentState, Optional.of(accumulated + remaining));
                     }
                 }
             }
         }
 
-        String partialTag = tagBuffer.toString();
-        if (currentState == State.START && (partialTag.isEmpty() || partialTag.startsWith(THINKING_START_TAG)))
+        // If we are still in START state and the buffer does not match the start of the thinking tag,
+        // we can conclude there is no thinking section
+        if (currentState == State.START && !isPrefixOfAny(tagBuffer.toString())) {
             currentState = State.NO_THINKING;
+        }
 
         String textOut = textBuffer.toString();
         textBuffer.setLength(0);
@@ -132,40 +125,74 @@ public final class StreamingStateTracker {
     }
 
     /**
-     * Handles a fully parsed tag by updating the {@link State}.
+     * Handles a fully matched delimiter by transitioning to the appropriate {@link State}.
      *
-     * @param tag the complete tag string
+     * @param tag the complete delimiter string that was matched
      */
     private void handleCompleteTag(String tag) {
         if (tag.equals(THINKING_START_TAG)) {
             currentState = State.THINKING;
         } else if (tag.equals(THINKING_CLOSE_TAG)) {
-            if (isNull(extractionTags.response())) {
-                currentState = State.RESPONSE;
-            } else {
-                currentState = State.UNKNOWN;
-            }
-        } else if (isNull(RESPONSE_START_TAG) || tag.equals(RESPONSE_START_TAG)) {
+            currentState = isNull(extractionTags.response()) ? State.RESPONSE : State.UNKNOWN;
+        } else if (tag.equals(RESPONSE_START_TAG)) {
             currentState = State.RESPONSE;
         } else if (nonNull(RESPONSE_CLOSE_TAG) && tag.equals(RESPONSE_CLOSE_TAG)) {
             currentState = State.UNKNOWN;
         }
     }
 
+    /**
+     * Returns the delimiter that exactly matches the given string in the current state, or {@code null} if none match.
+     * <p>
+     * Only delimiters that are meaningful in the current state are considered:
+     * <ul>
+     * <li>{@link State#START} or {@link State#UNKNOWN}: only the thinking start tag</li>
+     * <li>{@link State#THINKING}: only the thinking close tag</li>
+     * <li>{@link State#RESPONSE}: only the response close tag</li>
+     * </ul>
+     *
+     * @param s the string to check
+     * @return the matching delimiter, or {@code null}
+     */
+    private String findExactMatch(String s) {
+        return switch(currentState) {
+            case START, UNKNOWN -> {
+                if (s.equals(THINKING_START_TAG))
+                    yield THINKING_START_TAG;
+                if (nonNull(RESPONSE_START_TAG) && s.equals(RESPONSE_START_TAG))
+                    yield RESPONSE_START_TAG;
+                yield null;
+            }
+            case THINKING -> s.equals(THINKING_CLOSE_TAG) ? THINKING_CLOSE_TAG : null;
+            case RESPONSE -> nonNull(RESPONSE_CLOSE_TAG) && s.equals(RESPONSE_CLOSE_TAG) ? RESPONSE_CLOSE_TAG : null;
+            case NO_THINKING -> null;
+        };
+    }
+
+    /**
+     * Returns {@code true} if the given string is a prefix of at least one delimiter meaningful in the current state.
+     *
+     * @param prefix the string to check
+     * @return {@code true} if it is a valid prefix of any relevant delimiter
+     */
+    private boolean isPrefixOfAny(String prefix) {
+        if (prefix == null || prefix.isEmpty())
+            return false;
+        return switch(currentState) {
+            case START, UNKNOWN -> isPrefix(prefix, THINKING_START_TAG) || isPrefix(prefix, RESPONSE_START_TAG);
+            case THINKING -> isPrefix(prefix, THINKING_CLOSE_TAG);
+            case RESPONSE -> isPrefix(prefix, RESPONSE_CLOSE_TAG);
+            case NO_THINKING -> false;
+        };
+    }
+
+    private boolean isPrefix(String prefix, String candidate) {
+        return nonNull(candidate) && candidate.startsWith(prefix);
+    }
+
     private String decodeUnicodeSymbols(String s) {
         return s.replace("\\u003c", "<")
             .replace("\\u003e", ">");
-    }
-
-    private boolean startsWithAny(String prefix, String... candidates) {
-        if (prefix == null)
-            return false;
-        for (String candidate : candidates) {
-            if (candidate != null && candidate.startsWith(prefix)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -186,22 +213,5 @@ public final class StreamingStateTracker {
         NO_THINKING,
 
         UNKNOWN
-    }
-
-    /**
-     * Internal parser state for incremental tag detection.
-     */
-    private enum TagParseState {
-        /** Currently parsing the content of a tag */
-        CONTENT,
-
-        /** Saw a {@code <} character, awaiting tag name or slash. */
-        OPEN_TAG_START,
-
-        /** Saw a {@code </}, awaiting tag name for closing tag. */
-        CLOSE_TAG_START,
-
-        /** Reading characters of a tag name (after initial {@code <} or {@code </}). */
-        TAG_NAME
     }
 }

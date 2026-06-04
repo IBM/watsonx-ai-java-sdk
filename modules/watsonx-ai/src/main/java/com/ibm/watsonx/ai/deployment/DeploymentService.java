@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService;
@@ -28,6 +29,9 @@ import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
+import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
@@ -164,6 +168,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
 
         var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
         var textChatRequest = buildTextChatRequest(chatRequest);
+        var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
         var timeout = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().timeLimit())
             ? chatRequest.parameters().timeLimit()
@@ -185,7 +190,34 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                 .build();
         }
 
-        return chatResponse;
+        var chatResponseBuilder = chatResponse.toBuilder();
+
+        // For certain models, watsonx.ai does not return FinishReason.TOOL_CHOICE when ToolChoiceOption.REQUIRED is set
+        if (ToolChoiceOption.REQUIRED.value().equals(textChatRequest.toolChoiceOption()))
+            chatResponseBuilder.choices(
+                chatResponse.choices().stream()
+                    .map(resultChoice -> resultChoice.withFinishReason(FinishReason.TOOL_CALLS))
+                    .toList()
+            );
+
+        return chatResponseBuilder.extractionTags(extractionTags).build();
+    }
+
+    /**
+     * Sends a streaming chat request.
+     * <p>
+     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided {@link Consumer}.
+     *
+     * @param chatRequest the chat request
+     * @param handler a consumer that receives partial text responses
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, Consumer<String> handler) {
+        return chatStreaming(chatRequest, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                handler.accept(partialResponse);
+            }
+        });
     }
 
     @Override
@@ -268,7 +300,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         Map<String, Object> chatTemplateKwargs = null;
         if (nonNull(chatRequest.thinking())) {
             var thinking = chatRequest.thinking();
-            chatTemplateKwargs = Map.of("thinking", true);
+            chatTemplateKwargs = Map.of("thinking", true, "enable_thinking", true);
             includeReasoning = thinking.includeReasoning();
             thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
         }

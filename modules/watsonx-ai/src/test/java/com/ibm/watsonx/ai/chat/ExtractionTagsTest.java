@@ -5,9 +5,11 @@
 package com.ibm.watsonx.ai.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 
 public class ExtractionTagsTest {
 
@@ -204,5 +206,22 @@ public class ExtractionTagsTest {
         var extractionTags = ExtractionTags.of("<think>", "<response>");
         assertNull(extractionTags.extractThinking("Hello!"));
         assertNull(extractionTags.extractResponse("Hello!"));
+    }
+
+    @Test
+    void should_extract_thinking_and_response_with_channel_tags() {
+        var extractionTags = ExtractionTags.of(new Think("<|channel>thought\n", "<channel|>"));
+        var text =
+            "<|channel>thought\nThe user said \"Hello\".\nThe user is initiating a conversation.\n\n    *   Acknowledge the greeting.\n    *   Offer assistance.\n    *   Keep it polite and open-ended.\n\"Hello! How can I help you today?\" or \"Hi there! What's on your mind?\"<channel|>Hello! How can I help you today?";
+
+        var thinking = extractionTags.extractThinking(text);
+        var response = extractionTags.extractResponse(text);
+
+        assertEquals(
+            "The user said \"Hello\".\nThe user is initiating a conversation.\n\n    *   Acknowledge the greeting.\n    *   Offer assistance.\n    *   Keep it polite and open-ended.\n\"Hello! How can I help you today?\" or \"Hi there! What's on your mind?\"",
+            thinking);
+        assertEquals("Hello! How can I help you today?", response);
+        assertFalse(thinking.contains("<|channel>"));
+        assertFalse(thinking.contains("<channel|>"));
     }
 }

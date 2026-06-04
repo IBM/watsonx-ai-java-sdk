@@ -55,8 +55,12 @@ public class ChatUtility {
             var thinking = chatRequest.thinking();
             includeReasoning = thinking.includeReasoning();
             thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
-            if (nonNull(thinking.enabled()))
-                chatTemplateKwargs = Map.of("thinking", thinking.enabled());
+            if (nonNull(thinking.enabled())) {
+                chatTemplateKwargs = Map.of(
+                    "thinking", thinking.enabled(),
+                    "enable_thinking", thinking.enabled()
+                );
+            }
         }
 
         return TextChatRequest.builder()
