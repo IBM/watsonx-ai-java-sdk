@@ -24,7 +24,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -354,7 +353,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled("deployment doesn't allow image function")
         void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
@@ -380,7 +378,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
             var deploymentService = DeploymentService.builder()
@@ -415,7 +412,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var deploymentService = DeploymentService.builder()
@@ -708,7 +704,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
@@ -731,6 +726,7 @@ public class DeploymentServiceIT {
                     ImageContent.from(Paths.get(image.toURI()))
                 ))
                 .parameters(parameters)
+                .deploymentId(DEPLOYMENT_ID)
                 .build();
 
             CompletableFuture<String> partialResponseFuture = new CompletableFuture<>();
@@ -764,7 +760,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
             var chatService = DeploymentService.builder()
@@ -775,6 +770,7 @@ public class DeploymentServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
+                .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"Test\" and body \"Hello\""))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -832,8 +828,8 @@ public class DeploymentServiceIT {
                 }
             });
 
-            var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(3, TimeUnit.SECONDS));
-            var toolCall = assertDoesNotThrow(() -> toolCallFuture.get(3, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> chatResponseFuture.get(10, TimeUnit.SECONDS));
+            var toolCall = assertDoesNotThrow(() -> toolCallFuture.get(10, TimeUnit.SECONDS));
             var fromPartialTool = assertDoesNotThrow(() -> fromPartialToolCallFuture.get(3, TimeUnit.SECONDS));
             assertThrows(TimeoutException.class, () -> throwableFuture.get(1, TimeUnit.SECONDS));
             assertEquals(toolCall.completionId(), chatResponse.id());
@@ -922,7 +918,6 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        @Disabled
         void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var deploymentService = DeploymentService.builder()
