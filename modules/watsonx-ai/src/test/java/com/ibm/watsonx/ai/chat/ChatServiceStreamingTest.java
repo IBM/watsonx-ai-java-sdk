@@ -78,6 +78,8 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.Image;
@@ -1527,7 +1529,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         var chatRequest = ChatRequest.builder()
             .messages(ControlMessage.of("thinking"), UserMessage.text("Hello"))
-            .thinking(Thinking.of(ExtractionTags.of("think", "response")))
+            .thinking(Thinking.of(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"))))
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();

@@ -58,6 +58,8 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
@@ -689,7 +691,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         ChatRequest chatRequest = ChatRequest.builder()
             .messages(UserMessage.text("Translate \"Hello\" in Italian"))
-            .thinking(ExtractionTags.of("think", "response"))
+            .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
             .deploymentId("my-deployment-id")
             .build();
 

@@ -30,7 +30,7 @@ import static java.util.Objects.nonNull;
  * Thinking.of(ThinkingEffort.HIGH);
  *
  * // Using reasoning with a model like ibm/granite-3-3-8b-instruct
- * Thinking.of(ExtractionTags.of("think", "response"));
+ * Thinking.of(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"));
  * }</pre>
  *
  * @see ExtractionTags
