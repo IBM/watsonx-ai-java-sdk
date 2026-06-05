@@ -515,6 +515,25 @@ System.out.println(response.toAssistantMessage().content());
 
 > **Model compatibility:** Not all models support vision. Check the [Supported Foundation Models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx) page before using this feature.
 
+## Video
+
+Video-enabled models can analyze video content alongside text — useful for video description, action recognition, scene understanding, and more. NVIDIA models support video analysis by including video files directly in the `UserMessage`:
+
+```java
+DeploymentService deploymentService = DeploymentService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .baseUrl(CloudRegion.DALLAS)
+    .build();
+
+ChatRequest request = ChatRequest.builder()
+    .deploymentId(NVIDIA_DEPLOYMENT_ID)
+    .messages(UserMessage.video("Tell me more about this video", Paths.get("/path/to/video.mp4")))
+    .build();
+
+ChatResponse response = deploymentService.chat(request);
+System.out.println(response.toAssistantMessage().content());
+```
+
 ---
 
 ## Reasoning / Thinking Mode
