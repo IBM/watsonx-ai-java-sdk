@@ -31,6 +31,8 @@ import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.Thinking;
@@ -116,7 +118,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 .build();
 
             var chatRequest = ChatRequest.builder()
-                .thinking(ExtractionTags.of("think", "response"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
                 .messages(UserMessage.text("Test"))
                 .build();
 
@@ -128,7 +130,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
             assertEquals("Think", assistantMessage.thinking());
 
             chatRequest = ChatRequest.builder()
-                .thinking(Thinking.of(ExtractionTags.of("think", "response")))
+                .thinking(Thinking.of(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"))))
                 .messages(UserMessage.text("Test"))
                 .build();
 
@@ -443,7 +445,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
             CompletableFuture<ChatResponse> result = new CompletableFuture<>();
             ChatRequest chatRequest = ChatRequest.builder()
                 .messages(UserMessage.text("Translate \"Hello\" in Italian"))
-                .thinking(ExtractionTags.of("think", "response"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
                 .build();
 
             StringBuilder thinkingResponse = new StringBuilder();
@@ -586,7 +588,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
             CompletableFuture<ChatResponse> result = new CompletableFuture<>();
             ChatRequest chatRequest = ChatRequest.builder()
                 .messages(UserMessage.text("Translate \"Hello\" in Italian"))
-                .thinking(Thinking.of(ExtractionTags.of("think", "response")))
+                .thinking(Thinking.of(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"))))
                 .build();
 
             StringBuilder thinkingResponse = new StringBuilder();

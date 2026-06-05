@@ -61,7 +61,7 @@ public class AiService {
 
         var chatRequest = ChatRequest.builder()
             .messages(memory.getMemory())
-            .thinking(ExtractionTags.of("think", "response"))
+            .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"))
             .build();
 
         return chatService.chatStreaming(chatRequest, new ChatHandler() {

@@ -37,6 +37,7 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
@@ -109,7 +110,7 @@ public class DeploymentServiceIT {
                 .messages(
                     ControlMessage.of("thinking"),
                     UserMessage.text("Why the sky is blue?"))
-                .thinking(ExtractionTags.of("think", "response"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
                 .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
                 .build();
 
@@ -155,7 +156,7 @@ public class DeploymentServiceIT {
 
             ChatRequest request = ChatRequest.builder()
                 .messages(UserMessage.text("Why the sky is blue?"))
-                .thinking(ExtractionTags.of("think", "response"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
                 .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
                 .build();
 
@@ -1012,7 +1013,7 @@ public class DeploymentServiceIT {
             ChatRequest request = ChatRequest.builder()
                 .messages(UserMessage.text("Why the sky is blue?"))
                 .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
-                .thinking(ExtractionTags.of("think", "response"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
                 .parameters(parameters)
                 .build();
 

@@ -45,6 +45,8 @@ import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
@@ -1549,7 +1551,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     ChatParameters.builder()
                         .transactionId("my-transaction-id")
                         .build())
-                .thinking(ExtractionTags.of("think", "response"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
                 .build();
 
             var chatResponse = chatService.chat(chatRequest);
@@ -1644,7 +1646,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     ChatParameters.builder()
                         .transactionId("my-transaction-id")
                         .build())
-                .thinking(ExtractionTags.of("think"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>")))
                 .build();
 
             var chatResponse = chatService.chat(chatRequest);

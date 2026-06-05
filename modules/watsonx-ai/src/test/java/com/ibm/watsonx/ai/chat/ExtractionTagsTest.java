@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 
 public class ExtractionTagsTest {
@@ -20,11 +21,11 @@ public class ExtractionTagsTest {
             <think>I'm thinking</think>
             This is the response""";
 
-        var extractionTags = ExtractionTags.of("<think>");
+        var extractionTags = ExtractionTags.of(new Think("<think>", "</think>"));
         assertEquals("I'm thinking", extractionTags.extractThinking(text));
         assertEquals("This is the response", extractionTags.extractResponse(text));
 
-        extractionTags = ExtractionTags.of("think");
+        extractionTags = ExtractionTags.of(new Think("<think>", "</think>"));
         assertEquals("I'm thinking", extractionTags.extractThinking(text));
         assertEquals("This is the response", extractionTags.extractResponse(text));
     }
@@ -36,11 +37,7 @@ public class ExtractionTagsTest {
             <think>I'm thinking</think>
             <response>This is the response</response>""";
 
-        var extractionTags = ExtractionTags.of("<think>", "<response>");
-        assertEquals("I'm thinking", extractionTags.extractThinking(text));
-        assertEquals("This is the response", extractionTags.extractResponse(text));
-
-        extractionTags = ExtractionTags.of("think", "response");
+        var extractionTags = ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"));
         assertEquals("I'm thinking", extractionTags.extractThinking(text));
         assertEquals("This is the response", extractionTags.extractResponse(text));
     }
@@ -52,7 +49,7 @@ public class ExtractionTagsTest {
             <think>I'm thinking</think>
             <response>This is the response</response> !</response>""";
 
-        var extractionTags = ExtractionTags.of("<think>", "<response>");
+        var extractionTags = ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"));
         assertEquals("I'm thinking", extractionTags.extractThinking(text));
         assertEquals("This is the response</response> !", extractionTags.extractResponse(text));
     }
@@ -63,7 +60,7 @@ public class ExtractionTagsTest {
         var text = """
             <think>I'm thinking</think>This is the response""";
 
-        var extractionTags = ExtractionTags.of("<think>");
+        var extractionTags = ExtractionTags.of(new Think("<think>", "</think>"));
         assertEquals("I'm thinking", extractionTags.extractThinking(text));
         assertEquals("This is the response", extractionTags.extractResponse(text));
     }
@@ -136,7 +133,7 @@ public class ExtractionTagsTest {
                 by the AI model.
                 </response>""";
 
-        var extractionTags = ExtractionTags.of("<think>", "<response>");
+        var extractionTags = ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"));
         assertEquals("""
             The query is asking about the usage of the `<response>` tag, \
             which is part of a specific markup or templating language, \
@@ -203,7 +200,7 @@ public class ExtractionTagsTest {
 
     @Test
     void should_return_null_when_no_tags_present() {
-        var extractionTags = ExtractionTags.of("<think>", "<response>");
+        var extractionTags = ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"));
         assertNull(extractionTags.extractThinking("Hello!"));
         assertNull(extractionTags.extractResponse("Hello!"));
     }
