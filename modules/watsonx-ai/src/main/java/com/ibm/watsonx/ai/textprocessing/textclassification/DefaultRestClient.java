@@ -18,7 +18,6 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.Charset;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -140,14 +139,23 @@ final class DefaultRestClient extends TextClassificationRestClient {
     @Override
     public boolean deleteFile(DeleteFileRequest request) {
         try {
-            return deleteFileAsync(request).get();
-        } catch (InterruptedException e) {
+
+            var fileName = request.fileName();
+            var bucketName = request.bucketName();
+            var encodedFileName = new URI(null, null, fileName, null).toASCIIString();
+            var uri = URI.create(cosUrl + "/%s/%s".formatted(bucketName, encodedFileName));
+
+            var httpRequest = HttpRequest.newBuilder(uri)
+                .timeout(timeout)
+                .DELETE();
+
+            if (nonNull(request.requestTrackingId()))
+                httpRequest.header(REQUEST_ID_HEADER, request.requestTrackingId());
+
+            return syncCosHttpClient.send(httpRequest.build(), BodyHandlers.ofString()).statusCode() == 204;
+
+        } catch (IOException | InterruptedException | URISyntaxException e) {
             throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof WatsonxException ex)
-                throw ex;
-            else
-                throw new RuntimeException(e.getCause());
         }
     }
 

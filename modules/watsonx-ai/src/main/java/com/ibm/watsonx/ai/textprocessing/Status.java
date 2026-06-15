@@ -17,7 +17,8 @@ public enum Status {
     DOWNLOADING("downloading"),
     DOWNLOADED("downloaded"),
     COMPLETED("completed"),
-    FAILED("failed");
+    FAILED("failed"),
+    AI_PROCESSING("ai_processing");
 
     private String value;
 

@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textclassification;
 
+import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig;
+
 /**
  * Represents the semantic configuration for text classification.
  * <p>
@@ -29,7 +31,7 @@ package com.ibm.watsonx.ai.textprocessing.textclassification;
  *     ).build();
  * }</pre>
  */
-public final class TextClassificationSemanticConfig extends com.ibm.watsonx.ai.textprocessing.SemanticConfig {
+public final class TextClassificationSemanticConfig extends ExtendedSemanticConfig {
 
     private TextClassificationSemanticConfig(Builder builder) {
         super(builder);
@@ -62,7 +64,7 @@ public final class TextClassificationSemanticConfig extends com.ibm.watsonx.ai.t
     /**
      * Builder class for constructing {@link TextClassificationSemanticConfig} instance.
      */
-    public final static class Builder extends com.ibm.watsonx.ai.textprocessing.SemanticConfig.Builder<Builder> {
+    public final static class Builder extends ExtendedSemanticConfig.Builder<Builder> {
 
         private Builder() {}
 

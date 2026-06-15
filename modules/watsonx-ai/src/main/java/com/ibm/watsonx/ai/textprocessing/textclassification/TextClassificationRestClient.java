@@ -36,7 +36,7 @@ public abstract class TextClassificationRestClient extends WatsonxRestClient {
     public abstract TextClassificationResponse startClassification(StartClassificationRequest request);
 
     /**
-     * Fetches the details and results of a previously submitted text classification job.
+     * Fetches the details and results of a submitted text classification job.
      *
      * @param request The {@link FetchClassificationDetailsRequest} containing classification id and fetch parameters.
      * @return A {@link TextClassificationResponse} containing the job status and results.

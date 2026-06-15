@@ -130,13 +130,19 @@ public final class HttpUtils {
             var genericError = fromJson(body, Map.class);
 
             if (isNull(error.trace())) {
-                if (genericError.containsKey("errorCode"))
+                if (genericError.containsKey("errorCode")) {
                     // IAM Authentication API errors use a non-standard format with "errorCode" and "errorMessage" fields.
                     return parseIAMError(statusCode, genericError);
-                else if (genericError.containsKey("code"))
+                } else if (genericError.containsKey("code")) {
                     // Agent Tool APIs (beta) return errors with a "code" field instead of the standard "errors" array.
                     // TODO: verify if this behavior persists once the Agent Tool APIs are no longer in beta.
                     return parseToolError(genericError);
+                } else if (genericError.size() == 1 && genericError.containsKey("error")) {
+                    // The Create Schema API returns a single error message as a string in the body.
+                    // TODO: verify if this behavior persists.
+                    String message = "create_schema_event_does_not_exist";
+                    return new WatsonxError(statusCode, "", List.of(new Error(message, (String) genericError.get("error"), "")));
+                }
             } else {
                 // File Service API errors use a non-standard format: they include a "trace" field but use "status"
                 // instead of "status_code", and nest the error details under an "error" object instead of "errors" array.
@@ -175,8 +181,8 @@ public final class HttpUtils {
                 case MODEL_NO_SUPPORT_FOR_FUNCTION -> new ModelNoSupportForFunctionException(exception);
                 case TOKEN_QUOTA_REACHED -> new TokenQuotaReachedException(exception);
                 case USER_AUTHORIZATION_FAILED -> new UserAuthorizationFailedException(exception);
-                case COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST, TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST,
-                    UNCLASSIFIED -> throw exception;
+                case COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, CREATE_SCHEMA_EVENT_DOES_NOT_EXIST, TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST,
+                    TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST, UNCLASSIFIED -> throw exception;
             };
         } catch (Exception e) {
             return exception;

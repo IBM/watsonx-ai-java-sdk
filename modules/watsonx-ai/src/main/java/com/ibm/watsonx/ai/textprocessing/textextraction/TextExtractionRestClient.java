@@ -74,7 +74,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
     public abstract boolean deleteExtraction(DeleteExtractionRequest request);
 
     /**
-     * Retrieves the details and results of a previously submitted text extraction job.
+     * Retrieves the details and results of a submitted text extraction job.
      *
      * @param request The {@link FetchExtractionDetailsRequest} containing extraction id and fetch parameters.
      * @return A {@link TextExtractionResponse} containing the job status and results.
@@ -162,7 +162,7 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
     public interface TextExtractionRestClientBuilderFactory extends Supplier<TextExtractionRestClient.Builder> {}
 
     /**
-     * Represents a request to delete a previously submitted text extraction job.
+     * Represents a request to delete a submitted text extraction job.
      *
      * @param requestTrackingId optional identifier used internally by the SDK to trace requests.
      * @param extractionId the unique identifier of the extraction job to delete.

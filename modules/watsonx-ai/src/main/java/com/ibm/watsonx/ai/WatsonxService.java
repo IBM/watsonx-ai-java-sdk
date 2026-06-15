@@ -22,6 +22,7 @@ import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
@@ -46,6 +47,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see DetectionService
  * @see FileService
  * @see BatchService
+ * @see CreateSchemaService
  */
 public abstract class WatsonxService {
 
