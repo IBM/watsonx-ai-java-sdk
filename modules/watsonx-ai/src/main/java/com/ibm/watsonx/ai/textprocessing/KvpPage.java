@@ -6,6 +6,9 @@ package com.ibm.watsonx.ai.textprocessing;
 
 import static java.util.Objects.requireNonNull;
 import java.util.List;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 
@@ -18,6 +21,9 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
  *
  * @see TextExtractionService
  * @see TextClassificationService
+ * @see CreateSchemaService
+ * @see ImproveSchemaService
+ * @see MergeSchemaService
  */
 public record KvpPage(String pageDescription, List<KvpSlice> slices) {
 

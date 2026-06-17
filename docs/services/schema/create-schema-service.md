@@ -376,4 +376,4 @@ Each field in the schema contains:
 
 - [Text Extraction Service](../text-extraction-service) - Extract data using generated schemas
 - [Text Classification Service](../text-classification-service) - Classify documents using schemas
-- [Create Schema API Reference](https://cloud.ibm.com/apidocs/watsonx-ai#text-schemas-create)
+- [Create Schema API Reference](https://cloud.ibm.com/apidocs/watsonx-ai#create-schema)

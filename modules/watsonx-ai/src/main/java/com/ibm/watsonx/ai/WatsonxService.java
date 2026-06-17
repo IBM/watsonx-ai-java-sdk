@@ -24,6 +24,7 @@ import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
@@ -50,6 +51,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see BatchService
  * @see CreateSchemaService
  * @see ImproveSchemaService
+ * @see MergeSchemaService
  */
 public abstract class WatsonxService {
 

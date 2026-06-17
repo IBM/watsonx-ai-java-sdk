@@ -1,0 +1,53 @@
+{
+    "entity": {
+        "parameters": {
+            "schemas": [
+                {
+                    "document_description": "Passport document to get the schema",
+                    "document_type": "Passport",
+                    "fields": {
+                        "name": {
+                            "description": "Name",
+                            "example": "name of the user"
+                        }
+                    }
+                },
+                {
+                    "document_description": "National ID Cards are government-issued identification documents",
+                    "document_type": "National ID Card",
+                    "fields": {
+                        "id": {
+                            "description": "Holder legal name as shown on the ID",
+                            "example": "F4JXS"
+                        }
+                    }
+                }
+            ]
+        },
+        "results": {
+            "completed_at": "2026-06-18T08:47:45.040Z",
+            "running_at": "2026-06-18T08:47:33.744Z",
+            "schema": {
+                "document_description": "Identification documents including Passports and National ID Cards, which are government-issued identification documents",
+                "document_type": "Identification Document",
+                "fields": {
+                    "id": {
+                        "description": "Unique identifier for the document",
+                        "example": "F4JXS"
+                    },
+                    "name": {
+                        "description": "Holder's legal name as shown on the ID",
+                        "example": "name of the user"
+                    }
+                }
+            },
+            "status": "completed"
+        }
+    },
+    "metadata": {
+        "created_at": "2026-06-18T08:47:33.087Z",
+        "id": "id",
+        "modified_at": "2026-06-18T08:47:45.105Z",
+        "project_id": "project-id"
+    }
+}

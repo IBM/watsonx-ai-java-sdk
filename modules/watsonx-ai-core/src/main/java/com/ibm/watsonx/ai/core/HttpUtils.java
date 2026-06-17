@@ -140,7 +140,7 @@ public final class HttpUtils {
                 } else if (genericError.size() == 1 && genericError.containsKey("error")) {
                     // The Create Schema API returns a single error message as a string in the body.
                     // TODO: verify if this behavior persists.
-                    String message = "create_schema_event_does_not_exist";
+                    String message = "schema_event_does_not_exist";
                     return new WatsonxError(statusCode, "", List.of(new Error(message, (String) genericError.get("error"), "")));
                 }
             } else {
@@ -181,7 +181,7 @@ public final class HttpUtils {
                 case MODEL_NO_SUPPORT_FOR_FUNCTION -> new ModelNoSupportForFunctionException(exception);
                 case TOKEN_QUOTA_REACHED -> new TokenQuotaReachedException(exception);
                 case USER_AUTHORIZATION_FAILED -> new UserAuthorizationFailedException(exception);
-                case COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, CREATE_SCHEMA_EVENT_DOES_NOT_EXIST, TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST,
+                case COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, SCHEMA_EVENT_DOES_NOT_EXIST, TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST,
                     TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST, UNCLASSIFIED -> throw exception;
             };
         } catch (Exception e) {

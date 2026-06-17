@@ -15,11 +15,14 @@ import com.ibm.watsonx.ai.client.impl.CustomCP4DIAMRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomCP4DLegacyRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomCP4DZenRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomChatRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomCreateSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomEmbeddingRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomFileRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomFoundationModelRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomImproveSchemaRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomMergeSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomRerankRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextClassificationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextExtractionRestClient;
@@ -37,6 +40,9 @@ import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
@@ -207,6 +213,59 @@ public class CustomRestClientTest {
         clientField.setAccessible(true);
         var client = clientField.get(rerankService);
         assertTrue(client instanceof CustomRerankRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaRestClient$CreateSchemaRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_create_schema_service() throws Exception {
+
+        CreateSchemaService createSchemaService = CreateSchemaService.builder()
+            .apiKey("test")
+            .cosUrl("http://localhost")
+            .baseUrl("http://localhost")
+            .projectId("project-id")
+            .documentReference("test", "test")
+            .build();
+
+        Class<CreateSchemaService> clazz = CreateSchemaService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(createSchemaService);
+        assertTrue(client instanceof CustomCreateSchemaRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaRestClient$ImproveSchemaRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_improve_schema_service() throws Exception {
+
+        ImproveSchemaService improveSchemaService = ImproveSchemaService.builder()
+            .apiKey("test")
+            .baseUrl("http://localhost")
+            .projectId("project-id")
+            .build();
+
+        Class<ImproveSchemaService> clazz = ImproveSchemaService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(improveSchemaService);
+        assertTrue(client instanceof CustomImproveSchemaRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaRestClient$MergeSchemaRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_merge_schema_service() throws Exception {
+
+        MergeSchemaService mergeSchemaService = MergeSchemaService.builder()
+            .apiKey("test")
+            .baseUrl("http://localhost")
+            .projectId("project-id")
+            .build();
+
+        Class<MergeSchemaService> clazz = MergeSchemaService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(mergeSchemaService);
+        assertTrue(client instanceof CustomMergeSchemaRestClient);
     }
 
     @Test
