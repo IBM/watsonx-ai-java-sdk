@@ -436,13 +436,15 @@ public class TextClassificationService extends ProjectService {
         requireNonNull(is, "is value cannot be null");
         requireNonNull(fileName, "fileName value cannot be null");
 
-        boolean removeOutputFile = false;
+        boolean removeUploadFile = false;
         CosReference documentReference = this.documentReference;
 
-        if (nonNull(parameters))
+        if (nonNull(parameters)) {
+            removeUploadFile = parameters.isRemoveUploadedFile();
             documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
+        }
 
-        if (!waitForClassification && removeOutputFile)
+        if (!waitForClassification && removeUploadFile)
             throw new IllegalArgumentException(
                 "The asynchronous version of startClassification doesn't allow the use of the \"removeUploadedFile\" parameter");
 

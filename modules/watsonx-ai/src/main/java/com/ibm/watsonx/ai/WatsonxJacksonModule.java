@@ -48,6 +48,7 @@ import com.ibm.watsonx.ai.textgeneration.Moderation.InputRanges;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters.LengthPenalty;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters.ReturnOptions;
+import com.ibm.watsonx.ai.textprocessing.GroundingHints;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
 import com.ibm.watsonx.ai.textprocessing.KvpPage;
@@ -113,11 +114,14 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(FoundationModel.TargetModules.class, DefaultValueMixin.class);
         setMixInAnnotation(FoundationModel.DeploymentParameter.class, DefaultValueMixin.class);
 
-        // --- Text Extraction / Classification Mixin --- //
+        // --- Text Extraction / Classification / CreationSchema Mixin --- //
         setMixInAnnotation(Schema.class, SchemaMixin.class);
         setMixInAnnotation(Schema.Builder.class, SchemaBuilderMixin.class);
         setMixInAnnotation(KvpFields.class, KvpFieldsMixin.class);
         setMixInAnnotation(KvpFields.Builder.class, KvpFieldsBuilderMixin.class);
+        setMixInAnnotation(GroundingHints.class, GroundingHintsMixin.class);
+        setMixInAnnotation(GroundingHints.Builder.class, GroundingHintsBuilderMixin.class);
+        setMixInAnnotation(GroundingHints.FieldData.class, GroundingHintFieldDataMixin.class);
 
         // --- Time Series Mixin --- //
         setMixInAnnotation(InputSchema.class, InputSchemaMixin.class);
@@ -591,6 +595,22 @@ public class WatsonxJacksonModule extends SimpleModule {
     public abstract class KvpFieldsBuilderMixin {
         @JsonAnySetter
         public abstract KvpFields.Builder add(String key, KvpFields.KvpField value);
+    }
+
+    @JsonDeserialize(builder = GroundingHints.Builder.class)
+    public abstract class GroundingHintsMixin {
+        @JsonProperty("fields")
+        abstract Map<String, GroundingHints.FieldData> fields();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract class GroundingHintsBuilderMixin {}
+
+    public abstract static class GroundingHintFieldDataMixin {
+        @JsonCreator
+        public GroundingHintFieldDataMixin(
+            @JsonProperty("normalized_bbox") List<Double> normalizedBbox,
+            @JsonProperty("page_number") Integer pageNumber) {}
     }
 
     @JsonDeserialize(builder = BatchCreateRequest.Builder.class)

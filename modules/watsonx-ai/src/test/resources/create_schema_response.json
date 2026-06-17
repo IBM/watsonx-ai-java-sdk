@@ -1,0 +1,319 @@
+{
+    "entity": {
+        "document_reference": {
+            "connection": {
+                "id": "connection-id"
+            },
+            "location": {
+                "bucket": "my-bucket",
+                "file_name": "test.pdf"
+            },
+            "type": "connection_asset"
+        },
+        "parameters": {
+            "enable_grounding": true,
+            "languages": [
+                "latn"
+            ],
+            "max_pages_to_process": 20,
+            "mode": "high_quality",
+            "ocr_mode": "enabled"
+        },
+        "results": {
+            "completed_at": "2026-06-15T13:32:10.844Z",
+            "grounding_hints": {
+                "fields": {
+                    "arrival_station": {
+                        "normalized_bbox": [
+                            0.0735,
+                            0.3092,
+                            0.1916,
+                            0.3228
+                        ],
+                        "page_number": 2
+                    },
+                    "arrival_time": {
+                        "normalized_bbox": [
+                            0.2612,
+                            0.1833,
+                            0.3263,
+                            0.2003
+                        ],
+                        "page_number": 1
+                    },
+                    "booking_reference": {
+                        "normalized_bbox": [
+                            0.1209,
+                            0.2661,
+                            0.1965,
+                            0.2774
+                        ],
+                        "page_number": 2
+                    },
+                    "carriage_number": {
+                        "normalized_bbox": [
+                            0.7643,
+                            0.245,
+                            0.7727,
+                            0.2563
+                        ],
+                        "page_number": 1
+                    },
+                    "departure_date": {
+                        "normalized_bbox": [
+                            0.4521,
+                            0.1663,
+                            0.59,
+                            0.1833
+                        ],
+                        "page_number": 1
+                    },
+                    "departure_station": {
+                        "normalized_bbox": [
+                            0.2103,
+                            0.3092,
+                            0.3092,
+                            0.3228
+                        ],
+                        "page_number": 2
+                    },
+                    "departure_time": {
+                        "normalized_bbox": [
+                            0.0787,
+                            0.1833,
+                            0.1438,
+                            0.2003
+                        ],
+                        "page_number": 1
+                    },
+                    "discount_applied": {
+                        "normalized_bbox": [
+                            0.6451,
+                            0.3447,
+                            0.7158,
+                            0.3549
+                        ],
+                        "page_number": 1
+                    },
+                    "passenger_name": {
+                        "normalized_bbox": [
+                            0.0687,
+                            0.245,
+                            0.1855,
+                            0.2563
+                        ],
+                        "page_number": 2
+                    },
+                    "passenger_type": {
+                        "normalized_bbox": [
+                            0.2876,
+                            0.3278,
+                            0.3374,
+                            0.338
+                        ],
+                        "page_number": 2
+                    },
+                    "payment_method": {
+                        "normalized_bbox": [
+                            0.2876,
+                            0.3787,
+                            0.4302,
+                            0.3889
+                        ],
+                        "page_number": 2
+                    },
+                    "purchase_channel": {
+                        "normalized_bbox": [
+                            0.755,
+                            0.2661,
+                            0.8826,
+                            0.2774
+                        ],
+                        "page_number": 2
+                    },
+                    "purchase_date": {
+                        "normalized_bbox": [
+                            0.6021,
+                            0.2661,
+                            0.6835,
+                            0.2774
+                        ],
+                        "page_number": 2
+                    },
+                    "seat_number": {
+                        "normalized_bbox": [
+                            0.8663,
+                            0.245,
+                            0.8831,
+                            0.2563
+                        ],
+                        "page_number": 1
+                    },
+                    "service_type": {
+                        "normalized_bbox": [
+                            0.3681,
+                            0.245,
+                            0.4529,
+                            0.2563
+                        ],
+                        "page_number": 2
+                    },
+                    "ticket_code": {
+                        "normalized_bbox": [
+                            0.7656,
+                            0.0871,
+                            0.9381,
+                            0.1188
+                        ],
+                        "page_number": 2
+                    },
+                    "ticket_price": {
+                        "normalized_bbox": [
+                            0.6428,
+                            0.3278,
+                            0.7157,
+                            0.338
+                        ],
+                        "page_number": 1
+                    },
+                    "total_amount_paid": {
+                        "normalized_bbox": [
+                            0.6429,
+                            0.3787,
+                            0.7157,
+                            0.3889
+                        ],
+                        "page_number": 2
+                    },
+                    "total_price": {
+                        "normalized_bbox": [
+                            0.8596,
+                            0.3617,
+                            0.9298,
+                            0.3719
+                        ],
+                        "page_number": 1
+                    },
+                    "train_number": {
+                        "normalized_bbox": [
+                            0.6445,
+                            0.1675,
+                            0.7008,
+                            0.1844
+                        ],
+                        "page_number": 1
+                    },
+                    "travel_class": {
+                        "normalized_bbox": [
+                            0.8054,
+                            0.1675,
+                            0.9091,
+                            0.2014
+                        ],
+                        "page_number": 2
+                    }
+                }
+            },
+            "number_pages_processed": 2,
+            "running_at": "2026-06-15T13:31:27.466Z",
+            "schema": {
+                "document_description": "A digital train ticket issued by Italo S.p.A. for high-speed train travel. Key fields include ticket code, departure and arrival stations, travel date, train number, travel class, passenger name, booking reference number, purchase date, fare details, payment method, and boarding instructions. The ticket also includes terms and conditions for travel and access to the train.",
+                "document_type": "Train_Ticket",
+                "fields": {
+                    "arrival_station": {
+                        "description": "The station where the train arrives.",
+                        "example": "MI CENTRALE"
+                    },
+                    "arrival_time": {
+                        "description": "The time when the train arrives.",
+                        "example": "18:15"
+                    },
+                    "booking_reference": {
+                        "description": "The booking reference number.",
+                        "example": "117274695"
+                    },
+                    "carriage_number": {
+                        "description": "The carriage number where the passenger is seated.",
+                        "example": "4"
+                    },
+                    "departure_date": {
+                        "description": "The date when the train departs.",
+                        "example": "09 GIU 2026"
+                    },
+                    "departure_station": {
+                        "description": "The station where the train departs.",
+                        "example": "ROMA TER."
+                    },
+                    "departure_time": {
+                        "description": "The time when the train departs.",
+                        "example": "15:05"
+                    },
+                    "discount_applied": {
+                        "description": "The discount applied to the ticket price.",
+                        "example": "-38.97 EUR"
+                    },
+                    "passenger_name": {
+                        "description": "The name of the passenger.",
+                        "example": "ANDREA DI MAIO"
+                    },
+                    "passenger_type": {
+                        "description": "The type of passenger (e.g., adult, child).",
+                        "example": "ADULTO"
+                    },
+                    "payment_method": {
+                        "description": "The method of payment used for the ticket.",
+                        "example": "Carta di credito (Visa)"
+                    },
+                    "purchase_channel": {
+                        "description": "The channel through which the ticket was purchased.",
+                        "example": "Portale Corporate"
+                    },
+                    "purchase_date": {
+                        "description": "The date when the ticket was purchased.",
+                        "example": "08 giu 2026"
+                    },
+                    "seat_number": {
+                        "description": "The seat number where the passenger is seated.",
+                        "example": "35"
+                    },
+                    "service_type": {
+                        "description": "The type of service provided (e.g., fast track).",
+                        "example": "FAST TRACK"
+                    },
+                    "ticket_code": {
+                        "description": "Unique code for this train ticket.",
+                        "example": "SCQVWS"
+                    },
+                    "ticket_price": {
+                        "description": "The base price of the ticket.",
+                        "example": "129.90 EUR"
+                    },
+                    "total_amount_paid": {
+                        "description": "The total amount paid including any additional charges.",
+                        "example": "174.86 EUR"
+                    },
+                    "total_price": {
+                        "description": "The total price paid for the ticket after discounts.",
+                        "example": "90.93 EUR"
+                    },
+                    "train_number": {
+                        "description": "The unique number of the train.",
+                        "example": "9986"
+                    },
+                    "travel_class": {
+                        "description": "The class of travel (e.g., first class, business class).",
+                        "example": "PRIMA BUSINESS"
+                    }
+                }
+            },
+            "status": "completed",
+            "total_pages": 2
+        }
+    },
+    "metadata": {
+        "created_at": "2026-06-15T13:31:24.592Z",
+        "id": "c6ba78bc-1a45-4cf6-827f-694d4c38f2fb",
+        "modified_at": "2026-06-15T13:32:10.890Z",
+        "project_id": "727d8989-8f44-4cda-ae98-4c77d6410e58"
+    }
+}

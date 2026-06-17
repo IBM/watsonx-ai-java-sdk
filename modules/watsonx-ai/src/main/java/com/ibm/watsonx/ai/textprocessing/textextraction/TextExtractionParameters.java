@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import com.ibm.watsonx.ai.WatsonxParameters;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.Language;
+import com.ibm.watsonx.ai.textprocessing.Mode;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
 
 /**
@@ -540,24 +541,6 @@ public final class TextExtractionParameters extends WatsonxParameters {
                 .filter(status -> status.value.equalsIgnoreCase(value))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown Type value: " + value));
-        }
-    }
-
-    /**
-     * Enum representing the processing modes available for a text extraction request.
-     */
-    public static enum Mode {
-        STANDARD("standard"),
-        HIGH_QUALITY("high_quality");
-
-        private final String value;
-
-        Mode(String value) {
-            this.value = value;
-        }
-
-        public String value() {
-            return value;
         }
     }
 

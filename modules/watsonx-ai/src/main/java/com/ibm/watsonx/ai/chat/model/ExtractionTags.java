@@ -133,17 +133,4 @@ public final class ExtractionTags {
         Matcher matcher = pattern.matcher(content);
         return matcher.find() ? matcher.group(1).trim() : null;
     }
-
-    private static String stripBrackets(String tag) {
-        if (isNull(tag))
-            return null;
-
-        if (tag.startsWith("<"))
-            tag = tag.substring(1);
-
-        if (tag.endsWith(">"))
-            tag = tag.substring(0, tag.length() - 1);
-
-        return tag;
-    }
 }

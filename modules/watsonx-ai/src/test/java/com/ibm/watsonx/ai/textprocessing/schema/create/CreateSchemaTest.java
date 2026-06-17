@@ -2,7 +2,7 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textprocessing.textclassification;
+package com.ibm.watsonx.ai.textprocessing.schema.create;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
@@ -35,7 +35,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,23 +55,21 @@ import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
 import com.ibm.watsonx.ai.textprocessing.CosDataLocation;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.DataReference;
-import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig.GroundingMode;
-import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig.SchemaMergeStrategy;
+import com.ibm.watsonx.ai.textprocessing.GroundingHints;
+import com.ibm.watsonx.ai.textprocessing.GroundingHints.FieldData;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
-import com.ibm.watsonx.ai.textprocessing.KvpPage;
-import com.ibm.watsonx.ai.textprocessing.KvpSlice;
 import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.Metadata;
+import com.ibm.watsonx.ai.textprocessing.Mode;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.textprocessing.Status;
-import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationParameters.ClassificationMode;
-import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse.ClassificationResult;
-import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse.Entity;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse.CreateSchemaResult;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse.Entity;
 
 @ExtendWith(MockitoExtension.class)
-public class TextClassificationTest extends AbstractWatsonxTest {
+public class CreateSchemaTest extends AbstractWatsonxTest {
 
     @RegisterExtension
     WireMockExtension cosServer = WireMockExtension.newInstance()
@@ -84,14 +81,14 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
         .build();
 
-    TextClassificationService classificationService;
+    CreateSchemaService createSchemaService;
 
     @BeforeEach
     void beforeEach() {
         cosServer.resetAll();
         watsonxServer.resetAll();
         when(mockAuthenticator.token()).thenReturn("token");
-        classificationService = TextClassificationService.builder()
+        createSchemaService = CreateSchemaService.builder()
             .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
             .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
             .authenticator(mockAuthenticator)
@@ -103,178 +100,134 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_build_text_classification_parameters_and_start_classification() throws Exception {
+    void should_build_create_schema_parameters_and_start_creation() throws Exception {
 
         var PARAMETERS = """
             "parameters": {
+                    "mode": "high_quality",
                     "ocr_mode": "forced",
-                    "classification_mode": "exact",
                     "auto_rotation_correction": true,
                     "languages": [
                         "en"
                     ],
+                    "additional_prompt_instructions": "Test",
+                    "enable_grounding": true,
+                    "max_pages_to_process": 3,
                     "semantic_config": {
-                        "enable_text_hints": true,
-                        "enable_generic_kvp": true,
-                        "enable_schema_kvp": true,
-                        "grounding_mode": "fast",
-                        "schemas_merge_strategy": "replace",
-                        "force_schema_name": "None",
-                        "default_model_name": "defaultModelName",
-                        "schemas": [
-                            {
-                                "document_description": "A vendor-issued invoice listing purchased items, prices, and payment information.",
-                                "document_type": "Invoice",
-                                "fields": {
-                                    "invoice_date": {
-                                        "description": "The date when the invoice was issued.",
-                                        "example": "2024-07-10"
-                                    },
-                                    "invoice_number": {
-                                        "description": "The unique number identifying the invoice.",
-                                        "example": "INV-2024-001"
-                                    },
-                                    "total_amount": {
-                                        "description": "The total amount to be paid.",
-                                        "example": "1250.50"
-                                    }
-                                },
-                                "pages": {
-                                    "page_description": "Invoice page",
-                                    "slices": [
-                                        {
-                                            "fields": {
-                                                "invoice_date": {
-                                                    "description": "The date when the invoice was issued.",
-                                                    "example": "2024-07-10"
-                                                },
-                                                "invoice_number": {
-                                                    "description": "The unique number identifying the invoice.",
-                                                    "example": "INV-2024-001"
-                                                },
-                                                "total_amount": {
-                                                    "description": "The total amount to be paid.",
-                                                    "example": "1250.50"
-                                                }
-                                            },
-                                            "normalized_bbox": [ 0.0, 0.0, 1.0, 1.0 ]
-                                        }
-                                    ]
-                                },
-                                "additional_prompt_instructions": "additional instructions"
-                            },
-                            {
-                                "document_description": "A legal document outlining terms and conditions between two parties.",
-                                "document_type": "Contract"
-                            }
-                        ],
-                        "task_model_name_override": {
-                            "test": "test"
-                        }
+                        "default_model_name": "test"
                     }
             }""";
 
-        var RESULT = """
-            {
-                "metadata": {
-                    "created_at": "2025-10-23T07:32:11.013Z",
-                    "id": "id",
-                    "modified_at": "2025-10-23T07:32:43.003Z",
-                    "project_id": "project-id",
-                    "space_id": "space-id"
-                },
-                "entity": {
-                    "document_reference": {
-                        "type": "connection_asset",
-                        "connection": {
-                            "id": "connection-id"
-                        },
-                        "location": {
-                            "bucket": "my-bucket",
-                            "file_name": "test.pdf"
+        var RESULT =
+            """
+                    {
+                            "entity": {
+                                "document_reference": {
+                                    "connection": {
+                                        "id": "connection-id"
+                                    },
+                                    "location": {
+                                        "file_name": "test.pdf",
+                                        "bucket": "my-bucket"
+                                    },
+                                    "type": "connection_asset"
+                                },
+                                %s,
+                                "results": {
+                                    "completed_at": "2026-06-15T08:24:44.987Z",
+                                    "grounding_hints" : {
+                                        "fields" : {
+                                            "bank_bic" : {
+                                                "normalized_bbox" : [ 0.5803, 0.8346, 0.6783, 0.8441 ],
+                                                "page_number" : 1
+                                            },
+                                            "bank_iban" : {
+                                                "normalized_bbox" : [ 0.1111, 0.8222, 0.333, 0.41 ],
+                                                "page_number" : 2
+                                            }
+                                        }
+                                    },
+                                    "number_pages_processed": 2,
+                                    "running_at": "2026-06-15T08:24:01.677Z",
+                                    "schema": {
+                                        "document_description": "Test",
+                                        "document_type": "Invoice",
+                                        "fields": {
+                                            "bank_bic": {
+                                                "description": "bank bic",
+                                                "example": "000"
+                                            },
+                                            "bank_iban": {
+                                                "description": "bank iban",
+                                                "example": "AAA"
+                                            }
+                                        }
+                                    },
+                                    "status": "completed",
+                                    "total_pages": 2
+                                }
+                            },
+                            "metadata": {
+                                "created_at": "2026-06-15T08:23:58.819Z",
+                                "id": "id",
+                                "modified_at": "2026-06-15T08:24:45.043Z",
+                                "project_id": "project-id",
+                                "space_id": "space-id"
+                            }
                         }
-                    },
-                    "results": {
-                        "completed_at": "2025-10-23T07:32:42.981Z",
-                        "document_classified": true,
-                        "document_type": "Invoice",
-                        "number_pages_processed": 10,
-                        "running_at": "2025-10-23T07:32:24.272Z",
-                        "status": "completed"
-                    },
-                    %s,
-                    "custom": {
-                        "custom_1": "custom_value_1",
-                        "custom_2": "custom_value_2"
-                    }
-                }
-            }""".formatted(PARAMETERS);
+                }""".formatted(PARAMETERS);
 
-        Metadata metadata = new Metadata("id", "2025-10-23T07:32:11.013Z", "2025-10-23T07:32:43.003Z", "space-id", "project-id");
-        DataReference documentReference =
-            new DataReference("connection_asset", new CosDataConnection("connection-id"), new CosDataLocation("test.pdf", "my-bucket"));
-        ClassificationResult classificationResult = new ClassificationResult(
-            "completed",
-            "2025-10-23T07:32:24.272Z",
-            "2025-10-23T07:32:42.981Z",
-            10, true, "Invoice", null);
-
-        KvpFields fields = KvpFields.builder()
-            .add("invoice_date", KvpField.of("The date when the invoice was issued.", "2024-07-10"))
-            .add("invoice_number", KvpField.of("The unique number identifying the invoice.", "INV-2024-001"))
-            .add("total_amount", KvpField.of("The total amount to be paid.", "1250.50"))
+        Schema schema = Schema.builder()
+            .documentType("Invoice")
+            .documentDescription("Test")
+            .fields(
+                KvpFields.builder()
+                    .add("bank_bic", KvpField.of("bank bic", "000"))
+                    .add("bank_iban", KvpField.of("bank iban", "AAA"))
+                    .build())
             .build();
 
-        KvpPage pages = KvpPage.of("Invoice page", KvpSlice.of(fields, List.of(0.0, 0.0, 1.0, 1.0)));
+        GroundingHints groundingHints = GroundingHints.builder()
+            .add("bank_bic", FieldData.of(List.of(0.5803, 0.8346, 0.6783, 0.8441), 1))
+            .add("bank_iban", FieldData.of(List.of(0.1111, 0.8222, 0.333, 0.41), 2))
+            .build();
 
-        TextClassificationSemanticConfig semanticConfig = TextClassificationSemanticConfig.builder()
-            .enableGenericKvp(true)
-            .enableTextHints(true)
-            .enableSchemaKvp(true)
-            .groundingMode(GroundingMode.FAST)
-            .forceSchemaName("None")
-            .defaultModelName("defaultModelName")
-            .taskModelNameOverride(Map.of("test", "test"))
-            .schemasMergeStrategy(SchemaMergeStrategy.REPLACE)
-            .schemas(
-                Schema.builder()
-                    .documentDescription("A vendor-issued invoice listing purchased items, prices, and payment information.")
-                    .documentType("Invoice")
-                    .fields(fields)
-                    .pages(pages)
-                    .additionalPromptInstructions("additional instructions")
-                    .build(),
-                Schema.builder()
-                    .documentDescription("A legal document outlining terms and conditions between two parties.")
-                    .documentType("Contract")
-                    .build()
-            ).build();
+        Metadata metadata = new Metadata("id", "2026-06-15T08:23:58.819Z", "2026-06-15T08:24:45.043Z", "space-id", "project-id");
+        DataReference documentReference =
+            new DataReference("connection_asset", new CosDataConnection("connection-id"), new CosDataLocation("test.pdf", "my-bucket"));
+        CreateSchemaResult createSchemaResult =
+            new CreateSchemaResult("completed", "2026-06-15T08:24:01.677Z", "2026-06-15T08:24:44.987Z", 2, 2, schema, groundingHints, null);
 
-        TextClassificationParameters p = TextClassificationParameters.builder()
-            .addCustomProperty("custom_1", "custom_value_1")
-            .addCustomProperty("custom_2", "custom_value_2")
+        CreateSchemaParameters p = CreateSchemaParameters.builder()
             .autoRotationCorrection(true)
-            .classificationMode(ClassificationMode.EXACT)
             .documentReference(CosReference.of("connection-id", "my-bucket"))
+            .additionalPromptInstructions("Test")
+            .enableGrounding(true)
+            .maxPagesToProcess(3)
             .languages(Language.ENGLISH)
+            .mode(Mode.HIGH_QUALITY)
             .ocrMode(OcrMode.FORCED)
             .projectId("project-id")
             .spaceId("space-id")
-            .semanticConfig(semanticConfig)
+            .semanticConfig(CreateSchemaSemanticConfig.builder().defaultModelName("test").build())
             .transactionId("transaction-id")
             .build();
 
         Parameters parameters = p.toParameters();
-        Map<String, Object> custom = Map.of(
-            "custom_1", "custom_value_1",
-            "custom_2", "custom_value_2"
-        );
+        assertEquals(p.mode(), parameters.mode());
+        assertEquals(p.ocrMode(), parameters.ocrMode());
+        assertEquals(p.autoRotationCorrection(), parameters.autoRotationCorrection());
+        assertEquals(p.languages(), parameters.languages());
+        assertEquals(p.additionalPromptInstructions(), parameters.additionalPromptInstructions());
+        assertEquals(p.enableGrounding(), parameters.enableGrounding());
+        assertEquals(p.maxPagesToProcess(), parameters.maxPagesToProcess());
+        assertEquals(p.semanticConfig().defaultModelName(), parameters.semanticConfig().defaultModelName());
 
-        Entity entity = new Entity(documentReference, classificationResult, parameters, custom);
-        TextClassificationResponse response = new TextClassificationResponse(metadata, entity);
+        Entity entity = new Entity(documentReference, createSchemaResult, parameters);
+        CreateSchemaResponse response = new CreateSchemaResponse(metadata, entity);
         JSONAssert.assertEquals(RESULT, toJson(response), true);
 
-        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+        watsonxServer.stubFor(post("/ml/v1/text/schemas/create?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -292,28 +245,24 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                             "bucket": "my-bucket"
                         }
                     },
-                    %s,
-                    "custom": {
-                        "custom_1": "custom_value_1",
-                        "custom_2": "custom_value_2"
-                    }
+                    %s
                 }""".formatted(PARAMETERS)))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withBody(RESULT)
             ));
 
-        var result = classificationService.startClassification("test.pdf", p);
+        var result = createSchemaService.startCreateSchema("test.pdf", p);
         assertEquals(metadata, result.metadata());
         assertEquals(entity, result.entity());
     }
 
     @Test
-    void should_start_classification() throws Exception {
+    void should_start_create_schema() throws Exception {
 
-        var RESULT = Files.readString(Path.of(ClassLoader.getSystemResource("classification_response.json").toURI()));
+        var RESULT = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_response.json").toURI()));
 
-        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+        watsonxServer.stubFor(post("/ml/v1/text/schemas/create?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -329,6 +278,9 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                             "file_name": "test.pdf",
                             "bucket": "my-bucket"
                         }
+                    },
+                    "parameters": {
+                        "ocr_mode": "disabled"
                     }
                 }"""))
             .willReturn(aResponse()
@@ -336,16 +288,16 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(RESULT)
             ));
 
-        var result = classificationService.startClassification("test.pdf");
+        var result = createSchemaService.startCreateSchema("test.pdf");
         assertNotNull(result);
     }
 
     @Test
-    void should_fetch_classification_request() throws Exception {
+    void should_fetch_create_schema_request() throws Exception {
 
-        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_job.json").toURI()));
 
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s"
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s"
             .formatted(API_VERSION, URLEncoder.encode("project-id", Charset.defaultCharset())))
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Accept", equalTo("application/json"))
@@ -354,7 +306,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(JOB.formatted(Status.SUBMITTED.value()))
             ));
 
-        var response = classificationService.fetchClassificationRequest("id");
+        var response = createSchemaService.fetchRequest("id");
         JSONAssert.assertEquals(JOB.formatted(Status.SUBMITTED.value()), Json.toJson(response), true);
 
         var projectId = URLEncoder.encode("new-project-id", Charset.defaultCharset());
@@ -362,7 +314,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         watsonxServer.resetAll();
 
         watsonxServer
-            .stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, projectId))
+            .stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, projectId))
                 .withHeader("Authorization", equalTo("Bearer token"))
                 .withHeader("Accept", equalTo("application/json"))
                 .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
@@ -371,12 +323,12 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                     .withBody("{}")
                 ));
 
-        var parameters = TextClassificationFetchParameters.builder()
+        var parameters = CreateSchemaFetchParameters.builder()
             .projectId("new-project-id")
             .transactionId("my-transaction-id")
             .build();
 
-        response = classificationService.fetchClassificationRequest("id", parameters);
+        response = createSchemaService.fetchRequest("id", parameters);
         assertNotNull(response);
 
         var spaceId = URLEncoder.encode("new-space-id", Charset.defaultCharset());
@@ -384,7 +336,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         watsonxServer.resetAll();
 
         watsonxServer
-            .stubFor(get("/ml/v1/text/classifications/id?version=%s&space_id=%s".formatted(API_VERSION, spaceId))
+            .stubFor(get("/ml/v1/text/schemas/create/id?version=%s&space_id=%s".formatted(API_VERSION, spaceId))
                 .withHeader("Authorization", equalTo("Bearer token"))
                 .withHeader("Accept", equalTo("application/json"))
                 .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
@@ -393,31 +345,31 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                     .withBody("{}")
                 ));
 
-        parameters = TextClassificationFetchParameters.builder()
+        parameters = CreateSchemaFetchParameters.builder()
             .spaceId("new-space-id")
             .transactionId("my-transaction-id")
             .build();
 
-        response = classificationService.fetchClassificationRequest("id", parameters);
+        response = createSchemaService.fetchRequest("id", parameters);
         assertNotNull(response);
     }
 
     @Test
-    void should_delete_classification_request() {
+    void should_delete_create_schema_request() {
 
         var projectId = URLEncoder.encode("project-id", Charset.defaultCharset());
 
         watsonxServer
-            .stubFor(delete("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, projectId))
+            .stubFor(delete("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, projectId))
                 .withHeader("Authorization", equalTo("Bearer token"))
                 .willReturn(aResponse()
                     .withStatus(204)
                 ));
 
-        assertTrue(classificationService.deleteRequest("id"));
+        assertTrue(createSchemaService.deleteRequest("id"));
 
         watsonxServer
-            .stubFor(delete("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, projectId))
+            .stubFor(delete("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, projectId))
                 .withHeader("Authorization", equalTo("Bearer token"))
                 .willReturn(aResponse()
                     .withStatus(404)
@@ -433,13 +385,13 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                         }""")
                 ));
 
-        assertFalse(classificationService.deleteRequest("id"));
+        assertFalse(createSchemaService.deleteRequest("id"));
 
         projectId = URLEncoder.encode("new-project-id", Charset.defaultCharset());
 
         watsonxServer
             .stubFor(
-                delete("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, projectId)
+                delete("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, projectId)
                     + "&hard_delete=true")
                     .withHeader("Authorization", equalTo("Bearer token"))
                     .withHeader(TRANSACTION_ID_HEADER, equalTo("my-transaction-id"))
@@ -447,83 +399,134 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                         .withStatus(204)
                     ));
 
-        var parameters = TextClassificationDeleteParameters.builder()
+        var parameters = CreateSchemaDeleteParameters.builder()
             .projectId("new-project-id")
             .hardDelete(true)
             .transactionId("my-transaction-id")
             .build();
 
-        assertTrue(classificationService.deleteRequest("id", parameters));
+        assertTrue(createSchemaService.deleteRequest("id", parameters));
 
         var spaceId = URLEncoder.encode("new-space-id", Charset.defaultCharset());
 
         watsonxServer
-            .stubFor(delete("/ml/v1/text/classifications/id?version=%s&space_id=%s".formatted(API_VERSION, spaceId))
+            .stubFor(delete("/ml/v1/text/schemas/create/id?version=%s&space_id=%s".formatted(API_VERSION, spaceId))
                 .withHeader("Authorization", equalTo("Bearer token"))
                 .willReturn(aResponse()
                     .withStatus(204)
                 ));
 
-        parameters = TextClassificationDeleteParameters.builder()
+        parameters = CreateSchemaDeleteParameters.builder()
             .spaceId("new-space-id")
             .build();
 
-        assertTrue(classificationService.deleteRequest("id", parameters));
+        assertTrue(createSchemaService.deleteRequest("id", parameters));
     }
 
     @Test
-    void should_classify_and_fetch_result_for_existing_file() throws Exception {
+    void should_create_schema_and_fetch_result_for_existing_file() throws Exception {
 
         mockServers(false);
-        ClassificationResult result = classificationService.classifyAndFetch("test.pdf");
+        CreateSchemaResult result = createSchemaService.createSchemaAndFetch("test.pdf");
         assertEquals("completed", result.status());
-        assertEquals("2025-10-23T07:32:24.272Z", result.runningAt());
-        assertEquals("2025-10-23T07:32:42.981Z", result.completedAt());
-        assertEquals(10, result.numberPagesProcessed());
-        assertEquals(true, result.documentClassified());
-        assertEquals("Invoice", result.documentType());
+        assertEquals("2026-06-15T13:31:27.466Z", result.runningAt());
+        assertEquals("2026-06-15T13:32:10.844Z", result.completedAt());
+        assertEquals(2, result.numberPagesProcessed());
+        assertNotNull(result.schema());
+        assertNotNull(result.schema().documentDescription());
+        assertNotNull(result.schema().documentType());
+        assertEquals(
+            List.of(0.0735, 0.3092, 0.1916, 0.3228),
+            result.groundingHints().bbox("arrival_station")
+        );
+        assertEquals(
+            2,
+            result.groundingHints().pageNumber("arrival_station")
+        );
+        assertEquals(
+            FieldData.of(List.of(0.0735, 0.3092, 0.1916, 0.3228), 2),
+            result.groundingHints().field("arrival_station")
+        );
+        assertEquals(
+            KvpField.of("The station where the train arrives.", "MI CENTRALE"),
+            result.schema().fields().get("arrival_station")
+        );
 
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
-    void should_upload_classify_and_fetch_using_input_stream() throws Exception {
+    void should_create_schema_and_fetch_using_input_stream() throws Exception {
 
         mockServers(false);
         var inputStream = ClassLoader.getSystemResourceAsStream("test.pdf");
-        ClassificationResult result = classificationService.uploadClassifyAndFetch(inputStream, "test.pdf");
+        CreateSchemaResult result = createSchemaService.uploadCreateSchemaAndFetch(inputStream, "test.pdf");
         assertEquals("completed", result.status());
-        assertEquals("2025-10-23T07:32:24.272Z", result.runningAt());
-        assertEquals("2025-10-23T07:32:42.981Z", result.completedAt());
-        assertEquals(10, result.numberPagesProcessed());
-        assertEquals(true, result.documentClassified());
-        assertEquals("Invoice", result.documentType());
+        assertEquals("2026-06-15T13:31:27.466Z", result.runningAt());
+        assertEquals("2026-06-15T13:32:10.844Z", result.completedAt());
+        assertEquals(2, result.numberPagesProcessed());
+        assertNotNull(result.schema());
+        assertNotNull(result.schema().documentDescription());
+        assertNotNull(result.schema().documentType());
+        assertEquals(
+            List.of(0.0735, 0.3092, 0.1916, 0.3228),
+            result.groundingHints().bbox("arrival_station")
+        );
+        assertEquals(
+            2,
+            result.groundingHints().pageNumber("arrival_station")
+        );
+        assertEquals(
+            FieldData.of(List.of(0.0735, 0.3092, 0.1916, 0.3228), 2),
+            result.groundingHints().field("arrival_station")
+        );
+        assertEquals(
+            KvpField.of("The station where the train arrives.", "MI CENTRALE"),
+            result.schema().fields().get("arrival_station")
+        );
 
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
-    void should_upload_classify_and_fetch_using_file() throws Exception {
+    void should_create_schema_and_fetch_using_file() throws Exception {
 
         mockServers(false);
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
 
-        ClassificationResult result = classificationService.uploadClassifyAndFetch(file);
+        CreateSchemaResult result = createSchemaService.uploadCreateSchemaAndFetch(file);
         assertEquals("completed", result.status());
-        assertEquals("2025-10-23T07:32:24.272Z", result.runningAt());
-        assertEquals("2025-10-23T07:32:42.981Z", result.completedAt());
-        assertEquals(10, result.numberPagesProcessed());
-        assertEquals(true, result.documentClassified());
-        assertEquals("Invoice", result.documentType());
+        assertEquals("2026-06-15T13:31:27.466Z", result.runningAt());
+        assertEquals("2026-06-15T13:32:10.844Z", result.completedAt());
+        assertEquals(2, result.numberPagesProcessed());
+        assertNotNull(result.schema());
+        assertNotNull(result.schema().documentDescription());
+        assertNotNull(result.schema().documentType());
+        assertEquals(
+            List.of(0.0735, 0.3092, 0.1916, 0.3228),
+            result.groundingHints().bbox("arrival_station")
+        );
+        assertEquals(
+            2,
+            result.groundingHints().pageNumber("arrival_station")
+        );
+        assertEquals(
+            FieldData.of(List.of(0.0735, 0.3092, 0.1916, 0.3228), 2),
+            result.groundingHints().field("arrival_station")
+        );
+        assertEquals(
+            KvpField.of("The station where the train arrives.", "MI CENTRALE"),
+            result.schema().fields().get("arrival_station")
+        );
 
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
@@ -535,28 +538,28 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         mockServers(false);
         var file = new File("doesnotexist.pdf");
 
-        TextClassificationException ex = assertThrows(TextClassificationException.class,
-            () -> classificationService.uploadClassifyAndFetch(file));
+        CreateSchemaException ex = assertThrows(CreateSchemaException.class,
+            () -> createSchemaService.uploadCreateSchemaAndFetch(file));
         assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
-        assertEquals("TextClassificationException [code=file_not_found, message=doesnotexist.pdf (No such file or directory)]", ex.toString());
+        assertEquals("CreateSchemaException [code=file_not_found, message=doesnotexist.pdf (No such file or directory)]", ex.toString());
 
-        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
-        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/id")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
-    void should_upload_and_start_classification_using_file() throws Exception {
+    void should_upload_file_and_start_create_schema_using_file() throws Exception {
 
         mockServers(false);
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
-        var result = classificationService.uploadAndStartClassification(file);
+        var result = createSchemaService.uploadAndStartCreateSchema(file);
         assertEquals("id", result.metadata().id());
 
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
@@ -568,61 +571,61 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         mockServers(false);
         var file = new File("doesnotexist.pdf");
 
-        TextClassificationException ex = assertThrows(TextClassificationException.class,
-            () -> classificationService.uploadAndStartClassification(file));
+        CreateSchemaException ex = assertThrows(CreateSchemaException.class,
+            () -> createSchemaService.uploadAndStartCreateSchema(file));
         assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
 
-        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
-    void should_upload_and_start_classification_using_input_stream() throws Exception {
+    void should_upload_and_create_schema_using_input_stream() throws Exception {
 
         mockServers(false);
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("test.pdf");
 
-        var result = classificationService.uploadAndStartClassification(inputStream, "test.pdf");
+        var result = createSchemaService.uploadAndStartCreateSchema(inputStream, "test.pdf");
         assertEquals("id", result.metadata().id());
 
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
-    void should_remove_uploaded_file_after_classification() throws Exception {
+    void should_remove_uploaded_file_after_create_schema() throws Exception {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
         mockServers(true);
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
 
-        TextClassificationParameters parameters = TextClassificationParameters.builder()
+        CreateSchemaParameters parameters = CreateSchemaParameters.builder()
             .removeUploadedFile(true)
             .build();
 
         assertThrows(
             IllegalArgumentException.class,
-            () -> classificationService.startClassification("test.pdf", parameters));
+            () -> createSchemaService.startCreateSchema("test.pdf", parameters));
 
         assertThrows(
             IllegalArgumentException.class,
-            () -> classificationService.uploadAndStartClassification(file, parameters));
+            () -> createSchemaService.uploadAndStartCreateSchema(file, parameters));
 
-        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
 
-        ClassificationResult result = classificationService.classifyAndFetch("test.pdf", parameters);
+        CreateSchemaResult result = createSchemaService.createSchemaAndFetch("test.pdf", parameters);
         assertNotNull(result);
         Thread.sleep(200); // Wait for the async calls.
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
 
@@ -631,22 +634,22 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         mockServers(true);
 
-        result = classificationService.uploadClassifyAndFetch(file, parameters);
+        result = createSchemaService.uploadCreateSchemaAndFetch(file, parameters);
         assertNotNull(result);
         Thread.sleep(200); // Wait for the async calls.
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
-    void should_handle_long_running_classification_with_retries() throws Exception {
+    void should_handle_long_running_create_schema_with_retries() throws Exception {
 
-        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
-        var RESPONSE = Files.readString(Path.of(ClassLoader.getSystemResource("classification_response.json").toURI()));
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_job.json").toURI()));
+        var RESPONSE = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_response.json").toURI()));
 
-        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+        watsonxServer.stubFor(post("/ml/v1/text/schemas/create?version=%s".formatted(API_VERSION))
             .inScenario("long_response")
             .whenScenarioStateIs(Scenario.STARTED)
             .willSetStateTo("firstIteration")
@@ -658,7 +661,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(JOB.formatted("submitted"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .inScenario("long_response")
             .whenScenarioStateIs("firstIteration")
             .willSetStateTo("secondIteration")
@@ -669,7 +672,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(JOB.formatted("running"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .inScenario("long_response")
             .whenScenarioStateIs("secondIteration")
             .willSetStateTo(Scenario.STARTED)
@@ -681,19 +684,19 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             ));
 
 
-        var result = classificationService.classifyAndFetch("test.pdf");
+        var result = createSchemaService.createSchemaAndFetch("test.pdf");
         assertNotNull(result);
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(2, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(2, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
     }
 
     @Test
-    void should_throw_exception_when_classification_timeout_exceeded() throws Exception {
+    void should_throw_exception_when_create_schema_timeout_exceeded() throws Exception {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
-        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_job.json").toURI()));
 
-        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+        watsonxServer.stubFor(post("/ml/v1/text/schemas/create?version=%s".formatted(API_VERSION))
             .inScenario("long_response")
             .whenScenarioStateIs(Scenario.STARTED)
             .willSetStateTo("firstIteration")
@@ -705,7 +708,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(JOB.formatted("submitted"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .inScenario("long_response")
             .whenScenarioStateIs("firstIteration")
             .willSetStateTo("secondIteration")
@@ -716,7 +719,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(JOB.formatted("running"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .inScenario("long_response")
             .whenScenarioStateIs("secondIteration")
             .willSetStateTo(Scenario.STARTED)
@@ -728,7 +731,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             ));
 
         watsonxServer
-            .stubFor(delete("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+            .stubFor(delete("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
                 .withHeader("Authorization", equalTo("Bearer token"))
                 .willReturn(aResponse()
                     .withStatus(204)
@@ -738,31 +741,31 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse().withStatus(200)));
 
-        TextClassificationParameters parameters = TextClassificationParameters.builder()
+        CreateSchemaParameters parameters = CreateSchemaParameters.builder()
             .timeout(Duration.ofMillis(100))
             .removeUploadedFile(true)
             .build();
 
         var ex = assertThrows(
-            TextClassificationException.class,
-            () -> classificationService.classifyAndFetch("test.pdf", parameters));
+            CreateSchemaException.class,
+            () -> createSchemaService.createSchemaAndFetch("test.pdf", parameters));
 
-        assertEquals("The execution of the classification test.pdf file took longer than the timeout set by 100 milliseconds",
+        assertEquals("Execution to create schema for test.pdf file took longer than the timeout set by 100 milliseconds",
             ex.getMessage());
 
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
     }
 
     @Test
-    void should_throw_exception_when_classification_job_fails() throws Exception {
+    void should_throw_exception_when_create_schema_job_fails() throws Exception {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
-        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
-        var JOB_ERROR = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job_error.json").toURI()));
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_job.json").toURI()));
+        var JOB_ERROR = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_job_error.json").toURI()));
         var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
 
-        TextClassificationParameters parameters = TextClassificationParameters.builder()
+        CreateSchemaParameters parameters = CreateSchemaParameters.builder()
             .removeUploadedFile(true)
             .build();
 
@@ -774,7 +777,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse().withStatus(200)));
 
-        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+        watsonxServer.stubFor(post("/ml/v1/text/schemas/create?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -783,7 +786,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(JOB.formatted("submitted"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .inScenario("simulate_failed")
             .whenScenarioStateIs(Scenario.STARTED)
             .willSetStateTo("failed")
@@ -794,7 +797,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(JOB.formatted("running"))
             ));
 
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .inScenario("simulate_failed")
             .whenScenarioStateIs("failed")
             .willSetStateTo(Scenario.STARTED)
@@ -806,22 +809,22 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             ));
 
         var ex = assertThrows(
-            TextClassificationException.class,
-            () -> classificationService.classifyAndFetch("test.pdf", parameters));
+            CreateSchemaException.class,
+            () -> createSchemaService.createSchemaAndFetch("test.pdf", parameters));
 
         assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
         ex = assertThrows(
-            TextClassificationException.class,
-            () -> classificationService.uploadClassifyAndFetch(file, parameters));
+            CreateSchemaException.class,
+            () -> createSchemaService.uploadCreateSchemaAndFetch(file, parameters));
 
         assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
         Thread.sleep(200); // Wait for the async calls.
-        watsonxServer.verify(2, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(4, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(2, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(4, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
@@ -853,28 +856,28 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         var ex = assertThrows(
             WatsonxException.class,
-            () -> classificationService.uploadAndStartClassification(file),
+            () -> createSchemaService.uploadAndStartCreateSchema(file),
             "The specified bucket does not exist.");
 
         assertEquals(error, ex.details().orElseThrow());
 
         ex = assertThrows(
             WatsonxException.class,
-            () -> classificationService.uploadClassifyAndFetch(file),
+            () -> createSchemaService.uploadCreateSchemaAndFetch(file),
             "The specified bucket does not exist.");
 
         assertEquals(error, ex.details().orElseThrow());
 
-        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(2, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
-    void should_throw_exception_when_classification_event_not_found() {
+    void should_throw_exception_when_create_schema_event_not_found() {
 
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
@@ -882,21 +885,14 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withHeader("Content-Type", "application/json")
                 .withBody("""
                         {
-                            "trace": "9ddfccd50f6649d9913810df36578d38",
-                            "errors": [
-                                {
-                                    "code": "text_classification_event_does_not_exist",
-                                    "message": "Text classification request does not exist."
-                                }
-                            ],
-                            "status_code": 404
+                            "error": "Schema 'c6ba78bc-1a45-4cf6-827f-694d4c38f2fbs' not found"
                         }
                     """)
             ));
 
         var ex = assertThrows(WatsonxException.class,
-            () -> classificationService.fetchClassificationRequest("id"));
-        assertEquals(WatsonxError.Code.TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST.value(),
+            () -> createSchemaService.fetchRequest("id"));
+        assertEquals(WatsonxError.Code.CREATE_SCHEMA_EVENT_DOES_NOT_EXIST.value(),
             ex.details().orElseThrow().errors().get(0).code());
     }
 
@@ -932,7 +928,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .willSetStateTo(Scenario.STARTED)
             .willReturn(aResponse().withStatus(204)));
 
-        assertTrue(classificationService.deleteFile("my-bucket", "test.pdf"));
+        assertTrue(createSchemaService.deleteFile("my-bucket", "test.pdf"));
         Thread.sleep(500);
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
@@ -947,7 +943,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
         cosServer.resetAll();
 
-        var classificationService = TextClassificationService.builder()
+        var createSchemaService = CreateSchemaService.builder()
             .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
             .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
             .authenticator(mockAuthenticator)
@@ -983,7 +979,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .willSetStateTo(Scenario.STARTED)
             .willReturn(aResponse().withStatus(204)));
 
-        assertTrue(classificationService.deleteFile("my-bucket", "test.pdf"));
+        assertTrue(createSchemaService.deleteFile("transactionId", "my-bucket", "test.pdf"));
         Thread.sleep(500);
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
@@ -996,7 +992,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse().withStatus(200)));
 
-        assertTrue(classificationService.uploadFile(file));
+        assertTrue(createSchemaService.uploadFile(file));
     }
 
     @Test
@@ -1007,7 +1003,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         when(cosAuthenticator.token()).thenReturn("custom-token");
         when(cosAuthenticator.scheme()).thenReturn("Bearer");
 
-        var classificationService = TextClassificationService.builder()
+        var createSchemaService = CreateSchemaService.builder()
             .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
             .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
             .authenticator(mockAuthenticator)
@@ -1023,7 +1019,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer custom-token"))
             .willReturn(aResponse().withStatus(200)));
 
-        assertTrue(classificationService.uploadFile(file));
+        assertTrue(createSchemaService.uploadFile(file));
     }
 
     @Test
@@ -1035,36 +1031,16 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .withHeader("Authorization", equalTo("Bearer token"))
             .willReturn(aResponse().withStatus(200)));
 
-        TextClassificationException ex = assertThrows(TextClassificationException.class,
-            () -> classificationService.uploadFile(file));
+        CreateSchemaException ex = assertThrows(CreateSchemaException.class,
+            () -> createSchemaService.uploadFile(file));
         assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
     }
 
-    @Test
-    @MockitoSettings(strictness = Strictness.LENIENT)
-    void should_compare_kvp_fields_objects_for_equality() {
-
-        KvpFields f1 = KvpFields.builder()
-            .add("invoice_date", KvpField.of("The date when the invoice was issued.", "2024-07-10"))
-            .add("invoice_number", KvpField.of("The unique number identifying the invoice.", "INV-2024-001"))
-            .add("total_amount", KvpField.of("The total amount to be paid.", "1250.50"))
-            .build();
-
-        KvpFields f2 = KvpFields.builder()
-            .add("invoice_date", KvpField.of("The date when the invoice was issued.", "2024-07-10"))
-            .add("invoice_number", KvpField.of("The unique number identifying the invoice.", "INV-2024-001"))
-            .add("total_amount", KvpField.of("The total amount to be paid.", "1250.50"))
-            .build();
-
-        assertEquals(f1, f2);
-
-    }
-
     private void mockServers(boolean deleteUploadedFile) throws Exception {
 
-        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
-        var RESPONSE = Files.readString(Path.of(ClassLoader.getSystemResource("classification_response.json").toURI()));
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_job.json").toURI()));
+        var RESPONSE = Files.readString(Path.of(ClassLoader.getSystemResource("create_schema_response.json").toURI()));
         var BUCKET_NAME = "my-bucket";
         var FILE_NAME = "test.pdf";
 
@@ -1082,7 +1058,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         }
 
         // Mock start extraction.
-        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+        watsonxServer.stubFor(post("/ml/v1/text/schemas/create?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Content-Type", equalTo("application/json"))
             .withHeader("Accept", equalTo("application/json"))
@@ -1092,7 +1068,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             ));
 
         // Mock result extraction.
-        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+        watsonxServer.stubFor(get("/ml/v1/text/schemas/create/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
             .withHeader("Authorization", equalTo("Bearer token"))
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()

@@ -4,7 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
-import com.ibm.watsonx.ai.textprocessing.SemanticConfig;
+import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig;
 
 /**
  * Represents the semantic configuration for text extraction.
@@ -31,7 +31,7 @@ import com.ibm.watsonx.ai.textprocessing.SemanticConfig;
  *     ).build();
  * }</pre>
  */
-public final class TextExtractionSemanticConfig extends SemanticConfig {
+public final class TextExtractionSemanticConfig extends ExtendedSemanticConfig {
 
     private TextExtractionSemanticConfig(Builder builder) {
         super(builder);
@@ -64,7 +64,7 @@ public final class TextExtractionSemanticConfig extends SemanticConfig {
     /**
      * Builder class for constructing {@link TextExtractionSemanticConfig} instance.
      */
-    public final static class Builder extends SemanticConfig.Builder<Builder> {
+    public final static class Builder extends ExtendedSemanticConfig.Builder<Builder> {
 
         /**
          * Builds a {@link TextExtractionSemanticConfig} instance.
