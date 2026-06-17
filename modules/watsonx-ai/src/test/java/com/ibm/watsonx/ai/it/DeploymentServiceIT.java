@@ -66,6 +66,7 @@ public class DeploymentServiceIT {
     static final String NVIDIA_DEPLOYMENT_ID = System.getenv("WATSONX_NVIDIA_DEPLOYMENT_ID");
     static final String GEMMA_DEPLOYMENT_ID = System.getenv("WATSONX_GEMMA_DEPLOYMENT_ID");
     static final String GRANITE_3_3_DEPLOYMENT_ID = System.getenv("WATSONX_GRANITE_3_3_DEPLOYMENT_ID");
+    static final String GRANITE_SPEECH_DEPLOYMENT_ID = System.getenv("WATSONX_GRANITE_SPEECH_DEPLOYMENT_ID");
 
     static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
@@ -493,6 +494,31 @@ public class DeploymentServiceIT {
             assertFalse(assistantMessage.thinking().contains("<|channel>") || assistantMessage.thinking().contains("<channel|>"));
             assertFalse(assistantMessage.content().isBlank());
             assertEquals("Hello! How can I help you today?", assistantMessage.content());
+        }
+
+        @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_GRANITE_SPEECH_DEPLOYMENT_ID", matches = ".+")
+        void should_transcribe_text_to_audio() {
+
+            var audio = assertDoesNotThrow(() -> getClass().getClassLoader().getResource("audio.wav").openStream());
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .deploymentId(GRANITE_SPEECH_DEPLOYMENT_ID)
+                .messages(UserMessage.audio("Transcribe the audio into text in the original language.", audio, "wav"))
+                .parameters(ChatParameters.builder().maxCompletionTokens(0).build())
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertFalse(assistantMessage.content().isBlank());
+            assertTrue(assistantMessage.content().startsWith("attenzione attenzione"));
         }
     }
 

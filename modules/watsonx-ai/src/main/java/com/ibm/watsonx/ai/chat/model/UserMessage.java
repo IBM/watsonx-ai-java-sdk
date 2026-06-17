@@ -195,6 +195,49 @@ public record UserMessage(String role, List<UserContent> content, String name) i
     }
 
     /**
+     * Creates a new {@link UserMessage} containing text instructions and an audio from a file.
+     *
+     * @param text the text instructions or prompt describing what to do with the audio
+     * @param file the file containing the audio data
+     * @return a new {@link UserMessage} containing {@link TextContent} and {@link AudioContent}
+     */
+    public static UserMessage audio(String text, File file) {
+        return audio(text, file.toPath());
+    }
+
+    /**
+     * Creates a new {@link UserMessage} containing text instructions and an audio from a path.
+     *
+     * @param text the text instructions or prompt describing what to do with the audio
+     * @param path the path to the file containing the audio data
+     * @return a new {@link UserMessage} containing {@link TextContent} and {@link AudioContent}
+     */
+    public static UserMessage audio(String text, Path path) {
+        try (var is = Files.newInputStream(path)) {
+            var mimeType = Files.probeContentType(path);
+            return audio(text, is, mimeType);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Creates a new {@link UserMessage} containing text instructions and an audio from an input stream.
+     *
+     * @param text the text instructions or prompt describing what to do with the audio
+     * @param is the input stream containing the audio data
+     * @param mimetype the MIME type of the audio (e.g., "wav", "mp3")
+     * @return a new {@link UserMessage} containing {@link TextContent} and {@link AudioContent}
+     */
+    public static UserMessage audio(String text, InputStream is, String mimetype) {
+        try {
+            return of(null, List.of(TextContent.of(text), AudioContent.from(is, mimetype)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Extracts the text content.
      * <p>
      * This method is a convenience accessor for messages containing a single {@link TextContent} element.
