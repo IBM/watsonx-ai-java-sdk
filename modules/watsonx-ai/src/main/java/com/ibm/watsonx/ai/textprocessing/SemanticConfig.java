@@ -4,8 +4,8 @@
  */
 package com.ibm.watsonx.ai.textprocessing;
 
-import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaSemanticConfig;
+import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticConfig;
 
@@ -17,15 +17,14 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticCo
  * <li>{@link TextExtractionSemanticConfig}</li>
  * <li>{@link TextClassificationSemanticConfig}</li>
  * <li>{@link CreateSchemaSemanticConfig}</li>
+ * <li>{@link ImproveSchemaSemanticConfig}</li>
  * </ul>
  */
 public abstract class SemanticConfig {
     private final String defaultModelName;
-    private final Map<String, Object> taskModelNameOverride;
 
     protected SemanticConfig(Builder<?> builder) {
         defaultModelName = builder.defaultModelName;
-        taskModelNameOverride = builder.taskModelNameOverride;
     }
 
     /**
@@ -38,21 +37,11 @@ public abstract class SemanticConfig {
     }
 
     /**
-     * Gets the task model name overrides.
-     *
-     * @return the map of task names to model names
-     */
-    public Map<String, Object> taskModelNameOverride() {
-        return taskModelNameOverride;
-    }
-
-    /**
      * Builder abstract class for constructing {@link SemanticConfig} instance.
      */
     @SuppressWarnings("unchecked")
     public static abstract class Builder<T extends Builder<T>> {
         private String defaultModelName;
-        private Map<String, Object> taskModelNameOverride;
 
         /**
          * By default, all KVP tasks use the models documented
@@ -64,31 +53,6 @@ public abstract class SemanticConfig {
          */
         public T defaultModelName(String defaultModelName) {
             this.defaultModelName = defaultModelName;
-            return (T) this;
-        }
-
-        /**
-         * Sets custom model overrides for specific semantic extraction tasks.
-         * <p>
-         * Each entry in the map defines a task name and the model name to use for that task. Supported task keys include:
-         * <ul>
-         * <li><b>classification_exact</b></li>
-         * <li><b>extraction</b></li>
-         * <li><b>create_schema</b></li>
-         * <li><b>create_schema_page_merger</b></li>
-         * <li><b>improve_schema_description</b></li>
-         * <li><b>cluster_schemas</b></li>
-         * <li><b>merge_schemas</b></li>
-         * </ul>
-         *
-         * Example:
-         *
-         * <pre>{@code { "create_schema": "pixtral-small-something-else" } }</pre>
-         *
-         * @param taskModelNameOverride a map of task names to custom model names @return this builder instance
-         */
-        public T taskModelNameOverride(Map<String, Object> taskModelNameOverride) {
-            this.taskModelNameOverride = taskModelNameOverride;
             return (T) this;
         }
     }

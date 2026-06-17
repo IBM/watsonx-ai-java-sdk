@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.textprocessing;
 
 import static java.util.Objects.nonNull;
 import java.util.List;
+import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticConfig;
 
@@ -26,6 +27,7 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
     private final String schemasMergeStrategy;
     private final String forceSchemaName;
     private final List<Schema> schemas;
+    private final Map<String, Object> taskModelNameOverride;
 
     protected ExtendedSemanticConfig(Builder<?> builder) {
         super(builder);
@@ -36,6 +38,7 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
         schemasMergeStrategy = nonNull(builder.schemasMergeStrategy) ? builder.schemasMergeStrategy.value() : null;
         forceSchemaName = builder.forceSchemaName;
         schemas = builder.schemas;
+        taskModelNameOverride = builder.taskModelNameOverride;
     }
 
     /**
@@ -102,6 +105,15 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
     }
 
     /**
+     * Gets the task model name overrides.
+     *
+     * @return the map of task names to model names
+     */
+    public Map<String, Object> taskModelNameOverride() {
+        return taskModelNameOverride;
+    }
+
+    /**
      * Builder abstract class for constructing {@link ExtendedSemanticConfig} instance.
      */
     @SuppressWarnings("unchecked")
@@ -113,6 +125,7 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
         private SchemaMergeStrategy schemasMergeStrategy;
         private String forceSchemaName;
         private List<Schema> schemas;
+        private Map<String, Object> taskModelNameOverride;
 
         /**
          * Sets whether to enable text hints during extraction.
@@ -210,6 +223,31 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
          */
         public T schemas(List<Schema> schemas) {
             this.schemas = schemas;
+            return (T) this;
+        }
+
+        /**
+         * Sets custom model overrides for specific semantic extraction tasks.
+         * <p>
+         * Each entry in the map defines a task name and the model name to use for that task. Supported task keys include:
+         * <ul>
+         * <li><b>classification_exact</b></li>
+         * <li><b>extraction</b></li>
+         * <li><b>create_schema</b></li>
+         * <li><b>create_schema_page_merger</b></li>
+         * <li><b>improve_schema_description</b></li>
+         * <li><b>cluster_schemas</b></li>
+         * <li><b>merge_schemas</b></li>
+         * </ul>
+         *
+         * Example:
+         *
+         * <pre>{@code { "create_schema": "pixtral-small-something-else" } }</pre>
+         *
+         * @param taskModelNameOverride a map of task names to custom model names @return this builder instance
+         */
+        public T taskModelNameOverride(Map<String, Object> taskModelNameOverride) {
+            this.taskModelNameOverride = taskModelNameOverride;
             return (T) this;
         }
     }

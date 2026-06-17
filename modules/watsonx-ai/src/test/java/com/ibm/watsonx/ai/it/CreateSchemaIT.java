@@ -202,4 +202,10 @@ public class CreateSchemaIT {
     void should_delete_a_create_schema_job_that_does_not_exist() {
         assertFalse(createSchemaService.deleteRequest("non-existing-id"));
     }
+
+    @Test
+    void should_throw_an_exception_when_the_job_does_not_exist() {
+        var ex = assertThrows(WatsonxException.class, () -> createSchemaService.fetchRequest("non-existing-id"));
+        assertEquals(404, ex.statusCode());
+    }
 }
