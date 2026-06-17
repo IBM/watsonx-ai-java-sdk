@@ -2,26 +2,26 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textprocessing.schema.create;
+package com.ibm.watsonx.ai.textprocessing.schema.improve;
 
 import com.ibm.watsonx.ai.textprocessing.SemanticConfig;
 
 /**
- * Represents the semantic configuration for schema creation.
+ * Represents the semantic configuration for improve schema task.
  * <p>
  * Instances of this class are created using the {@link Builder} pattern:
  * <p>
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * CreateSchemaSemanticConfig.builder()
+ * ImproveSchemaSemanticConfig.builder()
  *     .defaultModelName("my-custom-model")
  *     .build();
  * }</pre>
  */
-public final class CreateSchemaSemanticConfig extends SemanticConfig {
+public final class ImproveSchemaSemanticConfig extends SemanticConfig {
 
-    private CreateSchemaSemanticConfig(Builder builder) {
+    private ImproveSchemaSemanticConfig(Builder builder) {
         super(builder);
     }
 
@@ -31,7 +31,7 @@ public final class CreateSchemaSemanticConfig extends SemanticConfig {
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * CreateSchemaSemanticConfig.builder()
+     * ImproveSchemaSemanticConfig.builder()
      *     .defaultModelName("my-custom-model")
      *     .build();
      * }</pre>
@@ -43,19 +43,19 @@ public final class CreateSchemaSemanticConfig extends SemanticConfig {
     }
 
     /**
-     * Builder class for constructing {@link CreateSchemaSemanticConfig} instance.
+     * Builder class for constructing {@link ImproveSchemaSemanticConfig} instance.
      */
     public final static class Builder extends SemanticConfig.Builder<Builder> {
 
         private Builder() {}
 
         /**
-         * Builds a {@link CreateSchemaSemanticConfig} instance.
+         * Builds a {@link ImproveSchemaSemanticConfig} instance.
          *
-         * @return a new instance of {@link CreateSchemaSemanticConfig}
+         * @return a new instance of {@link ImproveSchemaSemanticConfig}
          */
-        public CreateSchemaSemanticConfig build() {
-            return new CreateSchemaSemanticConfig(this);
+        public ImproveSchemaSemanticConfig build() {
+            return new ImproveSchemaSemanticConfig(this);
         }
     }
 }
