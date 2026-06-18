@@ -75,7 +75,7 @@ public record WatsonxError(Integer statusCode, String trace, List<Error> errors)
         TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST("text_classification_event_does_not_exist"),
 
         /** Create Schema event does not exist. */
-        CREATE_SCHEMA_EVENT_DOES_NOT_EXIST("create_schema_event_does_not_exist"),
+        SCHEMA_EVENT_DOES_NOT_EXIST("schema_event_does_not_exist"),
 
         /** Access to Cloud Object Storage was denied. */
         COS_ACCESS_DENIED("AccessDenied"),

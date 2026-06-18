@@ -9,6 +9,9 @@ import static java.util.Objects.requireNonNullElse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 
@@ -17,6 +20,9 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
  *
  * @see TextExtractionService
  * @see TextClassificationService
+ * @see CreateSchemaService
+ * @see ImproveSchemaService
+ * @see MergeSchemaService
  */
 public final class KvpFields {
     private final Map<String, KvpField> fieldMap;

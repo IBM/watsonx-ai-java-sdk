@@ -6,19 +6,18 @@ package com.ibm.watsonx.ai.textprocessing;
 
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaSemanticConfig;
+import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticConfig;
 
 /**
  * Base class for semantic configuration.
- * <p>
- * <b>Note:</b> This class is intended for internal use only. Use one of the specific subclasses instead:
- * <ul>
- * <li>{@link TextExtractionSemanticConfig}</li>
- * <li>{@link TextClassificationSemanticConfig}</li>
- * <li>{@link CreateSchemaSemanticConfig}</li>
- * <li>{@link ImproveSchemaSemanticConfig}</li>
- * </ul>
+ *
+ * @see TextExtractionSemanticConfig
+ * @see TextClassificationSemanticConfig
+ * @see CreateSchemaSemanticConfig
+ * @see ImproveSchemaSemanticConfig
+ * @see MergeSchemaSemanticConfig
  */
 public abstract class SemanticConfig {
     private final String defaultModelName;
@@ -44,12 +43,9 @@ public abstract class SemanticConfig {
         private String defaultModelName;
 
         /**
-         * By default, all KVP tasks use the models documented
-         * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html">in this page</a>. This parameter
-         * allows changing the default model to another compatible vision model. A list of compatible vision models is available
-         * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction.html">here</a>.
+         * Model to use.
          *
-         * @param defaultModelName the name of the default vision model to use
+         * @param defaultModelName the name of the default model to use
          */
         public T defaultModelName(String defaultModelName) {
             this.defaultModelName = defaultModelName;

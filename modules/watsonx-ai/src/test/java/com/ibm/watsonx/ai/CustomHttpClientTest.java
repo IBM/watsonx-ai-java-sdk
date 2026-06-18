@@ -23,6 +23,8 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
@@ -461,6 +463,147 @@ public class CustomHttpClientTest {
         assertEquals(customClient, getFieldValue(asyncCosHttpClient, "delegate"));
         assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(asyncCosHttpClient, "delegate"));
         assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(asyncCosHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_default_http_client_for_create_schema_service() throws Exception {
+
+        Stream.of(true, false).forEach(verifySsl -> {
+
+            try {
+
+                HttpClient customClient = HttpClient.newHttpClient();
+                CreateSchemaService createSchemaService = CreateSchemaService.builder()
+                    .baseUrl("https://localhost")
+                    .apiKey("apiKey")
+                    .projectId("projectId")
+                    .cosUrl("http://localhost")
+                    .verifySsl(verifySsl)
+                    .documentReference("connection_id", "bucket")
+                    .build();
+
+                Object restclient = getFieldValue(createSchemaService, "client");
+                assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+                Object syncCosHttpClient = getFieldValue(restclient, "syncCosHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncCosHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncCosHttpClient, "delegate"));
+
+                Object asyncCosHttpClient = getFieldValue(restclient, "asyncCosHttpClient");
+                assertNotEquals(customClient, getFieldValue(asyncCosHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(asyncCosHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void should_use_custom_http_client_for_improve_schema_service() throws Exception {
+
+        HttpClient customClient = HttpClient.newHttpClient();
+        ImproveSchemaService improveSchemaService = ImproveSchemaService.builder()
+            .baseUrl("https://localhost")
+            .apiKey("apiKey")
+            .projectId("projectId")
+            .httpClient(customClient)
+            .build();
+
+        Object restclient = getFieldValue(improveSchemaService, "client");
+        assertEquals(customClient, getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(restclient, "httpClient"));
+
+        Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+        assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_default_http_client_for_improve_schema_service() throws Exception {
+
+        Stream.of(true, false).forEach(verifySsl -> {
+
+            try {
+
+                HttpClient customClient = HttpClient.newHttpClient();
+                ImproveSchemaService improveSchemaService = ImproveSchemaService.builder()
+                    .baseUrl("https://localhost")
+                    .apiKey("apiKey")
+                    .projectId("projectId")
+                    .verifySsl(verifySsl)
+                    .build();
+
+                Object restclient = getFieldValue(improveSchemaService, "client");
+                assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void should_use_custom_http_client_for_merge_schema_service() throws Exception {
+
+        HttpClient customClient = HttpClient.newHttpClient();
+        MergeSchemaService mergeSchemaService = MergeSchemaService.builder()
+            .baseUrl("https://localhost")
+            .apiKey("apiKey")
+            .projectId("projectId")
+            .httpClient(customClient)
+            .build();
+
+        Object restclient = getFieldValue(mergeSchemaService, "client");
+        assertEquals(customClient, getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(restclient, "httpClient"));
+
+        Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+        assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_default_http_client_for_merge_schema_service() throws Exception {
+
+        Stream.of(true, false).forEach(verifySsl -> {
+
+            try {
+
+                HttpClient customClient = HttpClient.newHttpClient();
+                MergeSchemaService mergeSchemaService = MergeSchemaService.builder()
+                    .baseUrl("https://localhost")
+                    .apiKey("apiKey")
+                    .projectId("projectId")
+                    .verifySsl(verifySsl)
+                    .build();
+
+                Object restclient = getFieldValue(mergeSchemaService, "client");
+                assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
     }
 
     @Test

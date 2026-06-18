@@ -59,6 +59,18 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.client.impl.CustomRerankRestClient$CustomRerankRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaRestClient$CreateSchemaRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomCreateSchemaRestClient$CustomCreateSchemaRestClientBuilderFactory");
+
+        createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaRestClient$ImproveSchemaRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomImproveSchemaRestClient$CustomImproveSchemaRestClientBuilderFactory");
+
+        createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaRestClient$MergeSchemaRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomMergeSchemaRestClient$CustomMergeSchemaRestClientBuilderFactory");
+
+        createServiceFile(metaInfServices,
             "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient$TextExtractionRestClientBuilderFactory",
             "com.ibm.watsonx.ai.client.impl.CustomTextExtractionRestClient$CustomTextExtractionRestClientBuilderFactory");
 

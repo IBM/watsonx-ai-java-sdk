@@ -23,6 +23,7 @@ The **IBM watsonx.ai Java SDK** is an open-source client library for [IBM watson
 | **[Foundation Model](services/foundation-model-service)** | Browse and query the watsonx.ai model catalog |
 | **[Create Schema](services/schema/create-schema-service)** | Automatic schema generation from documents |
 | **[Improve Schema](services/schema/improve-schema-service)** | Improve existing schemas |
+| **[Merge Schema](services/schema/merge-schema-service)** | Merge existing schemas |
 | **[Text Classification](services/text-classification-service)** | Document classification from IBM Cloud Object Storage |
 | **[Text Extraction](services/text-extraction-service)** | Structured data extraction from documents in IBM Cloud Object Storage |
 | **[Time Series](services/time-series-service)** | Time series forecasting using IBM Granite TTM models |

@@ -251,7 +251,6 @@ Each field in the improved schema contains:
 
 ## Related Resources
 
-- [Create Schema Service](create-schema-service) - Generate initial schemas from documents
 - [Text Extraction Service](../text-extraction-service) - Extract data using improved schemas
 - [Text Classification Service](../text-classification-service) - Classify documents using schemas
 - [Improve Schema API Reference](https://cloud.ibm.com/apidocs/watsonx-ai#improve-schema)

@@ -19,6 +19,8 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
@@ -41,7 +43,8 @@ public class ContextDepedencyInjectionTest {
     WeldInitiator weld = WeldInitiator
         .from(Producer.class, ChatService.class, DeploymentService.class,
             DetectionService.class, EmbeddingService.class, FoundationModelService.class,
-            RerankService.class, TextGenerationService.class, CreateSchemaService.class, TextClassificationService.class,
+            RerankService.class, TextGenerationService.class,
+            CreateSchemaService.class, ImproveSchemaService.class, MergeSchemaService.class, TextClassificationService.class,
             TextExtractionService.class, TimeSeriesService.class, FileService.class,
             BatchService.class, ToolService.class)
         .build();
@@ -69,6 +72,12 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     CreateSchemaService createSchemaService;
+
+    @Inject
+    ImproveSchemaService improveSchemaService;
+
+    @Inject
+    MergeSchemaService mergeSchemaService;
 
     @Inject
     TextClassificationService textClassificationService;
@@ -147,6 +156,16 @@ public class ContextDepedencyInjectionTest {
     @Test
     void should_inject_create_schema_service() {
         assertNotNull(createSchemaService);
+    }
+
+    @Test
+    void should_inject_improve_schema_service() {
+        assertNotNull(improveSchemaService);
+    }
+
+    @Test
+    void should_inject_merge_schema_service() {
+        assertNotNull(mergeSchemaService);
     }
 
     @Test
@@ -289,6 +308,24 @@ public class ContextDepedencyInjectionTest {
                 .projectId("project-id")
                 .cosUrl("https://example.com")
                 .documentReference("connection-id", "bucket")
+                .build();
+        }
+
+        @Produces
+        public ImproveSchemaService produceImproveSchemaService() {
+            return ImproveSchemaService.builder()
+                .baseUrl("https://example.com")
+                .apiKey("api-key")
+                .projectId("project-id")
+                .build();
+        }
+
+        @Produces
+        public MergeSchemaService produceMergeSchemaService() {
+            return MergeSchemaService.builder()
+                .baseUrl("https://example.com")
+                .apiKey("api-key")
+                .projectId("project-id")
                 .build();
         }
 

@@ -2,7 +2,7 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.textprocessing.schema.create;
+package com.ibm.watsonx.ai.textprocessing.schema;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
@@ -65,8 +65,16 @@ import com.ibm.watsonx.ai.textprocessing.Mode;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.textprocessing.Status;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaDeleteParameters;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaException;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaFetchParameters;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaParameters;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse.CreateSchemaResult;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse.Entity;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaSemanticConfig;
+import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
+import com.ibm.watsonx.ai.textprocessing.schema.create.Parameters;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateSchemaTest extends AbstractWatsonxTest {
@@ -94,8 +102,6 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .projectId("project-id")
             .documentReference("connection_id", "my-bucket")
-            .logRequests(true)
-            .logResponses(true)
             .build();
     }
 
@@ -892,7 +898,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
 
         var ex = assertThrows(WatsonxException.class,
             () -> createSchemaService.fetchRequest("id"));
-        assertEquals(WatsonxError.Code.CREATE_SCHEMA_EVENT_DOES_NOT_EXIST.value(),
+        assertEquals(WatsonxError.Code.SCHEMA_EVENT_DOES_NOT_EXIST.value(),
             ex.details().orElseThrow().errors().get(0).code());
     }
 
