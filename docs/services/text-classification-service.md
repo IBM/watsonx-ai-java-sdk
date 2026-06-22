@@ -2,7 +2,7 @@
 layout: default
 title: Text Classification Service
 parent: Services
-nav_order: 7
+nav_order: 8
 permalink: /services/text-classification-service/
 ---
 

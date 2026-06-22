@@ -87,16 +87,6 @@ public class MergeSchemaIT {
     @Test
     void should_delete_merge_schema_request() throws Exception {
 
-        var schema = Schema.builder()
-            .documentType("Passport")
-            .documentDescription("Passport document to get the schema")
-            .fields(
-                KvpFields.builder()
-                    .add("name", KvpField.of("name of the user", "Andrea"))
-                    .add("lastname", KvpField.of("lastname of the user", "Di Maio"))
-                    .build())
-            .build();
-
         var response = service.startMergeSchema(schemas);
         assertTrue(
             service.deleteRequest(

@@ -2,7 +2,7 @@
 layout: default
 title: Tool Service
 parent: Services
-nav_order: 10
+nav_order: 11
 permalink: /services/tool-service/
 ---
 
@@ -336,5 +336,5 @@ var toolMessages = assistantMessage.processTools(registry::execute);
 ## Related Resources
 
 - [Utility Agent Tools API Reference](https://cloud.ibm.com/apidocs/watsonx-ai#get-utility-agent-tools)
-- [ChatService Documentation](./chat-service.md)
+- [ChatService Documentation](../chat-service)
 - [Sample code](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/utility-tools)

@@ -29,6 +29,6 @@ The SDK automatically retries failed requests in two distinct scenarios: **expir
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
-| `WATSONX_IO_EXECUTOR_THREADS` | Integer | `1` | Number of threads used for HTTP response processing and SSE stream parsing. The default of `1` ensures sequential event processing. Increase only if you need concurrent stream parsing across multiple simultaneous requests. Has no effect if a custom [`IOExecutorProvider`](spi.md#executor-spi) is registered. |
+| `WATSONX_IO_EXECUTOR_THREADS` | Integer | `1` | Number of threads used for HTTP response processing and SSE stream parsing. The default of `1` ensures sequential event processing. Increase only if you need concurrent stream parsing across multiple simultaneous requests. Has no effect if a custom [`IOExecutorProvider`](../spi#executor-spi) is registered. |
 
-> User callbacks (`ChatHandler`, `TextGenerationHandler`) run on a separate executor and are not affected by this variable. See [SPI - Executor](spi.md#executor-spi) for details on the executor model.
+> User callbacks (`ChatHandler`, `TextGenerationHandler`) run on a separate executor and are not affected by this variable. See [SPI - Executor](../spi#executor-spi) for details on the executor model.

@@ -2,13 +2,13 @@
 layout: default
 title: Deployment Service
 parent: Services
-nav_order: 11
+nav_order: 12
 permalink: /services/deployment-service/
 ---
 
 # Deployment Service
 
-The `DeploymentService` allows you to interact with **models deployed in IBM watsonx.ai deployment spaces**. Instead of referencing a `modelId`, every request targets a `deploymentId` — the identifier of an already-deployed asset. The service supports the same operations as `ChatService` and `TimeSeriesService` (chat, streaming chat, text generation, streaming text generation, time series forecasting), plus the ability to inspect a deployment's metadata via `findById`.
+The `DeploymentService` allows you to interact with **models deployed in IBM watsonx.ai deployment spaces**. Instead of referencing a `modelId`, every request targets a `deploymentId` — the identifier of an already-deployed asset. The service supports the same operations as `ChatService` and `TimeSeriesService` (chat, streaming chat, time series forecasting), plus the ability to inspect a deployment's metadata via `findById`.
 
 ## What is a Deployment Space?
 
