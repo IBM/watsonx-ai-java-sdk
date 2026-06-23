@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
@@ -38,7 +39,7 @@ public final class JacksonProvider implements JsonProvider {
         try {
             return objectMapper.readValue(json, type);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to deserialize JSON: '" + json + "'", e);
+            throw new JsonException("Failed to deserialize JSON: '" + json + "'", e);
         }
     }
 
@@ -48,7 +49,7 @@ public final class JacksonProvider implements JsonProvider {
             JavaType javaType = objectMapper.getTypeFactory().constructType(type.getType());
             return objectMapper.readValue(json, javaType);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to deserialize JSON: '" + json + "'", e);
+            throw new JsonException("Failed to deserialize JSON: '" + json + "'", e);
         }
     }
 
@@ -57,7 +58,7 @@ public final class JacksonProvider implements JsonProvider {
         try {
             return objectMapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new JsonException("Failed to serialize object to JSON", e);
         }
     }
 
