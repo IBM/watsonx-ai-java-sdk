@@ -4,8 +4,13 @@
  */
 package com.ibm.watsonx.ai.core.spi.json;
 
+import com.ibm.watsonx.ai.core.exception.JsonException;
+
 /**
  * Service Provider Interface (SPI) for JSON serialization and deserialization.
+ * <p>
+ * Unless otherwise stated, implementations must signal serialization and deserialization failures (malformed JSON, unmappable types, etc.) by
+ * throwing a {@link JsonException}. They must never throw checked exceptions or return {@code null} to indicate failure.
  */
 public interface JsonProvider {
 
@@ -16,6 +21,7 @@ public interface JsonProvider {
      * @param clazz the target class.
      * @param <T> the result type.
      * @return the deserialized object.
+     * @throws JsonException if the content cannot be deserialized into the target class
      */
     <T> T fromJson(String json, Class<T> clazz);
 
@@ -26,6 +32,7 @@ public interface JsonProvider {
      * @param typeToken the {@code TypeToken} representing the target generic type
      * @param <T> the type of the resulting object
      * @return the deserialized object
+     * @throws JsonException if the content cannot be deserialized into the target type
      */
     <T> T fromJson(String json, TypeToken<T> typeToken);
 
@@ -34,11 +41,15 @@ public interface JsonProvider {
      *
      * @param object the object to serialize.
      * @return the JSON string.
+     * @throws JsonException if the object cannot be serialized
      */
     String toJson(Object object);
 
     /**
      * Pretty-prints the given object into a JSON string.
+     * <p>
+     * This is a best-effort, presentation-oriented method: implementations should fall back to a plain representation of the object rather than
+     * throwing if pretty-printing fails.
      *
      * @param object the object to pretty-print
      * @return a JSON-formatted string representation of the object

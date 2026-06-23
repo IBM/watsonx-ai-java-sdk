@@ -6,10 +6,12 @@ package com.ibm.watsonx.ai.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 public class JsonTest {
@@ -74,5 +76,45 @@ public class JsonTest {
         assertTrue(result2.size() == 2);
         assertEquals("Alan", result2.get(0));
         assertEquals("Wake", result2.get(1));
+    }
+
+    @Test
+    void should_deserialize_json_object_to_map_using_parameterized_type_token() {
+        var json = "{\"a\":1,\"b\":2}";
+        Map<String, Integer> result = Json.fromJson(json, TypeToken.parameterizedOf(Map.class, String.class, Integer.class));
+        assertEquals(2, result.size());
+        assertEquals(1, result.get("a"));
+        assertEquals(2, result.get("b"));
+    }
+
+    @Test
+    void type_tokens_for_different_types_should_not_be_equal() {
+        assertNotEquals(TypeToken.listOf(String.class), TypeToken.listOf(Integer.class));
+        assertNotEquals(
+            TypeToken.parameterizedOf(Map.class, String.class, Integer.class),
+            TypeToken.parameterizedOf(Map.class, String.class, String.class));
+    }
+
+    @Test
+    void parameterized_of_should_validate_arguments() {
+        assertThrows(IllegalArgumentException.class, () -> TypeToken.parameterizedOf(Map.class));
+        assertThrows(NullPointerException.class, () -> TypeToken.parameterizedOf(null, String.class));
+        assertThrows(NullPointerException.class, () -> TypeToken.parameterizedOf(Map.class, (Class<?>) null));
+    }
+
+    @Test
+    void list_of_should_reject_null_element_type() {
+        assertThrows(NullPointerException.class, () -> TypeToken.listOf(null));
+    }
+
+    @Test
+    void should_throw_json_exception_when_deserialization_fails() {
+        assertThrows(JsonException.class, () -> Json.fromJson("{", String.class));
+        assertThrows(JsonException.class, () -> Json.fromJson("{", TypeToken.listOf(String.class)));
+    }
+
+    @Test
+    void should_throw_json_exception_when_serialization_fails() {
+        assertThrows(JsonException.class, () -> Json.toJson(new Object()));
     }
 }
