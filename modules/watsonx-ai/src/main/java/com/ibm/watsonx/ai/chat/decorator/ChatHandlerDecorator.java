@@ -157,7 +157,11 @@ public class ChatHandlerDecorator implements ChatHandler {
             try {
                 callback.run();
             } catch (Exception e) {
-                delegate.onError(e);
+                try {
+                    delegate.onError(e);
+                } catch (Exception ignored) {
+                    // Nothing more we can do.
+                }
             }
         }, ExecutorProvider.callbackExecutor()));
     }

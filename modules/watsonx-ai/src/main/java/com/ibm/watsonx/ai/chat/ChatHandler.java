@@ -32,11 +32,12 @@ import com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider;
  * <b>Callback Order</b>
  * <p>
  *
- * Within a single streaming request, callbacks are invoked in the following order:
+ * Within a single streaming request, callbacks follow this lifecycle:
  * <ol>
  * <li>{@link #onPartialResponse}, {@link #onPartialThinking}, {@link #onPartialToolCall} - invoked zero or more times as data arrives</li>
- * <li>{@link #onCompleteToolCall} - invoked zero or more times (once per completed tool call)</li>
- * <li>Terminal callback:
+ * <li>{@link #onCompleteToolCall} - invoked zero or more times (once per completed tool call). These may start as soon as each tool call is fully
+ * assembled and can therefore overlap the streaming callbacks above (see <b>Threading Model</b> below)</li>
+ * <li>Terminal callback, always invoked last (after every {@link #onCompleteToolCall} has returned):
  * <ul>
  * <li>{@link #onCompleteResponse} - invoked on successful completion</li>
  * <li>{@link #onError} - invoked when error occurs</li>
@@ -63,8 +64,16 @@ import com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider;
  * <b>Custom Executor:</b> Developers can customize the threading behavior by implementing the {@link CallbackExecutorProvider} SPI and registering it
  * via {@link ServiceLoader}. This allows full control over thread management, pooling strategies, and execution policies.
  * <p>
- * Within a single streaming request, all callbacks are guaranteed to be invoked <b>sequentially</b> and <b>never concurrently</b>, following the
- * Reactive Streams specification.
+ * Within a single streaming request, the streaming and terminal callbacks - {@link #onPartialResponse}, {@link #onPartialThinking},
+ * {@link #onPartialToolCall}, {@link #onCompleteResponse} and {@link #onError} - are invoked <b>sequentially</b> and are never executed concurrently
+ * with one another.
+ * <p>
+ * <b>Tool call callbacks are an exception.</b> To allow several tool calls to be processed and executed concurrently, {@link #onCompleteToolCall} is
+ * dispatched on a separate parallel executor. As a consequence, within a single streaming request multiple {@link #onCompleteToolCall} invocations
+ * may run <b>at the same time</b> (one per completed tool call).
+ * <p>
+ * It is guaranteed that every {@link #onCompleteToolCall} has returned before {@link #onCompleteResponse} is invoked. If your handler shares mutable
+ * state between {@link #onCompleteToolCall} and any other callback, it must synchronize access to that state itself.
  * <p>
  * <b>Important:</b> If the same {@code ChatHandler} instance is shared across multiple concurrent streaming requests, the implementation must handle
  * synchronization internally. The SDK does not serialize callbacks across different requests.
