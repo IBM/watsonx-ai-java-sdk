@@ -20,7 +20,6 @@ import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.streaming.DefaultChatSubscriber;
-import com.ibm.watsonx.ai.chat.streaming.StreamingUtils;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -94,7 +93,10 @@ final class DefaultRestClient extends ChatRestClient {
             : BodySubscribers.fromLineSubscriber(subscriber))
             .thenAccept(r -> {})
             .exceptionally(t -> {
-                response.completeExceptionally(StreamingUtils.handleError(t, handler));
+                Throwable cause = nonNull(t.getCause()) ? t.getCause() : t;
+                if (chatSubscriber.markErrorReported())
+                    handler.onError(cause);
+                response.completeExceptionally(cause);
                 return null;
             });
         return response;

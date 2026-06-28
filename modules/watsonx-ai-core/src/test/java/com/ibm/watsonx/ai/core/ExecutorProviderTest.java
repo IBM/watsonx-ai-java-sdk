@@ -43,13 +43,30 @@ public class ExecutorProviderTest {
     }
 
     @Test
-    void should_return_single_thread_executor_for_io_executor() throws Exception {
+    void should_return_named_io_executor_by_default() throws Exception {
         environmentVariables.remove("WATSONX_IO_EXECUTOR_THREADS");
         var instance = ExecutorProvider.ioExecutor();
         assertEquals(instance, ExecutorProvider.ioExecutor());
-        var threadPoolExecutor = (ThreadPoolExecutor) instance;
-        assertEquals(1, threadPoolExecutor.getCorePoolSize());
-        assertEquals(1, threadPoolExecutor.getMaximumPoolSize());
+        CompletableFuture<String> threadName = new CompletableFuture<>();
+        instance.execute(() -> threadName.complete(Thread.currentThread().getName()));
+        assertTrue(threadName.get(3, TimeUnit.SECONDS).startsWith("http-io-"));
+    }
+
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_21)
+    void should_use_virtual_threads_for_io_executor_by_default() throws Exception {
+        environmentVariables.remove("WATSONX_IO_EXECUTOR_THREADS");
+        var instance = ExecutorProvider.ioExecutor();
+        CompletableFuture<Boolean> isVirtual = new CompletableFuture<>();
+        instance.execute(() -> {
+            try {
+                var method = Thread.class.getMethod("isVirtual");
+                isVirtual.complete((boolean) method.invoke(Thread.currentThread()));
+            } catch (Exception e) {
+                isVirtual.completeExceptionally(e);
+            }
+        });
+        assertTrue(isVirtual.get(3, TimeUnit.SECONDS));
     }
 
     @Test
@@ -60,6 +77,16 @@ public class ExecutorProviderTest {
         var threadPoolExecutor = (ThreadPoolExecutor) instance;
         assertEquals(3, threadPoolExecutor.getCorePoolSize());
         assertEquals(3, threadPoolExecutor.getMaximumPoolSize());
+    }
+
+    @Test
+    void should_ignore_invalid_io_executor_threads_override() throws Exception {
+        // A non-positive value must not create a 0-thread pool; the SDK falls back to the default executor.
+        environmentVariables.set("WATSONX_IO_EXECUTOR_THREADS", 0);
+        var instance = ExecutorProvider.ioExecutor();
+        CompletableFuture<String> threadName = new CompletableFuture<>();
+        instance.execute(() -> threadName.complete(Thread.currentThread().getName()));
+        assertTrue(threadName.get(3, TimeUnit.SECONDS).startsWith("http-io-"));
     }
 
     @Test

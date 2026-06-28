@@ -59,7 +59,7 @@ public final class StreamingStateTracker {
      * @param chunk the incoming streamed text
      * @return a {@link Result} containing the updated state and any content extracted from the current state
      */
-    public synchronized Result update(String chunk) {
+    public Result update(String chunk) {
         if (chunk.isEmpty())
             return new Result(currentState, Optional.empty());
 

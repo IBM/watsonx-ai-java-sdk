@@ -6,7 +6,6 @@ package com.ibm.watsonx.ai.core.provider;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.Optional.ofNullable;
 import java.lang.reflect.Method;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executor;
@@ -25,14 +24,24 @@ import com.ibm.watsonx.ai.core.spi.executor.CpuExecutorProvider;
 import com.ibm.watsonx.ai.core.spi.executor.IOExecutorProvider;
 
 /**
- * A utility class that provides shared Executor instances for the SDK's internal operations.
+ * Provides the three shared {@link Executor} instances used across the SDK. Each is created lazily on first use and then reused for the lifetime of
+ * the JVM, so that work is dispatched onto a well-defined pool instead of ad-hoc threads.
+ *
  * <p>
- * Provides three separate executors:
+ * The executors are separated by the kind of work they run:
  * <ul>
- * <li>{@link #cpuExecutor()} - for CPU-intensive tasks (JSON parsing, computation)</li>
- * <li>{@link #ioExecutor()} - for SSE stream parsing (single-threaded by default)</li>
- * <li>{@link #callbackExecutor()} - for user callbacks (virtual threads on Java 21+)</li>
+ * <li><b>{@link #cpuExecutor()}</b> - CPU-bound work such as JSON (de)serialization. Defaults to the {@link ForkJoinPool#commonPool() common
+ * pool}.</li>
+ * <li><b>{@link #ioExecutor()}</b> - the executor of the SDK's singleton HTTP client (response delivery, SSE chunk parsing) and of the SDK's other
+ * internal asynchronous tasks (token refresh, retry scheduling, request/response logging). Defaults to virtual threads on Java 21+ and to a cached
+ * thread pool on Java 17-20; the size can be capped with the {@code WATSONX_IO_EXECUTOR_THREADS} environment variable.</li>
+ * <li><b>{@link #callbackExecutor()}</b> - runs user-supplied streaming callbacks ({@code ChatHandler} / {@code TextGenerationHandler}) so they never
+ * block the I/O threads. Defaults to virtual threads on Java 21+ and to a cached thread pool on Java 17-20.</li>
  * </ul>
+ *
+ * <p>
+ * Every executor can be replaced by registering the matching SPI provider ({@link CpuExecutorProvider}, {@link IOExecutorProvider},
+ * {@link CallbackExecutorProvider}) via {@link ServiceLoader}; when present, the SPI takes precedence over the defaults described above.
  */
 public final class ExecutorProvider {
 
@@ -70,14 +79,22 @@ public final class ExecutorProvider {
     }
 
     /**
-     * Executor for SSE stream parsing and HTTP response processing.
+     * Shared executor backing the SDK's singleton {@link java.net.http.HttpClient} and the SDK's other internal asynchronous tasks (authentication
+     * token refresh, retry scheduling, request/response logging and the {@code thenApplyAsync} continuations of the non-streaming services). For
+     * streaming requests it is therefore also where each SSE chunk is parsed, before user callbacks are dispatched on {@link #callbackExecutor()}.
      * <p>
-     * By default, uses a single thread to ensure sequential processing of SSE events. Can be configured to use multiple threads via the
-     * {@code WATSONX_IO_EXECUTOR_THREADS} environment variable.
+     * <b>Default behavior:</b>
+     * <ul>
+     * <li><b>Java 21+:</b> a virtual-thread-per-task executor.</li>
+     * <li><b>Java 17-20:</b> a cached thread pool.</li>
+     * </ul>
+     * The signals of a single streaming response stay sequential regardless of the pool size, so a larger pool only improves throughput when many
+     * requests run concurrently.
      * <p>
-     * <b>Note:</b> User callbacks are executed on {@link #callbackExecutor()}, not this executor.
+     * Setting the {@code WATSONX_IO_EXECUTOR_THREADS} environment variable to a positive integer overrides the default with a fixed-size thread pool
+     * of that size
      *
-     * @return the executor for SSE parsing
+     * @return the shared I/O executor
      */
     public static synchronized Executor ioExecutor() {
         if (isNull(ioExecutor)) {
@@ -88,23 +105,21 @@ public final class ExecutorProvider {
                 return ioExecutor;
             }
 
-            var nThreads = ofNullable(System.getenv("WATSONX_IO_EXECUTOR_THREADS"))
-                .map(Integer::valueOf)
-                .orElse(1);
+            Integer override = parseIoThreadsOverride();
+            if (nonNull(override)) {
+                ioExecutor = Executors.newFixedThreadPool(override, namedDaemonThreadFactory("http-io-thread-"));
+                logger.debug("Using fixed IO executor with {} threads (WATSONX_IO_EXECUTOR_THREADS)", override);
+                return ioExecutor;
+            }
 
-            if (nThreads > 1) {
-                AtomicInteger counter = new AtomicInteger(1);
-                ioExecutor = Executors.newFixedThreadPool(nThreads, r -> {
-                    var thread = new Thread(r, "http-io-thread-" + counter.getAndIncrement());
-                    thread.setDaemon(true);
-                    return thread;
-                });
-            } else
-                ioExecutor = Executors.newFixedThreadPool(nThreads, r -> {
-                    var thread = new Thread(r, "http-io-thread");
-                    thread.setDaemon(true);
-                    return thread;
-                });
+            var virtual = newVirtualThreadPerTaskExecutorOrNull("http-io-virtual-thread-");
+            if (nonNull(virtual)) {
+                ioExecutor = virtual;
+                logger.debug("Using virtual thread IO executor (Java 21+)");
+            } else {
+                logger.debug("Virtual threads not available, using cached IO thread pool");
+                ioExecutor = Executors.newCachedThreadPool(namedDaemonThreadFactory("http-io-thread-"));
+            }
         }
         return ioExecutor;
     }
@@ -131,23 +146,11 @@ public final class ExecutorProvider {
                 return callbackExecutor;
             }
 
-            try {
-
-                // Java 21+: virtual threads
-                Method ofVirtual = Thread.class.getMethod("ofVirtual");
-                Object builder = ofVirtual.invoke(null);
-                Class<?> builderInterface = Class.forName("java.lang.Thread$Builder");
-                Class<?> ofVirtualInterface = Class.forName("java.lang.Thread$Builder$OfVirtual");
-                Method nameMethod = ofVirtualInterface.getMethod("name", String.class, long.class);
-                builder = nameMethod.invoke(builder, "virtual-thread-", 1L);
-                Method factoryMethod = builderInterface.getMethod("factory");
-                ThreadFactory factory = (ThreadFactory) factoryMethod.invoke(builder);
-                Method newThreadPerTaskExecutor = Executors.class.getMethod("newThreadPerTaskExecutor", ThreadFactory.class);
-                callbackExecutor = (ExecutorService) newThreadPerTaskExecutor.invoke(null, factory);
+            var virtual = newVirtualThreadPerTaskExecutorOrNull("virtual-thread-");
+            if (nonNull(virtual)) {
+                callbackExecutor = virtual;
                 logger.debug("Using virtual thread executor for callbacks (Java 21+)");
-
-            } catch (Exception e) {
-
+            } else {
                 // Java < 21: cached thread pool
                 logger.debug("Virtual threads not available, using cached thread pool");
                 AtomicInteger counter = new AtomicInteger(1);
@@ -166,6 +169,68 @@ public final class ExecutorProvider {
             }
         }
         return callbackExecutor;
+    }
+
+    /**
+     * Creates a virtual-thread-per-task executor whose threads are named {@code <namePrefix><n>}, or returns {@code null} when virtual threads are
+     * not available (Java &lt; 21). Reflection is used so the SDK keeps compiling against Java 17.
+     *
+     * @param namePrefix the prefix used to name the virtual threads
+     * @return a virtual-thread-per-task {@link ExecutorService}, or {@code null} on Java &lt; 21
+     */
+    private static ExecutorService newVirtualThreadPerTaskExecutorOrNull(String namePrefix) {
+        try {
+            Method ofVirtual = Thread.class.getMethod("ofVirtual");
+            Object builder = ofVirtual.invoke(null);
+            Class<?> builderInterface = Class.forName("java.lang.Thread$Builder");
+            Class<?> ofVirtualInterface = Class.forName("java.lang.Thread$Builder$OfVirtual");
+            Method nameMethod = ofVirtualInterface.getMethod("name", String.class, long.class);
+            builder = nameMethod.invoke(builder, namePrefix, 1L);
+            Method factoryMethod = builderInterface.getMethod("factory");
+            ThreadFactory factory = (ThreadFactory) factoryMethod.invoke(builder);
+            Method newThreadPerTaskExecutor = Executors.class.getMethod("newThreadPerTaskExecutor", ThreadFactory.class);
+            return (ExecutorService) newThreadPerTaskExecutor.invoke(null, factory);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a {@link ThreadFactory} producing daemon threads named {@code <prefix><n>}.
+     *
+     * @param prefix the thread name prefix
+     * @return a daemon thread factory
+     */
+    private static ThreadFactory namedDaemonThreadFactory(String prefix) {
+        AtomicInteger counter = new AtomicInteger(1);
+        return r -> {
+            var thread = new Thread(r, prefix + counter.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        };
+    }
+
+    /**
+     * Parses the {@code WATSONX_IO_EXECUTOR_THREADS} override.
+     *
+     * @return the requested fixed pool size, or {@code null} when the variable is unset or invalid (non-numeric or {@code < 1}), in which case the
+     *         default executor is used
+     */
+    private static Integer parseIoThreadsOverride() {
+        var raw = System.getenv("WATSONX_IO_EXECUTOR_THREADS");
+        if (isNull(raw) || raw.isBlank())
+            return null;
+        try {
+            int n = Integer.parseInt(raw.trim());
+            if (n < 1) {
+                logger.warn("Ignoring WATSONX_IO_EXECUTOR_THREADS=\"{}\": value must be >= 1. Using the default IO executor.", raw);
+                return null;
+            }
+            return n;
+        } catch (NumberFormatException e) {
+            logger.warn("Ignoring WATSONX_IO_EXECUTOR_THREADS=\"{}\": not a valid integer. Using the default IO executor.", raw);
+            return null;
+        }
     }
 
     /**

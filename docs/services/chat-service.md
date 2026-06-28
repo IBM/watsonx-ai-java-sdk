@@ -286,7 +286,7 @@ chatService.chatStreaming(
 | `onPartialThinking` | No | Called for each chunk of reasoning content |
 | `failOnFirstError` | No | Return `true` to stop streaming on first error (default: `false`) |
 
-> **Threading note:** All callbacks execute sequentially. On Java 21+, virtual threads are used by default. Custom executors can be configured via the `CallbackExecutorProvider` SPI.
+> **Threading note:** Callbacks run on the callback executor (virtual threads on Java 21+, configurable via the `CallbackExecutorProvider` SPI). They are delivered sequentially, with one exception: `onCompleteToolCall` runs on a parallel executor so multiple tool calls can be processed concurrently, and may therefore overlap the other callbacks. `onCompleteResponse` is always invoked only after every `onCompleteToolCall` has returned. If your handler shares mutable state between `onCompleteToolCall` and any other callback, synchronize access to it yourself.
 
 ---
 

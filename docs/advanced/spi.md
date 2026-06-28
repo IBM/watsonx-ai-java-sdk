@@ -166,7 +166,7 @@ The SDK uses three distinct executors internally, each replaceable independently
 | SPI interface | Default behavior | Used for |
 |---------------|-----------------|---------|
 | `CpuExecutorProvider` | `ForkJoinPool.commonPool()` | CPU-bound tasks: JSON parsing, data transformation |
-| `IOExecutorProvider` | Single-threaded (configurable via `WATSONX_IO_EXECUTOR_THREADS`) | HTTP response processing, SSE stream parsing |
+| `IOExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20); a fixed pool can be forced via `WATSONX_IO_EXECUTOR_THREADS` | HTTP response processing, SSE stream parsing |
 | `CallbackExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20) | User callbacks in `ChatHandler` and `TextGenerationHandler` |
 
 The three executors are intentionally separate to prevent user callback code from blocking the SSE parsing thread, and to keep CPU-bound work off the I/O thread.
@@ -324,6 +324,7 @@ The example below shows the structure of a custom provider. The implementation d
 ```java
 package com.example.watsonx.json;
 
+import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
@@ -333,24 +334,28 @@ public class CustomJsonProvider implements JsonProvider {
     public <T> T fromJson(String json, Class<T> clazz) {
         // Deserialize JSON string to object
         // Must handle all SDK types with their specific requirements
+        // On failure, throw JsonException
     }
 
     @Override
     public <T> T fromJson(String json, TypeToken<T> typeToken) {
         // Deserialize JSON string to generic type
         // Extract Type from typeToken.getType() and use library's type-aware deserialization
+        // On failure, throw JsonException
     }
 
     @Override
     public String toJson(Object object) {
         // Serialize object to JSON string
         // Apply snake_case naming and NON_NULL inclusion
+        // On failure, throw JsonException
     }
 
     @Override
     public String prettyPrint(Object object) {
         // Serialize with pretty-printing (indentation)
         // Handle both objects and JSON strings
+        // Best-effort: fall back to a plain representation instead of throwing
     }
 
     @Override
@@ -380,3 +385,18 @@ Once registered, all JSON operations in the SDK will use your custom provider in
 ### Using TypeToken for generic types
 
 The SDK provides `TypeToken<T>` to capture generic type information at runtime, used for deserializing parameterized types like `List<ChatMessage>` or `Map<String, Object>`. Your `JsonProvider` implementation must handle `TypeToken` by extracting the `Type` via `typeToken.getType()` and passing it to your JSON library's type-aware deserialization method.
+
+There are three ways to obtain a `TypeToken`:
+
+```java
+// 1. Anonymous subclass — captures any type, including nested generics and wildcards
+TypeToken<Map<String, List<Integer>>> nested = new TypeToken<>() {};
+
+// 2. listOf — convenience factory for List<T>
+TypeToken<List<String>> list = TypeToken.listOf(String.class);
+
+// 3. parameterizedOf — factory accepting one or more type arguments, e.g. Map<K, V>
+TypeToken<Map<String, Integer>> map = TypeToken.parameterizedOf(Map.class, String.class, Integer.class);
+```
+
+> **Limitation of `parameterizedOf`.** Each type argument must be a raw `Class`, so only *flat* parameterized types can be expressed (e.g. `Map<String, Integer>`). For nested generics (`Map<String, List<Integer>>`) or wildcards (`List<? extends Number>`), use the anonymous subclass form, which captures the full type.

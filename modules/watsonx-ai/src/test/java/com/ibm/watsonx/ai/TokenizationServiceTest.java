@@ -10,11 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.http.HttpResponse.BodyHandler;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -299,20 +298,13 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
               }
             }""");
 
-        List<String> threadNames = new ArrayList<>();
-
-        Executor cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-            threadNames.add(Thread.currentThread().getName());
-            r.run();
-        }, "cpu-thread"));
-
-        Executor ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-            threadNames.add(Thread.currentThread().getName());
-            r.run();
-        }, "io-thread"));
+        Executor ioExecutor = Executors.newSingleThreadExecutor(r -> {
+            var thread = new Thread(r, "io-thread");
+            thread.setDaemon(true);
+            return thread;
+        });
 
         try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
-            mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
             mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
             withWatsonxServiceMock(() -> {
@@ -330,16 +322,9 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
                     .build();
 
                 try {
-                    tokenizationService.tokenizeAsync("input")
-                        .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
-                        .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
-                        .get(3, TimeUnit.SECONDS);
-
-                    assertEquals(4, threadNames.size());
-                    assertEquals("io-thread", threadNames.get(0));
-                    assertEquals("cpu-thread", threadNames.get(1));
-                    assertEquals("io-thread", threadNames.get(2));
-                    assertEquals("cpu-thread", threadNames.get(3));
+                    // The tokenization payload is small, so it is parsed on the IO executor: no cpuExecutor hop is expected.
+                    tokenizationService.tokenizeAsync("input").get(3, TimeUnit.SECONDS);
+                    mockedStatic.verify(ExecutorProvider::cpuExecutor, never());
                 } catch (Exception e) {
                     fail(e);
                 }

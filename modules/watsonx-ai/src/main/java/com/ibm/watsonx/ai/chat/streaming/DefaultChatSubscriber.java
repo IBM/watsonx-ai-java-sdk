@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
+import java.util.concurrent.atomic.AtomicBoolean;
+import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
@@ -23,6 +25,12 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * thread pool on earlier Java versions.
  */
 public class DefaultChatSubscriber extends ChatSubscriber {
+
+    /**
+     * Guards the terminal error path so that a single streaming failure is reported to the handler exactly once, even when both the reactive
+     * {@code onError} signal and the HTTP send future report the same underlying error.
+     */
+    private final AtomicBoolean errorReported = new AtomicBoolean(false);
 
     /**
      * Creates a new DefaultChatSubscriber.
@@ -67,7 +75,7 @@ public class DefaultChatSubscriber extends ChatSubscriber {
      */
     public Flow.Subscriber<String> asFlowSubscriber(
         CompletableFuture<ChatResponse> response,
-        boolean failOnFirstError) {
+        boolean continueOnError) {
 
         return new Flow.Subscriber<String>() {
             private Flow.Subscription subscription;
@@ -88,11 +96,15 @@ public class DefaultChatSubscriber extends ChatSubscriber {
                 } catch (RuntimeException e) {
 
                     Throwable t = nonNull(e.getCause()) ? e.getCause() : e;
-                    continueProcessing = failOnFirstError;
-                    DefaultChatSubscriber.this.onError(t).whenComplete((v, err) -> {
-                        if (!continueProcessing)
-                            response.completeExceptionally(t);
-                    });
+                    continueProcessing = continueOnError;
+
+                    if (continueProcessing) {
+                        // Non-terminal error: report it and keep streaming (multiple errors may be reported).
+                        DefaultChatSubscriber.this.onError(t);
+                    } else if (markErrorReported()) {
+                        // Terminal error: report once and fail the response.
+                        DefaultChatSubscriber.this.onError(t).whenComplete((v, err) -> response.completeExceptionally(t));
+                    }
 
                 } finally {
                     if (continueProcessing)
@@ -105,7 +117,10 @@ public class DefaultChatSubscriber extends ChatSubscriber {
 
             @Override
             public void onError(Throwable throwable) {
-                DefaultChatSubscriber.this.onError(throwable);
+                Throwable t = nonNull(throwable.getCause()) ? throwable.getCause() : throwable;
+                if (markErrorReported())
+                    DefaultChatSubscriber.this.onError(t);
+                response.completeExceptionally(t);
             }
 
             @Override
@@ -140,5 +155,18 @@ public class DefaultChatSubscriber extends ChatSubscriber {
             throw new IllegalStateException("Handler must be a ChatHandlerDecorator");
 
         return handlerDecorator.awaitCallbacks();
+    }
+
+    /**
+     * Atomically marks that a terminal error is being reported to the handler.
+     * <p>
+     * The chat stream can surface the same transport failure through two independent channels (the reactive {@code onError} callback and the failed
+     * HTTP send future). This method lets the first caller win so that {@link ChatHandler#onError(Throwable)} is invoked only once.
+     *
+     * @return {@code true} if the caller is the first to report a terminal error and should therefore notify the handler; {@code false} if a terminal
+     *         error has already been reported
+     */
+    public boolean markErrorReported() {
+        return errorReported.compareAndSet(false, true);
     }
 }

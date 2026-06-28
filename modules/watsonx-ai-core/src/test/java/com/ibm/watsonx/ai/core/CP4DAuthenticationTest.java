@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,7 +25,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -685,19 +685,12 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     when(mockSecureHttpClient.sendAsync(any(), any(BodyHandler.class)))
                         .thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
 
-                    List<String> threadNames = new ArrayList<>();
+                    Executor ioExecutor = Executors.newSingleThreadExecutor(r -> {
+                        var thread = new Thread(r, "io-thread");
+                        thread.setDaemon(true);
+                        return thread;
+                    });
 
-                    Executor cpuExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-                        threadNames.add(Thread.currentThread().getName());
-                        r.run();
-                    }, "cpu-thread"));
-
-                    Executor ioExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(() -> {
-                        threadNames.add(Thread.currentThread().getName());
-                        r.run();
-                    }, "io-thread"));
-
-                    mockedStatic.when(ExecutorProvider::cpuExecutor).thenReturn(cpuExecutor);
                     mockedStatic.when(ExecutorProvider::ioExecutor).thenReturn(ioExecutor);
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
@@ -706,16 +699,10 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .apiKey("api_key")
                         .build();
 
-                    assertDoesNotThrow(() -> authenticator.tokenAsync()
-                        .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), ioExecutor)
-                        .thenRunAsync(() -> threadNames.add(Thread.currentThread().getName()), cpuExecutor)
-                        .get(3, TimeUnit.SECONDS));
+                    // The token payload is tiny, so it is parsed on the IO executor: no cpuExecutor hop is expected.
+                    assertDoesNotThrow(() -> authenticator.tokenAsync().get(3, TimeUnit.SECONDS));
 
-                    assertEquals(4, threadNames.size());
-                    assertEquals("cpu-thread", threadNames.get(0));
-                    assertEquals("io-thread", threadNames.get(1));
-                    assertEquals("io-thread", threadNames.get(2));
-                    assertEquals("cpu-thread", threadNames.get(3));
+                    mockedStatic.verify(ExecutorProvider::cpuExecutor, never());
                 }
             });
         }

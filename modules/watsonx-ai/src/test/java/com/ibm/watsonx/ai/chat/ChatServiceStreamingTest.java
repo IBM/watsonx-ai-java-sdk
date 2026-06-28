@@ -66,6 +66,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
@@ -2390,6 +2391,112 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertTrue(assertDoesNotThrow(() -> latch.await(5, TimeUnit.SECONDS)));
         assertEquals("Germany", toolMessages.get(0).content());
         assertEquals("Italy", toolMessages.get(1).content());
+    }
+
+    @Test
+    void should_report_transport_error_only_once_on_mid_stream_failure() throws Exception {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse().withFault(Fault.MALFORMED_RESPONSE_CHUNK)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-3-3-8b-instruct")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        var errorCount = new AtomicInteger(0);
+
+        var future = chatService.chatStreaming(List.of(UserMessage.text("hi")), new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onError(Throwable error) {
+                errorCount.incrementAndGet();
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                fail("onCompleteResponse must not be called on a transport failure");
+            }
+        });
+
+        assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+
+        // Give a potential duplicate onError (dispatched asynchronously on the callback executor) time to arrive.
+        Thread.sleep(500);
+        assertEquals(1, errorCount.get(), "onError must be reported exactly once on a transport failure");
+    }
+
+    @Test
+    void should_keep_callback_chain_alive_when_onError_handler_throws() throws Exception {
+
+        // Stream: "C", a malformed chunk (triggers onError), then "iao". With failOnFirstError=false the stream keeps
+        // going. The handler's onError throws on purpose: this must NOT poison the sequential callback chain, so the
+        // later onPartialResponse("iao") and onCompleteResponse must still be delivered.
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(4, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"stop","delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("meta-llama/llama-4-maverick-17b-128e-instruct-fp8")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        var errorCount = new AtomicInteger(0);
+        var content = new StringBuilder();
+        var result = new CompletableFuture<String>();
+
+        chatService.chatStreaming(List.of(UserMessage.text("Hello")), new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                content.append(partialResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                errorCount.incrementAndGet();
+                throw new RuntimeException("boom in onError");
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(content.toString());
+            }
+        });
+
+        var text = assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS));
+        assertEquals("Ciao", text);
+        assertTrue(errorCount.get() >= 1);
     }
 
     @Test
