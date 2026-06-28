@@ -277,7 +277,7 @@ System.out.println("Deleted: " + deleted);
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `mode` | Mode | Processing quality: `STANDARD` (faster) or `HIGH_QUALITY` (more accurate, slower) |
-| `ocrMode` | OcrMode | OCR processing mode: `DISABLED`, `AUTO`, or `FORCED`. Leaving unset lets the service choose automatically |
+| `ocrMode` | OcrMode | OCR processing mode: `DISABLED`, `ENABLED`, `FORCED`, or `AUTO`. Leaving unset lets the service choose automatically |
 | `autoRotationCorrection` | Boolean | Automatically correct document rotation before OCR |
 | `languages` | Language... | Expected languages in the document (ISO 639) |
 | `additionalPromptInstructions` | String | Custom instructions to guide schema generation |
@@ -304,6 +304,7 @@ System.out.println("Deleted: " + deleted);
 |-------|-------------|-------------|
 | `OcrMode.AUTO` | *(not sent)* | Service automatically selects the best OCR option |
 | `OcrMode.DISABLED` | `"disabled"` | OCR is disabled; document must contain native text |
+| `OcrMode.ENABLED` | `"enabled"` | OCR is applied when the service determines it is needed |
 | `OcrMode.FORCED` | `"forced"` | OCR is always applied regardless of document content |
 
 ### Using a Custom Foundation Model

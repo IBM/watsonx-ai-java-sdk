@@ -2,7 +2,7 @@
 layout: default
 title: Text Extraction Service
 parent: Services
-nav_order: 8
+nav_order: 9
 permalink: /services/text-extraction-service/
 ---
 

@@ -31,4 +31,4 @@ The SDK automatically retries failed requests in two distinct scenarios: **expir
 |----------|------|---------|-------------|
 | `WATSONX_IO_EXECUTOR_THREADS` | Integer | _unset_ | Caps the I/O executor to a fixed-size pool of this many threads. When unset, the default executor is used: virtual threads on Java 21+, a cached thread pool on Java 17–20. Has no effect if a custom [`IOExecutorProvider`](spi.md#executor-spi) is registered. |
 
-> User callbacks (`ChatHandler`, `TextGenerationHandler`) run on a separate executor and are not affected by this variable. See [SPI - Executor](spi.md#executor-spi) for details on the executor model.
+> User callbacks (`ChatHandler`, `TextGenerationHandler`) run on a separate executor and are not affected by this variable. See [SPI - Executor](../spi#executor-spi) for details on the executor model.

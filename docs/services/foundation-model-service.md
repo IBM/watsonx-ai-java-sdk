@@ -86,8 +86,8 @@ Use `getModel()` to look up a single model by its ID. The method returns an `Opt
 service.getModel("ibm/granite-4-h-small").ifPresent(model -> {
     System.out.println("Model: " + model.modelId());
     // → Model: ibm/granite-4-h-small
-    System.out.println("Max output tokens: " + model.maxSequenceLength());
-    // → Max output tokens: 131072
+    System.out.println("Max sequence length: " + model.maxSequenceLength());
+    // → Max sequence length: 131072
 });
 ```
 

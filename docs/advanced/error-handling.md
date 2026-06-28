@@ -2,7 +2,8 @@
 layout: default
 title: Error Handling
 parent: Advanced
-nav_order: 5
+nav_order: 4
+permalink: /advanced/error-handling/
 ---
 
 # Error Handling
@@ -39,8 +40,7 @@ The SDK automatically maps API error codes to specific exception types:
 
 If an error doesn't match any of these codes, the generic `WatsonxException` is thrown.
 
-{: .note }
-> **Automatic Token Refresh**: The SDK automatically handles `AuthenticationTokenExpiredException` by refreshing the token and retrying the request. By default, it retries once when a token expires. This behavior can be configured via the `WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES` environment variable. See [Environment Variables](../environment-variables) for details.
+> **Note — Automatic Token Refresh:** The SDK automatically handles `AuthenticationTokenExpiredException` by refreshing the token and retrying the request. By default, it retries once when a token expires. This behavior can be configured via the `WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES` environment variable. See [Environment Variables](../environment-variables) for details.
 
 ---
 

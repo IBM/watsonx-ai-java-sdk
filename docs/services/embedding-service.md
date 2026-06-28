@@ -171,7 +171,7 @@ The `EmbeddingParameters` class allows you to fine-tune how inputs are processed
 | `projectId` | String | Override the default project ID for this request. |
 | `spaceId` | String | Override the default space ID for this request. |
 | `transactionId` | String | Request tracking ID. |
-| `crypto` | Crypto | Encryption configuration. |
+| `crypto` | String | Key reference for encrypting the inference request (e.g., IBM Key Protect CRN). |
 
 ---
 

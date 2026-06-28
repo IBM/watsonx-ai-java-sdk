@@ -5,7 +5,7 @@
 
 # IBM watsonx.ai Java SDK
 
-The **IBM watsonx.ai Java SDK** is an open-source client library that interacts with [IBM watsonx.ai](https://cloud.ibm.com/apidocs/watsonx-ai), an enterprise-grade AI platform for building, training, and deploying AI models at scale.
+The **IBM watsonx.ai Java SDK** is an open-source client library that interacts with [IBM watsonx.ai](https://www.ibm.com/watsonx), an enterprise-grade AI platform for building, training, and deploying AI models at scale.
 
 ## Prerequisites
 
@@ -53,6 +53,27 @@ System.out.println(response.content());
 ```
 
 See the [documentation](https://ibm.github.io/watsonx-ai-java-sdk/) for advanced usage.
+
+## Services
+
+The SDK provides a unified Java interface to the watsonx.ai ecosystem and works with both **IBM Cloud** and **CP4D** (on-premises) deployments.
+
+| Service | Description |
+|---------|-------------|
+| **[Chat](https://ibm.github.io/watsonx-ai-java-sdk/services/chat-service/)** | Conversational AI with multi-turn dialogue, streaming, tool calling, vision, and reasoning |
+| **[Embedding](https://ibm.github.io/watsonx-ai-java-sdk/services/embedding-service/)** | Dense vector representations for semantic search, similarity, and RAG |
+| **[Rerank](https://ibm.github.io/watsonx-ai-java-sdk/services/rerank-service/)** | Relevance scoring and reordering of candidate documents |
+| **[Detection](https://ibm.github.io/watsonx-ai-java-sdk/services/detection-service/)** | Identification of harmful content (HAP), PII, and safety violations |
+| **[Tokenization](https://ibm.github.io/watsonx-ai-java-sdk/services/tokenization-service/)** | Token counting and analysis for any model |
+| **[Foundation Model](https://ibm.github.io/watsonx-ai-java-sdk/services/foundation-model-service/)** | Browse and query the watsonx.ai model catalog |
+| **[Schema](https://ibm.github.io/watsonx-ai-java-sdk/services/schema/)** | Create, improve, and merge document schemas |
+| **[Text Classification](https://ibm.github.io/watsonx-ai-java-sdk/services/text-classification-service/)** | Document classification from IBM Cloud Object Storage |
+| **[Text Extraction](https://ibm.github.io/watsonx-ai-java-sdk/services/text-extraction-service/)** | Structured data extraction from documents in IBM Cloud Object Storage |
+| **[Time Series](https://ibm.github.io/watsonx-ai-java-sdk/services/time-series-service/)** | Time series forecasting using IBM Granite TTM models |
+| **[Tool](https://ibm.github.io/watsonx-ai-java-sdk/services/tool-service/)** | Server-side utility tools for agentic workflows |
+| **[Deployment](https://ibm.github.io/watsonx-ai-java-sdk/services/deployment-service/)** | Chat and forecasting via deployed model endpoints |
+| **[File](https://ibm.github.io/watsonx-ai-java-sdk/services/file-service/)** | Upload, list, and retrieve files for use in batch processing jobs |
+| **[Batch](https://ibm.github.io/watsonx-ai-java-sdk/services/batch-service/)** | High-volume asynchronous inference from JSONL input files |
 
 ## Samples
 

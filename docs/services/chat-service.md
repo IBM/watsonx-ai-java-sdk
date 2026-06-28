@@ -758,7 +758,7 @@ ChatService limitedService = ChatService.builder()
 | `projectId` | String | — | Override default project for this request |
 | `spaceId` | String | — | Override default space for this request |
 | `transactionId` | String | — | Request tracking ID |
-| `crypto` | Crypto | — | Encryption configuration |
+| `crypto` | String | — | Key reference for encrypting the inference request (e.g., IBM Key Protect CRN) |
 
 ---
 

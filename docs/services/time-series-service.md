@@ -2,7 +2,7 @@
 layout: default
 title: Time Series Service
 parent: Services
-nav_order: 9
+nav_order: 10
 permalink: /services/time-series-service/
 ---
 
