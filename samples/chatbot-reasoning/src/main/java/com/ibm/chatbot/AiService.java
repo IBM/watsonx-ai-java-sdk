@@ -13,6 +13,8 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
@@ -58,7 +60,7 @@ public class AiService {
 
         ChatRequest chatRequest = ChatRequest.builder()
             .messages(memory.getMemory())
-            .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>"))
+            .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
             .build();
 
         var response = chatService.chat(chatRequest);
