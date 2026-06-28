@@ -14,11 +14,9 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
@@ -48,10 +46,10 @@ class DefaultLegacyRestClient extends CP4DRestClient {
 
     @Override
     public CompletableFuture<TokenResponse> tokenAsync(TokenRequest request) {
+        // The response body is delivered on an IO-executor thread, the token payload is tiny.
         return asyncHttpClient
             .send(createTokenRequest(request), BodyHandlers.ofString())
-            .thenApplyAsync(this::parseTokenResponse, ExecutorProvider.cpuExecutor())
-            .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
+            .thenApply(this::parseTokenResponse);
     }
 
     /*

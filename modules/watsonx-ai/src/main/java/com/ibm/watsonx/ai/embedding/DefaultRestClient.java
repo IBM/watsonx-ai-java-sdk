@@ -14,7 +14,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -74,8 +73,7 @@ final class DefaultRestClient extends EmbeddingRestClient {
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         return asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
-            .thenApplyAsync(r -> Json.fromJson(r.body(), EmbeddingResponse.class), ExecutorProvider.cpuExecutor())
-            .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
+            .thenApplyAsync(r -> Json.fromJson(r.body(), EmbeddingResponse.class), ExecutorProvider.cpuExecutor());
     }
 
     /**

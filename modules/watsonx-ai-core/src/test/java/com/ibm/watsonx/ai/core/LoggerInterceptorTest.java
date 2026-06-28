@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -361,7 +362,7 @@ public class LoggerInterceptorTest {
 
             assertEquals(2, threadNames.size());
             assertEquals("ForkJoinPool.commonPool-worker-1", threadNames.get(0));
-            assertEquals("http-io-thread", threadNames.get(1));
+            assertTrue(String.valueOf(threadNames.get(1)).startsWith("http-io-"));
         }
     }
 

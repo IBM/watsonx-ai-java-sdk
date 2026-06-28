@@ -14,13 +14,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
-import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
  * Default implementation of the {@link TokenizationRestClient} abstract class.
@@ -72,9 +70,9 @@ final class DefaultRestClient extends TokenizationRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
+        // The response body is delivered on an IO-executor thread. the token payload is tiny.
         return asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
-            .thenApplyAsync(r -> Json.fromJson(r.body(), TokenizationResponse.class), ExecutorProvider.cpuExecutor())
-            .thenApplyAsync(Function.identity(), ExecutorProvider.ioExecutor());
+            .thenApply(r -> Json.fromJson(r.body(), TokenizationResponse.class));
     }
 
     /**

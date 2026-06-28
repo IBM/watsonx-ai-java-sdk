@@ -631,8 +631,8 @@ public class RetryInterceptorTest {
 
         assertEquals(3, threadNames.size());
         assertEquals("ForkJoinPool.commonPool-worker-1", threadNames.get(0));
-        assertEquals("http-io-thread", threadNames.get(1));
-        assertEquals("http-io-thread", threadNames.get(2));
+        assertTrue(String.valueOf(threadNames.get(1)).startsWith("http-io-"));
+        assertTrue(String.valueOf(threadNames.get(2)).startsWith("http-io-"));
     }
 
     @Test
@@ -672,7 +672,7 @@ public class RetryInterceptorTest {
             .get(3, TimeUnit.SECONDS);
 
         assertEquals(1, threadNames.size());
-        assertTrue(String.valueOf(threadNames.get(0)).startsWith("http-io-thread"));
+        assertTrue(String.valueOf(threadNames.get(0)).startsWith("http-io-"));
     }
 
     private RetryInterceptor onTokenExpired(int maxRetries) {

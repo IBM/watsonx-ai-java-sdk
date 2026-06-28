@@ -166,7 +166,7 @@ The SDK uses three distinct executors internally, each replaceable independently
 | SPI interface | Default behavior | Used for |
 |---------------|-----------------|---------|
 | `CpuExecutorProvider` | `ForkJoinPool.commonPool()` | CPU-bound tasks: JSON parsing, data transformation |
-| `IOExecutorProvider` | Single-threaded (configurable via `WATSONX_IO_EXECUTOR_THREADS`) | HTTP response processing, SSE stream parsing |
+| `IOExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20); a fixed pool can be forced via `WATSONX_IO_EXECUTOR_THREADS` | HTTP response processing, SSE stream parsing |
 | `CallbackExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20) | User callbacks in `ChatHandler` and `TextGenerationHandler` |
 
 The three executors are intentionally separate to prevent user callback code from blocking the SSE parsing thread, and to keep CPU-bound work off the I/O thread.
