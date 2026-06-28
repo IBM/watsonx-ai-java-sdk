@@ -37,7 +37,6 @@ import com.ibm.watsonx.ai.core.Json;
  * The processor is stateful and thread-safe, designed to be used by a single streaming session.
  */
 public class SseEventProcessor {
-    private final Object usageLock = new Object();
     private volatile Map<Integer, String> finishReasons = new ConcurrentHashMap<>();
     private volatile String role;
     private volatile String refusal;
@@ -49,7 +48,7 @@ public class SseEventProcessor {
     private volatile String model;
     private volatile String modelVersion;
     private volatile boolean pendingSSEError = false;
-    private ChatUsage chatUsage;
+    private volatile ChatUsage chatUsage;
     private final Map<Integer, StringBuilder> contentBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, StringBuilder> thinkingBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, List<StreamingToolFetcher>> toolFetchers = new ConcurrentHashMap<>();
@@ -163,11 +162,8 @@ public class SseEventProcessor {
         var chunk = Json.fromJson(messageData, PartialChatResponse.class);
         var events = new ArrayList<CallbackEvent>();
 
-        if (nonNull(chunk.usage())) {
-            synchronized (usageLock) {
-                chatUsage = chunk.usage();
-            }
-        }
+        if (nonNull(chunk.usage()))
+            chatUsage = chunk.usage();
 
         if (chunk.choices().size() == 0) {
 
