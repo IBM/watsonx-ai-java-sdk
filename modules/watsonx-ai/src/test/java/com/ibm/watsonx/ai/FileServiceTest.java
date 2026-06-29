@@ -435,10 +435,8 @@ public class FileServiceTest extends AbstractWatsonxTest {
             .baseUrl(BASE_URL)
             .build();
 
-        var ex = assertThrows(RuntimeException.class, () -> fileService.upload(path));
-        assertTrue(ex.getMessage().startsWith("Max retries reached for request"));
-
-        var watsonxException = (WatsonxException) ex.getCause();
+        // Once the retries are exhausted, the original WatsonxException is propagated (not wrapped).
+        var watsonxException = assertThrows(WatsonxException.class, () -> fileService.upload(path));
         assertTrue(watsonxException.details().isPresent());
         assertEquals(401, watsonxException.details().get().statusCode());
         assertNotNull(401, watsonxException.details().get().trace());
@@ -450,7 +448,7 @@ public class FileServiceTest extends AbstractWatsonxTest {
             .withQueryParam("version", equalTo(API_VERSION))
             .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
         );
-        JSONAssert.assertEquals(ERROR, ex.getCause().getMessage(), true);
+        JSONAssert.assertEquals(ERROR, watsonxException.getMessage(), true);
     }
 
     @Test

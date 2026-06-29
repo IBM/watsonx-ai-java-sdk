@@ -5,7 +5,6 @@
 package com.ibm.watsonx.ai.core.http.interceptors;
 
 import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
-import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
@@ -108,7 +107,8 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
         Duration timeout = Duration.from(retryInterval);
 
-        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+        int attempt = 0;
+        while (true) {
 
             try {
 
@@ -122,8 +122,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                     Thread.sleep(timeout.toMillis());
                 }
 
-                var res = chain.proceed(request, bodyHandler);
-                return res;
+                return chain.proceed(request, bodyHandler);
 
             } catch (Exception e) {
                 exception = e;
@@ -137,19 +136,18 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                             .orElse(true);
                     });
 
-                if (shouldRetry) {
-                    if (exponentialBackoff && attempt > 0) {
-                        timeout = timeout.multipliedBy(2);
-                    }
-                    chain.resetToIndex(index + 1);
-                    continue;
-                }
+                // Not retryable, or retries exhausted: propagate the original exception so callers keep
+                // the typed error (e.g. WatsonxException with its status code), consistently with the async path.
+                if (!shouldRetry || attempt >= maxRetries)
+                    throw e;
 
-                throw e;
+                if (exponentialBackoff && attempt > 0) {
+                    timeout = timeout.multipliedBy(2);
+                }
+                chain.resetToIndex(index + 1);
+                attempt++;
             }
         }
-
-        throw new RuntimeException("Max retries reached for request [%s]".formatted(requestId), isNull(exception) ? new Exception() : exception);
     }
 
     @Override
@@ -188,7 +186,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                 Duration nextTimeout = exponentialBackoff ? timeout.multipliedBy(2) : timeout;
 
                 if (!timeout.isZero())
-                    logger.debug("Retry request \"{}\" after {} ms", requestId, nextTimeout.toMillis());
+                    logger.debug("Retry request \"{}\" after {} ms", requestId, timeout.toMillis());
 
                 return CompletableFuture.supplyAsync(
                     () -> {
@@ -196,7 +194,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
                         chain.resetToIndex(index + 1);
                         return executeWithRetry(request, bodyHandler, index, attempt + 1, nextTimeout, chain);
                     },
-                    CompletableFuture.delayedExecutor(nextTimeout.toMillis(), TimeUnit.MILLISECONDS, ExecutorProvider.ioExecutor())
+                    CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS, ExecutorProvider.ioExecutor())
                 ).thenCompose(Function.identity());
             }, ExecutorProvider.ioExecutor());
     }

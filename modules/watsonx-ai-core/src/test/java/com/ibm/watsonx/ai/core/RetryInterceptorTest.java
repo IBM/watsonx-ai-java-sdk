@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -116,8 +117,8 @@ public class RetryInterceptorTest {
             when(httpClient.send(any(), eq(bodyHandler)))
                 .thenThrow(NullPointerException.class);
 
-            var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler));
-            assertEquals(NullPointerException.class, ex.getCause().getClass());
+            var ex = assertThrows(NullPointerException.class, () -> client.send(httpRequest, bodyHandler));
+            assertEquals(NullPointerException.class, ex.getClass());
             verify(httpClient, times(2)).send(any(), eq(bodyHandler));
         }
 
@@ -147,9 +148,9 @@ public class RetryInterceptorTest {
             when(httpClient.send(any(), eq(bodyHandler)))
                 .thenThrow(NullPointerException.class);
 
-            var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler));
-            assertTrue(ex.getMessage().startsWith("Max retries reached"));
-            assertEquals(NullPointerException.class, ex.getCause().getClass());
+            // After exhausting the retries the original exception is propagated, not a wrapper.
+            var ex = assertThrows(NullPointerException.class, () -> client.send(httpRequest, bodyHandler));
+            assertEquals(NullPointerException.class, ex.getClass());
             verify(httpClient, times(4)).send(any(), eq(bodyHandler));
             verify(mockInterceptor, times(4)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
@@ -174,9 +175,9 @@ public class RetryInterceptorTest {
             when(httpClient.send(any(), eq(bodyHandler)))
                 .thenThrow(new NullPointerException("Super null pointer exception"));
 
-            var ex = assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler));
-            assertEquals(NullPointerException.class, ex.getCause().getClass());
-            assertEquals("Super null pointer exception", ex.getCause().getMessage());
+            var ex = assertThrows(NullPointerException.class, () -> client.send(httpRequest, bodyHandler));
+            assertEquals(NullPointerException.class, ex.getClass());
+            assertEquals("Super null pointer exception", ex.getMessage());
             verify(httpClient, times(4)).send(any(), eq(bodyHandler));
             verify(mockInterceptor, times(4)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
@@ -405,6 +406,49 @@ public class RetryInterceptorTest {
             assertEquals(NullPointerException.class, ex.getCause().getClass());
             verify(httpClient, times(4)).sendAsync(any(), any(BodyHandler.class));
             verify(mockInterceptor, times(4)).intercept(any(), eq(bodyHandler), anyInt(), any());
+        }
+
+        @Test
+        @SuppressWarnings("unchecked")
+        void should_use_base_interval_for_first_retry_with_exponential_backoff() throws Exception {
+
+            Duration base = Duration.ofMillis(200);
+            RetryInterceptor retryInterceptor = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryInterval(base)
+                .exponentialBackoff(true)
+                .retryOn(NullPointerException.class)
+                .build();
+
+            AsyncHttpClient client = AsyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(retryInterceptor)
+                .interceptor(mockInterceptor)
+                .build();
+
+            List<Long> callTimestamps = new CopyOnWriteArrayList<>();
+
+            when(mockInterceptor.intercept(any(), eq(bodyHandler), anyInt(), any()))
+                .thenAnswer(CHAIN_MOCK);
+
+            when(httpClient.sendAsync(any(), any(BodyHandler.class)))
+                .thenAnswer(invocation -> {
+                    callTimestamps.add(System.nanoTime());
+                    return CompletableFuture.failedFuture(new NullPointerException());
+                });
+
+            assertThrows(RuntimeException.class, () -> client.send(httpRequest, bodyHandler).join());
+
+            assertEquals(4, callTimestamps.size());
+
+            long firstRetryDelayMs = (callTimestamps.get(1) - callTimestamps.get(0)) / 1_000_000;
+            long secondRetryDelayMs = (callTimestamps.get(2) - callTimestamps.get(1)) / 1_000_000;
+
+            assertTrue(firstRetryDelayMs >= 120 && firstRetryDelayMs < 320,
+                () -> "First retry should wait ~200ms (base), but waited " + firstRetryDelayMs + "ms");
+
+            assertTrue(secondRetryDelayMs >= 320,
+                () -> "Second retry should wait ~400ms (2*base), but waited " + secondRetryDelayMs + "ms");
         }
 
         @Test
