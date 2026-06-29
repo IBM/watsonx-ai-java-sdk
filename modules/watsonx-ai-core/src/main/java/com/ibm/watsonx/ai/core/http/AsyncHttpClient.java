@@ -37,7 +37,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
      */
     AsyncHttpClient(HttpClient httpClient, List<AsyncHttpInterceptor> interceptors) {
         super(requireNonNull(httpClient, "The HTTP client cannot be null"));
-        this.interceptors = requireNonNullElse(interceptors, List.of());
+        this.interceptors = (interceptors == null) ? List.of() : List.copyOf(interceptors);
     }
 
     /**
@@ -76,20 +76,21 @@ public final class AsyncHttpClient extends BaseHttpClient {
     private final static class InterceptorChain implements AsyncHttpInterceptor.AsyncChain {
         private final HttpClient httpClient;
         private final List<AsyncHttpInterceptor> interceptors;
-        private int index;
+        private int index = 0;
 
         public InterceptorChain(HttpClient httpClient, List<AsyncHttpInterceptor> interceptors) {
             this.httpClient = httpClient;
             this.interceptors = interceptors;
-            this.index = 0;
         }
 
         @Override
         public <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler) {
-            if (index < interceptors.size()) {
-                var interceptorIndex = index++;
-                return interceptors.get(interceptorIndex).intercept(request, handler, interceptorIndex, this);
-            } else {
+            try {
+                if (index < interceptors.size()) {
+                    int current = index++;
+                    return interceptors.get(current).intercept(request, handler, current, this);
+                }
+
                 return httpClient.sendAsync(request, responseInfo -> {
 
                     int statusCode = responseInfo.statusCode();
@@ -111,6 +112,8 @@ public final class AsyncHttpClient extends BaseHttpClient {
                         }
                     );
                 });
+            } catch (Exception e) {
+                return CompletableFuture.failedFuture(e);
             }
         }
 

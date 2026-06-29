@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.core;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,6 +12,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -18,6 +20,7 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -131,6 +134,30 @@ public class SyncHttpClientTest {
         InOrder inOrder = inOrder(interceptor1, interceptor2);
         inOrder.verify(interceptor1).intercept(any(), eq(handler), anyInt(), any());
         inOrder.verify(interceptor2).intercept(any(), eq(handler), anyInt(), any());
+    }
+
+    @Test
+    void should_not_be_affected_by_external_list_mutation_after_build() throws Exception {
+
+        BodyHandler<String> handler = mock(BodyHandler.class);
+
+        List<SyncHttpInterceptor> list = new ArrayList<>();
+        list.add(interceptor1);
+
+        SyncHttpClient client = SyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptors(list)
+            .build();
+
+        // Mutating the original list after build must not change the client's interceptors.
+        list.clear();
+
+        when(interceptor1.intercept(any(), eq(handler), anyInt(), any())).thenAnswer(CHAIN_MOCK);
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+
+        assertDoesNotThrow(() -> client.send(httpRequest, handler));
+        verify(interceptor1).intercept(any(), eq(handler), anyInt(), any());
     }
 
     @Test
