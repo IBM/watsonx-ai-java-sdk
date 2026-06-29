@@ -11,6 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -18,6 +19,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -26,6 +29,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -56,6 +60,7 @@ import com.ibm.watsonx.ai.core.exception.UserAuthorizationFailedException;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
+import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -164,6 +169,79 @@ public class AsyncHttpClientTest {
 
         var result = client.send(httpRequest, handler).get();
         assertEquals(httpResponse, result);
+    }
+
+    @Test
+    void should_return_failed_future_when_interceptor_throws_synchronously() {
+
+        AsyncHttpClient client = AsyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptor(interceptor1)
+            .build();
+
+        var boom = new IllegalStateException("synchronous boom");
+        when(interceptor1.intercept(any(), eq(handler), anyInt(), any())).thenThrow(boom);
+
+        CompletableFuture<HttpResponse<String>> future = assertDoesNotThrow(() -> client.send(httpRequest, handler));
+        assertTrue(future.isCompletedExceptionally());
+
+        CompletionException ex = assertThrows(CompletionException.class, future::join);
+        assertEquals(boom, ex.getCause());
+    }
+
+    @Test
+    void should_retry_when_interceptor_throws_synchronously() throws Exception {
+
+        RetryInterceptor retry = RetryInterceptor.builder()
+            .maxRetries(1)
+            .retryOn(IllegalStateException.class)
+            .build();
+
+        // Throws synchronously on the first invocation, then proceeds normally: this only retries if the
+        // synchronous throw is turned into a failed future by the chain.
+        AsyncHttpInterceptor flaky = new AsyncHttpInterceptor() {
+            int calls = 0;
+
+            @Override
+            public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index,
+                AsyncHttpInterceptor.AsyncChain chain) {
+                if (calls++ == 0)
+                    throw new IllegalStateException("synchronous boom");
+                return chain.proceed(request, bodyHandler);
+            }
+        };
+
+        AsyncHttpClient client = AsyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptor(retry)
+            .interceptor(flaky)
+            .build();
+
+        when(httpClient.sendAsync(any(), any(BodyHandler.class)))
+            .thenReturn(completedFuture(httpResponse));
+
+        assertEquals(httpResponse, client.send(httpRequest, handler).get());
+        verify(httpClient, times(1)).sendAsync(any(), any(BodyHandler.class));
+    }
+
+    @Test
+    void should_not_be_affected_by_external_list_mutation_after_build() {
+
+        List<AsyncHttpInterceptor> list = new ArrayList<>();
+        list.add(interceptor1);
+
+        AsyncHttpClient client = AsyncHttpClient.builder()
+            .httpClient(httpClient)
+            .interceptors(list)
+            .build();
+
+        list.clear();
+
+        when(interceptor1.intercept(any(), eq(handler), anyInt(), any())).thenAnswer(CHAIN_MOCK);
+        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(httpResponse));
+
+        assertDoesNotThrow(() -> client.send(httpRequest, handler).get());
+        verify(interceptor1).intercept(any(), eq(handler), anyInt(), any());
     }
 
     @Test

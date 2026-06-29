@@ -36,7 +36,7 @@ public final class SyncHttpClient extends BaseHttpClient {
      */
     SyncHttpClient(HttpClient httpClient, List<SyncHttpInterceptor> interceptors) {
         super(requireNonNull(httpClient, "The HTTP client cannot be null"));
-        this.interceptors = requireNonNullElse(interceptors, List.of());
+        this.interceptors = (interceptors == null) ? List.of() : List.copyOf(interceptors);
     }
 
     /**

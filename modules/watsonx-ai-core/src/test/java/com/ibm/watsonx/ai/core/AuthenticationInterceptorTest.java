@@ -21,6 +21,7 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Nested;
@@ -203,8 +204,8 @@ public class AuthenticationInterceptorTest extends AbstractWatsonxTest {
                     .build();
 
                 var ex =
-                    assertThrows(RuntimeException.class, () -> client.send(fakeRequest, BodyHandlers.ofString()).join());
-                assertEquals("error", ex.getMessage());
+                    assertThrows(CompletionException.class, () -> client.send(fakeRequest, BodyHandlers.ofString()).join());
+                assertEquals("error", ex.getCause().getMessage());
             });
         }
 
