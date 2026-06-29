@@ -472,7 +472,7 @@ public class DeploymentServiceIT {
 
         @Test
         @EnabledIfEnvironmentVariable(named = "WATSONX_GEMMA_DEPLOYMENT_ID", matches = ".+")
-        void should_return_answer_using_google_gemma_with_thiking() {
+        void should_return_answer_using_google_gemma_with_thinking() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -994,7 +994,7 @@ public class DeploymentServiceIT {
 
         @Test
         @EnabledIfEnvironmentVariable(named = "WATSONX_GEMMA_DEPLOYMENT_ID", matches = ".+")
-        void should_return_answer_using_google_gemma_with_thiking() {
+        void should_return_answer_using_google_gemma_with_thinking() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)

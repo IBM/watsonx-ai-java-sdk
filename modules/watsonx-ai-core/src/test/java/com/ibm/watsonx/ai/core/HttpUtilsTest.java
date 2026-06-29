@@ -113,6 +113,21 @@ public class HttpUtilsTest {
     }
 
     @Test
+    void should_mask_authorization_header_for_various_token_shapes() {
+        assertEquals("[Authorization: Bearer ***]",
+            HttpUtils.inOneLine(Map.of("Authorization", List.of("Bearer short"))));
+
+        assertEquals("[Authorization: abcd...3456]",
+            HttpUtils.inOneLine(Map.of("Authorization", List.of("abcdef123456"))));
+
+        assertEquals("[Authorization: Basic ABCD...WXYZ]",
+            HttpUtils.inOneLine(Map.of("Authorization", List.of("Basic ABCD++++////WXYZ"))));
+
+        assertEquals("[Authorization: Bearer head...ture]",
+            HttpUtils.inOneLine(Map.of("Authorization", List.of("Bearer header.payload.signature"))));
+    }
+
+    @Test
     void should_parse_error_body_correctly_from_json() {
         WatsonxError watsonxError = new WatsonxError(400, "Internal Server Error", List.of(new Error("ERROR", "error", "error")));
         String jsonBody = Json.toJson(watsonxError);
