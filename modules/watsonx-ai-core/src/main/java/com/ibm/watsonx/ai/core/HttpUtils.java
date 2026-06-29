@@ -16,8 +16,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.w3c.dom.Document;
@@ -42,9 +40,6 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
  * Utility class for working with Http objects.
  */
 public final class HttpUtils {
-
-    private static final Pattern AUTHORIZATION_PATTERN =
-        Pattern.compile("(\\w+\\s)(\\w{4})(\\w+)(\\w{4})");
 
     protected HttpUtils() {}
 
@@ -262,19 +257,22 @@ public final class HttpUtils {
         return new WatsonxError(httpStatusCode, requestId, List.of(error));
     }
 
-    //
-    // Masks the sensitive part of a Bearer token in an authorization header.
-    //
+    /**
+     * Masks the sensitive part of an authorization header value.
+     */
     private static String maskAuthorizationHeaderValue(String authorizationHeaderValue) {
 
-        Matcher matcher = AUTHORIZATION_PATTERN.matcher(authorizationHeaderValue);
+        if (isNull(authorizationHeaderValue) || authorizationHeaderValue.isBlank())
+            return authorizationHeaderValue;
 
-        StringBuilder sb = new StringBuilder();
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, matcher.group(1) + matcher.group(2) + "..." + matcher.group(4));
-        }
+        int spaceIndex = authorizationHeaderValue.indexOf(' ');
+        String scheme = spaceIndex > 0 ? authorizationHeaderValue.substring(0, spaceIndex + 1) : "";
+        String token = spaceIndex > 0 ? authorizationHeaderValue.substring(spaceIndex + 1) : authorizationHeaderValue;
 
-        return sb.toString();
+        if (token.length() <= 8)
+            return scheme + "***";
+
+        return scheme + token.substring(0, 4) + "..." + token.substring(token.length() - 4);
     }
 
     private static String getTextContent(Element parent, String tagName) {

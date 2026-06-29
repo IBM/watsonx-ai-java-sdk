@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -20,10 +21,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -31,8 +34,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -445,5 +456,188 @@ public class LoggerInterceptorTest {
             assertDoesNotThrow(() -> interceptor.intercept(request, HttpResponse.BodyHandlers.ofString(), 0, chain));
             verify(chain).proceed(any(), any());
         }
+    }
+
+    @Nested
+    @SuppressWarnings("unchecked")
+    class Masking {
+
+        @Test
+        void should_mask_apikey_in_form_urlencoded_request_body() throws Exception {
+
+            String body = "grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&apikey=MY_SUPER_SECRET_KEY";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(BodyPublishers.ofString(body))
+                .build();
+
+            List<String> logs = captureLogs(() -> intercept(new LoggerInterceptor(LogMode.REQUEST), request));
+
+            String requestLog = findLog(logs, "Request:");
+            assertFalse(requestLog.contains("MY_SUPER_SECRET_KEY"), "API key must not be logged in clear text");
+            assertTrue(requestLog.contains("apikey=***"), () -> "API key must be masked, but was: " + requestLog);
+        }
+
+        @Test
+        void should_mask_password_in_form_urlencoded_request_body() throws Exception {
+
+            String body = "grant_type=password&username=admin&password=MY_SUPER_SECRET_PWD&scope=openid";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(BodyPublishers.ofString(body))
+                .build();
+
+            List<String> logs = captureLogs(() -> intercept(new LoggerInterceptor(LogMode.REQUEST), request));
+
+            String requestLog = findLog(logs, "Request:");
+            assertFalse(requestLog.contains("MY_SUPER_SECRET_PWD"), "Password must not be logged in clear text");
+            assertTrue(requestLog.contains("password=***"), () -> "Password must be masked, but was: " + requestLog);
+        }
+
+        @Test
+        void should_mask_apikey_in_json_request_body() throws Exception {
+
+            String body = "{\"apikey\":\"MY_SUPER_SECRET_KEY\"}";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost"))
+                .header("Content-Type", "application/json")
+                .POST(BodyPublishers.ofString(body))
+                .build();
+
+            List<String> logs = captureLogs(() -> intercept(new LoggerInterceptor(LogMode.REQUEST), request));
+
+            String requestLog = findLog(logs, "Request:");
+            assertFalse(requestLog.contains("MY_SUPER_SECRET_KEY"), "API key must not be logged in clear text");
+            assertTrue(requestLog.contains("\"***\""), () -> "API key must be masked, but was: " + requestLog);
+        }
+
+        @Test
+        void should_mask_access_token_in_json_response_body() throws Exception {
+
+            // This is the shape of the token endpoint response.
+            String responseBody = "{\"access_token\":\"MY_SUPER_SECRET_TOKEN\",\"expiration\":123}";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost"))
+                .GET()
+                .build();
+
+            HttpResponse<String> response = mock(HttpResponse.class);
+            when(response.body()).thenReturn(responseBody);
+            when(response.statusCode()).thenReturn(200);
+            when(response.headers()).thenReturn(HttpHeaders.of(
+                Map.of("Content-Type", List.of("application/json")), (k, v) -> true));
+
+            List<String> logs = captureLogs(() -> intercept(new LoggerInterceptor(LogMode.RESPONSE), request, response));
+
+            String responseLog = findLog(logs, "Response:");
+            assertFalse(responseLog.contains("MY_SUPER_SECRET_TOKEN"), "Access token must not be logged in clear text");
+            assertTrue(responseLog.contains("\"***\""), () -> "Access token must be masked, but was: " + responseLog);
+        }
+
+        @Test
+        void should_not_log_anything_when_log_mode_is_disabled() throws Exception {
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(BodyPublishers.ofString("apikey=MY_SUPER_SECRET_KEY"))
+                .build();
+
+            List<String> logs = captureLogs(() -> intercept(new LoggerInterceptor(LogMode.DISABLED), request));
+
+            assertTrue(logs.isEmpty(), () -> "Nothing should be logged when disabled, but was: " + logs);
+        }
+
+        @Test
+        void should_not_read_body_when_info_level_is_disabled() throws Exception {
+
+            // Logging is enabled on the interceptor, but the log level is raised above INFO: the
+            // interceptor must short-circuit and avoid reading/masking the body altogether.
+            AtomicBoolean bodyRead = new AtomicBoolean(false);
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(trackingPublisher("apikey=MY_SUPER_SECRET_KEY", bodyRead))
+                .build();
+
+            String loggerName = LoggerInterceptor.class.getName();
+            Configurator.setLevel(loggerName, Level.WARN);
+            try {
+                List<String> logs = captureLogs(() -> intercept(new LoggerInterceptor(LogMode.REQUEST), request));
+                assertTrue(logs.isEmpty(), () -> "Nothing should be logged when INFO is disabled, but was: " + logs);
+                assertFalse(bodyRead.get(), "Request body must not be read when INFO level is disabled");
+            } finally {
+                Configurator.setLevel(loggerName, Level.INFO);
+            }
+        }
+
+        private HttpResponse<String> intercept(LoggerInterceptor interceptor, HttpRequest request) {
+            HttpResponse<String> response = mock(HttpResponse.class);
+            return intercept(interceptor, request, response);
+        }
+
+        private HttpResponse<String> intercept(LoggerInterceptor interceptor, HttpRequest request, HttpResponse<String> response) {
+            try {
+                LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+                BodyHandler<String> bodyHandler = BodyHandlers.ofString();
+                when(chain.proceed(request, bodyHandler)).thenReturn(response);
+                return interceptor.intercept(request, bodyHandler, 0, chain);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    //
+    // Attaches an in-memory Log4j2 appender to the LoggerInterceptor logger, runs the given action,
+    // and returns every message logged during its execution.
+    //
+    private static List<String> captureLogs(Runnable action) {
+        var logger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(LoggerInterceptor.class);
+        List<String> messages = new CopyOnWriteArrayList<>();
+        var appender = new AbstractAppender("test-capture", null, null, true, null) {
+            @Override
+            public void append(LogEvent event) {
+                messages.add(event.getMessage().getFormattedMessage());
+            }
+        };
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            action.run();
+        } finally {
+            logger.removeAppender(appender);
+            appender.stop();
+        }
+        return messages;
+    }
+
+    private static String findLog(List<String> logs, String prefix) {
+        return logs.stream()
+            .filter(msg -> msg.startsWith(prefix))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("No log found starting with '" + prefix + "' in: " + logs));
+    }
+
+    //
+    // Wraps a string body publisher and flips the given flag the first time it is subscribed,
+    // so a test can assert whether the interceptor actually read the request body.
+    //
+    private static BodyPublisher trackingPublisher(String body, AtomicBoolean subscribed) {
+        BodyPublisher delegate = BodyPublishers.ofString(body);
+        return new BodyPublisher() {
+            @Override
+            public long contentLength() {
+                return delegate.contentLength();
+            }
+
+            @Override
+            public void subscribe(Flow.Subscriber<? super ByteBuffer> subscriber) {
+                subscribed.set(true);
+                delegate.subscribe(subscriber);
+            }
+        };
     }
 }

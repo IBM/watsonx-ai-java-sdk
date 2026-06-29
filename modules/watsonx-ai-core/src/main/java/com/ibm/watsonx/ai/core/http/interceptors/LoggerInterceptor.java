@@ -39,8 +39,12 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     private static final Logger logger = LoggerFactory.getLogger(LoggerInterceptor.class);
     private static final Pattern BASE64_IMAGE_PATTERN =
         Pattern.compile("(data:[\\w\\/+]+;base64,)(.{15})([^\"]+)");
-    private static final Pattern API_KEY_PATTERN =
-        Pattern.compile("\"(api-key|apiKey)\"\\s*:\\s*\"([^\"]+\")", Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern JSON_SECRET_PATTERN =
+        Pattern.compile("\"([^\"]*(?:api[_-]?key|password|secret|access_token|refresh_token)[^\"]*)\"\\s*:\\s*\"[^\"]*\"", Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern FORM_SECRET_PATTERN =
+        Pattern.compile("(api[_-]?key|password|secret|access_token|refresh_token)=([^&\\s]*)", Pattern.CASE_INSENSITIVE);
 
     private final boolean logRequest;
     private final boolean logResponse;
@@ -84,7 +88,11 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
                 this.logRequest = false;
                 this.logResponse = true;
             }
-            default -> throw new RuntimeException("Unknown log mode: " + mode);
+            case DISABLED -> {
+                this.logRequest = false;
+                this.logResponse = false;
+            }
+            default -> throw new IllegalStateException("Unknown log mode: " + mode);
         }
     }
 
@@ -118,7 +126,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
     private void logRequest(HttpRequest request) {
-        if (!logRequest)
+        if (!logRequest || !logger.isInfoEnabled())
             return;
 
         Optional<BodyPublisher> maybePublisher = request.bodyPublisher();
@@ -162,7 +170,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
     private <T> void logResponse(String watsonxAISDKRequestId, Throwable exception) {
-        if (!logResponse)
+        if (!logResponse || !logger.isInfoEnabled())
             return;
 
         StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
@@ -179,7 +187,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
     private <T> void logResponse(String watsonxAISDKRequestId, HttpResponse<T> response) {
-        if (!logResponse)
+        if (!logResponse || !logger.isInfoEnabled())
             return;
 
         try {
@@ -210,6 +218,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             }
 
             if (nonNull(body)) {
+                body = maskSecrets(body);
                 body = prettyPrint ? Json.prettyPrint(body) : body;
                 joiner.add("- body: " + body);
             }
@@ -232,7 +241,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             joiner.add("- headers: " + headers);
             if (nonNull(body)) {
                 body = formatBase64Image(body);
-                body = maskApiKeysInJsonBody(body);
+                body = maskSecrets(body);
 
                 var contentType = request.headers().firstValue("Content-Type");
 
@@ -254,19 +263,26 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             className.contains("BufferedInputStream");
     }
 
-    private String maskApiKeysInJsonBody(String body) {
+    private String maskSecrets(String body) {
 
         if (body == null || body.isBlank())
             return body;
 
-        Matcher matcher = API_KEY_PATTERN.matcher(body);
-
+        Matcher jsonMatcher = JSON_SECRET_PATTERN.matcher(body);
         StringBuilder sb = new StringBuilder();
-        while (matcher.find())
-            matcher.appendReplacement(sb, "\"" + matcher.group(1) + "\": \"***\"");
+        while (jsonMatcher.find())
+            jsonMatcher.appendReplacement(sb, Matcher.quoteReplacement("\"" + jsonMatcher.group(1) + "\": \"***\""));
+        jsonMatcher.appendTail(sb);
+        body = sb.toString();
 
-        matcher.appendTail(sb);
-        return sb.isEmpty() ? body : sb.toString();
+        Matcher formMatcher = FORM_SECRET_PATTERN.matcher(body);
+        sb = new StringBuilder();
+
+        while (formMatcher.find())
+            formMatcher.appendReplacement(sb, Matcher.quoteReplacement(formMatcher.group(1) + "=***"));
+
+        formMatcher.appendTail(sb);
+        return sb.toString();
     }
 
     private String formatBase64Image(String body) {
