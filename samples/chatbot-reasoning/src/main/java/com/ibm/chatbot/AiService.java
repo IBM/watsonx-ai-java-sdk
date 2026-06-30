@@ -5,51 +5,37 @@
 package com.ibm.chatbot;
 
 import java.net.URI;
-import java.time.Duration;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
-import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
+import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 public class AiService {
 
     private static final Config config = ConfigProvider.getConfig();
-    private final ChatService chatService;
-    private final FoundationModelService foundationModelService;
+    private final DeploymentService chatService;
     private final ChatMemory memory;
-    private String modelId;
+    private final String deploymentId = config.getValue("WATSONX_GRANITE_3_3_DEPLOYMENT_ID", String.class);
 
     public AiService() {
 
         final var url = URI.create(config.getValue("WATSONX_URL", String.class));
         final var apiKey = config.getValue("WATSONX_API_KEY", String.class);
-        final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
-        modelId = "ibm/granite-3-3-8b-instruct";
 
         var defaultParameters = ChatParameters.builder()
             .maxCompletionTokens(0)
             .build();
 
-        chatService = ChatService.builder()
+        chatService = DeploymentService.builder()
             .baseUrl(url)
             .apiKey(apiKey)
-            .projectId(projectId)
-            .modelId(modelId)
             .parameters(defaultParameters)
-            .build();
-
-        foundationModelService = FoundationModelService.builder()
-            .apiKey(apiKey)
-            .baseUrl(url)
-            .timeout(Duration.ofSeconds(60))
             .build();
 
         memory = new ChatMemory();
@@ -60,15 +46,12 @@ public class AiService {
 
         ChatRequest chatRequest = ChatRequest.builder()
             .messages(memory.getMemory())
+            .deploymentId(deploymentId)
             .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
             .build();
 
         var response = chatService.chat(chatRequest);
         memory.addMessage(response.toAssistantMessage());
         return response;
-    }
-
-    public FoundationModel getModelDetails() {
-        return foundationModelService.getModel(modelId).orElseThrow();
     }
 }
