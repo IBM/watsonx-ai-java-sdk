@@ -27,7 +27,7 @@ public class App {
                 .apiKey(apiKey)
                 .projectId(projectId)
                 .timeout(Duration.ofSeconds(60))
-                .modelId("ibm/granite-3-3-8b-instruct")
+                .modelId("ibm/granite-4-h-small")
                 .baseUrl(url)
                 .build();
 

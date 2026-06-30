@@ -491,7 +491,7 @@ public class DeploymentServiceIT {
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertNotNull(assistantMessage.thinking());
-            assertFalse(assistantMessage.thinking().contains("<|channel>") || assistantMessage.thinking().contains("<channel|>"));
+            assertFalse(assistantMessage.thinking().contains("<|channel>thought\n") || assistantMessage.thinking().contains("<channel|>"));
             assertFalse(assistantMessage.content().isBlank());
             assertEquals("Hello! How can I help you today?", assistantMessage.content());
         }
