@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.schema.create;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
@@ -49,7 +50,7 @@ public final class CreateSchemaParameters extends WatsonxParameters {
         super(builder);
         this.mode = builder.mode;
         this.ocrMode = requireNonNullElse(builder.ocrMode, OcrMode.DISABLED.value());
-        this.languages = builder.languages;
+        this.languages = isNull(builder.languages) ? null : List.copyOf(builder.languages);
         this.autoRotationCorrection = builder.autoRotationCorrection;
         this.additionalPromptInstructions = builder.additionalPromptInstructions;
         this.enableGrounding = builder.enableGrounding;

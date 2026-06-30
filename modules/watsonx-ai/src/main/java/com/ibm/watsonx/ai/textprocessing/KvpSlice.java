@@ -5,6 +5,8 @@
 package com.ibm.watsonx.ai.textprocessing;
 
 import static java.util.Objects.requireNonNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
@@ -32,6 +34,8 @@ public record KvpSlice(Map<String, KvpField> fields, List<Double> normalizedBbox
     public KvpSlice {
         requireNonNull(fields, "fields cannot be null");
         requireNonNull(normalizedBbox, "normalizedBbox cannot be null");
+        fields = Collections.unmodifiableMap(new LinkedHashMap<>(fields));
+        normalizedBbox = List.copyOf(normalizedBbox);
     }
 
     public static KvpSlice of(KvpFields fields, List<Double> normalizedBbox) {

@@ -9,7 +9,9 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -59,10 +61,10 @@ public final class TextExtractionParameters extends WatsonxParameters {
 
     private TextExtractionParameters(Builder builder) {
         super(builder);
-        this.requestedOutputs = requireNonNullElse(builder.requestedOutputs, List.of(Type.MD.value));
+        this.requestedOutputs = isNull(builder.requestedOutputs) ? List.of(Type.MD.value) : List.copyOf(builder.requestedOutputs);
         this.mode = builder.mode;
         this.ocrMode = builder.ocrMode;
-        this.languages = builder.languages;
+        this.languages = isNull(builder.languages) ? null : List.copyOf(builder.languages);
         this.autoRotationCorrection = builder.autoRotationCorrection;
         this.createEmbeddedImages = builder.createEmbeddedImages;
         this.outputDpi = builder.outputDpi;
@@ -74,7 +76,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
         this.outputFileName = builder.outputFileName;
         this.documentReference = builder.documentReference;
         this.resultReference = builder.resultReference;
-        this.custom = builder.custom;
+        this.custom = isNull(builder.custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.custom));
         this.timeout = builder.timeout;
     }
 

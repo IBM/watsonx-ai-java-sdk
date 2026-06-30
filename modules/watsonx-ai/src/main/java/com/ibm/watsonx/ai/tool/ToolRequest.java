@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.tool;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.tool.ToolRequest.StructuredInput;
@@ -94,7 +97,12 @@ public sealed interface ToolRequest permits StructuredInput, UnstructuredInput {
      */
     public static record StructuredInput(String toolName, Map<String, Object> input, Map<String, Object> config)
         implements
-            ToolRequest {}
+            ToolRequest {
+        public StructuredInput {
+            input = isNull(input) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(input));
+            config = isNull(config) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(config));
+        }
+    }
 
     /**
      * Represents a tool request with a plain string input, used for tools that do not define an input schema.
@@ -105,5 +113,9 @@ public sealed interface ToolRequest permits StructuredInput, UnstructuredInput {
      */
     public static record UnstructuredInput(String toolName, String input, Map<String, Object> config)
         implements
-            ToolRequest {}
+            ToolRequest {
+        public UnstructuredInput {
+            config = isNull(config) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(config));
+        }
+    }
 }

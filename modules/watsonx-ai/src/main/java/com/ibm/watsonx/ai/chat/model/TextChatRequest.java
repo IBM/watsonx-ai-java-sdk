@@ -4,7 +4,11 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,24 +58,24 @@ public final class TextChatRequest {
         model = builder.modelId;
         spaceId = builder.spaceId;
         projectId = builder.projectId;
-        messages = builder.messages;
-        tools = builder.tools;
+        messages = isNull(builder.messages) ? null : List.copyOf(builder.messages);
+        tools = isNull(builder.tools) ? null : List.copyOf(builder.tools);
         toolChoiceOption = builder.toolChoiceOption;
-        toolChoice = builder.toolChoice;
+        toolChoice = isNull(builder.toolChoice) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.toolChoice));
         frequencyPenalty = builder.frequencyPenalty;
-        logitBias = builder.logitBias;
+        logitBias = isNull(builder.logitBias) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.logitBias));
         logprobs = builder.logprobs;
         topLogprobs = builder.topLogprobs;
         maxCompletionTokens = builder.maxCompletionTokens;
         n = builder.n;
         presencePenalty = builder.presencePenalty;
         seed = builder.seed;
-        stop = builder.stop;
+        stop = isNull(builder.stop) ? null : List.copyOf(builder.stop);
         temperature = builder.temperature;
         topP = builder.topP;
         timeLimit = builder.timeLimit;
         context = builder.context;
-        chatTemplateKwargs = builder.chatTemplateKwargs;
+        chatTemplateKwargs = isNull(builder.chatTemplateKwargs) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.chatTemplateKwargs));
         includeReasoning = builder.includeReasoning;
         reasoningEffort = builder.reasoningEffort;
 
@@ -83,7 +87,7 @@ public final class TextChatRequest {
             responseFormat = null;
         }
 
-        guidedChoice = builder.guidedChoice;
+        guidedChoice = isNull(builder.guidedChoice) ? null : Collections.unmodifiableSet(new LinkedHashSet<>(builder.guidedChoice));
         guidedRegex = builder.guidedRegex;
         guidedGrammar = builder.guidedGrammar;
         repetitionPenalty = builder.repetitionPenalty;

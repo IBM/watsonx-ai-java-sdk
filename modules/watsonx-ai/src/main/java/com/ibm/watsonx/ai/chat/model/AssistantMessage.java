@@ -46,6 +46,7 @@ public record AssistantMessage(
         role = ROLE;
         if (isNull(content) && isNull(toolCalls) && isNull(refusal))
             throw new NullPointerException("Either content, toolCalls or refusal must be specified");
+        toolCalls = isNull(toolCalls) ? null : List.copyOf(toolCalls);
     }
 
     public AssistantMessage(String content, String thinking, String name, String refusal, List<ToolCall> toolCalls) {

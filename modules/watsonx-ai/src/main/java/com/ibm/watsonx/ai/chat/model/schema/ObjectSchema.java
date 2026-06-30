@@ -4,7 +4,9 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNullElse;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +38,12 @@ public final class ObjectSchema extends JsonSchema {
 
     private ObjectSchema(Builder builder) {
         super(builder.nullable ? List.of("object", "null") : "object", builder);
-        properties = builder.properties.isEmpty() ? null : builder.properties;
-        required = builder.required;
-        anyOf = builder.anyOf;
+        properties = builder.properties.isEmpty() ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.properties));
+        required = isNull(builder.required) ? null : List.copyOf(builder.required);
+        anyOf = isNull(builder.anyOf) ? null : List.copyOf(builder.anyOf);
         minProperties = builder.minProperties;
         maxProperties = builder.maxProperties;
-        patternProperties = builder.patternProperties;
+        patternProperties = isNull(builder.patternProperties) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.patternProperties));
         additionalProperties = builder.additionalProperties;
     }
 

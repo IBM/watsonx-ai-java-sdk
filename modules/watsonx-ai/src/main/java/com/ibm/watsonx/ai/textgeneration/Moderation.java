@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textgeneration;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -101,7 +102,7 @@ public final class Moderation {
         hap = builder.hap;
         pii = builder.pii;
         graniteGuardian = builder.graniteGuardian;
-        inputRanges = builder.inputRanges;
+        inputRanges = isNull(builder.inputRanges) ? null : List.copyOf(builder.inputRanges);
     }
 
     /**

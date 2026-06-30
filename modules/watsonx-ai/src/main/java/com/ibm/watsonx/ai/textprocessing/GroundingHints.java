@@ -4,7 +4,10 @@
  */
 package com.ibm.watsonx.ai.textprocessing;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +27,10 @@ public final class GroundingHints {
      * @param pageNumber the page number where the field was found (1-based)
      */
     public static record FieldData(List<Double> normalizedBbox, Integer pageNumber) {
+        public FieldData {
+            normalizedBbox = isNull(normalizedBbox) ? null : List.copyOf(normalizedBbox);
+        }
+
         public static FieldData of(List<Double> normalizedBbox, Integer pageNumber) {
             return new FieldData(normalizedBbox, pageNumber);
         }
@@ -32,7 +39,7 @@ public final class GroundingHints {
     private final Map<String, FieldData> fieldMap;
 
     private GroundingHints(Builder builder) {
-        this.fieldMap = builder.fields;
+        this.fieldMap = isNull(builder.fields) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.fields));
     }
 
     /**

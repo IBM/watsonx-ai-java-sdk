@@ -7,6 +7,8 @@ package com.ibm.watsonx.ai.textgeneration;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.WatsonxParameters.WatsonxModelParameters;
@@ -65,7 +67,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
         maxNewTokens = builder.maxNewTokens;
         minNewTokens = builder.minNewTokens;
         randomSeed = builder.randomSeed;
-        stopSequences = builder.stopSequences;
+        stopSequences = isNull(builder.stopSequences) ? null : List.copyOf(builder.stopSequences);
         temperature = builder.temperature;
         timeLimit = builder.timeLimit;
         topK = builder.topK;
@@ -74,7 +76,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
         truncateInputTokens = builder.truncateInputTokens;
         returnOptions = builder.returnOptions;
         includeStopSequence = builder.includeStopSequence;
-        promptVariables = builder.promptVariables;
+        promptVariables = isNull(builder.promptVariables) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.promptVariables));
     }
 
     /**
@@ -217,7 +219,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
     }
 
     void setPromptVariables(Map<String, String> promptVariables) {
-        this.promptVariables = promptVariables;
+        this.promptVariables = isNull(promptVariables) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(promptVariables));
     }
 
     /**

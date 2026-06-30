@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.detection;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.WatsonxParameters;
@@ -31,8 +32,8 @@ public final class DetectionTextRequest extends WatsonxParameters {
     private DetectionTextRequest(Builder builder) {
         super(builder);
         input = requireNonNull(builder.input, "input cannot be null");
-        detectors = requireNonNull(builder.detectors, "detectors cannot be null").stream()
-            .collect(toMap(BaseDetector::name, BaseDetector::properties));
+        detectors = Collections.unmodifiableMap(requireNonNull(builder.detectors, "detectors cannot be null").stream()
+            .collect(toMap(BaseDetector::name, BaseDetector::properties)));
     }
 
     /**
