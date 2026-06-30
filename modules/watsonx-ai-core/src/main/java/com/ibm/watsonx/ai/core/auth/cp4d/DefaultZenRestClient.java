@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.core.auth.cp4d;
 
 import static java.util.Objects.nonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,7 +45,7 @@ class DefaultZenRestClient extends CP4DRestClient {
     private TokenResponse createTokenResponse(TokenRequest request) {
         var username = request.username();
         var password = nonNull(request.apiKey()) ? request.apiKey() : request.password();
-        var accessToken = Base64.getEncoder().encodeToString("%s:%s".formatted(username, password).getBytes());
+        var accessToken = Base64.getEncoder().encodeToString("%s:%s".formatted(username, password).getBytes(StandardCharsets.UTF_8));
         return new TokenResponse(accessToken, null, null, null, null, null);
     }
 
