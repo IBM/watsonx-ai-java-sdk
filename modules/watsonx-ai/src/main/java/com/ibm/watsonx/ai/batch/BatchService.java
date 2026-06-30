@@ -13,7 +13,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -278,7 +277,7 @@ public class BatchService extends ProjectService {
 
         var timeout = requireNonNullElse(request.timeout(), this.timeout);
         var sleepTime = 100;
-        var endTime = LocalTime.now().plus(timeout);
+        var deadlineNanos = System.nanoTime() + timeout.toNanos();
         var projectSpace = resolveProjectSpace(request);
         var status = batchData.status();
         var removeUploadedFile = nonNull(request.removeUploadedFile()) ? request.removeUploadedFile() : this.removeUploadedFile;
@@ -286,7 +285,7 @@ public class BatchService extends ProjectService {
 
         while (isInProgress(status)) {
 
-            if (LocalTime.now().isAfter(endTime)) {
+            if (System.nanoTime() - deadlineNanos >= 0) {
 
                 cancel(
                     BatchCancelRequest.builder()
