@@ -42,7 +42,7 @@ final class DefaultRestClient extends MergeSchemaRestClient {
         var spaceId = parameters.spaceId();
 
         var queryParameters = parameters.hardDelete()
-            .map(nullable -> getQueryParameters(projectId, spaceId).concat("&hard_delete=true"))
+            .map(hardDelete -> getQueryParameters(projectId, spaceId).concat("&hard_delete=" + hardDelete))
             .orElse(getQueryParameters(projectId, spaceId));
 
         var uri = URI.create(baseUrl + "/ml/v1/text/schemas/merge/%s?%s".formatted(id, queryParameters));
