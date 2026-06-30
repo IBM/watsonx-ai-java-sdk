@@ -58,12 +58,8 @@ public interface ToolInterceptor {
                 return choice;
 
             var toolCalls = message.toolCalls();
-            var normalized = toolCalls.stream()
-                .map(tc -> intercept(context, tc.function()))
-                .toList();
-
             var rebuiltToolCalls = toolCalls.stream()
-                .flatMap(tc -> normalized.stream().map(fc -> tc.withFunctionCall(fc)))
+                .map(tc -> tc.withFunctionCall(intercept(context, tc.function())))
                 .toList();
 
             var resultMessage = new ResultMessage(
