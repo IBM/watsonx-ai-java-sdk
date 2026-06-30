@@ -138,6 +138,9 @@ public final class HttpUtils {
                     String message = "schema_event_does_not_exist";
                     return new WatsonxError(statusCode, "", List.of(new Error(message, (String) genericError.get("error"), "")));
                 }
+                // Standard error body that simply has no "trace": still return the typed error instead of
+                // falling through to a generic RuntimeException and losing the WatsonxException mapping.
+                return error;
             } else {
                 // File Service API errors use a non-standard format: they include a "trace" field but use "status"
                 // instead of "status_code", and nest the error details under an "error" object instead of "errors" array.

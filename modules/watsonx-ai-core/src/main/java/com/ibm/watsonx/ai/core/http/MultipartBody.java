@@ -129,10 +129,10 @@ public final class MultipartBody {
             try (var out = new ByteArrayOutputStream()) {
                 for (Part part : parts) {
                     out.write(("--" + BOUNDARY + CRLF).getBytes(StandardCharsets.UTF_8));
-                    out.write(("Content-Disposition: form-data; name=\"" + part.fieldName() + "\"").getBytes(StandardCharsets.UTF_8));
+                    out.write(("Content-Disposition: form-data; name=\"" + escape(part.fieldName()) + "\"").getBytes(StandardCharsets.UTF_8));
 
                     if (nonNull(part.fileName()))
-                        out.write(("; filename=\"" + part.fileName() + "\"").getBytes(StandardCharsets.UTF_8));
+                        out.write(("; filename=\"" + escape(part.fileName()) + "\"").getBytes(StandardCharsets.UTF_8));
 
                     out.write((CRLF).getBytes(StandardCharsets.UTF_8));
                     out.write(("Content-Type: " + part.contentType() + CRLF + CRLF).getBytes(StandardCharsets.UTF_8));
@@ -144,6 +144,17 @@ public final class MultipartBody {
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+        }
+
+        //
+        // Percent-encodes the characters that could break out of a Content-Disposition header
+        // (CR, LF, double-quote), preventing header/part injection via field or file names.
+        //
+        private static String escape(String value) {
+            return value
+                .replace("\r", "%0D")
+                .replace("\n", "%0A")
+                .replace("\"", "%22");
         }
     }
 }

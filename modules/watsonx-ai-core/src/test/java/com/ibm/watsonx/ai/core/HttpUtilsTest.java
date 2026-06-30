@@ -136,6 +136,16 @@ public class HttpUtilsTest {
     }
 
     @Test
+    void should_parse_standard_json_error_without_trace() {
+        String body = """
+            {"errors":[{"code":"some_error","message":"boom","more_info":"info"}],"status_code":400}""";
+        WatsonxError result = HttpUtils.parseErrorBody(400, body, "application/json");
+        assertEquals(1, result.errors().size());
+        assertEquals("some_error", result.errors().get(0).code());
+        assertEquals("boom", result.errors().get(0).message());
+    }
+
+    @Test
     void should_parse_error_body_correctly_from_xml() {
         String xmlBody = """
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
