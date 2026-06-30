@@ -1259,6 +1259,50 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_use_correct_buckets_for_read_and_delete_when_buckets_differ() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+
+        var documentBucket = "documents-bucket";
+        var resultsBucket = "results-bucket";
+        var outputFileName = "output.txt";
+
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse().withStatus(200).withBody(TEXT_EXTRACTION_RESPONSE
+                .formatted(PROCESS_EXTRACTION_ID, FILE_NAME, documentBucket, outputFileName, resultsBucket, "submitted"))));
+
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .willReturn(aResponse().withStatus(200).withBody(TEXT_EXTRACTION_RESPONSE
+                .formatted(PROCESS_EXTRACTION_ID, FILE_NAME, documentBucket, outputFileName, resultsBucket, "completed"))));
+
+        // The extracted output lives in the RESULTS bucket: a read from the document bucket would 404.
+        cosServer.stubFor(get("/%s/%s".formatted(resultsBucket, outputFileName))
+            .willReturn(aResponse().withStatus(200).withBody("Hello")));
+        // The uploaded file lives in the DOCUMENT bucket; the output file in the RESULTS bucket.
+        cosServer.stubFor(delete("/%s/%s".formatted(documentBucket, FILE_NAME)).willReturn(aResponse().withStatus(200)));
+        cosServer.stubFor(delete("/%s/%s".formatted(resultsBucket, outputFileName)).willReturn(aResponse().withStatus(200)));
+
+        var parameters = TextExtractionParameters.builder()
+            .removeUploadedFile(true)
+            .removeOutputFile(true)
+            .documentReference(CosReference.of("conn-doc", documentBucket))
+            .resultReference(CosReference.of("conn-res", resultsBucket))
+            .build();
+
+        assertEquals("Hello", textExtractionService.extractAndFetch(FILE_NAME, parameters));
+
+        Thread.sleep(200); // the deletes are performed asynchronously
+
+        // Read targets the results bucket (not the document bucket).
+        cosServer.verify(1, getRequestedFor(urlEqualTo("/%s/%s".formatted(resultsBucket, outputFileName))));
+        cosServer.verify(0, getRequestedFor(urlEqualTo("/%s/%s".formatted(documentBucket, outputFileName))));
+        // Uploaded-file delete targets the document bucket; output-file delete targets the results bucket.
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(documentBucket, FILE_NAME))));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(resultsBucket, outputFileName))));
+    }
+
+    @Test
     void should_use_md_extension_when_output_type_is_md() throws Exception {
 
         when(mockAuthenticator.token()).thenReturn("my-super-token");

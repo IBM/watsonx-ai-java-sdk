@@ -684,7 +684,7 @@ public class TextExtractionService extends ProjectService {
             removeUploadedFile = parameters.isRemoveUploadedFile();
             removeOutputFile = parameters.isRemoveOutputFile();
             documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
-            resultsReference = requireNonNullElse(parameters.documentReference(), this.resultReference);
+            resultsReference = requireNonNullElse(parameters.resultReference(), this.resultReference);
         }
 
         String documentBucketName = documentReference.bucket();
@@ -694,7 +694,7 @@ public class TextExtractionService extends ProjectService {
 
             String extractedFile = switch(status) {
                 case COMPLETED -> {
-                    var request = ReadFileRequest.of(requestId, documentBucketName, outputPath);
+                    var request = ReadFileRequest.of(requestId, resultsBucketName, outputPath);
                     yield client.readFile(request);
                 }
                 case FAILED -> {
@@ -721,7 +721,7 @@ public class TextExtractionService extends ProjectService {
             if (removeUploadedFile) {
                 try {
                     var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
-                    var request = DeleteFileRequest.of(requestId, resultsBucketName, encodedFileName);
+                    var request = DeleteFileRequest.of(requestId, documentBucketName, encodedFileName);
                     client.deleteFileAsync(request);
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
