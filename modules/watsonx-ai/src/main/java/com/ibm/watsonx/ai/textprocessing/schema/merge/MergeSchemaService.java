@@ -9,7 +9,6 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -236,24 +235,13 @@ public class MergeSchemaService extends ProjectService {
 
         Status status;
         long sleepTime = 100;
-        LocalTime endTime = LocalTime.now().plus(timeout);
-        String processId = null;
+        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        String processId = response.metadata().id();
 
         do {
 
-            if (LocalTime.now().isAfter(endTime)) {
-
-                if (nonNull(processId)) {
-                    deleteRequest(
-                        processId,
-                        MergeSchemaDeleteParameters.builder()
-                            .projectId(projectId)
-                            .spaceId(spaceId)
-                            .transactionId(transactionId)
-                            .build()
-                    );
-                }
-
+            if (System.nanoTime() - deadlineNanos >= 0) {
+                cleanUpAfterAbortedMerge(processId, projectId, spaceId, transactionId);
                 throw new MergeSchemaException("timeout",
                     "Execution to merge schema took longer than the timeout set by %s milliseconds"
                         .formatted(timeout.toMillis()));
@@ -265,7 +253,9 @@ public class MergeSchemaService extends ProjectService {
                 sleepTime *= 2;
                 sleepTime = Math.min(sleepTime, 3000);
 
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                cleanUpAfterAbortedMerge(processId, projectId, spaceId, transactionId);
                 throw new MergeSchemaException("interrupted", e.getMessage());
             }
 
@@ -282,6 +272,22 @@ public class MergeSchemaService extends ProjectService {
         } while (status != Status.FAILED && status != Status.COMPLETED);
 
         return response;
+    }
+
+    //
+    // Cancels the started merge-schema job so that a timed-out or interrupted synchronous merge does not
+    // leave an orphaned job behind.
+    //
+    private void cleanUpAfterAbortedMerge(String processId, String projectId, String spaceId, String transactionId) {
+        if (nonNull(processId)) {
+            deleteRequest(
+                processId,
+                MergeSchemaDeleteParameters.builder()
+                    .projectId(projectId)
+                    .spaceId(spaceId)
+                    .transactionId(transactionId)
+                    .build());
+        }
     }
 
     //

@@ -120,6 +120,7 @@ public final class ChatRequest {
         return new Builder()
             .deploymentId(deploymentId)
             .messages(messages)
+            .tools(tools)
             .parameters(parameters)
             .thinking(thinking);
     }

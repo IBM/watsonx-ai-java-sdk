@@ -9,7 +9,6 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -235,24 +234,13 @@ public class ImproveSchemaService extends ProjectService {
 
         Status status;
         long sleepTime = 100;
-        LocalTime endTime = LocalTime.now().plus(timeout);
-        String processId = null;
+        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        String processId = response.metadata().id();
 
         do {
 
-            if (LocalTime.now().isAfter(endTime)) {
-
-                if (nonNull(processId)) {
-                    deleteRequest(
-                        processId,
-                        ImproveSchemaDeleteParameters.builder()
-                            .projectId(projectId)
-                            .spaceId(spaceId)
-                            .transactionId(transactionId)
-                            .build()
-                    );
-                }
-
+            if (System.nanoTime() - deadlineNanos >= 0) {
+                cleanUpAfterAbortedImprovement(processId, projectId, spaceId, transactionId);
                 throw new ImproveSchemaException("timeout",
                     "Execution to improve schema took longer than the timeout set by %s milliseconds"
                         .formatted(timeout.toMillis()));
@@ -264,7 +252,9 @@ public class ImproveSchemaService extends ProjectService {
                 sleepTime *= 2;
                 sleepTime = Math.min(sleepTime, 3000);
 
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                cleanUpAfterAbortedImprovement(processId, projectId, spaceId, transactionId);
                 throw new ImproveSchemaException("interrupted", e.getMessage());
             }
 
@@ -281,6 +271,22 @@ public class ImproveSchemaService extends ProjectService {
         } while (status != Status.FAILED && status != Status.COMPLETED);
 
         return response;
+    }
+
+    //
+    // Cancels the started improve-schema job so that a timed-out or interrupted synchronous improvement
+    // does not leave an orphaned job behind.
+    //
+    private void cleanUpAfterAbortedImprovement(String processId, String projectId, String spaceId, String transactionId) {
+        if (nonNull(processId)) {
+            deleteRequest(
+                processId,
+                ImproveSchemaDeleteParameters.builder()
+                    .projectId(projectId)
+                    .spaceId(spaceId)
+                    .transactionId(transactionId)
+                    .build());
+        }
     }
 
     //

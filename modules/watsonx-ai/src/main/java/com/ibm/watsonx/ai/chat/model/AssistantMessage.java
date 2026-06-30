@@ -44,8 +44,8 @@ public record AssistantMessage(
 
     public AssistantMessage {
         role = ROLE;
-        if (isNull(content) && isNull(toolCalls))
-            throw new NullPointerException("Either content or toolCalls must be specified");
+        if (isNull(content) && isNull(toolCalls) && isNull(refusal))
+            throw new NullPointerException("Either content, toolCalls or refusal must be specified");
     }
 
     public AssistantMessage(String content, String thinking, String name, String refusal, List<ToolCall> toolCalls) {

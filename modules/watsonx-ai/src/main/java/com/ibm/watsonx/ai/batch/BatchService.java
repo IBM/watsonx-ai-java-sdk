@@ -12,8 +12,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -278,15 +278,15 @@ public class BatchService extends ProjectService {
 
         var timeout = requireNonNullElse(request.timeout(), this.timeout);
         var sleepTime = 100;
-        var endTime = LocalTime.now().plus(timeout);
+        var deadlineNanos = System.nanoTime() + timeout.toNanos();
         var projectSpace = resolveProjectSpace(request);
-        var status = Status.fromValue(batchData.status());
+        var status = batchData.status();
         var removeUploadedFile = nonNull(request.removeUploadedFile()) ? request.removeUploadedFile() : this.removeUploadedFile;
         var removeOutputFile = nonNull(request.removeOutputFile()) ? request.removeOutputFile() : this.removeOutputFile;
 
-        while (status != Status.COMPLETED && status != Status.FAILED) {
+        while (isInProgress(status)) {
 
-            if (LocalTime.now().isAfter(endTime)) {
+            if (System.nanoTime() - deadlineNanos >= 0) {
 
                 cancel(
                     BatchCancelRequest.builder()
@@ -324,16 +324,17 @@ public class BatchService extends ProjectService {
                     .transactionId(request.transactionId())
                     .build());
 
-            status = Status.fromValue(batchData.status());
+            status = batchData.status();
         }
 
-        if (status == Status.FAILED) {
+        if (!Status.COMPLETED.value().equalsIgnoreCase(status)) {
             deleteFile(
                 removeUploadedFile ? batchData.inputFileId() : null,
                 null,
                 request.transactionId()
             );
-            throw new RuntimeException("The batch operation failed: %s".formatted(batchData));
+            throw new RuntimeException(
+                "The batch operation did not complete successfully (status: %s): %s".formatted(status, batchData));
         }
 
         var batchOutput = fileService.retrieve(batchData.outputFileId());
@@ -349,6 +350,16 @@ public class BatchService extends ProjectService {
         );
 
         return result;
+    }
+
+    //
+    // Returns true while the batch job is in a known, non-terminal state. Any other status (including
+    // values not modelled by Status, e.g. a cancelled/expired job) is treated as terminal by the caller.
+    //
+    private static boolean isInProgress(String status) {
+        return Status.VALIDATING.value().equalsIgnoreCase(status)
+            || Status.IN_PROGRESS.value().equalsIgnoreCase(status)
+            || Status.FINALIZING.value().equalsIgnoreCase(status);
     }
 
     /**
@@ -376,7 +387,7 @@ public class BatchService extends ProjectService {
             .endpoint("/v1/chat/completions")
             .build();
 
-        try (var inputStream = new ByteArrayInputStream(jsonl.toString().getBytes())) {
+        try (var inputStream = new ByteArrayInputStream(jsonl.toString().getBytes(StandardCharsets.UTF_8))) {
 
             // Sort results by custom_id (numerically) to maintain input order
             return submitAndFetch(inputStream, UUID.randomUUID().toString(), parameters, ChatResponse.class).stream()

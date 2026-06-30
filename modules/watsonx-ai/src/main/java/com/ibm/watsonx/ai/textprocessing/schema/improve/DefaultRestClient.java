@@ -15,7 +15,7 @@ import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
@@ -42,7 +42,7 @@ final class DefaultRestClient extends ImproveSchemaRestClient {
         var spaceId = parameters.spaceId();
 
         var queryParameters = parameters.hardDelete()
-            .map(nullable -> getQueryParameters(projectId, spaceId).concat("&hard_delete=true"))
+            .map(hardDelete -> getQueryParameters(projectId, spaceId).concat("&hard_delete=" + hardDelete))
             .orElse(getQueryParameters(projectId, spaceId));
 
         var uri = URI.create(baseUrl + "/ml/v1/text/schemas/improve/%s?%s".formatted(id, queryParameters));
@@ -130,9 +130,9 @@ final class DefaultRestClient extends ImproveSchemaRestClient {
     //
     private String getQueryParameters(String projectId, String spaceId) {
         if (nonNull(projectId))
-            return "version=%s&project_id=%s".formatted(version, URLEncoder.encode(projectId, Charset.defaultCharset()));
+            return "version=%s&project_id=%s".formatted(version, URLEncoder.encode(projectId, StandardCharsets.UTF_8));
         else
-            return "version=%s&space_id=%s".formatted(version, URLEncoder.encode(spaceId, Charset.defaultCharset()));
+            return "version=%s&space_id=%s".formatted(version, URLEncoder.encode(spaceId, StandardCharsets.UTF_8));
     }
 
     /**

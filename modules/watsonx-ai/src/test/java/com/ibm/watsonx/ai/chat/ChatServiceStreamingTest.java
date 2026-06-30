@@ -1056,7 +1056,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         };
 
         var ex = assertThrows(NullPointerException.class, () -> AssistantMessage.text(null));
-        assertEquals("Either content or toolCalls must be specified", ex.getMessage());
+        assertEquals("Either content, toolCalls or refusal must be specified", ex.getMessage());
 
         var image = Image.of("jpeg", "mock");
         assertEquals("auto", image.detail());
@@ -2056,6 +2056,20 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                               "text": "What time is it in Italy?"
                             }
                           ]
+                        }
+                      ],
+                      "tools": [
+                        {
+                          "type": "function",
+                          "function": {
+                            "name": "get_current_time",
+                            "parameters": {
+                              "type": "object",
+                              "properties": {
+                                "country": { "type": "string" }
+                              }
+                            }
+                          }
                         }
                       ],
                       "tool_choice_option" : "required",

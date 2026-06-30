@@ -15,11 +15,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -172,11 +170,13 @@ public class TextExtractionService extends ProjectService {
 
         var requestId = UUID.randomUUID().toString();
 
-        try {
-            upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, false);
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            upload(requestId, inputStream, file.getName(), parameters, false);
             return startExtraction(requestId, file.getName(), parameters, false);
         } catch (FileNotFoundException e) {
             throw new TextExtractionException("file_not_found", e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -282,8 +282,14 @@ public class TextExtractionService extends ProjectService {
 
         var requestId = UUID.randomUUID().toString();
 
-        upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, true);
-        return extractAndFetch(requestId, file.getName(), parameters);
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            upload(requestId, inputStream, file.getName(), parameters, true);
+            return extractAndFetch(requestId, file.getName(), parameters);
+        } catch (FileNotFoundException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -369,10 +375,12 @@ public class TextExtractionService extends ProjectService {
      * @throws TextExtractionException if the file cannot be found or an error occurs during upload
      */
     public boolean uploadFile(File file) throws TextExtractionException {
-        try {
-            return uploadFile(new BufferedInputStream(new FileInputStream(file)), file.getName());
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            return uploadFile(inputStream, file.getName());
         } catch (FileNotFoundException e) {
             throw new TextExtractionException("file_not_found", e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -607,33 +615,13 @@ public class TextExtractionService extends ProjectService {
 
         Status status;
         long sleepTime = 100;
-        LocalTime endTime = LocalTime.now().plus(timeout);
-        String processId = null;
+        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        String processId = response.metadata().id();
 
         do {
 
-            if (LocalTime.now().isAfter(endTime)) {
-
-                if (nonNull(processId)) {
-                    deleteRequest(
-                        processId,
-                        TextExtractionDeleteParameters.builder()
-                            .projectId(projectId)
-                            .spaceId(spaceId)
-                            .transactionId(transactionId)
-                            .build()
-                    );
-                }
-
-                if (removeUploadedFile) {
-                    try {
-                        var encodedFileName = new URI(null, null, path, null).toASCIIString();
-                        client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
+            if (System.nanoTime() - deadlineNanos >= 0) {
+                cleanUpAfterAbortedExtraction(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
                 throw new TextExtractionException("timeout",
                     "Execution to extract %s file took longer than the timeout set by %s milliseconds"
                         .formatted(path, timeout.toMillis()));
@@ -645,7 +633,9 @@ public class TextExtractionService extends ProjectService {
                 sleepTime *= 2;
                 sleepTime = Math.min(sleepTime, 3000);
 
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                cleanUpAfterAbortedExtraction(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
                 throw new TextExtractionException("interrupted", e.getMessage());
             }
 
@@ -662,6 +652,27 @@ public class TextExtractionService extends ProjectService {
         } while (status != Status.FAILED && status != Status.COMPLETED);
 
         return response;
+    }
+
+    //
+    // Cancels the started extraction job and removes the uploaded input file, so that a timed-out or
+    // interrupted synchronous extraction does not leave orphaned resources behind.
+    //
+    private void cleanUpAfterAbortedExtraction(String processId, String requestId, String path, String projectId, String spaceId,
+        String transactionId, boolean removeUploadedFile) {
+
+        if (nonNull(processId)) {
+            deleteRequest(
+                processId,
+                TextExtractionDeleteParameters.builder()
+                    .projectId(projectId)
+                    .spaceId(spaceId)
+                    .transactionId(transactionId)
+                    .build());
+        }
+
+        if (removeUploadedFile)
+            client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), path));
     }
 
     //
@@ -684,7 +695,7 @@ public class TextExtractionService extends ProjectService {
             removeUploadedFile = parameters.isRemoveUploadedFile();
             removeOutputFile = parameters.isRemoveOutputFile();
             documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
-            resultsReference = requireNonNullElse(parameters.documentReference(), this.resultReference);
+            resultsReference = requireNonNullElse(parameters.resultReference(), this.resultReference);
         }
 
         String documentBucketName = documentReference.bucket();
@@ -694,7 +705,7 @@ public class TextExtractionService extends ProjectService {
 
             String extractedFile = switch(status) {
                 case COMPLETED -> {
-                    var request = ReadFileRequest.of(requestId, documentBucketName, outputPath);
+                    var request = ReadFileRequest.of(requestId, resultsBucketName, outputPath);
                     yield client.readFile(request);
                 }
                 case FAILED -> {
@@ -705,27 +716,14 @@ public class TextExtractionService extends ProjectService {
                     "Status %s not managed".formatted(status));
             };
 
-            if (removeOutputFile) {
-                try {
-                    var encodedFileName = new URI(null, null, outputPath, null).toASCIIString();
-                    var request = DeleteFileRequest.of(requestId, resultsBucketName, encodedFileName);
-                    client.deleteFileAsync(request);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            if (removeOutputFile)
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, resultsBucketName, outputPath));
 
             return extractedFile;
 
         } finally {
             if (removeUploadedFile) {
-                try {
-                    var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
-                    var request = DeleteFileRequest.of(requestId, resultsBucketName, encodedFileName);
-                    client.deleteFileAsync(request);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentBucketName, uploadedPath));
             }
         }
     }

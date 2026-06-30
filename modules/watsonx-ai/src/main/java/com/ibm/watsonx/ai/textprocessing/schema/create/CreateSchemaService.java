@@ -13,10 +13,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,11 +135,13 @@ public class CreateSchemaService extends ProjectService {
 
         var requestId = UUID.randomUUID().toString();
 
-        try {
-            upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, false);
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            upload(requestId, inputStream, file.getName(), parameters, false);
             return startCreateSchema(requestId, file.getName(), parameters, false);
         } catch (FileNotFoundException e) {
             throw new CreateSchemaException("file_not_found", e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -218,11 +219,13 @@ public class CreateSchemaService extends ProjectService {
     public CreateSchemaResult uploadCreateSchemaAndFetch(File file, CreateSchemaParameters parameters) throws CreateSchemaException {
         var requestId = UUID.randomUUID().toString();
 
-        try {
-            upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, true);
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            upload(requestId, inputStream, file.getName(), parameters, true);
             return createSchemaAndFetch(requestId, file.getName(), parameters);
         } catch (FileNotFoundException e) {
             throw new CreateSchemaException("file_not_found", e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -290,10 +293,12 @@ public class CreateSchemaService extends ProjectService {
      * @throws CreateSchemaException if the file cannot be found or an error occurs during upload
      */
     public boolean uploadFile(File file) throws CreateSchemaException {
-        try {
-            return uploadFile(new BufferedInputStream(new FileInputStream(file)), file.getName());
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            return uploadFile(inputStream, file.getName());
         } catch (FileNotFoundException e) {
             throw new CreateSchemaException("file_not_found", e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -482,33 +487,13 @@ public class CreateSchemaService extends ProjectService {
 
         Status status;
         long sleepTime = 100;
-        LocalTime endTime = LocalTime.now().plus(timeout);
-        String processId = null;
+        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        String processId = response.metadata().id();
 
         do {
 
-            if (LocalTime.now().isAfter(endTime)) {
-
-                if (nonNull(processId)) {
-                    deleteRequest(
-                        processId,
-                        CreateSchemaDeleteParameters.builder()
-                            .projectId(projectId)
-                            .spaceId(spaceId)
-                            .transactionId(transactionId)
-                            .build()
-                    );
-                }
-
-                if (removeUploadedFile) {
-                    try {
-                        var encodedFileName = new URI(null, null, path, null).toASCIIString();
-                        client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
+            if (System.nanoTime() - deadlineNanos >= 0) {
+                cleanUpAfterAbortedCreation(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
                 throw new CreateSchemaException("timeout",
                     "Execution to create schema for %s file took longer than the timeout set by %s milliseconds"
                         .formatted(path, timeout.toMillis()));
@@ -520,7 +505,9 @@ public class CreateSchemaService extends ProjectService {
                 sleepTime *= 2;
                 sleepTime = Math.min(sleepTime, 3000);
 
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                cleanUpAfterAbortedCreation(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
                 throw new CreateSchemaException("interrupted", e.getMessage());
             }
 
@@ -537,6 +524,27 @@ public class CreateSchemaService extends ProjectService {
         } while (status != Status.FAILED && status != Status.COMPLETED);
 
         return response;
+    }
+
+    //
+    // Cancels the started create-schema job and removes the uploaded input file, so that a timed-out or
+    // interrupted synchronous creation does not leave orphaned resources behind.
+    //
+    private void cleanUpAfterAbortedCreation(String processId, String requestId, String path, String projectId, String spaceId,
+        String transactionId, boolean removeUploadedFile) {
+
+        if (nonNull(processId)) {
+            deleteRequest(
+                processId,
+                CreateSchemaDeleteParameters.builder()
+                    .projectId(projectId)
+                    .spaceId(spaceId)
+                    .transactionId(transactionId)
+                    .build());
+        }
+
+        if (removeUploadedFile)
+            client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), path));
     }
 
     //
@@ -572,15 +580,8 @@ public class CreateSchemaService extends ProjectService {
             };
 
         } finally {
-            if (removeUploadedFile) {
-                try {
-                    var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
-                    var request = DeleteFileRequest.of(requestId, documentBucketName, encodedFileName);
-                    client.deleteFileAsync(request);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            if (removeUploadedFile)
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentBucketName, uploadedPath));
         }
     }
 

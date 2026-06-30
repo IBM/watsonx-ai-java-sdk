@@ -151,8 +151,9 @@ public final class ChatResponse {
      * @return a {@code String} representing the reason why the response generation finished
      */
     public FinishReason finishReason() {
-        var resultMessage = choices.get(0);
-        return FinishReason.fromValue(resultMessage.finishReason());
+        if (isNull(choices) || choices.isEmpty())
+            return FinishReason.INCOMPLETE;
+        return FinishReason.fromValue(choices.get(0).finishReason());
     }
 
     /**
