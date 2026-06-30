@@ -13,11 +13,11 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -162,11 +162,13 @@ public class TextClassificationService extends ProjectService {
 
         var requestId = UUID.randomUUID().toString();
 
-        try {
-            upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, false);
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            upload(requestId, inputStream, file.getName(), parameters, false);
             return startClassification(requestId, file.getName(), parameters, false);
         } catch (FileNotFoundException e) {
             throw new TextClassificationException("file_not_found", e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -255,10 +257,12 @@ public class TextClassificationService extends ProjectService {
 
         var requestId = UUID.randomUUID().toString();
 
-        try {
-            upload(requestId, new BufferedInputStream(new FileInputStream(file)), file.getName(), parameters, true);
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            upload(requestId, inputStream, file.getName(), parameters, true);
         } catch (FileNotFoundException e) {
             throw new TextClassificationException("file_not_found", e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return classifyAndFetch(requestId, file.getName(), parameters);
     }
@@ -325,10 +329,12 @@ public class TextClassificationService extends ProjectService {
      * @throws TextClassificationException if the file cannot be found or an error occurs during upload
      */
     public boolean uploadFile(File file) throws TextClassificationException {
-        try {
-            return uploadFile(new BufferedInputStream(new FileInputStream(file)), file.getName());
+        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
+            return uploadFile(inputStream, file.getName());
         } catch (FileNotFoundException e) {
             throw new TextClassificationException("file_not_found", e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -506,33 +512,13 @@ public class TextClassificationService extends ProjectService {
 
         Status status;
         long sleepTime = 100;
-        LocalTime endTime = LocalTime.now().plus(timeout);
-        String processId = null;
+        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        String processId = response.metadata().id();
 
         do {
 
-            if (LocalTime.now().isAfter(endTime)) {
-
-                if (nonNull(processId)) {
-                    deleteRequest(
-                        processId,
-                        TextClassificationDeleteParameters.builder()
-                            .projectId(projectId)
-                            .spaceId(spaceId)
-                            .transactionId(transactionId)
-                            .build()
-                    );
-                }
-
-                if (removeUploadedFile) {
-                    try {
-                        var encodedFileName = new URI(null, null, path, null).toASCIIString();
-                        client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
+            if (System.nanoTime() - deadlineNanos >= 0) {
+                cleanUpAfterAbortedClassification(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
                 throw new TextClassificationException("timeout",
                     "The execution of the classification %s file took longer than the timeout set by %s milliseconds"
                         .formatted(path, timeout.toMillis()));
@@ -544,7 +530,9 @@ public class TextClassificationService extends ProjectService {
                 sleepTime *= 2;
                 sleepTime = Math.min(sleepTime, 3000);
 
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                cleanUpAfterAbortedClassification(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
                 throw new TextClassificationException("interrupted", e.getMessage());
             }
 
@@ -560,6 +548,33 @@ public class TextClassificationService extends ProjectService {
         } while (status != Status.FAILED && status != Status.COMPLETED);
 
         return response;
+    }
+
+    //
+    // Cancels the started classification job and removes the uploaded input file, so that a timed-out or
+    // interrupted synchronous classification does not leave orphaned resources behind.
+    //
+    private void cleanUpAfterAbortedClassification(String processId, String requestId, String path, String projectId, String spaceId,
+        String transactionId, boolean removeUploadedFile) {
+
+        if (nonNull(processId)) {
+            deleteRequest(
+                processId,
+                TextClassificationDeleteParameters.builder()
+                    .projectId(projectId)
+                    .spaceId(spaceId)
+                    .transactionId(transactionId)
+                    .build());
+        }
+
+        if (removeUploadedFile) {
+            try {
+                var encodedFileName = new URI(null, null, path, null).toASCIIString();
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     //
