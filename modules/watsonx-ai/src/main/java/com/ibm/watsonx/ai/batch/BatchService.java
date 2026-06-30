@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.StringJoiner;
@@ -386,7 +387,7 @@ public class BatchService extends ProjectService {
             .endpoint("/v1/chat/completions")
             .build();
 
-        try (var inputStream = new ByteArrayInputStream(jsonl.toString().getBytes())) {
+        try (var inputStream = new ByteArrayInputStream(jsonl.toString().getBytes(StandardCharsets.UTF_8))) {
 
             // Sort results by custom_id (numerically) to maintain input order
             return submitAndFetch(inputStream, UUID.randomUUID().toString(), parameters, ChatResponse.class).stream()

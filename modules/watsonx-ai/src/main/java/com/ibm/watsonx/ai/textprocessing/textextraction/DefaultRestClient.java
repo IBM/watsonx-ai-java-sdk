@@ -17,7 +17,7 @@ import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
@@ -242,9 +242,9 @@ final class DefaultRestClient extends TextExtractionRestClient {
     //
     private String getQueryParameters(String projectId, String spaceId) {
         if (nonNull(projectId))
-            return "version=%s&project_id=%s".formatted(version, URLEncoder.encode(projectId, Charset.defaultCharset()));
+            return "version=%s&project_id=%s".formatted(version, URLEncoder.encode(projectId, StandardCharsets.UTF_8));
         else
-            return "version=%s&space_id=%s".formatted(version, URLEncoder.encode(spaceId, Charset.defaultCharset()));
+            return "version=%s&space_id=%s".formatted(version, URLEncoder.encode(spaceId, StandardCharsets.UTF_8));
     }
 
     /**
