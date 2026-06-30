@@ -5,14 +5,18 @@
 package com.ibm.watsonx.ai.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -66,6 +70,36 @@ public class MultipartBodyTest {
         var ex = assertThrows(IllegalStateException.class,
             () -> MultipartBody.builder().build());
         assertEquals("Cannot build multipart body with no parts", ex.getMessage());
+    }
+
+    @Test
+    void should_escape_injection_chars_in_content_disposition() {
+
+        MultipartBody body = MultipartBody.builder()
+            .addInputStream("fi\"le\r\nX-Injected: yes", "a\"\r\nb.mp3", new ByteArrayInputStream("data".getBytes()))
+            .build();
+
+        String serialized = new String(body.body(), StandardCharsets.UTF_8);
+
+        assertTrue(serialized.contains("name=\"fi%22le%0D%0AX-Injected: yes\""));
+        assertTrue(serialized.contains("filename=\"a%22%0D%0Ab.mp3\""));
+        assertFalse(serialized.contains("name=\"fi\"le"));
+    }
+
+    @Test
+    void should_not_close_caller_input_stream() {
+
+        AtomicBoolean closed = new AtomicBoolean(false);
+        InputStream is = new ByteArrayInputStream("data".getBytes()) {
+            @Override
+            public void close() throws IOException {
+                closed.set(true);
+                super.close();
+            }
+        };
+
+        MultipartBody.builder().addInputStream("file", "a.mp3", is).build();
+        assertFalse(closed.get(), "the caller's input stream must not be closed by addInputStream");
     }
 
     @Test

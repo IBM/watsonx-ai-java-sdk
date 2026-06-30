@@ -461,6 +461,53 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         }
 
         @Test
+        void should_treat_iam_token_without_expiration_as_expired() {
+
+            HttpResponse<String> identityResponse = mock(HttpResponse.class);
+            when(identityResponse.statusCode()).thenReturn(200);
+            when(identityResponse.body()).thenReturn("""
+                {
+                    "access_token": "identity-token",
+                    "scope": "ibm openid"
+                }""");
+
+            HttpResponse<String> validateResponse = mock(HttpResponse.class);
+            when(validateResponse.statusCode()).thenReturn(200);
+            when(validateResponse.body()).thenReturn("""
+                {
+                    "accessToken": "iam-access-token"
+                }""");
+
+            withWatsonxServiceMock(() -> {
+                try {
+                    when(mockSecureHttpClient.<String>send(any(), any())).thenAnswer(invocation -> {
+                        String url = invocation.getArgument(0).toString();
+                        if (url.endsWith("/idprovider/v1/auth/identitytoken POST"))
+                            return identityResponse;
+                        else if (url.endsWith("/v1/preauth/validateAuth GET"))
+                            return validateResponse;
+                        else
+                            throw new RuntimeException("Unexpected URL: " + url);
+                    });
+
+                    Authenticator authenticator = CP4DAuthenticator.builder()
+                        .baseUrl("https://localhost")
+                        .username("username")
+                        .password("password")
+                        .authMode(AuthMode.IAM)
+                        .build();
+
+                    assertEquals("iam-access-token", assertDoesNotThrow(() -> authenticator.token()));
+                    // A token without expiration is always "expired", so the second call re-runs the full flow.
+                    assertEquals("iam-access-token", assertDoesNotThrow(() -> authenticator.token()));
+                    verify(mockSecureHttpClient, times(4)).send(any(), any());
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
+        }
+
+        @Test
         void should_use_zen_api_key_authentication_mode() {
 
             Authenticator authenticator = CP4DAuthenticator.builder()

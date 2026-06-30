@@ -145,6 +145,8 @@ public class CP4DAuthenticator implements Authenticator {
 
         return switch(authMode) {
             case IAM -> {
+                if (isNull(token.expiration()))
+                    yield true;
                 Date expiration = new Date(TimeUnit.SECONDS.toMillis(token.expiration()));
                 Date now = new Date();
                 yield now.after(expiration);
