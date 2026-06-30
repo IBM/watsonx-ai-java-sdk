@@ -15,8 +15,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
@@ -567,14 +565,8 @@ public class TextClassificationService extends ProjectService {
                     .build());
         }
 
-        if (removeUploadedFile) {
-            try {
-                var encodedFileName = new URI(null, null, path, null).toASCIIString();
-                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        if (removeUploadedFile)
+            client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), path));
     }
 
     //
@@ -611,15 +603,8 @@ public class TextClassificationService extends ProjectService {
             };
 
         } finally {
-            if (removeUploadedFile) {
-                try {
-                    var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
-                    var request = DeleteFileRequest.of(requestId, documentBucketName, encodedFileName);
-                    client.deleteFileAsync(request);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            if (removeUploadedFile)
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentBucketName, uploadedPath));
         }
     }
 

@@ -17,8 +17,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -673,14 +671,8 @@ public class TextExtractionService extends ProjectService {
                     .build());
         }
 
-        if (removeUploadedFile) {
-            try {
-                var encodedFileName = new URI(null, null, path, null).toASCIIString();
-                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), encodedFileName));
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        if (removeUploadedFile)
+            client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), path));
     }
 
     //
@@ -724,27 +716,14 @@ public class TextExtractionService extends ProjectService {
                     "Status %s not managed".formatted(status));
             };
 
-            if (removeOutputFile) {
-                try {
-                    var encodedFileName = new URI(null, null, outputPath, null).toASCIIString();
-                    var request = DeleteFileRequest.of(requestId, resultsBucketName, encodedFileName);
-                    client.deleteFileAsync(request);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            if (removeOutputFile)
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, resultsBucketName, outputPath));
 
             return extractedFile;
 
         } finally {
             if (removeUploadedFile) {
-                try {
-                    var encodedFileName = new URI(null, null, uploadedPath, null).toASCIIString();
-                    var request = DeleteFileRequest.of(requestId, documentBucketName, encodedFileName);
-                    client.deleteFileAsync(request);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentBucketName, uploadedPath));
             }
         }
     }
