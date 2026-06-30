@@ -125,7 +125,8 @@ public final class InputSchema {
         }
 
         /**
-         * Adds the list of columns that define a unique key for each time series. This acts like a compound primary key in a database table.
+         * Sets the list of columns that define a unique key for each time series. This acts like a compound primary key in a database table. Replaces
+         * any previously set id columns, use {@link #addIdColumn(String)} to append a single column.
          *
          * @param idColumns list of id column names (max 10 items, each 0–100 characters)
          * @return {@code Builder} instance for method chaining
@@ -137,7 +138,8 @@ public final class InputSchema {
         }
 
         /**
-         * Adds the list of columns that define a unique key for each time series. This acts like a compound primary key in a database table.
+         * Sets the list of columns that define a unique key for each time series. This acts like a compound primary key in a database table. Replaces
+         * any previously set id columns, use {@link #addIdColumn(String)} to append a single column.
          *
          * @param idColumns list of id column names (max 10 items, each 0–100 characters)
          * @return {@code Builder} instance for method chaining
@@ -170,19 +172,21 @@ public final class InputSchema {
         }
 
         /**
-         * Adds the names of the target columns—variables to be forecasted by the model.
+         * Sets the names of the target columns-variables to be forecasted by the model. Replaces any previously set target columns; use
+         * {@link #addTargetColumn(String)} to append a single column.
          *
          * @param targetColumns list of target column names (max 500 items, each 0–100 characters)
          * @return {@code Builder} instance for method chaining
          */
         public Builder targetColumns(List<String> targetColumns) {
             targetColumns = requireNonNullElse(targetColumns, new ArrayList<>());
-            this.targetColumns.addAll(targetColumns);
+            this.targetColumns = requireNonNullElse(targetColumns, this.targetColumns);
             return this;
         }
 
         /**
-         * Adds the names of the target columns—variables to be forecasted by the model.
+         * Sets the names of the target columns-variables to be forecasted by the model. Replaces any previously set target columns; use
+         * {@link #addTargetColumn(String)} to append a single column.
          *
          * @param targetColumns list of target column names (max 500 items, each 0–100 characters)
          * @return {@code Builder} instance for method chaining
