@@ -905,7 +905,47 @@ public class BatchServiceTest extends AbstractWatsonxTest {
                 .build(),
             ChatResponse.class));
 
-        assertEquals(true, ex.getMessage().startsWith("The batch operation failed:"));
+        assertEquals(true, ex.getMessage().startsWith("The batch operation did not complete successfully (status: failed)"));
+    }
+
+    @Test
+    void should_terminate_cleanly_on_unrecognized_status() {
+
+        var CANCELLED_RESPONSE = SUBMIT_RESPONSE.replace("\"completed\"", "\"cancelled\"");
+
+        wireMock.stubFor(post("/ml/v1/batches?version=%s".formatted(API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(CANCELLED_RESPONSE)));
+
+        wireMock.stubFor(delete("/ml/v1/files/%s?version=%s".formatted(FILE_ID, API_VERSION))
+            .withHeader("X-IBM-Project-ID", equalTo(PROJECT_ID))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(FILE_DELETE_RESPONSE)));
+
+        var fileService = FileService.builder()
+            .authenticator(mockAuthenticator)
+            .projectId(PROJECT_ID)
+            .baseUrl(BASE_URL)
+            .build();
+
+        var batchService = BatchService.builder()
+            .authenticator(mockAuthenticator)
+            .projectId(PROJECT_ID)
+            .endpoint(ENDPOINT)
+            .fileService(fileService)
+            .baseUrl(BASE_URL)
+            .build();
+
+        var ex = assertThrows(RuntimeException.class, () -> batchService.submitAndFetch(
+            BatchCreateRequest.builder()
+                .inputFileId(FILE_ID)
+                .build(),
+            ChatResponse.class));
+
+        assertEquals(true, ex.getMessage().startsWith("The batch operation did not complete successfully (status: cancelled)"));
     }
 
     @Test

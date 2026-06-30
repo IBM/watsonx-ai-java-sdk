@@ -280,11 +280,11 @@ public class BatchService extends ProjectService {
         var sleepTime = 100;
         var endTime = LocalTime.now().plus(timeout);
         var projectSpace = resolveProjectSpace(request);
-        var status = Status.fromValue(batchData.status());
+        var status = batchData.status();
         var removeUploadedFile = nonNull(request.removeUploadedFile()) ? request.removeUploadedFile() : this.removeUploadedFile;
         var removeOutputFile = nonNull(request.removeOutputFile()) ? request.removeOutputFile() : this.removeOutputFile;
 
-        while (status != Status.COMPLETED && status != Status.FAILED) {
+        while (isInProgress(status)) {
 
             if (LocalTime.now().isAfter(endTime)) {
 
@@ -324,16 +324,17 @@ public class BatchService extends ProjectService {
                     .transactionId(request.transactionId())
                     .build());
 
-            status = Status.fromValue(batchData.status());
+            status = batchData.status();
         }
 
-        if (status == Status.FAILED) {
+        if (!Status.COMPLETED.value().equalsIgnoreCase(status)) {
             deleteFile(
                 removeUploadedFile ? batchData.inputFileId() : null,
                 null,
                 request.transactionId()
             );
-            throw new RuntimeException("The batch operation failed: %s".formatted(batchData));
+            throw new RuntimeException(
+                "The batch operation did not complete successfully (status: %s): %s".formatted(status, batchData));
         }
 
         var batchOutput = fileService.retrieve(batchData.outputFileId());
@@ -349,6 +350,16 @@ public class BatchService extends ProjectService {
         );
 
         return result;
+    }
+
+    //
+    // Returns true while the batch job is in a known, non-terminal state. Any other status (including
+    // values not modelled by Status, e.g. a cancelled/expired job) is treated as terminal by the caller.
+    //
+    private static boolean isInProgress(String status) {
+        return Status.VALIDATING.value().equalsIgnoreCase(status)
+            || Status.IN_PROGRESS.value().equalsIgnoreCase(status)
+            || Status.FINALIZING.value().equalsIgnoreCase(status);
     }
 
     /**
