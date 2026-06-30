@@ -2058,6 +2058,20 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                           ]
                         }
                       ],
+                      "tools": [
+                        {
+                          "type": "function",
+                          "function": {
+                            "name": "get_current_time",
+                            "parameters": {
+                              "type": "object",
+                              "properties": {
+                                "country": { "type": "string" }
+                              }
+                            }
+                          }
+                        }
+                      ],
                       "tool_choice_option" : "required",
                       "max_completion_tokens": 0,
                       "time_limit": 60000
