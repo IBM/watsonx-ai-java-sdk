@@ -49,6 +49,7 @@ public record UserMessage(String role, List<UserContent> content, String name) i
     public UserMessage {
         role = ROLE;
         requireNonNull(content, "content must not be null");
+        content = List.copyOf(content);
     }
 
     /**

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.embedding;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public final class EmbeddingRequest {
     private final EmbeddingParameters parameters;
 
     private EmbeddingRequest(Builder builder) {
-        inputs = builder.inputs;
+        inputs = isNull(builder.inputs) ? null : List.copyOf(builder.inputs);
         parameters = builder.parameters;
     }
 

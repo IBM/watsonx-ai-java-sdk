@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import com.ibm.watsonx.ai.core.exception.InvalidRequestEntityException;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
@@ -80,8 +81,8 @@ public class MergeSchemaIT {
 
     @Test
     void should_throw_an_exception_when_schemas_are_not_provided() {
-        assertThrows(IllegalArgumentException.class, () -> service.mergeSchemaAndFetch(List.of(Schema.builder().build())));
-        assertThrows(IllegalArgumentException.class, () -> service.mergeSchemaAndFetch(List.of()));
+        assertThrows(InvalidRequestEntityException.class, () -> service.mergeSchemaAndFetch(List.of(Schema.builder().build())));
+        assertThrows(InvalidRequestEntityException.class, () -> service.mergeSchemaAndFetch(List.of()));
     }
 
     @Test

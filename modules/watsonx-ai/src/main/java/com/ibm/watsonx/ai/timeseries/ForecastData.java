@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.timeseries;
 import static java.util.Objects.requireNonNullElse;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,16 +105,17 @@ public final class ForecastData {
      * @return the list of values, or null if the key is not present
      */
     public List<Object> get(String key) {
-        return data.get(key);
+        var values = data.get(key);
+        return values == null ? null : Collections.unmodifiableList(values);
     }
 
     /**
-     * Returns the internal map representing the columnar data.
+     * Returns a read-only view of the columnar data.
      *
-     * @return a map from column names to lists of values
+     * @return a read-only map from column names to lists of values
      */
     public Map<String, List<Object>> asMap() {
-        return data;
+        return Collections.unmodifiableMap(data);
     }
 
     /**

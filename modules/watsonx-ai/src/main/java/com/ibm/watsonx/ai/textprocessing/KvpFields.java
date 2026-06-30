@@ -4,9 +4,12 @@
  */
 package com.ibm.watsonx.ai.textprocessing;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -42,6 +45,7 @@ public final class KvpFields {
         public KvpField {
             requireNonNull(description, "description can not be null");
             requireNonNull(example, "example can not be null");
+            availableOptions = isNull(availableOptions) ? null : List.copyOf(availableOptions);
         }
 
         /**
@@ -69,7 +73,7 @@ public final class KvpFields {
     }
 
     private KvpFields(Builder builder) {
-        fieldMap = builder.fields;
+        fieldMap = isNull(builder.fields) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.fields));
     }
 
     /**

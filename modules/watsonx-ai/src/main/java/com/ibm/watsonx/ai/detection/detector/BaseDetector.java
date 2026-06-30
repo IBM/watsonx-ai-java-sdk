@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.detection.detector;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNullElse;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +33,7 @@ public abstract class BaseDetector {
 
     protected BaseDetector(Builder<?> builder) {
         name = requireNonNull(builder.name, "name cannot be null");
-        properties = requireNonNullElse(builder.properties, new HashMap<>());
+        properties = Collections.unmodifiableMap(new HashMap<>(builder.properties));
     }
 
     public String name() {

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import java.util.List;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -29,6 +30,7 @@ public record KvpPage(String pageDescription, List<KvpSlice> slices) {
 
     public KvpPage {
         requireNonNull(pageDescription, "pageDescription cannot be null");
+        slices = isNull(slices) ? null : List.copyOf(slices);
     }
 
     /**

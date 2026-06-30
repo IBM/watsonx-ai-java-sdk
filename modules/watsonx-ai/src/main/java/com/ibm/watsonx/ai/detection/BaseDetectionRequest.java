@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.detection;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -15,7 +18,7 @@ public abstract class BaseDetectionRequest {
     private final String spaceId;
 
     protected BaseDetectionRequest(Map<String, Map<String, Object>> detectors, String projectId, String spaceId) {
-        this.detectors = detectors;
+        this.detectors = isNull(detectors) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(detectors));
         this.projectId = projectId;
         this.spaceId = spaceId;
     }

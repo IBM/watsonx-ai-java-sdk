@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.rerank;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ public final class RerankRequest {
 
     private RerankRequest(Builder builder) {
         query = builder.query;
-        inputs = builder.inputs;
+        inputs = isNull(builder.inputs) ? null : List.copyOf(builder.inputs);
         parameters = builder.parameters;
     }
 

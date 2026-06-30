@@ -48,7 +48,7 @@ public class RAGQueryTool implements ExecutableTool {
 
     private RAGQueryTool(Builder builder) {
         toolService = requireNonNull(builder.toolService, "ToolService cannot be null");
-        vectorIndexIds = requireNonNull(builder.vectorIndexIds, "vectorIndexIds cannot be null");
+        vectorIndexIds = List.copyOf(requireNonNull(builder.vectorIndexIds, "vectorIndexIds cannot be null"));
         projectId = builder.projectId;
         spaceId = builder.spaceId;
 

@@ -9,7 +9,9 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -51,11 +53,11 @@ public final class TextClassificationParameters extends WatsonxParameters {
         this.ocrMode = builder.ocrMode;
         this.classificationMode = nonNull(builder.classificationMode) ? builder.classificationMode.value() : null;
         this.autoRotationCorrection = builder.autoRotationCorrection;
-        this.languages = builder.languages;
+        this.languages = isNull(builder.languages) ? null : List.copyOf(builder.languages);
         this.semanticConfig = builder.semanticConfig;
         this.removeUploadedFile = builder.removeUploadedFile;
         this.documentReference = builder.documentReference;
-        this.custom = builder.custom;
+        this.custom = isNull(builder.custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.custom));
         this.timeout = builder.timeout;
     }
 
