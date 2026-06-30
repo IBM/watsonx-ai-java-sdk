@@ -37,7 +37,8 @@ final class DefaultRestClient extends RerankRestClient {
             .newBuilder(URI.create(baseUrl + "/ml/v1/text/rerank?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .POST(BodyPublishers.ofString(toJson(request)));
+            .POST(BodyPublishers.ofString(toJson(request)))
+            .timeout(timeout);
 
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
