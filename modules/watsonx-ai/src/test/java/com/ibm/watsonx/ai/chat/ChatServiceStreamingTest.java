@@ -58,6 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -102,6 +103,7 @@ import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 @ExtendWith(MockitoExtension.class)
+@Isolated("Verifies executor/thread behavior with tight timeouts; must run without concurrent CPU contention.")
 public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
 

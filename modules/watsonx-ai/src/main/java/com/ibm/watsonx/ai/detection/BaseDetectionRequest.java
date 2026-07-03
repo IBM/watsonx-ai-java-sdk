@@ -17,6 +17,13 @@ public abstract class BaseDetectionRequest {
     private final String projectId;
     private final String spaceId;
 
+    /**
+     * Creates a new detection request with the given detector configurations and target identifiers.
+     *
+     * @param detectors a map of detector names to their configuration parameters
+     * @param projectId the id of the project containing the resource
+     * @param spaceId the id of the space containing the resource
+     */
     protected BaseDetectionRequest(Map<String, Map<String, Object>> detectors, String projectId, String spaceId) {
         this.detectors = isNull(detectors) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(detectors));
         this.projectId = projectId;

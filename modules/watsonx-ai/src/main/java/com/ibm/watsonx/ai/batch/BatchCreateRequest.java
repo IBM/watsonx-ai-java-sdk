@@ -123,6 +123,8 @@ public class BatchCreateRequest extends WatsonxParameters {
      *     .completionWindow("24h")
      *     .build();
      * }</pre>
+     *
+     * @return a new {@link Builder} instance
      */
     public static Builder builder() {
         return new Builder();

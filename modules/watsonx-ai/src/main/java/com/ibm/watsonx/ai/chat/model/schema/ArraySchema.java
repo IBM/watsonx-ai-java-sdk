@@ -42,18 +42,38 @@ public final class ArraySchema extends JsonSchema {
         maxItems = builder.maxItems;
     }
 
+    /**
+     * Returns the schema that all elements in the array must conform to.
+     *
+     * @return the items schema
+     */
     public JsonSchema items() {
         return items;
     }
 
+    /**
+     * Returns the schema that at least one element in the array must match.
+     *
+     * @return the contains schema
+     */
     public JsonSchema contains() {
         return contains;
     }
 
+    /**
+     * Returns the minimum number of items that the array must contain.
+     *
+     * @return the minimum number of items
+     */
     public Integer minItems() {
         return minItems;
     }
 
+    /**
+     * Returns the maximum number of items that the array may contain.
+     *
+     * @return the maximum number of items
+     */
     public Integer maxItems() {
         return maxItems;
     }

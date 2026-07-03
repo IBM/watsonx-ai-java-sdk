@@ -41,6 +41,9 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
  */
 public final class HttpUtils {
 
+    /**
+     * Prevents direct instantiation of this utility class.
+     */
     protected HttpUtils() {}
 
     /**
@@ -158,6 +161,7 @@ public final class HttpUtils {
      * Maps a generic {@link WatsonxException} to a more specific exception based on the {@link WatsonxError.Code}.
      *
      * @param exception the generic {@link WatsonxException} to map
+     * @return the mapped specific {@link WatsonxException}, or the original exception if it cannot be classified
      * @throws WatsonxException one of the specific exceptions or the original exception if unclassified
      */
     public static WatsonxException mapWatsonxException(WatsonxException exception) {

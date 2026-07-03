@@ -32,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -61,6 +62,7 @@ import com.ibm.watsonx.ai.utils.HttpUtils;
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@Isolated("Verifies executor/thread behavior with tight timeouts; must run without concurrent CPU contention.")
 public class TextGenerationServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach

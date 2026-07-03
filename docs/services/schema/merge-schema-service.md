@@ -42,7 +42,7 @@ List<Schema> schemas = List.of(
 );
 
 // Merge the schemas
-MergeSchemaResult result = service.mergeSchemaAndFetch(schemas);
+var result = service.mergeSchemaAndFetch(schemas);
 System.out.println("Merged Type: " + result.schema().documentType());
 System.out.println("Merged Description: " + result.schema().documentDescription());
 // → Merged Type: Identification Document
@@ -125,7 +125,7 @@ List<Schema> schemas = List.of(
         .build()
 );
 
-MergeSchemaResult result = service.mergeSchemaAndFetch(schemas);
+var result = service.mergeSchemaAndFetch(schemas);
 
 System.out.println("Merged Schema:");
 System.out.println("Document Type: " + result.schema().documentType());
@@ -147,7 +147,7 @@ MergeSchemaParameters parameters = MergeSchemaParameters.builder()
     .timeout(Duration.ofMinutes(5))
     .build();
 
-MergeSchemaResult result = service.mergeSchemaAndFetch(schemas, parameters);
+var result = service.mergeSchemaAndFetch(schemas, parameters);
 ```
 
 ### Managing Requests
@@ -199,7 +199,7 @@ MergeSchemaParameters parameters = MergeSchemaParameters.builder()
     .semanticConfig(semanticConfig)
     .build();
 
-MergeSchemaResult result = service.mergeSchemaAndFetch(schemas, parameters);
+var result = service.mergeSchemaAndFetch(schemas, parameters);
 ```
 
 ---
@@ -234,7 +234,7 @@ Returned by `startMergeSchema` and `fetchRequest`.
 |-------|------|-------------|
 | `documentType()` | String | The merged document type (e.g., "Identification Document") |
 | `documentDescription()` | String | Comprehensive description covering all input schemas |
-| `fields()` | KvpFields | Map of field names to merged field definitions |
+| `fields()` | Map&lt;String, KvpField&gt; | Map of field names to merged field definitions |
 | `additionalPromptInstructions()` | String | Additional instructions (if provided in input schemas) |
 
 ### KvpField

@@ -12,6 +12,9 @@ import com.ibm.watsonx.ai.textprocessing.Schema;
 
 /**
  * Represents a response for the Create Schema API.
+ *
+ * @param metadata Metadata associated with the response.
+ * @param entity The create schema entity.
  */
 public record CreateSchemaResponse(Metadata metadata, Entity entity) {
 

@@ -11,6 +11,9 @@ import com.ibm.watsonx.ai.textprocessing.Schema;
 
 /**
  * Represents a response for the Merge Schema API.
+ *
+ * @param metadata Metadata associated with the response.
+ * @param entity The merge schema entity.
  */
 public record MergeSchemaResponse(Metadata metadata, Entity entity) {
 

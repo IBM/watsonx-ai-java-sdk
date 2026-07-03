@@ -35,6 +35,8 @@ public interface Authenticator {
 
     /**
      * Returns the authentication scheme.
+     *
+     * @return the authentication scheme as a {@link String}
      */
     String scheme();
 }

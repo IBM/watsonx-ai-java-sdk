@@ -34,6 +34,7 @@ public final class HttpClientFactory {
      * Creates and configures a new {@link SyncHttpClient} with standard interceptors.
      *
      * @param authenticator {@link Authenticator} used to attach a bearer token
+     * @param httpClient the underlying {@link HttpClient} to use
      * @param logMode Indicate whether logging should be enabled
      * @return {@link SyncHttpClient} instance
      */
@@ -66,6 +67,7 @@ public final class HttpClientFactory {
      * Creates and configures a new {@link AsyncHttpClient} with standard interceptors.
      *
      * @param authenticator {@link Authenticator} used to attach a bearer token
+     * @param httpClient the underlying {@link HttpClient} to use
      * @param logMode Indicate whether logging should be enabled
      * @return {@link AsyncHttpClient} instance
      */

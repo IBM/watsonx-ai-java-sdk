@@ -25,6 +25,7 @@ public record EmbeddingResponse(
      * values.
      *
      * @param embedding A list of float values representing the embedding of the input text.
+     * @param input the input text that was embedded
      */
     public record Result(List<Float> embedding, String input) {}
 }

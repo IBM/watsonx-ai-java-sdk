@@ -17,6 +17,13 @@ import com.ibm.watsonx.ai.chat.model.ResultMessage;
  */
 public final class ChatResponse {
 
+    /**
+     * Represents a single choice returned by the model within a chat response.
+     *
+     * @param index the position of this choice in the list of choices
+     * @param message the message produced by the model for this choice
+     * @param finishReason the reason the model stopped generating tokens for this choice
+     */
     public static record ResultChoice(Integer index, ResultMessage message, String finishReason) {
 
         /**
@@ -237,6 +244,12 @@ public final class ChatResponse {
      * Builder class for constructing {@link ChatResponse} instances with configurable parameters.
      */
     public static class Builder {
+
+        /**
+         * Creates a new {@code Builder}.
+         */
+        public Builder() {}
+
         private String id;
         private String object;
         private String modelId;

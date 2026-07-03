@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,6 +85,7 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @SuppressWarnings("unchecked")
+@Isolated("Verifies executor/thread behavior with tight timeouts; must run without concurrent CPU contention.")
 public class DeploymentServiceTest extends AbstractWatsonxTest {
 
     @RegisterExtension

@@ -12,6 +12,11 @@ import static java.util.Objects.nonNull;
 public class Utils {
 
     /**
+     * Prevents direct instantiation of this utility class.
+     */
+    private Utils() {}
+
+    /**
      * Returns the provided value if it is non-null, otherwise, returns the specified default value.
      *
      * @param <T> The type of the value and default value

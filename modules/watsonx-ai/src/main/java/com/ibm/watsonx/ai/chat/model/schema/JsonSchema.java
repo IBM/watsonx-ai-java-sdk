@@ -409,6 +409,10 @@ public abstract class JsonSchema {
 
     /**
      * Builder class for constructing {@link JsonSchema} instances with configurable parameters.
+     *
+     * @param <B> the concrete builder type returned for fluent chaining
+     * @param <JS> the {@link JsonSchema} type produced by this builder
+     * @param <O> the builder type of the alternative schemas used with {@code oneOf}
      */
     @SuppressWarnings("unchecked")
     public static abstract class Builder<B, JS extends JsonSchema, O extends JsonSchema.Builder<?, ?, ?>> {

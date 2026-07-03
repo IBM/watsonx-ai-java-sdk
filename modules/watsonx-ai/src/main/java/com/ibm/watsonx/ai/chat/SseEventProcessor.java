@@ -71,19 +71,41 @@ public class SseEventProcessor {
     public static sealed interface CallbackEvent
         permits PartialResponseEvent, PartialThinkingEvent, PartialToolCallEvent, CompleteToolCallEvent, ErrorEvent {
 
-        /** Event emitted when a partial response content token is received. */
+        /**
+         * Event emitted when a partial response content token is received.
+         *
+         * @param content the newly received content token
+         * @param chunk the partial chat response this token belongs to
+         */
         record PartialResponseEvent(String content, PartialChatResponse chunk) implements CallbackEvent {}
 
-        /** Event emitted when a partial thinking/reasoning token is received. */
+        /**
+         * Event emitted when a partial thinking/reasoning token is received.
+         *
+         * @param content the newly received thinking/reasoning token
+         * @param chunk the partial chat response this token belongs to
+         */
         record PartialThinkingEvent(String content, PartialChatResponse chunk) implements CallbackEvent {}
 
-        /** Event emitted when tool call arguments are being streamed. */
+        /**
+         * Event emitted when tool call arguments are being streamed.
+         *
+         * @param toolCall the partial tool call being assembled
+         */
         record PartialToolCallEvent(PartialToolCall toolCall) implements CallbackEvent {}
 
-        /** Event emitted when a tool call has been fully assembled. */
+        /**
+         * Event emitted when a tool call has been fully assembled.
+         *
+         * @param completeToolCall the fully assembled tool call
+         */
         record CompleteToolCallEvent(CompletedToolCall completeToolCall) implements CallbackEvent {}
 
-        /** Event emitted when an error occurs during chunk processing. */
+        /**
+         * Event emitted when an error occurs during chunk processing.
+         *
+         * @param error the error that occurred
+         */
         record ErrorEvent(Throwable error) implements CallbackEvent {}
     }
 

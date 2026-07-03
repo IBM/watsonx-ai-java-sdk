@@ -17,6 +17,7 @@ import java.util.Map;
  * @param projectId the id of the project containing the resource
  * @param data the time series data payload
  * @param schema metadata describing the data structure
+ * @param futureData the exogenous future data payload, if any
  * @param parameters additional forecast parameters
  */
 public record ForecastRequest(

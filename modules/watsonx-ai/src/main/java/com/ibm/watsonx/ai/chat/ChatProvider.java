@@ -31,6 +31,7 @@ public interface ChatProvider {
      *
      * @param chatRequest the chat request
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
     public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, ChatHandler handler);
 }

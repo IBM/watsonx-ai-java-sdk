@@ -12,6 +12,9 @@ import com.ibm.watsonx.ai.textprocessing.Metadata;
 
 /**
  * Represents a response for the Text Extraction API.
+ *
+ * @param metadata Metadata associated with the response.
+ * @param entity The text extraction entity.
  */
 public record TextExtractionResponse(Metadata metadata, Entity entity) {
 

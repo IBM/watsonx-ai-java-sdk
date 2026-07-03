@@ -44,6 +44,8 @@ public class BatchListRequest extends WatsonxParameters {
      *     .limit(10)
      *     .build();
      * }</pre>
+     *
+     * @return a new {@link Builder} instance
      */
     public static Builder builder() {
         return new Builder();

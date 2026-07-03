@@ -35,6 +35,12 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(RetryInterceptor.class);
 
+    /**
+     * Defines a retry condition, pairing an exception type with an optional predicate that further refines when a retry applies.
+     *
+     * @param clazz the exception type that triggers a retry
+     * @param predicate an optional predicate to further evaluate retry eligibility
+     */
     public record RetryOn(Class<? extends Throwable> clazz, Optional<Predicate<Throwable>> predicate) {}
 
     private final Duration retryInterval;
@@ -199,18 +205,38 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
             }, ExecutorProvider.ioExecutor());
     }
 
+    /**
+     * Returns the configured retry conditions.
+     *
+     * @return the list of {@link RetryOn} conditions
+     */
     public List<RetryOn> retryOn() {
         return retryOn;
     }
 
+    /**
+     * Returns the maximum number of retry attempts.
+     *
+     * @return the maximum number of retries
+     */
     public int maxRetries() {
         return maxRetries;
     }
 
+    /**
+     * Returns the delay between retry attempts.
+     *
+     * @return the retry interval
+     */
     public Duration retryInterval() {
         return retryInterval;
     }
 
+    /**
+     * Returns whether exponential backoff is enabled between retries.
+     *
+     * @return {@code true} if exponential backoff is enabled, {@code false} otherwise
+     */
     public boolean exponentialBackoff() {
         return exponentialBackoff;
     }
