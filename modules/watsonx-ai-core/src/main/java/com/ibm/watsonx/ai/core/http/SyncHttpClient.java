@@ -55,6 +55,8 @@ public final class SyncHttpClient extends BaseHttpClient {
      * @param bodyHandler the body handler for the response
      * @param <T> the type of the response body
      * @return a HTTP response
+     * @throws IOException if an I/O error occurs when sending or receiving the request
+     * @throws InterruptedException if the operation is interrupted while waiting for the response
      */
     public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> bodyHandler)
         throws WatsonxException, IOException, InterruptedException {

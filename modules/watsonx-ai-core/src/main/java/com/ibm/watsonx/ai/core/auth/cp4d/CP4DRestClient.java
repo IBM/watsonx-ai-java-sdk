@@ -18,10 +18,18 @@ import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
  * Abstraction of a REST client for interacting with the IBM Cloud Pak for Data
  */
 public abstract class CP4DRestClient {
+    /** The base URL of the Cloud Pak for Data endpoint. */
     protected final URI baseUrl;
+    /** The request timeout. */
     protected final Duration timeout;
+    /** The underlying {@link HttpClient} used for HTTP communication. */
     protected final HttpClient httpClient;
 
+    /**
+     * Constructs a new {@code CP4DRestClient} using the given builder.
+     *
+     * @param builder the builder instance
+     */
     protected CP4DRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl is mandatory");
         timeout = builder.timeout;
@@ -31,6 +39,7 @@ public abstract class CP4DRestClient {
     /**
      * Performs a synchronous REST call to Cloud Pak for Data to obtain a token.
      *
+     * @param request the token request containing the credentials to exchange
      * @return an {@link TokenResponse} containing the token and related metadata
      */
     public abstract TokenResponse token(TokenRequest request);
@@ -38,6 +47,7 @@ public abstract class CP4DRestClient {
     /**
      * Performs a synchronous REST call to Cloud Pak for Data to obtain a token.
      *
+     * @param request the token request containing the credentials to exchange
      * @return a {@link CompletableFuture} that contains the token and related metadata
      */
     public abstract CompletableFuture<TokenResponse> tokenAsync(TokenRequest request);
@@ -75,6 +85,9 @@ public abstract class CP4DRestClient {
 
     /**
      * Builder abstract class for constructing {@link CP4DRestClient} instances with configurable parameters.
+     *
+     * @param <T> the type of {@link CP4DRestClient} built by this builder
+     * @param <B> the concrete builder type, used for fluent method chaining
      */
     @SuppressWarnings("unchecked")
     public abstract static class Builder<T extends CP4DRestClient, B extends Builder<T, B>> {
@@ -82,6 +95,11 @@ public abstract class CP4DRestClient {
         private Duration timeout;
         private HttpClient httpClient;
         private boolean verifySsl = true;
+
+        /**
+         * Creates a new {@code Builder}.
+         */
+        protected Builder() {}
 
         /**
          * Builds and returns the configured REST client instance.

@@ -164,7 +164,6 @@ public final class InputSchema {
          *
          * @param freq a valid frequency string (max 100 characters, must match {@code ^\d*\.?\d*(B|D|W|M|Q|Y|h|min|s|ms|us|ns)?$})
          * @return {@code Builder} instance for method chaining
-         * @see https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#period-aliases for a description of the allowed values.
          */
         public Builder freq(String freq) {
             this.freq = freq;

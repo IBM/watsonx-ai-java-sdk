@@ -249,9 +249,9 @@ System.out.println(result.documentClassified()); // → false
 System.out.println(result.documentType());       // → (blank)
 ```
 
-### Extraction Methods
+### KVP Extraction Methods
 
-Two extraction methods can be enabled independently or together:
+During classification, two key-value-pair (KVP) extraction methods can be enabled independently or together:
 
 **Schema-based extraction** (`enableSchemaKvp: true`) classifies each page into a known document type and extracts only the fields declared in the matching schema. Use this when you have domain-specific knowledge of the document structure — it increases accuracy for known document types.
 

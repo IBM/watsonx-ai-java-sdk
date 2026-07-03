@@ -153,13 +153,17 @@ Sends text or multimodal content.
 // Plain text
 UserMessage.text("Hello!");
 
-// With image from file
-UserMessage.of(
-    TextContent.of("Describe this image"),
-    ImageContent.from(new File("image.jpg"))
-);
+// With image from file — ImageContent.from(...) throws IOException
+try {
+    UserMessage.of(
+        TextContent.of("Describe this image"),
+        ImageContent.from(new File("image.jpg"))
+    );
+} catch (IOException e) {
+    // handle the I/O error
+}
 
-// Shorthand image with Path
+// Shorthand image with Path (reads the file internally)
 UserMessage.image("Analyze this image", Paths.get("image.png"));
 ```
 

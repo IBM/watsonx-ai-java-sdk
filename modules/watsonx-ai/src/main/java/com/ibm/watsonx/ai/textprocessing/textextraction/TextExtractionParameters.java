@@ -38,7 +38,7 @@ import com.ibm.watsonx.ai.textprocessing.OcrMode;
  * }</pre>
  *
  * For more information, see the
- * <a href=" https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction-params.html?context=wx">documentation</a>.
+ * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-extraction-params.html?context=wx">documentation</a>.
  */
 public final class TextExtractionParameters extends WatsonxParameters {
     private final List<String> requestedOutputs;

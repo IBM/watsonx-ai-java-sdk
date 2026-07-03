@@ -37,6 +37,8 @@ public abstract class SemanticConfig {
 
     /**
      * Builder abstract class for constructing {@link SemanticConfig} instance.
+     *
+     * @param <T> the type of the concrete builder subclass
      */
     @SuppressWarnings("unchecked")
     public static abstract class Builder<T extends Builder<T>> {

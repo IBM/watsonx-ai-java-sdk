@@ -424,6 +424,8 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | Value | Description |
 |-------|-------------|
 | `KvpMode.DISABLED` | Key-value pair extraction is disabled (default) |
+| `KvpMode.INVOICE` | Extract key-value pairs using the built-in invoice template |
+| `KvpMode.UBILL` | Extract key-value pairs using the built-in utility-bill template |
 | `KvpMode.GENERIC_WITH_SEMANTIC` | Extract generic and schema-based KVP data. Use with `semanticConfig` to configure the extraction pipeline |
 
 ### OCR Modes

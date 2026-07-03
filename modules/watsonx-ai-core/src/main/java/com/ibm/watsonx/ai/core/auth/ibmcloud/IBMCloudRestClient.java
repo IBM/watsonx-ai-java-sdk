@@ -18,10 +18,18 @@ import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
  * Abstraction of a REST client for interacting with the IBM Cloud Identity and Access Management service.
  */
 public abstract class IBMCloudRestClient {
+    /** The base URL of the IAM endpoint. */
     protected final URI baseUrl;
+    /** The request timeout. */
     protected final Duration timeout;
+    /** The underlying {@link HttpClient} used for HTTP communication. */
     protected final HttpClient httpClient;
 
+    /**
+     * Constructs a new {@code IBMCloudRestClient} using the given builder.
+     *
+     * @param builder the builder instance
+     */
     protected IBMCloudRestClient(Builder<?, ?> builder) {
         baseUrl = requireNonNull(builder.baseUrl, "The baseUrl is mandatory");
         timeout = builder.timeout;
@@ -60,6 +68,9 @@ public abstract class IBMCloudRestClient {
 
     /**
      * Builder abstract class for constructing {@link IBMCloudRestClient} instances with configurable parameters.
+     *
+     * @param <T> the type of {@link IBMCloudRestClient} built by this builder
+     * @param <B> the concrete builder type, used for fluent method chaining
      */
     @SuppressWarnings("unchecked")
     public abstract static class Builder<T extends IBMCloudRestClient, B extends Builder<T, B>> {
@@ -67,6 +78,11 @@ public abstract class IBMCloudRestClient {
         private Duration timeout;
         private HttpClient httpClient;
         private boolean verifySsl = true;
+
+        /**
+         * Creates a new {@code Builder}.
+         */
+        protected Builder() {}
 
         /**
          * Builds and returns the configured REST client instance.

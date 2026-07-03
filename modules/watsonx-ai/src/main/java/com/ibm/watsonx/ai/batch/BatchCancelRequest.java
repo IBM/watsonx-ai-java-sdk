@@ -44,6 +44,8 @@ public class BatchCancelRequest extends WatsonxParameters {
      *     .batchId("batch_id")
      *     .build();
      * }</pre>
+     *
+     * @return a new {@link Builder} instance
      */
     public static Builder builder() {
         return new Builder();

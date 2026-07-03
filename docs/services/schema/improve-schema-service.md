@@ -32,7 +32,7 @@ Schema existingSchema = Schema.builder()
     .build();
 
 // Improve the schema
-ImproveSchemaResult result = service.improveSchemaAndFetch(existingSchema);
+var result = service.improveSchemaAndFetch(existingSchema);
 System.out.println("Original: " + existingSchema.documentDescription());
 System.out.println("Improved: " + result.schema().documentDescription());
 // → Original: Passport document
@@ -103,7 +103,7 @@ Schema existingSchema = Schema.builder()
     )
     .build();
 
-ImproveSchemaResult result = service.improveSchemaAndFetch(existingSchema);
+var result = service.improveSchemaAndFetch(existingSchema);
 
 System.out.println("Improved Schema:");
 System.out.println("  Document Type: " + result.schema().documentType());
@@ -125,7 +125,7 @@ ImproveSchemaParameters parameters = ImproveSchemaParameters.builder()
     .timeout(Duration.ofMinutes(5))
     .build();
 
-ImproveSchemaResult result = service.improveSchemaAndFetch(existingSchema, parameters);
+var result = service.improveSchemaAndFetch(existingSchema, parameters);
 ```
 
 ### With Additional Prompt Instructions
@@ -144,7 +144,7 @@ Schema schema = Schema.builder()
     )
     .build();
 
-ImproveSchemaResult result = service.improveSchemaAndFetch(schema);
+var result = service.improveSchemaAndFetch(schema);
 
 // Instructions are preserved in improved schema
 System.out.println(result.schema().additionalPromptInstructions());
@@ -200,7 +200,7 @@ ImproveSchemaParameters parameters = ImproveSchemaParameters.builder()
     .semanticConfig(semanticConfig)
     .build();
 
-ImproveSchemaResult result = service.improveSchemaAndFetch(existingSchema, parameters);
+var result = service.improveSchemaAndFetch(existingSchema, parameters);
 ```
 
 ---
@@ -235,7 +235,7 @@ Returned by `startImproveSchema` and `fetchRequest`.
 |-------|------|-------------|
 | `documentType()` | String | The document type (e.g., "Invoice", "Contract", "Passport") |
 | `documentDescription()` | String | Enhanced natural language description of the document |
-| `fields()` | KvpFields | Map of field names to improved field definitions |
+| `fields()` | Map&lt;String, KvpField&gt; | Map of field names to improved field definitions |
 | `additionalPromptInstructions()` | String | Additional instructions preserved from original schema |
 
 ### KvpField

@@ -11,6 +11,9 @@ import com.ibm.watsonx.ai.textprocessing.Schema;
 
 /**
  * Represents a response for the Improve Schema API.
+ *
+ * @param metadata Metadata associated with the response.
+ * @param entity The improve schema entity.
  */
 public record ImproveSchemaResponse(Metadata metadata, Entity entity) {
 

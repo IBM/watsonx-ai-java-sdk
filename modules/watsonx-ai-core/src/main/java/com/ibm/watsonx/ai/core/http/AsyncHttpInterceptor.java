@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.core.http;
 
-import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
@@ -29,8 +28,6 @@ public interface AsyncHttpInterceptor {
      * @param <T> the type of the response body
      * @return the {@link CompletableFuture} of the HTTP response
      * @throws WatsonxException if an error occurs during the request api
-     * @throws IOException if an I/O error occurs during interception or execution
-     * @throws InterruptedException if the operation is interrupted
      */
     <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain);
 
@@ -47,8 +44,6 @@ public interface AsyncHttpInterceptor {
          * @param <T> the type of the response body
          * @return the {@link CompletableFuture} of the HTTP response
          * @throws WatsonxException if an error occurs during the request api
-         * @throws IOException if an I/O error occurs during execution
-         * @throws InterruptedException if the operation is interrupted
          */
         <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler);
 

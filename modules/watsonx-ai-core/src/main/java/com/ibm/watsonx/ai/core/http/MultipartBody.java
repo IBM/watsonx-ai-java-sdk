@@ -83,6 +83,11 @@ public final class MultipartBody {
         private final List<Part> parts = new ArrayList<>();
 
         /**
+         * Creates a new {@code Builder}.
+         */
+        private Builder() {}
+
+        /**
          * Adds a plain-text form field.
          *
          * @param name the form field name.

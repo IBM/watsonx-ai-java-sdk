@@ -107,6 +107,8 @@ System.out.println(response.totalCount()); // → 1
 Use `FoundationModelParameters` when you need pagination, Tech Preview models, or combined filtering:
 
 ```java
+import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.*;
+
 FoundationModelParameters parameters = FoundationModelParameters.builder()
     .limit(50)
     .techPreview(true)
@@ -175,7 +177,7 @@ var filter = Filter.and(function("rerank"), not(function("embedding")));
 // A specific model by ID
 var filter = Filter.of(modelId("ibm/granite-4-h-small"));
 
-// Active models from IBM or Meta
+// Models from IBM or Meta
 var filter = Filter.or(provider("IBM"), provider("Meta"));
 ```
 ---

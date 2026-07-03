@@ -31,15 +31,30 @@ public abstract class BaseDetector {
     private final String name;
     private final Map<String, Object> properties;
 
+    /**
+     * Creates a new detector from the given builder.
+     *
+     * @param builder the builder holding the detector configuration
+     */
     protected BaseDetector(Builder<?> builder) {
         name = requireNonNull(builder.name, "name cannot be null");
         properties = Collections.unmodifiableMap(new HashMap<>(builder.properties));
     }
 
+    /**
+     * Returns the name of the detector.
+     *
+     * @return the detector name
+     */
     public String name() {
         return name;
     }
 
+    /**
+     * Returns the detector configuration properties.
+     *
+     * @return a map of property names to their values
+     */
     public Map<String, Object> properties() {
         return properties;
     }

@@ -56,7 +56,7 @@ public final class MergeSchemaParameters extends WatsonxParameters {
     /**
      * Converts this parameters object to a {@link Parameters} record for API requests.
      *
-     * @param schema the schema to improve
+     * @param schemas schemas to improve
      * @return a Parameters record containing the configuration
      */
     protected Parameters toParameters(List<Schema> schemas) {

@@ -119,6 +119,8 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
 
     /**
      * Builder abstract class for constructing {@link ExtendedSemanticConfig} instance.
+     *
+     * @param <T> the type of the concrete builder subclass
      */
     @SuppressWarnings("unchecked")
     public static abstract class Builder<T extends Builder<T>> extends SemanticConfig.Builder<T> {

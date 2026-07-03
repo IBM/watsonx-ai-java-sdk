@@ -34,6 +34,13 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  */
 public final class ChatParameters extends WatsonxCryptoParameters {
 
+    /**
+     * Represents a JSON schema used to validate the model's output.
+     *
+     * @param name the schema name
+     * @param schema the JSON schema object
+     * @param strict whether strict schema adherence is enforced
+     */
     public record JsonSchemaObject(String name, Object schema, boolean strict) {};
 
     private final String toolChoiceOption;
@@ -95,90 +102,200 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         lengthPenalty = builder.lengthPenalty;
     }
 
+    /**
+     * Returns the tool selection strategy for the model.
+     *
+     * @return the tool selection strategy for the model
+     */
     public String toolChoiceOption() {
         return toolChoiceOption;
     }
 
+    /**
+     * Returns the specific tool the model is forced to call.
+     *
+     * @return the specific tool the model is forced to call
+     */
     public Map<String, Object> toolChoice() {
         return toolChoice;
     }
 
+    /**
+     * Returns the logit bias applied to specific tokens during generation.
+     *
+     * @return the logit bias applied to specific tokens during generation
+     */
     public Map<String, Integer> logitBias() {
         return logitBias;
     }
 
+    /**
+     * Returns the frequency penalty used to reduce repetition of tokens.
+     *
+     * @return the frequency penalty used to reduce repetition of tokens
+     */
     public Double frequencyPenalty() {
         return frequencyPenalty;
     }
 
+    /**
+     * Returns whether log probabilities are returned for the generated tokens.
+     *
+     * @return whether log probabilities are returned for the generated tokens
+     */
     public Boolean logprobs() {
         return logprobs;
     }
 
+    /**
+     * Returns the number of most likely tokens to return at each token position.
+     *
+     * @return the number of most likely tokens to return at each token position
+     */
     public Integer topLogprobs() {
         return topLogprobs;
     }
 
+    /**
+     * Returns the maximum number of tokens that can be generated in the chat completion.
+     *
+     * @return the maximum number of tokens that can be generated in the chat completion
+     */
     public Integer maxCompletionTokens() {
         return maxCompletionTokens;
     }
 
+    /**
+     * Returns the number of completions to generate for each input.
+     *
+     * @return the number of completions to generate for each input
+     */
     public Integer n() {
         return n;
     }
 
+    /**
+     * Returns the presence penalty used to encourage new topic generation.
+     *
+     * @return the presence penalty used to encourage new topic generation
+     */
     public Double presencePenalty() {
         return presencePenalty;
     }
 
+    /**
+     * Returns the sampling temperature to use.
+     *
+     * @return the sampling temperature to use
+     */
     public Double temperature() {
         return temperature;
     }
 
+    /**
+     * Returns the nucleus sampling threshold.
+     *
+     * @return the nucleus sampling threshold
+     */
     public Double topP() {
         return topP;
     }
 
+    /**
+     * Returns the maximum time limit for the completion generation.
+     *
+     * @return the maximum time limit for the completion generation
+     */
     public Long timeLimit() {
         return timeLimit;
     }
 
+    /**
+     * Returns the random number generator seed used in sampling mode.
+     *
+     * @return the random number generator seed used in sampling mode
+     */
     public Integer seed() {
         return seed;
     }
 
+    /**
+     * Returns the stop sequences that end the generation when encountered.
+     *
+     * @return the stop sequences that end the generation when encountered
+     */
     public List<String> stop() {
         return stop;
     }
 
+    /**
+     * Returns the format in which the model should return the response.
+     *
+     * @return the format in which the model should return the response
+     */
     public String responseFormat() {
         return responseFormat;
     }
 
+    /**
+     * Returns the JSON schema used to validate the model's output.
+     *
+     * @return the JSON schema used to validate the model's output
+     */
     public JsonSchemaObject jsonSchema() {
         return jsonSchema;
     }
 
+    /**
+     * Returns the set of allowed output choices.
+     *
+     * @return the set of allowed output choices
+     */
     public Set<String> guidedChoice() {
         return guidedChoice;
     }
 
+    /**
+     * Returns the regular expression pattern that the output must match.
+     *
+     * @return the regular expression pattern that the output must match
+     */
     public String guidedRegex() {
         return guidedRegex;
     }
 
+    /**
+     * Returns the context-free grammar that the output must follow.
+     *
+     * @return the context-free grammar that the output must follow
+     */
     public String guidedGrammar() {
         return guidedGrammar;
     }
 
+    /**
+     * Returns the repetition penalty applied during text generation.
+     *
+     * @return the repetition penalty applied during text generation
+     */
     public Double repetitionPenalty() {
         return repetitionPenalty;
     }
 
+    /**
+     * Returns the length penalty applied during text generation.
+     *
+     * @return the length penalty applied during text generation
+     */
     public Double lengthPenalty() {
         return lengthPenalty;
     }
 
+    /**
+     * Returns the context string inserted into the messages during chat generation.
+     *
+     * @return the context string inserted into the messages during chat generation
+     */
     public String context() {
         return context;
     }
@@ -611,8 +728,11 @@ public final class ChatParameters extends WatsonxCryptoParameters {
      * Specifies the format in which the model should return the response.
      */
     public static enum ResponseFormat {
+        /** Plain, unstructured text. */
         TEXT("text"),
+        /** A JSON object. */
         JSON("json_object"),
+        /** A JSON object conforming to a supplied schema. */
         JSON_SCHEMA("json_schema");
 
         private final String value;
@@ -621,6 +741,13 @@ public final class ChatParameters extends WatsonxCryptoParameters {
             this.value = value;
         }
 
+        /**
+         * Resolves a {@link ResponseFormat} from its string value.
+         *
+         * @param value the string value to resolve
+         * @return the matching {@link ResponseFormat}
+         * @throws IllegalArgumentException if the value does not match any known response format
+         */
         public static ResponseFormat from(String value) {
             for (ResponseFormat format : ResponseFormat.values()) {
                 if (format.value.equals(value)) {
@@ -630,6 +757,11 @@ public final class ChatParameters extends WatsonxCryptoParameters {
             throw new IllegalArgumentException("Unknown response format: " + value);
         }
 
+        /**
+         * Returns the string value of this response format.
+         *
+         * @return the string value of this response format
+         */
         public String value() {
             return value;
         }
@@ -660,6 +792,11 @@ public final class ChatParameters extends WatsonxCryptoParameters {
             this.value = value;
         }
 
+        /**
+         * Returns the string value of this option.
+         *
+         * @return the string value of this option
+         */
         public String value() {
             return value;
         }

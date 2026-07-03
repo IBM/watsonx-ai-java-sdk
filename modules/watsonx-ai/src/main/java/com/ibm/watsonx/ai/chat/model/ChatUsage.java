@@ -9,5 +9,9 @@ package com.ibm.watsonx.ai.chat.model;
  * <p>
  * This record contains information about the number of tokens used during the processing of a chat request, including prompt tokens, completion
  * tokens, and the total number of tokens consumed.
+ *
+ * @param completionTokens the number of tokens generated in the completion
+ * @param promptTokens the number of tokens in the prompt
+ * @param totalTokens the total number of tokens consumed
  */
 public record ChatUsage(Integer completionTokens, Integer promptTokens, Integer totalTokens) {}

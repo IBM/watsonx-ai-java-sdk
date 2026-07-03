@@ -21,7 +21,6 @@ import java.time.Duration;
  * <li>{@code WATSONX_RETRY_STATUS_CODES_BACKOFF_ENABLED} - Enable exponential backoff (default: true)</li>
  * <li>{@code WATSONX_RETRY_STATUS_CODES_INITIAL_INTERVAL_MS} - Initial retry interval in milliseconds (default: 20)</li>
  * </ul>
- * </p>
  */
 public final class RetryConfig {
     private static final int DEFAULT_TOKEN_EXPIRED_MAX_RETRIES = 1;

@@ -35,7 +35,7 @@ import com.ibm.watsonx.ai.textprocessing.OcrMode;
  * }</pre>
  *
  * For more information, see the
- * <a href=" https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-classification-params.html?context=wx">documentation</a>.
+ * <a href="https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-text-classification-params.html?context=wx">documentation</a>.
  */
 public final class TextClassificationParameters extends WatsonxParameters {
     private final String ocrMode;

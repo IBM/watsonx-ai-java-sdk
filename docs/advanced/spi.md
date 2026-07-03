@@ -14,7 +14,7 @@ The **IBM watsonx.ai Java SDK** exposes several **Service Provider Interfaces** 
 
 ## REST Client SPI
 
-Every service delegates HTTP communication to an abstract `RestClient`. The concrete implementation is discovered at startup via `ServiceLoader`; if none is registered, the SDK falls back to its built-in `DefaultRestClient` (based on the Java `HttpClient`).
+Every service delegates HTTP communication to an abstract `WatsonxRestClient`, with one subclass per service (e.g. `ChatRestClient`). The concrete implementation is discovered at startup via `ServiceLoader`; if none is registered, the SDK falls back to its built-in `DefaultRestClient` (based on the Java `HttpClient`).
 
 ### Service to REST client mapping
 
@@ -78,7 +78,7 @@ public interface ChatRestApi {
 }
 ```
 
-#### Step 2 — Implement the `RestClient`
+#### Step 2 — Implement the `RestClient` subclass
 
 Extend `ChatRestClient`, build the framework-native client in the constructor using the inherited fields, and implement the abstract methods:
 

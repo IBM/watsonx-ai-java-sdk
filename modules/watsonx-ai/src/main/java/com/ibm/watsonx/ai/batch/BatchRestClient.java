@@ -13,6 +13,11 @@ import com.ibm.watsonx.ai.WatsonxRestClient;
  */
 public abstract class BatchRestClient extends WatsonxRestClient {
 
+    /**
+     * Constructs a {@code BatchRestClient} using the given builder.
+     *
+     * @param builder the builder holding the configuration
+     */
     protected BatchRestClient(Builder builder) {
         super(builder);
     }
@@ -68,7 +73,13 @@ public abstract class BatchRestClient extends WatsonxRestClient {
     /**
      * Builder abstract class for constructing {@link BatchRestClient} instances with configurable parameters.
      */
-    public abstract static class Builder extends WatsonxRestClient.Builder<BatchRestClient, Builder> {}
+    public abstract static class Builder extends WatsonxRestClient.Builder<BatchRestClient, Builder> {
+
+        /**
+         * Creates a new {@code Builder}.
+         */
+        protected Builder() {}
+    }
 
     /**
      * Service Provider Interface for supplying custom {@link Builder} implementations.

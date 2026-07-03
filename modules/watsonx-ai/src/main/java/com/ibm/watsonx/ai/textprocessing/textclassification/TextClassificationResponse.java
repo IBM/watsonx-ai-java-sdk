@@ -11,6 +11,9 @@ import com.ibm.watsonx.ai.textprocessing.Metadata;
 
 /**
  * Represents a response for the Text Classification API.
+ *
+ * @param metadata Metadata associated with the response.
+ * @param entity The text classification entity.
  */
 public record TextClassificationResponse(Metadata metadata, Entity entity) {
 

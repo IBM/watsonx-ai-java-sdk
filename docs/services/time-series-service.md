@@ -33,7 +33,7 @@ ForecastData data = ForecastData.create()
     .add("ID1", "series-A", 512)
     .addAll("sales", 120.5, 135.0, 128.3, ...);
 
-var request =  TimeSeriesRequest.builder()
+var request = TimeSeriesRequest.builder()
     .inputSchema(schema)
     .data(data)
     .build();
@@ -146,7 +146,7 @@ var parameters = TimeSeriesParameters.builder()
     .predictionLength(7)
     .build();
 
-var request =  TimeSeriesRequest.builder()
+var request = TimeSeriesRequest.builder()
     .inputSchema(schema)
     .data(data)
     .parameters(parameters)

@@ -28,7 +28,7 @@ var properties = CreateSchemaParameters.builder()
     .timeout(Duration.ofMinutes(10))
     .build();
 
-CreateSchemaResult result = 
+var result = 
     service.uploadCreateSchemaAndFetch(new File("path/to/invoice.pdf"), properties);
 
 System.out.println("Document Type: " + result.schema().documentType());
@@ -112,7 +112,7 @@ The simplest way to create a schema is to use the `uploadCreateSchemaAndFetch` m
 **From a local file:**
 
 ```java
-CreateSchemaResult result = service.uploadCreateSchemaAndFetch(new File("invoice.pdf"));
+var result = service.uploadCreateSchemaAndFetch(new File("invoice.pdf"));
 System.out.println("Document Type:   " + result.schema().documentType());
 System.out.println("Description:     " + result.schema().documentDescription());
 System.out.println("Schema: "          + result.schema());
@@ -131,7 +131,7 @@ var parameters = CreateSchemaParameters.builder()
     .maxPagesToProcess(10)
     .build();
 
-CreateSchemaResult result = service.uploadCreateSchemaAndFetch(new File("invoice.pdf"), parameters);
+var result = service.uploadCreateSchemaAndFetch(new File("invoice.pdf"), parameters);
 ```
 
 **Automatic file cleanup**
@@ -160,7 +160,7 @@ var parameters = CreateSchemaParameters.builder()
     .enableGrounding(true)
     .build();
 
-CreateSchemaResult result = service.uploadCreateSchemaAndFetch(new File("invoice.pdf"), parameters);
+var result = service.uploadCreateSchemaAndFetch(new File("invoice.pdf"), parameters);
 GroundingHints hints = result.groundingHints();
 List<Double> bbox = hints.bbox("invoice_number");
 // Returns [x1, y1, x2, y2] where (x1,y1) is top-left, (x2,y2) is bottom-right
@@ -183,7 +183,7 @@ CreateSchemaService createSchemaService = CreateSchemaService.builder()
     .build();
 
 // Step 2: Generate schema from a sample document
-CreateSchemaResult schemaResult = createSchemaService.uploadCreateSchemaAndFetch(
+var schemaResult = createSchemaService.uploadCreateSchemaAndFetch(
     new File("invoice.pdf"),
     CreateSchemaParameters.builder()
         .languages(Language.ENGLISH)
@@ -277,7 +277,7 @@ System.out.println("Deleted: " + deleted);
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `mode` | Mode | Processing quality: `STANDARD` (faster) or `HIGH_QUALITY` (more accurate, slower) |
-| `ocrMode` | OcrMode | OCR processing mode: `DISABLED`, `ENABLED`, `FORCED`, or `AUTO`. Leaving unset lets the service choose automatically |
+| `ocrMode` | OcrMode | OCR processing mode: `DISABLED`, `ENABLED`, `FORCED`, or `AUTO`. Defaults to `DISABLED` when unset; use `AUTO` to let the service choose automatically |
 | `autoRotationCorrection` | Boolean | Automatically correct document rotation before OCR |
 | `languages` | Language... | Expected languages in the document (ISO 639) |
 | `additionalPromptInstructions` | String | Custom instructions to guide schema generation |
@@ -302,7 +302,7 @@ System.out.println("Deleted: " + deleted);
 
 | Value | Sent to API | Description |
 |-------|-------------|-------------|
-| `OcrMode.AUTO` | *(not sent)* | Service automatically selects the best OCR option |
+| `OcrMode.AUTO` | `""` (empty) | Service automatically selects the best OCR option |
 | `OcrMode.DISABLED` | `"disabled"` | OCR is disabled; document must contain native text |
 | `OcrMode.ENABLED` | `"enabled"` | OCR is applied when the service determines it is needed |
 | `OcrMode.FORCED` | `"forced"` | OCR is always applied regardless of document content |
@@ -321,7 +321,7 @@ CreateSchemaParameters parameters = CreateSchemaParameters.builder()
     .semanticConfig(semanticConfig)
     .build();
 
-CreateSchemaResult result = 
+var result = 
     service.uploadCreateSchemaAndFetch(new File("invoice.pdf"), parameters);
 ```
 
@@ -360,7 +360,7 @@ Returned by `startCreateSchema`, `uploadAndStartCreateSchema`, and `fetchRequest
 |-------|------|-------------|
 | `documentType()` | String | The identified document type (e.g., "Invoice", "Contract") |
 | `documentDescription()` | String | A natural language description of the document |
-| `fields()` | KvpFields | Map of field names to field definitions |
+| `fields()` | Map&lt;String, KvpField&gt; | Map of field names to field definitions |
 
 ### KvpField
 

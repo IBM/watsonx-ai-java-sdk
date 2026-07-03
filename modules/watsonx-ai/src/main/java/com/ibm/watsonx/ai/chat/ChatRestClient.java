@@ -15,6 +15,11 @@ import com.ibm.watsonx.ai.chat.model.TextChatRequest;
  */
 public abstract class ChatRestClient extends WatsonxRestClient {
 
+    /**
+     * Constructs a {@code ChatRestClient} using the provided builder.
+     *
+     * @param builder the builder holding the client configuration
+     */
     protected ChatRestClient(Builder builder) {
         super(builder);
     }
@@ -59,7 +64,13 @@ public abstract class ChatRestClient extends WatsonxRestClient {
     /**
      * Builder abstract class for constructing {@link ChatRestClient} instances with configurable parameters.
      */
-    public abstract static class Builder extends WatsonxRestClient.Builder<ChatRestClient, Builder> {}
+    public abstract static class Builder extends WatsonxRestClient.Builder<ChatRestClient, Builder> {
+
+        /**
+         * Creates a new {@code Builder}.
+         */
+        protected Builder() {}
+    }
 
     /**
      * Service Provider Interface for supplying custom {@link Builder} implementations.

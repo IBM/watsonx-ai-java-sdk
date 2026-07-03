@@ -26,6 +26,9 @@ import com.ibm.watsonx.ai.chat.model.schema.ObjectSchema;
  * // Create a Tool representing a search function
  * Tool.of("search", "Performs a search operation", parameters);
  * }</pre>
+ *
+ * @param type the tool type, always {@code function}
+ * @param function the function definition invoked by this tool
  */
 public record Tool(String type, Function function) {
 
