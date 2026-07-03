@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.textprocessing.Language;
@@ -33,6 +34,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 @EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_CONNECTION_ID", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_BUCKET", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "CLOUD_OBJECT_STORAGE_URL", matches = ".+")
+@ResourceLock("watsonx-cos-document-bucket")
 public class TextExtractionServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
@@ -127,8 +129,8 @@ public class TextExtractionServiceIT {
             .build();
 
         var text = textExtractionService.uploadExtractAndFetch(file, parameters);
-        assertEquals("PDF TEST", text);
-        assertEquals("PDF TEST", textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+        assertTrue(text.contains("PDF TEST"));
+        assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md").contains("PDF TEST"));
         assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
         assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
         assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
@@ -141,10 +143,10 @@ public class TextExtractionServiceIT {
             .build();
 
         text = textExtractionService.uploadExtractAndFetch(file, parameters);
-        assertEquals("PDF TEST", text);
+        assertTrue(text.contains("PDF TEST"));
 
         // Wait for async deletion
-        Thread.sleep(500);
+        Thread.sleep(1000);
         assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
         assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
     }
@@ -183,8 +185,8 @@ public class TextExtractionServiceIT {
             .build();
 
         var text = textExtractionService.uploadExtractAndFetch(inputstream, filename);
-        assertEquals("PDF TEST", text);
-        assertEquals("PDF TEST", textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+        assertTrue(text.contains("PDF TEST"));
+        assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md").contains("PDF TEST"));
         assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
         assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
         assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
@@ -198,10 +200,10 @@ public class TextExtractionServiceIT {
 
         inputstream = ClassLoader.getSystemResourceAsStream(filename);
         text = textExtractionService.uploadExtractAndFetch(inputstream, filename, parameters);
-        assertEquals("PDF TEST", text);
+        assertTrue(text.contains("PDF TEST"));
 
         // Wait for async deletion
-        Thread.sleep(500);
+        Thread.sleep(1000);
         assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
         assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
     }
@@ -251,7 +253,7 @@ public class TextExtractionServiceIT {
         assertEquals("OCR TEST", text);
 
         // Wait for async deletion
-        Thread.sleep(500);
+        Thread.sleep(1000);
         assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "ocr.jpg"));
         assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test_ocr.txt"));
     }

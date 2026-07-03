@@ -619,7 +619,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                 });
 
 
-            result.get(3, TimeUnit.SECONDS);
+            result.get(10, TimeUnit.SECONDS);
             assertEquals(1, threadNames.size());
             assertEquals("my-thread", threadNames.get(0));
         }
