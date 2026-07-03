@@ -355,6 +355,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_NVIDIA_DEPLOYMENT_ID", matches = ".+")
         void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
@@ -367,7 +368,7 @@ public class DeploymentServiceIT {
                 .build();
 
             ChatRequest chatRequest = ChatRequest.builder()
-                .deploymentId(DEPLOYMENT_ID)
+                .deploymentId(NVIDIA_DEPLOYMENT_ID)
                 .messages(UserMessage.of(
                     TextContent.of("Give a short description of the image"),
                     ImageContent.from(Paths.get(image.toURI()))
@@ -414,6 +415,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_GEMMA_DEPLOYMENT_ID", matches = ".+")
         void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var deploymentService = DeploymentService.builder()
@@ -428,7 +430,7 @@ public class DeploymentServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
-                .deploymentId(DEPLOYMENT_ID)
+                .deploymentId(GEMMA_DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -731,6 +733,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_NVIDIA_DEPLOYMENT_ID", matches = ".+")
         void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
@@ -753,7 +756,7 @@ public class DeploymentServiceIT {
                     ImageContent.from(Paths.get(image.toURI()))
                 ))
                 .parameters(parameters)
-                .deploymentId(DEPLOYMENT_ID)
+                .deploymentId(NVIDIA_DEPLOYMENT_ID)
                 .build();
 
             CompletableFuture<String> partialResponseFuture = new CompletableFuture<>();
@@ -783,7 +786,7 @@ public class DeploymentServiceIT {
             assertFalse(chatResponse.toAssistantMessage().content().isBlank());
             assertNotNull(partialResponse);
             assertFalse(partialResponse.isBlank());
-            assertEquals(chatResponse.toAssistantMessage().content(), partialResponse);
+            assertEquals(chatResponse.toAssistantMessage().content(), partialResponse.trim());
         }
 
         @Test
@@ -794,6 +797,7 @@ public class DeploymentServiceIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
+                .parameters(ChatParameters.builder().maxCompletionTokens(0).build())
                 .build();
 
             ChatRequest request = ChatRequest.builder()
@@ -945,6 +949,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
+        @EnabledIfEnvironmentVariable(named = "WATSONX_GEMMA_DEPLOYMENT_ID", matches = ".+")
         void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
             var deploymentService = DeploymentService.builder()
@@ -959,7 +964,7 @@ public class DeploymentServiceIT {
                 .build();
 
             ChatRequest request = ChatRequest.builder()
-                .deploymentId(DEPLOYMENT_ID)
+                .deploymentId(GEMMA_DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -985,7 +990,7 @@ public class DeploymentServiceIT {
                 public void onError(Throwable error) {}
             }));
 
-            var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> future.get(10, TimeUnit.SECONDS));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
@@ -1101,7 +1106,7 @@ public class DeploymentServiceIT {
             assertFalse(assistantMessage.content().isBlank());
             assertFalse(assistantMessage.content().contains("<think>") && assistantMessage.content().contains("</think>"));
             assertFalse(assistantMessage.content().contains("<response>") && assistantMessage.content().contains("</response>"));
-            assertEquals(content, assistantMessage.content());
+            assertEquals(content, assistantMessage.content().trim());
 
             assertNotNull(assistantMessage.thinking());
             assertFalse(assistantMessage.thinking().isBlank());

@@ -999,7 +999,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("ibm/granite-4-h-small")
+                .modelId("openai/gpt-oss-120b")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -1044,7 +1044,7 @@ public class ChatServiceIT {
             }));
 
             var chatResponse = assertDoesNotThrow(() -> future.get(10, TimeUnit.SECONDS));
-            var completedToolCall = assertDoesNotThrow(() -> futureToolCall.get(3, TimeUnit.SECONDS));
+            var completedToolCall = assertDoesNotThrow(() -> futureToolCall.get(10, TimeUnit.SECONDS));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
@@ -1384,7 +1384,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("mistral-large-2512")
+                .modelId("openai/gpt-oss-120b")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)

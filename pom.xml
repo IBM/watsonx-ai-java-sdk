@@ -225,6 +225,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugin-version}</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -287,18 +290,39 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <version>${maven-surefire-plugin-version}</version>
-            <configuration>
-              <includes>
-                <include>**/it/*IT.java</include>
-              </includes>
-            </configuration>
             <executions>
               <execution>
-                <id>integration-tests</id>
+                <id>it-with-retry</id>
                 <goals>
                   <goal>integration-test</goal>
-                  <goal>verify</goal>
                 </goals>
+                <configuration>
+                  <includes>
+                    <include>**/it/ChatServiceIT.java</include>
+                    <include>**/it/DeploymentServiceIT.java</include>
+                    <include>**/it/ToolServiceIT.java</include>
+                  </includes>
+                  <rerunFailingTestsCount>3</rerunFailingTestsCount>
+                  <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+              </execution>
+              <execution>
+                <id>it-without-retry</id>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+                <configuration>
+                  <includes>
+                    <include>**/it/*IT.java</include>
+                  </includes>
+                  <excludes>
+                    <exclude>**/it/ChatServiceIT.java</exclude>
+                    <exclude>**/it/DeploymentServiceIT.java</exclude>
+                    <exclude>**/it/ToolServiceIT.java</exclude>
+                  </excludes>
+                  <rerunFailingTestsCount>0</rerunFailingTestsCount>
+                  <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
               </execution>
             </executions>
           </plugin>

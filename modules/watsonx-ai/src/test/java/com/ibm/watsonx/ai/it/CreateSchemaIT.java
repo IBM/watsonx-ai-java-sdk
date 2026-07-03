@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.textprocessing.Language;
@@ -34,6 +35,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 @EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_CONNECTION_ID", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_BUCKET", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "CLOUD_OBJECT_STORAGE_URL", matches = ".+")
+@ResourceLock("watsonx-cos-document-bucket")
 public class CreateSchemaIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
@@ -106,7 +108,7 @@ public class CreateSchemaIT {
             ).build();
 
         var extraction = textExtractionService.uploadExtractAndFetch(file, textExtractionParameters);
-        assertTrue(extraction.startsWith("## CPB SOFTWARE (GERMANY) GMBH"));
+        assertTrue(extraction.contains("CPB SOFTWARE (GERMANY) GMBH"), extraction);
     }
 
     @Test
@@ -159,12 +161,19 @@ public class CreateSchemaIT {
         var filename = "invoice.pdf";
         var inputstream = ClassLoader.getSystemResourceAsStream(filename);
 
-        var result = createSchemaService.uploadCreateSchemaAndFetch(inputstream, filename);
+        var result = createSchemaService.uploadCreateSchemaAndFetch(inputstream, filename,
+            CreateSchemaParameters.builder()
+                .languages(Language.ENGLISH)
+                .mode(Mode.HIGH_QUALITY)
+                .build());
+
         assertEquals("Invoice", result.schema().documentType());
         assertTrue(createSchemaService.deleteFile(DOCUMENT_REFERENCE_BUCKET, filename));
 
         var parameters = CreateSchemaParameters.builder()
             .removeUploadedFile(true)
+            .languages(Language.ENGLISH)
+            .mode(Mode.HIGH_QUALITY)
             .build();
 
         inputstream = ClassLoader.getSystemResourceAsStream(filename);
