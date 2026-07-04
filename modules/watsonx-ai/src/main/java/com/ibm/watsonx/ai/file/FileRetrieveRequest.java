@@ -17,7 +17,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *     .build();
  * }</pre>
  */
-public class FileRetrieveRequest extends WatsonxParameters {
+public final class FileRetrieveRequest extends WatsonxParameters {
     private final String fileId;
 
     private FileRetrieveRequest(Builder builder) {

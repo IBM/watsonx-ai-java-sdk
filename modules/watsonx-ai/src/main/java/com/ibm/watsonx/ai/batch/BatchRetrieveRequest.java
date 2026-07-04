@@ -17,7 +17,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *     .build();
  * }</pre>
  */
-public class BatchRetrieveRequest extends WatsonxParameters {
+public final class BatchRetrieveRequest extends WatsonxParameters {
     private final String batchId;
 
     private BatchRetrieveRequest(Builder builder) {

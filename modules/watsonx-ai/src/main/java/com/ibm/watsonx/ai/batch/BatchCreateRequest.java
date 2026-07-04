@@ -28,7 +28,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *     .build();
  * }</pre>
  */
-public class BatchCreateRequest extends WatsonxParameters {
+public final class BatchCreateRequest extends WatsonxParameters {
     private final String inputFileId;
     private final String endpoint;
     private final String completionWindow;

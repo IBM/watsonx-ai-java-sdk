@@ -17,7 +17,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *     .build();
  * }</pre>
  */
-public class BatchListRequest extends WatsonxParameters {
+public final class BatchListRequest extends WatsonxParameters {
     private final Integer limit;
 
     private BatchListRequest(Builder builder) {
