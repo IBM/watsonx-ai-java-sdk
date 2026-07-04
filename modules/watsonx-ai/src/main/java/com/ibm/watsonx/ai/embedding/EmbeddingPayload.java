@@ -19,5 +19,5 @@ import com.ibm.watsonx.ai.Crypto;
  * @param crypto the crypto configuration for encryption
  */
 public record EmbeddingPayload(String modelId, String spaceId, String projectId,
-    List<String> inputs, Parameters parameters, Crypto crypto) {}
+    List<String> inputs, EmbeddingRequestParameters parameters, Crypto crypto) {}
 

@@ -84,10 +84,10 @@ final class DefaultRestClient extends FileRestClient {
             url.append("&limit=").append(request.limit());
 
         if (nonNull(request.order()))
-            url.append("&order=").append(request.order());
+            url.append("&order=").append(request.order().value());
 
         if (nonNull(request.purpose()))
-            url.append("&purpose=").append(request.purpose());
+            url.append("&purpose=").append(request.purpose().value());
 
         var httpRequest = HttpRequest.newBuilder(URI.create(url.toString()))
             .GET()

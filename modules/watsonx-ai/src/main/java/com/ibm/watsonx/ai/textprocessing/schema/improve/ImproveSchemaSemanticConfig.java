@@ -58,4 +58,9 @@ public final class ImproveSchemaSemanticConfig extends SemanticConfig {
             return new ImproveSchemaSemanticConfig(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ImproveSchemaSemanticConfig [" + super.toString() + "]";
+    }
 }

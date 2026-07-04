@@ -84,4 +84,9 @@ public final class MergeSchemaDeleteParameters extends WatsonxParameters {
             return new MergeSchemaDeleteParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "MergeSchemaDeleteParameters [" + super.toString() + ", hardDelete=" + hardDelete + "]";
+    }
 }

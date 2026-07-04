@@ -147,4 +147,10 @@ public final class IntegerSchema extends JsonSchema {
             return new IntegerSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "IntegerSchema [" + super.toString() + ", minimum=" + minimum + ", maximum=" + maximum + ", exclusiveMinimum=" + exclusiveMinimum
+            + ", exclusiveMaximum=" + exclusiveMaximum + ", multipleOf=" + multipleOf + "]";
+    }
 }

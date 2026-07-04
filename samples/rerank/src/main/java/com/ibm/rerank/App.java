@@ -34,8 +34,8 @@ public class App {
                 .build();
 
             RerankParameters parameters = RerankParameters.builder()
-                .query(true)
-                .inputs(true)
+                .returnQuery(true)
+                .returnInputs(true)
                 .build();
 
             var response = rerankService.rerank(

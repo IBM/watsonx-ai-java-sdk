@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.foundationmodel;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import java.util.Optional;
@@ -63,7 +64,7 @@ public class FoundationModelService extends WatsonxService {
      * @return an {@link Optional} containing the {@link FoundationModel} if found.
      */
     public Optional<FoundationModel> getModel(String modelId) {
-        requireNonNullElse(modelId, "The modelId must be provided");
+        requireNonNull(modelId, "The modelId must be provided");
         var resources = getModels(Filter.of(Expression.modelId(modelId))).resources();
         return resources.isEmpty()
             ? Optional.empty()
@@ -133,7 +134,7 @@ public class FoundationModelService extends WatsonxService {
      *            </ul>
      * @return List of foundation models.
      */
-    protected FoundationModelResponse<FoundationModel> getModels(Integer start, Integer limit, String transactionId, Boolean techPreview,
+    private FoundationModelResponse<FoundationModel> getModels(Integer start, Integer limit, String transactionId, Boolean techPreview,
         String filters) {
         return client.getModels(start, limit, transactionId, techPreview, filters);
     }

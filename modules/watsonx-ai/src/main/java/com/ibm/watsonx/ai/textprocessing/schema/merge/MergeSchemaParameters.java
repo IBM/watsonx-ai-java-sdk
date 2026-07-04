@@ -123,4 +123,9 @@ public final class MergeSchemaParameters extends WatsonxParameters {
             return new MergeSchemaParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "MergeSchemaParameters [" + super.toString() + ", semanticConfig=" + semanticConfig + ", timeout=" + timeout + "]";
+    }
 }

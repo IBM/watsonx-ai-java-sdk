@@ -75,4 +75,9 @@ public final class TextExtractionSemanticConfig extends ExtendedSemanticConfig {
             return new TextExtractionSemanticConfig(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "TextExtractionSemanticConfig [" + super.toString() + "]";
+    }
 }

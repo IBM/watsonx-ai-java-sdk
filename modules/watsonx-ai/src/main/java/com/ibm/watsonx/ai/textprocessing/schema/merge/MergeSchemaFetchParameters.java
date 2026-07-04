@@ -59,4 +59,9 @@ public final class MergeSchemaFetchParameters extends WatsonxParameters {
             return new MergeSchemaFetchParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "MergeSchemaFetchParameters [" + super.toString() + "]";
+    }
 }

@@ -37,7 +37,7 @@ public class EmbeddingServiceIT {
 
     @Test
     void should_return_valid_embedding_response_when_text_is_provided() {
-        var response = embeddingService.embedding("Embedding this!");
+        var response = embeddingService.embed("Embedding this!");
         assertNotNull(response);
         assertNotNull(response.createdAt());
         assertNotNull(response.inputTokenCount());

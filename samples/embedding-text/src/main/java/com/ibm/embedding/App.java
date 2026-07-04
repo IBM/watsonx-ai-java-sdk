@@ -32,7 +32,7 @@ public class App {
                 .baseUrl(url)
                 .build();
 
-            var response = embeddingService.embedding(
+            var response = embeddingService.embed(
                 List.of("Hello"),
                 EmbeddingParameters.builder()
                     .inputText(true)

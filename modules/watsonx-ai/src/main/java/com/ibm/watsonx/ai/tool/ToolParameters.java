@@ -78,4 +78,9 @@ public final class ToolParameters {
             return new ToolParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ToolParameters [transactionId=" + transactionId + "]";
+    }
 }

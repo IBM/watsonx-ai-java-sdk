@@ -18,7 +18,7 @@ package com.ibm.watsonx.ai.file;
 public record FileData(
     String id,
     String object,
-    Integer bytes,
+    Long bytes,
     Long createdAt,
     Long expiresAt,
     String filename,

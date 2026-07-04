@@ -342,4 +342,12 @@ public final class TextClassificationParameters extends WatsonxParameters {
             return this.value;
         }
     }
+
+    @Override
+    public String toString() {
+        return "TextClassificationParameters [" + super.toString() + ", ocrMode=" + ocrMode + ", classificationMode=" + classificationMode
+            + ", autoRotationCorrection=" + autoRotationCorrection + ", languages=" + languages + ", semanticConfig=" + semanticConfig
+            + ", removeUploadedFile=" + removeUploadedFile + ", documentReference=" + documentReference + ", custom=" + custom + ", timeout="
+            + timeout + "]";
+    }
 }

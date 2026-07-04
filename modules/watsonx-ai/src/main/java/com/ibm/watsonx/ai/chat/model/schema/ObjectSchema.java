@@ -318,4 +318,11 @@ public final class ObjectSchema extends JsonSchema {
             return new ObjectSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ObjectSchema [" + super.toString() + ", properties=" + properties + ", patternProperties=" + patternProperties + ", required="
+            + required + ", anyOf=" + anyOf + ", minProperties=" + minProperties + ", maxProperties=" + maxProperties + ", additionalProperties="
+            + additionalProperties + "]";
+    }
 }

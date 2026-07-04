@@ -84,5 +84,10 @@ public final class TextClassificationDeleteParameters extends WatsonxParameters 
             return new TextClassificationDeleteParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "TextClassificationDeleteParameters [" + super.toString() + ", hardDelete=" + hardDelete + "]";
+    }
 }
 

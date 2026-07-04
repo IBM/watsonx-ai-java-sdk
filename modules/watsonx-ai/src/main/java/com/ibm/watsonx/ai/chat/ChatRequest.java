@@ -368,4 +368,10 @@ public final class ChatRequest {
             return new ChatRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ChatRequest [deploymentId=" + deploymentId + ", messages=" + messages + ", tools=" + tools + ", parameters=" + parameters
+            + ", thinking=" + thinking + "]";
+    }
 }

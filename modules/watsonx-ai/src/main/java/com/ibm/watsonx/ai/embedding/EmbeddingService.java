@@ -29,7 +29,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *     .modelId("ibm/granite-embedding-278m-multilingual")
  *     .build();
  *
- * EmbeddingResponse response = embeddingService.embedding(
+ * EmbeddingResponse response = embeddingService.embed(
  *     "First input",
  *     "Second input"
  * );
@@ -64,8 +64,8 @@ public class EmbeddingService extends ModelService {
      * @param inputs The strings to be embedded.
      * @return An EmbeddingResponse object containing the embedding results.
      */
-    public EmbeddingResponse embedding(String... inputs) {
-        return embedding(Arrays.asList(inputs));
+    public EmbeddingResponse embed(String... inputs) {
+        return embed(Arrays.asList(inputs));
     }
 
     /**
@@ -74,8 +74,8 @@ public class EmbeddingService extends ModelService {
      * @param inputs The strings to be embedded.
      * @return An EmbeddingResponse object containing the embedding results.
      */
-    public EmbeddingResponse embedding(List<String> inputs) {
-        return embedding(inputs, null);
+    public EmbeddingResponse embed(List<String> inputs) {
+        return embed(inputs, null);
     }
 
     /**
@@ -85,8 +85,8 @@ public class EmbeddingService extends ModelService {
      * @param parameters Parameters for the embedding request.
      * @return An EmbeddingResponse object containing the embedding results.
      */
-    public EmbeddingResponse embedding(List<String> inputs, EmbeddingParameters parameters) {
-        return embedding(
+    public EmbeddingResponse embed(List<String> inputs, EmbeddingParameters parameters) {
+        return embed(
             EmbeddingRequest.builder()
                 .inputs(inputs)
                 .parameters(parameters)
@@ -100,7 +100,7 @@ public class EmbeddingService extends ModelService {
      * @param request The request to be embedded.
      * @return An EmbeddingResponse object containing the embedding results.
      */
-    public EmbeddingResponse embedding(EmbeddingRequest request) {
+    public EmbeddingResponse embed(EmbeddingRequest request) {
 
         requireNonNull(request, "Request cannot be null");
         requireNonNull(request.inputs(), "Inputs cannot be null");
@@ -113,7 +113,7 @@ public class EmbeddingService extends ModelService {
         final String modelId = nonNull(parameters) ? requireNonNullElse(parameters.modelId(), this.modelId) : this.modelId;
         final Crypto crypto = nonNull(parameters) && nonNull(parameters.crypto()) ? new Crypto(parameters.crypto()) : null;
         final String transactionId = nonNull(parameters) ? parameters.transactionId() : null;
-        final Parameters requestParameters = nonNull(parameters) ? parameters.toEmbeddingRequestParameters() : null;
+        final EmbeddingRequestParameters requestParameters = nonNull(parameters) ? parameters.toEmbeddingRequestParameters() : null;
 
         if (inputs.size() <= MAX_SIZE) {
             var embeddingRequest = new EmbeddingPayload(modelId, spaceId, projectId, inputs, requestParameters, crypto);
@@ -160,7 +160,7 @@ public class EmbeddingService extends ModelService {
      *     .modelId("ibm/granite-embedding-278m-multilingual")
      *     .build();
      *
-     * EmbeddingResponse response = embeddingService.embedding(
+     * EmbeddingResponse response = embeddingService.embed(
      *     "First input",
      *     "Second input"
      * );

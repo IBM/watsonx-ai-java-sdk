@@ -6,7 +6,7 @@ package com.ibm.watsonx.ai.embedding;
 
 import static java.util.Objects.nonNull;
 import com.ibm.watsonx.ai.WatsonxParameters.WatsonxCryptoParameters;
-import com.ibm.watsonx.ai.embedding.Parameters.ReturnOptions;
+import com.ibm.watsonx.ai.embedding.EmbeddingRequestParameters.ReturnOptions;
 
 /**
  * Represents a set of parameters used to control the behavior of embedding generation.
@@ -48,15 +48,15 @@ public final class EmbeddingParameters extends WatsonxCryptoParameters {
         return inputText;
     }
 
-    Parameters toEmbeddingRequestParameters() {
-        Parameters parameters = null;
+    EmbeddingRequestParameters toEmbeddingRequestParameters() {
+        EmbeddingRequestParameters parameters = null;
         ReturnOptions returnOptions = null;
 
         if (nonNull(inputText))
             returnOptions = new ReturnOptions(inputText);
 
         if (nonNull(truncateInputTokens) || nonNull(returnOptions))
-            parameters = new Parameters(truncateInputTokens, returnOptions);
+            parameters = new EmbeddingRequestParameters(truncateInputTokens, returnOptions);
 
         return parameters;
     }
@@ -118,5 +118,10 @@ public final class EmbeddingParameters extends WatsonxCryptoParameters {
         public EmbeddingParameters build() {
             return new EmbeddingParameters(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "EmbeddingParameters [" + super.toString() + ", truncateInputTokens=" + truncateInputTokens + ", inputText=" + inputText + "]";
     }
 }

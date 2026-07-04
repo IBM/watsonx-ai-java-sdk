@@ -17,7 +17,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *     .build();
  * }</pre>
  */
-public class BatchCancelRequest extends WatsonxParameters {
+public final class BatchCancelRequest extends WatsonxParameters {
     private final String batchId;
 
     private BatchCancelRequest(Builder builder) {
@@ -77,5 +77,10 @@ public class BatchCancelRequest extends WatsonxParameters {
         public BatchCancelRequest build() {
             return new BatchCancelRequest(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "BatchCancelRequest [" + super.toString() + ", batchId=" + batchId + "]";
     }
 }

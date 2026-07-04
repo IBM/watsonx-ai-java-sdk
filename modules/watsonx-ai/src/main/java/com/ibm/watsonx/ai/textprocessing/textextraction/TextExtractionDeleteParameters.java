@@ -84,4 +84,9 @@ public final class TextExtractionDeleteParameters extends WatsonxParameters {
             return new TextExtractionDeleteParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "TextExtractionDeleteParameters [" + super.toString() + ", hardDelete=" + hardDelete + "]";
+    }
 }

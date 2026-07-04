@@ -61,7 +61,9 @@ public final class TextExtractionParameters extends WatsonxParameters {
 
     private TextExtractionParameters(Builder builder) {
         super(builder);
-        this.requestedOutputs = isNull(builder.requestedOutputs) ? List.of(Type.MD.value) : List.copyOf(builder.requestedOutputs);
+        this.requestedOutputs = isNull(builder.requestedOutputs) || builder.requestedOutputs.isEmpty()
+            ? List.of(Type.MD.value)
+            : List.copyOf(builder.requestedOutputs);
         this.mode = builder.mode;
         this.ocrMode = builder.ocrMode;
         this.languages = isNull(builder.languages) ? null : List.copyOf(builder.languages);
@@ -585,5 +587,15 @@ public final class TextExtractionParameters extends WatsonxParameters {
         public String value() {
             return value;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "TextExtractionParameters [" + super.toString() + ", requestedOutputs=" + requestedOutputs + ", mode=" + mode + ", ocrMode=" + ocrMode
+            + ", languages=" + languages + ", autoRotationCorrection=" + autoRotationCorrection + ", createEmbeddedImages=" + createEmbeddedImages
+            + ", outputDpi=" + outputDpi + ", outputTokens=" + outputTokens + ", kvpMode=" + kvpMode + ", semanticConfig=" + semanticConfig
+            + ", removeUploadedFile=" + removeUploadedFile + ", removeOutputFile=" + removeOutputFile + ", outputFileName=" + outputFileName
+            + ", documentReference=" + documentReference + ", resultReference=" + resultReference + ", custom=" + custom + ", timeout=" + timeout
+            + "]";
     }
 }

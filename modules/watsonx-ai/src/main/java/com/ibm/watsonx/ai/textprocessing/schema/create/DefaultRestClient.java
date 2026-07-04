@@ -9,7 +9,6 @@ import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,7 +43,7 @@ final class DefaultRestClient extends CreateSchemaRestClient {
     }
 
     @Override
-    public boolean deleteFile(DeleteFileRequest request) throws FileNotFoundException {
+    public boolean deleteFile(DeleteFileRequest request) {
         try {
 
             var fileName = request.fileName();

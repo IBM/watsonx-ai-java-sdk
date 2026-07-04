@@ -138,4 +138,9 @@ public final class RerankRequest {
             return new RerankRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "RerankRequest [query=" + query + ", inputs=" + inputs + ", parameters=" + parameters + "]";
+    }
 }

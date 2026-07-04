@@ -57,6 +57,7 @@ public class DetectionService extends ProjectService {
      * @return a {@link DetectionResponse} containing the detection results
      */
     public DetectionResponse<DetectionTextResponse> detect(DetectionTextRequest request) {
+        requireNonNull(request, "request cannot be null");
         var projectSpace = resolveProjectSpace(request);
         var transactionId = request.transactionId();
         var textDetectionRequest =

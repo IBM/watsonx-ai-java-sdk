@@ -163,4 +163,11 @@ public final class ArraySchema extends JsonSchema {
             return new ArraySchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ArraySchema [" + super.toString() + ", items=" + items + ", contains=" + contains + ", minItems=" + minItems + ", maxItems="
+            + maxItems
+            + "]";
+    }
 }

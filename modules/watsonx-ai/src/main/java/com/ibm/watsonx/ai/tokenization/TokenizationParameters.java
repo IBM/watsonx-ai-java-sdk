@@ -92,4 +92,9 @@ public final class TokenizationParameters extends WatsonxCryptoParameters {
             return new TokenizationParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "TokenizationParameters [" + super.toString() + ", returnTokens=" + returnTokens + "]";
+    }
 }

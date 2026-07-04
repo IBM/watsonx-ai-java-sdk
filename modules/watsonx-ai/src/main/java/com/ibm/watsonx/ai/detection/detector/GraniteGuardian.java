@@ -81,4 +81,9 @@ public final class GraniteGuardian extends BaseDetector {
             return new GraniteGuardian(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "GraniteGuardian [" + super.toString() + "]";
+    }
 }

@@ -282,6 +282,7 @@ public class CreateSchemaService extends ProjectService {
      * @return A {@link CreateSchemaResponse} containing the results of the request.
      */
     public CreateSchemaResponse fetchRequest(String id, CreateSchemaFetchParameters parameters) {
+        requireNonNull(parameters, "parameters cannot be null");
         return fetchCreateSchemaRequest(UUID.randomUUID().toString(), id, parameters);
     }
 
@@ -322,7 +323,7 @@ public class CreateSchemaService extends ProjectService {
      * @param fileName The name of the file to delete.
      * @return true if the file was successfully deleted, false otherwise.
      */
-    public boolean deleteFile(String bucketName, String fileName) throws FileNotFoundException {
+    public boolean deleteFile(String bucketName, String fileName) {
         return deleteFile(null, bucketName, fileName);
     }
 
@@ -333,7 +334,7 @@ public class CreateSchemaService extends ProjectService {
      * @param fileName The name of the file to delete.
      * @return true if the file was successfully deleted, false otherwise.
      */
-    public boolean deleteFile(String transactionId, String bucketName, String fileName) throws FileNotFoundException {
+    public boolean deleteFile(String transactionId, String bucketName, String fileName) {
         return client.deleteFile(DeleteFileRequest.of(transactionId, bucketName, fileName));
     }
 
@@ -360,6 +361,7 @@ public class CreateSchemaService extends ProjectService {
     public boolean deleteRequest(String id, CreateSchemaDeleteParameters parameters) {
 
         requireNonNull(id, "The id can not be null");
+        requireNonNull(parameters, "parameters cannot be null");
 
         var builder = CreateSchemaDeleteParameters.builder();
         ofNullable(parameters.projectId()).ifPresent(builder::projectId);
@@ -573,6 +575,8 @@ public class CreateSchemaService extends ProjectService {
                 case COMPLETED -> createSchemaResponse;
                 case FAILED -> {
                     var error = createSchemaResponse.entity().results().error();
+                    if (isNull(error))
+                        throw new CreateSchemaException("generic_error", "The schema creation failed without error details");
                     throw new CreateSchemaException(error.code(), error.message());
                 }
                 default -> throw new CreateSchemaException("generic_error",

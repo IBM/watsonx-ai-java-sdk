@@ -45,6 +45,11 @@ public abstract class WatsonxParameters {
         return transactionId;
     }
 
+    @Override
+    public String toString() {
+        return "projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId;
+    }
+
     /**
      * Abstract builder class for constructing {@link WatsonxParameters} instances.
      *
@@ -107,6 +112,11 @@ public abstract class WatsonxParameters {
             return modelId;
         }
 
+        @Override
+        public String toString() {
+            return super.toString() + ", modelId=" + modelId;
+        }
+
         /**
          * Abstract builder class for constructing {@link WatsonxModelParameters} instances.
          *
@@ -146,6 +156,11 @@ public abstract class WatsonxParameters {
          */
         public String crypto() {
             return crypto;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + ", crypto=" + crypto;
         }
 
         /**

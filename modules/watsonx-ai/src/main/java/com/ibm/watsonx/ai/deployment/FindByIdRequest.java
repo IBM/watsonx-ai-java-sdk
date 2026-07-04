@@ -81,4 +81,9 @@ public final class FindByIdRequest extends WatsonxParameters {
             return new FindByIdRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "FindByIdRequest [" + super.toString() + ", deploymentId=" + deploymentId + "]";
+    }
 }

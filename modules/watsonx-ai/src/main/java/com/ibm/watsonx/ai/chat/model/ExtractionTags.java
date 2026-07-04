@@ -107,6 +107,9 @@ public final class ExtractionTags {
      */
     public String extractResponse(String content) {
 
+        if (isNull(content))
+            return null;
+
         String regex = "(?<=" + Pattern.quote(think.closing()) + ")\\s*";
         Pattern pattern = isNull(response)
             ? Pattern.compile(regex.concat("(.*)"), Pattern.DOTALL)
@@ -124,6 +127,9 @@ public final class ExtractionTags {
      * @return the extracted reasoning, or {@code null} if no match is found
      */
     public String extractThinking(String content) {
+
+        if (isNull(content))
+            return null;
 
         String regex = Pattern.quote(think.opening()) + "(.*?)" + Pattern.quote(think.closing());
         if (nonNull(response))

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.mock;
 import java.net.http.HttpClient;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
@@ -31,6 +32,7 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
 
+@Isolated()
 public class CustomHttpClientTest {
 
     @Test

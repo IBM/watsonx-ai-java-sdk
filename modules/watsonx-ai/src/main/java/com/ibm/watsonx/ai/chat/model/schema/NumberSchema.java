@@ -147,4 +147,10 @@ public final class NumberSchema extends JsonSchema {
             return new NumberSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "NumberSchema [" + super.toString() + ", minimum=" + minimum + ", maximum=" + maximum + ", exclusiveMinimum=" + exclusiveMinimum
+            + ", exclusiveMaximum=" + exclusiveMaximum + ", multipleOf=" + multipleOf + "]";
+    }
 }

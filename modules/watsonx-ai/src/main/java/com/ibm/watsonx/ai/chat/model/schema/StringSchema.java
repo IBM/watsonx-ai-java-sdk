@@ -131,4 +131,10 @@ public final class StringSchema extends JsonSchema {
             return new StringSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "StringSchema [" + super.toString() + ", pattern=" + pattern + ", maxLength=" + maxLength + ", minLength=" + minLength + ", format="
+            + format + "]";
+    }
 }

@@ -214,4 +214,10 @@ public final class InputSchema {
             return new InputSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "InputSchema [timestampColumn=" + timestampColumn + ", idColumns=" + idColumns + ", freq=" + freq + ", targetColumns="
+            + targetColumns + "]";
+    }
 }

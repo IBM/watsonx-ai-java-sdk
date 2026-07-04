@@ -6,7 +6,6 @@ package com.ibm.watsonx.ai.textprocessing.schema.create;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
-import java.io.FileNotFoundException;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -35,7 +34,7 @@ public abstract class CreateSchemaRestClient extends WatsonxRestClient {
      * @param request The {@link DeleteFileRequest} containing bucket and file information.
      * @return {@code true} if the file was successfully deleted, {@code false} otherwise.
      */
-    public abstract boolean deleteFile(DeleteFileRequest request) throws FileNotFoundException;
+    public abstract boolean deleteFile(DeleteFileRequest request);
 
     /**
      * Asynchronously deletes a file from the specified COS bucket.

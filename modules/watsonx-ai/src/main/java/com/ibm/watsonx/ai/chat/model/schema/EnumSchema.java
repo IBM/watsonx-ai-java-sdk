@@ -70,4 +70,9 @@ public final class EnumSchema extends JsonSchema {
             return new EnumSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "EnumSchema [" + super.toString() + ", enumValues=" + enumValues + "]";
+    }
 }

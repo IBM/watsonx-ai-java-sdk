@@ -89,7 +89,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 .baseUrl(CloudRegion.DALLAS)
                 .build();
 
-            var response = embeddingService.embedding(
+            var response = embeddingService.embed(
                 "Youth craves thrills while adulthood cherishes wisdom.",
                 "Youth seeks ambition while adulthood finds contentment.",
                 "Dreams chased in youth while goals pursued in adulthood."
@@ -186,7 +186,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 "Dreams chased in youth while goals pursued in adulthood."
             );
 
-            var response = embeddingService.embedding(inputs, parameters);
+            var response = embeddingService.embed(inputs, parameters);
             JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
@@ -216,7 +216,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 .baseUrl(CloudRegion.DALLAS)
                 .build();
 
-            var ex = assertThrows(RuntimeException.class, () -> embeddingService.embedding("Hello"));
+            var ex = assertThrows(RuntimeException.class, () -> embeddingService.embed("Hello"));
             JSONAssert.assertEquals(json, ex.getMessage(), true);
         });
     }
@@ -234,7 +234,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
                 .modelId("model-id")
                 .build();
 
-            assertThrows(RuntimeException.class, () -> embeddingService.embedding("test"), "IOException");
+            assertThrows(RuntimeException.class, () -> embeddingService.embed("test"), "IOException");
         });
     }
 
@@ -284,7 +284,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
             var inputs = List.of("Youth craves thrills while adulthood cherishes wisdom.");
             var parameters = EmbeddingParameters.builder().crypto("key-ref").build();
 
-            embeddingService.embedding(inputs, parameters);
+            embeddingService.embed(inputs, parameters);
             JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
         });
     }
@@ -365,7 +365,7 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
         for (int i = 0; i < 2500; i++)
             inputs.add("Input text " + i);
 
-        var response = embeddingService.embedding(inputs);
+        var response = embeddingService.embed(inputs);
 
         assertEquals(MODEL_ID, response.modelId());
         assertEquals(3, response.results().size());

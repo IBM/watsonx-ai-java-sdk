@@ -112,4 +112,9 @@ public final class EmbeddingRequest {
             return new EmbeddingRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "EmbeddingRequest [inputs=" + inputs + ", parameters=" + parameters + "]";
+    }
 }

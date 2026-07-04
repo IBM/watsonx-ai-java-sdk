@@ -17,7 +17,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *     .build();
  * }</pre>
  */
-public class FileDeleteRequest extends WatsonxParameters {
+public final class FileDeleteRequest extends WatsonxParameters {
     private final String fileId;
 
     private FileDeleteRequest(Builder builder) {
@@ -78,5 +78,10 @@ public class FileDeleteRequest extends WatsonxParameters {
         public FileDeleteRequest build() {
             return new FileDeleteRequest(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "FileDeleteRequest [" + super.toString() + ", fileId=" + fileId + "]";
     }
 }

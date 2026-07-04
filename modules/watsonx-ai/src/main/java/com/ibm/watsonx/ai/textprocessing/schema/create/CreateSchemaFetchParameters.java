@@ -59,4 +59,9 @@ public final class CreateSchemaFetchParameters extends WatsonxParameters {
             return new CreateSchemaFetchParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "CreateSchemaFetchParameters [" + super.toString() + "]";
+    }
 }

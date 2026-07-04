@@ -26,15 +26,15 @@ import com.ibm.watsonx.ai.rerank.RerankPayload.ReturnOptions;
 public final class RerankParameters extends WatsonxCryptoParameters {
     private final Integer truncateInputTokens;
     private final Integer topN;
-    private final Boolean inputs;
-    private final Boolean query;
+    private final Boolean returnInputs;
+    private final Boolean returnQuery;
 
     private RerankParameters(Builder builder) {
         super(builder);
         truncateInputTokens = builder.truncateInputTokens;
         topN = builder.topN;
-        inputs = builder.inputs;
-        query = builder.query;
+        returnInputs = builder.returnInputs;
+        returnQuery = builder.returnQuery;
     }
 
     /**
@@ -60,8 +60,8 @@ public final class RerankParameters extends WatsonxCryptoParameters {
      *
      * @return {@code true} to include inputs, {@code false} otherwise, or {@code null} if not set
      */
-    public Boolean inputs() {
-        return inputs;
+    public Boolean returnInputs() {
+        return returnInputs;
     }
 
     /**
@@ -69,8 +69,8 @@ public final class RerankParameters extends WatsonxCryptoParameters {
      *
      * @return {@code true} to include query, {@code false} otherwise, or {@code null} if not set
      */
-    public Boolean query() {
-        return query;
+    public Boolean returnQuery() {
+        return returnQuery;
     }
 
     Parameters toRerankRequestParameters() {
@@ -78,8 +78,8 @@ public final class RerankParameters extends WatsonxCryptoParameters {
         Parameters parameters = null;
         ReturnOptions returnOptions = null;
 
-        if (nonNull(topN) || nonNull(inputs) || nonNull(query))
-            returnOptions = new ReturnOptions(topN, inputs, query);
+        if (nonNull(topN) || nonNull(returnInputs) || nonNull(returnQuery))
+            returnOptions = new ReturnOptions(topN, returnInputs, returnQuery);
 
         if (nonNull(truncateInputTokens) || nonNull(returnOptions))
             parameters = new Parameters(truncateInputTokens, returnOptions);
@@ -110,8 +110,8 @@ public final class RerankParameters extends WatsonxCryptoParameters {
     public static final class Builder extends WatsonxCryptoParameters.Builder<Builder> {
         private Integer truncateInputTokens;
         private Integer topN;
-        private Boolean inputs;
-        private Boolean query;
+        private Boolean returnInputs;
+        private Boolean returnQuery;
 
         private Builder() {}
 
@@ -144,20 +144,20 @@ public final class RerankParameters extends WatsonxCryptoParameters {
         /**
          * Whether to return the input strings in the response.
          *
-         * @param inputs Boolean value.
+         * @param returnInputs Boolean value.
          */
-        public Builder inputs(Boolean inputs) {
-            this.inputs = inputs;
+        public Builder returnInputs(Boolean returnInputs) {
+            this.returnInputs = returnInputs;
             return this;
         }
 
         /**
          * Whether to return the query in the response.
          *
-         * @param query Boolean value.
+         * @param returnQuery Boolean value.
          */
-        public Builder query(Boolean query) {
-            this.query = query;
+        public Builder returnQuery(Boolean returnQuery) {
+            this.returnQuery = returnQuery;
             return this;
         }
 
@@ -169,5 +169,11 @@ public final class RerankParameters extends WatsonxCryptoParameters {
         public RerankParameters build() {
             return new RerankParameters(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "RerankParameters [" + super.toString() + ", truncateInputTokens=" + truncateInputTokens + ", topN=" + topN + ", returnInputs="
+            + returnInputs + ", returnQuery=" + returnQuery + "]";
     }
 }

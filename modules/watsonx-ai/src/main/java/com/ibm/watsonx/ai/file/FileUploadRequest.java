@@ -20,7 +20,7 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *     .build();
  * }</pre>
  */
-public class FileUploadRequest extends WatsonxParameters {
+public final class FileUploadRequest extends WatsonxParameters {
     private final InputStream inputStream;
     private final String fileName;
     private final Purpose purpose;
@@ -126,5 +126,10 @@ public class FileUploadRequest extends WatsonxParameters {
         public FileUploadRequest build() {
             return new FileUploadRequest(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "FileUploadRequest [" + super.toString() + ", inputStream=" + inputStream + ", fileName=" + fileName + ", purpose=" + purpose + "]";
     }
 }

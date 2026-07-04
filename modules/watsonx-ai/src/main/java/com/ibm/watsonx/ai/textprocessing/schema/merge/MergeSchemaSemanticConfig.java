@@ -58,4 +58,9 @@ public final class MergeSchemaSemanticConfig extends SemanticConfig {
             return new MergeSchemaSemanticConfig(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "MergeSchemaSemanticConfig [" + super.toString() + "]";
+    }
 }

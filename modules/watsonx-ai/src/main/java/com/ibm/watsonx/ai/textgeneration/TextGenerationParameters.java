@@ -253,6 +253,15 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
         return builder.build();
     }
 
+    @Override
+    public String toString() {
+        return "TextGenerationParameters [" + super.toString() + ", decodingMethod=" + decodingMethod + ", lengthPenalty=" + lengthPenalty
+            + ", maxNewTokens=" + maxNewTokens + ", minNewTokens=" + minNewTokens + ", randomSeed=" + randomSeed + ", stopSequences=" + stopSequences
+            + ", temperature=" + temperature + ", timeLimit=" + timeLimit + ", topK=" + topK + ", topP=" + topP + ", repetitionPenalty="
+            + repetitionPenalty + ", truncateInputTokens=" + truncateInputTokens + ", returnOptions=" + returnOptions + ", includeStopSequence="
+            + includeStopSequence + ", promptVariables=" + promptVariables + "]";
+    }
+
     /**
      * Returns a new {@link Builder} instance.
      * <p>
