@@ -161,15 +161,15 @@ public class RerankServiceTest extends AbstractWatsonxTest {
                 .spaceId("my-new-space-id")
                 .modelId("my-new-model-id")
                 .transactionId("my-transaction-id")
-                .query(true)
+                .returnQuery(true)
                 .topN(2)
-                .inputs(true)
+                .returnInputs(true)
                 .truncateInputTokens(512)
                 .build();
 
-            assertEquals(true, parameters.query());
+            assertEquals(true, parameters.returnQuery());
             assertEquals(2, parameters.topN());
-            assertEquals(true, parameters.inputs());
+            assertEquals(true, parameters.returnInputs());
             assertEquals(512, parameters.truncateInputTokens());
 
             var response = rerankService.rerank(
@@ -253,7 +253,7 @@ public class RerankServiceTest extends AbstractWatsonxTest {
                 .projectId("my-new-project-id")
                 .spaceId("my-new-space-id")
                 .modelId("my-new-model-id")
-                .inputs(true)
+                .returnInputs(true)
                 .truncateInputTokens(512)
                 .build();
 

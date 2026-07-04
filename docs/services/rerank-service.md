@@ -157,8 +157,8 @@ The `RerankParameters` class allows you to customize the reranking behavior.
 |-----------|------|-------------|
 | `truncateInputTokens` | Integer | Maximum tokens per input. Inputs exceeding this limit are truncated from the right. Must be > 1. |
 | `topN` | Integer | Return only the top N ranked results. Must be > 1. |
-| `inputs` | Boolean | When `true`, each result includes the original input text in `input().text()`. |
-| `query` | Boolean | When `true`, the original query is included in the response via `response.query()`. |
+| `returnInputs` | Boolean | When `true`, each result includes the original input text in `input().text()`. |
+| `returnQuery` | Boolean | When `true`, the original query is included in the response via `response.query()`. |
 | `modelId` | String | Override the default model for this request. |
 | `projectId` | String | Override the default project ID for this request. |
 | `spaceId` | String | Override the default space ID for this request. |
