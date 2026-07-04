@@ -322,7 +322,7 @@ public class CreateSchemaService extends ProjectService {
      * @param fileName The name of the file to delete.
      * @return true if the file was successfully deleted, false otherwise.
      */
-    public boolean deleteFile(String bucketName, String fileName) throws FileNotFoundException {
+    public boolean deleteFile(String bucketName, String fileName) {
         return deleteFile(null, bucketName, fileName);
     }
 
@@ -333,7 +333,7 @@ public class CreateSchemaService extends ProjectService {
      * @param fileName The name of the file to delete.
      * @return true if the file was successfully deleted, false otherwise.
      */
-    public boolean deleteFile(String transactionId, String bucketName, String fileName) throws FileNotFoundException {
+    public boolean deleteFile(String transactionId, String bucketName, String fileName) {
         return client.deleteFile(DeleteFileRequest.of(transactionId, bucketName, fileName));
     }
 

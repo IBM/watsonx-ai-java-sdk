@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.client.impl;
 
-import java.io.FileNotFoundException;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 import com.ibm.watsonx.ai.textprocessing.UploadRequest;
@@ -21,7 +20,7 @@ public class CustomCreateSchemaRestClient extends CreateSchemaRestClient {
     }
 
     @Override
-    public boolean deleteFile(DeleteFileRequest request) throws FileNotFoundException {
+    public boolean deleteFile(DeleteFileRequest request) {
         throw new UnsupportedOperationException("Unimplemented method 'deleteFile'");
     }
 
