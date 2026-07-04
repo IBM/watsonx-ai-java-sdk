@@ -15,6 +15,8 @@ Before getting started, ensure you have:
 - Java 17 or higher
 - Maven or Gradle
 
+New to watsonx.ai? The [Setup & Prerequisites](https://ibm.github.io/watsonx-ai-java-sdk/setup) guide walks through creating the resources the SDK needs (API key, Project ID, Cloud Object Storage, and more), with links to the IBM documentation.
+
 ## Installation
 
 Add the SDK to your **Maven** project:
