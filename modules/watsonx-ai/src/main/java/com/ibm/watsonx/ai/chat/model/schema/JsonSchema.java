@@ -16,15 +16,15 @@ import java.util.List;
  * <p>
  * <b>Creation methods:</b>
  * <ul>
- * <li>{@link #object()} — creates an {@link ObjectSchema}</li>
- * <li>{@link #array()} — creates an {@link ArraySchema}</li>
- * <li>{@link #string()} — creates a {@link StringSchema}</li>
- * <li>{@link #number()} — creates a {@link NumberSchema}</li>
- * <li>{@link #integer()} — creates an {@link IntegerSchema}</li>
- * <li>{@link #bool()} — creates a {@link BooleanSchema}</li>
- * <li>{@link #enumeration(Object...)} — creates an {@link EnumSchema}</li>
- * <li>{@link #constant(Object)} — creates a {@link ConstantSchema}</li>
- * <li>{@link #required(String...)} — creates a {@link RequiredSchema}</li>
+ * <li>{@link #object()} - creates an {@link ObjectSchema}</li>
+ * <li>{@link #array()} - creates an {@link ArraySchema}</li>
+ * <li>{@link #string()} - creates a {@link StringSchema}</li>
+ * <li>{@link #number()} - creates a {@link NumberSchema}</li>
+ * <li>{@link #integer()} - creates an {@link IntegerSchema}</li>
+ * <li>{@link #bool()} - creates a {@link BooleanSchema}</li>
+ * <li>{@link #enumeration(Object...)} - creates an {@link EnumSchema}</li>
+ * <li>{@link #constant(Object)} - creates a {@link ConstantSchema}</li>
+ * <li>{@link #required(String...)} - creates a {@link RequiredSchema}</li>
  *
  * </ul>
  * <p>

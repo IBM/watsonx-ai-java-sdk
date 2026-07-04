@@ -197,8 +197,8 @@ The `DetectionTextRequest` encapsulates the input text and the list of detectors
 |-----------|------|----------|-------------|
 | `input` | String | Yes | The text to analyze |
 | `detectors` | List\<BaseDetector\> | Yes | One or more detectors to run |
-| `projectId` | String | No | Override the default project ID |
-| `spaceId` | String | No | Override the default space ID |
+| `projectId` | String | No | Override the default Project ID |
+| `spaceId` | String | No | Override the default Space ID |
 | `transactionId` | String | No | Request tracking ID |
 
 ---

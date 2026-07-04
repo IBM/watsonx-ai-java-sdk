@@ -116,7 +116,7 @@ System.out.println("Pages Processed: " + result.numberPagesProcessed());
 // → Pages Processed: 1
 ```
 
-**From an InputStream** — useful for documents from web uploads or streaming sources:
+**From an InputStream** - useful for documents from web uploads or streaming sources:
 
 ```java
 InputStream inputStream = new FileInputStream("invoice.pdf");
@@ -125,7 +125,7 @@ System.out.println("Document Type: " + result.documentType());
 // → Document Type: Invoice
 ```
 
-**From a file already in COS** — skip the upload step entirely:
+**From a file already in COS** - skip the upload step entirely:
 
 ```java
 ClassificationResult result = service.classifyAndFetch("invoice.pdf");
@@ -133,7 +133,7 @@ System.out.println("Document Type: " + result.documentType());
 // → Document Type: Invoice
 ```
 
-**Automatic file cleanup** — set `removeUploadedFile(true)` to delete the uploaded file from COS asynchronously after classification completes:
+**Automatic file cleanup** - set `removeUploadedFile(true)` to delete the uploaded file from COS asynchronously after classification completes:
 
 ```java
 var parameters = TextClassificationParameters.builder()
@@ -224,7 +224,7 @@ Each `KvpField` accepts a description and an example value. You can also pass `a
 
 | Strategy | Description | When to use |
 |----------|-------------|-------------|
-| `SchemaMergeStrategy.REPLACE` | Ignores all pre-defined schemas; classifies only against your custom schemas | When your documents have unique fields or you want to prevent accidental matching with a similar pre-defined schema |
+| `SchemaMergeStrategy.REPLACE` | Ignores all pre-defined schemas and classifies only against your custom schemas | When your documents have unique fields or you want to prevent accidental matching with a similar pre-defined schema |
 | `SchemaMergeStrategy.MERGE` | Combines your custom schemas with the existing pre-defined ones | When you want to extend the catalog with new document types while still benefiting from pre-defined schemas |
 
 ```java
@@ -253,7 +253,7 @@ System.out.println(result.documentType());       // → (blank)
 
 During classification, two key-value-pair (KVP) extraction methods can be enabled independently or together:
 
-**Schema-based extraction** (`enableSchemaKvp: true`) classifies each page into a known document type and extracts only the fields declared in the matching schema. Use this when you have domain-specific knowledge of the document structure — it increases accuracy for known document types.
+**Schema-based extraction** (`enableSchemaKvp: true`) classifies each page into a known document type and extracts only the fields declared in the matching schema. Use this when you have domain-specific knowledge of the document structure - it increases accuracy for known document types.
 
 **Generic extraction** (`enableGenericKvp: true`) performs a broad sweep and extracts any content that can be represented as key-value pairs, regardless of document type. Use this when you have no prior knowledge of the document structure.
 
@@ -317,7 +317,7 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `classificationMode` | ClassificationMode | `EXACT` returns the matched schema name; `BINARY` returns only whether a match was found |
+| `classificationMode` | ClassificationMode | `EXACT` returns the matched schema name. `BINARY` returns only whether a match was found |
 | `ocrMode` | OcrMode | OCR processing mode: `DISABLED`, `ENABLED`, or `FORCED`. Leaving unset lets the service choose automatically |
 | `autoRotationCorrection` | Boolean | Automatically correct document rotation before OCR |
 | `languages` | Language... | Expected languages in the document (ISO 639) |
@@ -326,8 +326,8 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | `documentReference` | CosReference | Override the default COS connection and bucket for this request |
 | `timeout` | Duration | Override the service-level timeout for this request |
 | `addCustomProperty` | String, Object | Add arbitrary key-value metadata to the request |
-| `projectId` | String | Override the default project ID |
-| `spaceId` | String | Override the default space ID |
+| `projectId` | String | Override the default Project ID |
+| `spaceId` | String | Override the default Space ID |
 | `transactionId` | String | Request tracking ID |
 
 ### Classification Modes
@@ -342,7 +342,7 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | Value | Sent to API | Description |
 |-------|-------------|-------------|
 | `OcrMode.AUTO` | *(not sent)* | Service automatically selects the best OCR option |
-| `OcrMode.DISABLED` | `"disabled"` | OCR is disabled; document must contain native text |
+| `OcrMode.DISABLED` | `"disabled"` | OCR is disabled. The document must contain native text |
 | `OcrMode.ENABLED` | `"enabled"` | OCR is applied when the service determines it is needed |
 | `OcrMode.FORCED` | `"forced"` | OCR is always applied regardless of document content |
 

@@ -68,10 +68,10 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
      * A {@link RetryInterceptor} that retries requests when a {@link WatsonxException} is thrown with one of the following transient HTTP status
      * codes:
      * <ul>
-     * <li><code>429</code> — Too Many Requests</li>
-     * <li><code>503</code> — Service Unavailable</li>
-     * <li><code>504</code> — Gateway Timeout</li>
-     * <li><code>520</code> — Unknown Error</li>
+     * <li><code>429</code> - Too Many Requests</li>
+     * <li><code>503</code> - Service Unavailable</li>
+     * <li><code>504</code> - Gateway Timeout</li>
+     * <li><code>520</code> - Unknown Error</li>
      * </ul>
      */
     public static final RetryInterceptor ON_RETRYABLE_STATUS_CODES = RetryInterceptor.builder()

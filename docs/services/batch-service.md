@@ -12,10 +12,10 @@ The `BatchService` provides functionality to submit and manage batch jobs using 
 
 ## Relationship with FileService
 
-`BatchService` and `FileService` work in tandem. Input files must be uploaded to IBM Cloud Object Storage before a batch job can reference them, and output files must be retrieved from COS once the job completes. `BatchService` handles both steps automatically when a `FileService` instance is provided:
+`BatchService` and [`FileService`](../file-service) work in tandem. Input files must be uploaded to IBM Cloud Object Storage before a batch job can reference them, and output files must be retrieved from COS once the job completes. `BatchService` handles both steps automatically when a `FileService` instance is provided:
 
-- **File upload** — when submitting via `Path`, `File`, or `InputStream`, `BatchService` calls `FileService.upload()` internally and assigns the resulting `file_id` to the request.
-- **Output retrieval** — when using `submitAndFetch()`, `BatchService` calls `FileService.retrieve()` internally once the job completes and deserializes each output line into the requested type.
+- **File upload** - when submitting via `Path`, `File`, or `InputStream`, `BatchService` calls `FileService.upload()` internally and assigns the resulting `file_id` to the request.
+- **Output retrieval** - when using `submitAndFetch()`, `BatchService` calls `FileService.retrieve()` internally once the job completes and deserializes each output line into the requested type.
 
 If you already have a `file_id` from a previous upload, you can submit directly without these automatic steps using `BatchCreateRequest.inputFileId()`.
 
@@ -99,7 +99,7 @@ BatchService batchService = BatchService.builder()
 
 ## Input File Format
 
-Input files must be in [JSONL](https://jsonlines.org/) format — one JSON object per line. Each line represents a single inference request and must include a `custom_id` to correlate results with inputs.
+Input files must be in [JSONL](https://jsonlines.org/) format - one JSON object per line. Each line represents a single inference request and must include a `custom_id` to correlate results with inputs.
 
 ```json
 {"custom_id": "a", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "ibm/granite-4-h-small", "messages": [{"role": "user", "content": [{"type": "text", "text": "Capital of Italy"}]}], "max_completion_tokens": 0, "time_limit": 30000, "temperature": 0}}
@@ -134,7 +134,7 @@ InputStream is = new FileInputStream("requests.jsonl");
 List<BatchResult<ChatResponse>> results = batchService.submitAndFetch(is, "requests.jsonl", ChatResponse.class);
 ```
 
-**From a pre-uploaded `file_id`** — when you have already uploaded the file via `FileService`:
+**From a pre-uploaded `file_id`** - when you have already uploaded the file via `FileService`:
 
 ```java
 FileData fileData = fileService.upload(Path.of("requests.jsonl"));
@@ -264,8 +264,8 @@ Returned by `submit()`, `retrieve()`, `cancel()`, and contained in `BatchListRes
 | `endpoint()` | String | API endpoint used for inference (e.g., `/v1/chat/completions`) |
 | `inputFileId()` | String | Identifier of the uploaded input file |
 | `completionWindow()` | String | Time window for completion (e.g., `"24h"`) |
-| `status()` | String | Current job status — see [Status](#status) |
-| `outputFileId()` | String | Identifier of the output file; available once completed |
+| `status()` | String | Current job status - see [Status](#status) |
+| `outputFileId()` | String | Identifier of the output file, available once completed |
 | `errorFileId()` | String | Identifier of the error file, if any requests failed |
 | `errors()` | FileErrors | Validation or processing errors, if any |
 | `requestCounts()` | RequestCounts | Summary of total, completed, and failed request counts |
@@ -287,7 +287,7 @@ Returned per-item by `submitAndFetch()`. Each entry corresponds to one line in t
 | Field | Type | Description |
 |-------|------|-------------|
 | `id()` | String | Unique identifier of this result entry |
-| `customId()` | String | The `custom_id` from the original input line — use this to correlate results with inputs |
+| `customId()` | String | The `custom_id` from the original input line - use this to correlate results with inputs |
 | `response()` | Response\<T\> | HTTP response wrapper containing status code, request ID, and deserialized body |
 | `processedAt()` | Long | Unix timestamp when this request was processed |
 
@@ -304,8 +304,8 @@ The `Status` enum covers the terminal states used internally for polling. The fu
 | `validating` | Input file is being validated |
 | `in_progress` | Job is actively processing requests |
 | `finalizing` | Processing complete, output is being assembled |
-| `completed` | Job finished successfully — output file is available |
-| `failed` | Job failed — check `errors()` and `errorFileId()` |
+| `completed` | Job finished successfully - output file is available |
+| `failed` | Job failed - check `errors()` and `errorFileId()` |
 
 ---
 

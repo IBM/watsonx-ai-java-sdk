@@ -153,7 +153,7 @@ Sends text or multimodal content.
 // Plain text
 UserMessage.text("Hello!");
 
-// With image from file — ImageContent.from(...) throws IOException
+// With image from file - ImageContent.from(...) throws IOException
 try {
     UserMessage.of(
         TextContent.of("Describe this image"),
@@ -186,7 +186,7 @@ List<ToolCall> tools = assistantMessage.toolCalls();
 
 ### Simple Chat
 
-The simplest possible interaction — send a single message and get a response. This is perfect for one-off questions or when you don't need to maintain conversation history.
+The simplest possible interaction - send a single message and get a response. This is perfect for one-off questions or when you don't need to maintain conversation history.
 
 ```java
 ChatResponse response = chatService.chat("What is the capital of France?");
@@ -218,7 +218,7 @@ System.out.println(response.toAssistantMessage().content());
 
 ### Customizing Generation Parameters
 
-Parameters let you fine-tune the generation behavior — shorter answers, more creative output, or deterministic results.
+Parameters let you fine-tune the generation behavior - shorter answers, more creative output, or deterministic results.
 
 ```java
 var parameters = ChatParameters.builder()
@@ -256,7 +256,7 @@ ChatResponse finalResponse = future.get();
 
 ### Streaming with ChatHandler
 
-For more control over the streaming process — metadata, finish reasons, tool call fragments, error handling — implement `ChatHandler`:
+For more control over the streaming process - metadata, finish reasons, tool call fragments, error handling - implement `ChatHandler`:
 
 ```java
 chatService.chatStreaming(
@@ -296,7 +296,7 @@ chatService.chatStreaming(
 
 ## Tool Calling
 
-Tool calling enables the model to invoke external functions instead of just generating text. The model decides when an action is needed — querying a database, calling an API, sending a message — and returns a structured tool call that your code executes.
+Tool calling enables the model to invoke external functions instead of just generating text. The model decides when an action is needed - querying a database, calling an API, sending a message - and returns a structured tool call that your code executes.
 
 ### Basic Tool Calling
 
@@ -360,7 +360,7 @@ System.out.println(answer);
 
 ## Interceptors
 
-Interceptors run automatically after every non-streaming response, before the result is returned to your application. They are configured once on the service builder and apply transparently to all subsequent calls. Both are `@FunctionalInterface` — pass a lambda directly.
+Interceptors run automatically after every non-streaming response, before the result is returned to your application. They are configured once on the service builder and apply transparently to all subsequent calls. Both are `@FunctionalInterface` - pass a lambda directly.
 
 ### Message Interceptor
 
@@ -402,7 +402,7 @@ Both interceptors receive an `InterceptorContext` as their first argument, which
 | `ctx.response()` | An `Optional<ChatResponse>` with the current response |
 | `ctx.invoke(ChatRequest)` | Sends a new request to the model and returns its response |
 
-`ctx.invoke()` reuses the same `ChatService` instance — same model, project, base URL, and default parameters — so you can add a second reasoning step without instantiating anything new. Per-request overrides are still possible via `ChatParameters`:
+`ctx.invoke()` reuses the same `ChatService` instance - same model, project, base URL, and default parameters - so you can add a second reasoning step without instantiating anything new. Per-request overrides are still possible via `ChatParameters`:
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -435,7 +435,7 @@ ChatService chatService = ChatService.builder()
 chatService.chat("Does water boil on the Moon?");
 ```
 
-> `ctx.invoke()` counts as a separate API call and consumes additional tokens. Use it when the benefit — validation, rewriting, classification — justifies the cost.
+> `ctx.invoke()` counts as a separate API call and consumes additional tokens. Use it when the benefit - validation, rewriting, classification - justifies the cost.
 
 ---
 
@@ -498,7 +498,7 @@ System.out.println(languages);
 
 ## Vision
 
-Vision-enabled models can analyze images alongside text — useful for image description, visual question answering, OCR, and more. Include an image directly in the `UserMessage`:
+Vision-enabled models can analyze images alongside text - useful for image description, visual question answering, OCR, and more. Include an image directly in the `UserMessage`:
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -521,7 +521,7 @@ System.out.println(response.toAssistantMessage().content());
 
 ## Video
 
-Video-enabled models can analyze video content alongside text — useful for video description, action recognition, scene understanding, and more. NVIDIA models support video analysis by including video files directly in the `UserMessage`:
+Video-enabled models can analyze video content alongside text - useful for video description, action recognition, scene understanding, and more. NVIDIA models support video analysis by including video files directly in the `UserMessage`:
 
 ```java
 DeploymentService deploymentService = DeploymentService.builder()
@@ -546,8 +546,8 @@ Some foundation models can include internal reasoning steps as part of their res
 
 There are two configuration modes:
 
-- **ExtractionTags** — for models that return reasoning and response in the same text block.
-- **ThinkingEffort** — for models that already separate reasoning and response automatically.
+- **ExtractionTags** - for models that return reasoning and response in the same text block.
+- **ThinkingEffort** - for models that already separate reasoning and response automatically.
 
 ### Models that mix reasoning and response in the same text
 
@@ -732,7 +732,7 @@ ChatService limitedService = ChatService.builder()
 
 ## Chat Parameters
 
-`ChatParameters` allows you to fine-tune the behavior of chat requests — response length, creativity, repetition handling, output format, and more.
+`ChatParameters` allows you to fine-tune the behavior of chat requests - response length, creativity, repetition handling, output format, and more.
 
 ### Builder Reference
 
@@ -748,21 +748,21 @@ ChatService limitedService = ChatService.builder()
 | `stop` | List\<String\> | Max 4 | Stop sequences to end generation |
 | `seed` | Integer | Any | Random seed for reproducibility |
 | `n` | Integer | ≥ 1 | Number of completions to generate |
-| `logprobs` | Boolean | — | Return log probabilities |
+| `logprobs` | Boolean | - | Return log probabilities |
 | `topLogprobs` | Integer | ≥ 1 | Top token log probs (requires `logprobs=true`) |
-| `logitBias` | Map\<String, Integer\> | — | Adjust token probabilities |
+| `logitBias` | Map\<String, Integer\> | - | Adjust token probabilities |
 | `timeLimit` | Duration | Any | Maximum generation time |
 | `toolChoiceOption` | ToolChoiceOption | AUTO, REQUIRED, NONE | Tool selection strategy |
 | `toolChoice` | String | Tool name | Force a specific tool call |
 | `guidedChoice` | Set\<String\> | Any | Constrain output to one of the given options |
 | `guidedRegex` | String | Valid regex | Constrain output to a regex pattern |
 | `guidedGrammar` | String | CFG grammar | Constrain output to a context-free grammar |
-| `responseFormat` | — | — | Use `responseAsText()`, `responseAsJson()`, `responseAsJsonSchema()` |
-| `modelId` | String | — | Override default model for this request |
-| `projectId` | String | — | Override default project for this request |
-| `spaceId` | String | — | Override default space for this request |
-| `transactionId` | String | — | Request tracking ID |
-| `crypto` | String | — | Key reference for encrypting the inference request (e.g., IBM Key Protect CRN) |
+| `responseFormat` | - | - | Use `responseAsText()`, `responseAsJson()`, `responseAsJsonSchema()` |
+| `modelId` | String | - | Override default model for this request |
+| `projectId` | String | - | Override default project for this request |
+| `spaceId` | String | - | Override default space for this request |
+| `transactionId` | String | - | Request tracking ID |
+| `crypto` | String | - | Key reference for encrypting the inference request (e.g., IBM Key Protect CRN) |
 
 ---
 

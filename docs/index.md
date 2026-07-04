@@ -42,6 +42,8 @@ Before getting started, ensure you have:
 - Java 17 or higher
 - Maven or Gradle
 
+The samples in this documentation reference values such as an **API key**, a **Project ID**, and (for some services) **Cloud Object Storage** details. If you don't have these yet, the [Setup & Prerequisites](setup) page walks through creating each resource, with links to the official IBM documentation.
+
 ---
 
 ## Installation

@@ -182,8 +182,8 @@ System.out.println("Deleted: " + deleted);
 |-----------|------|-------------|
 | `semanticConfig` | MergeSchemaSemanticConfig | Semantic model configuration for merging |
 | `timeout` | Duration | Override the service-level timeout for this request (synchronous only) |
-| `projectId` | String | Override the default project ID |
-| `spaceId` | String | Override the default space ID |
+| `projectId` | String | Override the default Project ID |
+| `spaceId` | String | Override the default Space ID |
 | `transactionId` | String | Request tracking ID |
 
 ### Using a Custom Foundation Model
