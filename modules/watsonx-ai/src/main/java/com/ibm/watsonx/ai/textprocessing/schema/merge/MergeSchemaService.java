@@ -125,6 +125,7 @@ public class MergeSchemaService extends ProjectService {
      */
     public MergeSchemaResponse fetchRequest(String id, MergeSchemaFetchParameters parameters) {
         requireNonNull(id, "id cannot be null");
+        requireNonNull(parameters, "parameters cannot be null");
         return fetchMergeSchemaRequest(UUID.randomUUID().toString(), id, parameters);
     }
 
@@ -148,6 +149,7 @@ public class MergeSchemaService extends ProjectService {
     public boolean deleteRequest(String id, MergeSchemaDeleteParameters parameters) {
 
         requireNonNull(id, "The id can not be null");
+        requireNonNull(parameters, "parameters cannot be null");
 
         var builder = MergeSchemaDeleteParameters.builder();
         ofNullable(parameters.projectId()).ifPresent(builder::projectId);
@@ -304,6 +306,8 @@ public class MergeSchemaService extends ProjectService {
             case COMPLETED -> mergeSchemaResponse;
             case FAILED -> {
                 var error = mergeSchemaResponse.entity().results().error();
+                if (isNull(error))
+                    throw new MergeSchemaException("generic_error", "The schema merge failed without error details");
                 throw new MergeSchemaException(error.code(), error.message());
             }
             default -> throw new MergeSchemaException("generic_error",

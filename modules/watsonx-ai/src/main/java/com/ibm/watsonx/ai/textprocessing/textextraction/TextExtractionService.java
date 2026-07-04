@@ -364,6 +364,7 @@ public class TextExtractionService extends ProjectService {
      * @return A {@link TextExtractionResponse} containing the results of the request.
      */
     public TextExtractionResponse fetchExtractionRequest(String id, TextExtractionFetchParameters parameters) {
+        requireNonNull(parameters, "parameters cannot be null");
         return fetchExtractionRequest(UUID.randomUUID().toString(), id, parameters);
     }
 
@@ -393,8 +394,7 @@ public class TextExtractionService extends ProjectService {
      */
     public boolean uploadFile(InputStream inputStream, String fileName) {
         var requestId = UUID.randomUUID().toString();
-        upload(requestId, inputStream, fileName, null, false);
-        return true;
+        return upload(requestId, inputStream, fileName, null, false);
     }
 
     /**
@@ -441,6 +441,7 @@ public class TextExtractionService extends ProjectService {
     public boolean deleteRequest(String id, TextExtractionDeleteParameters parameters) {
 
         requireNonNull(id, "The id can not be null");
+        requireNonNull(parameters, "parameters cannot be null");
 
         var builder = TextExtractionDeleteParameters.builder();
         ofNullable(parameters.projectId()).ifPresent(builder::projectId);
@@ -505,7 +506,7 @@ public class TextExtractionService extends ProjectService {
     //
     // Uploads an inputstream to the Cloud Object Storage.
     //
-    private void upload(String requestId, InputStream is, String fileName, TextExtractionParameters parameters, boolean waitForExtraction) {
+    private boolean upload(String requestId, InputStream is, String fileName, TextExtractionParameters parameters, boolean waitForExtraction) {
         requireNonNull(requestId, "requestId value cannot be null");
         requireNonNull(is, "is value cannot be null");
         requireNonNull(fileName, "fileName value cannot be null");
@@ -524,7 +525,7 @@ public class TextExtractionService extends ProjectService {
             throw new IllegalArgumentException(
                 "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
         var request = UploadRequest.of(requestId, documentReference.bucket(), is, fileName);
-        client.upload(request);
+        return client.upload(request);
     }
 
     //
@@ -710,6 +711,8 @@ public class TextExtractionService extends ProjectService {
                 }
                 case FAILED -> {
                     Error error = textExtractionResponse.entity().results().error();
+                    if (isNull(error))
+                        throw new TextExtractionException("generic_error", "The extraction failed without error details");
                     throw new TextExtractionException(error.code(), error.message());
                 }
                 default -> throw new TextExtractionException("generic_error",

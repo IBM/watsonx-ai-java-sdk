@@ -173,6 +173,10 @@ public final class ChatResponse {
      * @see #toAssistantMessage()
      */
     public List<AssistantMessage> toAssistantMessages() {
+
+        if (isNull(choices) || choices.isEmpty())
+            throw new IllegalStateException("The chat response contains no choices");
+
         return choices.stream()
             .map(ResultChoice::message)
             .map(message -> {

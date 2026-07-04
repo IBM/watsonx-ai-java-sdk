@@ -124,6 +124,7 @@ public class ImproveSchemaService extends ProjectService {
      */
     public ImproveSchemaResponse fetchRequest(String id, ImproveSchemaFetchParameters parameters) {
         requireNonNull(id, "id cannot be null");
+        requireNonNull(parameters, "parameters cannot be null");
         return fetchImproveSchemaRequest(UUID.randomUUID().toString(), id, parameters);
     }
 
@@ -147,6 +148,7 @@ public class ImproveSchemaService extends ProjectService {
     public boolean deleteRequest(String id, ImproveSchemaDeleteParameters parameters) {
 
         requireNonNull(id, "The id can not be null");
+        requireNonNull(parameters, "parameters cannot be null");
 
         var builder = ImproveSchemaDeleteParameters.builder();
         ofNullable(parameters.projectId()).ifPresent(builder::projectId);
@@ -303,6 +305,8 @@ public class ImproveSchemaService extends ProjectService {
             case COMPLETED -> improveSchemaResponse;
             case FAILED -> {
                 var error = improveSchemaResponse.entity().results().error();
+                if (isNull(error))
+                    throw new ImproveSchemaException("generic_error", "The schema improvement failed without error details");
                 throw new ImproveSchemaException(error.code(), error.message());
             }
             default -> throw new ImproveSchemaException("generic_error",

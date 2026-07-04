@@ -316,6 +316,7 @@ public class TextClassificationService extends ProjectService {
      * @return A {@link TextClassificationResponse} containing the results of the request.
      */
     public TextClassificationResponse fetchClassificationRequest(String id, TextClassificationFetchParameters parameters) {
+        requireNonNull(parameters, "parameters cannot be null");
         return fetchClassificationRequest(UUID.randomUUID().toString(), id, parameters);
     }
 
@@ -345,8 +346,7 @@ public class TextClassificationService extends ProjectService {
      */
     public boolean uploadFile(InputStream inputStream, String fileName) {
         var requestId = UUID.randomUUID().toString();
-        upload(requestId, inputStream, fileName, null, false);
-        return true;
+        return upload(requestId, inputStream, fileName, null, false);
     }
 
     /**
@@ -382,6 +382,7 @@ public class TextClassificationService extends ProjectService {
      */
     public boolean deleteRequest(String id, TextClassificationDeleteParameters parameters) {
         requireNonNull(id, "The id can not be null");
+        requireNonNull(parameters, "parameters cannot be null");
 
         var builder = TextClassificationDeleteParameters.builder();
         ofNullable(parameters.projectId()).ifPresent(builder::projectId);
@@ -435,7 +436,8 @@ public class TextClassificationService extends ProjectService {
     //
     // Uploads an inputstream to the Cloud Object Storage.
     //
-    private void upload(String requestId, InputStream is, String fileName, TextClassificationParameters parameters, boolean waitForClassification) {
+    private boolean upload(String requestId, InputStream is, String fileName, TextClassificationParameters parameters,
+        boolean waitForClassification) {
         requireNonNull(requestId, "requestId value cannot be null");
         requireNonNull(is, "is value cannot be null");
         requireNonNull(fileName, "fileName value cannot be null");
@@ -453,7 +455,7 @@ public class TextClassificationService extends ProjectService {
                 "The asynchronous version of startClassification doesn't allow the use of the \"removeUploadedFile\" parameter");
 
         var request = UploadRequest.of(requestId, documentReference.bucket(), is, fileName);
-        client.upload(request);
+        return client.upload(request);
     }
 
     //
@@ -598,6 +600,8 @@ public class TextClassificationService extends ProjectService {
                 }
                 default -> {
                     Error error = textClassificationResponse.entity().results().error();
+                    if (isNull(error))
+                        throw new TextClassificationException("generic_error", "The classification failed without error details");
                     throw new TextClassificationException(error.code(), error.message());
                 }
             };
