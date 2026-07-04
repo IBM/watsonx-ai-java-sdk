@@ -20,7 +20,7 @@ EmbeddingService embeddingService = EmbeddingService.builder()
     .modelId("ibm/granite-embedding-278m-multilingual")
     .build();
 
-EmbeddingResponse response = embeddingService.embedding("Hello, world!");
+EmbeddingResponse response = embeddingService.embed("Hello, world!");
 System.out.println(response.results().get(0).embedding());
 // → [-0.029937625, 0.05433679, 0.013135133, 0.018311847, ...]
 ```
@@ -97,7 +97,7 @@ EmbeddingService embeddingService = EmbeddingService.builder()
 The simplest use case — pass a single string and retrieve its vector representation.
 
 ```java
-EmbeddingResponse response = embeddingService.embedding("Embedding this!");
+EmbeddingResponse response = embeddingService.embed("Embedding this!");
 List<Float> vector = response.results().get(0).embedding();
 System.out.println("Vector size: " + vector.size());
 // → Vector size: 768
@@ -108,7 +108,7 @@ System.out.println("Vector size: " + vector.size());
 Pass multiple strings in a single call. Results are returned in the same order as the inputs.
 
 ```java
-EmbeddingResponse response = embeddingService.embedding(
+EmbeddingResponse response = embeddingService.embed(
     "First input",
     "Second input",
     "Third input"
@@ -132,7 +132,7 @@ You can also pass a `List<String>`:
 
 ```java
 List<String> inputs = List.of("apple", "banana", "cherry");
-EmbeddingResponse response = embeddingService.embedding(inputs);
+EmbeddingResponse response = embeddingService.embed(inputs);
 ```
 
 ### Customizing Generation Parameters
@@ -145,7 +145,7 @@ EmbeddingParameters parameters = EmbeddingParameters.builder()
     .inputText(true)
     .build();
 
-EmbeddingResponse response = embeddingService.embedding(
+EmbeddingResponse response = embeddingService.embed(
     List.of("A very long document that might exceed the model's token limit..."),
     parameters
 );

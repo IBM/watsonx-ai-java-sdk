@@ -10,7 +10,7 @@ package com.ibm.watsonx.ai.embedding;
  * @param truncateInputTokens the maximum number of tokens accepted per input
  * @param returnOptions the return options
  */
-public record Parameters(Integer truncateInputTokens, ReturnOptions returnOptions) {
+public record EmbeddingRequestParameters(Integer truncateInputTokens, ReturnOptions returnOptions) {
 
     /**
      * Return options for embedding generation.
