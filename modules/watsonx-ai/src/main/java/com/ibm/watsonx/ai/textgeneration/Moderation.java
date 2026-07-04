@@ -16,9 +16,9 @@ import java.util.List;
  *
  * <pre>{@code
  * Moderation.builder()
- *     .hap(Hap.of(TextModeration.of(0.85f), TextModeration.of(0.9f), true))
- *     .pii(Pii.of(true, false, false))
- *     .graniteGuardian(GraniteGuardian.of(TextModeration.of(0.95f), true))
+ *     .hap(TextModeration.of(0.85f), TextModeration.of(0.9f), true)
+ *     .pii(true, false, false)
+ *     .graniteGuardian(TextModeration.of(0.95f), true)
  *     .inputRanges(List.of(InputRanges.of(0, 100)))
  *     .build();
  * }</pre>
@@ -53,7 +53,7 @@ public final class Moderation {
      * @param output moderation properties applied to the output text
      * @param mask masking properties applied when moderation detects content
      */
-    private record Hap(TextModeration input, TextModeration output, MaskProperties mask) {}
+    public record Hap(TextModeration input, TextModeration output, MaskProperties mask) {}
 
     /**
      * Moderation properties without threshold, used for PII filtering.
@@ -69,7 +69,7 @@ public final class Moderation {
      * @param output moderation properties applied to the output text
      * @param mask masking properties applied when PII is detected
      */
-    record Pii(TextModerationWithoutThreshold input, TextModerationWithoutThreshold output,
+    public record Pii(TextModerationWithoutThreshold input, TextModerationWithoutThreshold output,
         MaskProperties mask) {}
 
     /**
@@ -78,7 +78,7 @@ public final class Moderation {
      * @param input moderation properties applied to the input text
      * @param mask masking properties applied when Granite Guardian detects content
      */
-    record GraniteGuardian(TextModeration input, MaskProperties mask) {}
+    public record GraniteGuardian(TextModeration input, MaskProperties mask) {}
 
     /**
      * Represents a range within the input text to which moderation is applied. The end index is exclusive.
