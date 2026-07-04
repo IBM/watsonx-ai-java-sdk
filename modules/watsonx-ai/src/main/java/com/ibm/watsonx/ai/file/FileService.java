@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.file;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.io.File;
 import java.io.FileInputStream;
@@ -141,15 +142,20 @@ public class FileService extends ProjectService {
                 .build();
         } else {
             ProjectSpace projectSpace = resolveProjectSpace(request);
-            request = FileListRequest.builder()
+            var listBuilder = FileListRequest.builder()
                 .projectId(projectSpace.projectId())
                 .spaceId(projectSpace.spaceId())
                 .transactionId(request.transactionId())
                 .after(request.after())
-                .limit(request.limit())
-                .order(request.order())
-                .purpose(request.purpose())
-                .build();
+                .limit(request.limit());
+
+            if (nonNull(request.order()))
+                listBuilder.order(request.order());
+
+            if (nonNull(request.purpose()))
+                listBuilder.purpose(request.purpose());
+
+            request = listBuilder.build();
         }
 
         return client.list(request);

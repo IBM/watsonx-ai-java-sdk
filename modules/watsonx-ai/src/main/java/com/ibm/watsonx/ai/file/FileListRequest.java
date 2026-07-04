@@ -19,11 +19,11 @@ import com.ibm.watsonx.ai.WatsonxParameters;
  *     .build();
  * }</pre>
  */
-public class FileListRequest extends WatsonxParameters {
+public final class FileListRequest extends WatsonxParameters {
     private final String after;
     private final Integer limit;
-    private final String order;
-    private final String purpose;
+    private final Order order;
+    private final Purpose purpose;
 
     private FileListRequest(Builder builder) {
         super(builder);
@@ -54,18 +54,18 @@ public class FileListRequest extends WatsonxParameters {
     /**
      * Returns the sort order by {@code created_at} timestamp.
      *
-     * @return the order value
+     * @return the {@link Order}, or {@code null} if not set
      */
-    public String order() {
+    public Order order() {
         return order;
     }
 
     /**
      * Returns the purpose filter.
      *
-     * @return the purpose value
+     * @return the {@link Purpose}, or {@code null} if not set
      */
-    public String purpose() {
+    public Purpose purpose() {
         return purpose;
     }
 
@@ -93,8 +93,8 @@ public class FileListRequest extends WatsonxParameters {
     public final static class Builder extends WatsonxParameters.Builder<Builder> {
         private String after;
         private Integer limit;
-        private String order;
-        private String purpose;
+        private Order order;
+        private Purpose purpose;
 
         private Builder() {}
 
@@ -129,15 +129,6 @@ public class FileListRequest extends WatsonxParameters {
          */
         public Builder order(Order order) {
             requireNonNull(order, "order cannot be null");
-            return order(order.value());
-        }
-
-        /**
-         * Sets the sort order by {@code created_at} timestamp.
-         *
-         * @param order the sort order value
-         */
-        Builder order(String order) {
             this.order = order;
             return this;
         }
@@ -151,17 +142,6 @@ public class FileListRequest extends WatsonxParameters {
          */
         public Builder purpose(Purpose purpose) {
             requireNonNull(purpose, "purpose cannot be null");
-            return purpose(purpose.value());
-        }
-
-        /**
-         * Sets the purpose filter.
-         * <p>
-         * Only files with the specified purpose will be returned.
-         *
-         * @param purpose the {@link Purpose} to filter by
-         */
-        Builder purpose(String purpose) {
             this.purpose = purpose;
             return this;
         }
