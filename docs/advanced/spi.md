@@ -8,13 +8,13 @@ permalink: /advanced/spi/
 
 # Service Provider Interface
 
-The **IBM watsonx.ai Java SDK** exposes several **Service Provider Interfaces** that allow framework integrators to replace or customize its core infrastructure — HTTP transport, thread management, and JSON serialization — without changing any application code. All SPIs are resolved at runtime via the Java `ServiceLoader` mechanism.
+The **IBM watsonx.ai Java SDK** exposes several **Service Provider Interfaces** that allow framework integrators to replace or customize its core infrastructure - HTTP transport, thread management, and JSON serialization - without changing any application code. All SPIs are resolved at runtime via the Java `ServiceLoader` mechanism.
 
 ---
 
 ## REST Client SPI
 
-Every service delegates HTTP communication to an abstract `WatsonxRestClient`, with one subclass per service (e.g. `ChatRestClient`). The concrete implementation is discovered at startup via `ServiceLoader`; if none is registered, the SDK falls back to its built-in `DefaultRestClient` (based on the Java `HttpClient`).
+Every service delegates HTTP communication to an abstract `WatsonxRestClient`, with one subclass per service (e.g. `ChatRestClient`). The concrete implementation is discovered at startup via `ServiceLoader`. If none is registered, the SDK falls back to its built-in `DefaultRestClient` (based on the Java `HttpClient`).
 
 ### Service to REST client mapping
 
@@ -48,7 +48,7 @@ static ChatRestClient.Builder builder() {
 
 The recommended pattern is to keep the factory and builder as **static nested classes** inside the custom `RestClient`. The example below shows a full implementation for `ChatRestClient` using Quarkus and the RESTEasy Reactive client.
 
-#### Step 1 — Define a JAX-RS interface for the API
+#### Step 1 - Define a JAX-RS interface for the API
 
 Declare the API endpoints using JAX-RS annotations. The SDK's request/response types can be used directly:
 
@@ -78,7 +78,7 @@ public interface ChatRestApi {
 }
 ```
 
-#### Step 2 — Implement the `RestClient` subclass
+#### Step 2 - Implement the `RestClient` subclass
 
 Extend `ChatRestClient`, build the framework-native client in the constructor using the inherited fields, and implement the abstract methods:
 
@@ -135,7 +135,7 @@ public final class QuarkusChatRestClient extends ChatRestClient {
 }
 ```
 
-#### Step 3 — Register via `ServiceLoader`
+#### Step 3 - Register via `ServiceLoader`
 
 Create the file:
 
@@ -143,7 +143,7 @@ Create the file:
 META-INF/services/com.ibm.watsonx.ai.chat.ChatRestClient$ChatRestClientBuilderFactory
 ```
 
-Note the `$` separator — this is the JVM convention for nested class names in `ServiceLoader` registration files. The file content is the fully qualified name of the factory:
+Note the `$` separator - this is the JVM convention for nested class names in `ServiceLoader` registration files. The file content is the fully qualified name of the factory:
 
 ```
 io.quarkiverse.langchain4j.watsonx.runtime.client.impl.QuarkusChatRestClient$QuarkusChatRestClientBuilderFactory
@@ -153,7 +153,7 @@ Once registered, any `ChatService` built in that runtime will automatically use 
 
 ### Real-world example: Quarkus integration
 
-The `quarkus-langchain4j-watsonx` integration uses this SPI to replace the default Java `HttpClient` with Quarkus's reactive RESTEasy client. This allows the SDK to participate in Quarkus's managed thread model, reactive pipelines (Mutiny), and GraalVM native compilation. A `*BuilderFactory` is registered for each service via CDI — the consuming application uses the same `ChatService`, `EmbeddingService`, etc. API without any modification.
+The `quarkus-langchain4j-watsonx` integration uses this SPI to replace the default Java `HttpClient` with Quarkus's reactive RESTEasy client. This allows the SDK to participate in Quarkus's managed thread model, reactive pipelines (Mutiny), and GraalVM native compilation. A `*BuilderFactory` is registered for each service via CDI - the consuming application uses the same `ChatService`, `EmbeddingService`, etc. API without any modification.
 
 > See [quarkus-langchain4j-watsonx](https://github.com/quarkiverse/quarkus-langchain4j/tree/main/model-providers/watsonx/runtime/src/main/java/io/quarkiverse/langchain4j/watsonx/runtime/client) for the complete reference implementation.
 
@@ -166,7 +166,7 @@ The SDK uses three distinct executors internally, each replaceable independently
 | SPI interface | Default behavior | Used for |
 |---------------|-----------------|---------|
 | `CpuExecutorProvider` | `ForkJoinPool.commonPool()` | CPU-bound tasks: JSON parsing, data transformation |
-| `IOExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20); a fixed pool can be forced via `WATSONX_IO_EXECUTOR_THREADS` | HTTP response processing, SSE stream parsing |
+| `IOExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20). A fixed pool can be forced via `WATSONX_IO_EXECUTOR_THREADS` | HTTP response processing, SSE stream parsing |
 | `CallbackExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20) | User callbacks in `ChatHandler` and `TextGenerationHandler` |
 
 The three executors are intentionally separate to prevent user callback code from blocking the SSE parsing thread, and to keep CPU-bound work off the I/O thread.
@@ -186,7 +186,7 @@ private static CallbackExecutorProvider loadCallbackExecutorProvider() {
 
 Here's a complete example of replacing the `CallbackExecutorProvider` with a custom fixed thread pool:
 
-#### Step 1 — Implement the provider
+#### Step 1 - Implement the provider
 
 ```java
 package com.example.watsonx.executor;
@@ -217,7 +217,7 @@ public class CustomCallbackExecutorProvider implements CallbackExecutorProvider 
 }
 ```
 
-#### Step 2 — Register via `ServiceLoader`
+#### Step 2 - Register via `ServiceLoader`
 
 Create the file:
 
@@ -319,7 +319,7 @@ Additionally, the SDK uses **Jackson mix-in annotations** (via `WatsonxJacksonMo
 
 The example below shows the structure of a custom provider. The implementation details (naming strategy, annotations handling) depend on your chosen JSON library:
 
-#### Step 1 — Implement the provider
+#### Step 1 - Implement the provider
 
 ```java
 package com.example.watsonx.json;
@@ -366,7 +366,7 @@ public class CustomJsonProvider implements JsonProvider {
 }
 ```
 
-#### Step 2 — Register via `ServiceLoader`
+#### Step 2 - Register via `ServiceLoader`
 
 Create the file:
 
@@ -389,13 +389,13 @@ The SDK provides `TypeToken<T>` to capture generic type information at runtime, 
 There are three ways to obtain a `TypeToken`:
 
 ```java
-// 1. Anonymous subclass — captures any type, including nested generics and wildcards
+// 1. Anonymous subclass - captures any type, including nested generics and wildcards
 TypeToken<Map<String, List<Integer>>> nested = new TypeToken<>() {};
 
-// 2. listOf — convenience factory for List<T>
+// 2. listOf - convenience factory for List<T>
 TypeToken<List<String>> list = TypeToken.listOf(String.class);
 
-// 3. parameterizedOf — factory accepting one or more type arguments, e.g. Map<K, V>
+// 3. parameterizedOf - factory accepting one or more type arguments, e.g. Map<K, V>
 TypeToken<Map<String, Integer>> map = TypeToken.parameterizedOf(Map.class, String.class, Integer.class);
 ```
 

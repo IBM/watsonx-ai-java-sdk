@@ -10,7 +10,7 @@ import static java.util.Objects.nonNull;
 /**
  * Represents the reasoning configuration used by the LLM.
  * <p>
- * A {@code Thinking} instance defines how the LLM should handle reasoning output — specifying both how reasoning and response segments are extracted
+ * A {@code Thinking} instance defines how the LLM should handle reasoning output - specifying both how reasoning and response segments are extracted
  * and the level of reasoning effort to apply during generation.
  * <p>
  * <b>Note on {@link #extractionTags}:</b>
@@ -135,7 +135,7 @@ public final class Thinking {
         /**
          * Sets the reasoning effort level to control how much reasoning the model applies when generating responses.
          * <p>
-         * The {@link ThinkingEffort} parameter allows fine-tuning of the model’s internal reasoning intensity — for example, {@code LOW},
+         * The {@link ThinkingEffort} parameter allows fine-tuning of the model’s internal reasoning intensity - for example, {@code LOW},
          * {@code MEDIUM}, or {@code HIGH}.
          *
          * @param thinkingEffort the desired {@link ThinkingEffort} level

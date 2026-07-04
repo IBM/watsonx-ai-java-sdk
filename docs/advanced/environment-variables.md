@@ -20,7 +20,7 @@ The SDK automatically retries failed requests in two distinct scenarios: **expir
 |----------|------|---------|-------------|
 | `WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES` | `Integer` | `1` | Maximum retry attempts when a request fails due to an expired authentication token. On each retry, a fresh token is fetched before the request is resent. |
 | `WATSONX_RETRY_STATUS_CODES_MAX_RETRIES` | `Integer` | `10` | Maximum retry attempts for transient HTTP errors. Applies to status codes `429`, `503`, `504`, and `520`. |
-| `WATSONX_RETRY_STATUS_CODES_BACKOFF_ENABLED` | `Boolean` | `true` | When `true`, retries use exponential backoff — the interval doubles after each failed attempt. Set to `false` for fixed-interval retries. |
+| `WATSONX_RETRY_STATUS_CODES_BACKOFF_ENABLED` | `Boolean` | `true` | When `true`, retries use exponential backoff - the interval doubles after each failed attempt. Set to `false` for fixed-interval retries. |
 | `WATSONX_RETRY_STATUS_CODES_INITIAL_INTERVAL_MS` | `Long` | `20` | Initial retry interval in milliseconds. When exponential backoff is enabled, this is the base interval that doubles with each retry. |
 
 ---

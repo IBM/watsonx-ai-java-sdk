@@ -95,7 +95,7 @@ TimeSeriesService service = TimeSeriesService.builder()
 
 ### Basic Forecast
 
-The simplest approach — provide schema, data, and get predictions back synchronously:
+The simplest approach - provide schema, data, and get predictions back synchronously:
 
 ```java
 InputSchema schema = InputSchema.builder()
@@ -195,10 +195,10 @@ The `TimeSeriesParameters` class controls the forecast behavior per request.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `predictionLength` | Integer | Number of future time steps to predict (≥1, max determined by model context). If not set, the model default is used and `toParameters()` returns `null` (no `parameters` block is sent) |
-| `futureData` | ForecastData | Exogenous features known in advance for the forecast horizon (e.g., holidays, scheduled events). **Only supported when using `DeploymentService`** |
+| `futureData` | ForecastData | Exogenous features known in advance for the forecast horizon (e.g., holidays, scheduled events). **Only supported when using [`DeploymentService`](../deployment-service)** |
 | `modelId` | String | Override the service-level model ID for this request |
-| `projectId` | String | Override the default project ID |
-| `spaceId` | String | Override the default space ID |
+| `projectId` | String | Override the default Project ID |
+| `spaceId` | String | Override the default Space ID |
 | `transactionId` | String | Request tracking ID for tracing |
 
 ---
@@ -216,7 +216,7 @@ The `TimeSeriesParameters` class controls the forecast behavior per request.
 
 ### Reading Results
 
-Each map in `results()` contains one entry per column — the timestamp column, ID columns, and forecasted target columns — all as lists of values aligned by index:
+Each map in `results()` contains one entry per column - the timestamp column, ID columns, and forecasted target columns - all as lists of values aligned by index:
 
 ```java
 ForecastResponse response = service.forecast(schema, data, params);

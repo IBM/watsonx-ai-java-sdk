@@ -75,7 +75,7 @@ TokenizationService service = TokenizationService.builder()
 
 ### Count Tokens
 
-The simplest usage — get the token count for a text string without retrieving the individual tokens:
+The simplest usage - get the token count for a text string without retrieving the individual tokens:
 
 ```java
 TokenizationResponse response = service.tokenize("Write a tagline for an alumni association: Together we");
@@ -111,8 +111,8 @@ The `TokenizationParameters` class controls the tokenization behavior per reques
 |-----------|------|-------------|
 | `returnTokens` | Boolean | If `true`, the response includes the list of individual token strings in addition to the count. Default: `false` (count only) |
 | `modelId` | String | Override the service-level model ID for this request |
-| `projectId` | String | Override the default project ID |
-| `spaceId` | String | Override the default space ID |
+| `projectId` | String | Override the default Project ID |
+| `spaceId` | String | Override the default Space ID |
 | `transactionId` | String | Request tracking ID sent as a header for tracing |
 | `crypto` | String | Key reference for encrypting the inference request (e.g., IBM Key Protect CRN) |
 

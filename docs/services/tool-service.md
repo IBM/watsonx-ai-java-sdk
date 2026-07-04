@@ -8,7 +8,7 @@ permalink: /services/tool-service/
 
 # Tool Service
 
-The `ToolService` provides access to **IBM watsonx.ai Utility Agent Tools** — a set of server-side tools that can be invoked directly or integrated with `ChatService` for agentic workflows. Each built-in tool also implements the `ExecutableTool` interface, enabling automatic dispatch when a foundation model requests a tool call.
+The `ToolService` provides access to **IBM watsonx.ai Utility Agent Tools** - a set of server-side tools that can be invoked directly or integrated with [`ChatService`](../chat-service) for agentic workflows. Each built-in tool also implements the `ExecutableTool` interface, enabling automatic dispatch when a foundation model requests a tool call.
 
 ## Quick Start
 
@@ -78,7 +78,7 @@ ToolService toolService = ToolService.builder()
 ToolService.Resources resources = toolService.getAll();
 
 for (UtilityTool tool : resources.resources()) {
-    System.out.println(tool.name() + " — " + tool.description());
+    System.out.println(tool.name() + " - " + tool.description());
 }
 ```
 
@@ -97,7 +97,7 @@ System.out.println(tool.configSchema());       // JSON schema for config options
 ### Run a Tool Generically
 
 ```java
-// Structured input — for tools with a defined input schema
+// Structured input - for tools with a defined input schema
 String output = toolService.run(
     ToolRequest.structuredInput(
         "GoogleSearch",
@@ -106,7 +106,7 @@ String output = toolService.run(
     )
 );
 
-// Unstructured input — for tools that accept a plain string
+// Unstructured input - for tools that accept a plain string
 String output = toolService.run(
     ToolRequest.unstructuredInput("RAGQuery", "What is this project about?")
 );
@@ -134,9 +134,9 @@ The `UtilityTool` record represents the metadata returned by `getAll()` and `get
 
 All built-in tools implement the `ExecutableTool` interface, which exposes:
 
-- `name()` — the tool schema name used by the LLM
-- `schema()` — the `Tool` definition to pass to `ChatService`
-- `execute(ToolArguments args)` — called automatically during tool-call dispatch
+- `name()` - the tool schema name used by the LLM
+- `schema()` - the `Tool` definition to pass to `ChatService`
+- `execute(ToolArguments args)` - called automatically during tool-call dispatch
 
 There are several built-in tools in watsonx.ai that can be used to add functionality to an LLM.
 
@@ -203,7 +203,7 @@ String result = weather.find("Naples", "Italy");
 
 ### WebCrawlerTool
 
-Fetch and extract the text content of a specific web page. Use when you know the URL and need to read its content — not for discovering new URLs.
+Fetch and extract the text content of a specific web page. Use when you know the URL and need to read its content - not for discovering new URLs.
 
 ```java
 WebCrawlerTool crawler = new WebCrawlerTool(toolService);
@@ -237,7 +237,7 @@ String result = python.run("print('Hello World!')");
 
 ### RAGQueryTool
 
-Query one or more vector indexes using semantic similarity to retrieve relevant document passages. Requires a project ID or space ID and at least one vector index ID.
+Query one or more vector indexes using semantic similarity to retrieve relevant document passages. Requires a Project ID or Space ID and at least one vector index ID.
 
 ```java
 RAGQueryTool ragQuery = RAGQueryTool.builder()
@@ -323,13 +323,13 @@ var toolMessages = assistantMessage.processTools(registry::execute);
 
 | Tool class | Schema name | Requires | Returns |
 |------------|-------------|----------|---------|
-| `GoogleSearchTool` | `google_search` | — | `List<GoogleSearchResult>` |
+| `GoogleSearchTool` | `google_search` | - | `List<GoogleSearchResult>` |
 | `TavilySearchTool` | `tavily_search` | Tavily API key | `List<TavilySearchResult>` |
-| `WeatherTool` | `weather` | — | `String` (plain text) |
-| `WebCrawlerTool` | `webcrawler` | — | `String` (page content) |
-| `WikipediaTool` | `wikipedia` | — | `String` (article summary) |
+| `WeatherTool` | `weather` | - | `String` (plain text) |
+| `WebCrawlerTool` | `webcrawler` | - | `String` (page content) |
+| `WikipediaTool` | `wikipedia` | - | `String` (article summary) |
 | `PythonInterpreterTool` | `python_interpreter` | Deployment ID | `String` (console output) |
-| `RAGQueryTool` | `rag_query` | Project/space ID + vector index IDs | `String` (retrieved passages) |
+| `RAGQueryTool` | `rag_query` | Project/Space ID + vector index IDs | `String` (retrieved passages) |
 
 ---
 

@@ -1,13 +1,13 @@
 ---
 layout: default
 title: Authentication
-nav_order: 2
+nav_order: 3
 permalink: /authentication
 ---
 
 # Authentication
 
-Most services in the **IBM watsonx.ai** require authentication. The SDK uses the `Authenticator` interface as the single abstraction for token-based auth — every service that needs authentication accepts an `Authenticator` instance.
+Most services in the **IBM watsonx.ai** require authentication. The SDK uses the `Authenticator` interface as the single abstraction for token-based auth - every service that needs authentication accepts an `Authenticator` instance.
 
 ---
 
@@ -18,7 +18,7 @@ Two built-in authenticators are provided out of the box:
 - **IBMCloudAuthenticator:** for IBM Cloud. Exchanges an IBM Cloud API key for an IAM bearer token.
 - **CP4DAuthenticator:** for IBM Cloud Pak for Data. Supports three authentication modes depending on your CP4D configuration.
 
-Both implementations handle token caching and automatic renewal transparently — you never need to manage token lifecycle manually.
+Both implementations handle token caching and automatic renewal transparently - you never need to manage token lifecycle manually.
 
 ---
 
@@ -154,8 +154,8 @@ ChatService chatService = ChatService.builder()
 |-----------|------|----------|-------------|
 | `baseUrl` | String / URI | Yes | CP4D instance base URL |
 | `username` | String | Yes | CP4D username |
-| `apiKey` | String | Conditional | CP4D API key (`LEGACY` and `ZEN_API_KEY` modes — either `apiKey` or `password` required) |
-| `password` | String | Conditional | CP4D password (all modes — either `password` or `apiKey` required; mandatory for `IAM` mode) |
+| `apiKey` | String | Conditional | CP4D API key (`LEGACY` and `ZEN_API_KEY` modes - either `apiKey` or `password` required) |
+| `password` | String | Conditional | CP4D password (all modes - either `password` or `apiKey` required, mandatory for `IAM` mode) |
 | `authMode` | AuthMode | No | Authentication mode: `LEGACY` (default), `IAM`, or `ZEN_API_KEY` |
 | `timeout` | Duration | No | Timeout for token requests (default: 60 seconds) |
 | `httpClient` | HttpClient | No | Custom HTTP client (useful for SSL configuration) |
@@ -168,4 +168,4 @@ Both `IBMCloudAuthenticator` and `CP4DAuthenticator` manage token lifecycle auto
 
 - Tokens are **cached** after the first successful retrieval.
 - On each subsequent request, the cached token's expiration is checked before use.
-- If the token has expired, a new one is fetched transparently — no action required on your part.
+- If the token has expired, a new one is fetched transparently - no action required on your part.

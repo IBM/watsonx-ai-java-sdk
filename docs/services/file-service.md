@@ -39,10 +39,10 @@ The `FileService` enables you to:
 
 `FileService` is the foundation layer for batch processing. While it can be used standalone, it is most commonly used together with [`BatchService`](batch-service), which depends on it for two operations:
 
-- **Upload** — `BatchService` calls `FileService.upload()` internally when you submit a job via `Path`, `File`, or `InputStream`.
-- **Retrieval** — `BatchService` calls `FileService.retrieve()` internally when using `submitAndFetch()` to read the output file once the job completes.
+- **Upload** - `BatchService` calls `FileService.upload()` internally when you submit a job via `Path`, `File`, or `InputStream`.
+- **Retrieval** - `BatchService` calls `FileService.retrieve()` internally when using `submitAndFetch()` to read the output file once the job completes.
 
-You can also use `FileService` directly to manage files independently of the batch lifecycle — for example, to inspect an output file manually or to pre-upload a file before submitting multiple jobs against it.
+You can also use `FileService` directly to manage files independently of the batch lifecycle - for example, to inspect an output file manually or to pre-upload a file before submitting multiple jobs against it.
 
 ---
 
@@ -100,7 +100,7 @@ InputStream is = new FileInputStream("mydata.jsonl");
 FileData fileData = fileService.upload(is, "mydata.jsonl");
 ```
 
-**With full control via `FileUploadRequest`** — override `project_id`, `space_id`, `purpose`, and `transaction_id`:
+**With full control via `FileUploadRequest`** - override `project_id`, `space_id`, `purpose`, and `transaction_id`:
 
 ```java
 FileData fileData = fileService.upload(
@@ -150,7 +150,7 @@ System.out.println(content);
 // → {"custom_id": "a", "method": "POST", ...}
 ```
 
-With full control via `FileRetrieveRequest` — override `project_id`, `space_id`, and `transaction_id`:
+With full control via `FileRetrieveRequest` - override `project_id`, `space_id`, and `transaction_id`:
 
 ```java
 String content = fileService.retrieve(
@@ -172,7 +172,7 @@ FileDeleteResponse response = fileService.delete("file-AQIDkP4L...");
 System.out.println(response.deleted()); // → true
 ```
 
-With full control via `FileDeleteRequest` — override `project_id`, `space_id`, and `transaction_id`:
+With full control via `FileDeleteRequest` - override `project_id`, `space_id`, and `transaction_id`:
 
 ```java
 FileDeleteResponse response = fileService.delete(
@@ -210,7 +210,7 @@ Returned by `list()`.
 | `object()` | String | Always `"list"` |
 | `data()` | List\<FileData\> | List of files matching the request |
 | `firstId()` | String | ID of the first file in the current page |
-| `lastId()` | String | ID of the last file — use as `after` cursor for the next page |
+| `lastId()` | String | ID of the last file - use as `after` cursor for the next page |
 | `hasMore()` | Boolean | Whether more files are available beyond this page |
 
 ## FileDeleteResponse

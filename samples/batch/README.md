@@ -19,7 +19,7 @@ Before running the application, set the following environment variables or creat
 |-----------------------|----------|-------------|
 | `WATSONX_API_KEY`     | Yes      | Your watsonx.ai API key |
 | `WATSONX_URL`         | Yes      | The base URL for the watsonx.ai service |
-| `WATSONX_PROJECT_ID`  | Yes      | Your watsonx.ai project ID |
+| `WATSONX_PROJECT_ID`  | Yes      | Your watsonx.ai Project ID |
 
 ### Example (Linux/macOS):
 

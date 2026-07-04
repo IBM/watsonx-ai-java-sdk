@@ -129,7 +129,7 @@ var parameters = TextExtractionParameters.builder()
 String text = service.uploadExtractAndFetch(new File("path/to/file.pdf"), parameters);
 ```
 
-**From an InputStream** — useful for documents from web uploads or streaming sources:
+**From an InputStream** - useful for documents from web uploads or streaming sources:
 
 ```java
 TextExtractionParameters parameters = TextExtractionParameters.builder()
@@ -140,13 +140,13 @@ TextExtractionParameters parameters = TextExtractionParameters.builder()
 String text = service.uploadExtractAndFetch(inputStream, "fileName.pdf", parameters);
 ```
 
-**From a file already in COS** — skip the upload step entirely:
+**From a file already in COS** - skip the upload step entirely:
 
 ```java
 String text = service.extractAndFetch("path/to/cosFile.pdf");
 ```
 
-**Automatic file cleanup** — use `removeUploadedFile` and `removeOutputFile` to delete COS files asynchronously after extraction:
+**Automatic file cleanup** - use `removeUploadedFile` and `removeOutputFile` to delete COS files asynchronously after extraction:
 
 ```java
 var parameters = TextExtractionParameters.builder()
@@ -287,9 +287,9 @@ Controls how images embedded in the document are handled in the extracted output
 | Value | Image in output | Markdown output | JSON output |
 |-------|----------------|-----------------|-------------|
 | `DISABLED` | No | None | None |
-| `ENABLED_PLACEHOLDER` | Yes | Link to image location | Image in `pictures` structure; `picture.text` empty; generic placeholder token IDs in `picture.children_ids` |
-| `ENABLED_TEXT` | Yes | Text extracted directly from the image | Image in `pictures`; OCR text in `picture.text`; token IDs in `picture.children_ids` |
-| `ENABLED_VERBALIZATION` | Yes | Link + textual description of the image | Image in `pictures`; natural language description in `picture.verbalization` (only for verbalized images); token IDs in `picture.children_ids` |
+| `ENABLED_PLACEHOLDER` | Yes | Link to image location | Image in `pictures` structure. `picture.text` empty. Generic placeholder token IDs in `picture.children_ids` |
+| `ENABLED_TEXT` | Yes | Text extracted directly from the image | Image in `pictures`. OCR text in `picture.text`. Token IDs in `picture.children_ids` |
+| `ENABLED_VERBALIZATION` | Yes | Link + textual description of the image | Image in `pictures`. Natural language description in `picture.verbalization` (only for verbalized images). Token IDs in `picture.children_ids` |
 | `ENABLED_VERBALIZATION_ALL` | Yes | Link + textual description of the image | Same as `ENABLED_VERBALIZATION`, but **all** embedded images are verbalized, not just graphs, charts, and screenshots |
 
 > Images extracted in any mode are stored as `.png` files in the `embedded_images_assembly/` folder within the output location.
@@ -298,7 +298,7 @@ Controls how images embedded in the document are handled in the extracted output
 
 ## Key-Value Pair Extraction
 
-KVP extraction pulls structured field data out of documents alongside the text. It requires `kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)` and `Type.JSON` as output format — results are only included in the JSON output.
+KVP extraction pulls structured field data out of documents alongside the text. It requires `kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)` and `Type.JSON` as output format - results are only included in the JSON output.
 
 ### Basic KVP Extraction
 
@@ -351,7 +351,7 @@ Controls how custom schemas interact with the built-in pre-defined ones:
 
 | Strategy | Behaviour | When to use |
 |----------|-----------|-------------|
-| `SchemaMergeStrategy.REPLACE` | Only your custom schemas are used; all pre-defined schemas are ignored | You have a known document format with unique fields, or your custom schema conflicts with a pre-defined one |
+| `SchemaMergeStrategy.REPLACE` | Only your custom schemas are used. All pre-defined schemas are ignored | You have a known document format with unique fields, or your custom schema conflicts with a pre-defined one |
 | `SchemaMergeStrategy.MERGE` | Your custom schemas are combined with the pre-defined ones | You want to supplement pre-defined document types with additional custom schemas |
 
 ### Using a Custom Foundation Model
@@ -408,8 +408,8 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | `resultReference` | CosReference | Override the default output COS location for this request |
 | `timeout` | Duration | Override the service-level timeout for this request |
 | `addCustomProperty` | String, Object | Add arbitrary key-value metadata to the request |
-| `projectId` | String | Override the default project ID |
-| `spaceId` | String | Override the default space ID |
+| `projectId` | String | Override the default Project ID |
+| `spaceId` | String | Override the default Space ID |
 | `transactionId` | String | Request tracking ID |
 
 ### Processing Modes
@@ -433,7 +433,7 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | Value | Sent to API | Description |
 |-------|-------------|-------------|
 | `OcrMode.AUTO` | *(not sent)* | Service automatically selects the best OCR option |
-| `OcrMode.DISABLED` | `"disabled"` | OCR is disabled; document must contain native text |
+| `OcrMode.DISABLED` | `"disabled"` | OCR is disabled. The document must contain native text |
 | `OcrMode.ENABLED` | `"enabled"` | OCR is applied when the service determines it is needed |
 | `OcrMode.FORCED` | `"forced"` | OCR is always applied regardless of document content |
 

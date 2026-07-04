@@ -51,7 +51,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * @see Authenticator
  */
 public class ChatService extends CryptoService implements ChatProvider {
-    public static final Logger logger = LoggerFactory.getLogger(ChatService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private final ChatRestClient client;
     private final MessageInterceptor messageInterceptor;
     private final ToolInterceptor toolInterceptor;

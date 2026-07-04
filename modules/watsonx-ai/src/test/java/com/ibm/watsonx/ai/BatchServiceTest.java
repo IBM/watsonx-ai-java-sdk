@@ -1046,7 +1046,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
             .baseUrl(BASE_URL)
             .build();
 
-        // No timeout set on the request — service-level timeout (200ms) should apply.
+        // No timeout set on the request - service-level timeout (200ms) should apply.
         // The first sleep in the polling loop is 100ms, so after one poll the timeout will be exceeded.
         var ex = assertThrows(RuntimeException.class, () -> batchService.submitAndFetch(
             BatchCreateRequest.builder()

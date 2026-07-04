@@ -94,7 +94,7 @@ EmbeddingService embeddingService = EmbeddingService.builder()
 
 ### Embedding a Single Input
 
-The simplest use case — pass a single string and retrieve its vector representation.
+The simplest use case - pass a single string and retrieve its vector representation.
 
 ```java
 EmbeddingResponse response = embeddingService.embedding("Embedding this!");
@@ -168,8 +168,8 @@ The `EmbeddingParameters` class allows you to fine-tune how inputs are processed
 | `truncateInputTokens` | Integer | Maximum number of tokens per input. Inputs exceeding this limit are truncated from the right (the start is preserved). |
 | `inputText` | Boolean | When `true`, each result includes the original input text in the `input()` field. |
 | `modelId` | String | Override the default model for this request. |
-| `projectId` | String | Override the default project ID for this request. |
-| `spaceId` | String | Override the default space ID for this request. |
+| `projectId` | String | Override the default Project ID for this request. |
+| `spaceId` | String | Override the default Space ID for this request. |
 | `transactionId` | String | Request tracking ID. |
 | `crypto` | String | Key reference for encrypting the inference request (e.g., IBM Key Protect CRN). |
 

@@ -18,8 +18,8 @@ import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
  * <p>
  * Each schema can be defined either through:
  * <ul>
- * <li>{@link #fields} — a mapping of field names to {@link KvpFields} definitions, for variable-layout documents, or</li>
- * <li>{@link #pages} — a page-based mapping of {@link KvpPage} instances, for fixed-layout documents.</li>
+ * <li>{@link #fields} - a mapping of field names to {@link KvpFields} definitions, for variable-layout documents, or</li>
+ * <li>{@link #pages} - a page-based mapping of {@link KvpPage} instances, for fixed-layout documents.</li>
  * </ul>
  * These two options are mutually exclusive.
  *

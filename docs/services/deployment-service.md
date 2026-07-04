@@ -8,11 +8,11 @@ permalink: /services/deployment-service/
 
 # Deployment Service
 
-The `DeploymentService` allows you to interact with **models deployed in IBM watsonx.ai deployment spaces**. Instead of referencing a `modelId`, every request targets a `deploymentId` — the identifier of an already-deployed asset. The service supports the same operations as `ChatService` and `TimeSeriesService` (chat, streaming chat, time series forecasting), plus the ability to inspect a deployment's metadata via `findById`.
+The `DeploymentService` allows you to interact with **models deployed in IBM watsonx.ai deployment spaces**. Instead of referencing a `modelId`, every request targets a `deploymentId` - the identifier of an already-deployed asset. The service supports the same operations as [`ChatService`](../chat-service) and [`TimeSeriesService`](../time-series-service) (chat, streaming chat, time series forecasting), plus the ability to inspect a deployment's metadata via `findById`.
 
 ## What is a Deployment Space?
 
-A **deployment space** is an IBM watsonx.ai workspace that contains deployable assets, their deployments, and associated environments. Assets (foundation models, prompt-tuned models, prompt templates) are **promoted from projects** into a deployment space before they can be deployed. A single asset can be deployed to multiple spaces — for example, a test space and a production space.
+A **deployment space** is an IBM watsonx.ai workspace that contains deployable assets, their deployments, and associated environments. Assets (foundation models, prompt-tuned models, prompt templates) are **promoted from projects** into a deployment space before they can be deployed. A single asset can be deployed to multiple spaces - for example, a test space and a production space.
 
 Once deployed, each deployment is identified by a unique `deploymentId`. You use this ID in every `DeploymentService` request instead of a `modelId`.
 
@@ -56,7 +56,7 @@ DeploymentService deploymentService = DeploymentService.builder()
     .build();
 ```
 
-No `projectId`, `spaceId`, or `modelId` is required — all routing is done through the `deploymentId` in each request.
+No `projectId`, `spaceId`, or `modelId` is required - all routing is done through the `deploymentId` in each request.
 
 ### Builder Parameters
 
@@ -74,7 +74,7 @@ No `projectId`, `spaceId`, or `modelId` is required — all routing is done thro
 | `messageInterceptor` | MessageInterceptor | No | Post-processing hook for the assistant's text content |
 | `toolInterceptor` | ToolInterceptor | No | Post-processing hook for function call arguments |
 
-> Either `apiKey` or `authenticator` must be provided. `projectId`, `spaceId`, and `modelId` are **ignored** — if set on a request's parameters object, a warning is logged.
+> Either `apiKey` or `authenticator` must be provided. `projectId`, `spaceId`, and `modelId` are **ignored** - if set on a request's parameters object, a warning is logged.
 
 ---
 
@@ -127,7 +127,7 @@ future.join(); // wait for completion
 
 ## Time Series Forecasting
 
-The `DeploymentService` supports time series forecasting via `forecast()`, with one key addition over `TimeSeriesService`: **`futureData`** — exogenous features known in advance for the forecast horizon (e.g. holidays, scheduled events).
+The `DeploymentService` supports time series forecasting via `forecast()`, with one key addition over `TimeSeriesService`: **`futureData`** - exogenous features known in advance for the forecast horizon (e.g. holidays, scheduled events).
 
 ```java
 InputSchema schema = InputSchema.builder()
@@ -216,7 +216,9 @@ DeploymentResource resource = deploymentService.findById(request);
 
 ## Related Resources
 
-- [Deployment Spaces Documentation](https://dataplatform.cloud.ibm.com/docs/content/wsj/wmls/wmls-deploy-overview.html)
+- [Deployment Spaces Documentation](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/ml-spaces_local.html?context=wx&audience=wdp)
+- [Creating online deployments](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/deploy-online.html?context=wx&audience=wdp) - how to obtain a `deploymentId`
+- [Setup & Prerequisites](../../setup) - creating spaces and deployments
 - [Deployments API Reference](https://cloud.ibm.com/apidocs/watsonx-ai#create-deployment)
 - [ChatService Documentation](../chat-service)
 - [Time Series Service Documentation](../time-series-service)

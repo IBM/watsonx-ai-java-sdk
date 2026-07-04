@@ -160,8 +160,8 @@ The `RerankParameters` class allows you to customize the reranking behavior.
 | `inputs` | Boolean | When `true`, each result includes the original input text in `input().text()`. |
 | `query` | Boolean | When `true`, the original query is included in the response via `response.query()`. |
 | `modelId` | String | Override the default model for this request. |
-| `projectId` | String | Override the default project ID for this request. |
-| `spaceId` | String | Override the default space ID for this request. |
+| `projectId` | String | Override the default Project ID for this request. |
+| `spaceId` | String | Override the default Space ID for this request. |
 | `transactionId` | String | Request tracking ID. |
 | `crypto` | String | Key reference for encrypting the inference request (e.g., IBM Key Protect CRN). |
 
