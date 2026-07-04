@@ -127,4 +127,9 @@ public final class FileUploadRequest extends WatsonxParameters {
             return new FileUploadRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "FileUploadRequest [" + super.toString() + ", inputStream=" + inputStream + ", fileName=" + fileName + ", purpose=" + purpose + "]";
+    }
 }

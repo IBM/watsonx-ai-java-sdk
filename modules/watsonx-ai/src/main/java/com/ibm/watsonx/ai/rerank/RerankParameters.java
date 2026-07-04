@@ -170,4 +170,10 @@ public final class RerankParameters extends WatsonxCryptoParameters {
             return new RerankParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "RerankParameters [" + super.toString() + ", truncateInputTokens=" + truncateInputTokens + ", topN=" + topN + ", returnInputs="
+            + returnInputs + ", returnQuery=" + returnQuery + "]";
+    }
 }

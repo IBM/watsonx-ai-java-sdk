@@ -59,6 +59,11 @@ public abstract class BaseDetector {
         return properties;
     }
 
+    @Override
+    public String toString() {
+        return "name=" + name + ", properties=" + properties;
+    }
+
     /**
      * Abstract builder class for constructing a {@link BaseDetector}.
      */

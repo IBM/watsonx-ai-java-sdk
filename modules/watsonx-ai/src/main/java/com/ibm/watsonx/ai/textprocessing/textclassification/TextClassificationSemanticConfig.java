@@ -77,4 +77,9 @@ public final class TextClassificationSemanticConfig extends ExtendedSemanticConf
             return new TextClassificationSemanticConfig(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "TextClassificationSemanticConfig [" + super.toString() + "]";
+    }
 }

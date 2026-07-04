@@ -588,4 +588,14 @@ public final class TextExtractionParameters extends WatsonxParameters {
             return value;
         }
     }
+
+    @Override
+    public String toString() {
+        return "TextExtractionParameters [" + super.toString() + ", requestedOutputs=" + requestedOutputs + ", mode=" + mode + ", ocrMode=" + ocrMode
+            + ", languages=" + languages + ", autoRotationCorrection=" + autoRotationCorrection + ", createEmbeddedImages=" + createEmbeddedImages
+            + ", outputDpi=" + outputDpi + ", outputTokens=" + outputTokens + ", kvpMode=" + kvpMode + ", semanticConfig=" + semanticConfig
+            + ", removeUploadedFile=" + removeUploadedFile + ", removeOutputFile=" + removeOutputFile + ", outputFileName=" + outputFileName
+            + ", documentReference=" + documentReference + ", resultReference=" + resultReference + ", custom=" + custom + ", timeout=" + timeout
+            + "]";
+    }
 }

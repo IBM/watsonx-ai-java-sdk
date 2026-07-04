@@ -74,4 +74,9 @@ public final class ConstantSchema extends JsonSchema {
             return new ConstantSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ConstantSchema [" + super.toString() + ", constant=" + constant + "]";
+    }
 }

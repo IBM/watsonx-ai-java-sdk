@@ -77,4 +77,9 @@ public final class RequiredSchema extends JsonSchema {
             return new RequiredSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "RequiredSchema [" + super.toString() + ", required=" + required + "]";
+    }
 }

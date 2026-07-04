@@ -376,6 +376,85 @@ public final class ChatResponse {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((object == null) ? 0 : object.hashCode());
+        result = prime * result + ((modelId == null) ? 0 : modelId.hashCode());
+        result = prime * result + ((model == null) ? 0 : model.hashCode());
+        result = prime * result + ((choices == null) ? 0 : choices.hashCode());
+        result = prime * result + ((created == null) ? 0 : created.hashCode());
+        result = prime * result + ((modelVersion == null) ? 0 : modelVersion.hashCode());
+        result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
+        result = prime * result + ((usage == null) ? 0 : usage.hashCode());
+        result = prime * result + ((extractionTags == null) ? 0 : extractionTags.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ChatResponse other = (ChatResponse) obj;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        if (object == null) {
+            if (other.object != null)
+                return false;
+        } else if (!object.equals(other.object))
+            return false;
+        if (modelId == null) {
+            if (other.modelId != null)
+                return false;
+        } else if (!modelId.equals(other.modelId))
+            return false;
+        if (model == null) {
+            if (other.model != null)
+                return false;
+        } else if (!model.equals(other.model))
+            return false;
+        if (choices == null) {
+            if (other.choices != null)
+                return false;
+        } else if (!choices.equals(other.choices))
+            return false;
+        if (created == null) {
+            if (other.created != null)
+                return false;
+        } else if (!created.equals(other.created))
+            return false;
+        if (modelVersion == null) {
+            if (other.modelVersion != null)
+                return false;
+        } else if (!modelVersion.equals(other.modelVersion))
+            return false;
+        if (createdAt == null) {
+            if (other.createdAt != null)
+                return false;
+        } else if (!createdAt.equals(other.createdAt))
+            return false;
+        if (usage == null) {
+            if (other.usage != null)
+                return false;
+        } else if (!usage.equals(other.usage))
+            return false;
+        if (extractionTags == null) {
+            if (other.extractionTags != null)
+                return false;
+        } else if (!extractionTags.equals(other.extractionTags))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "ChatResponse [id=" + id + ", object=" + object + ", modelId=" + modelId + ", model=" + model + ", choices=" + choices + ", created="
             + created + ", modelVersion=" + modelVersion + ", createdAt=" + createdAt + ", usage=" + usage + "]";

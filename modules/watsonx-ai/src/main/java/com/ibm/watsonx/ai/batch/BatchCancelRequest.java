@@ -78,4 +78,9 @@ public final class BatchCancelRequest extends WatsonxParameters {
             return new BatchCancelRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "BatchCancelRequest [" + super.toString() + ", batchId=" + batchId + "]";
+    }
 }

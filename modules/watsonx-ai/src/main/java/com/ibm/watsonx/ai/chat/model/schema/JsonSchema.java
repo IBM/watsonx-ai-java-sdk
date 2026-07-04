@@ -99,6 +99,11 @@ public abstract class JsonSchema {
         return oneOf;
     }
 
+    @Override
+    public String toString() {
+        return "description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf;
+    }
+
     /**
      * Creates a required constraint for use with {@code oneOf} or {@code anyOf} in object schemas.
      * <p>

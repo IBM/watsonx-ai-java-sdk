@@ -155,4 +155,9 @@ public final class FileListRequest extends WatsonxParameters {
             return new FileListRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "FileListRequest [" + super.toString() + ", after=" + after + ", limit=" + limit + ", order=" + order + ", purpose=" + purpose + "]";
+    }
 }

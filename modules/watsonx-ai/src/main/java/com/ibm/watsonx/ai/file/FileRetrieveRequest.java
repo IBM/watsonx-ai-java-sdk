@@ -78,4 +78,9 @@ public final class FileRetrieveRequest extends WatsonxParameters {
             return new FileRetrieveRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "FileRetrieveRequest [" + super.toString() + ", fileId=" + fileId + "]";
+    }
 }

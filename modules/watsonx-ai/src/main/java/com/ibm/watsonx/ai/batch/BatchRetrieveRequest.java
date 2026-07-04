@@ -76,4 +76,9 @@ public final class BatchRetrieveRequest extends WatsonxParameters {
             return new BatchRetrieveRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "BatchRetrieveRequest [" + super.toString() + ", batchId=" + batchId + "]";
+    }
 }

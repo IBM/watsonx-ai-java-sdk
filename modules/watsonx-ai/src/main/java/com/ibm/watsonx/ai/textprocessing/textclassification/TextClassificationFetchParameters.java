@@ -59,4 +59,9 @@ public final class TextClassificationFetchParameters extends WatsonxParameters {
             return new TextClassificationFetchParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "TextClassificationFetchParameters [" + super.toString() + "]";
+    }
 }

@@ -117,6 +117,14 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
         return taskModelNameOverride;
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ", enableTextHints=" + enableTextHints + ", enableGenericKvp=" + enableGenericKvp
+            + ", enableSchemaKvp=" + enableSchemaKvp + ", groundingMode=" + groundingMode
+            + ", schemasMergeStrategy=" + schemasMergeStrategy + ", forceSchemaName=" + forceSchemaName
+            + ", schemas=" + schemas + ", taskModelNameOverride=" + taskModelNameOverride;
+    }
+
     /**
      * Builder abstract class for constructing {@link ExtendedSemanticConfig} instance.
      *

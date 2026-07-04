@@ -59,4 +59,9 @@ public final class ImproveSchemaFetchParameters extends WatsonxParameters {
             return new ImproveSchemaFetchParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ImproveSchemaFetchParameters [" + super.toString() + "]";
+    }
 }

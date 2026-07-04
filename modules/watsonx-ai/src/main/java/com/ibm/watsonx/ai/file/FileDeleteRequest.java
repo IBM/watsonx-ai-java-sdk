@@ -79,4 +79,9 @@ public final class FileDeleteRequest extends WatsonxParameters {
             return new FileDeleteRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "FileDeleteRequest [" + super.toString() + ", fileId=" + fileId + "]";
+    }
 }

@@ -84,4 +84,9 @@ public final class ImproveSchemaDeleteParameters extends WatsonxParameters {
             return new ImproveSchemaDeleteParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ImproveSchemaDeleteParameters [" + super.toString() + ", hardDelete=" + hardDelete + "]";
+    }
 }

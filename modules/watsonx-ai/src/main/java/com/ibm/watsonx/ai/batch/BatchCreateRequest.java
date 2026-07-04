@@ -262,4 +262,11 @@ public final class BatchCreateRequest extends WatsonxParameters {
             return new BatchCreateRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "BatchCreateRequest [" + super.toString() + ", inputFileId=" + inputFileId + ", endpoint=" + endpoint + ", completionWindow="
+            + completionWindow + ", metadata=" + metadata + ", removeUploadedFile=" + removeUploadedFile + ", removeOutputFile=" + removeOutputFile
+            + ", timeout=" + timeout + "]";
+    }
 }

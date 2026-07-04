@@ -119,4 +119,9 @@ public final class EmbeddingParameters extends WatsonxCryptoParameters {
             return new EmbeddingParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "EmbeddingParameters [" + super.toString() + ", truncateInputTokens=" + truncateInputTokens + ", inputText=" + inputText + "]";
+    }
 }

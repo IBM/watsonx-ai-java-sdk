@@ -122,4 +122,9 @@ public final class ImproveSchemaParameters extends WatsonxParameters {
             return new ImproveSchemaParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ImproveSchemaParameters [" + super.toString() + ", semanticConfig=" + semanticConfig + ", timeout=" + timeout + "]";
+    }
 }

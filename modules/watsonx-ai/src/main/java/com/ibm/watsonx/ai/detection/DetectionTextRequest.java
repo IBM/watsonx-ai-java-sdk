@@ -123,7 +123,6 @@ public final class DetectionTextRequest extends WatsonxParameters {
 
     @Override
     public String toString() {
-        return "DetectionTextRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", input=" + input
-            + ", detectors=" + detectors + "]";
+        return "DetectionTextRequest [" + super.toString() + ", input=" + input + ", detectors=" + detectors + "]";
     }
 }

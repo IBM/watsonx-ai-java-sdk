@@ -353,4 +353,12 @@ public final class CreateSchemaParameters extends WatsonxParameters {
             return new CreateSchemaParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "CreateSchemaParameters [" + super.toString() + ", mode=" + mode + ", ocrMode=" + ocrMode + ", languages=" + languages
+            + ", autoRotationCorrection=" + autoRotationCorrection + ", additionalPromptInstructions=" + additionalPromptInstructions
+            + ", enableGrounding=" + enableGrounding + ", maxPagesToProcess=" + maxPagesToProcess + ", semanticConfig=" + semanticConfig
+            + ", removeUploadedFile=" + removeUploadedFile + ", documentReference=" + documentReference + ", timeout=" + timeout + "]";
+    }
 }

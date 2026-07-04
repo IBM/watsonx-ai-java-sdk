@@ -62,4 +62,9 @@ public final class BooleanSchema extends JsonSchema {
             return new BooleanSchema(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "BooleanSchema [" + super.toString() + "]";
+    }
 }

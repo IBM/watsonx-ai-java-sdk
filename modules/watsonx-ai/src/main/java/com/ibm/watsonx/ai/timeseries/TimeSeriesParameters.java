@@ -117,4 +117,9 @@ public final class TimeSeriesParameters extends WatsonxModelParameters {
             return new TimeSeriesParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "TimeSeriesParameters [" + super.toString() + ", predictionLength=" + predictionLength + ", futureData=" + futureData + "]";
+    }
 }

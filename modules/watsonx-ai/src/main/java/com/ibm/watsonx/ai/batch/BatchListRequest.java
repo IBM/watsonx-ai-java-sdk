@@ -78,4 +78,9 @@ public final class BatchListRequest extends WatsonxParameters {
             return new BatchListRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "BatchListRequest [" + super.toString() + ", limit=" + limit + "]";
+    }
 }

@@ -81,4 +81,9 @@ public final class Hap extends BaseDetector {
             return new Hap(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "Hap [" + super.toString() + "]";
+    }
 }

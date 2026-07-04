@@ -35,6 +35,11 @@ public abstract class SemanticConfig {
         return defaultModelName;
     }
 
+    @Override
+    public String toString() {
+        return "defaultModelName=" + defaultModelName;
+    }
+
     /**
      * Builder abstract class for constructing {@link SemanticConfig} instance.
      *

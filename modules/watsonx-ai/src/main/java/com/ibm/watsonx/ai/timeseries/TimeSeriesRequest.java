@@ -177,4 +177,10 @@ public final class TimeSeriesRequest {
             return new TimeSeriesRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "TimeSeriesRequest [deploymentId=" + deploymentId + ", inputSchema=" + inputSchema + ", data=" + data + ", parameters="
+            + parameters + "]";
+    }
 }

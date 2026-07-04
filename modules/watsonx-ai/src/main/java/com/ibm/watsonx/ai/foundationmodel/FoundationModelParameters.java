@@ -169,4 +169,10 @@ public final class FoundationModelParameters {
             return new FoundationModelParameters(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "FoundationModelParameters [start=" + start + ", limit=" + limit + ", filter=" + filter + ", transactionId=" + transactionId
+            + ", techPreview=" + techPreview + "]";
+    }
 }
