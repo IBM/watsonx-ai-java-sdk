@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ibm.watsonx.ai.batch.BatchCreateRequest;
+import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -81,6 +82,11 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TextGenerationParameters.Builder.class, TextGenerationParametersBuilderMixin.class);
         setMixInAnnotation(Moderation.class, ModerationMixin.class);
         setMixInAnnotation(Moderation.Builder.class, ModerationBuilderMixin.class);
+
+        // --- Chat Moderation Mixin --- //
+        setMixInAnnotation(com.ibm.watsonx.ai.chat.ChatModeration.class, ChatModerationMixin.class);
+        setMixInAnnotation(ChatResponse.DetectionEntry.class, ChatResponseDetectionEntryMixin.class);
+        setMixInAnnotation(ChatResponse.DetectionResult.class, ChatResponseDetectionResultMixin.class);
 
         // --- Schema Mixin --- //
         setMixInAnnotation(ArraySchema.class, ArraySchemaMixin.class);
@@ -151,6 +157,21 @@ public class WatsonxJacksonModule extends SimpleModule {
 
     @JsonPOJOBuilder(withPrefix = "")
     public abstract static class ModerationBuilderMixin {}
+
+    public abstract static class ChatModerationMixin {
+
+        @JsonProperty("hap")
+        abstract ChatModeration.Hap hap();
+
+        @JsonProperty("pii")
+        abstract ChatModeration.Pii pii();
+
+        @JsonProperty("granite_guardian")
+        abstract ChatModeration.GraniteGuardian graniteGuardian();
+
+        @JsonProperty("input_ranges")
+        abstract List<ChatModeration.InputRanges> inputRanges();
+    }
 
     @JsonDeserialize(builder = TextGenerationParameters.Builder.class)
     public abstract static class TextGenerationParametersMixin {
@@ -322,6 +343,31 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("extraction_tags")
         abstract ExtractionTags extractionTags();
+
+        @JsonProperty("moderations")
+        abstract Map<String, List<ChatResponse.ModerationResult>> moderations();
+
+        @JsonProperty("detections")
+        abstract Map<String, List<ChatResponse.DetectionEntry>> detections();
+    }
+
+    public abstract static class ChatResponseDetectionEntryMixin {
+        @JsonCreator
+        public ChatResponseDetectionEntryMixin(
+            @JsonProperty("choice_index") int choiceIndex,
+            @JsonProperty("results") List<ChatResponse.DetectionResult> results) {}
+    }
+
+    public abstract static class ChatResponseDetectionResultMixin {
+        @JsonCreator
+        public ChatResponseDetectionResultMixin(
+            @JsonProperty("detector_id") String detectorId,
+            @JsonProperty("detection_type") String detectionType,
+            @JsonProperty("detection") String detection,
+            @JsonProperty("score") double score,
+            @JsonProperty("text") String text,
+            @JsonProperty("start") int start,
+            @JsonProperty("end") int end) {}
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -422,6 +468,9 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("json_schema")
         abstract JsonSchemaObject jsonSchema();
+
+        @JsonProperty("moderations")
+        abstract ChatModeration moderations();
 
         @JsonProperty("crypto")
         abstract Map<String, Object> crypto();

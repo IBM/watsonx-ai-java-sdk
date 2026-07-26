@@ -5,6 +5,9 @@
 package com.ibm.watsonx.ai.chat.model;
 
 import java.util.List;
+import java.util.Map;
+import com.ibm.watsonx.ai.chat.ChatResponse.DetectionEntry;
+import com.ibm.watsonx.ai.chat.ChatResponse.ModerationResult;
 
 /**
  * Represents the partial response from a chat streaming request.
@@ -18,9 +21,12 @@ import java.util.List;
  * @param modelVersion the version of the model that produced the response
  * @param createdAt the ISO 8601 timestamp when the response was created
  * @param usage the token usage statistics, if present
+ * @param moderations the moderation results detected in this chunk, keyed by detector name
+ * @param detections the detection results reported in this chunk, keyed by target position
  */
 public record PartialChatResponse(String id, String object, String modelId, String model,
-    List<ResultChoice> choices, Long created, String modelVersion, String createdAt, ChatUsage usage) {
+    List<ResultChoice> choices, Long created, String modelVersion, String createdAt, ChatUsage usage,
+    Map<String, List<ModerationResult>> moderations, Map<String, List<DetectionEntry>> detections) {
 
     /**
      * Returns the index of the first result choice.

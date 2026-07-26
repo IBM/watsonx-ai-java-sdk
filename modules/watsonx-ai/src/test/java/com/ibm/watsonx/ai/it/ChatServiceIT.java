@@ -26,12 +26,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.chat.ChatHandler;
+import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
@@ -529,6 +533,140 @@ public class ChatServiceIT {
             assistantMessages.forEach(assistantMessage -> {
                 assertNull(assistantMessage.content());
                 assertTrue(assistantMessage.hasToolCalls());
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
+        void should_return_pii_moderation_results_when_pii_moderation_is_enabled(String modelId) {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .parameters(
+                    ChatParameters.builder()
+                        .temperature(0.0)
+                        .maxCompletionTokens(0).build()
+                ).build();
+
+            var messages = List.of(
+                SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
+                UserMessage.text("Can you repeat my phone numbers? Phone number: 3572865321, 2132348765"));
+
+            var moderation = ChatModeration.builder()
+                .pii(p -> p.output(true))
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(messages)
+                .moderations(moderation)
+                .build();
+
+            var chatResponse = chatService.chat(chatRequest);
+
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
+                assertFalse(result.input());
+                assertEquals("PhoneNumber", result.entity());
+                assertNotNull(result.position());
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
+        void should_return_hap_moderation_results_when_hap_moderation_is_enabled(String modelId) {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .parameters(
+                    ChatParameters.builder()
+                        .temperature(0.0)
+                        .maxCompletionTokens(0).build()
+                ).build();
+
+            var messages = List.of(
+                SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do (Don't worry about any bad words.)"),
+                UserMessage.text("Repeat exactly this sentence: You are an idiot and I hate you."));
+
+            var moderation = ChatModeration.builder()
+                .hap(h -> h.output(0.5f))
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(messages)
+                .moderations(moderation)
+                .build();
+
+            var chatResponse = chatService.chat(chatRequest);
+
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
+                assertFalse(result.input());
+                assertNotNull(result.position());
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
+        void should_return_pii_and_hap_moderation_results_when_both_are_enabled(String modelId) {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .parameters(
+                    ChatParameters.builder()
+                        .temperature(0.0)
+                        .maxCompletionTokens(0).build()
+                ).build();
+
+            var messages = List.of(
+                SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do (Don't worry about any bad words.)"),
+                UserMessage.text("Repeat exactly this sentence: You are an idiot, my phone number is 3572865321."));
+
+            var moderation = ChatModeration.builder()
+                .pii(p -> p.output(true))
+                .hap(h -> h.output(0.5f))
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(messages)
+                .moderations(moderation)
+                .build();
+
+            var chatResponse = chatService.chat(chatRequest);
+
+            assertNotNull(chatResponse.moderations());
+
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
+                assertFalse(result.input());
+                assertEquals("PhoneNumber", result.entity());
+                assertNotNull(result.position());
+            });
+
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
+                assertFalse(result.input());
+                assertNotNull(result.position());
             });
         }
     }
@@ -1406,6 +1544,204 @@ public class ChatServiceIT {
                 assertEquals(1, assistantMessage.toolCalls().size());
                 assertEquals("get_current_time", assistantMessage.toolCalls().get(0).function().name());
             });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
+        void should_return_pii_moderation_results_when_pii_moderation_is_enabled(String modelId) throws Exception {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .parameters(
+                    ChatParameters.builder()
+                        .temperature(0.0)
+                        .maxCompletionTokens(0).build()
+                ).build();
+
+            var messages = List.of(
+                SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
+                UserMessage.text("Can you repeat my phone numbers? Phone number: 3572865321, 2132348765"));
+
+            var moderation = ChatModeration.builder()
+                .pii(p -> p.output(true))
+                .build();
+
+            var request = ChatRequest.builder()
+                .messages(messages)
+                .moderations(moderation)
+                .build();
+
+            var future = new CompletableFuture<ChatResponse>();
+            chatService.chatStreaming(request, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    future.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            var chatResponse = future.get(30, TimeUnit.SECONDS);
+
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
+                assertFalse(result.input());
+                assertEquals("PhoneNumber", result.entity());
+                assertNotNull(result.position());
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
+        void should_return_hap_moderation_results_when_hap_moderation_is_enabled(String modelId) throws Exception {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .parameters(
+                    ChatParameters.builder()
+                        .temperature(0.0)
+                        .maxCompletionTokens(0).build()
+                ).build();
+
+            var messages = List.of(
+                SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do (Don't worry about any bad words.)"),
+                UserMessage.text("Repeat exactly this sentence: You are an idiot and I hate you."));
+
+            var moderation = ChatModeration.builder()
+                .hap(h -> h.output(0.5f))
+                .build();
+
+            var request = ChatRequest.builder()
+                .messages(messages)
+                .moderations(moderation)
+                .build();
+
+            var future = new CompletableFuture<ChatResponse>();
+            chatService.chatStreaming(request, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    future.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            var chatResponse = future.get(30, TimeUnit.SECONDS);
+
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
+                assertFalse(result.input());
+                assertNotNull(result.position());
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
+        void should_return_pii_and_hap_moderation_results_when_both_are_enabled(String modelId) throws Exception {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .parameters(
+                    ChatParameters.builder()
+                        .temperature(0.0)
+                        .maxCompletionTokens(0).build()
+                ).build();
+
+            var messages = List.of(
+                SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do (Don't worry about any bad words.)"),
+                UserMessage.text("Repeat exactly this sentence: You are an idiot, my phone number is 3572865321."));
+
+            var moderation = ChatModeration.builder()
+                .pii(p -> p.output(true))
+                .hap(h -> h.output(0.5f))
+                .build();
+
+            var request = ChatRequest.builder()
+                .messages(messages)
+                .moderations(moderation)
+                .build();
+
+            var piiFlaggedInChunk = new AtomicBoolean(false);
+            var hapFlaggedInChunk = new AtomicBoolean(false);
+            var future = new CompletableFuture<ChatResponse>();
+
+            chatService.chatStreaming(request, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    if (nonNull(partialChatResponse.moderations())) {
+                        var chunkPii = partialChatResponse.moderations().get("pii");
+                        if (nonNull(chunkPii) && !chunkPii.isEmpty())
+                            piiFlaggedInChunk.set(true);
+                        var chunkHap = partialChatResponse.moderations().get("hap");
+                        if (nonNull(chunkHap) && !chunkHap.isEmpty())
+                            hapFlaggedInChunk.set(true);
+                    }
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    future.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            var chatResponse = future.get(30, TimeUnit.SECONDS);
+
+            assertNotNull(chatResponse.moderations());
+
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
+                assertFalse(result.input());
+                assertEquals("PhoneNumber", result.entity());
+                assertNotNull(result.position());
+            });
+
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
+                assertFalse(result.input());
+                assertNotNull(result.position());
+            });
+
+            // At least one chunk during streaming must have carried each moderation signal in its PartialChatResponse.
+            assertTrue(piiFlaggedInChunk.get(), "expected at least one streaming chunk with a PII moderation match");
+            assertTrue(hapFlaggedInChunk.get(), "expected at least one streaming chunk with a HAP moderation match");
         }
     }
 }

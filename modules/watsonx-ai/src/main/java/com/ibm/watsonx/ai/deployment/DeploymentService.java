@@ -334,6 +334,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .lengthPenalty(getOrDefault(parameters.lengthPenalty(), defaultParameters.lengthPenalty()))
             .includeReasoning(includeReasoning)
             .reasoningEffort(thinkingEffort)
+            .moderations(chatRequest.moderations())
             .chatTemplateKwargs(chatTemplateKwargs)
             .build();
     }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.ibm.watsonx.ai.Crypto;
+import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.JsonSchemaObject;
 import com.ibm.watsonx.ai.chat.model.ChatParameters.ResponseFormat;
 
@@ -51,6 +52,7 @@ public final class TextChatRequest {
     private final Double repetitionPenalty;
     private final Double lengthPenalty;
     private final String context;
+    private final ChatModeration moderations;
     private final Crypto crypto;
 
     private TextChatRequest(Builder builder) {
@@ -92,6 +94,7 @@ public final class TextChatRequest {
         guidedGrammar = builder.guidedGrammar;
         repetitionPenalty = builder.repetitionPenalty;
         lengthPenalty = builder.lengthPenalty;
+        moderations = builder.moderations;
         crypto = nonNull(builder.crypto) ? new Crypto(builder.crypto) : null;
     }
 
@@ -215,6 +218,10 @@ public final class TextChatRequest {
         return lengthPenalty;
     }
 
+    public ChatModeration moderations() {
+        return moderations;
+    }
+
     public Crypto crypto() {
         return crypto;
     }
@@ -254,6 +261,7 @@ public final class TextChatRequest {
         private Double repetitionPenalty;
         private Double lengthPenalty;
         private String context;
+        private ChatModeration moderations;
         private String crypto;
 
         private Builder() {}
@@ -405,6 +413,11 @@ public final class TextChatRequest {
 
         public Builder jsonSchema(JsonSchemaObject jsonSchema) {
             this.jsonSchema = jsonSchema;
+            return this;
+        }
+
+        public Builder moderations(ChatModeration moderations) {
+            this.moderations = moderations;
             return this;
         }
 
