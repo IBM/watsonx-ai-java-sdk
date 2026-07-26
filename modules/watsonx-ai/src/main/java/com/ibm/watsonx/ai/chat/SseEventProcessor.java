@@ -9,9 +9,13 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import com.ibm.watsonx.ai.chat.ChatResponse.DetectionEntry;
+import com.ibm.watsonx.ai.chat.ChatResponse.DetectionResult;
+import com.ibm.watsonx.ai.chat.ChatResponse.ModerationResult;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.ErrorEvent;
@@ -49,6 +53,8 @@ public class SseEventProcessor {
     private volatile String modelVersion;
     private volatile boolean pendingSSEError = false;
     private volatile ChatUsage chatUsage;
+    private volatile Map<String, List<ModerationResult>> moderations;
+    private volatile Map<String, List<DetectionEntry>> detections;
     private final Map<Integer, StringBuilder> contentBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, StringBuilder> thinkingBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, List<StreamingToolFetcher>> toolFetchers = new ConcurrentHashMap<>();
@@ -186,6 +192,12 @@ public class SseEventProcessor {
 
         if (nonNull(chunk.usage()))
             chatUsage = chunk.usage();
+
+        if (nonNull(chunk.moderations()) && !chunk.moderations().isEmpty())
+            moderations = mergeModerations(moderations, chunk.moderations());
+
+        if (nonNull(chunk.detections()) && !chunk.detections().isEmpty())
+            detections = mergeDetections(detections, chunk.detections());
 
         if (chunk.choices().size() == 0) {
 
@@ -369,6 +381,8 @@ public class SseEventProcessor {
             .extractionTags(extractionTags)
             .usage(chatUsage)
             .choices(choices)
+            .moderations(moderations)
+            .detections(detections)
             .build();
     }
 
@@ -386,5 +400,43 @@ public class SseEventProcessor {
             tool -> tool.function().name(),
             Tool::hasParameters
         ));
+    }
+
+    /**
+     * Concatenates moderation matches from the current chunk into the accumulator, keyed by detector name.
+     */
+    private static Map<String, List<ModerationResult>> mergeModerations(Map<String, List<ModerationResult>> acc,
+        Map<String, List<ModerationResult>> chunk) {
+
+        var merged = isNull(acc) ? new LinkedHashMap<String, List<ModerationResult>>() : new LinkedHashMap<>(acc);
+
+        chunk.forEach((detector, results) -> {
+            var list = merged.computeIfAbsent(detector, k -> new ArrayList<>());
+            list.addAll(results);
+        });
+
+        return merged;
+    }
+
+    /**
+     * Concatenates detection entries from the current chunk into the accumulator, keyed by target position and grouped by {@code choiceIndex}.
+     */
+    private static Map<String, List<DetectionEntry>> mergeDetections(Map<String, List<DetectionEntry>> acc, Map<String, List<DetectionEntry>> chunk) {
+
+        var merged = isNull(acc) ? new LinkedHashMap<String, List<DetectionEntry>>() : new LinkedHashMap<>(acc);
+
+        chunk.forEach((target, chunkEntries) -> {
+            var byChoice = new LinkedHashMap<Integer, List<DetectionResult>>();
+            var existing = merged.get(target);
+            if (nonNull(existing))
+                existing.forEach(e -> byChoice.computeIfAbsent(e.choiceIndex(), k -> new ArrayList<>()).addAll(e.results()));
+            chunkEntries.forEach(e -> byChoice.computeIfAbsent(e.choiceIndex(), k -> new ArrayList<>()).addAll(e.results()));
+
+            var rebuilt = new ArrayList<DetectionEntry>();
+            byChoice.forEach((idx, results) -> rebuilt.add(new DetectionEntry(idx, results)));
+            merged.put(target, rebuilt);
+        });
+
+        return merged;
     }
 }

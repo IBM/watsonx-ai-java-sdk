@@ -42,6 +42,12 @@ The `DetectionService` enables you to:
 - Combine multiple detectors in a single request.
 - Configure detection thresholds for fine-grained control.
 
+> **Two modes are available for content screening in the SDK:**
+> - **Standalone detection** (this service) - analyze arbitrary text with `Hap`, `Pii`, and `GraniteGuardian` outside a chat flow (e.g. moderating user-generated content, log analysis, offline scans).
+> - **Inline chat moderation** via [`ChatService`]({{ site.baseurl }}/services/chat-service/#content-moderation) - attach a `ChatModeration` to a `ChatRequest` and let detectors run *during* the chat call. Results come back on the `ChatResponse`.
+>
+> The two APIs are independent: the same detector categories but different request types (`DetectionTextRequest` vs `ChatRequest`), different response shapes, and different classes (`com.ibm.watsonx.ai.detection.detector.*` vs `com.ibm.watsonx.ai.chat.ChatModeration.*`).
+
 ---
 
 ## Service Configuration

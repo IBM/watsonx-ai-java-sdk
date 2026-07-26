@@ -10,6 +10,7 @@ import com.ibm.watsonx.ai.batch.BatchCancelRequest;
 import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.batch.BatchListRequest;
 import com.ibm.watsonx.ai.batch.BatchRetrieveRequest;
+import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.schema.ArraySchema;
 import com.ibm.watsonx.ai.chat.model.schema.BooleanSchema;
@@ -353,10 +354,10 @@ public class ToStringTest {
 
     @Test
     void pii_toString_includes_name_and_properties() {
-        var s = Pii.builder().threshold(0.8).build().toString();
+        var s = Pii.builder().build().toString();
         assertTrue(s.contains("Pii"), s);
         assertTrue(s.contains("name=pii"), s);
-        assertTrue(s.contains("threshold"), s);
+        assertTrue(s.contains("properties"), s);
     }
 
     @Test
@@ -373,6 +374,50 @@ public class ToStringTest {
         assertTrue(s.contains("GraniteGuardian"), s);
         assertTrue(s.contains("name=granite_guardian"), s);
         assertTrue(s.contains("threshold"), s);
+    }
+
+    // -------------------------------------------------------------------------
+    // ChatModeration hierarchy
+    // -------------------------------------------------------------------------
+
+    @Test
+    void chat_moderation_toString_includes_configured_detectors() {
+        var s = ChatModeration.builder()
+            .hap(h -> h.output(0.9f))
+            .pii(p -> p.output(true))
+            .build()
+            .toString();
+        assertTrue(s.contains("ChatModeration"), s);
+        assertTrue(s.contains("hap="), s);
+        assertTrue(s.contains("pii="), s);
+    }
+
+    @Test
+    void chat_moderation_hap_toString_includes_class_name_and_properties() {
+        var moderation = ChatModeration.builder().hap(h -> h.output(0.9f).mask(true)).build();
+        var s = moderation.hap().toString();
+        assertTrue(s.contains("Hap"), s);
+        assertTrue(s.contains("properties"), s);
+        assertTrue(s.contains("output"), s);
+        assertTrue(s.contains("mask"), s);
+    }
+
+    @Test
+    void chat_moderation_pii_toString_includes_class_name_and_properties() {
+        var moderation = ChatModeration.builder().pii(p -> p.output(true)).build();
+        var s = moderation.pii().toString();
+        assertTrue(s.contains("Pii"), s);
+        assertTrue(s.contains("properties"), s);
+        assertTrue(s.contains("output"), s);
+    }
+
+    @Test
+    void chat_moderation_granite_guardian_toString_includes_class_name_and_properties() {
+        var moderation = ChatModeration.builder().graniteGuardian(g -> g.input(0.85f)).build();
+        var s = moderation.graniteGuardian().toString();
+        assertTrue(s.contains("GraniteGuardian"), s);
+        assertTrue(s.contains("properties"), s);
+        assertTrue(s.contains("input"), s);
     }
 
     // -------------------------------------------------------------------------

@@ -94,6 +94,7 @@ public class ChatUtility {
             .includeReasoning(includeReasoning)
             .reasoningEffort(thinkingEffort)
             .chatTemplateKwargs(chatTemplateKwargs)
+            .moderations(chatRequest.moderations())
             .crypto(getOrDefault(parameters.crypto(), defaultParameters.crypto()))
             .build();
     }

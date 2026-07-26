@@ -57,6 +57,7 @@ public final class ChatRequest {
     private final List<Tool> tools;
     private final ChatParameters parameters;
     private final Thinking thinking;
+    private final ChatModeration moderations;
 
     private ChatRequest(Builder builder) {
         messages = requireNonNull(builder.messages, "messages cannot be null");
@@ -64,6 +65,7 @@ public final class ChatRequest {
         parameters = builder.parameters;
         deploymentId = builder.deploymentId;
         thinking = builder.thinking;
+        moderations = builder.moderations;
     }
 
     /**
@@ -111,6 +113,10 @@ public final class ChatRequest {
         return thinking;
     }
 
+    public ChatModeration moderations() {
+        return moderations;
+    }
+
     /**
      * Creates a builder initialized with the current state of the {@code ChatRequest}.
      *
@@ -122,7 +128,8 @@ public final class ChatRequest {
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
-            .thinking(thinking);
+            .thinking(thinking)
+            .moderations(moderations);
     }
 
     /**
@@ -170,6 +177,7 @@ public final class ChatRequest {
         private List<Tool> tools;
         private ChatParameters parameters;
         private Thinking thinking;
+        private ChatModeration moderations;
 
         private Builder() {}
 
@@ -359,6 +367,11 @@ public final class ChatRequest {
             return this;
         }
 
+        public Builder moderations(ChatModeration moderations) {
+            this.moderations = moderations;
+            return this;
+        }
+
         /**
          * Builds a {@link ChatRequest} instance using the configured parameters.
          *
@@ -372,6 +385,6 @@ public final class ChatRequest {
     @Override
     public String toString() {
         return "ChatRequest [deploymentId=" + deploymentId + ", messages=" + messages + ", tools=" + tools + ", parameters=" + parameters
-            + ", thinking=" + thinking + "]";
+            + ", thinking=" + thinking + ", moderations=" + moderations + "]";
     }
 }

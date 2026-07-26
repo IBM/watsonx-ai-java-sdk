@@ -766,6 +766,141 @@ ChatService limitedService = ChatService.builder()
 
 ---
 
+## Content Moderation
+
+Content moderation lets watsonx.ai screen chat input and output for **Personally Identifiable Information (PII)**, **Hate and Profanity (HAP)**, and **Granite Guardian** categories. When one or more detectors match, the results are returned alongside the assistant's response so your application can decide how to react - redact, block, log, warn the user - based on your own policy.
+
+> **Two modes are available for content screening in the SDK:**
+> - **Inline chat moderation** (this section) - attach a `ChatModeration` to a `ChatRequest`. Detectors run as part of the chat call and results come back on the `ChatResponse`. Use it when you want screening to happen *during* the generation.
+> - **Standalone detection** via [`DetectionService`]({{ site.baseurl }}/services/detection-service/) - analyze arbitrary text with `Hap`, `Pii`, and `GraniteGuardian` outside a chat flow (e.g. moderating user-generated content, log analysis, offline scans).
+>
+> The two APIs are independent: the same detector categories but different request types (`ChatRequest` vs `DetectionTextRequest`), different response shapes, and different classes (`com.ibm.watsonx.ai.chat.ChatModeration.*` vs `com.ibm.watsonx.ai.detection.detector.*`).
+
+### Detector Types
+
+| Detector | Purpose | Enable via |
+|---|---|---|
+| `pii` | Detects personal data such as phone numbers, emails, credit cards, addresses | `.pii(p -> p.input(true).output(true))` |
+| `hap` | Detects hate and profanity above a confidence threshold | `.hap(h -> h.input(0.8f).output(0.9f))` |
+| `graniteGuardian` | General-purpose harm/safety classifier | `.graniteGuardian(g -> g.input(0.85f))` |
+
+Each detector accepts an `input` toggle/threshold, an `output` toggle/threshold, and an optional `.mask(true)` flag.
+
+### Enabling Moderation on a Request
+
+Attach a `ChatModeration` configuration to a `ChatRequest` via `.moderations(...)`:
+
+```java
+var moderation = ChatModeration.builder()
+    .pii(p -> p.output(true))
+    .hap(h -> h.output(0.8f))
+    .build();
+
+var request = ChatRequest.builder()
+    .messages(
+        SystemMessage.of("You are a helpful assistant"),
+        UserMessage.text("Contact me at john@example.com, phone 555-1234"))
+    .moderations(moderation)
+    .build();
+
+ChatResponse response = chatService.chat(request);
+```
+
+### Reading the Results
+
+When one or more detectors match, `ChatResponse` exposes two independent structures:
+
+- `response.moderations()` - a map keyed by detector name (`"pii"`, `"hap"`, `"granite_guardian"`) with per-match details (`score`, `input`, `position`, `entity`, `word`).
+- `response.detections()` - a map keyed by target position (`"input"`, `"output"`) with per-choice detection entries containing the underlying detector ID and matches.
+
+Both are `null` when no detector matched.
+
+```java
+if (response.moderations() != null) {
+    var piiMatches = response.moderations().get("pii");
+    if (piiMatches != null) {
+        for (var match : piiMatches) {
+            System.out.printf("%s: %s (score=%.2f, at [%d, %d))%n",
+                match.entity(), match.word(), match.score(),
+                match.position().start(), match.position().end());
+        }
+    }
+}
+```
+
+Fields on `ModerationResult`:
+
+| Field | Type | Description |
+|---|---|---|
+| `score` | `float` | Confidence of the match (0.0 – 1.0) |
+| `input` | `boolean` | `true` if the match was found in the input, `false` for output |
+| `position` | `Position` | Start (inclusive) / end (exclusive) offsets in the text |
+| `entity` | `String` | Detected entity type (e.g. `"PhoneNumber"`) |
+| `word` | `String` | The matched text |
+
+### Restricting Moderation to Input Ranges
+
+You can limit input moderation to specific text ranges via `InputRanges`:
+
+```java
+var moderation = ChatModeration.builder()
+    .pii(p -> p.input(true))
+    .inputRanges(List.of(
+        InputRanges.of(0, 50),
+        InputRanges.of(100, 150)))
+    .build();
+```
+
+Only text within the given ranges is evaluated on input.
+
+### Redacting Content
+
+The SDK returns detection results untouched - it does **not** modify the assistant message content. When you want to redact matched values, use the `Masker` utility class, which walks through the output moderation matches and rewrites the corresponding ranges:
+
+```java
+var content = response.toAssistantMessage().content();
+
+// Default: replace each matched range with '*' of the same length.
+String masked = Masker.mask(content, response);
+
+// Custom: replace each match with a labelled placeholder.
+String labelled = Masker.mask(content, response, m -> "[" + m.entity() + "]");
+```
+
+Pass a custom replacer when you need a redaction policy that depends on more than the single match (e.g. hashing, tokenization, external lookup).
+
+### Streaming
+
+Moderation is fully supported in streaming mode. Results are available in two places:
+
+- **Per-chunk** on `PartialChatResponse.moderations()` and `.detections()` inside `onPartialResponse` - the same shape as the final response, scoped to what was flagged in that single chunk. Empty when the chunk carries no match. Useful to react in real time (stop the stream, tag the current token, alert an auditor).
+- **Aggregated** on the final `ChatResponse` passed to `onCompleteResponse` - all per-chunk matches merged. Detection entries with the same `choice_index` are collapsed into a single entry.
+
+```java
+chatService.chatStreaming(request, new ChatHandler() {
+    @Override
+    public void onPartialResponse(String chunk, PartialChatResponse partial) {
+        System.out.print(chunk);
+
+        // Per-chunk reaction: this chunk triggered one or more detectors.
+        if (partial.moderations() != null && !partial.moderations().isEmpty()) {
+            partial.moderations().forEach((detector, matches) ->
+                System.out.printf("%n[%s] flagged in this chunk: %d match(es)%n", detector, matches.size()));
+        }
+    }
+
+    @Override
+    public void onCompleteResponse(ChatResponse response) {
+        // Aggregated view across the whole stream.
+        if (response.moderations() != null) {
+            System.out.println("\nModeration results (aggregated): " + response.moderations().keySet());
+        }
+    }
+});
+```
+
+---
+
 ## Related Resources
 
 - [Chat API Reference](https://cloud.ibm.com/apidocs/watsonx-ai#chat-completions)
@@ -775,3 +910,4 @@ ChatService limitedService = ChatService.builder()
 - [Chatbot with Tools (Sample)](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/chatbot-tools)
 - [Chatbot with ToolRegistry (Sample)](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/chatbot-with-tool-registry)
 - [Chatbot with Reasoning (Sample)](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/chatbot-reasoning)
+- [Chat Inline Moderation (Sample)](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/chat-inline-moderation)

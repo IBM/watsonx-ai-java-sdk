@@ -5,7 +5,9 @@
 package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.toUnmodifiableMap;
 import java.util.List;
+import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -24,7 +26,7 @@ public final class ChatResponse {
      * @param message the message produced by the model for this choice
      * @param finishReason the reason the model stopped generating tokens for this choice
      */
-    public static record ResultChoice(Integer index, ResultMessage message, String finishReason) {
+    public record ResultChoice(Integer index, ResultMessage message, String finishReason) {
 
         /**
          * Returns a copy of this {@link ResultChoice} with a new result message.
@@ -47,6 +49,50 @@ public final class ChatResponse {
         }
     }
 
+    /**
+     * Represents a single moderation result detected in the chat response.
+     * <p>
+     * A moderation result describes a specific match found by the moderation system, including its probability score, whether it was found in the
+     * input or output text, its position within the text, the detected entity type, and optionally the matched word.
+     *
+     * @param score the probability that this is a real match (0.0 to 1.0)
+     * @param input {@code true} if this was found in the input text, {@code false} if found in the output
+     * @param position the range within the text where the match was found
+     * @param entity the entity type identified by the moderation (e.g., {@code "EmailAddress"})
+     * @param word the text that was identified for this entity
+     */
+    public record ModerationResult(float score, boolean input, Position position, String entity, String word) {
+
+        /**
+         * Represents a range of text identified by a moderation result. The {@code end} index is exclusive.
+         *
+         * @param start the start index of the range (inclusive), must be &ge; 0
+         * @param end the end index of the range (exclusive), must be &ge; 0
+         */
+        public record Position(int start, int end) {}
+    }
+
+    /**
+     * Represents a detection entry associated with a specific choice.
+     *
+     * @param choiceIndex the index of the choice this detection refers to
+     * @param results the list of detection results found for the choice
+     */
+    public record DetectionEntry(int choiceIndex, List<DetectionResult> results) {}
+
+    /**
+     * Represents a single detection result produced by a detector.
+     *
+     * @param detectorId the identifier of the detector that produced this result (e.g., {@code "en_syntax_rbr_pii"})
+     * @param detectionType the type of detection (e.g., {@code "pii"})
+     * @param detection the specific detection label (e.g., {@code "PhoneNumber"})
+     * @param score the probability that this is a real match (0.0 to 1.0)
+     * @param text the text that was identified
+     * @param start the start index of the match (inclusive)
+     * @param end the end index of the match (exclusive)
+     */
+    public record DetectionResult(String detectorId, String detectionType, String detection, double score, String text, int start, int end) {}
+
     private final String id;
     private final String object;
     private final String modelId;
@@ -57,6 +103,8 @@ public final class ChatResponse {
     private final String createdAt;
     private final ChatUsage usage;
     private final ExtractionTags extractionTags;
+    private final Map<String, List<ModerationResult>> moderations;
+    private final Map<String, List<DetectionEntry>> detections;
 
     private ChatResponse(Builder builder) {
         id = builder.id;
@@ -69,6 +117,12 @@ public final class ChatResponse {
         createdAt = builder.createdAt;
         usage = builder.usage;
         extractionTags = builder.extractionTags;
+        moderations = isNull(builder.moderations) ? null
+            : builder.moderations.entrySet().stream()
+                .collect(toUnmodifiableMap(Map.Entry::getKey, e -> List.copyOf(e.getValue())));
+        detections = isNull(builder.detections) ? null
+            : builder.detections.entrySet().stream()
+                .collect(toUnmodifiableMap(Map.Entry::getKey, e -> List.copyOf(e.getValue())));
     }
 
     /**
@@ -153,6 +207,25 @@ public final class ChatResponse {
     }
 
     /**
+     * Returns the moderation results detected in the chat response, keyed by detector name (e.g. {@code "pii"}, {@code "hap"},
+     * {@code "granite_guardian"}).
+     *
+     * @return a map from detector name to its list of {@link ModerationResult}
+     */
+    public Map<String, List<ModerationResult>> moderations() {
+        return moderations;
+    }
+
+    /**
+     * Returns the detection results reported in the chat response, keyed by the target position (e.g. {@code "input"}, {@code "output"}).
+     *
+     * @return a map from target position to its list of {@link DetectionEntry}
+     */
+    public Map<String, List<DetectionEntry>> detections() {
+        return detections;
+    }
+
+    /**
      * Retrieves the finish reason for the current chat response.
      *
      * @return a {@code String} representing the reason why the response generation finished
@@ -232,7 +305,9 @@ public final class ChatResponse {
             .modelVersion(this.modelVersion)
             .createdAt(this.createdAt)
             .usage(this.usage)
-            .extractionTags(this.extractionTags);
+            .extractionTags(this.extractionTags)
+            .moderations(this.moderations)
+            .detections(this.detections);
     }
 
     /**
@@ -264,6 +339,8 @@ public final class ChatResponse {
         private String createdAt;
         private ChatUsage usage;
         private ExtractionTags extractionTags;
+        private Map<String, List<ModerationResult>> moderations;
+        private Map<String, List<DetectionEntry>> detections;
 
         /**
          * Sets the unique identifier of the chat response.
@@ -366,6 +443,26 @@ public final class ChatResponse {
         }
 
         /**
+         * Sets the moderation results detected in the chat response, keyed by detector name.
+         *
+         * @param moderations a map from detector name to its list of {@link ModerationResult}
+         */
+        public Builder moderations(Map<String, List<ModerationResult>> moderations) {
+            this.moderations = moderations;
+            return this;
+        }
+
+        /**
+         * Sets the detection results reported in the chat response, keyed by the target position (e.g. {@code "input"}, {@code "output"}).
+         *
+         * @param detections a map from target position to its list of {@link DetectionEntry}
+         */
+        public Builder detections(Map<String, List<DetectionEntry>> detections) {
+            this.detections = detections;
+            return this;
+        }
+
+        /**
          * Builds a {@link ChatResponse} instance using the configured parameters.
          *
          * @return a new instance of {@link ChatResponse}
@@ -389,6 +486,8 @@ public final class ChatResponse {
         result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
         result = prime * result + ((usage == null) ? 0 : usage.hashCode());
         result = prime * result + ((extractionTags == null) ? 0 : extractionTags.hashCode());
+        result = prime * result + ((moderations == null) ? 0 : moderations.hashCode());
+        result = prime * result + ((detections == null) ? 0 : detections.hashCode());
         return result;
     }
 
@@ -451,12 +550,23 @@ public final class ChatResponse {
                 return false;
         } else if (!extractionTags.equals(other.extractionTags))
             return false;
+        if (moderations == null) {
+            if (other.moderations != null)
+                return false;
+        } else if (!moderations.equals(other.moderations))
+            return false;
+        if (detections == null) {
+            if (other.detections != null)
+                return false;
+        } else if (!detections.equals(other.detections))
+            return false;
         return true;
     }
 
     @Override
     public String toString() {
         return "ChatResponse [id=" + id + ", object=" + object + ", modelId=" + modelId + ", model=" + model + ", choices=" + choices + ", created="
-            + created + ", modelVersion=" + modelVersion + ", createdAt=" + createdAt + ", usage=" + usage + "]";
+            + created + ", modelVersion=" + modelVersion + ", createdAt=" + createdAt + ", usage=" + usage + ", extractionTags=" + extractionTags
+            + ", moderations=" + moderations + ", detections=" + detections + "]";
     }
 }

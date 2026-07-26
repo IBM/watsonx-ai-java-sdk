@@ -94,7 +94,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                 .detectors(
                     Pii.builder().build(),
                     Hap.builder().threshold(0.1).build(),
-                    GraniteGuardian.builder().threshold(0.2).addProperty("val", "test").build())
+                    GraniteGuardian.builder().threshold(0.2).build())
                 .build();
 
             service.detect(request);
@@ -111,8 +111,7 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                                 "threshold": 0.1
                             },
                             "granite_guardian": {
-                                "threshold": 0.2,
-                                "val": "test"
+                                "threshold": 0.2
                             }
                         }
                     }

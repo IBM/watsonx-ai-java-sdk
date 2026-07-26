@@ -24,11 +24,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.chat.ChatHandler;
+import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
@@ -521,6 +523,75 @@ public class DeploymentServiceIT {
             var assistantMessage = chatResponse.toAssistantMessage();
             assertFalse(assistantMessage.content().isBlank());
             assertTrue(assistantMessage.content().startsWith("attenzione attenzione"));
+        }
+
+        @Test
+        @Disabled("Inline chat moderation is not currently supported on watsonx.ai deployments; re-enable once the platform accepts it.")
+        @EnabledIfEnvironmentVariable(named = "WATSONX_DEPLOYMENT_ID", matches = ".+")
+        void should_return_pii_moderation_results_when_pii_moderation_is_enabled() {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .apiKey(API_KEY)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var moderation = ChatModeration.builder()
+                .pii(p -> p.output(true))
+                .build();
+
+            var request = ChatRequest.builder()
+                .deploymentId(DEPLOYMENT_ID)
+                .messages(
+                    SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
+                    UserMessage.text("Can you repeat my phone numbers? Phone number: 3572865321, 2132348765"))
+                .moderations(moderation)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
+
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
+                assertFalse(result.input());
+                assertEquals("PhoneNumber", result.entity());
+                assertNotNull(result.position());
+            });
+        }
+
+        @Test
+        @Disabled("Inline chat moderation is not currently supported on watsonx.ai deployments; re-enable once the platform accepts it.")
+        @EnabledIfEnvironmentVariable(named = "WATSONX_GRANITE_3_3_DEPLOYMENT_ID", matches = ".+")
+        void should_return_hap_moderation_results_when_hap_moderation_is_enabled() {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .apiKey(API_KEY)
+                .build();
+
+            var moderation = ChatModeration.builder()
+                .hap(h -> h.output(0.5f))
+                .build();
+
+            var request = ChatRequest.builder()
+                .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
+                .messages(
+                    SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
+                    UserMessage.text("Repeat exactly this sentence: You are an idiot and I hate you."))
+                .moderations(moderation)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
+
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
+                assertFalse(result.input());
+                assertNotNull(result.position());
+            });
         }
     }
 
@@ -1158,6 +1229,107 @@ public class DeploymentServiceIT {
                 .deploymentId(DEPLOYMENT_ID)
                 .parameters(parameters)
                 .build();
+        }
+
+        @Test
+        @Disabled("Inline chat moderation is not currently supported on watsonx.ai deployments; re-enable once the platform accepts it.")
+        @EnabledIfEnvironmentVariable(named = "WATSONX_DEPLOYMENT_ID", matches = ".+")
+        void should_return_pii_moderation_results_when_pii_moderation_is_enabled_streaming() throws Exception {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .apiKey(API_KEY)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var moderation = ChatModeration.builder()
+                .pii(p -> p.output(true))
+                .build();
+
+            var request = ChatRequest.builder()
+                .deploymentId(DEPLOYMENT_ID)
+                .messages(
+                    SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
+                    UserMessage.text("Can you repeat my phone numbers? Phone number: 3572865321, 2132348765"))
+                .moderations(moderation)
+                .build();
+
+            var future = new CompletableFuture<ChatResponse>();
+            deploymentService.chatStreaming(request, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    future.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            var chatResponse = future.get(30, TimeUnit.SECONDS);
+
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
+                assertFalse(result.input());
+                assertEquals("PhoneNumber", result.entity());
+                assertNotNull(result.position());
+            });
+        }
+
+        @Test
+        @Disabled("Inline chat moderation is not currently supported on watsonx.ai deployments; re-enable once the platform accepts it.")
+        @EnabledIfEnvironmentVariable(named = "WATSONX_GRANITE_3_3_DEPLOYMENT_ID", matches = ".+")
+        void should_return_hap_moderation_results_when_hap_moderation_is_enabled_streaming() throws Exception {
+
+            var deploymentService = DeploymentService.builder()
+                .baseUrl(URL)
+                .apiKey(API_KEY)
+                .build();
+
+            var moderation = ChatModeration.builder()
+                .hap(h -> h.output(0.5f))
+                .build();
+
+            var request = ChatRequest.builder()
+                .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
+                .messages(
+                    SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
+                    UserMessage.text("Repeat exactly this sentence: You are an idiot and I hate you."))
+                .moderations(moderation)
+                .build();
+
+            var future = new CompletableFuture<ChatResponse>();
+            deploymentService.chatStreaming(request, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    future.complete(completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            var chatResponse = future.get(30, TimeUnit.SECONDS);
+
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
+                assertFalse(result.input());
+                assertNotNull(result.position());
+            });
         }
     }
 }
