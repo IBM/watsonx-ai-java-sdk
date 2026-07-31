@@ -28,6 +28,7 @@
     <module>batch</module>
     <module>utility-tools</module>
     <module>deployment</module>
+    <module>model-gateway</module>
     <module>detection</module>
     <module>cp4d-authentication</module>
   </modules>

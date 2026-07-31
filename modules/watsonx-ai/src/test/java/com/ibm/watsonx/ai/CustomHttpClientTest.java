@@ -21,6 +21,7 @@ import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
+import com.ibm.watsonx.ai.gateway.ModelGatewayService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -80,6 +81,66 @@ public class CustomHttpClientTest {
                     .build();
 
                 Object restclient = getFieldValue(chatService, "client");
+                assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+                Object asyncHttpClient = getFieldValue(restclient, "asyncHttpClient");
+                assertNotEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(asyncHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void should_use_custom_http_client_for_model_gateway_service() throws Exception {
+
+        HttpClient customClient = HttpClient.newHttpClient();
+        ModelGatewayService modelGatewayService = ModelGatewayService.builder()
+            .baseUrl("https://localhost")
+            .modelId("modelId")
+            .apiKey("apiKey")
+            .httpClient(customClient)
+            .build();
+
+        Object restclient = getFieldValue(modelGatewayService, "client");
+        assertEquals(customClient, getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(restclient, "httpClient"));
+
+        Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+        assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+
+        Object asyncHttpClient = getFieldValue(restclient, "asyncHttpClient");
+        assertEquals(customClient, getFieldValue(asyncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(asyncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(asyncHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_default_http_client_for_model_gateway_service() throws Exception {
+
+        Stream.of(true, false).forEach(verifySsl -> {
+
+            try {
+
+                HttpClient customClient = HttpClient.newHttpClient();
+                ModelGatewayService modelGatewayService = ModelGatewayService.builder()
+                    .baseUrl("https://localhost")
+                    .modelId("modelId")
+                    .apiKey("apiKey")
+                    .verifySsl(verifySsl)
+                    .build();
+
+                Object restclient = getFieldValue(modelGatewayService, "client");
                 assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
                 assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
 

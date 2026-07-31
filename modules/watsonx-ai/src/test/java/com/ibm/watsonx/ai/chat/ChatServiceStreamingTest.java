@@ -76,7 +76,7 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -199,7 +199,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -218,7 +218,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        TextChatResponse response = (TextChatResponse) assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
         assertNotNull(response.choices());
         assertEquals(1, response.choices().size());
@@ -372,7 +372,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -391,7 +391,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        TextChatResponse response = (TextChatResponse) assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
         assertEquals(1749764735, response.created());
         assertEquals("2025-06-12T21:45:35.150Z", response.createdAt());
@@ -701,7 +701,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -720,7 +720,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        TextChatResponse response = (TextChatResponse) assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
         assertEquals(1749766697, response.created());
         assertEquals("2025-06-12T22:18:18.126Z", response.createdAt());
@@ -962,7 +962,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         doAnswer(invocation -> {
             ChatResponse completeResponse = invocation.getArgument(0);
-            result.complete(completeResponse);
+            result.complete((TextChatResponse) completeResponse);
             return null;
         }).when(mockChatHandler).onCompleteResponse(any());
 
@@ -1548,7 +1548,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
                 assertTrue(Thread.currentThread().getName().startsWith("thread"));
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1703,7 +1703,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1808,7 +1808,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1827,7 +1827,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        TextChatResponse response = (TextChatResponse) assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         AssistantMessage assistantMessage = response.toAssistantMessage();
         JSONAssert.assertEquals("""
             {
@@ -2007,7 +2007,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -2176,7 +2176,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .toolInterceptor((ctx, fc) -> {
                 var chatRequest = ctx.request().toBuilder();
-                var chatParameters = ctx.request().parameters().toBuilder();
+                var chatParameters = ((com.ibm.watsonx.ai.chat.model.ChatParameters) ctx.request().parameters()).toBuilder();
                 assertFalse(ctx.response().isPresent());
                 assertNotNull(ctx.request());
                 assertEquals(1, ctx.request().messages().size());
@@ -2200,7 +2200,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -2319,7 +2319,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                future.complete(completeResponse);
+                future.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -2721,7 +2721,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                future.complete(completeResponse);
+                future.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -2907,7 +2907,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
                 collection.add("onCompleteResponse");
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -3025,7 +3025,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
                 collection.add("onCompleteResponse");
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -3881,7 +3881,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -3991,7 +3991,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                future.complete(completeResponse);
+                future.complete((TextChatResponse) completeResponse);
             }
 
             @Override

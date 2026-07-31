@@ -2,22 +2,26 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
+
+
 package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.toUnmodifiableMap;
 import java.util.List;
-import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
+import com.ibm.watsonx.ai.gateway.GatewayChatResponse;
 
 /**
  * Represents the response from a chat completion request.
+ *
+ * @see TextChatResponse
+ * @see GatewayChatResponse
  */
-public final class ChatResponse {
+public class ChatResponse {
 
     /**
      * Represents a single choice returned by the model within a chat response.
@@ -49,80 +53,22 @@ public final class ChatResponse {
         }
     }
 
-    /**
-     * Represents a single moderation result detected in the chat response.
-     * <p>
-     * A moderation result describes a specific match found by the moderation system, including its probability score, whether it was found in the
-     * input or output text, its position within the text, the detected entity type, and optionally the matched word.
-     *
-     * @param score the probability that this is a real match (0.0 to 1.0)
-     * @param input {@code true} if this was found in the input text, {@code false} if found in the output
-     * @param position the range within the text where the match was found
-     * @param entity the entity type identified by the moderation (e.g., {@code "EmailAddress"})
-     * @param word the text that was identified for this entity
-     */
-    public record ModerationResult(float score, boolean input, Position position, String entity, String word) {
-
-        /**
-         * Represents a range of text identified by a moderation result. The {@code end} index is exclusive.
-         *
-         * @param start the start index of the range (inclusive), must be &ge; 0
-         * @param end the end index of the range (exclusive), must be &ge; 0
-         */
-        public record Position(int start, int end) {}
-    }
-
-    /**
-     * Represents a detection entry associated with a specific choice.
-     *
-     * @param choiceIndex the index of the choice this detection refers to
-     * @param results the list of detection results found for the choice
-     */
-    public record DetectionEntry(int choiceIndex, List<DetectionResult> results) {}
-
-    /**
-     * Represents a single detection result produced by a detector.
-     *
-     * @param detectorId the identifier of the detector that produced this result (e.g., {@code "en_syntax_rbr_pii"})
-     * @param detectionType the type of detection (e.g., {@code "pii"})
-     * @param detection the specific detection label (e.g., {@code "PhoneNumber"})
-     * @param score the probability that this is a real match (0.0 to 1.0)
-     * @param text the text that was identified
-     * @param start the start index of the match (inclusive)
-     * @param end the end index of the match (exclusive)
-     */
-    public record DetectionResult(String detectorId, String detectionType, String detection, double score, String text, int start, int end) {}
-
     private final String id;
     private final String object;
-    private final String modelId;
     private final String model;
     private final List<ResultChoice> choices;
     private final Long created;
-    private final String modelVersion;
-    private final String createdAt;
     private final ChatUsage usage;
     private final ExtractionTags extractionTags;
-    private final Map<String, List<ModerationResult>> moderations;
-    private final Map<String, List<DetectionEntry>> detections;
 
-    private ChatResponse(Builder builder) {
+    protected ChatResponse(Builder<?> builder) {
         id = builder.id;
         object = builder.object;
-        modelId = builder.modelId;
         model = builder.model;
         choices = isNull(builder.choices) ? null : List.copyOf(builder.choices);
         created = builder.created;
-        modelVersion = builder.modelVersion;
-        createdAt = builder.createdAt;
         usage = builder.usage;
         extractionTags = builder.extractionTags;
-        moderations = isNull(builder.moderations) ? null
-            : builder.moderations.entrySet().stream()
-                .collect(toUnmodifiableMap(Map.Entry::getKey, e -> List.copyOf(e.getValue())));
-        detections = isNull(builder.detections) ? null
-            : builder.detections.entrySet().stream()
-                .collect(toUnmodifiableMap(Map.Entry::getKey, e -> List.copyOf(e.getValue())));
     }
 
     /**
@@ -141,15 +87,6 @@ public final class ChatResponse {
      */
     public String object() {
         return object;
-    }
-
-    /**
-     * Returns the id of the model used to generate the response.
-     *
-     * @return the model id
-     */
-    public String modelId() {
-        return modelId;
     }
 
     /**
@@ -180,24 +117,6 @@ public final class ChatResponse {
     }
 
     /**
-     * Returns the version of the model that generated the response.
-     *
-     * @return the model version
-     */
-    public String modelVersion() {
-        return modelVersion;
-    }
-
-    /**
-     * Returns the formatted creation timestamp of the response.
-     *
-     * @return the formatted creation time
-     */
-    public String createdAt() {
-        return createdAt;
-    }
-
-    /**
      * Returns the usage statistics for the response, such as token counts.
      *
      * @return a {@link ChatUsage} object
@@ -207,28 +126,18 @@ public final class ChatResponse {
     }
 
     /**
-     * Returns the moderation results detected in the chat response, keyed by detector name (e.g. {@code "pii"}, {@code "hap"},
-     * {@code "granite_guardian"}).
+     * Returns the extraction tags used to parse thinking and response content.
      *
-     * @return a map from detector name to its list of {@link ModerationResult}
+     * @return the extraction tags, or {@code null} if not set
      */
-    public Map<String, List<ModerationResult>> moderations() {
-        return moderations;
-    }
-
-    /**
-     * Returns the detection results reported in the chat response, keyed by the target position (e.g. {@code "input"}, {@code "output"}).
-     *
-     * @return a map from target position to its list of {@link DetectionEntry}
-     */
-    public Map<String, List<DetectionEntry>> detections() {
-        return detections;
+    public ExtractionTags extractionTags() {
+        return extractionTags;
     }
 
     /**
      * Retrieves the finish reason for the current chat response.
      *
-     * @return a {@code String} representing the reason why the response generation finished
+     * @return a {@link FinishReason} representing the reason why generation finished
      */
     public FinishReason finishReason() {
         if (isNull(choices) || choices.isEmpty())
@@ -290,24 +199,19 @@ public final class ChatResponse {
     }
 
     /**
-     * Creates a builder initialized with the current state of the {@code ChatResponse}.
+     * Creates a builder initialized with the current state of this {@code ChatResponse}.
      *
-     * @return a new {@link Builder} instance pre-populated with this {@code ChatResponse}'s data
+     * @return a new {@link Builder} instance pre-populated with this response's data
      */
-    public Builder toBuilder() {
-        return new Builder()
+    public Builder<?> toBuilder() {
+        return new Builder<>()
             .id(this.id)
             .object(this.object)
-            .modelId(this.modelId)
             .model(this.model)
             .choices(this.choices)
             .created(this.created)
-            .modelVersion(this.modelVersion)
-            .createdAt(this.createdAt)
             .usage(this.usage)
-            .extractionTags(this.extractionTags)
-            .moderations(this.moderations)
-            .detections(this.detections);
+            .extractionTags(this.extractionTags);
     }
 
     /**
@@ -315,14 +219,17 @@ public final class ChatResponse {
      *
      * @return {@link Builder} instance.
      */
-    public static Builder build() {
-        return new Builder();
+    public static Builder<?> build() {
+        return new Builder<>();
     }
 
     /**
      * Builder class for constructing {@link ChatResponse} instances with configurable parameters.
+     *
+     * @param <B> the concrete builder subclass
      */
-    public static class Builder {
+    @SuppressWarnings("unchecked")
+    public static class Builder<B extends Builder<B>> {
 
         /**
          * Creates a new {@code Builder}.
@@ -331,25 +238,20 @@ public final class ChatResponse {
 
         private String id;
         private String object;
-        private String modelId;
         private String model;
         private List<ResultChoice> choices;
         private Long created;
-        private String modelVersion;
-        private String createdAt;
         private ChatUsage usage;
         private ExtractionTags extractionTags;
-        private Map<String, List<ModerationResult>> moderations;
-        private Map<String, List<DetectionEntry>> detections;
 
         /**
          * Sets the unique identifier of the chat response.
          *
          * @param id unique identifier
          */
-        public Builder id(String id) {
+        public B id(String id) {
             this.id = id;
-            return this;
+            return (B) this;
         }
 
         /**
@@ -357,19 +259,9 @@ public final class ChatResponse {
          *
          * @param object the object type
          */
-        public Builder object(String object) {
+        public B object(String object) {
             this.object = object;
-            return this;
-        }
-
-        /**
-         * Sets the id of the model used to generate the response.
-         *
-         * @param modelId the model id
-         */
-        public Builder modelId(String modelId) {
-            this.modelId = modelId;
-            return this;
+            return (B) this;
         }
 
         /**
@@ -377,9 +269,9 @@ public final class ChatResponse {
          *
          * @param model the model name
          */
-        public Builder model(String model) {
+        public B model(String model) {
             this.model = model;
-            return this;
+            return (B) this;
         }
 
         /**
@@ -387,9 +279,9 @@ public final class ChatResponse {
          *
          * @param choices a list of {@link ResultChoice}
          */
-        public Builder choices(List<ResultChoice> choices) {
+        public B choices(List<ResultChoice> choices) {
             this.choices = choices;
-            return this;
+            return (B) this;
         }
 
         /**
@@ -397,29 +289,9 @@ public final class ChatResponse {
          *
          * @param created the creation timestamp
          */
-        public Builder created(Long created) {
+        public B created(Long created) {
             this.created = created;
-            return this;
-        }
-
-        /**
-         * Sets the version of the model that generated the response.
-         *
-         * @param modelVersion the model version
-         */
-        public Builder modelVersion(String modelVersion) {
-            this.modelVersion = modelVersion;
-            return this;
-        }
-
-        /**
-         * Sets the formatted creation timestamp of the response.
-         *
-         * @param createdAt the formatted creation time
-         */
-        public Builder createdAt(String createdAt) {
-            this.createdAt = createdAt;
-            return this;
+            return (B) this;
         }
 
         /**
@@ -427,9 +299,9 @@ public final class ChatResponse {
          *
          * @param usage usage statistics
          */
-        public Builder usage(ChatUsage usage) {
+        public B usage(ChatUsage usage) {
             this.usage = usage;
-            return this;
+            return (B) this;
         }
 
         /**
@@ -437,29 +309,9 @@ public final class ChatResponse {
          *
          * @param extractionTags the extraction tags
          */
-        public Builder extractionTags(ExtractionTags extractionTags) {
+        public B extractionTags(ExtractionTags extractionTags) {
             this.extractionTags = extractionTags;
-            return this;
-        }
-
-        /**
-         * Sets the moderation results detected in the chat response, keyed by detector name.
-         *
-         * @param moderations a map from detector name to its list of {@link ModerationResult}
-         */
-        public Builder moderations(Map<String, List<ModerationResult>> moderations) {
-            this.moderations = moderations;
-            return this;
-        }
-
-        /**
-         * Sets the detection results reported in the chat response, keyed by the target position (e.g. {@code "input"}, {@code "output"}).
-         *
-         * @param detections a map from target position to its list of {@link DetectionEntry}
-         */
-        public Builder detections(Map<String, List<DetectionEntry>> detections) {
-            this.detections = detections;
-            return this;
+            return (B) this;
         }
 
         /**
@@ -478,16 +330,11 @@ public final class ChatResponse {
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + ((object == null) ? 0 : object.hashCode());
-        result = prime * result + ((modelId == null) ? 0 : modelId.hashCode());
         result = prime * result + ((model == null) ? 0 : model.hashCode());
         result = prime * result + ((choices == null) ? 0 : choices.hashCode());
         result = prime * result + ((created == null) ? 0 : created.hashCode());
-        result = prime * result + ((modelVersion == null) ? 0 : modelVersion.hashCode());
-        result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
         result = prime * result + ((usage == null) ? 0 : usage.hashCode());
         result = prime * result + ((extractionTags == null) ? 0 : extractionTags.hashCode());
-        result = prime * result + ((moderations == null) ? 0 : moderations.hashCode());
-        result = prime * result + ((detections == null) ? 0 : detections.hashCode());
         return result;
     }
 
@@ -510,11 +357,6 @@ public final class ChatResponse {
                 return false;
         } else if (!object.equals(other.object))
             return false;
-        if (modelId == null) {
-            if (other.modelId != null)
-                return false;
-        } else if (!modelId.equals(other.modelId))
-            return false;
         if (model == null) {
             if (other.model != null)
                 return false;
@@ -530,16 +372,6 @@ public final class ChatResponse {
                 return false;
         } else if (!created.equals(other.created))
             return false;
-        if (modelVersion == null) {
-            if (other.modelVersion != null)
-                return false;
-        } else if (!modelVersion.equals(other.modelVersion))
-            return false;
-        if (createdAt == null) {
-            if (other.createdAt != null)
-                return false;
-        } else if (!createdAt.equals(other.createdAt))
-            return false;
         if (usage == null) {
             if (other.usage != null)
                 return false;
@@ -550,23 +382,12 @@ public final class ChatResponse {
                 return false;
         } else if (!extractionTags.equals(other.extractionTags))
             return false;
-        if (moderations == null) {
-            if (other.moderations != null)
-                return false;
-        } else if (!moderations.equals(other.moderations))
-            return false;
-        if (detections == null) {
-            if (other.detections != null)
-                return false;
-        } else if (!detections.equals(other.detections))
-            return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "ChatResponse [id=" + id + ", object=" + object + ", modelId=" + modelId + ", model=" + model + ", choices=" + choices + ", created="
-            + created + ", modelVersion=" + modelVersion + ", createdAt=" + createdAt + ", usage=" + usage + ", extractionTags=" + extractionTags
-            + ", moderations=" + moderations + ", detections=" + detections + "]";
+        return "ChatResponse [id=" + id + ", object=" + object + ", model=" + model + ", choices=" + choices + ", created=" + created + ", usage="
+            + usage + ", extractionTags=" + extractionTags + "]";
     }
 }

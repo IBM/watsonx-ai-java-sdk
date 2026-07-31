@@ -18,9 +18,9 @@ import com.ibm.watsonx.ai.WatsonxService.CryptoService;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.Tool;
@@ -108,7 +108,7 @@ public class ChatService extends CryptoService implements ChatProvider {
     }
 
     @Override
-    public ChatResponse chat(ChatRequest chatRequest) {
+    public TextChatResponse chat(ChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
 
         if (nonNull(chatRequest.deploymentId()))
@@ -117,18 +117,18 @@ public class ChatService extends CryptoService implements ChatProvider {
         var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
-        var chatResponse = client.chat(transactionId, textChatRequest);
+        var chatResponse = (TextChatResponse) client.chat(transactionId, textChatRequest);
 
         if (nonNull(messageInterceptor)) {
             var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = chatResponse.toBuilder()
+            chatResponse = (TextChatResponse) chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
         if (nonNull(toolInterceptor)) {
             var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = chatResponse.toBuilder()
+            chatResponse = (TextChatResponse) chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
@@ -143,7 +143,7 @@ public class ChatService extends CryptoService implements ChatProvider {
                     .toList()
             );
 
-        return chatResponseBuilder.extractionTags(extractionTags).build();
+        return (TextChatResponse) chatResponseBuilder.extractionTags(extractionTags).build();
     }
 
     @Override
@@ -173,7 +173,7 @@ public class ChatService extends CryptoService implements ChatProvider {
      * @param message Message to send.
      * @return a {@link ChatResponse} object containing the model's reply
      */
-    public ChatResponse chat(String message) {
+    public TextChatResponse chat(String message) {
         return chat(UserMessage.text(message));
     }
 
@@ -181,9 +181,9 @@ public class ChatService extends CryptoService implements ChatProvider {
      * Sends a chat request to the model using the provided messages.
      *
      * @param messages the list of chat messages representing the conversation history
-     * @return a {@link ChatResponse} object containing the model's reply
+     * @return a {@link TextChatResponse} object containing the model's reply
      */
-    public ChatResponse chat(ChatMessage... messages) {
+    public TextChatResponse chat(ChatMessage... messages) {
         return chat(Arrays.asList(messages));
     }
 
@@ -191,67 +191,54 @@ public class ChatService extends CryptoService implements ChatProvider {
      * Sends a chat request to the model using the provided messages.
      *
      * @param messages the list of chat messages representing the conversation history
-     * @return a {@link ChatResponse} object containing the model's reply
+     * @return a {@link TextChatResponse} object containing the model's reply
      */
-
-    public ChatResponse chat(List<ChatMessage> messages) {
+    public TextChatResponse chat(List<ChatMessage> messages) {
         return chat(messages, ChatParameters.builder().build());
     }
 
     /**
      * Sends a chat request to the model using the provided messages and tools.
-     * <p>
-     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, include
-     * {@link Tool} definitions for function-calling models.
      *
      * @param messages the list of chat messages representing the conversation history
      * @param tools list of tools the model may call during generation
-     * @return a {@link ChatResponse} object containing the model's reply
+     * @return a {@link TextChatResponse} object containing the model's reply
      */
-    public ChatResponse chat(List<ChatMessage> messages, Tool... tools) {
+    public TextChatResponse chat(List<ChatMessage> messages, Tool... tools) {
         return chat(messages, Arrays.asList(tools));
     }
 
     /**
      * Sends a chat request to the model using the provided messages and tools.
-     * <p>
-     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, include
-     * {@link Tool} definitions for function-calling models.
      *
      * @param messages the list of chat messages representing the conversation history
      * @param tools list of tools the model may call during generation
-     * @return a {@link ChatResponse} object containing the model's reply
+     * @return a {@link TextChatResponse} object containing the model's reply
      */
-    public ChatResponse chat(List<ChatMessage> messages, List<Tool> tools) {
+    public TextChatResponse chat(List<ChatMessage> messages, List<Tool> tools) {
         return chat(messages, null, tools);
     }
 
     /**
      * Sends a chat request to the model using the provided messages, and parameters.
-     * <p>
-     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, and customize
-     * the generation behavior via {@link ChatParameters}.
      *
      * @param messages the list of chat messages representing the conversation history
      * @param parameters parameters to customize the output generation
-     * @return a {@link ChatResponse} object containing the model's reply
+     * @return a {@link TextChatResponse} object containing the model's reply
      */
-    public ChatResponse chat(List<ChatMessage> messages, ChatParameters parameters) {
+    public TextChatResponse chat(List<ChatMessage> messages, ChatParameters parameters) {
         return chat(messages, parameters, null);
     }
 
     /**
      * Sends a chat request to the model using the provided messages, and parameters.
-     * <p>
-     * This method performs a full chat completion call. It allows you to define the conversation history through {@link ChatMessage}s, and customize
-     * the generation behavior via {@link ChatParameters}.
      *
      * @param messages the list of chat messages representing the conversation history
      * @param parameters parameters to customize the output generation
      * @param tools list of tools the model may call during generation
-     * @return a {@link ChatResponse} object containing the model's reply
+     * @return a {@link TextChatResponse} object containing the model's reply
      */
-    public ChatResponse chat(List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools) {
+    public TextChatResponse chat(List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools) {
         return chat(
             ChatRequest.builder()
                 .messages(messages)
@@ -273,9 +260,6 @@ public class ChatService extends CryptoService implements ChatProvider {
 
     /**
      * Sends a streaming chat request using the provided messages.
-     * <p>
-     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
-     * {@link ChatHandler}.
      *
      * @param messages the list of chat messages forming the prompt history
      * @param handler a {@link ChatHandler} implementation
@@ -286,9 +270,6 @@ public class ChatService extends CryptoService implements ChatProvider {
 
     /**
      * Sends a streaming chat request using the provided messages.
-     * <p>
-     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
-     * {@link ChatHandler}.
      *
      * @param messages the list of chat messages forming the prompt history
      * @param tools the list of tools that the model may use
@@ -300,9 +281,6 @@ public class ChatService extends CryptoService implements ChatProvider {
 
     /**
      * Sends a streaming chat request using the provided messages.
-     * <p>
-     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
-     * {@link ChatHandler}.
      *
      * @param messages the list of chat messages forming the prompt history
      * @param parameters additional optional parameters for the chat invocation

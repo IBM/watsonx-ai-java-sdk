@@ -135,7 +135,10 @@ public final class HttpUtils {
                     // Agent Tool APIs (beta) return errors with a "code" field instead of the standard "errors" array.
                     // TODO: verify if this behavior persists once the Agent Tool APIs are no longer in beta.
                     return parseToolError(genericError);
-                } else if (genericError.size() == 1 && genericError.containsKey("error")) {
+                } else if (genericError.size() == 1 && genericError.containsKey("error") && genericError.get("error") instanceof Map) {
+                    // Model Gateway errors wrap details in an "error" object with "code", "message", and "request_id".
+                    return parseGatewayError(statusCode, (Map<?, ?>) genericError.get("error"));
+                } else if (genericError.size() == 1 && genericError.containsKey("error") && genericError.get("error") instanceof String) {
                     // The Create Schema API returns a single error message as a string in the body.
                     // TODO: verify if this behavior persists.
                     String message = "schema_event_does_not_exist";
@@ -202,6 +205,21 @@ public final class HttpUtils {
         return new WatsonxError(
             (Integer) body.get("status"),
             (String) body.get("trace"),
+            List.of(new Error((String) error.get("code"), (String) error.get("message"), null)));
+    }
+
+    /**
+     * Parses an error response from the Model Gateway API into a {@link WatsonxError} with a standardized format. The Gateway wraps error details in
+     * an {@code "error"} object with {@code "code"}, {@code "message"}, and {@code "request_id"} fields.
+     *
+     * @param statusCode the HTTP status code
+     * @param error the deserialized {@code "error"} object from the response body
+     * @return An instance of {@link WatsonxError} parsed from the body.
+     */
+    private static WatsonxError parseGatewayError(int statusCode, Map<?, ?> error) {
+        return new WatsonxError(
+            statusCode,
+            (String) error.get("request_id"),
             List.of(new Error((String) error.get("code"), (String) error.get("message"), null)));
     }
 

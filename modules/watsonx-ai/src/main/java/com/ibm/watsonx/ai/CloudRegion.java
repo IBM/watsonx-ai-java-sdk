@@ -26,14 +26,14 @@ public enum CloudRegion {
     }
 
     /**
-     * Returns the endpoint for ML services (e.g., model inference, training).
+     * Returns the endpoint for ML services.
      */
     public String mlEndpoint() {
         return mlEndpoint;
     }
 
     /**
-     * Returns the endpoint for WX services (e.g., prompts, notebooks, tools).
+     * Returns the endpoint for WX services.
      */
     public String wxEndpoint() {
         return wxEndpoint;

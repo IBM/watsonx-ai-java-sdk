@@ -51,12 +51,13 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.ToolRegistry;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
@@ -72,6 +73,7 @@ import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
+import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationRequest;
@@ -579,7 +581,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -605,7 +607,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .build();
 
         deploymentService.chatStreaming(request, chatHandler);
-        ChatResponse response = assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS));
+        TextChatResponse response = (TextChatResponse) assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS));
         assertNotNull(response);
         assertNotNull(response.choices());
         assertEquals(1, response.choices().size());
@@ -648,7 +650,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .build();
 
         deploymentService.chatStreaming(request, chatHandler);
-        response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        response = (TextChatResponse) assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
     }
 
@@ -710,7 +712,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1252,7 +1254,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
                 assertTrue(Thread.currentThread().getName().startsWith("thread-"));
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1296,6 +1298,28 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             ex = assertThrows(RuntimeException.class,
                 () -> deploymentService.findById(FindByIdRequest.builder().build()));
             assertEquals(ex.getMessage(), "deploymentId must be provided");
+        });
+    }
+
+    @Test
+    void should_throw_when_gateway_parameters_passed_to_deployment_service() throws Exception {
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .baseUrl(CloudRegion.DALLAS)
+                .authenticator(mockAuthenticator)
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .deploymentId("my-deployment-id")
+                .messages(UserMessage.text("Hi"))
+                .parameters(ModelGatewayParameters.builder().modelId("openai/gpt-4o").build())
+                .build();
+
+            var ex = assertThrows(IllegalArgumentException.class, () -> deploymentService.chat(chatRequest));
+            assertTrue(ex.getMessage().contains("DeploymentService expects ChatParameters"),
+                () -> "message should state the expected type but was: " + ex.getMessage());
+            assertTrue(ex.getMessage().contains("ModelGatewayParameters"),
+                () -> "message should name the offending type but was: " + ex.getMessage());
         });
     }
 
@@ -1611,7 +1635,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1716,7 +1740,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1735,7 +1759,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        TextChatResponse response = (TextChatResponse) assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         AssistantMessage assistantMessage = response.toAssistantMessage();
         JSONAssert.assertEquals("""
             {
@@ -2092,7 +2116,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                future.complete(completeResponse);
+                future.complete((TextChatResponse) completeResponse);
             }
 
             @Override

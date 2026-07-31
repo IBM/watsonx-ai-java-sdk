@@ -175,9 +175,9 @@ public abstract class WatsonxParameters {
             /**
              * Sets the crypto key reference for encrypting inference requests.
              * <p>
-             * The key reference should be an identifier from a keys management service (e.g., IBM Key Protect).
+             * The key reference should be an identifier from a keys management service.
              *
-             * @param crypto the key reference identifier (e.g., CRN format for IBM Key Protect)
+             * @param crypto the key reference identifier
              * @see <a href=
              *      "https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-generation.html?context=wx&audience=wdp#inf-encrypt">Encrypting
              *      inference requests</a>

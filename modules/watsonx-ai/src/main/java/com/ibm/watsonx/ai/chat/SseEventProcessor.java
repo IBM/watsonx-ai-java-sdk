@@ -13,15 +13,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import com.ibm.watsonx.ai.chat.ChatResponse.DetectionEntry;
-import com.ibm.watsonx.ai.chat.ChatResponse.DetectionResult;
-import com.ibm.watsonx.ai.chat.ChatResponse.ModerationResult;
+import java.util.function.Supplier;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.ErrorEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEvent;
+import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionEntry;
+import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionResult;
+import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -34,6 +35,7 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.streaming.StreamingToolFetcher;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.gateway.GatewayChatResponse;
 
 /**
  * Processes Server-Sent Events.
@@ -55,12 +57,16 @@ public class SseEventProcessor {
     private volatile ChatUsage chatUsage;
     private volatile Map<String, List<ModerationResult>> moderations;
     private volatile Map<String, List<DetectionEntry>> detections;
+    private volatile String serviceTier;
+    private volatile String systemFingerprint;
+    private volatile Boolean cached;
     private final Map<Integer, StringBuilder> contentBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, StringBuilder> thinkingBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, List<StreamingToolFetcher>> toolFetchers = new ConcurrentHashMap<>();
     private final StreamingStateTracker stateTracker;
     private final Map<String, Boolean> toolHasParameters;
     private final ExtractionTags extractionTags;
+    private final Supplier<TextChatResponse.Builder<?>> responseBuilderFactory;
 
     /**
      * Sealed interface representing domain events emitted during SSE processing.
@@ -131,31 +137,39 @@ public class SseEventProcessor {
      */
     public record ProcessResult(List<CallbackEvent> events, boolean hasError, Throwable error) {
 
-        /** Creates an empty result (no events, no error). */
+        /**
+         * Creates an empty result (no events, no error).
+         */
         public static ProcessResult empty() {
             return new ProcessResult(List.of(), false, null);
         }
 
-        /** Creates a result with the given events. */
+        /**
+         * Creates a result with the given events.
+         */
         public static ProcessResult events(List<CallbackEvent> events) {
             return new ProcessResult(events, false, null);
         }
 
-        /** Creates an error result. */
+        /**
+         * Creates an error result.
+         */
         public static ProcessResult error(Throwable t) {
             return new ProcessResult(List.of(), true, t);
         }
     }
 
     /**
-     * Creates a new SseEventProcessor for a streaming session.
+     * Creates a new SseEventProcessor for a streaming session, using the given factory to build the final response.
      *
      * @param tools the list of available {@link Tool}s
      * @param extractionTags optional tags for extracting thinking content from the response
+     * @param responseBuilderFactory supplies the builder used by {@link #buildResponse()}
      */
-    public SseEventProcessor(List<Tool> tools, ExtractionTags extractionTags) {
+    public SseEventProcessor(List<Tool> tools, ExtractionTags extractionTags, Supplier<TextChatResponse.Builder<?>> responseBuilderFactory) {
         this.toolHasParameters = toolHasParameters(tools);
         this.extractionTags = extractionTags;
+        this.responseBuilderFactory = responseBuilderFactory;
         stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
     }
 
@@ -187,11 +201,24 @@ public class SseEventProcessor {
             return ProcessResult.error(new RuntimeException(messageData));
         }
 
+        // OpenAI-compatible endpoints (Model Gateway) terminate the stream with a "data: [DONE]" sentinel.
+        if ("[DONE]".equals(messageData))
+            return ProcessResult.empty();
+
         var chunk = Json.fromJson(messageData, PartialChatResponse.class);
         var events = new ArrayList<CallbackEvent>();
 
         if (nonNull(chunk.usage()))
             chatUsage = chunk.usage();
+
+        if (isNull(serviceTier) && nonNull(chunk.serviceTier()))
+            serviceTier = chunk.serviceTier();
+
+        if (isNull(systemFingerprint) && nonNull(chunk.systemFingerprint()))
+            systemFingerprint = chunk.systemFingerprint();
+
+        if (isNull(cached) && nonNull(chunk.cached()))
+            cached = chunk.cached();
 
         if (nonNull(chunk.moderations()) && !chunk.moderations().isEmpty())
             moderations = mergeModerations(moderations, chunk.moderations());
@@ -250,9 +277,14 @@ public class SseEventProcessor {
         if (isNull(model) && nonNull(chunk.model()))
             model = chunk.model();
 
-        if (isNull(finishReason) && nonNull(message.finishReason())) {
+        // OpenAI-compatible endpoints (Model Gateway) send finish_reason as an empty string on intermediate chunks and only set the real
+        // value ("stop", "tool_calls", ...) on the terminal chunk. Treating a blank value as absent prevents it from poisoning the map and
+        // ensures the real reason (and the completion of the last tool call) is recorded.
+        boolean finishReasonJustSet = false;
+        if (isNull(finishReason) && nonNull(message.finishReason()) && !message.finishReason().isBlank()) {
             finishReason = message.finishReason();
             finishReasons.put(messageIndex, finishReason);
+            finishReasonJustSet = true;
         }
 
         if (isNull(role) && nonNull(message.delta().role()))
@@ -335,7 +367,10 @@ public class SseEventProcessor {
             events.add(new PartialThinkingEvent(token, chunk));
         }
 
-        if (TOOL_CALLS.value().equals(finishReason)) {
+        // Complete the last tool call only on the chunk that transitions the finish reason to "tool_calls". OpenAI-compatible endpoints
+        // (Model Gateway) send a trailing usage chunk that still carries a populated choices[0] with finish_reason "" after the terminal
+        // chunk; guarding on finishReasonJustSet prevents that chunk from emitting a duplicate CompleteToolCallEvent.
+        if (finishReasonJustSet && TOOL_CALLS.value().equals(finishReason)) {
             var tools = toolFetchers.get(messageIndex);
             events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
         }
@@ -344,11 +379,11 @@ public class SseEventProcessor {
     }
 
     /**
-     * Builds the final {@link ChatResponse} from accumulated streaming data.
+     * Builds the final {@link TextChatResponse} from accumulated streaming data.
      *
-     * @return the complete {@link ChatResponse}
+     * @return the complete {@link TextChatResponse}
      */
-    public ChatResponse buildResponse() {
+    public TextChatResponse buildResponse() {
 
         var choices = contentBuffers.keySet().stream()
             .map(key -> {
@@ -370,7 +405,7 @@ public class SseEventProcessor {
             }).toList();
 
 
-        return ChatResponse.build()
+        var builder = responseBuilderFactory.get()
             .created(created)
             .createdAt(createdAt)
             .id(id)
@@ -382,8 +417,15 @@ public class SseEventProcessor {
             .usage(chatUsage)
             .choices(choices)
             .moderations(moderations)
-            .detections(detections)
-            .build();
+            .detections(detections);
+
+        // Gateway-only fields are set only when the factory produces a GatewayChatResponse builder.
+        if (builder instanceof GatewayChatResponse.Builder<?> gatewayBuilder)
+            gatewayBuilder.serviceTier(serviceTier)
+                .systemFingerprint(systemFingerprint)
+                .cached(cached);
+
+        return builder.build();
     }
 
     /**

@@ -257,6 +257,26 @@ public class HttpUtilsTest {
     }
 
     @Test
+    void should_parse_model_gateway_error_body_correctly_from_json() {
+        String jsonBody = """
+            {
+                "error": {
+                    "code": "model_not_found",
+                    "message": "The model `foo` does not exist.",
+                    "request_id": "req-12345"
+                }
+            }""";
+
+        WatsonxError result = HttpUtils.parseErrorBody(404, jsonBody, "application/json");
+        assertEquals(404, result.statusCode());
+        assertEquals("req-12345", result.trace());
+        assertEquals(1, result.errors().size());
+        assertEquals("model_not_found", result.errors().get(0).code());
+        assertEquals("The model `foo` does not exist.", result.errors().get(0).message());
+        assertEquals(null, result.errors().get(0).moreInfo());
+    }
+
+    @Test
     void should_throw_runtime_exception_when_parsing_error_body_with_unsupported_content_type() {
         assertThrows(RuntimeException.class, () -> {
             HttpUtils.parseErrorBody(500, "test body", "text/plain");

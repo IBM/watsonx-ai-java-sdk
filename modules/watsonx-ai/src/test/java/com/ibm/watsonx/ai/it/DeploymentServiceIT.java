@@ -33,9 +33,10 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -551,10 +552,10 @@ public class DeploymentServiceIT {
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
 
-            assertNotNull(chatResponse.moderations());
-            assertNotNull(chatResponse.moderations().get("pii"));
-            assertFalse(chatResponse.moderations().get("pii").isEmpty());
-            chatResponse.moderations().get("pii").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
@@ -585,10 +586,10 @@ public class DeploymentServiceIT {
 
             var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
 
-            assertNotNull(chatResponse.moderations());
-            assertNotNull(chatResponse.moderations().get("hap"));
-            assertFalse(chatResponse.moderations().get("hap").isEmpty());
-            chatResponse.moderations().get("hap").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });
@@ -653,7 +654,7 @@ public class DeploymentServiceIT {
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> future = new CompletableFuture<>();
             chatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -661,7 +662,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -705,7 +706,7 @@ public class DeploymentServiceIT {
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> future = new CompletableFuture<>();
             chatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -713,7 +714,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -752,7 +753,7 @@ public class DeploymentServiceIT {
 
             CompletableFuture<String> futureThinking = new CompletableFuture<>();
             CompletableFuture<String> futureContent = new CompletableFuture<>();
-            CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> futureChatResponse = new CompletableFuture<>();
             CompletableFuture<Throwable> futureError = new CompletableFuture<>();
             chatService.chatStreaming(request, new ChatHandler() {
                 private StringBuilder thinking = new StringBuilder();
@@ -765,7 +766,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    futureChatResponse.complete(completeResponse);
+                    futureChatResponse.complete((TextChatResponse) completeResponse);
                     futureThinking.complete(thinking.toString());
                     futureContent.complete(response.toString());
                 }
@@ -831,7 +832,7 @@ public class DeploymentServiceIT {
                 .build();
 
             CompletableFuture<String> partialResponseFuture = new CompletableFuture<>();
-            CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> chatResponseFuture = new CompletableFuture<>();
             chatService.chatStreaming(request, new ChatHandler() {
                 StringBuilder builder = new StringBuilder();
 
@@ -842,7 +843,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    chatResponseFuture.complete(completeResponse);
+                    chatResponseFuture.complete((TextChatResponse) completeResponse);
                     partialResponseFuture.complete(builder.toString());
                 }
 
@@ -882,7 +883,7 @@ public class DeploymentServiceIT {
                         .required("to", "body")))
                 .build();
 
-            CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> chatResponseFuture = new CompletableFuture<>();
             CompletableFuture<CompletedToolCall> toolCallFuture = new CompletableFuture<>();
             CompletableFuture<ToolCall> fromPartialToolCallFuture = new CompletableFuture<>();
             CompletableFuture<Throwable> throwableFuture = new CompletableFuture<>();
@@ -896,7 +897,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    chatResponseFuture.complete(completeResponse);
+                    chatResponseFuture.complete((TextChatResponse) completeResponse);
                     fromPartialToolCallFuture.complete(new ToolCall(
                         Integer.parseInt(cachePartialToolCall.get("index")),
                         cachePartialToolCall.get("id"),
@@ -1046,7 +1047,7 @@ public class DeploymentServiceIT {
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> future = new CompletableFuture<>();
             assertDoesNotThrow(() -> deploymentService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -1054,7 +1055,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1121,7 +1122,7 @@ public class DeploymentServiceIT {
 
             CompletableFuture<String> futureThinking = new CompletableFuture<>();
             CompletableFuture<String> futureContent = new CompletableFuture<>();
-            CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> futureChatResponse = new CompletableFuture<>();
             CompletableFuture<Throwable> futureError = new CompletableFuture<>();
             deploymentService.chatStreaming(request, new ChatHandler() {
                 private StringBuilder thinking = new StringBuilder();
@@ -1134,7 +1135,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    futureChatResponse.complete(completeResponse);
+                    futureChatResponse.complete((TextChatResponse) completeResponse);
                     futureThinking.complete(thinking.toString());
                     futureContent.complete(response.toString());
                 }
@@ -1262,7 +1263,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1273,10 +1274,10 @@ public class DeploymentServiceIT {
 
             var chatResponse = future.get(30, TimeUnit.SECONDS);
 
-            assertNotNull(chatResponse.moderations());
-            assertNotNull(chatResponse.moderations().get("pii"));
-            assertFalse(chatResponse.moderations().get("pii").isEmpty());
-            chatResponse.moderations().get("pii").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
@@ -1312,7 +1313,7 @@ public class DeploymentServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1323,10 +1324,10 @@ public class DeploymentServiceIT {
 
             var chatResponse = future.get(30, TimeUnit.SECONDS);
 
-            assertNotNull(chatResponse.moderations());
-            assertNotNull(chatResponse.moderations().get("hap"));
-            assertFalse(chatResponse.moderations().get("hap").isEmpty());
-            chatResponse.moderations().get("hap").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });

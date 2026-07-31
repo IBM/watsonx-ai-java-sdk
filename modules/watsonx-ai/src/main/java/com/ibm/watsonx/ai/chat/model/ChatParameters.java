@@ -8,11 +8,9 @@ package com.ibm.watsonx.ai.chat.model;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import com.ibm.watsonx.ai.WatsonxParameters.WatsonxCryptoParameters;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
@@ -27,223 +25,61 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  * ChatParameters params = ChatParameters.builder()
  *     .temperature(0.7)
  *     .maxCompletionTokens(0)
- *     .toolChoiceOption(ToolChoice.AUTO)
+ *     .toolChoiceOption(ToolChoiceOption.AUTO)
  *     .responseAsJson()
  *     .build();
  * }</pre>
  */
-public final class ChatParameters extends WatsonxCryptoParameters {
+public final class ChatParameters extends BaseChatParameters {
 
-    /**
-     * Represents a JSON schema used to validate the model's output.
-     *
-     * @param name the schema name
-     * @param schema the JSON schema object
-     * @param strict whether strict schema adherence is enforced
-     */
-    public record JsonSchemaObject(String name, Object schema, boolean strict) {};
-
-    private final String toolChoiceOption;
-    private final Map<String, Object> toolChoice;
+    private final String projectId;
+    private final String spaceId;
+    private final String crypto;
     private final Set<String> guidedChoice;
     private final String guidedRegex;
     private final String guidedGrammar;
-    private final Double frequencyPenalty;
-    private final Map<String, Integer> logitBias;
-    private final Boolean logprobs;
-    private final Integer topLogprobs;
-    private final Integer maxCompletionTokens;
-    private final Integer n;
-    private final Double presencePenalty;
-    private final Integer seed;
-    private final List<String> stop;
-    private final Double temperature;
-    private final Double topP;
-    private final Long timeLimit;
-    private final String responseFormat;
-    private final JsonSchemaObject jsonSchema;
     private final Double repetitionPenalty;
     private final Double lengthPenalty;
     private final String context;
 
     private ChatParameters(Builder builder) {
         super(builder);
-        toolChoiceOption = nonNull(builder.toolChoiceOption) ? builder.toolChoiceOption.value() : null;
-        frequencyPenalty = builder.frequencyPenalty;
-        logitBias = builder.logitBias;
-        logprobs = builder.logprobs;
-        topLogprobs = builder.topLogprobs;
-        maxCompletionTokens = builder.maxCompletionTokens;
-        n = builder.n;
-        presencePenalty = builder.presencePenalty;
-        temperature = builder.temperature;
-        topP = builder.topP;
-        timeLimit = builder.timeLimit;
-        seed = builder.seed;
-        stop = builder.stop;
-        context = builder.context;
-
-        if (nonNull(builder.responseFormat)) {
-            responseFormat = builder.responseFormat.value();
-            jsonSchema = builder.jsonSchema;
-        } else {
-            responseFormat = null;
-            jsonSchema = null;
-        }
-
-        toolChoice = nonNull(builder.toolChoice)
-            ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
-            : null;
-
-        guidedChoice = builder.guidedChoice;
+        projectId = builder.projectId;
+        spaceId = builder.spaceId;
+        crypto = builder.crypto;
+        guidedChoice = isNull(builder.guidedChoice) ? null : Set.copyOf(builder.guidedChoice);
         guidedRegex = builder.guidedRegex;
         guidedGrammar = builder.guidedGrammar;
         repetitionPenalty = builder.repetitionPenalty;
         lengthPenalty = builder.lengthPenalty;
+        context = builder.context;
     }
 
     /**
-     * Returns the tool selection strategy for the model.
+     * Returns the project id.
      *
-     * @return the tool selection strategy for the model
+     * @return the project id
      */
-    public String toolChoiceOption() {
-        return toolChoiceOption;
+    public String projectId() {
+        return projectId;
     }
 
     /**
-     * Returns the specific tool the model is forced to call.
+     * Returns the space id.
      *
-     * @return the specific tool the model is forced to call
+     * @return the space id
      */
-    public Map<String, Object> toolChoice() {
-        return toolChoice;
+    public String spaceId() {
+        return spaceId;
     }
 
     /**
-     * Returns the logit bias applied to specific tokens during generation.
+     * Returns the crypto key reference for encrypting inference requests.
      *
-     * @return the logit bias applied to specific tokens during generation
+     * @return the crypto key reference identifier
      */
-    public Map<String, Integer> logitBias() {
-        return logitBias;
-    }
-
-    /**
-     * Returns the frequency penalty used to reduce repetition of tokens.
-     *
-     * @return the frequency penalty used to reduce repetition of tokens
-     */
-    public Double frequencyPenalty() {
-        return frequencyPenalty;
-    }
-
-    /**
-     * Returns whether log probabilities are returned for the generated tokens.
-     *
-     * @return whether log probabilities are returned for the generated tokens
-     */
-    public Boolean logprobs() {
-        return logprobs;
-    }
-
-    /**
-     * Returns the number of most likely tokens to return at each token position.
-     *
-     * @return the number of most likely tokens to return at each token position
-     */
-    public Integer topLogprobs() {
-        return topLogprobs;
-    }
-
-    /**
-     * Returns the maximum number of tokens that can be generated in the chat completion.
-     *
-     * @return the maximum number of tokens that can be generated in the chat completion
-     */
-    public Integer maxCompletionTokens() {
-        return maxCompletionTokens;
-    }
-
-    /**
-     * Returns the number of completions to generate for each input.
-     *
-     * @return the number of completions to generate for each input
-     */
-    public Integer n() {
-        return n;
-    }
-
-    /**
-     * Returns the presence penalty used to encourage new topic generation.
-     *
-     * @return the presence penalty used to encourage new topic generation
-     */
-    public Double presencePenalty() {
-        return presencePenalty;
-    }
-
-    /**
-     * Returns the sampling temperature to use.
-     *
-     * @return the sampling temperature to use
-     */
-    public Double temperature() {
-        return temperature;
-    }
-
-    /**
-     * Returns the nucleus sampling threshold.
-     *
-     * @return the nucleus sampling threshold
-     */
-    public Double topP() {
-        return topP;
-    }
-
-    /**
-     * Returns the maximum time limit for the completion generation.
-     *
-     * @return the maximum time limit for the completion generation
-     */
-    public Long timeLimit() {
-        return timeLimit;
-    }
-
-    /**
-     * Returns the random number generator seed used in sampling mode.
-     *
-     * @return the random number generator seed used in sampling mode
-     */
-    public Integer seed() {
-        return seed;
-    }
-
-    /**
-     * Returns the stop sequences that end the generation when encountered.
-     *
-     * @return the stop sequences that end the generation when encountered
-     */
-    public List<String> stop() {
-        return stop;
-    }
-
-    /**
-     * Returns the format in which the model should return the response.
-     *
-     * @return the format in which the model should return the response
-     */
-    public String responseFormat() {
-        return responseFormat;
-    }
-
-    /**
-     * Returns the JSON schema used to validate the model's output.
-     *
-     * @return the JSON schema used to validate the model's output
-     */
-    public JsonSchemaObject jsonSchema() {
-        return jsonSchema;
+    public String crypto() {
+        return crypto;
     }
 
     /**
@@ -258,7 +94,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
     /**
      * Returns the regular expression pattern that the output must match.
      *
-     * @return the regular expression pattern that the output must match
+     * @return the regular expression pattern
      */
     public String guidedRegex() {
         return guidedRegex;
@@ -267,7 +103,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
     /**
      * Returns the context-free grammar that the output must follow.
      *
-     * @return the context-free grammar that the output must follow
+     * @return the context-free grammar
      */
     public String guidedGrammar() {
         return guidedGrammar;
@@ -276,7 +112,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
     /**
      * Returns the repetition penalty applied during text generation.
      *
-     * @return the repetition penalty applied during text generation
+     * @return the repetition penalty
      */
     public Double repetitionPenalty() {
         return repetitionPenalty;
@@ -285,7 +121,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
     /**
      * Returns the length penalty applied during text generation.
      *
-     * @return the length penalty applied during text generation
+     * @return the length penalty
      */
     public Double lengthPenalty() {
         return lengthPenalty;
@@ -294,7 +130,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
     /**
      * Returns the context string inserted into the messages during chat generation.
      *
-     * @return the context string inserted into the messages during chat generation
+     * @return the context string
      */
     public String context() {
         return context;
@@ -305,10 +141,10 @@ public final class ChatParameters extends WatsonxCryptoParameters {
      *
      * @return a new {@link Builder} instance pre-populated with this {@code ChatParameters}' data
      */
-    @SuppressWarnings("rawtypes")
     public Builder toBuilder() {
         var builder = new Builder()
             .context(context)
+            .crypto(crypto)
             .frequencyPenalty(frequencyPenalty)
             .guidedChoice(guidedChoice)
             .guidedGrammar(guidedGrammar)
@@ -327,25 +163,31 @@ public final class ChatParameters extends WatsonxCryptoParameters {
             .stop(stop)
             .temperature(temperature)
             .timeLimit(nonNull(timeLimit) ? Duration.ofMillis(timeLimit) : null)
-            .toolChoice(nonNull(toolChoice) ? String.valueOf(((Map) toolChoice.get("function")).get("name")) : null)
-            .toolChoiceOption(nonNull(toolChoiceOption) ? ToolChoiceOption.valueOf(toolChoiceOption.toUpperCase()) : null)
+            .toolChoiceOption(nonNull(toolChoiceOption) ? BaseChatParameters.ToolChoiceOption.fromValue(toolChoiceOption) : null)
             .topLogprobs(topLogprobs)
             .topP(topP)
-            .transactionId(transactionId)
-            .crypto(crypto);
+            .transactionId(transactionId);
 
-        builder.responseFormat = nonNull(responseFormat) ? ResponseFormat.from(responseFormat) : null;
+        if (nonNull(toolChoice)) {
+            var function = toolChoice.get("function");
+            if (function instanceof Map<?, ?> functionMap && nonNull(functionMap.get("name")))
+                builder.toolChoice(String.valueOf(functionMap.get("name")));
+        }
+
+        builder.responseFormat = nonNull(responseFormat) ? BaseChatParameters.ResponseFormat.from(responseFormat) : null;
         builder.jsonSchema = jsonSchema;
         return builder;
     }
 
     @Override
     public String toString() {
-        return "ChatParameters [" + super.toString() + ", toolChoiceOption=" + toolChoiceOption + ", toolChoice=" + toolChoice + ", guidedChoice="
-            + guidedChoice + ", guidedRegex=" + guidedRegex + ", guidedGrammar=" + guidedGrammar + ", frequencyPenalty=" + frequencyPenalty
-            + ", logitBias=" + logitBias + ", logprobs=" + logprobs + ", topLogprobs=" + topLogprobs + ", maxCompletionTokens=" + maxCompletionTokens
-            + ", n=" + n + ", presencePenalty=" + presencePenalty + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP="
-            + topP + ", timeLimit=" + timeLimit + ", responseFormat=" + responseFormat + ", jsonSchema=" + jsonSchema + ", repetitionPenalty="
+        return "ChatParameters [modelId=" + modelId + ", transactionId=" + transactionId + ", projectId=" + projectId + ", spaceId=" + spaceId
+            + ", crypto=" + crypto + ", toolChoiceOption=" + toolChoiceOption + ", toolChoice=" + toolChoice + ", guidedChoice=" + guidedChoice
+            + ", guidedRegex=" + guidedRegex + ", guidedGrammar=" + guidedGrammar + ", frequencyPenalty=" + frequencyPenalty + ", logitBias="
+            + logitBias
+            + ", logprobs=" + logprobs + ", topLogprobs=" + topLogprobs + ", maxCompletionTokens=" + maxCompletionTokens + ", n=" + n
+            + ", presencePenalty=" + presencePenalty + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP
+            + ", timeLimit=" + timeLimit + ", responseFormat=" + responseFormat + ", jsonSchema=" + jsonSchema + ", repetitionPenalty="
             + repetitionPenalty + ", lengthPenalty=" + lengthPenalty + ", context=" + context + "]";
     }
 
@@ -358,7 +200,7 @@ public final class ChatParameters extends WatsonxCryptoParameters {
      * ChatParameters params = ChatParameters.builder()
      *     .temperature(0.7)
      *     .maxCompletionTokens(0)
-     *     .toolChoiceOption(ToolChoice.AUTO)
+     *     .toolChoiceOption(ToolChoiceOption.AUTO)
      *     .responseAsJson()
      *     .build();
      * }</pre>
@@ -372,26 +214,13 @@ public final class ChatParameters extends WatsonxCryptoParameters {
     /**
      * Builder class for constructing {@link ChatParameters} instances with configurable parameters.
      */
-    public final static class Builder extends WatsonxCryptoParameters.Builder<Builder> {
-        private ToolChoiceOption toolChoiceOption;
-        private String toolChoice;
+    public final static class Builder extends BaseChatParameters.Builder<Builder> {
+        private String projectId;
+        private String spaceId;
+        private String crypto;
         private Set<String> guidedChoice;
         private String guidedRegex;
         private String guidedGrammar;
-        private Double frequencyPenalty;
-        private Map<String, Integer> logitBias;
-        private Boolean logprobs;
-        private Integer topLogprobs;
-        private Integer maxCompletionTokens;
-        private Integer n;
-        private Double presencePenalty;
-        private ResponseFormat responseFormat;
-        private Integer seed;
-        private List<String> stop;
-        private Double temperature;
-        private Double topP;
-        private Long timeLimit;
-        private JsonSchemaObject jsonSchema;
         private Double repetitionPenalty;
         private Double lengthPenalty;
         private String context;
@@ -399,25 +228,37 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         private Builder() {}
 
         /**
-         * Specifies the tool selection strategy for the model.
-         * <p>
-         * When set to {@code ToolChoiceOption.AUTO}, the model automatically decides whether to invoke any tool.
-         * <p>
-         * When set to {@code ToolChoiceOption.REQUIRED}, the model is forced to invoke a specific tool.
-         * <p>
-         * When set to {@code ToolChoiceOption.NONE}, the model is not allowed to invoke any tools.
+         * Sets the project id.
          *
-         * @param toolChoiceOption the {@link ToolChoiceOption} that determines how the model selects tools
+         * @param projectId project id value
          */
-        public Builder toolChoiceOption(ToolChoiceOption toolChoiceOption) {
-            this.toolChoiceOption = toolChoiceOption;
+        public Builder projectId(String projectId) {
+            this.projectId = projectId;
+            return this;
+        }
+
+        /**
+         * Sets the space id.
+         *
+         * @param spaceId space id value
+         */
+        public Builder spaceId(String spaceId) {
+            this.spaceId = spaceId;
+            return this;
+        }
+
+        /**
+         * Sets the crypto key reference for encrypting inference requests.
+         *
+         * @param crypto the key reference identifier (e.g. CRN format for IBM Key Protect)
+         */
+        public Builder crypto(String crypto) {
+            this.crypto = crypto;
             return this;
         }
 
         /**
          * Specifies a set of allowed output choices.
-         * <p>
-         * When this parameter is set, the model is constrained to return exactly one of the provided choices.
          *
          * @param guidedChoice a variable number of allowed output strings
          */
@@ -427,10 +268,8 @@ public final class ChatParameters extends WatsonxCryptoParameters {
 
         /**
          * Specifies a set of allowed output choices.
-         * <p>
-         * When this parameter is set, the model is constrained to return exactly one of the provided choices.
          *
-         * @param guidedChoices a variable number of allowed output strings
+         * @param guidedChoices the set of allowed output strings
          */
         public Builder guidedChoice(Set<String> guidedChoices) {
             this.guidedChoice = isNull(guidedChoices) ? null : Set.copyOf(guidedChoices);
@@ -439,10 +278,8 @@ public final class ChatParameters extends WatsonxCryptoParameters {
 
         /**
          * Constrains the model output to match a regular expression pattern.
-         * <p>
-         * If specified, the generated output must conform to the provided regex.
          *
-         * @param guidedRegex the regex pattern that the output must match
+         * @param guidedRegex the regex pattern
          */
         public Builder guidedRegex(String guidedRegex) {
             this.guidedRegex = guidedRegex;
@@ -451,159 +288,11 @@ public final class ChatParameters extends WatsonxCryptoParameters {
 
         /**
          * Constrains the model output to follow a context-free grammar.
-         * <p>
-         * If specified, the generated output will conform to the defined grammar.
          *
-         * @param guidedGrammar the context-free grammar string that the output must follow
+         * @param guidedGrammar the context-free grammar string
          */
         public Builder guidedGrammar(String guidedGrammar) {
             this.guidedGrammar = guidedGrammar;
-            return this;
-        }
-
-        /**
-         * Forces the model to call a specific tool by its identifier.
-         * <p>
-         * Only one of {@code toolChoice} or {@code toolChoiceOption} should be set.
-         *
-         * @param toolChoice the tool identifier (name) to invoke
-         */
-        public Builder toolChoice(String toolChoice) {
-            this.toolChoice = toolChoice;
-            return this;
-        }
-
-        /**
-         * Sets the frequency penalty to reduce repetition of tokens.
-         * <p>
-         * Values > 0 discourage repetition; valid range is (-2, 2).
-         *
-         * @param frequencyPenalty the frequency penalty
-         */
-        public Builder frequencyPenalty(Double frequencyPenalty) {
-            this.frequencyPenalty = frequencyPenalty;
-            return this;
-        }
-
-        /**
-         * Sets the logit bias to increase or decrease the probability of specific tokens being selected during generation.
-         * <p>
-         * A positive bias makes a token more likely to appear, while a negative bias makes it less likely.
-         *
-         * @param logitBias a map from token ids to bias values
-         */
-        public Builder logitBias(Map<String, Integer> logitBias) {
-            this.logitBias = isNull(logitBias) ? null : Map.copyOf(logitBias);
-            return this;
-        }
-
-        /**
-         * Enables or disables the return of log probabilities for the generated tokens.
-         *
-         * @param logprobs whether to return log probabilities
-         */
-        public Builder logprobs(Boolean logprobs) {
-            this.logprobs = logprobs;
-            return this;
-        }
-
-        /**
-         * Specifies the number of most likely tokens to return at each token position, each with an associated log probability.
-         * <p>
-         * The {@code logprobs} option must be set to {@code true} if this parameter is used.
-         *
-         * @param topLogprobs the number of top tokens with log probabilities to return
-         */
-        public Builder topLogprobs(Integer topLogprobs) {
-            this.topLogprobs = topLogprobs;
-            return this;
-        }
-
-        /**
-         * Sets the maximum number of tokens that can be generated in the chat completion.
-         * <p>
-         * The total length of input tokens and generated tokens is limited by the model's context length. Set to {@code 0} to use the model's
-         * configured maximum generated tokens.
-         *
-         * @param maxCompletionTokens the maximum number of tokens
-         */
-        public Builder maxCompletionTokens(Integer maxCompletionTokens) {
-            this.maxCompletionTokens = maxCompletionTokens;
-            return this;
-        }
-
-        /**
-         * Sets the number of completions to generate for each input. A higher value may increase cost due to multiple outputs.
-         *
-         * @param n the number of completions to generate
-         */
-        public Builder n(Integer n) {
-            this.n = n;
-            return this;
-        }
-
-        /**
-         * Sets the presence penalty to encourage new topic generation. Positive values penalize previously mentioned tokens. Valid range: (-2, 2).
-         *
-         * @param presencePenalty the presence penalty
-         */
-        public Builder presencePenalty(Double presencePenalty) {
-            this.presencePenalty = presencePenalty;
-            return this;
-        }
-
-        /**
-         * Sets the sampling temperature to use.
-         * <p>
-         * Higher values like {@code 0.8} will make the output more random, while lower values like {@code 0.2} will make it more focused and
-         * deterministic. We generally recommend altering this or {@code topP} but not both. Valid range: (0, 2).
-         *
-         * @param temperature the sampling temperature
-         */
-        public Builder temperature(Double temperature) {
-            this.temperature = temperature;
-            return this;
-        }
-
-        /**
-         * An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p
-         * probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this
-         * or {@code temperature} but not both. Valid range: (0, 1).
-         *
-         * @param topP the nucleus sampling threshold
-         */
-        public Builder topP(Double topP) {
-            this.topP = topP;
-            return this;
-        }
-
-        /**
-         * Sets a maximum time limit for the completion generation.
-         *
-         * @param timeLimit {@link Duration} time limit.
-         */
-        public Builder timeLimit(Duration timeLimit) {
-            this.timeLimit = isNull(timeLimit) ? null : timeLimit.toMillis();
-            return this;
-        }
-
-        /**
-         * Sets the response format to {@code TEXT}, indicating that the model output will be free-form text.
-         * <p>
-         * No JSON structure will be enforced, and the response will be treated as plain text.
-         */
-        public Builder responseAsText() {
-            this.responseFormat = ResponseFormat.TEXT;
-            return this;
-        }
-
-        /**
-         * Sets the response format to {@code JSON}, indicating that the model output should be a JSON object.
-         * <p>
-         * The output will be in JSON format, but no schema will be enforced or validated.
-         */
-        public Builder responseAsJson() {
-            this.responseFormat = ResponseFormat.JSON;
             return this;
         }
 
@@ -617,71 +306,35 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         }
 
         /**
-         * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
-         * <p>
-         * Allows specifying a custom schema name and whether strict schema validation should be applied.
-         * <ul>
-         * <li>If {@code strict} is {@code true}, the model's output must exactly match the schema.</li>
-         * <li>If {@code strict} is {@code false}, additional fields not defined in the schema are allowed.</li>
-         * </ul>
+         * Sets the response format to {@code JSON_SCHEMA} with a custom schema name and strictness.
          *
          * @param name the identifier name for the schema
          * @param schema the JSON Schema describing the expected output structure
          * @param strict whether to enforce strict schema validation
          */
         public Builder responseAsJsonSchema(String name, JsonSchema schema, boolean strict) {
-            this.responseFormat = ResponseFormat.JSON_SCHEMA;
+            this.responseFormat = BaseChatParameters.ResponseFormat.JSON_SCHEMA;
             this.jsonSchema = new JsonSchemaObject(name, schema, strict);
             return this;
         }
 
         /**
-         * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
-         * <p>
-         * Allows specifying a custom schema name and whether strict schema validation should be applied.
-         * <ul>
-         * <li>If {@code strict} is {@code true}, the model's output must exactly match the schema.</li>
-         * <li>If {@code strict} is {@code false}, additional fields not defined in the schema are allowed.</li>
-         * </ul>
+         * Sets the response format to {@code JSON_SCHEMA} with a raw map schema.
          *
          * @param name the identifier name for the schema
-         * @param schema the JSON Schema describing the expected output structure
+         * @param schema the schema as a raw map
          * @param strict whether to enforce strict schema validation
          */
         public Builder responseAsJsonSchema(String name, Map<String, Object> schema, boolean strict) {
-            this.responseFormat = ResponseFormat.JSON_SCHEMA;
+            this.responseFormat = BaseChatParameters.ResponseFormat.JSON_SCHEMA;
             this.jsonSchema = new JsonSchemaObject(name, schema, strict);
             return this;
         }
 
         /**
-         * Sets the random number generator seed to use in sampling mode for experimental repeatability.
+         * Sets the repetition penalty to discourage the model from repeating tokens.
          *
-         * @param seed the seed value
-         */
-        public Builder seed(Integer seed) {
-            this.seed = seed;
-            return this;
-        }
-
-        /**
-         * Defines stop sequences that end the generation when encountered. A maximum of 4 unique stop sequences is allowed.
-         *
-         * @param stop list of stop sequences
-         */
-        public Builder stop(List<String> stop) {
-            this.stop = isNull(stop) ? null : List.copyOf(stop);
-            return this;
-        }
-
-        /**
-         * Sets the repetition penalty to be applied during text generation. This penalty helps to discourage the model from repeating the same words
-         * or phrases too often.
-         * <p>
-         * The penalty value should be greater than 1.0 for repetition discouragement. A value of 1.0 means no penalty, and values above 1.0 increase
-         * the strength of the penalty.
-         *
-         * @param repetitionPenalty the repetition penalty value.
+         * @param repetitionPenalty the repetition penalty value
          */
         public Builder repetitionPenalty(Double repetitionPenalty) {
             this.repetitionPenalty = repetitionPenalty;
@@ -689,14 +342,9 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         }
 
         /**
-         * Sets the length penalty to be applied during text generation. This penalty influences the length of the generated text. A length penalty
-         * discourages the model from generating overly long responses, or conversely, it can encourage more extended outputs.
-         * <p>
-         * When the penalty value is greater than 1.0, it discourages generating longer responses. Conversely, a value less than 1.0 incentivizes the
-         * model to generate longer text. A value of 1.0 means no penalty, and the length of the output will be determined by other factors, such as
-         * the input prompt and model's natural completion behavior.
+         * Sets the length penalty applied during text generation.
          *
-         * @param lengthPenalty the length penalty value.
+         * @param lengthPenalty the length penalty value
          */
         public Builder lengthPenalty(Double lengthPenalty) {
             this.lengthPenalty = lengthPenalty;
@@ -706,18 +354,9 @@ public final class ChatParameters extends WatsonxCryptoParameters {
         /**
          * Sets the context string to be inserted into the messages during chat generation.
          * <p>
-         * Depending on the underlying model, the provided context may be injected into:
-         * <ul>
-         * <li>the content of the <b>system</b> role message.</li>
-         * <li>the beginning of the <b>last user</b> message.</li>
-         * </ul>
-         * For example, if context is {@code "Today is Wednesday"} and the user input is {@code "Who are you and which day is tomorrow?"}, the
-         * resulting message may be {@code "Today is Wednesday. Who are you and which day is tomorrow?"}.
-         * <p>
          * <b>Note:</b> This parameter is only supported when using {@link DeploymentService}.
          *
-         * @param context The context string to insert into the messages
-         * @return The current Builder instance for method chaining
+         * @param context the context string to insert
          */
         public Builder context(String context) {
             this.context = context;
@@ -731,84 +370,6 @@ public final class ChatParameters extends WatsonxCryptoParameters {
          */
         public ChatParameters build() {
             return new ChatParameters(this);
-        }
-    }
-
-    /**
-     * Specifies the format in which the model should return the response.
-     */
-    public static enum ResponseFormat {
-        /** Plain, unstructured text. */
-        TEXT("text"),
-        /** A JSON object. */
-        JSON("json_object"),
-        /** A JSON object conforming to a supplied schema. */
-        JSON_SCHEMA("json_schema");
-
-        private final String value;
-
-        ResponseFormat(String value) {
-            this.value = value;
-        }
-
-        /**
-         * Resolves a {@link ResponseFormat} from its string value.
-         *
-         * @param value the string value to resolve
-         * @return the matching {@link ResponseFormat}
-         * @throws IllegalArgumentException if the value does not match any known response format
-         */
-        public static ResponseFormat from(String value) {
-            for (ResponseFormat format : ResponseFormat.values()) {
-                if (format.value.equals(value)) {
-                    return format;
-                }
-            }
-            throw new IllegalArgumentException("Unknown response format: " + value);
-        }
-
-        /**
-         * Returns the string value of this response format.
-         *
-         * @return the string value of this response format
-         */
-        public String value() {
-            return value;
-        }
-    }
-
-    /**
-     * Specifies how the model should decide whether to use a tool during generation.
-     */
-    public static enum ToolChoiceOption {
-        /**
-         * The model will automatically decide whether to generate a message or invoke a tool.
-         */
-        AUTO("auto"),
-
-        /**
-         * The model is required to invoke a specific tool and cannot choose freely.
-         */
-        REQUIRED("required"),
-
-        /**
-         * The model can not invoke tools.
-         */
-        NONE("none");
-
-        private final String value;
-
-        ToolChoiceOption(String value) {
-            this.value = value;
-        }
-
-        /**
-         * Returns the string value of this option.
-         *
-         * @return the string value of this option
-         */
-        public String value() {
-            return value;
         }
     }
 }

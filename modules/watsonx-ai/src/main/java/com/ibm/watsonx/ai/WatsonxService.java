@@ -20,6 +20,7 @@ import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
+import com.ibm.watsonx.ai.gateway.ModelGatewayService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -32,8 +33,10 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
 
 /**
- * This class provides common functionality and shared configuration used across various service-specific clients (e.g., {@code ChatService},
- * {@code TextGenerationService}, etc.). Subclasses should extend this class to inherit support for authentication, HTTP communication, and so on.
+ * Abstract base class that provides common configuration and shared infrastructure used across all watsonx.ai service-specific clients. Subclasses
+ * extend this class to inherit support for authentication, HTTP communication, request logging, SSL configuration, and API versioning.
+ * <p>
+ * All concrete service classes are constructed through their static {@code builder()} factory method.
  *
  * @see ChatService
  * @see TextGenerationService
@@ -52,6 +55,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see CreateSchemaService
  * @see ImproveSchemaService
  * @see MergeSchemaService
+ * @see ModelGatewayService
  */
 public abstract class WatsonxService {
 
@@ -361,9 +365,9 @@ public abstract class WatsonxService {
             /**
              * Sets the crypto key reference for encrypting requests.
              * <p>
-             * The key reference should be an identifier from a keys management service (e.g., IBM Key Protect).
+             * The key reference should be an identifier from a keys management service.
              *
-             * @param crypto the key reference identifier (e.g., CRN format for IBM Key Protect)
+             * @param crypto the key reference identifier
              * @see <a href=
              *      "https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-api-generation.html?context=wx&audience=wdp#inf-encrypt">Encrypting
              *      inference requests</a>

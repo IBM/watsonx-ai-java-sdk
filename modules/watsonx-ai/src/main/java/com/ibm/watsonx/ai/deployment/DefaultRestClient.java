@@ -23,6 +23,7 @@ import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
@@ -160,7 +161,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         try {
 
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpResponse.body(), ChatResponse.class);
+            return fromJson(httpResponse.body(), TextChatResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -191,7 +192,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
         var chatSubscriber =
             new DefaultChatSubscriber(
-                new SseEventProcessor(textChatRequest.tools(), context.extractionTags()),
+                new SseEventProcessor(textChatRequest.tools(), context.extractionTags(), TextChatResponse::builder),
                 new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
             );
 

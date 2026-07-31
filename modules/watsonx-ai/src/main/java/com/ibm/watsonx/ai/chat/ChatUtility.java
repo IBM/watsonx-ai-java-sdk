@@ -9,6 +9,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.Map;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
@@ -25,7 +26,14 @@ public class ChatUtility {
 
         var messages = chatRequest.messages();
         var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
-        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
+
+        BaseChatParameters rawParameters = chatRequest.parameters();
+        if (nonNull(rawParameters) && !(rawParameters instanceof ChatParameters))
+            throw new IllegalArgumentException(
+                "ChatService expects ChatParameters, got " + rawParameters.getClass().getSimpleName()
+                    + ". Did you pass ModelGatewayParameters to ChatService?");
+
+        var parameters = (ChatParameters) requireNonNullElse(rawParameters, ChatParameters.builder().build());
         defaultParameters = requireNonNullElse(defaultParameters, ChatParameters.builder().build());
 
         if (messages.stream().anyMatch(ControlMessage.class::isInstance)

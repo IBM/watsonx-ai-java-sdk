@@ -352,10 +352,10 @@ public class BatchService extends ProjectService {
         return result;
     }
 
-    //
-    // Returns true while the batch job is in a known, non-terminal state. Any other status (including
-    // values not modelled by Status, e.g. a cancelled/expired job) is treated as terminal by the caller.
-    //
+    /**
+     * Returns true while the batch job is in a known, non-terminal state. Any other status (including values not modelled by Status, e.g. a
+     * cancelled/expired job) is treated as terminal by the caller.
+     */
     private static boolean isInProgress(String status) {
         return Status.VALIDATING.value().equalsIgnoreCase(status)
             || Status.IN_PROGRESS.value().equalsIgnoreCase(status)

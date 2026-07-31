@@ -25,11 +25,12 @@ import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
@@ -163,7 +164,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public ChatResponse chat(ChatRequest chatRequest) {
+    public TextChatResponse chat(ChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
 
         var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
@@ -174,18 +175,18 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             ? chatRequest.parameters().timeLimit()
             : this.timeout.toMillis();
 
-        var chatResponse = client.chat(transactionId, deploymentId, Duration.ofMillis(timeout), textChatRequest);
+        var chatResponse = (TextChatResponse) client.chat(transactionId, deploymentId, Duration.ofMillis(timeout), textChatRequest);
 
         if (nonNull(messageInterceptor)) {
             var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = chatResponse.toBuilder()
+            chatResponse = (TextChatResponse) chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
         if (nonNull(toolInterceptor)) {
             var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = chatResponse.toBuilder()
+            chatResponse = (TextChatResponse) chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
@@ -200,7 +201,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
                     .toList()
             );
 
-        return chatResponseBuilder.extractionTags(extractionTags).build();
+        return (TextChatResponse) chatResponseBuilder.extractionTags(extractionTags).build();
     }
 
     /**
@@ -292,7 +293,13 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var messages = chatRequest.messages();
         var tools = isNull(chatRequest.tools()) ? defaultTools : chatRequest.tools();
         tools = nonNull(tools) && !tools.isEmpty() ? tools : null;
-        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
+
+        var rawParameters = chatRequest.parameters();
+        if (nonNull(rawParameters) && !(rawParameters instanceof ChatParameters))
+            throw new IllegalArgumentException(
+                "DeploymentService expects ChatParameters, got " + rawParameters.getClass().getSimpleName());
+
+        var parameters = (ChatParameters) requireNonNullElse(rawParameters, ChatParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
 
         Boolean includeReasoning = null;

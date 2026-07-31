@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -18,6 +19,7 @@ import com.ibm.watsonx.ai.chat.model.Thinking;
 import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
+import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
 
 /**
  * Represents a chat request.
@@ -55,7 +57,7 @@ public final class ChatRequest {
     private final String deploymentId;
     private final List<ChatMessage> messages;
     private final List<Tool> tools;
-    private final ChatParameters parameters;
+    private final BaseChatParameters parameters;
     private final Thinking thinking;
     private final ChatModeration moderations;
 
@@ -100,7 +102,7 @@ public final class ChatRequest {
      *
      * @return the chat parameters, or {@code null} if not set
      */
-    public ChatParameters parameters() {
+    public BaseChatParameters parameters() {
         return parameters;
     }
 
@@ -113,6 +115,11 @@ public final class ChatRequest {
         return thinking;
     }
 
+    /**
+     * Returns the inline moderation configuration.
+     *
+     * @return the moderation configuration, or {@code null} if not set
+     */
     public ChatModeration moderations() {
         return moderations;
     }
@@ -175,7 +182,7 @@ public final class ChatRequest {
         private String deploymentId;
         private List<ChatMessage> messages;
         private List<Tool> tools;
-        private ChatParameters parameters;
+        private BaseChatParameters parameters;
         private Thinking thinking;
         private ChatModeration moderations;
 
@@ -281,9 +288,11 @@ public final class ChatRequest {
         /**
          * Sets the parameters controlling the chat model's behavior.
          *
-         * @param parameters a {@link ChatParameters} instance
+         * @see ChatParameters
+         * @see ModelGatewayParameters
+         * @param parameters a {@link BaseChatParameters}.
          */
-        public Builder parameters(ChatParameters parameters) {
+        public Builder parameters(BaseChatParameters parameters) {
             this.parameters = parameters;
             return this;
         }
@@ -367,6 +376,11 @@ public final class ChatRequest {
             return this;
         }
 
+        /**
+         * Sets the inline moderation configuration applied to the request.
+         *
+         * @param moderations the moderation configuration to apply
+         */
         public Builder moderations(ChatModeration moderations) {
             this.moderations = moderations;
             return this;

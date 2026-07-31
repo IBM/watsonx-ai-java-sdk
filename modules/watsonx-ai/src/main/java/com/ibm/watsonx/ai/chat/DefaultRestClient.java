@@ -56,7 +56,7 @@ final class DefaultRestClient extends ChatRestClient {
         try {
 
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpResponse.body(), ChatResponse.class);
+            return fromJson(httpResponse.body(), TextChatResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -83,7 +83,7 @@ final class DefaultRestClient extends ChatRestClient {
         var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
         var chatSubscriber =
             new DefaultChatSubscriber(
-                new SseEventProcessor(textChatRequest.tools(), context.extractionTags()),
+                new SseEventProcessor(textChatRequest.tools(), context.extractionTags(), TextChatResponse::builder),
                 new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
             );
 

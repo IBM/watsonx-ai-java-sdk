@@ -16,7 +16,7 @@ public class SseEventProcessorTest {
     @Test
     void should_propagate_moderations_and_detections_from_streaming_chunks() {
 
-        var processor = new SseEventProcessor(List.of(), null);
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
 
         var firstChunk = "data: "
             + """
@@ -65,7 +65,7 @@ public class SseEventProcessorTest {
     @Test
     void should_aggregate_moderations_and_detections_across_multiple_chunks() {
 
-        var processor = new SseEventProcessor(List.of(), null);
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
 
         // Chunk 1: empty moderations, empty output detections (the shape mistral emits before any match).
         var chunk1 = "data: " + """
@@ -116,7 +116,7 @@ public class SseEventProcessorTest {
     @Test
     void should_expose_per_chunk_moderations_on_partial_response_event() {
 
-        var processor = new SseEventProcessor(List.of(), null);
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
 
         // Chunk 1: content without any PII match, no moderations flagged.
         var chunk1 = "data: " + """
