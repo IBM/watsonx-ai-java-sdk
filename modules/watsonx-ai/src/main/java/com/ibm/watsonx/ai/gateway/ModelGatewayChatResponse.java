@@ -2,8 +2,6 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-
-
 package com.ibm.watsonx.ai.gateway;
 
 import com.ibm.watsonx.ai.chat.TextChatResponse;
