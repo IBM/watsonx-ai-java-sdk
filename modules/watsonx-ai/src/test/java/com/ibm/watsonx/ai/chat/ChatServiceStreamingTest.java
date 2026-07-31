@@ -30,9 +30,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,6 +72,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
@@ -2175,7 +2178,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .projectId("project-id")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .toolInterceptor((ctx, fc) -> {
-                var chatRequest = ctx.request().toBuilder();
+                var chatRequest = ((ChatRequest) ctx.request()).toBuilder();
                 var chatParameters = ((com.ibm.watsonx.ai.chat.model.ChatParameters) ctx.request().parameters()).toBuilder();
                 assertFalse(ctx.response().isPresent());
                 assertNotNull(ctx.request());
@@ -4012,5 +4015,34 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertEquals(23, chatResponse.usage().completionTokens());
         assertEquals(76, chatResponse.usage().promptTokens());
         assertEquals(99, chatResponse.usage().totalTokens());
+    }
+
+    @Test
+    void should_reject_wrong_request_type_on_chat_streaming() {
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("my-model")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://my-cloud-instance.com"))
+            .build();
+
+        BaseChatRequest wrongType = ModelGatewayChatRequest.builder()
+            .messages(UserMessage.text("Hello"))
+            .build();
+
+        var handler = mock(ChatHandler.class);
+
+        var exception = assertThrows(IllegalArgumentException.class, () -> chatService.chatStreaming(wrongType, handler));
+        assertTrue(exception.getMessage().contains("ChatService requires a ChatRequest"));
+
+        // A null request must keep falling through to the typed overload's requireNonNull (NullPointerException).
+        assertThrows(NullPointerException.class, () -> chatService.chatStreaming((BaseChatRequest) null, handler));
+
+        // A valid-type request via the BaseChatRequest reference must pass the guard and delegate to the typed overload.
+        var spyService = spy(chatService);
+        doReturn(completedFuture(null)).when(spyService).chatStreaming(any(ChatRequest.class), any(ChatHandler.class));
+        BaseChatRequest validType = ChatRequest.builder().messages(UserMessage.text("Hello")).build();
+        assertNotNull(spyService.chatStreaming(validType, handler));
     }
 }

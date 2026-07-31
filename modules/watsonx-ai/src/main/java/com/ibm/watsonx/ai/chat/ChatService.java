@@ -12,8 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.CryptoService;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
@@ -51,7 +49,6 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * @see Authenticator
  */
 public class ChatService extends CryptoService implements ChatProvider {
-    private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private final ChatRestClient client;
     private final MessageInterceptor messageInterceptor;
     private final ToolInterceptor toolInterceptor;
@@ -108,11 +105,21 @@ public class ChatService extends CryptoService implements ChatProvider {
     }
 
     @Override
+    public TextChatResponse chat(BaseChatRequest chatRequest) {
+        if (nonNull(chatRequest) && !(chatRequest instanceof ChatRequest))
+            throw new IllegalArgumentException(
+                "ChatService requires a ChatRequest, but received: " + chatRequest.getClass().getSimpleName());
+        return chat((ChatRequest) chatRequest);
+    }
+
+    /**
+     * Sends a chat request.
+     *
+     * @param chatRequest the {@link ChatRequest}
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
     public TextChatResponse chat(ChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
-
-        if (nonNull(chatRequest.deploymentId()))
-            logger.info("The deploymentId parameter can not be used with the ChatService. Use the DeploymentService instead");
 
         var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
@@ -147,12 +154,23 @@ public class ChatService extends CryptoService implements ChatProvider {
     }
 
     @Override
+    public CompletableFuture<ChatResponse> chatStreaming(BaseChatRequest chatRequest, ChatHandler handler) {
+        if (nonNull(chatRequest) && !(chatRequest instanceof ChatRequest))
+            throw new IllegalArgumentException(
+                "ChatService requires a ChatRequest, but received: " + chatRequest.getClass().getSimpleName());
+        return chatStreaming((ChatRequest) chatRequest, handler);
+    }
+
+    /**
+     * Sends a streaming chat request.
+     *
+     * @param chatRequest the {@link ChatRequest}
+     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
     public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
-
-        if (nonNull(chatRequest.deploymentId()))
-            logger.info("The deploymentId parameter can not be used with the ChatService. Use the DeploymentService instead");
 
         var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;

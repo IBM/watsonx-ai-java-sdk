@@ -13,13 +13,13 @@ import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
-import com.ibm.watsonx.ai.gateway.GatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
 
 /**
  * Represents the response from a chat completion request.
  *
  * @see TextChatResponse
- * @see GatewayChatResponse
+ * @see ModelGatewayChatResponse
  */
 public class ChatResponse {
 
@@ -219,7 +219,7 @@ public class ChatResponse {
      *
      * @return {@link Builder} instance.
      */
-    public static Builder<?> build() {
+    public static Builder<?> builder() {
         return new Builder<>();
     }
 

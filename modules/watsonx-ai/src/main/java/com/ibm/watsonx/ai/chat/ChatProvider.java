@@ -23,7 +23,7 @@ public interface ChatProvider {
      * @param chatRequest the chat request
      * @return a {@link ChatResponse} object containing the model's reply
      */
-    public ChatResponse chat(ChatRequest chatRequest);
+    public ChatResponse chat(BaseChatRequest chatRequest);
 
     /**
      * Sends a streaming chat request.
@@ -35,5 +35,5 @@ public interface ChatProvider {
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
      * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
-    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, ChatHandler handler);
+    public CompletableFuture<ChatResponse> chatStreaming(BaseChatRequest chatRequest, ChatHandler handler);
 }

@@ -11,13 +11,13 @@ import com.ibm.watsonx.ai.chat.TextChatResponse;
 /**
  * Response returned by the Model Gateway chat endpoint.
  */
-public class GatewayChatResponse extends TextChatResponse {
+public class ModelGatewayChatResponse extends TextChatResponse {
 
     private final String serviceTier;
     private final String systemFingerprint;
     private final Boolean cached;
 
-    protected GatewayChatResponse(Builder<?> builder) {
+    protected ModelGatewayChatResponse(Builder<?> builder) {
         super(builder);
         serviceTier = builder.serviceTier;
         systemFingerprint = builder.systemFingerprint;
@@ -52,7 +52,7 @@ public class GatewayChatResponse extends TextChatResponse {
     }
 
     /**
-     * Creates a builder initialized with the current state of this {@code GatewayChatResponse}.
+     * Creates a builder initialized with the current state of this {@code ModelGatewayChatResponse}.
      *
      * @return a new {@link Builder} instance
      */
@@ -77,16 +77,16 @@ public class GatewayChatResponse extends TextChatResponse {
     }
 
     /**
-     * Returns a new {@link Builder} instance for {@link GatewayChatResponse}.
+     * Returns a new {@link Builder} instance for {@link ModelGatewayChatResponse}.
      *
      * @return a new {@link Builder}
      */
-    public static Builder<?> build() {
+    public static Builder<?> builder() {
         return new Builder<>();
     }
 
     /**
-     * Builder for constructing {@link GatewayChatResponse} instances.
+     * Builder for constructing {@link ModelGatewayChatResponse} instances.
      *
      * @param <B> the concrete builder subclass
      */
@@ -131,19 +131,19 @@ public class GatewayChatResponse extends TextChatResponse {
         }
 
         /**
-         * Builds a {@link GatewayChatResponse} instance.
+         * Builds a {@link ModelGatewayChatResponse} instance.
          *
-         * @return a new {@link GatewayChatResponse}
+         * @return a new {@link ModelGatewayChatResponse}
          */
         @Override
-        public GatewayChatResponse build() {
-            return new GatewayChatResponse(this);
+        public ModelGatewayChatResponse build() {
+            return new ModelGatewayChatResponse(this);
         }
     }
 
     @Override
     public String toString() {
-        return "GatewayChatResponse [id=" + id() + ", object=" + object() + ", model=" + model() + ", modelId=" + modelId()
+        return "ModelGatewayChatResponse [id=" + id() + ", object=" + object() + ", model=" + model() + ", modelId=" + modelId()
             + ", modelVersion=" + modelVersion() + ", createdAt=" + createdAt() + ", choices=" + choices() + ", created=" + created()
             + ", usage=" + usage() + ", extractionTags=" + extractionTags() + ", moderations=" + moderations() + ", detections=" + detections()
             + ", serviceTier=" + serviceTier + ", systemFingerprint=" + systemFingerprint + ", cached=" + cached + "]";

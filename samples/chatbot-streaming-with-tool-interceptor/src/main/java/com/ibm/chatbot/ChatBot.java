@@ -127,7 +127,7 @@ public class ChatBot {
 
         String toolName = fc.name();
         String arguments = fc.arguments();
-        ChatRequest request = ctx.request();
+        ChatRequest request = (ChatRequest) ctx.request();
         ChatParameters parameters = ChatParameters.builder().responseAsJson().build();
 
         String schema = request.tools().stream()

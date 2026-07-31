@@ -47,7 +47,7 @@ final class DefaultRestClient extends ModelGatewayRestClient {
     }
 
     @Override
-    public GatewayChatResponse chat(String transactionId, Duration timeout, GatewayTextChatRequest gatewayRequest) {
+    public ModelGatewayChatResponse chat(String transactionId, Duration timeout, ModelGatewayTextChatRequest gatewayRequest) {
 
         var url = URI.create(baseUrl + "/ml/gateway/v1/chat/completions?version=%s".formatted(version));
 
@@ -65,7 +65,7 @@ final class DefaultRestClient extends ModelGatewayRestClient {
         try {
 
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpResponse.body(), GatewayChatResponse.class);
+            return fromJson(httpResponse.body(), ModelGatewayChatResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -75,7 +75,7 @@ final class DefaultRestClient extends ModelGatewayRestClient {
     @Override
     public CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
-        GatewayTextChatRequest gatewayRequest,
+        ModelGatewayTextChatRequest gatewayRequest,
         ChatClientContext context,
         ChatHandler handler) {
 
@@ -94,7 +94,7 @@ final class DefaultRestClient extends ModelGatewayRestClient {
         var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
         var chatSubscriber =
             new DefaultChatSubscriber(
-                new SseEventProcessor(gatewayRequest.tools(), context.extractionTags(), GatewayChatResponse::build),
+                new SseEventProcessor(gatewayRequest.tools(), context.extractionTags(), ModelGatewayChatResponse::builder),
                 new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
             );
 

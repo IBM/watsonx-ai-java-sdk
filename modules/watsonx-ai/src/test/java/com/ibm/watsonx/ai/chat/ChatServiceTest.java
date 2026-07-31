@@ -62,6 +62,7 @@ import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exception.AuthenticationTokenExpiredException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
@@ -2165,5 +2166,26 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             assertEquals("tool_calls", chatResponse.choices().get(1).finishReason());
             assertEquals(FinishReason.TOOL_CALLS, chatResponse.finishReason());
         });
+    }
+
+    @Test
+    void should_reject_wrong_request_type_on_chat() {
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("my-model")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://my-cloud-instance.com"))
+            .build();
+
+        BaseChatRequest wrongType = ModelGatewayChatRequest.builder()
+            .messages(UserMessage.text("Hello"))
+            .build();
+
+        var exception = assertThrows(IllegalArgumentException.class, () -> chatService.chat(wrongType));
+        assertTrue(exception.getMessage().contains("ChatService requires a ChatRequest"));
+
+        // A null request must keep falling through to the typed overload's requireNonNull (NullPointerException).
+        assertThrows(NullPointerException.class, () -> chatService.chat((BaseChatRequest) null));
     }
 }

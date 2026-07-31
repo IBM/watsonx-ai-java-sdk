@@ -12,7 +12,7 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags;
  */
 public class ChatClientContext {
     private final ChatProvider chatProvider;
-    private final ChatRequest chatRequest;
+    private final BaseChatRequest chatRequest;
     private final ToolInterceptor toolInterceptor;
     private final ExtractionTags extractionTags;
 
@@ -37,7 +37,7 @@ public class ChatClientContext {
      *
      * @return the chat request
      */
-    public ChatRequest chatRequest() {
+    public BaseChatRequest chatRequest() {
         return chatRequest;
     }
 
@@ -73,7 +73,7 @@ public class ChatClientContext {
      */
     public static class Builder {
         private ChatProvider chatProvider;
-        private ChatRequest chatRequest;
+        private BaseChatRequest chatRequest;
         private ToolInterceptor toolInterceptor;
         private ExtractionTags extractionTags;
 
@@ -94,7 +94,7 @@ public class ChatClientContext {
          *
          * @param chatRequest the chat request
          */
-        public Builder chatRequest(ChatRequest chatRequest) {
+        public Builder chatRequest(BaseChatRequest chatRequest) {
             this.chatRequest = chatRequest;
             return this;
         }

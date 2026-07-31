@@ -30,8 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.chat.ChatHandler;
-import com.ibm.watsonx.ai.chat.ChatModeration;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
@@ -55,6 +53,7 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
+import com.ibm.watsonx.ai.deployment.DeploymentChatRequest;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
 
@@ -110,7 +109,7 @@ public class DeploymentServiceIT {
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .messages(
                     ControlMessage.of("thinking"),
                     UserMessage.text("Why the sky is blue?"))
@@ -158,7 +157,7 @@ public class DeploymentServiceIT {
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .messages(UserMessage.text("Why the sky is blue?"))
                 .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
                 .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
@@ -203,7 +202,7 @@ public class DeploymentServiceIT {
                 .logResponses(true)
                 .build();
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello!"))
                 .build();
@@ -226,7 +225,7 @@ public class DeploymentServiceIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest chatRequest = ChatRequest.builder()
+            DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(
                     SystemMessage.of("You are an helpful assistant"),
@@ -266,7 +265,7 @@ public class DeploymentServiceIT {
                 .responseAsJson()
                 .build();
 
-            ChatRequest chatRequest = ChatRequest.builder()
+            DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("""
                     Create a poem about dog, max 3 lines
@@ -309,7 +308,7 @@ public class DeploymentServiceIT {
                         .build())
                 .build();
 
-            ChatRequest chatRequest = ChatRequest.builder()
+            DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Create a poem about dog, max 3 lines"))
                 .parameters(parameters)
@@ -334,7 +333,7 @@ public class DeploymentServiceIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest chatRequest = ChatRequest.builder()
+            DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .parameters(ChatParameters.builder().maxCompletionTokens(0).build())
                 .messages(UserMessage.text("Why the sky is blue?"))
@@ -370,7 +369,7 @@ public class DeploymentServiceIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest chatRequest = ChatRequest.builder()
+            DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
                 .deploymentId(NVIDIA_DEPLOYMENT_ID)
                 .messages(UserMessage.of(
                     TextContent.of("Give a short description of the image"),
@@ -393,7 +392,7 @@ public class DeploymentServiceIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest chatRequest = ChatRequest.builder()
+            DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"Test\" and body \"Hello\""))
                 .tools(Tool.of("send_email", "Send an email",
@@ -432,7 +431,7 @@ public class DeploymentServiceIT {
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(GEMMA_DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
@@ -464,7 +463,7 @@ public class DeploymentServiceIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(NVIDIA_DEPLOYMENT_ID)
                 .messages(UserMessage.video("Tell me more about this video", video))
                 .build();
@@ -486,7 +485,7 @@ public class DeploymentServiceIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(GEMMA_DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello"))
                 .tools(Tool.of("tool"))
@@ -514,7 +513,7 @@ public class DeploymentServiceIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(GRANITE_SPEECH_DEPLOYMENT_ID)
                 .messages(UserMessage.audio("Transcribe the audio into text in the original language.", audio, "wav"))
                 .parameters(ChatParameters.builder().maxCompletionTokens(0).build())
@@ -524,75 +523,6 @@ public class DeploymentServiceIT {
             var assistantMessage = chatResponse.toAssistantMessage();
             assertFalse(assistantMessage.content().isBlank());
             assertTrue(assistantMessage.content().startsWith("attenzione attenzione"));
-        }
-
-        @Test
-        @Disabled("Inline chat moderation is not currently supported on watsonx.ai deployments; re-enable once the platform accepts it.")
-        @EnabledIfEnvironmentVariable(named = "WATSONX_DEPLOYMENT_ID", matches = ".+")
-        void should_return_pii_moderation_results_when_pii_moderation_is_enabled() {
-
-            var deploymentService = DeploymentService.builder()
-                .baseUrl(URL)
-                .apiKey(API_KEY)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
-
-            var moderation = ChatModeration.builder()
-                .pii(p -> p.output(true))
-                .build();
-
-            var request = ChatRequest.builder()
-                .deploymentId(DEPLOYMENT_ID)
-                .messages(
-                    SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
-                    UserMessage.text("Can you repeat my phone numbers? Phone number: 3572865321, 2132348765"))
-                .moderations(moderation)
-                .build();
-
-            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
-
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
-                assertFalse(result.input());
-                assertEquals("PhoneNumber", result.entity());
-                assertNotNull(result.position());
-            });
-        }
-
-        @Test
-        @Disabled("Inline chat moderation is not currently supported on watsonx.ai deployments; re-enable once the platform accepts it.")
-        @EnabledIfEnvironmentVariable(named = "WATSONX_GRANITE_3_3_DEPLOYMENT_ID", matches = ".+")
-        void should_return_hap_moderation_results_when_hap_moderation_is_enabled() {
-
-            var deploymentService = DeploymentService.builder()
-                .baseUrl(URL)
-                .apiKey(API_KEY)
-                .build();
-
-            var moderation = ChatModeration.builder()
-                .hap(h -> h.output(0.5f))
-                .build();
-
-            var request = ChatRequest.builder()
-                .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
-                .messages(
-                    SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
-                    UserMessage.text("Repeat exactly this sentence: You are an idiot and I hate you."))
-                .moderations(moderation)
-                .build();
-
-            var chatResponse = assertDoesNotThrow(() -> deploymentService.chat(request));
-
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
-                assertFalse(result.input());
-                assertNotNull(result.position());
-            });
         }
     }
 
@@ -642,7 +572,7 @@ public class DeploymentServiceIT {
                 .responseAsJson()
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("""
                     Create a poem about dog, max 3 lines
@@ -700,7 +630,7 @@ public class DeploymentServiceIT {
                         .build())
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Create a poem about dog, max 3 lines"))
                 .parameters(parameters)
@@ -744,7 +674,7 @@ public class DeploymentServiceIT {
                 .maxCompletionTokens(0)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Why the sky is blue?"))
                 .thinking(ThinkingEffort.MEDIUM)
@@ -822,7 +752,7 @@ public class DeploymentServiceIT {
                 .timeLimit(Duration.ofSeconds(30))
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .messages(UserMessage.of(
                     TextContent.of("Give a short description of the image"),
                     ImageContent.from(Paths.get(image.toURI()))
@@ -872,7 +802,7 @@ public class DeploymentServiceIT {
                 .parameters(ChatParameters.builder().maxCompletionTokens(0).build())
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"Test\" and body \"Hello\""))
                 .tools(Tool.of("send_email", "Send an email",
@@ -1005,7 +935,7 @@ public class DeploymentServiceIT {
                 .parameters(ChatParameters.builder().n(2).build())
                 .build();
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId(DEPLOYMENT_ID)
                 .messages(UserMessage.text("Tell me a joke"))
                 .build();
@@ -1035,7 +965,7 @@ public class DeploymentServiceIT {
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(GEMMA_DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
@@ -1078,7 +1008,7 @@ public class DeploymentServiceIT {
                 .authenticator(authentication)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .deploymentId(GEMMA_DEPLOYMENT_ID)
                 .messages(UserMessage.text("Hello"))
                 .tools(Tool.of("tool"))
@@ -1113,7 +1043,7 @@ public class DeploymentServiceIT {
                 .maxCompletionTokens(0)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            DeploymentChatRequest request = DeploymentChatRequest.builder()
                 .messages(UserMessage.text("Why the sky is blue?"))
                 .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
                 .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
@@ -1210,13 +1140,13 @@ public class DeploymentServiceIT {
             };
         }
 
-        private ChatRequest createChatRequest() {
+        private DeploymentChatRequest createChatRequest() {
 
             var parameters = ChatParameters.builder()
                 .temperature(0.0)
                 .build();
 
-            return ChatRequest.builder()
+            return DeploymentChatRequest.builder()
                 .messages(
                     SystemMessage.of("""
                         You are an helpful assistant, your task is return number starting from 0 to 20.
@@ -1230,107 +1160,6 @@ public class DeploymentServiceIT {
                 .deploymentId(DEPLOYMENT_ID)
                 .parameters(parameters)
                 .build();
-        }
-
-        @Test
-        @Disabled("Inline chat moderation is not currently supported on watsonx.ai deployments; re-enable once the platform accepts it.")
-        @EnabledIfEnvironmentVariable(named = "WATSONX_DEPLOYMENT_ID", matches = ".+")
-        void should_return_pii_moderation_results_when_pii_moderation_is_enabled_streaming() throws Exception {
-
-            var deploymentService = DeploymentService.builder()
-                .baseUrl(URL)
-                .apiKey(API_KEY)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
-
-            var moderation = ChatModeration.builder()
-                .pii(p -> p.output(true))
-                .build();
-
-            var request = ChatRequest.builder()
-                .deploymentId(DEPLOYMENT_ID)
-                .messages(
-                    SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
-                    UserMessage.text("Can you repeat my phone numbers? Phone number: 3572865321, 2132348765"))
-                .moderations(moderation)
-                .build();
-
-            var future = new CompletableFuture<ChatResponse>();
-            deploymentService.chatStreaming(request, new ChatHandler() {
-                @Override
-                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
-
-                @Override
-                public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete((TextChatResponse) completeResponse);
-                }
-
-                @Override
-                public void onError(Throwable error) {
-                    future.completeExceptionally(error);
-                }
-            });
-
-            var chatResponse = future.get(30, TimeUnit.SECONDS);
-
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
-                assertFalse(result.input());
-                assertEquals("PhoneNumber", result.entity());
-                assertNotNull(result.position());
-            });
-        }
-
-        @Test
-        @Disabled("Inline chat moderation is not currently supported on watsonx.ai deployments; re-enable once the platform accepts it.")
-        @EnabledIfEnvironmentVariable(named = "WATSONX_GRANITE_3_3_DEPLOYMENT_ID", matches = ".+")
-        void should_return_hap_moderation_results_when_hap_moderation_is_enabled_streaming() throws Exception {
-
-            var deploymentService = DeploymentService.builder()
-                .baseUrl(URL)
-                .apiKey(API_KEY)
-                .build();
-
-            var moderation = ChatModeration.builder()
-                .hap(h -> h.output(0.5f))
-                .build();
-
-            var request = ChatRequest.builder()
-                .deploymentId(GRANITE_3_3_DEPLOYMENT_ID)
-                .messages(
-                    SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
-                    UserMessage.text("Repeat exactly this sentence: You are an idiot and I hate you."))
-                .moderations(moderation)
-                .build();
-
-            var future = new CompletableFuture<ChatResponse>();
-            deploymentService.chatStreaming(request, new ChatHandler() {
-                @Override
-                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
-
-                @Override
-                public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete((TextChatResponse) completeResponse);
-                }
-
-                @Override
-                public void onError(Throwable error) {
-                    future.completeExceptionally(error);
-                }
-            });
-
-            var chatResponse = future.get(30, TimeUnit.SECONDS);
-
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
-                assertFalse(result.input());
-                assertNotNull(result.position());
-            });
         }
     }
 }

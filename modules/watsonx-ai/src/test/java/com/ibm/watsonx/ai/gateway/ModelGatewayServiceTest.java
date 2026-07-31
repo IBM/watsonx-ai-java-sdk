@@ -19,6 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpHeaders;
@@ -34,12 +37,12 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
+import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
-import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -87,7 +90,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
                 SystemMessage.of("You are a helpful assistant"),
                 UserMessage.text("Hello"));
 
-            var parameters = ChatParameters.builder()
+            var parameters = ModelGatewayParameters.builder()
                 .temperature(0.0)
                 .maxCompletionTokens(0)
                 .build();
@@ -114,7 +117,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var chatResponse = modelGatewayService.chat(
-                ChatRequest.builder().messages(messages).parameters(parameters).build());
+                ModelGatewayChatRequest.builder().messages(messages).parameters(parameters).build());
 
             assertEquals("chatcmpl-abc", chatResponse.id());
             assertEquals("gpt-4o", chatResponse.model());
@@ -219,7 +222,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
             .build();
 
         var messages = List.<ChatMessage>of(UserMessage.text("Come stai?"));
-        var parameters = ChatParameters.builder().temperature(0.0).maxCompletionTokens(0).build();
+        var parameters = ModelGatewayParameters.builder().temperature(0.0).maxCompletionTokens(0).build();
 
         var expectedText =
             "Ciao! Va bene, grazie per averlo chiesto! 😊 Sono qui e pronto ad aiutarti.\n\nTu come stai? C'è qualcosa in cui posso esserti utile oggi?";
@@ -227,7 +230,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
         var partial = new StringBuilder();
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         modelGatewayService.chatStreaming(
-            ChatRequest.builder().messages(messages).parameters(parameters).build(),
+            ModelGatewayChatRequest.builder().messages(messages).parameters(parameters).build(),
             new ChatHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -245,8 +248,8 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
                 }
             });
 
-        // The streaming path delivers a GatewayChatResponse (not a bare TextChatResponse) so gateway-only fields can be read via a cast.
-        var response = assertInstanceOf(GatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
+        // The streaming path delivers a ModelGatewayChatResponse (not a bare TextChatResponse) so gateway-only fields can be read via a cast.
+        var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
         assertEquals("chatcmpl-12c1b14a-9de3-4b8f-8349-a6260376e194", response.id());
         assertEquals("claude-sonnet-5", response.model());
         assertEquals(expectedText, response.choices().get(0).message().content());
@@ -306,7 +309,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         modelGatewayService.chatStreaming(
-            ChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).parameters(parameters).build(),
+            ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).parameters(parameters).build(),
             new ChatHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -322,7 +325,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
                 }
             });
 
-        var response = assertInstanceOf(GatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
+        var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
         assertEquals("Hey", response.choices().get(0).message().content());
         assertEquals("stop", response.choices().get(0).finishReason());
         assertFalse(response.cached());
@@ -468,9 +471,10 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
             }
         });
 
-        // The tool-call path rebuilds the response via toBuilder().choices(...).build(); the covariant builder must preserve the GatewayChatResponse
+        // The tool-call path rebuilds the response via toBuilder().choices(...).build(); the covariant builder must preserve the
+        // ModelGatewayChatResponse
         // type.
-        var response = assertInstanceOf(GatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
+        var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
         assertEquals("chatcmpl-c09d447b-3fcd-43cb-9ace-f01e89e0380e", response.id());
         assertEquals("claude-sonnet-5", response.model());
         assertEquals(1785169639, response.created());
@@ -524,7 +528,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         modelGatewayService.chatStreaming(
-            ChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build(),
+            ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build(),
             new ChatHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -540,7 +544,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
                 }
             });
 
-        var response = assertInstanceOf(GatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
+        var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
         assertEquals("Hi", response.choices().get(0).message().content());
         assertEquals("default", response.serviceTier());
         assertEquals("fp_abc123", response.systemFingerprint());
@@ -722,7 +726,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
         Consumer<String> consumer = partial::append;
 
         var future = modelGatewayService.chatStreaming("Hi", consumer);
-        var response = assertInstanceOf(GatewayChatResponse.class, assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS)));
+        var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS)));
 
         assertEquals("Hello world", partial.toString());
         assertEquals("Hello world", response.choices().get(0).message().content());
@@ -894,7 +898,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         modelGatewayService.chatStreaming(
-            ChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build(),
+            ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build(),
             new ChatHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -910,7 +914,42 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
                 }
             });
 
-        var response = assertInstanceOf(GatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
+        var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
         assertEquals("Logged", response.choices().get(0).message().content());
+    }
+
+    @Test
+    void should_reject_wrong_request_type_on_chat_and_chat_streaming() {
+
+        var modelGatewayService = ModelGatewayService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("gpt-4o")
+            .baseUrl(URI.create("http://my-cloud-instance.com"))
+            .build();
+
+        BaseChatRequest wrongType = ChatRequest.builder()
+            .messages(UserMessage.text("Hello"))
+            .build();
+
+        var chatException = assertThrows(IllegalArgumentException.class, () -> modelGatewayService.chat(wrongType));
+        assertTrue(chatException.getMessage().contains("ModelGatewayService requires a ModelGatewayChatRequest"));
+
+        var handler = mock(ChatHandler.class);
+        var streamException = assertThrows(IllegalArgumentException.class, () -> modelGatewayService.chatStreaming(wrongType, handler));
+        assertTrue(streamException.getMessage().contains("ModelGatewayService requires a ModelGatewayChatRequest"));
+
+        // A null request must keep falling through to the typed overload's requireNonNull (NullPointerException).
+        assertThrows(NullPointerException.class, () -> modelGatewayService.chat((BaseChatRequest) null));
+        assertThrows(NullPointerException.class, () -> modelGatewayService.chatStreaming((BaseChatRequest) null, handler));
+
+        // Valid-type requests via the BaseChatRequest reference must pass the guard and delegate to the typed overloads.
+        var spyService = spy(modelGatewayService);
+        BaseChatRequest validType = ModelGatewayChatRequest.builder()
+            .messages(UserMessage.text("Hello"))
+            .build();
+        doReturn(null).when(spyService).chat(any(ModelGatewayChatRequest.class));
+        doReturn(completedFuture(null)).when(spyService).chatStreaming(any(ModelGatewayChatRequest.class), any(ChatHandler.class));
+        assertNull(spyService.chat(validType));
+        assertNotNull(spyService.chatStreaming(validType, handler));
     }
 }

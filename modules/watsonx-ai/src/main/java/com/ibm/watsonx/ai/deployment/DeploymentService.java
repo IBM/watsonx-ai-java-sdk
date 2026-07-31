@@ -19,10 +19,10 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatProvider;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.TextChatResponse;
@@ -164,7 +164,20 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public TextChatResponse chat(ChatRequest chatRequest) {
+    public TextChatResponse chat(BaseChatRequest chatRequest) {
+        if (nonNull(chatRequest) && !(chatRequest instanceof DeploymentChatRequest))
+            throw new IllegalArgumentException(
+                "DeploymentService requires a DeploymentChatRequest, but received: " + chatRequest.getClass().getSimpleName());
+        return chat((DeploymentChatRequest) chatRequest);
+    }
+
+    /**
+     * Sends a chat request to a deployment.
+     *
+     * @param chatRequest the {@link DeploymentChatRequest}
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
+    public TextChatResponse chat(DeploymentChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
 
         var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
@@ -212,7 +225,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      * @param chatRequest the chat request
      * @param handler a consumer that receives partial text responses
      */
-    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, Consumer<String> handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(DeploymentChatRequest chatRequest, Consumer<String> handler) {
         return chatStreaming(chatRequest, new ChatHandler() {
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -222,7 +235,21 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     @Override
-    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(BaseChatRequest chatRequest, ChatHandler handler) {
+        if (nonNull(chatRequest) && !(chatRequest instanceof DeploymentChatRequest))
+            throw new IllegalArgumentException(
+                "DeploymentService requires a DeploymentChatRequest, but received: " + chatRequest.getClass().getSimpleName());
+        return chatStreaming((DeploymentChatRequest) chatRequest, handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment.
+     *
+     * @param chatRequest the {@link DeploymentChatRequest}
+     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(DeploymentChatRequest chatRequest, ChatHandler handler) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
@@ -284,22 +311,17 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     /**
-     * Builds a {@link TextChatRequest} from the provided {@link ChatRequest}.
+     * Builds a {@link TextChatRequest} from the provided {@link DeploymentChatRequest}.
      *
-     * @param chatRequest the {@link ChatRequest} object
+     * @param chatRequest the {@link DeploymentChatRequest} object
      * @return a fully constructed {@link TextChatRequest} object
      */
-    private TextChatRequest buildTextChatRequest(ChatRequest chatRequest) {
+    private TextChatRequest buildTextChatRequest(DeploymentChatRequest chatRequest) {
         var messages = chatRequest.messages();
         var tools = isNull(chatRequest.tools()) ? defaultTools : chatRequest.tools();
         tools = nonNull(tools) && !tools.isEmpty() ? tools : null;
 
-        var rawParameters = chatRequest.parameters();
-        if (nonNull(rawParameters) && !(rawParameters instanceof ChatParameters))
-            throw new IllegalArgumentException(
-                "DeploymentService expects ChatParameters, got " + rawParameters.getClass().getSimpleName());
-
-        var parameters = (ChatParameters) requireNonNullElse(rawParameters, ChatParameters.builder().build());
+        var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
 
         Boolean includeReasoning = null;
@@ -341,7 +363,6 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .lengthPenalty(getOrDefault(parameters.lengthPenalty(), defaultParameters.lengthPenalty()))
             .includeReasoning(includeReasoning)
             .reasoningEffort(thinkingEffort)
-            .moderations(chatRequest.moderations())
             .chatTemplateKwargs(chatTemplateKwargs)
             .build();
     }

@@ -5,11 +5,13 @@
 package com.ibm.watsonx.ai.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
 
 public class SseEventProcessorTest {
 
@@ -163,5 +165,29 @@ public class SseEventProcessorTest {
         assertEquals("357-286-5321", chunkPii.get(0).word());
         assertEquals(7, chunkPii.get(0).position().start());
         assertEquals(19, chunkPii.get(0).position().end());
+    }
+
+    @Test
+    void should_keep_content_events_when_reasoning_content_is_empty_on_same_chunk() {
+
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+
+        var chunk = "data: " + """
+            {"id":"chatcmpl-4","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Hello","reasoning_content":""}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var result = processor.processChunk(chunk);
+
+        var responseEvents = result.events().stream()
+            .filter(PartialResponseEvent.class::isInstance)
+            .map(PartialResponseEvent.class::cast)
+            .toList();
+
+        assertEquals(1, responseEvents.size(), "the content event must survive an empty reasoning_content on the same chunk");
+        assertEquals("Hello", responseEvents.get(0).content());
+
+        // The empty reasoning token must not emit a thinking event.
+        assertFalse(result.events().stream().anyMatch(PartialThinkingEvent.class::isInstance));
     }
 }

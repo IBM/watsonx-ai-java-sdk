@@ -19,9 +19,9 @@ import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.TextChatResponse;
-import com.ibm.watsonx.ai.gateway.GatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
-import com.ibm.watsonx.ai.gateway.GatewayTextChatRequest;
+import com.ibm.watsonx.ai.gateway.ModelGatewayTextChatRequest;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.JsonSchemaObject;
@@ -98,14 +98,14 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TextChatResponse.DetectionResult.class, TextChatResponseDetectionResultMixin.class);
 
         // --- Gateway Mixin --- //
-        setMixInAnnotation(GatewayChatResponse.class, GatewayChatResponseMixin.class);
-        setMixInAnnotation(GatewayChatResponse.Builder.class, GatewayChatResponseBuilderMixin.class);
-        setMixInAnnotation(GatewayTextChatRequest.class, GatewayTextChatRequestMixin.class);
-        setMixInAnnotation(GatewayTextChatRequest.Builder.class, GatewayTextChatRequestBuilderMixin.class);
-        setMixInAnnotation(ModelGatewayParameters.Prediction.class, GatewayPredictionMixin.class);
-        setMixInAnnotation(ModelGatewayParameters.StreamOptions.class, GatewayStreamOptionsMixin.class);
-        setMixInAnnotation(ModelGatewayParameters.Cache.class, GatewayCacheMixin.class);
-        setMixInAnnotation(ModelGatewayParameters.Router.class, GatewayRouterMixin.class);
+        setMixInAnnotation(ModelGatewayChatResponse.class, ModelGatewayChatResponseMixin.class);
+        setMixInAnnotation(ModelGatewayChatResponse.Builder.class, ModelGatewayChatResponseBuilderMixin.class);
+        setMixInAnnotation(ModelGatewayTextChatRequest.class, ModelGatewayTextChatRequestMixin.class);
+        setMixInAnnotation(ModelGatewayTextChatRequest.Builder.class, ModelGatewayTextChatRequestBuilderMixin.class);
+        setMixInAnnotation(ModelGatewayParameters.Prediction.class, ModelGatewayPredictionMixin.class);
+        setMixInAnnotation(ModelGatewayParameters.StreamOptions.class, ModelGatewayStreamOptionsMixin.class);
+        setMixInAnnotation(ModelGatewayParameters.Cache.class, ModelGatewayCacheMixin.class);
+        setMixInAnnotation(ModelGatewayParameters.Router.class, ModelGatewayRouterMixin.class);
 
         // --- Schema Mixin --- //
         setMixInAnnotation(ArraySchema.class, ArraySchemaMixin.class);
@@ -764,8 +764,8 @@ public class WatsonxJacksonModule extends SimpleModule {
     @JsonPOJOBuilder(withPrefix = "")
     public abstract static class BatchCreateRequestBuilderMixin {}
 
-    @JsonDeserialize(builder = GatewayChatResponse.Builder.class)
-    public abstract static class GatewayChatResponseMixin {
+    @JsonDeserialize(builder = ModelGatewayChatResponse.Builder.class)
+    public abstract static class ModelGatewayChatResponseMixin {
 
         @JsonProperty("id")
         abstract String id();
@@ -814,10 +814,10 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public abstract static class GatewayChatResponseBuilderMixin {}
+    public abstract static class ModelGatewayChatResponseBuilderMixin {}
 
-    @JsonDeserialize(builder = GatewayTextChatRequest.Builder.class)
-    public abstract static class GatewayTextChatRequestMixin {
+    @JsonDeserialize(builder = ModelGatewayTextChatRequest.Builder.class)
+    public abstract static class ModelGatewayTextChatRequestMixin {
 
         @JsonProperty("model")
         abstract String model();
@@ -915,32 +915,32 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public abstract static class GatewayTextChatRequestBuilderMixin {}
+    public abstract static class ModelGatewayTextChatRequestBuilderMixin {}
 
-    public abstract static class GatewayPredictionMixin {
+    public abstract static class ModelGatewayPredictionMixin {
         @JsonCreator
-        public GatewayPredictionMixin(
+        public ModelGatewayPredictionMixin(
             @JsonProperty("type") String type,
             @JsonProperty("content") Object content) {}
     }
 
-    public abstract static class GatewayStreamOptionsMixin {
+    public abstract static class ModelGatewayStreamOptionsMixin {
         @JsonCreator
-        public GatewayStreamOptionsMixin(
+        public ModelGatewayStreamOptionsMixin(
             @JsonProperty("include_usage") Boolean includeUsage) {}
     }
 
-    public abstract static class GatewayCacheMixin {
+    public abstract static class ModelGatewayCacheMixin {
         @JsonCreator
-        public GatewayCacheMixin(
+        public ModelGatewayCacheMixin(
             @JsonProperty("enabled") boolean enabled,
             @JsonProperty("filter") Object filter,
             @JsonProperty("threshold") Double threshold) {}
     }
 
-    public abstract static class GatewayRouterMixin {
+    public abstract static class ModelGatewayRouterMixin {
         @JsonCreator
-        public GatewayRouterMixin(
+        public ModelGatewayRouterMixin(
             @JsonProperty("cache") ModelGatewayParameters.Cache cache) {}
     }
 }

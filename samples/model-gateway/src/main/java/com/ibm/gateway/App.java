@@ -7,9 +7,9 @@ package com.ibm.gateway;
 import java.net.URI;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.gateway.GatewayChatProvider;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatProvider;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Router;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Cache;
@@ -33,8 +33,8 @@ public class App {
             .router(new Router(new Cache(false, null, null)))
             .build();
 
-        // Assign to GatewayChatProvider to illustrate adapter-style consumption
-        GatewayChatProvider gatewayProvider = ModelGatewayService.builder()
+        // Assign to ModelGatewayChatProvider to illustrate adapter-style consumption
+        ModelGatewayChatProvider gatewayProvider = ModelGatewayService.builder()
             .apiKey(apiKey)
             .baseUrl(url)
             .modelId(modelId)
@@ -42,7 +42,7 @@ public class App {
             .build();
 
         var message = "What is the capital of Italy?";
-        var chatRequest = ChatRequest.builder()
+        var chatRequest = ModelGatewayChatRequest.builder()
             .messages(UserMessage.text(message))
             .parameters(
                 ModelGatewayParameters.builder()

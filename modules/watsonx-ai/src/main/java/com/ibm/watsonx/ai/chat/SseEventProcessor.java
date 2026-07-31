@@ -35,7 +35,7 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.streaming.StreamingToolFetcher;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.gateway.GatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
 
 /**
  * Processes Server-Sent Events.
@@ -360,16 +360,15 @@ public class SseEventProcessor {
 
             String token = message.delta().reasoningContent();
 
-            if (token.isEmpty())
-                return ProcessResult.empty();
-
-            thinkingBuffer.append(token);
-            events.add(new PartialThinkingEvent(token, chunk));
+            if (!token.isEmpty()) {
+                thinkingBuffer.append(token);
+                events.add(new PartialThinkingEvent(token, chunk));
+            }
         }
 
         // Complete the last tool call only on the chunk that transitions the finish reason to "tool_calls". OpenAI-compatible endpoints
         // (Model Gateway) send a trailing usage chunk that still carries a populated choices[0] with finish_reason "" after the terminal
-        // chunk; guarding on finishReasonJustSet prevents that chunk from emitting a duplicate CompleteToolCallEvent.
+        // chunk, guarding on finishReasonJustSet prevents that chunk from emitting a duplicate CompleteToolCallEvent.
         if (finishReasonJustSet && TOOL_CALLS.value().equals(finishReason)) {
             var tools = toolFetchers.get(messageIndex);
             events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
@@ -419,8 +418,8 @@ public class SseEventProcessor {
             .moderations(moderations)
             .detections(detections);
 
-        // Gateway-only fields are set only when the factory produces a GatewayChatResponse builder.
-        if (builder instanceof GatewayChatResponse.Builder<?> gatewayBuilder)
+        // Gateway-only fields are set only when the factory produces a ModelGatewayChatResponse builder.
+        if (builder instanceof ModelGatewayChatResponse.Builder<?> gatewayBuilder)
             gatewayBuilder.serviceTier(serviceTier)
                 .systemFingerprint(systemFingerprint)
                 .cached(cached);

@@ -14,16 +14,14 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import com.ibm.watsonx.ai.WatsonxService;
+import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
-import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.Tool;
@@ -32,14 +30,6 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
  * Service for interacting with the IBM watsonx.ai Model Gateway.
- * <p>
- * The Model Gateway provides an OpenAI-compatible API that routes chat requests to external foundation models (for example OpenAI GPT or Anthropic
- * Claude) through a unified interface. It allows you to switch between multiple model providers without changing your application code, and to apply
- * access policies, rate limits, and caching rules configured by your platform administrator.
- * <p>
- * Unlike {@link ChatService}, which targets IBM-hosted models directly, {@code ModelGatewayService} forwards requests to third-party models via the
- * gateway endpoint. The gateway returns a {@link GatewayChatResponse} that extends the standard chat response with gateway-specific fields such as
- * {@code serviceTier}, {@code systemFingerprint}, and {@code cached}.
  * <p>
  * <b>Example usage:</b>
  *
@@ -50,7 +40,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *     .modelId("gpt-4o")
  *     .build();
  *
- * GatewayChatResponse response = modelGatewayService.chat(
+ * ModelGatewayChatResponse response = modelGatewayService.chat(
  *     SystemMessage.of("You are a helpful assistant"),
  *     UserMessage.text("Tell me a joke")
  * );
@@ -59,19 +49,19 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  * <p>
  * Gateway-specific generation knobs (reasoning effort, service tier, caching, modalities) are available through {@link ModelGatewayParameters}, which
- * extends the shared {@link BaseChatParameters}.
+ * extends the shared {@link com.ibm.watsonx.ai.chat.model.BaseChatParameters}.
  *
- * @see GatewayChatProvider
- * @see GatewayChatResponse
+ * @see ModelGatewayChatProvider
+ * @see ModelGatewayChatResponse
  * @see ModelGatewayParameters
  * @see Authenticator
  */
-public class ModelGatewayService extends WatsonxService implements GatewayChatProvider {
+public class ModelGatewayService extends WatsonxService implements ModelGatewayChatProvider {
     private final ModelGatewayRestClient client;
     private final MessageInterceptor messageInterceptor;
     private final ToolInterceptor toolInterceptor;
-    private final GatewayChatProvider chatProvider;
-    private final BaseChatParameters defaultParameters;
+    private final ModelGatewayChatProvider chatProvider;
+    private final ModelGatewayParameters defaultParameters;
     private final List<Tool> defaultTools;
     private final String modelId;
 
@@ -113,10 +103,22 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
     }
 
     @Override
-    public GatewayChatResponse chat(ChatRequest chatRequest) {
+    public ModelGatewayChatResponse chat(BaseChatRequest chatRequest) {
+        if (nonNull(chatRequest) && !(chatRequest instanceof ModelGatewayChatRequest))
+            throw new IllegalArgumentException(
+                "ModelGatewayService requires a ModelGatewayChatRequest, but received: " + chatRequest.getClass().getSimpleName());
+        return chat((ModelGatewayChatRequest) chatRequest);
+    }
+
+    /**
+     * Sends a chat request to the Model Gateway.
+     *
+     * @param chatRequest the {@link ModelGatewayChatRequest}
+     * @return a {@link ModelGatewayChatResponse} containing the model's reply
+     */
+    public ModelGatewayChatResponse chat(ModelGatewayChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
-        var gatewayRequest = GatewayUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis());
-        var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
+        var gatewayRequest = ModelGatewayUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis());
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
 
         var perRequestTimeLimit = nonNull(chatRequest.parameters()) ? chatRequest.parameters().timeLimit() : null;
@@ -127,34 +129,46 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
 
         if (nonNull(messageInterceptor)) {
             var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = (GatewayChatResponse) chatResponse.toBuilder()
+            chatResponse = (ModelGatewayChatResponse) chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
         if (nonNull(toolInterceptor)) {
             var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = (GatewayChatResponse) chatResponse.toBuilder()
+            chatResponse = (ModelGatewayChatResponse) chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
-        return chatResponse.toBuilder().extractionTags(extractionTags).build();
+        return chatResponse;
     }
 
     @Override
-    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(BaseChatRequest chatRequest, ChatHandler handler) {
+        if (nonNull(chatRequest) && !(chatRequest instanceof ModelGatewayChatRequest))
+            throw new IllegalArgumentException(
+                "ModelGatewayService requires a ModelGatewayChatRequest, but received: " + chatRequest.getClass().getSimpleName());
+        return chatStreaming((ModelGatewayChatRequest) chatRequest, handler);
+    }
+
+    /**
+     * Sends a streaming chat request to the Model Gateway.
+     *
+     * @param chatRequest the {@link ModelGatewayChatRequest}
+     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(ModelGatewayChatRequest chatRequest, ChatHandler handler) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
-        var gatewayRequest = GatewayUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis(), true);
-        var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
+        var gatewayRequest = ModelGatewayUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis(), true);
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
         var context = ChatClientContext.builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
             .toolInterceptor(toolInterceptor)
-            .extractionTags(extractionTags)
             .build();
 
         return client.chatStreaming(transactionId, gatewayRequest, context, handler);
@@ -164,9 +178,9 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      * Sends a chat request to the model using the provided message.
      *
      * @param message the message to send
-     * @return a {@link GatewayChatResponse} containing the model's reply
+     * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public GatewayChatResponse chat(String message) {
+    public ModelGatewayChatResponse chat(String message) {
         return chat(UserMessage.text(message));
     }
 
@@ -174,9 +188,9 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      * Sends a chat request to the model using the provided messages.
      *
      * @param messages the list of chat messages representing the conversation history
-     * @return a {@link GatewayChatResponse} containing the model's reply
+     * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public GatewayChatResponse chat(ChatMessage... messages) {
+    public ModelGatewayChatResponse chat(ChatMessage... messages) {
         return chat(Arrays.asList(messages));
     }
 
@@ -184,9 +198,9 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      * Sends a chat request to the model using the provided messages.
      *
      * @param messages the list of chat messages representing the conversation history
-     * @return a {@link GatewayChatResponse} containing the model's reply
+     * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public GatewayChatResponse chat(List<ChatMessage> messages) {
+    public ModelGatewayChatResponse chat(List<ChatMessage> messages) {
         return chat(messages, (ModelGatewayParameters) null);
     }
 
@@ -195,9 +209,9 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      *
      * @param messages the list of chat messages representing the conversation history
      * @param tools list of tools the model may call during generation
-     * @return a {@link GatewayChatResponse} containing the model's reply
+     * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public GatewayChatResponse chat(List<ChatMessage> messages, Tool... tools) {
+    public ModelGatewayChatResponse chat(List<ChatMessage> messages, Tool... tools) {
         return chat(messages, Arrays.asList(tools));
     }
 
@@ -206,9 +220,9 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      *
      * @param messages the list of chat messages representing the conversation history
      * @param tools list of tools the model may call during generation
-     * @return a {@link GatewayChatResponse} containing the model's reply
+     * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public GatewayChatResponse chat(List<ChatMessage> messages, List<Tool> tools) {
+    public ModelGatewayChatResponse chat(List<ChatMessage> messages, List<Tool> tools) {
         return chat(messages, null, tools);
     }
 
@@ -217,9 +231,9 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      *
      * @param messages the list of chat messages representing the conversation history
      * @param parameters gateway parameters to customize the output generation
-     * @return a {@link GatewayChatResponse} containing the model's reply
+     * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public GatewayChatResponse chat(List<ChatMessage> messages, ModelGatewayParameters parameters) {
+    public ModelGatewayChatResponse chat(List<ChatMessage> messages, ModelGatewayParameters parameters) {
         return chat(messages, parameters, null);
     }
 
@@ -229,11 +243,11 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      * @param messages the list of chat messages representing the conversation history
      * @param parameters gateway parameters to customize the output generation
      * @param tools list of tools the model may call during generation
-     * @return a {@link GatewayChatResponse} containing the model's reply
+     * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public GatewayChatResponse chat(List<ChatMessage> messages, ModelGatewayParameters parameters, List<Tool> tools) {
+    public ModelGatewayChatResponse chat(List<ChatMessage> messages, ModelGatewayParameters parameters, List<Tool> tools) {
         return chat(
-            ChatRequest.builder()
+            ModelGatewayChatRequest.builder()
                 .messages(messages)
                 .parameters(parameters)
                 .tools(isNull(tools) ? defaultTools : tools)
@@ -363,7 +377,7 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayParameters parameters, List<Tool> tools,
         ChatHandler handler) {
-        var chatRequest = ChatRequest.builder()
+        var chatRequest = ModelGatewayChatRequest.builder()
             .messages(messages)
             .parameters(parameters)
             .tools(isNull(tools) ? defaultTools : tools)
@@ -383,7 +397,7 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
      *     .modelId("gpt-4o")
      *     .build();
      *
-     * GatewayChatResponse response = modelGatewayService.chat(
+     * ModelGatewayChatResponse response = modelGatewayService.chat(
      *     SystemMessage.of("You are a helpful assistant"),
      *     UserMessage.text("Tell me a joke")
      * );
@@ -402,7 +416,7 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
         private String modelId;
         private MessageInterceptor messageInterceptor;
         private ToolInterceptor toolInterceptor;
-        private BaseChatParameters defaultParameters;
+        private ModelGatewayParameters defaultParameters;
         private List<Tool> defaultTools;
 
         private Builder() {}
@@ -418,15 +432,14 @@ public class ModelGatewayService extends WatsonxService implements GatewayChatPr
         }
 
         /**
-         * Sets the default parameters applied to all chat requests when no per-request parameters are provided.
+         * Sets the default {@link ModelGatewayParameters} applied to all chat requests when no per-request parameters are provided.
          * <p>
-         * Accepts any {@link BaseChatParameters} - pass {@link ModelGatewayParameters} to configure gateway-only knobs, or generic
-         * {@link com.ibm.watsonx.ai.chat.model.ChatParameters} when routing through the common {@link com.ibm.watsonx.ai.chat.ChatProvider}
-         * interface. Per-request parameters take precedence over these defaults.
+         * These default values serve as fallbacks for any parameter not explicitly set. When parameters are provided in the chat method call, they
+         * take precedence over these defaults.
          *
          * @param parameters the default parameters to use
          */
-        public Builder parameters(BaseChatParameters parameters) {
+        public Builder parameters(ModelGatewayParameters parameters) {
             this.defaultParameters = parameters;
             return this;
         }

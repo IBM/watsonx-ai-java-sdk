@@ -23,7 +23,7 @@ public class ToolInterceptorTest {
 
         var message = new ResultMessage("assistant", null, null, null, toolCalls);
         var choice = new ResultChoice(0, message, "tool_calls");
-        var response = ChatResponse.build().choices(List.of(choice)).build();
+        var response = ChatResponse.builder().choices(List.of(choice)).build();
         var context = new InterceptorContext(null, null, response);
 
         // Identity interceptor: each tool call must map to exactly itself, with no cross product.

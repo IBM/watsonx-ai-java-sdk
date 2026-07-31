@@ -35,12 +35,10 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.google.common.collect.Sets;
 import com.ibm.watsonx.ai.chat.ChatHandler;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
-import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
@@ -56,7 +54,8 @@ import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
-import com.ibm.watsonx.ai.gateway.GatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
 import com.ibm.watsonx.ai.gateway.ModelGatewayService;
 
@@ -125,7 +124,7 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(
                     SystemMessage.of("You are an helpful assistant"),
                     UserMessage.text("Hello, my name is Andrea"),
@@ -156,11 +155,11 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ChatParameters.builder()
+            var parameters = ModelGatewayParameters.builder()
                 .responseAsJson()
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("""
                     Create a poem about dog, max 3 lines
                     Answer using the following json structure:
@@ -194,17 +193,19 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ChatParameters.builder()
+            var parameters = ModelGatewayParameters.builder()
                 .responseAsJsonSchema(
+                    "poem",
                     JsonSchema.object()
                         .property("content", JsonSchema.string())
                         .property("topic", JsonSchema.enumeration("dog", "cat"))
                         .required("content", "topic")
                         .additionalProperties(false)
-                        .build())
+                        .build(),
+                    true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Create a poem about dog, max 3 lines"))
                 .parameters(parameters)
                 .build();
@@ -231,11 +232,11 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ChatParameters.builder()
+            var parameters = ModelGatewayParameters.builder()
                 .timeLimit(Duration.ofSeconds(30))
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.image(
                     "Give a short description of the image",
                     Paths.get(image.toURI())
@@ -260,7 +261,7 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"Test\" and body \"Hello\""))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -322,7 +323,7 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("What time is it?"))
                 .tools(Tool.of("get_time", "Get the current time"))
                 .build();
@@ -349,11 +350,11 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            ChatParameters parameters = ChatParameters.builder()
+            ModelGatewayParameters parameters = ModelGatewayParameters.builder()
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -383,11 +384,11 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            ChatParameters parameters = ChatParameters.builder()
+            ModelGatewayParameters parameters = ModelGatewayParameters.builder()
                 .toolChoiceOption(ToolChoiceOption.NONE)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"a\" and body \"b\""))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -416,34 +417,12 @@ public class ModelGatewayIT {
                 .build();
 
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Hello!"))
                 .build();
 
             var ex = assertThrows(WatsonxException.class, () -> modelGatewayService.chat(request));
             assertTrue(ex.getMessage().contains("Provided API key could not be found."));
-        }
-
-        @Test
-        void should_return_correct_guided_choice_when_options_are_provided() {
-
-            var modelGatewayService = ModelGatewayService.builder()
-                .baseUrl(URL)
-                .modelId("claude-sonnet-5")
-                .apiKey(API_KEY)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
-
-            ChatRequest request = ChatRequest.builder()
-                .messages(UserMessage.text("2 + 2 is equal to 5"))
-                .parameters(ChatParameters.builder().guidedChoice("Yes", "No").build())
-                .build();
-
-            var ex = assertThrows(IllegalArgumentException.class, () -> modelGatewayService.chat(request));
-            assertEquals(
-                "The following watsonx-native parameter(s) set on the request parameters are not supported by the Model Gateway: [guidedChoice]. Remove them or use ModelGatewayParameters for gateway requests.",
-                ex.getMessage());
         }
 
         @Test
@@ -457,11 +436,11 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            ChatParameters parameters = ChatParameters.builder()
+            ModelGatewayParameters parameters = ModelGatewayParameters.builder()
                 .toolChoice("send_email")
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -488,7 +467,7 @@ public class ModelGatewayIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .parameters(ChatParameters.builder().n(2).build())
+                .parameters(ModelGatewayParameters.builder().n(2).build())
                 .build();
 
             var chatResponse = modelGatewayService.chat("Tell me a joke");
@@ -510,7 +489,7 @@ public class ModelGatewayIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .parameters(ChatParameters.builder().n(2).build())
+                .parameters(ModelGatewayParameters.builder().n(2).build())
                 .build();
 
             var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));
@@ -567,7 +546,7 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = ModelGatewayChatRequest.builder()
                 .messages(
                     SystemMessage.of("""
                         You are an helpful assistant, your task is return number starting from 0 to 20.
@@ -624,11 +603,11 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ChatParameters.builder()
+            var parameters = ModelGatewayParameters.builder()
                 .responseAsJson()
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("""
                     Create a poem about dog, max 3 lines
                     Answer using the following json structure:
@@ -640,7 +619,7 @@ public class ModelGatewayIT {
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<GatewayChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<ModelGatewayChatResponse> future = new CompletableFuture<>();
             modelGatewayService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -648,7 +627,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete((GatewayChatResponse) completeResponse);
+                    future.complete((ModelGatewayChatResponse) completeResponse);
                 }
 
                 @Override
@@ -677,22 +656,24 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ChatParameters.builder()
+            var parameters = ModelGatewayParameters.builder()
                 .responseAsJsonSchema(
+                    "poem",
                     JsonSchema.object()
                         .property("content", JsonSchema.string())
                         .property("topic", JsonSchema.enumeration("dog", "cat"))
                         .required("content", "topic")
                         .additionalProperties(false)
-                        .build())
+                        .build(),
+                    true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Create a poem about dog, max 3 lines"))
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<GatewayChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<ModelGatewayChatResponse> future = new CompletableFuture<>();
             modelGatewayService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -700,7 +681,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete((GatewayChatResponse) completeResponse);
+                    future.complete((ModelGatewayChatResponse) completeResponse);
                 }
 
                 @Override
@@ -757,11 +738,11 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ChatParameters.builder()
+            var parameters = ModelGatewayParameters.builder()
                 .timeLimit(Duration.ofSeconds(30))
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.of(
                     TextContent.of("Give a short description of the image"),
                     ImageContent.from(Paths.get(image.toURI()))
@@ -770,7 +751,7 @@ public class ModelGatewayIT {
                 .build();
 
             CompletableFuture<String> partialResponseFuture = new CompletableFuture<>();
-            CompletableFuture<GatewayChatResponse> chatResponseFuture = new CompletableFuture<>();
+            CompletableFuture<ModelGatewayChatResponse> chatResponseFuture = new CompletableFuture<>();
             modelGatewayService.chatStreaming(request, new ChatHandler() {
                 StringBuilder builder = new StringBuilder();
 
@@ -781,7 +762,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    chatResponseFuture.complete((GatewayChatResponse) completeResponse);
+                    chatResponseFuture.complete((ModelGatewayChatResponse) completeResponse);
                     partialResponseFuture.complete(builder.toString());
                 }
 
@@ -811,7 +792,7 @@ public class ModelGatewayIT {
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Send an email to a@a.it with subject \"Test\" and body \"Hello\""))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -821,7 +802,7 @@ public class ModelGatewayIT {
                         .required("to", "body")))
                 .build();
 
-            CompletableFuture<GatewayChatResponse> chatResponseFuture = new CompletableFuture<>();
+            CompletableFuture<ModelGatewayChatResponse> chatResponseFuture = new CompletableFuture<>();
             CompletableFuture<CompletedToolCall> toolCallFuture = new CompletableFuture<>();
             CompletableFuture<ToolCall> fromPartialToolCallFuture = new CompletableFuture<>();
             CompletableFuture<Throwable> throwableFuture = new CompletableFuture<>();
@@ -835,7 +816,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    chatResponseFuture.complete((GatewayChatResponse) completeResponse);
+                    chatResponseFuture.complete((ModelGatewayChatResponse) completeResponse);
                     fromPartialToolCallFuture.complete(new ToolCall(
                         Integer.parseInt(cachePartialToolCall.get("index")),
                         cachePartialToolCall.get("id"),
@@ -929,12 +910,12 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("What time is it?"))
                 .tools(Tool.of("get_time", "Get the current time"))
                 .build();
 
-            CompletableFuture<GatewayChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<ModelGatewayChatResponse> future = new CompletableFuture<>();
             modelGatewayService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -942,7 +923,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete((GatewayChatResponse) completeResponse);
+                    future.complete((ModelGatewayChatResponse) completeResponse);
                 }
 
                 @Override
@@ -995,7 +976,7 @@ public class ModelGatewayIT {
                 }
             };
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = ModelGatewayChatRequest.builder()
                 .messages(
                     SystemMessage.of("""
                         You are an helpful assistant, your task is return number starting from 0 to 20.
@@ -1032,7 +1013,7 @@ public class ModelGatewayIT {
                 .build();
 
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Hello!"))
                 .build();
 
@@ -1067,11 +1048,11 @@ public class ModelGatewayIT {
                 .logResponses(true)
                 .build();
 
-            ChatParameters parameters = ChatParameters.builder()
+            ModelGatewayParameters parameters = ModelGatewayParameters.builder()
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
-            ChatRequest request = ChatRequest.builder()
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Hello!"))
                 .tools(Tool.of("send_email", "Send an email",
                     JsonSchema.object()
@@ -1082,7 +1063,7 @@ public class ModelGatewayIT {
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<GatewayChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<ModelGatewayChatResponse> future = new CompletableFuture<>();
             CompletableFuture<CompletedToolCall> futureToolCall = new CompletableFuture<>();
 
             assertDoesNotThrow(() -> modelGatewayService.chatStreaming(request, new ChatHandler() {
@@ -1092,7 +1073,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete((GatewayChatResponse) completeResponse);
+                    future.complete((ModelGatewayChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1138,7 +1119,7 @@ public class ModelGatewayIT {
 
                 }).build();
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = ModelGatewayChatRequest.builder()
                 .addMessages(UserMessage.text("What time is it in Italy?"))
                 .tools(Tool.of(
                     "get_current_time",
@@ -1156,7 +1137,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    firstResponse.complete((GatewayChatResponse) completeResponse);
+                    firstResponse.complete((ModelGatewayChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1183,7 +1164,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    secondResponse.complete((GatewayChatResponse) completeResponse);
+                    secondResponse.complete((ModelGatewayChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1206,7 +1187,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    thirdResponse.complete((GatewayChatResponse) completeResponse);
+                    thirdResponse.complete((ModelGatewayChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1235,7 +1216,7 @@ public class ModelGatewayIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    fourthResponse.complete((GatewayChatResponse) completeResponse);
+                    fourthResponse.complete((ModelGatewayChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1271,7 +1252,7 @@ public class ModelGatewayIT {
 
                 }).build();
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = ModelGatewayChatRequest.builder()
                 .addMessages(
                     SystemMessage.of("You are an helpful assistant"),
                     UserMessage.text("What time is it in Italy, Germany and Japan?")
@@ -1299,7 +1280,7 @@ public class ModelGatewayIT {
 
                     @Override
                     public void onCompleteResponse(ChatResponse completeResponse) {
-                        firstResponse.complete((GatewayChatResponse) completeResponse);
+                        firstResponse.complete((ModelGatewayChatResponse) completeResponse);
                     }
 
                     @Override
@@ -1343,7 +1324,7 @@ public class ModelGatewayIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .parameters(ChatParameters.builder().n(2).build())
+                .parameters(ModelGatewayParameters.builder().n(2).build())
                 .build();
 
             var chatResponse = modelGatewayService.chatStreaming("Tell me a joke", (partialResponse, partialChatResponse) -> {}).join();
@@ -1365,7 +1346,7 @@ public class ModelGatewayIT {
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .parameters(ChatParameters.builder().n(2).build())
+                .parameters(ModelGatewayParameters.builder().n(2).build())
                 .build();
 
             var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));

@@ -21,6 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
@@ -48,6 +51,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
@@ -71,9 +75,9 @@ import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.deployment.DeploymentChatRequest;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationRequest;
@@ -462,7 +466,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var request = ChatRequest.builder()
+            var request = DeploymentChatRequest.builder()
                 .messages(List.of(UserMessage.text("Hello")))
                 .parameters(parameters)
                 .deploymentId("my-deployment-id")
@@ -488,7 +492,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 mockHttpRequest.getValue().uri()
             );
 
-            request = ChatRequest.builder()
+            request = DeploymentChatRequest.builder()
                 .messages(List.of(UserMessage.text("Hello")))
                 .deploymentId("my-deployment-id")
                 .build();
@@ -600,7 +604,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
         };
 
-        var request = ChatRequest.builder()
+        var request = DeploymentChatRequest.builder()
             .messages(messages)
             .parameters(chatParameters)
             .deploymentId("my-deployment-id")
@@ -643,7 +647,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .transactionId("my-transaction-id")
             .build();
 
-        request = ChatRequest.builder()
+        request = DeploymentChatRequest.builder()
             .messages(messages)
             .parameters(chatParameters)
             .deploymentId("my-deployment-id")
@@ -693,7 +697,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        ChatRequest chatRequest = ChatRequest.builder()
+        DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
             .messages(UserMessage.text("Translate \"Hello\" in Italian"))
             .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
             .deploymentId("my-deployment-id")
@@ -1236,7 +1240,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .build();
 
-        var request = ChatRequest.builder()
+        var request = DeploymentChatRequest.builder()
             .messages(List.of(UserMessage.text("Hello")))
             .deploymentId("my-deployment-id")
             .build();
@@ -1279,10 +1283,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .input("test")
                 .build();
 
-            var chatRequest = ChatRequest.builder()
-                .messages(UserMessage.text("test"))
-                .build();
-
             var forecastRequest = TimeSeriesRequest.builder()
                 .inputSchema(InputSchema.builder().timestampColumn("test").build())
                 .data(ForecastData.create())
@@ -1290,7 +1290,9 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate(textGenerationRequest));
             assertEquals(ex.getMessage(), "deploymentId must be provided");
-            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(chatRequest));
+            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(DeploymentChatRequest.builder()
+                .messages(UserMessage.text("test"))
+                .build()));
             assertEquals(ex.getMessage(), "deploymentId must be provided");
             ex = assertThrows(RuntimeException.class,
                 () -> deploymentService.forecast(forecastRequest));
@@ -1298,28 +1300,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             ex = assertThrows(RuntimeException.class,
                 () -> deploymentService.findById(FindByIdRequest.builder().build()));
             assertEquals(ex.getMessage(), "deploymentId must be provided");
-        });
-    }
-
-    @Test
-    void should_throw_when_gateway_parameters_passed_to_deployment_service() throws Exception {
-        withWatsonxServiceMock(() -> {
-            DeploymentService deploymentService = DeploymentService.builder()
-                .baseUrl(CloudRegion.DALLAS)
-                .authenticator(mockAuthenticator)
-                .build();
-
-            var chatRequest = ChatRequest.builder()
-                .deploymentId("my-deployment-id")
-                .messages(UserMessage.text("Hi"))
-                .parameters(ModelGatewayParameters.builder().modelId("openai/gpt-4o").build())
-                .build();
-
-            var ex = assertThrows(IllegalArgumentException.class, () -> deploymentService.chat(chatRequest));
-            assertTrue(ex.getMessage().contains("DeploymentService expects ChatParameters"),
-                () -> "message should state the expected type but was: " + ex.getMessage());
-            assertTrue(ex.getMessage().contains("ModelGatewayParameters"),
-                () -> "message should name the offending type but was: " + ex.getMessage());
         });
     }
 
@@ -1341,7 +1321,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .input("test")
                 .build();
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId("my-deployment-id")
                 .messages(UserMessage.text("test"))
                 .build();
@@ -1424,7 +1404,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             var tool = Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
             var messages = List.<ChatMessage>of(UserMessage.text("What time is it in Italy?"));
-            var chatRequest = ChatRequest.builder().deploymentId("my-deployment-id").messages(messages).tools(tool).build();
+            var chatRequest = DeploymentChatRequest.builder().deploymentId("my-deployment-id").messages(messages).tools(tool).build();
             var chatResponse = deploymentService.chat(chatRequest);
             var assistantMessage = chatResponse.toAssistantMessage();
             assertNull(assistantMessage.content());
@@ -1490,7 +1470,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId("my-deployment-id")
                 .messages(UserMessage.text("What time is it in Italy?"))
                 .build();
@@ -1622,7 +1602,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         List<String> partialResponses = new ArrayList<>();
-        ChatRequest chatRequest = ChatRequest.builder()
+        DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
             .deploymentId("my-deployment-id")
             .messages(UserMessage.text("How are you?"))
             .build();
@@ -1727,7 +1707,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         List<PartialToolCall> toolFetchers = new ArrayList<>();
         List<CompletedToolCall> toolCalls = new ArrayList<>();
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        ChatRequest chatRequest = ChatRequest.builder()
+        DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
             .deploymentId("my-deployment-id")
             .messages(messages)
             .tools(tools)
@@ -1867,7 +1847,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId("deploymentId")
                 .messages(messages)
                 .build();
@@ -1981,7 +1961,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId("deploymentId")
                 .messages(messages)
                 .tools(ovverideTool)
@@ -2105,7 +2085,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
         AtomicInteger completedToolCallCount = new AtomicInteger();
-        ChatRequest chatRequest = ChatRequest.builder()
+        DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
             .deploymentId("my-deployment-id")
             .messages(UserMessage.text("Message"))
             .build();
@@ -2137,5 +2117,40 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertEquals(23, chatResponse.usage().completionTokens());
         assertEquals(76, chatResponse.usage().promptTokens());
         assertEquals(99, chatResponse.usage().totalTokens());
+    }
+
+    @Test
+    void should_reject_wrong_request_type_on_chat_and_chat_streaming() {
+
+        var deploymentService = DeploymentService.builder()
+            .baseUrl(CloudRegion.DALLAS)
+            .authenticator(mockAuthenticator)
+            .build();
+
+        BaseChatRequest wrongType = ChatRequest.builder()
+            .messages(UserMessage.text("Hello"))
+            .build();
+
+        var chatException = assertThrows(IllegalArgumentException.class, () -> deploymentService.chat(wrongType));
+        assertTrue(chatException.getMessage().contains("DeploymentService requires a DeploymentChatRequest"));
+
+        var handler = mock(ChatHandler.class);
+        var streamException = assertThrows(IllegalArgumentException.class, () -> deploymentService.chatStreaming(wrongType, handler));
+        assertTrue(streamException.getMessage().contains("DeploymentService requires a DeploymentChatRequest"));
+
+        // A null request must keep falling through to the typed overload's requireNonNull (NullPointerException).
+        assertThrows(NullPointerException.class, () -> deploymentService.chat((BaseChatRequest) null));
+        assertThrows(NullPointerException.class, () -> deploymentService.chatStreaming((BaseChatRequest) null, handler));
+
+        // Valid-type requests via the BaseChatRequest reference must pass the guard and delegate to the typed overloads.
+        var spyService = spy(deploymentService);
+        BaseChatRequest validType = DeploymentChatRequest.builder()
+            .deploymentId("my-deployment-id")
+            .messages(UserMessage.text("Hello"))
+            .build();
+        doReturn(null).when(spyService).chat(any(DeploymentChatRequest.class));
+        doReturn(completedFuture(null)).when(spyService).chatStreaming(any(DeploymentChatRequest.class), any(ChatHandler.class));
+        assertNull(spyService.chat(validType));
+        assertNotNull(spyService.chatStreaming(validType, handler));
     }
 }

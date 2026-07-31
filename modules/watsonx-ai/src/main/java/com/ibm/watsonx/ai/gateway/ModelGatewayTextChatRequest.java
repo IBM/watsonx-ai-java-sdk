@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.StreamOptions;
 /**
  * Payload request for the Model Gateway chat completions endpoint.
  */
-public final class GatewayTextChatRequest {
+public final class ModelGatewayTextChatRequest {
 
     private final String model;
     private final List<ChatMessage> messages;
@@ -54,7 +54,7 @@ public final class GatewayTextChatRequest {
     private final String user;
     private final Boolean stream;
 
-    private GatewayTextChatRequest(Builder builder) {
+    private ModelGatewayTextChatRequest(Builder builder) {
         model = builder.model;
         messages = isNull(builder.messages) ? null : List.copyOf(builder.messages);
         tools = isNull(builder.tools) ? null : List.copyOf(builder.tools);
@@ -373,7 +373,7 @@ public final class GatewayTextChatRequest {
     }
 
     /**
-     * Builder for constructing {@link GatewayTextChatRequest} instances.
+     * Builder for constructing {@link ModelGatewayTextChatRequest} instances.
      */
     public static final class Builder {
 
@@ -733,12 +733,12 @@ public final class GatewayTextChatRequest {
         }
 
         /**
-         * Builds a {@link GatewayTextChatRequest} instance.
+         * Builds a {@link ModelGatewayTextChatRequest} instance.
          *
-         * @return a new {@link GatewayTextChatRequest}
+         * @return a new {@link ModelGatewayTextChatRequest}
          */
-        public GatewayTextChatRequest build() {
-            return new GatewayTextChatRequest(this);
+        public ModelGatewayTextChatRequest build() {
+            return new ModelGatewayTextChatRequest(this);
         }
     }
 }

@@ -30,12 +30,12 @@ public abstract class ModelGatewayRestClient extends WatsonxRestClient {
      * @param transactionId an optional transaction identifier for tracing
      * @param timeout the maximum duration to wait for the response
      * @param gatewayRequest the structured gateway chat request
-     * @return a {@link GatewayChatResponse} containing the assistant's reply
+     * @return a {@link ModelGatewayChatResponse} containing the assistant's reply
      */
-    public abstract GatewayChatResponse chat(
+    public abstract ModelGatewayChatResponse chat(
         String transactionId,
         Duration timeout,
-        GatewayTextChatRequest gatewayRequest);
+        ModelGatewayTextChatRequest gatewayRequest);
 
     /**
      * Sends an asynchronous streaming chat request to the Model Gateway.
@@ -51,7 +51,7 @@ public abstract class ModelGatewayRestClient extends WatsonxRestClient {
      */
     public abstract CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
-        GatewayTextChatRequest gatewayRequest,
+        ModelGatewayTextChatRequest gatewayRequest,
         ChatClientContext context,
         ChatHandler handler);
 
