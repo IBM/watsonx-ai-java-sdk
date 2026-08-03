@@ -8,7 +8,6 @@ import java.net.URI;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatProvider;
 import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Router;
@@ -33,8 +32,7 @@ public class App {
             .router(new Router(new Cache(false, null, null)))
             .build();
 
-        // Assign to ModelGatewayChatProvider to illustrate adapter-style consumption
-        ModelGatewayChatProvider gatewayProvider = ModelGatewayService.builder()
+        var gatewayProvider = ModelGatewayService.builder()
             .apiKey(apiKey)
             .baseUrl(url)
             .modelId(modelId)

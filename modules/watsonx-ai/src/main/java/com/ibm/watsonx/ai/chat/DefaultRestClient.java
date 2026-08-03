@@ -42,7 +42,7 @@ final class DefaultRestClient extends ChatRestClient {
     }
 
     @Override
-    public ChatResponse chat(String transactionId, TextChatRequest textChatRequest) {
+    public TextChatResponse chat(String transactionId, TextChatRequest textChatRequest) {
 
         var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/chat?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
@@ -67,7 +67,7 @@ final class DefaultRestClient extends ChatRestClient {
     public CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
         TextChatRequest textChatRequest,
-        ChatClientContext context,
+        ChatClientContext<ChatRequest> context,
         ChatHandler handler) {
 
         var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/chat_stream?version=%s".formatted(version)))
@@ -80,11 +80,11 @@ final class DefaultRestClient extends ChatRestClient {
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         var response = new CompletableFuture<ChatResponse>();
-        var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
+        var interceptorContext = new InterceptorContext<>(context.chatProvider(), context.chatRequest(), null);
         var chatSubscriber =
             new DefaultChatSubscriber(
                 new SseEventProcessor(textChatRequest.tools(), context.extractionTags(), TextChatResponse::builder),
-                new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
+                new ChatHandlerDecorator<>(handler, interceptorContext, context.toolInterceptor())
             );
 
         var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());

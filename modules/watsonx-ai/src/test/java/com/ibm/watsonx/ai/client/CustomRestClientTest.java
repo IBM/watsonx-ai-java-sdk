@@ -17,12 +17,14 @@ import com.ibm.watsonx.ai.client.impl.CustomCP4DZenRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomChatRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomCreateSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomDetectionRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomEmbeddingRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomFileRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomFoundationModelRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomImproveSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomMergeSchemaRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomModelGatewayRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomRerankRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextClassificationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextExtractionRestClient;
@@ -35,9 +37,11 @@ import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
+import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
+import com.ibm.watsonx.ai.gateway.ModelGatewayService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -162,6 +166,23 @@ public class CustomRestClientTest {
         clientField.setAccessible(true);
         var client = clientField.get(deploymentService);
         assertTrue(client instanceof CustomDeploymentRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.gateway.ModelGatewayRestClient$ModelGatewayRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_model_gateway_service() throws Exception {
+
+        ModelGatewayService modelGatewayService = ModelGatewayService.builder()
+            .apiKey("test")
+            .modelId("model-id")
+            .baseUrl("http://localhost")
+            .build();
+
+        Class<ModelGatewayService> clazz = ModelGatewayService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(modelGatewayService);
+        assertTrue(client instanceof CustomModelGatewayRestClient);
     }
 
     @Test
@@ -375,6 +396,23 @@ public class CustomRestClientTest {
         clientField.setAccessible(true);
         var client = clientField.get(toolService);
         assertTrue(client instanceof CustomToolRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.detection.DetectionRestClient$DetectionRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_detection_service() throws Exception {
+
+        DetectionService detectionService = DetectionService.builder()
+            .apiKey("test")
+            .baseUrl("http://localhost")
+            .projectId("project-id")
+            .build();
+
+        Class<DetectionService> clazz = DetectionService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(detectionService);
+        assertTrue(client instanceof CustomDetectionRestClient);
     }
 
     @Test

@@ -234,6 +234,53 @@ public class TextChatResponse extends ChatResponse {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((modelId == null) ? 0 : modelId.hashCode());
+        result = prime * result + ((modelVersion == null) ? 0 : modelVersion.hashCode());
+        result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
+        result = prime * result + ((moderations == null) ? 0 : moderations.hashCode());
+        result = prime * result + ((detections == null) ? 0 : detections.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        TextChatResponse other = (TextChatResponse) obj;
+        if (modelId == null) {
+            if (other.modelId != null)
+                return false;
+        } else if (!modelId.equals(other.modelId))
+            return false;
+        if (modelVersion == null) {
+            if (other.modelVersion != null)
+                return false;
+        } else if (!modelVersion.equals(other.modelVersion))
+            return false;
+        if (createdAt == null) {
+            if (other.createdAt != null)
+                return false;
+        } else if (!createdAt.equals(other.createdAt))
+            return false;
+        if (moderations == null) {
+            if (other.moderations != null)
+                return false;
+        } else if (!moderations.equals(other.moderations))
+            return false;
+        if (detections == null) {
+            if (other.detections != null)
+                return false;
+        } else if (!detections.equals(other.detections))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "TextChatResponse [id=" + id() + ", object=" + object() + ", modelId=" + modelId + ", model=" + model() + ", choices=" + choices()
             + ", created=" + created() + ", modelVersion=" + modelVersion + ", createdAt=" + createdAt + ", usage=" + usage() + ", extractionTags="

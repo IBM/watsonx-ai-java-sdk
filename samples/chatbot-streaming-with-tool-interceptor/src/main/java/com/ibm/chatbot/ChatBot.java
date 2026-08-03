@@ -122,12 +122,12 @@ public class ChatBot {
         return future;
     }
 
-    private FunctionCall sanitize(InterceptorContext ctx, FunctionCall fc) {
+    private FunctionCall sanitize(InterceptorContext<ChatRequest> ctx, FunctionCall fc) {
         logger.info("Invoked sanitize");
 
         String toolName = fc.name();
         String arguments = fc.arguments();
-        ChatRequest request = (ChatRequest) ctx.request();
+        ChatRequest request = ctx.request();
         ChatParameters parameters = ChatParameters.builder().responseAsJson().build();
 
         String schema = request.tools().stream()

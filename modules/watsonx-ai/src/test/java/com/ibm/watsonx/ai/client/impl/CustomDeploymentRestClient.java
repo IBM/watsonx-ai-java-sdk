@@ -9,7 +9,9 @@ import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
+import com.ibm.watsonx.ai.deployment.DeploymentChatRequest;
 import com.ibm.watsonx.ai.deployment.DeploymentResource;
 import com.ibm.watsonx.ai.deployment.DeploymentRestClient;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
@@ -42,13 +44,13 @@ public class CustomDeploymentRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public ChatResponse chat(String transactionId, String deploymentId, Duration timeout, TextChatRequest textChatRequest) {
+    public TextChatResponse chat(String transactionId, String deploymentId, Duration timeout, TextChatRequest textChatRequest) {
         throw new UnsupportedOperationException("Unimplemented method 'chat'");
     }
 
     @Override
     public CompletableFuture<ChatResponse> chatStreaming(String transactionId, String deploymentId, TextChatRequest textChatRequest,
-        ChatClientContext context, ChatHandler handler) {
+        ChatClientContext<DeploymentChatRequest> context, ChatHandler handler) {
         throw new UnsupportedOperationException("Unimplemented method 'chatStreaming'");
     }
 

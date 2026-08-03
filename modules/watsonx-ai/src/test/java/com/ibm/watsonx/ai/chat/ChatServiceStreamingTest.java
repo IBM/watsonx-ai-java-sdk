@@ -30,11 +30,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,9 +58,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -72,14 +70,12 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.CloudRegion;
-import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -1872,6 +1868,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void should_call_tool_interceptor_only_two_times_in_streaming() {
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -1982,9 +1979,9 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         """
                 )));
 
-        var toolInterceptor = mock(ToolInterceptor.class);
+        ToolInterceptor<ChatRequest> toolInterceptor = mock(ToolInterceptor.class);
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
-        when(toolInterceptor.intercept(any(InterceptorContext.class), any(CompletedToolCall.class)))
+        when(toolInterceptor.intercept(any(), any(CompletedToolCall.class)))
             .thenReturn(new CompletedToolCall("id_1", 0, ToolCall.of("1", "name_1", "{ \"test_1\": \"1\"}")))
             .thenReturn(new CompletedToolCall("id_2", 0, ToolCall.of("2", "name_2", "{ \"test_2\": \"2\"}")));
 
@@ -2025,8 +2022,8 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         });
 
         var assistantMessage = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS)).toAssistantMessage();
-        verify(toolInterceptor, times(2)).intercept(any(InterceptorContext.class), any(CompletedToolCall.class));
-        verify(toolInterceptor, times(0)).intercept(any(InterceptorContext.class));
+        verify(toolInterceptor, times(2)).intercept(any(), any(CompletedToolCall.class));
+        verify(toolInterceptor, times(0)).intercept(any());
         assertEquals("Saving to get the current time in Italy and Germany...", stringBuilder.toString());
         assertEquals("Saving to get the current time in Italy and Germany...", assistantMessage.content());
         assistantMessage.processTools(((toolName, toolArgs) -> {
@@ -2178,8 +2175,8 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .projectId("project-id")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .toolInterceptor((ctx, fc) -> {
-                var chatRequest = ((ChatRequest) ctx.request()).toBuilder();
-                var chatParameters = ((com.ibm.watsonx.ai.chat.model.ChatParameters) ctx.request().parameters()).toBuilder();
+                var chatRequest = ctx.request().toBuilder();
+                var chatParameters = ctx.request().parameters().toBuilder();
                 assertFalse(ctx.response().isPresent());
                 assertNotNull(ctx.request());
                 assertEquals(1, ctx.request().messages().size());
@@ -4015,34 +4012,5 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertEquals(23, chatResponse.usage().completionTokens());
         assertEquals(76, chatResponse.usage().promptTokens());
         assertEquals(99, chatResponse.usage().totalTokens());
-    }
-
-    @Test
-    void should_reject_wrong_request_type_on_chat_streaming() {
-
-        var chatService = ChatService.builder()
-            .authenticator(mockAuthenticator)
-            .modelId("my-model")
-            .projectId("project-id")
-            .baseUrl(URI.create("http://my-cloud-instance.com"))
-            .build();
-
-        BaseChatRequest wrongType = ModelGatewayChatRequest.builder()
-            .messages(UserMessage.text("Hello"))
-            .build();
-
-        var handler = mock(ChatHandler.class);
-
-        var exception = assertThrows(IllegalArgumentException.class, () -> chatService.chatStreaming(wrongType, handler));
-        assertTrue(exception.getMessage().contains("ChatService requires a ChatRequest"));
-
-        // A null request must keep falling through to the typed overload's requireNonNull (NullPointerException).
-        assertThrows(NullPointerException.class, () -> chatService.chatStreaming((BaseChatRequest) null, handler));
-
-        // A valid-type request via the BaseChatRequest reference must pass the guard and delegate to the typed overload.
-        var spyService = spy(chatService);
-        doReturn(completedFuture(null)).when(spyService).chatStreaming(any(ChatRequest.class), any(ChatHandler.class));
-        BaseChatRequest validType = ChatRequest.builder().messages(UserMessage.text("Hello")).build();
-        assertNotNull(spyService.chatStreaming(validType, handler));
     }
 }

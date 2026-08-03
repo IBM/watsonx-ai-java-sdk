@@ -19,9 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpHeaders;
@@ -37,9 +34,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
-import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -56,6 +51,7 @@ import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.StreamOptions;
 
+@SuppressWarnings("unchecked")
 public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
     private static final String SIMPLE_JSON_RESPONSE =
@@ -916,40 +912,5 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
         assertEquals("Logged", response.choices().get(0).message().content());
-    }
-
-    @Test
-    void should_reject_wrong_request_type_on_chat_and_chat_streaming() {
-
-        var modelGatewayService = ModelGatewayService.builder()
-            .authenticator(mockAuthenticator)
-            .modelId("gpt-4o")
-            .baseUrl(URI.create("http://my-cloud-instance.com"))
-            .build();
-
-        BaseChatRequest wrongType = ChatRequest.builder()
-            .messages(UserMessage.text("Hello"))
-            .build();
-
-        var chatException = assertThrows(IllegalArgumentException.class, () -> modelGatewayService.chat(wrongType));
-        assertTrue(chatException.getMessage().contains("ModelGatewayService requires a ModelGatewayChatRequest"));
-
-        var handler = mock(ChatHandler.class);
-        var streamException = assertThrows(IllegalArgumentException.class, () -> modelGatewayService.chatStreaming(wrongType, handler));
-        assertTrue(streamException.getMessage().contains("ModelGatewayService requires a ModelGatewayChatRequest"));
-
-        // A null request must keep falling through to the typed overload's requireNonNull (NullPointerException).
-        assertThrows(NullPointerException.class, () -> modelGatewayService.chat((BaseChatRequest) null));
-        assertThrows(NullPointerException.class, () -> modelGatewayService.chatStreaming((BaseChatRequest) null, handler));
-
-        // Valid-type requests via the BaseChatRequest reference must pass the guard and delegate to the typed overloads.
-        var spyService = spy(modelGatewayService);
-        BaseChatRequest validType = ModelGatewayChatRequest.builder()
-            .messages(UserMessage.text("Hello"))
-            .build();
-        doReturn(null).when(spyService).chat(any(ModelGatewayChatRequest.class));
-        doReturn(completedFuture(null)).when(spyService).chatStreaming(any(ModelGatewayChatRequest.class), any(ChatHandler.class));
-        assertNull(spyService.chat(validType));
-        assertNotNull(spyService.chatStreaming(validType, handler));
     }
 }

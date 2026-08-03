@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.gateway;
 
-import static com.ibm.watsonx.ai.core.Utils.getOrDefault;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -14,9 +13,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import com.ibm.watsonx.ai.WatsonxService;
-import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
+import com.ibm.watsonx.ai.chat.ChatProvider;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
@@ -51,16 +50,13 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  * Gateway-specific generation knobs (reasoning effort, service tier, caching, modalities) are available through {@link ModelGatewayParameters}, which
  * extends the shared {@link com.ibm.watsonx.ai.chat.model.BaseChatParameters}.
  *
- * @see ModelGatewayChatProvider
- * @see ModelGatewayChatResponse
- * @see ModelGatewayParameters
  * @see Authenticator
  */
-public class ModelGatewayService extends WatsonxService implements ModelGatewayChatProvider {
+public class ModelGatewayService extends WatsonxService implements ChatProvider<ModelGatewayChatRequest, ModelGatewayChatResponse> {
     private final ModelGatewayRestClient client;
-    private final MessageInterceptor messageInterceptor;
-    private final ToolInterceptor toolInterceptor;
-    private final ModelGatewayChatProvider chatProvider;
+    private final MessageInterceptor<ModelGatewayChatRequest> messageInterceptor;
+    private final ToolInterceptor<ModelGatewayChatRequest> toolInterceptor;
+    private final ChatProvider<ModelGatewayChatRequest, ModelGatewayChatResponse> chatProvider;
     private final ModelGatewayParameters defaultParameters;
     private final List<Tool> defaultTools;
     private final String modelId;
@@ -85,29 +81,9 @@ public class ModelGatewayService extends WatsonxService implements ModelGatewayC
             .verifySsl(verifySsl)
             .build();
 
-        if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
-            chatProvider = new Builder()
-                .modelId(modelId)
-                .authenticator(builder.authenticator())
-                .baseUrl(baseUrl)
-                .logRequests(logRequests)
-                .logResponses(logResponses)
-                .timeout(timeout)
-                .version(version)
-                .parameters(defaultParameters)
-                .httpClient(httpClient)
-                .verifySsl(verifySsl)
-                .build();
-        } else
-            chatProvider = null;
-    }
-
-    @Override
-    public ModelGatewayChatResponse chat(BaseChatRequest chatRequest) {
-        if (nonNull(chatRequest) && !(chatRequest instanceof ModelGatewayChatRequest))
-            throw new IllegalArgumentException(
-                "ModelGatewayService requires a ModelGatewayChatRequest, but received: " + chatRequest.getClass().getSimpleName());
-        return chat((ModelGatewayChatRequest) chatRequest);
+        chatProvider = nonNull(messageInterceptor) || nonNull(toolInterceptor)
+            ? builder.copyWithoutInterceptors().parameters(defaultParameters).build()
+            : null;
     }
 
     /**
@@ -116,40 +92,29 @@ public class ModelGatewayService extends WatsonxService implements ModelGatewayC
      * @param chatRequest the {@link ModelGatewayChatRequest}
      * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
+    @Override
     public ModelGatewayChatResponse chat(ModelGatewayChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
         var gatewayRequest = ModelGatewayUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis());
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
 
-        var perRequestTimeLimit = nonNull(chatRequest.parameters()) ? chatRequest.parameters().timeLimit() : null;
-        var defaultTimeLimit = nonNull(defaultParameters) ? defaultParameters.timeLimit() : null;
-        var timeoutMillis = getOrDefault(perRequestTimeLimit, getOrDefault(defaultTimeLimit, this.timeout.toMillis()));
-
-        var chatResponse = client.chat(transactionId, Duration.ofMillis(timeoutMillis), gatewayRequest);
+        var chatResponse = client.chat(transactionId, Duration.ofMillis(gatewayRequest.timeLimit()), gatewayRequest);
 
         if (nonNull(messageInterceptor)) {
-            var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = (ModelGatewayChatResponse) chatResponse.toBuilder()
+            var newChoices = messageInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
+            chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
         if (nonNull(toolInterceptor)) {
-            var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = (ModelGatewayChatResponse) chatResponse.toBuilder()
+            var newChoices = toolInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
+            chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
         return chatResponse;
-    }
-
-    @Override
-    public CompletableFuture<ChatResponse> chatStreaming(BaseChatRequest chatRequest, ChatHandler handler) {
-        if (nonNull(chatRequest) && !(chatRequest instanceof ModelGatewayChatRequest))
-            throw new IllegalArgumentException(
-                "ModelGatewayService requires a ModelGatewayChatRequest, but received: " + chatRequest.getClass().getSimpleName());
-        return chatStreaming((ModelGatewayChatRequest) chatRequest, handler);
     }
 
     /**
@@ -159,19 +124,20 @@ public class ModelGatewayService extends WatsonxService implements ModelGatewayC
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
      * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
+    @Override
     public CompletableFuture<ChatResponse> chatStreaming(ModelGatewayChatRequest chatRequest, ChatHandler handler) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
         var gatewayRequest = ModelGatewayUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis(), true);
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
-        var context = ChatClientContext.builder()
+        var context = ChatClientContext.<ModelGatewayChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
             .toolInterceptor(toolInterceptor)
             .build();
 
-        return client.chatStreaming(transactionId, gatewayRequest, context, handler);
+        return client.chatStreaming(transactionId, Duration.ofMillis(gatewayRequest.timeLimit()), gatewayRequest, context, handler);
     }
 
     /**
@@ -414,8 +380,8 @@ public class ModelGatewayService extends WatsonxService implements ModelGatewayC
      */
     public static final class Builder extends WatsonxService.Builder<Builder> {
         private String modelId;
-        private MessageInterceptor messageInterceptor;
-        private ToolInterceptor toolInterceptor;
+        private MessageInterceptor<ModelGatewayChatRequest> messageInterceptor;
+        private ToolInterceptor<ModelGatewayChatRequest> toolInterceptor;
         private ModelGatewayParameters defaultParameters;
         private List<Tool> defaultTools;
 
@@ -449,7 +415,7 @@ public class ModelGatewayService extends WatsonxService implements ModelGatewayC
          *
          * @param messageInterceptor the interceptor to apply
          */
-        public Builder messageInterceptor(MessageInterceptor messageInterceptor) {
+        public Builder messageInterceptor(MessageInterceptor<ModelGatewayChatRequest> messageInterceptor) {
             this.messageInterceptor = messageInterceptor;
             return this;
         }
@@ -459,7 +425,7 @@ public class ModelGatewayService extends WatsonxService implements ModelGatewayC
          *
          * @param toolInterceptor the interceptor to apply
          */
-        public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
+        public Builder toolInterceptor(ToolInterceptor<ModelGatewayChatRequest> toolInterceptor) {
             this.toolInterceptor = toolInterceptor;
             return this;
         }
@@ -490,6 +456,13 @@ public class ModelGatewayService extends WatsonxService implements ModelGatewayC
         public Builder tools(List<Tool> tools) {
             this.defaultTools = tools;
             return this;
+        }
+
+        /**
+         * Returns a copy of this builder without the registered interceptors.
+         */
+        private Builder copyWithoutInterceptors() {
+            return new Builder().copyFrom(this).modelId(modelId).tools(defaultTools);
         }
 
         /**

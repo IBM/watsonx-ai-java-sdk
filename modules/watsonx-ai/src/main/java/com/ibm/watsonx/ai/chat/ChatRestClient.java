@@ -29,9 +29,9 @@ public abstract class ChatRestClient extends WatsonxRestClient {
      *
      * @param transactionId an optional client-provided transaction identifier used for tracing
      * @param textChatRequest the structured chat request payload
-     * @return the complete {@link ChatResponse} returned by watsonx.ai
+     * @return the complete {@link TextChatResponse} returned by watsonx.ai
      */
-    public abstract ChatResponse chat(String transactionId, TextChatRequest textChatRequest);
+    public abstract TextChatResponse chat(String transactionId, TextChatRequest textChatRequest);
 
     /**
      * Executes an asynchronous streaming chat request against the watsonx.ai API.
@@ -47,7 +47,7 @@ public abstract class ChatRestClient extends WatsonxRestClient {
     public abstract CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
         TextChatRequest textChatRequest,
-        ChatClientContext context,
+        ChatClientContext<ChatRequest> context,
         ChatHandler handler);
 
     /**

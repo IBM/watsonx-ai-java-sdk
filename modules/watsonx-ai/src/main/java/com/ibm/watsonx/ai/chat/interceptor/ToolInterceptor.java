@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.chat.interceptor;
 
 import static java.util.Objects.isNull;
 import java.util.List;
+import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
@@ -21,7 +22,7 @@ import com.ibm.watsonx.ai.chat.model.ResultMessage;
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * ToolInterceptor interceptor =
+ * ToolInterceptor<ChatRequest> interceptor =
  *     (ctx, fc) -> {
  *         var args = fc.arguments();
  *         return args != null && args.startsWith("\"")
@@ -29,9 +30,11 @@ import com.ibm.watsonx.ai.chat.model.ResultMessage;
  *             : fc;
  *     };
  * }</pre>
+ *
+ * @param <R> the concrete chat request type handled by the intercepted provider
  */
 @FunctionalInterface
-public interface ToolInterceptor {
+public interface ToolInterceptor<R extends BaseChatRequest> {
 
     /**
      * Intercepts and modifies a single tool call.
@@ -40,7 +43,7 @@ public interface ToolInterceptor {
      * @param fc the tool call to intercept
      * @return the modified tool call
      */
-    FunctionCall intercept(InterceptorContext ctx, FunctionCall fc);
+    FunctionCall intercept(InterceptorContext<R> ctx, FunctionCall fc);
 
     /**
      * Applies this interceptor to all tool calls in the given {@link ChatResponse}.
@@ -48,7 +51,7 @@ public interface ToolInterceptor {
      * @param context the interceptor context containing the current request and response
      * @return a list of {@link ResultChoice} containing rebuilt messages with applied tool call transformations
      */
-    default List<ResultChoice> intercept(InterceptorContext context) {
+    default List<ResultChoice> intercept(InterceptorContext<R> context) {
         var response = context.response().orElseThrow();
         return response.choices().stream().map(choice -> {
 
@@ -81,7 +84,7 @@ public interface ToolInterceptor {
      * @param completedToolCall the completed tool call to intercept
      * @return a new {@link CompletedToolCall} containing the modified tool call
      */
-    default CompletedToolCall intercept(InterceptorContext context, CompletedToolCall completedToolCall) {
+    default CompletedToolCall intercept(InterceptorContext<R> context, CompletedToolCall completedToolCall) {
         var normalized = intercept(context, completedToolCall.toolCall().function());
         return new CompletedToolCall(
             completedToolCall.completionId(),

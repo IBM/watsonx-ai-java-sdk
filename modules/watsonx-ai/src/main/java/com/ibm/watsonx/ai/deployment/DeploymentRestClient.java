@@ -12,6 +12,7 @@ import com.ibm.watsonx.ai.WatsonxRestClient;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
@@ -77,9 +78,9 @@ public abstract class DeploymentRestClient extends WatsonxRestClient {
      * @param deploymentId the deployment to execute the request on
      * @param timeout the maximum duration to wait for the response
      * @param textChatRequest the structured chat request
-     * @return a {@link ChatResponse} containing the assistant's reply
+     * @return a {@link TextChatResponse} containing the assistant's reply
      */
-    public abstract ChatResponse chat(
+    public abstract TextChatResponse chat(
         String transactionId,
         String deploymentId,
         Duration timeout,
@@ -101,7 +102,7 @@ public abstract class DeploymentRestClient extends WatsonxRestClient {
         String transactionId,
         String deploymentId,
         TextChatRequest textChatRequest,
-        ChatClientContext context,
+        ChatClientContext<DeploymentChatRequest> context,
         ChatHandler handler);
 
     /**

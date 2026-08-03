@@ -59,11 +59,11 @@ import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
 import com.ibm.watsonx.ai.gateway.ModelGatewayService;
 
-@EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY_GATEWAY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
 public class ModelGatewayIT {
 
-    static final String API_KEY = System.getenv("WATSONX_API_KEY");
+    static final String API_KEY = System.getenv("WATSONX_API_KEY_GATEWAY");
     static final String URL = System.getenv("WATSONX_URL");
 
     static final Authenticator authentication = IBMCloudAuthenticator.builder()

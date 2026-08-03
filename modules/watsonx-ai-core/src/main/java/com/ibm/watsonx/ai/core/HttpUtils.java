@@ -135,14 +135,17 @@ public final class HttpUtils {
                     // Agent Tool APIs (beta) return errors with a "code" field instead of the standard "errors" array.
                     // TODO: verify if this behavior persists once the Agent Tool APIs are no longer in beta.
                     return parseToolError(genericError);
-                } else if (genericError.size() == 1 && genericError.containsKey("error") && genericError.get("error") instanceof Map) {
+                } else if (genericError.size() == 1 && genericError.containsKey("error")) {
+                    var wrappedError = genericError.get("error");
+
                     // Model Gateway errors wrap details in an "error" object with "code", "message", and "request_id".
-                    return parseGatewayError(statusCode, (Map<?, ?>) genericError.get("error"));
-                } else if (genericError.size() == 1 && genericError.containsKey("error") && genericError.get("error") instanceof String) {
+                    if (wrappedError instanceof Map<?, ?> gatewayError)
+                        return parseGatewayError(statusCode, gatewayError);
+
                     // The Create Schema API returns a single error message as a string in the body.
                     // TODO: verify if this behavior persists.
-                    String message = "schema_event_does_not_exist";
-                    return new WatsonxError(statusCode, "", List.of(new Error(message, (String) genericError.get("error"), "")));
+                    if (wrappedError instanceof String schemaError)
+                        return new WatsonxError(statusCode, "", List.of(new Error("schema_event_does_not_exist", schemaError, "")));
                 }
                 // Standard error body that simply has no "trace": still return the typed error instead of
                 // falling through to a generic RuntimeException and losing the WatsonxException mapping.

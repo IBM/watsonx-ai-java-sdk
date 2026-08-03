@@ -48,11 +48,11 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *
  * @see Authenticator
  */
-public class ChatService extends CryptoService implements ChatProvider {
+public class ChatService extends CryptoService implements ChatProvider<ChatRequest, TextChatResponse> {
     private final ChatRestClient client;
-    private final MessageInterceptor messageInterceptor;
-    private final ToolInterceptor toolInterceptor;
-    private final ChatProvider chatProvider;
+    private final MessageInterceptor<ChatRequest> messageInterceptor;
+    private final ToolInterceptor<ChatRequest> toolInterceptor;
+    private final ChatProvider<ChatRequest, TextChatResponse> chatProvider;
     private final ChatParameters defaultParameters;
     private final List<Tool> defaultTools;
 
@@ -85,31 +85,9 @@ public class ChatService extends CryptoService implements ChatProvider {
             .authenticator(builder.authenticator())
             .build();
 
-        if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
-            chatProvider = new Builder()
-                .authenticator(builder.authenticator())
-                .baseUrl(baseUrl)
-                .logRequests(logRequests)
-                .logResponses(logResponses)
-                .modelId(modelId)
-                .projectId(projectId)
-                .spaceId(spaceId)
-                .timeout(timeout)
-                .version(version)
-                .parameters(defaultParameters)
-                .httpClient(httpClient)
-                .verifySsl(verifySsl)
-                .build();
-        } else
-            chatProvider = null;
-    }
-
-    @Override
-    public TextChatResponse chat(BaseChatRequest chatRequest) {
-        if (nonNull(chatRequest) && !(chatRequest instanceof ChatRequest))
-            throw new IllegalArgumentException(
-                "ChatService requires a ChatRequest, but received: " + chatRequest.getClass().getSimpleName());
-        return chat((ChatRequest) chatRequest);
+        chatProvider = nonNull(messageInterceptor) || nonNull(toolInterceptor)
+            ? builder.copyWithoutInterceptors().parameters(defaultParameters).build()
+            : null;
     }
 
     /**
@@ -118,24 +96,25 @@ public class ChatService extends CryptoService implements ChatProvider {
      * @param chatRequest the {@link ChatRequest}
      * @return a {@link TextChatResponse} object containing the model's reply
      */
+    @Override
     public TextChatResponse chat(ChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
 
         var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
-        var chatResponse = (TextChatResponse) client.chat(transactionId, textChatRequest);
+        var chatResponse = client.chat(transactionId, textChatRequest);
 
         if (nonNull(messageInterceptor)) {
-            var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = (TextChatResponse) chatResponse.toBuilder()
+            var newChoices = messageInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
+            chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
         if (nonNull(toolInterceptor)) {
-            var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
-            chatResponse = (TextChatResponse) chatResponse.toBuilder()
+            var newChoices = toolInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
+            chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
@@ -150,15 +129,7 @@ public class ChatService extends CryptoService implements ChatProvider {
                     .toList()
             );
 
-        return (TextChatResponse) chatResponseBuilder.extractionTags(extractionTags).build();
-    }
-
-    @Override
-    public CompletableFuture<ChatResponse> chatStreaming(BaseChatRequest chatRequest, ChatHandler handler) {
-        if (nonNull(chatRequest) && !(chatRequest instanceof ChatRequest))
-            throw new IllegalArgumentException(
-                "ChatService requires a ChatRequest, but received: " + chatRequest.getClass().getSimpleName());
-        return chatStreaming((ChatRequest) chatRequest, handler);
+        return chatResponseBuilder.extractionTags(extractionTags).build();
     }
 
     /**
@@ -168,6 +139,7 @@ public class ChatService extends CryptoService implements ChatProvider {
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
      * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
+    @Override
     public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
@@ -175,7 +147,7 @@ public class ChatService extends CryptoService implements ChatProvider {
         var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
-        var context = ChatClientContext.builder()
+        var context = ChatClientContext.<ChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
             .toolInterceptor(toolInterceptor)
@@ -415,8 +387,8 @@ public class ChatService extends CryptoService implements ChatProvider {
      * Builder class for constructing {@link ChatService} instances with configurable parameters.
      */
     public final static class Builder extends CryptoService.Builder<Builder> {
-        private MessageInterceptor messageInterceptor;
-        private ToolInterceptor toolInterceptor;
+        private MessageInterceptor<ChatRequest> messageInterceptor;
+        private ToolInterceptor<ChatRequest> toolInterceptor;
         private ChatParameters defaultParameters;
         private List<Tool> defaultTools;
 
@@ -450,7 +422,7 @@ public class ChatService extends CryptoService implements ChatProvider {
          *
          * @param messageInterceptor the interceptor to apply
          */
-        public Builder messageInterceptor(MessageInterceptor messageInterceptor) {
+        public Builder messageInterceptor(MessageInterceptor<ChatRequest> messageInterceptor) {
             this.messageInterceptor = messageInterceptor;
             return this;
         }
@@ -475,7 +447,7 @@ public class ChatService extends CryptoService implements ChatProvider {
          *
          * @param toolInterceptor the interceptor to apply
          */
-        public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
+        public Builder toolInterceptor(ToolInterceptor<ChatRequest> toolInterceptor) {
             this.toolInterceptor = toolInterceptor;
             return this;
         }
@@ -512,6 +484,16 @@ public class ChatService extends CryptoService implements ChatProvider {
         public Builder tools(List<Tool> tools) {
             this.defaultTools = tools;
             return this;
+        }
+
+        /**
+         * Returns a copy of this builder without the registered interceptors.
+         * <p>
+         * The service built from it backs the {@link ChatProvider} handed to the interceptors, so that a request re-issued from within an interceptor
+         * reaches watsonx.ai without triggering the interceptors again.
+         */
+        private Builder copyWithoutInterceptors() {
+            return new Builder().copyFrom(this).tools(defaultTools);
         }
 
         /**

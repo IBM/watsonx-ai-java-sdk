@@ -19,6 +19,7 @@ import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Router;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.ServiceTier;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.StreamOptions;
 
+@SuppressWarnings("deprecation")
 public class ModelGatewayParametersTest {
 
     @Test

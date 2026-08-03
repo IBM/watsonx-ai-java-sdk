@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.chat.interceptor;
 
 import static java.util.Objects.isNull;
 import java.util.List;
+import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
@@ -16,14 +17,16 @@ import com.ibm.watsonx.ai.chat.model.ResultMessage;
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * MessageInterceptor interceptor =
+ * MessageInterceptor<ChatRequest> interceptor =
  *     (ctx, message) -> message == null
  *         ? "Hello!"
  *         : message.strip();
  * }</pre>
+ *
+ * @param <R> the concrete chat request type handled by the intercepted provider
  */
 @FunctionalInterface
-public interface MessageInterceptor {
+public interface MessageInterceptor<R extends BaseChatRequest> {
 
     /**
      * Intercepts and modifies the textual content of an assistant message.
@@ -32,7 +35,7 @@ public interface MessageInterceptor {
      * @param message the message content to intercept
      * @return the modified content
      */
-    String intercept(InterceptorContext ctx, String message);
+    String intercept(InterceptorContext<R> ctx, String message);
 
     /**
      * Applies this interceptor to all messages in the current {@link ChatResponse}.
@@ -40,7 +43,7 @@ public interface MessageInterceptor {
      * @param ctx the interceptor context containing the current request and response
      * @return a list of {@link ResultChoice} containing rebuilt messages with applied transformations
      */
-    default List<ResultChoice> intercept(InterceptorContext ctx) {
+    default List<ResultChoice> intercept(InterceptorContext<R> ctx) {
         var response = ctx.response().orElseThrow();
         return response.choices().stream().map(choice -> {
 

@@ -21,9 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
@@ -41,27 +38,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.ToolRegistry;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
@@ -2117,40 +2112,5 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertEquals(23, chatResponse.usage().completionTokens());
         assertEquals(76, chatResponse.usage().promptTokens());
         assertEquals(99, chatResponse.usage().totalTokens());
-    }
-
-    @Test
-    void should_reject_wrong_request_type_on_chat_and_chat_streaming() {
-
-        var deploymentService = DeploymentService.builder()
-            .baseUrl(CloudRegion.DALLAS)
-            .authenticator(mockAuthenticator)
-            .build();
-
-        BaseChatRequest wrongType = ChatRequest.builder()
-            .messages(UserMessage.text("Hello"))
-            .build();
-
-        var chatException = assertThrows(IllegalArgumentException.class, () -> deploymentService.chat(wrongType));
-        assertTrue(chatException.getMessage().contains("DeploymentService requires a DeploymentChatRequest"));
-
-        var handler = mock(ChatHandler.class);
-        var streamException = assertThrows(IllegalArgumentException.class, () -> deploymentService.chatStreaming(wrongType, handler));
-        assertTrue(streamException.getMessage().contains("DeploymentService requires a DeploymentChatRequest"));
-
-        // A null request must keep falling through to the typed overload's requireNonNull (NullPointerException).
-        assertThrows(NullPointerException.class, () -> deploymentService.chat((BaseChatRequest) null));
-        assertThrows(NullPointerException.class, () -> deploymentService.chatStreaming((BaseChatRequest) null, handler));
-
-        // Valid-type requests via the BaseChatRequest reference must pass the guard and delegate to the typed overloads.
-        var spyService = spy(deploymentService);
-        BaseChatRequest validType = DeploymentChatRequest.builder()
-            .deploymentId("my-deployment-id")
-            .messages(UserMessage.text("Hello"))
-            .build();
-        doReturn(null).when(spyService).chat(any(DeploymentChatRequest.class));
-        doReturn(completedFuture(null)).when(spyService).chatStreaming(any(DeploymentChatRequest.class), any(ChatHandler.class));
-        assertNull(spyService.chat(validType));
-        assertNotNull(spyService.chatStreaming(validType, handler));
     }
 }

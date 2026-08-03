@@ -142,6 +142,41 @@ public class ModelGatewayChatResponse extends TextChatResponse {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((serviceTier == null) ? 0 : serviceTier.hashCode());
+        result = prime * result + ((systemFingerprint == null) ? 0 : systemFingerprint.hashCode());
+        result = prime * result + ((cached == null) ? 0 : cached.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ModelGatewayChatResponse other = (ModelGatewayChatResponse) obj;
+        if (serviceTier == null) {
+            if (other.serviceTier != null)
+                return false;
+        } else if (!serviceTier.equals(other.serviceTier))
+            return false;
+        if (systemFingerprint == null) {
+            if (other.systemFingerprint != null)
+                return false;
+        } else if (!systemFingerprint.equals(other.systemFingerprint))
+            return false;
+        if (cached == null) {
+            if (other.cached != null)
+                return false;
+        } else if (!cached.equals(other.cached))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "ModelGatewayChatResponse [id=" + id() + ", object=" + object() + ", model=" + model() + ", modelId=" + modelId()
             + ", modelVersion=" + modelVersion() + ", createdAt=" + createdAt() + ", choices=" + choices() + ", created=" + created()

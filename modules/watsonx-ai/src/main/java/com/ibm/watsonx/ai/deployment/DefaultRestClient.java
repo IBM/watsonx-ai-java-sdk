@@ -143,7 +143,7 @@ final class DefaultRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public ChatResponse chat(String transactionId, String deploymentId, Duration timeout, TextChatRequest textChatRequest) {
+    public TextChatResponse chat(String transactionId, String deploymentId, Duration timeout, TextChatRequest textChatRequest) {
 
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat?version=%s".formatted(deploymentId, version));
 
@@ -173,7 +173,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         String transactionId,
         String deploymentId,
         TextChatRequest textChatRequest,
-        ChatClientContext context,
+        ChatClientContext<DeploymentChatRequest> context,
         ChatHandler handler) {
 
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat_stream?version=%s".formatted(deploymentId, version));
@@ -189,11 +189,11 @@ final class DefaultRestClient extends DeploymentRestClient {
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         var response = new CompletableFuture<ChatResponse>();
-        var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
+        var interceptorContext = new InterceptorContext<>(context.chatProvider(), context.chatRequest(), null);
         var chatSubscriber =
             new DefaultChatSubscriber(
                 new SseEventProcessor(textChatRequest.tools(), context.extractionTags(), TextChatResponse::builder),
-                new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
+                new ChatHandlerDecorator<>(handler, interceptorContext, context.toolInterceptor())
             );
 
         var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());

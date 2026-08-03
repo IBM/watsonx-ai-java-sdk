@@ -9,7 +9,6 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.Map;
-import java.util.function.Function;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
 import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.StreamOptions;
 
@@ -65,22 +64,25 @@ public class ModelGatewayUtility {
         var timeLimit = getOrDefault(parameters.timeLimit(), getOrDefault(defaults.timeLimit(), fallbackTimeLimit));
 
         // When streaming, default stream_options.include_usage to true (unless overridden) so the final chunk carries token usage.
-        var streamOptions = gwOrDefault(parameters, defaults, ModelGatewayParameters::streamOptions);
+        var streamOptions = getOrDefault(parameters.streamOptions(), defaults.streamOptions());
         if (stream && isNull(streamOptions))
             streamOptions = new StreamOptions(true);
+
+        // The gateway reads an absent "stream" as a non-streaming request, so the flag is sent only when streaming.
+        Boolean streamFlag = stream ? true : null;
 
         var builder = ModelGatewayTextChatRequest.builder()
             .model(modelId)
             .messages(messages)
             .tools(tools)
-            .stream(stream ? true : null)
+            .stream(streamFlag)
             .toolChoice(resolveToolChoice(parameters, defaults))
             .frequencyPenalty(getOrDefault(parameters.frequencyPenalty(), defaults.frequencyPenalty()))
             .logitBias(getOrDefault(parameters.logitBias(), defaults.logitBias()))
             .logprobs(getOrDefault(parameters.logprobs(), defaults.logprobs()))
             .topLogprobs(getOrDefault(parameters.topLogprobs(), defaults.topLogprobs()))
             .maxCompletionTokens(getOrDefault(parameters.maxCompletionTokens(), defaults.maxCompletionTokens()))
-            .maxTokens(gwOrDefault(parameters, defaults, ModelGatewayParameters::maxTokens))
+            .maxTokens(getOrDefault(parameters.maxTokens(), defaults.maxTokens()))
             .n(getOrDefault(parameters.n(), defaults.n()))
             .presencePenalty(getOrDefault(parameters.presencePenalty(), defaults.presencePenalty()))
             .seed(getOrDefault(parameters.seed(), defaults.seed()))
@@ -88,17 +90,17 @@ public class ModelGatewayUtility {
             .temperature(getOrDefault(parameters.temperature(), defaults.temperature()))
             .topP(getOrDefault(parameters.topP(), defaults.topP()))
             .timeLimit(timeLimit)
-            .audio(gwOrDefault(parameters, defaults, ModelGatewayParameters::audio))
-            .metadata(gwOrDefault(parameters, defaults, ModelGatewayParameters::metadata))
-            .modalities(gwOrDefault(parameters, defaults, ModelGatewayParameters::modalities))
-            .parallelToolCalls(gwOrDefault(parameters, defaults, ModelGatewayParameters::parallelToolCalls))
-            .prediction(gwOrDefault(parameters, defaults, ModelGatewayParameters::prediction))
-            .reasoningEffort(gwOrDefault(parameters, defaults, ModelGatewayParameters::reasoningEffort))
-            .serviceTier(gwOrDefault(parameters, defaults, ModelGatewayParameters::serviceTier))
-            .store(gwOrDefault(parameters, defaults, ModelGatewayParameters::store))
+            .audio(getOrDefault(parameters.audio(), defaults.audio()))
+            .metadata(getOrDefault(parameters.metadata(), defaults.metadata()))
+            .modalities(getOrDefault(parameters.modalities(), defaults.modalities()))
+            .parallelToolCalls(getOrDefault(parameters.parallelToolCalls(), defaults.parallelToolCalls()))
+            .prediction(getOrDefault(parameters.prediction(), defaults.prediction()))
+            .reasoningEffort(getOrDefault(parameters.reasoningEffort(), defaults.reasoningEffort()))
+            .serviceTier(getOrDefault(parameters.serviceTier(), defaults.serviceTier()))
+            .store(getOrDefault(parameters.store(), defaults.store()))
             .streamOptions(streamOptions)
-            .router(gwOrDefault(parameters, defaults, ModelGatewayParameters::router))
-            .user(gwOrDefault(parameters, defaults, ModelGatewayParameters::user));
+            .router(getOrDefault(parameters.router(), defaults.router()))
+            .user(getOrDefault(parameters.user(), defaults.user()));
 
         // Response format: JSON schema takes precedence over plain format.
         var jsonSchema = getOrDefault(parameters.jsonSchema(), defaults.jsonSchema());
@@ -125,15 +127,5 @@ public class ModelGatewayUtility {
         if (nonNull(defaults.toolChoice()))
             return defaults.toolChoice();
         return defaults.toolChoiceOption();
-    }
-
-    /**
-     * Resolves a gateway-only field, preferring the per-request value over the default. Either instance may be {@code null} when the caller supplied
-     * non-gateway parameters (or none), in which case the corresponding value is treated as unset.
-     */
-    private static <T> T gwOrDefault(ModelGatewayParameters parameters, ModelGatewayParameters defaults, Function<ModelGatewayParameters, T> getter) {
-        var perRequest = nonNull(parameters) ? getter.apply(parameters) : null;
-        var fallback = nonNull(defaults) ? getter.apply(defaults) : null;
-        return getOrDefault(perRequest, fallback);
     }
 }

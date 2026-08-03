@@ -239,6 +239,23 @@ public abstract class WatsonxService {
         public Authenticator authenticator() {
             return authenticator;
         }
+
+        /**
+         * Copies the configuration held by another builder into this one.
+         *
+         * @param other the builder to copy the configuration from
+         */
+        protected T copyFrom(Builder<?> other) {
+            baseUrl = other.baseUrl;
+            version = other.version;
+            timeout = other.timeout;
+            logRequests = other.logRequests;
+            logResponses = other.logResponses;
+            authenticator = other.authenticator;
+            httpClient = other.httpClient;
+            verifySsl = other.verifySsl;
+            return (T) this;
+        }
     }
 
     /**
@@ -305,6 +322,16 @@ public abstract class WatsonxService {
                 this.spaceId = spaceId;
                 return (T) this;
             }
+
+            @Override
+            protected T copyFrom(WatsonxService.Builder<?> other) {
+                super.copyFrom(other);
+                if (other instanceof Builder<?> builder) {
+                    projectId = builder.projectId;
+                    spaceId = builder.spaceId;
+                }
+                return (T) this;
+            }
         }
     }
 
@@ -336,6 +363,14 @@ public abstract class WatsonxService {
              */
             public T modelId(String modelId) {
                 this.modelId = modelId;
+                return (T) this;
+            }
+
+            @Override
+            protected T copyFrom(WatsonxService.Builder<?> other) {
+                super.copyFrom(other);
+                if (other instanceof Builder<?> builder)
+                    modelId = builder.modelId;
                 return (T) this;
             }
         }
@@ -374,6 +409,14 @@ public abstract class WatsonxService {
              */
             public T crypto(String crypto) {
                 this.crypto = crypto;
+                return (T) this;
+            }
+
+            @Override
+            protected T copyFrom(WatsonxService.Builder<?> other) {
+                super.copyFrom(other);
+                if (other instanceof Builder<?> builder)
+                    crypto = builder.crypto;
                 return (T) this;
             }
         }

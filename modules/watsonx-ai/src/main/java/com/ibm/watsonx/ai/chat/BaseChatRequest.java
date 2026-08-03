@@ -29,8 +29,8 @@ public abstract class BaseChatRequest {
     protected final List<Tool> tools;
 
     protected <T extends Builder<T>> BaseChatRequest(Builder<T> builder) {
-        messages = requireNonNull(builder.messages, "messages cannot be null");
-        tools = builder.tools;
+        messages = List.copyOf(requireNonNull(builder.messages, "messages cannot be null"));
+        tools = nonNull(builder.tools) ? List.copyOf(builder.tools) : null;
     }
 
     /**
@@ -93,8 +93,7 @@ public abstract class BaseChatRequest {
          * @param messages one or more {@link ChatMessage} objects to set
          */
         public T messages(List<? extends ChatMessage> messages) {
-            if (nonNull(messages))
-                this.messages = new ArrayList<>(messages);
+            this.messages = isNull(messages) ? null : new ArrayList<>(messages);
             return (T) this;
         }
 

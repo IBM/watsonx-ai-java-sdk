@@ -48,9 +48,7 @@ final class DefaultRestClient extends ModelGatewayRestClient {
 
     @Override
     public ModelGatewayChatResponse chat(String transactionId, Duration timeout, ModelGatewayTextChatRequest gatewayRequest) {
-
         var url = URI.create(baseUrl + "/ml/gateway/v1/chat/completions?version=%s".formatted(version));
-
         var httpRequest =
             HttpRequest
                 .newBuilder(url)
@@ -75,27 +73,27 @@ final class DefaultRestClient extends ModelGatewayRestClient {
     @Override
     public CompletableFuture<ChatResponse> chatStreaming(
         String transactionId,
+        Duration timeout,
         ModelGatewayTextChatRequest gatewayRequest,
-        ChatClientContext context,
+        ChatClientContext<ModelGatewayChatRequest> context,
         ChatHandler handler) {
 
         var url = URI.create(baseUrl + "/ml/gateway/v1/chat/completions?version=%s".formatted(version));
-
         var httpRequest = HttpRequest.newBuilder(url)
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .POST(BodyPublishers.ofString(toJson(gatewayRequest)))
-            .timeout(Duration.ofMillis(gatewayRequest.timeLimit()));
+            .timeout(timeout);
 
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         var response = new CompletableFuture<ChatResponse>();
-        var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
+        var interceptorContext = new InterceptorContext<>(context.chatProvider(), context.chatRequest(), null);
         var chatSubscriber =
             new DefaultChatSubscriber(
                 new SseEventProcessor(gatewayRequest.tools(), context.extractionTags(), ModelGatewayChatResponse::builder),
-                new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
+                new ChatHandlerDecorator<>(handler, interceptorContext, context.toolInterceptor())
             );
 
         var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());
