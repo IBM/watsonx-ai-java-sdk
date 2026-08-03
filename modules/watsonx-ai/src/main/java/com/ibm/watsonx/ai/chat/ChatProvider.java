@@ -20,7 +20,7 @@ public interface ChatProvider {
     /**
      * Sends a chat request.
      *
-     * @param chatRequest the chat request
+     * @param chatRequest the {@link BaseChatRequest} object
      * @return a {@link ChatResponse} object containing the model's reply
      */
     public ChatResponse chat(BaseChatRequest chatRequest);
@@ -31,7 +31,7 @@ public interface ChatProvider {
      * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided
      * {@link ChatHandler}.
      *
-     * @param chatRequest the chat request
+     * @param chatRequest the {@link BaseChatRequest} object
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
      * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */

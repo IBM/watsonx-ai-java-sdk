@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 
 /**
  * Utility for applying client-side masking to text using {@link TextChatResponse#moderations()} results.
@@ -25,6 +26,12 @@ import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
  *
  * // Custom: replace each match with a label like "[PhoneNumber]".
  * String labelled = Masker.mask(content, response, m -> "[" + m.entity() + "]");
+ *
+ * // Mask and return an AssistantMessage directly.
+ * AssistantMessage message = Masker.maskToMessage(response);
+ *
+ * // Custom masking returning an AssistantMessage.
+ * AssistantMessage message = Masker.maskToMessage(response, m -> "[" + m.entity() + "]");
  * }</pre>
  */
 public final class Masker {
@@ -72,5 +79,29 @@ public final class Masker {
             sb.replace(start, end, replacer.apply(m));
         }
         return sb.toString();
+    }
+
+    /**
+     * Masks the output moderation matches in the given response using asterisks ({@code *}) repeated for the length of each match, and returns the
+     * result as an {@link AssistantMessage}.
+     *
+     * @param response the {@link TextChatResponse} to mask
+     * @return an {@link AssistantMessage} with the masked content
+     */
+    public static AssistantMessage maskToMessage(TextChatResponse response) {
+        return maskToMessage(response, m -> "*".repeat(m.position().end() - m.position().start()));
+    }
+
+    /**
+     * Masks the output moderation matches in the given response using a custom replacer, and returns the result as an {@link AssistantMessage}.
+     *
+     * @param response the {@link TextChatResponse} to mask
+     * @param replacer a function that returns the replacement string for each matched {@link ModerationResult}
+     * @return an {@link AssistantMessage} with the masked content
+     */
+    public static AssistantMessage maskToMessage(TextChatResponse response, Function<ModerationResult, String> replacer) {
+        var original = response.toAssistantMessage();
+        var maskedContent = mask(original.content(), response, replacer);
+        return new AssistantMessage(maskedContent, original.thinking(), original.name(), original.refusal(), original.toolCalls());
     }
 }

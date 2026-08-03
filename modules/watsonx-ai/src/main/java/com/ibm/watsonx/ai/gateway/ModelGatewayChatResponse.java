@@ -9,7 +9,7 @@ package com.ibm.watsonx.ai.gateway;
 import com.ibm.watsonx.ai.chat.TextChatResponse;
 
 /**
- * Response returned by the Model Gateway chat endpoint.
+ * Response returned by the model gateway chat endpoint.
  */
 public class ModelGatewayChatResponse extends TextChatResponse {
 
