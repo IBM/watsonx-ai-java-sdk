@@ -63,14 +63,15 @@ The SDK provides a unified Java interface to the watsonx.ai ecosystem and works 
 | Service | Description |
 |---------|-------------|
 | **[Chat](https://ibm.github.io/watsonx-ai-java-sdk/services/chat-service/)** | Conversational AI with multi-turn dialogue, streaming, tool calling, vision, and reasoning |
+| **[Model Gateway](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/)** | Chat with third-party models (OpenAI, Anthropic, Azure, Mistral, and others) through a single IBM Cloud-authenticated endpoint |
 | **[Embedding](https://ibm.github.io/watsonx-ai-java-sdk/services/embedding-service/)** | Dense vector representations for semantic search, similarity, and RAG |
 | **[Rerank](https://ibm.github.io/watsonx-ai-java-sdk/services/rerank-service/)** | Relevance scoring and reordering of candidate documents |
 | **[Detection](https://ibm.github.io/watsonx-ai-java-sdk/services/detection-service/)** | Identification of harmful content (HAP), PII, and safety violations |
 | **[Tokenization](https://ibm.github.io/watsonx-ai-java-sdk/services/tokenization-service/)** | Token counting and analysis for any model |
 | **[Foundation Model](https://ibm.github.io/watsonx-ai-java-sdk/services/foundation-model-service/)** | Browse and query the watsonx.ai model catalog |
-| **[Schema](https://ibm.github.io/watsonx-ai-java-sdk/services/schema/)** | Create, improve, and merge document schemas |
-| **[Text Classification](https://ibm.github.io/watsonx-ai-java-sdk/services/text-classification-service/)** | Document classification from IBM Cloud Object Storage |
-| **[Text Extraction](https://ibm.github.io/watsonx-ai-java-sdk/services/text-extraction-service/)** | Structured data extraction from documents in IBM Cloud Object Storage |
+| **[Schema](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/schema/)** | Create, improve, and merge document schemas |
+| **[Text Classification](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/text-classification-service/)** | Document classification from IBM Cloud Object Storage |
+| **[Text Extraction](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/text-extraction-service/)** | Structured data extraction from documents in IBM Cloud Object Storage |
 | **[Time Series](https://ibm.github.io/watsonx-ai-java-sdk/services/time-series-service/)** | Time series forecasting using IBM Granite TTM models |
 | **[Tool](https://ibm.github.io/watsonx-ai-java-sdk/services/tool-service/)** | Server-side utility tools for agentic workflows |
 | **[Deployment](https://ibm.github.io/watsonx-ai-java-sdk/services/deployment-service/)** | Chat and forecasting via deployed model endpoints |
