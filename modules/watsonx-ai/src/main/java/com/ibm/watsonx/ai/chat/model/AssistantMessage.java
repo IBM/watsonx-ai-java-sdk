@@ -16,8 +16,8 @@ import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 /**
  * Represents a message authored by the assistant within a chat interaction.
  * <p>
- * An {@code AssistantMessage} may contain natural language text or tool calls (e.g., function calls). Either {@code content} or {@code toolCalls}
- * must be present.
+ * An {@code AssistantMessage} may contain natural language text or tool calls (e.g., function calls). At least one of {@code content},
+ * {@code toolCalls} or {@code refusal} must be present.
  * <p>
  * Example usage:
  *

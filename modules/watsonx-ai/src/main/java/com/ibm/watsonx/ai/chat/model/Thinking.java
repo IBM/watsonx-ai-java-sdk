@@ -155,6 +155,50 @@ public final class Thinking {
         }
     }
 
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        Boolean resolvedEnabled = enabled();
+        result = prime * result + ((resolvedEnabled == null) ? 0 : resolvedEnabled.hashCode());
+        result = prime * result + ((includeReasoning == null) ? 0 : includeReasoning.hashCode());
+        result = prime * result + ((extractionTags == null) ? 0 : extractionTags.hashCode());
+        result = prime * result + ((thinkingEffort == null) ? 0 : thinkingEffort.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Thinking other = (Thinking) obj;
+        Boolean resolvedEnabled = enabled();
+        Boolean otherResolvedEnabled = other.enabled();
+        if (resolvedEnabled == null) {
+            if (otherResolvedEnabled != null)
+                return false;
+        } else if (!resolvedEnabled.equals(otherResolvedEnabled))
+            return false;
+        if (includeReasoning == null) {
+            if (other.includeReasoning != null)
+                return false;
+        } else if (!includeReasoning.equals(other.includeReasoning))
+            return false;
+        if (extractionTags == null) {
+            if (other.extractionTags != null)
+                return false;
+        } else if (!extractionTags.equals(other.extractionTags))
+            return false;
+        if (thinkingEffort != other.thinkingEffort)
+            return false;
+        return true;
+    }
+
     @Override
     public String toString() {
         return "Thinking [enabled=" + enabled + ", includeReasoning=" + includeReasoning + ", extractionTags=" + extractionTags + ", thinkingEffort="

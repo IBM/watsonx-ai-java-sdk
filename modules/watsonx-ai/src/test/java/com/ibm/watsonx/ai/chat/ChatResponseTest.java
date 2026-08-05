@@ -6,13 +6,23 @@ package com.ibm.watsonx.ai.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionEntry;
 import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionResult;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult.Position;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
+import com.ibm.watsonx.ai.chat.model.ResultMessage;
+import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
 
 public class ChatResponseTest {
@@ -44,6 +54,19 @@ public class ChatResponseTest {
             .serviceTier("default")
             .systemFingerprint("fp_abc123")
             .cached(false);
+    }
+
+    private static ChatResponse singleChoiceResponse(ResultMessage message, String finishReason) {
+        return ChatResponse.builder()
+            .id("chat-1")
+            .object("chat.completion")
+            .model("ibm/granite-3-3-8b-instruct")
+            .choices(List.of(new ResultChoice(0, message, finishReason)))
+            .build();
+    }
+
+    private static ResultMessage resultMessage(String content, String reasoningContent, String refusal, List<ToolCall> toolCalls) {
+        return new ResultMessage("assistant", content, reasoningContent, refusal, toolCalls);
     }
 
     @Test
@@ -104,5 +127,122 @@ public class ChatResponseTest {
         assertNotEquals(textChatResponse, chatResponse);
         assertNotEquals(textChatResponse, gatewayChatResponse);
         assertNotEquals(gatewayChatResponse, textChatResponse);
+    }
+
+    @Test
+    void should_throw_when_the_response_contains_no_choices() {
+
+        var noChoices = ChatResponse.builder().id("chat-1").build();
+
+        var ex = assertThrows(EmptyChatResponseException.class, noChoices::toAssistantMessage);
+        assertEquals("The chat response contains no choices", ex.getMessage());
+        assertEquals(FinishReason.INCOMPLETE, ex.finishReason());
+        assertEquals(EmptyChatResponseException.NO_CHOICE, ex.index());
+        assertSame(noChoices, ex.response());
+
+        var emptyChoices = ChatResponse.builder().id("chat-1").choices(List.of()).build();
+        assertThrows(EmptyChatResponseException.class, emptyChoices::toAssistantMessages);
+    }
+
+    @Test
+    void should_throw_when_the_model_generates_no_usable_output() {
+
+        for (String content : new String[] { null, "", "   ", "\n" }) {
+
+            var response = singleChoiceResponse(resultMessage(content, null, null, null), "stop");
+
+            var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
+            assertEquals("The model generated no content, tool calls or refusal (finish reason: STOP)", ex.getMessage());
+            assertEquals(FinishReason.STOP, ex.finishReason());
+            assertEquals(0, ex.index());
+            assertSame(response, ex.response());
+        }
+    }
+
+    @Test
+    void should_throw_when_the_tool_calls_are_empty() {
+        var response = singleChoiceResponse(resultMessage("", null, null, List.of()), "stop");
+        assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
+    }
+
+    @Test
+    void should_throw_when_only_the_thinking_is_present() {
+
+        var response = singleChoiceResponse(resultMessage(null, "The user is asking for", null, null), "length");
+
+        var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
+        assertEquals(FinishReason.LENGTH, ex.finishReason());
+    }
+
+    @Test
+    void should_throw_when_the_choice_contains_no_message() {
+
+        var response = ChatResponse.builder().choices(List.of(new ResultChoice(0, null, "stop"))).build();
+
+        var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
+        assertEquals("The choice at index 0 contains no message", ex.getMessage());
+    }
+
+    @Test
+    void should_throw_when_the_extraction_tags_leave_no_response() {
+
+        var response = ChatResponse.builder()
+            .extractionTags(ExtractionTags.of(new Think("<think>", "</think>")))
+            .choices(List.of(new ResultChoice(0, resultMessage("<think>Only reasoning</think>", null, null, null), "stop")))
+            .build();
+
+        var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
+        assertEquals(FinishReason.STOP, ex.finishReason());
+    }
+
+    @Test
+    void should_report_the_finish_reason_and_the_index_of_the_empty_choice() {
+
+        var response = ChatResponse.builder()
+            .choices(List.of(
+                new ResultChoice(0, resultMessage("First answer", null, null, null), "stop"),
+                new ResultChoice(1, resultMessage(null, null, null, null), "length")))
+            .build();
+
+        var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessages);
+        assertEquals(1, ex.index());
+        assertEquals(FinishReason.LENGTH, ex.finishReason());
+    }
+
+    @Test
+    void should_convert_when_the_refusal_is_the_only_output() {
+
+        var response = singleChoiceResponse(resultMessage(null, null, "I cannot help with that", null), "stop");
+
+        var assistantMessage = response.toAssistantMessage();
+        assertNull(assistantMessage.content());
+        assertEquals("I cannot help with that", assistantMessage.refusal());
+    }
+
+    @Test
+    void should_convert_when_the_tool_calls_are_the_only_output() {
+
+        var toolCalls = List.of(ToolCall.of("call-1", "get_weather", "{\"city\":\"Rome\"}"));
+        var response = singleChoiceResponse(resultMessage(null, null, null, toolCalls), "tool_calls");
+
+        var assistantMessage = response.toAssistantMessage();
+        assertNull(assistantMessage.content());
+        assertTrue(assistantMessage.hasToolCalls());
+    }
+
+    @Test
+    void should_convert_every_choice_when_all_of_them_have_content() {
+
+        var response = ChatResponse.builder()
+            .choices(List.of(
+                new ResultChoice(0, resultMessage("First answer", null, null, null), "stop"),
+                new ResultChoice(1, resultMessage("Second answer", "The user is asking for", null, null), "stop")))
+            .build();
+
+        var assistantMessages = response.toAssistantMessages();
+        assertEquals(2, assistantMessages.size());
+        assertEquals("First answer", assistantMessages.get(0).content());
+        assertEquals("Second answer", assistantMessages.get(1).content());
+        assertEquals("The user is asking for", assistantMessages.get(1).thinking());
     }
 }

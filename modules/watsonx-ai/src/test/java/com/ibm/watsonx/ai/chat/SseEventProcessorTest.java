@@ -7,6 +7,8 @@ package com.ibm.watsonx.ai.chat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.stream.Stream;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
 
 public class SseEventProcessorTest {
 
@@ -278,5 +281,61 @@ public class SseEventProcessorTest {
             var expectedTools = choice.index() == 0 ? 2 : 1;
             assertEquals(expectedTools, choice.message().toolCalls().size());
         }
+    }
+
+    @Test
+    void should_throw_when_the_stream_carries_no_usable_output() {
+
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+
+        var roleChunk = "data: " + """
+            {"id":"chatcmpl-6","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var stopChunk = "data: " + """
+            {"id":"chatcmpl-6","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small",\
+            "choices":[{"index":0,"finish_reason":"stop","delta":{"role":"assistant"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        processor.processChunk(roleChunk);
+        processor.processChunk(stopChunk);
+
+        var response = processor.buildResponse();
+
+        // The choice exists, only its content is empty.
+        assertEquals(1, response.choices().size());
+        assertNull(response.choices().get(0).message().content());
+
+        var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
+        assertEquals("The model generated no content, tool calls or refusal (finish reason: STOP)", ex.getMessage());
+        assertEquals(FinishReason.STOP, ex.finishReason());
+        assertEquals(0, ex.index());
+    }
+
+    @Test
+    void should_throw_when_the_stream_is_truncated_while_the_model_is_thinking() {
+
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+
+        var thinkingChunk = "data: " + """
+            {"id":"chatcmpl-7","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","reasoning_content":"The user is asking for"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var lengthChunk = "data: " + """
+            {"id":"chatcmpl-7","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b",\
+            "choices":[{"index":0,"finish_reason":"length","delta":{"role":"assistant"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        processor.processChunk(thinkingChunk);
+        processor.processChunk(lengthChunk);
+
+        var response = processor.buildResponse();
+        assertEquals("The user is asking for", response.choices().get(0).message().reasoningContent());
+
+        var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
+        assertEquals(FinishReason.LENGTH, ex.finishReason());
+        assertEquals(0, ex.index());
     }
 }
