@@ -1,0 +1,154 @@
+/* ============================================================
+   IBM watsonx.ai Java SDK - Docusaurus custom theme
+   Strategy: keep Docusaurus defaults for code/pre/spacing,
+   override only colors (IBM blue palette) and fonts.
+   ============================================================ */
+
+/* Inter + JetBrains Mono - SIL OFL 1.1, served locally */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../static/fonts/Inter-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../../static/fonts/Inter-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../../static/fonts/Inter-SemiBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../../static/fonts/Inter-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../static/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../../static/fonts/JetBrainsMono-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../../static/fonts/JetBrainsMono-SemiBold.woff2') format('woff2');
+}
+
+/* ---- Light mode ---- */
+:root {
+  /* IBM blue palette as primary color */
+  --ifm-color-primary: #0f62fe;
+  --ifm-color-primary-dark: #0043ce;
+  --ifm-color-primary-darker: #002d9c;
+  --ifm-color-primary-darkest: #001d6c;
+  --ifm-color-primary-light: #4589ff;
+  --ifm-color-primary-lighter: #78a9ff;
+  --ifm-color-primary-lightest: #a6c8ff;
+
+  /* Fonts */
+  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+  --ifm-code-font-size: 87.5%;
+}
+
+/* ---- Dark mode ---- */
+[data-theme='dark'] {
+  --ifm-color-primary: #78a9ff;
+  --ifm-color-primary-dark: #4589ff;
+  --ifm-color-primary-darker: #0f62fe;
+  --ifm-color-primary-darkest: #0043ce;
+  --ifm-color-primary-light: #a6c8ff;
+  --ifm-color-primary-lighter: #d0e2ff;
+  --ifm-color-primary-lightest: #edf5ff;
+}
+
+/* ---- Navbar ---- */
+/* Remove default Docusaurus shadow - a 1px border is cleaner */
+.navbar {
+  box-shadow: none;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+
+/* Hide the empty title string (title set to '' in config) */
+.navbar__title {
+  display: none;
+}
+
+/* Navbar links: regular weight, not bold */
+.navbar__link {
+  font-weight: 400;
+}
+.navbar__link--active {
+  font-weight: 500;
+}
+
+/* GitHub icon */
+.header-github-link::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  display: block;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23161616'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z'/%3E%3C/svg%3E") no-repeat center;
+}
+[data-theme='dark'] .header-github-link::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23f4f4f4'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z'/%3E%3C/svg%3E");
+}
+
+/* ---- Sidebar active link - IBM blue accent ---- */
+.menu__link--active:not(.menu__link--sublist) {
+  border-left: 3px solid var(--ifm-color-primary);
+}
+
+/* ---- TOC right panel ---- */
+/* Widen the TOC column slightly (default is ~var(--doc-sidebar-width) = 300px for TOC) */
+:root {
+  --ifm-toc-width: 260px;
+}
+.table-of-contents__link--active {
+  font-weight: 600;
+}
+
+/* ---- Inline code ---- */
+/* Docusaurus default: grey bg, reddish text, no border.
+   Convention from Stripe/Vercel/GitHub docs: tinted bg + border + neutral text. */
+:root {
+  --ifm-code-background: #eef2ff;
+  --ifm-code-color: #1e3a8a;
+}
+[data-theme='dark'] {
+  --ifm-code-background: #1e2a3a;
+  --ifm-code-color: #93c5fd;
+}
+code:not([class]) {
+  border: 1px solid #c7d2fe;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+[data-theme='dark'] code:not([class]) {
+  border-color: #2d4a6a;
+}
+
+/* ---- Prism: syntax token overrides ---- */
+/* Prism themes are applied inline by prism-react-renderer; token colors are
+   set in src/prism-themes.ts. These CSS rules are a fallback only. */

@@ -1,0 +1,101 @@
+---
+id: index
+title: Getting Started
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import SdkVersion from '@site/src/components/SdkVersion';
+
+# IBM watsonx.ai Java SDK
+
+The **IBM watsonx.ai Java SDK** is an open-source client library for [IBM watsonx.ai](https://www.ibm.com/watsonx) - an enterprise-grade AI platform for building, training, and deploying AI models at scale. It provides a unified Java interface to the watsonx.ai ecosystem and works with both **IBM Cloud** and **CP4D** (on-premises deployments).
+
+## Prerequisites
+
+- Java 17 or higher
+- Maven or Gradle
+- A [watsonx.ai](https://www.ibm.com/watsonx/get-started) service instance (IBM Cloud or on-premises)
+
+The samples in this documentation reference values such as an **API key**, a **Project ID**, and (for some services) **Cloud Object Storage** details. If you don't have these yet, the [Setup & Prerequisites](setup) page walks through obtaining each one.
+
+## Installation
+
+Add the SDK to your Maven project:
+
+<CodeBlock language="xml">{`<dependency>
+    <groupId>com.ibm.watsonx</groupId>
+    <artifactId>watsonx-ai</artifactId>
+    <version>${SdkVersion()}</version>
+</dependency>`}</CodeBlock>
+
+Or for Gradle:
+
+<CodeBlock language="groovy">{`implementation 'com.ibm.watsonx:watsonx-ai:${SdkVersion()}'`}</CodeBlock>
+
+## Quick Start
+
+```java
+ChatService chatService = ChatService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl(CloudRegion.DALLAS)
+    .modelId("ibm/granite-4-h-small")
+    .build();
+
+AssistantMessage response = chatService.chat("Tell me a joke").toAssistantMessage();
+System.out.println(response.content());
+```
+
+## Next steps
+
+- **[Setup & Prerequisites](setup)** - obtain an API key, Project ID, and the other values used in samples
+- **[Authentication](authentication)** - configure `IBMCloudAuthenticator` or `CP4DAuthenticator`
+- **[Services](services)** - explore the full list of available services
+
+## Available services
+
+### Inference
+
+| Service | Description |
+|---------|-------------|
+| **[Chat](services/chat-service)** | Conversational AI - synchronous and streaming, tool calling, vision, reasoning, structured output |
+| **[Embedding](services/embedding-service)** | Convert text to dense vectors for semantic search, similarity, and RAG |
+| **[Rerank](services/rerank-service)** | Score and sort a list of candidate passages against a query |
+| **[Time Series](services/time-series-service)** | Forecast time series data using IBM Granite TTM models |
+| **[Deployment](services/deployment-service)** | Target a deployed model by `deploymentId` for chat and forecasting |
+| **[Model Gateway](services/model-gateway)** | Chat with third-party models (OpenAI, Anthropic, etc.) via a unified IBM-managed gateway |
+
+### Document processing
+
+| Service | Description |
+|---------|-------------|
+| **[Create Schema](services/document-processing/schema/create-schema-service)** | Generate a key-value extraction schema from sample documents |
+| **[Improve Schema](services/document-processing/schema/improve-schema-service)** | Refine an existing schema using additional examples |
+| **[Merge Schema](services/document-processing/schema/merge-schema-service)** | Consolidate multiple schemas into one |
+| **[Text Extraction](services/document-processing/text-extraction-service)** | Extract structured key-value pairs from documents in COS |
+| **[Text Classification](services/document-processing/text-classification-service)** | Classify documents stored in COS |
+
+### Utilities
+
+| Service | Description |
+|---------|-------------|
+| **[Tool](services/tool-service)** | Invoke IBM-hosted utility tools (search, weather, Python interpreter, RAG) |
+| **[Tokenization](services/tokenization-service)** | Count tokens and retrieve the individual token strings for a given model |
+| **[Detection](services/detection-service)** | Detect harmful content (HAP), PII, and safety violations |
+| **[Foundation Model](services/foundation-model-service)** | Browse the model catalog - filter by provider, task, function, lifecycle |
+| **[File](services/file-service)** | Upload, list, retrieve, and delete files used as batch job inputs |
+| **[Batch](services/batch-service)** | Submit high-volume asynchronous inference jobs from JSONL files |
+
+## Framework integrations
+
+The SDK integrates with popular LLM application frameworks:
+
+- [LangChain4j](https://docs.langchain4j.dev/)
+- [Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)
+- [Apache Camel](https://camel.apache.org/components/ibm-watsonx-ai-component.html)
+
+## Resources
+
+- [IBM watsonx.ai Documentation](https://dataplatform.cloud.ibm.com/docs/content/wsj/getting-started/welcome-main.html?context=wx&audience=wdp&locale=en)
+- [API Reference](https://cloud.ibm.com/apidocs/watsonx-ai)
+- [GitHub Repository](https://github.com/IBM/watsonx-ai-java-sdk)

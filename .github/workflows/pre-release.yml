@@ -40,9 +40,9 @@ jobs:
           ./mvnw versions:set -DnewVersion=${{env.CURRENT_VERSION}}
           ./mvnw versions:set -f samples/pom.xml -DnewVersion=${{env.CURRENT_VERSION}}
 
-      - name: Update watsonx_version in _config.yml
+      - name: Update SDK version in docusaurus.config.ts
         run: |
-          sed -i "s/^watsonx_version:.*$/watsonx_version: \"${{ env.CURRENT_VERSION }}\"/" docs/_config.yml
+          sed -i "s/0\.[0-9]\+\.[0-9]\+/${{ env.CURRENT_VERSION }}/g" docs/docusaurus.config.ts
 
       - name: Commit and push release updates
         uses: ./.github/actions/commit-push
