@@ -25,6 +25,7 @@ public class ChatUtility {
 
         var messages = chatRequest.messages();
         var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
+
         var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
         defaultParameters = requireNonNullElse(defaultParameters, ChatParameters.builder().build());
 

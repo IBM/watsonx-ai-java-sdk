@@ -22,14 +22,14 @@ import com.ibm.watsonx.ai.WatsonxService;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatProvider;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
@@ -63,12 +63,13 @@ import com.ibm.watsonx.ai.timeseries.TimeSeriesRequest;
  *
  * @see Authenticator
  */
-public class DeploymentService extends WatsonxService implements ChatProvider, TextGenerationProvider, TimeSeriesProvider {
+public class DeploymentService extends WatsonxService
+    implements ChatProvider<DeploymentChatRequest, TextChatResponse>, TextGenerationProvider, TimeSeriesProvider {
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
     private final DeploymentRestClient client;
-    private final MessageInterceptor messageInterceptor;
-    private final ToolInterceptor toolInterceptor;
-    private final ChatProvider chatProvider;
+    private final MessageInterceptor<DeploymentChatRequest> messageInterceptor;
+    private final ToolInterceptor<DeploymentChatRequest> toolInterceptor;
+    private final ChatProvider<DeploymentChatRequest, TextChatResponse> chatProvider;
     private final ChatParameters defaultParameters;
     private final List<Tool> defaultTools;
 
@@ -91,20 +92,9 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .verifySsl(verifySsl)
             .build();
 
-        if (nonNull(messageInterceptor) || nonNull(toolInterceptor)) {
-            chatProvider = new Builder()
-                .authenticator(builder.authenticator())
-                .baseUrl(baseUrl)
-                .logRequests(logRequests)
-                .logResponses(logResponses)
-                .timeout(timeout)
-                .version(version)
-                .parameters(defaultParameters)
-                .httpClient(httpClient)
-                .verifySsl(verifySsl)
-                .build();
-        } else
-            chatProvider = null;
+        chatProvider = nonNull(messageInterceptor) || nonNull(toolInterceptor)
+            ? builder.copyWithoutInterceptors().parameters(defaultParameters).build()
+            : null;
     }
 
     /**
@@ -162,8 +152,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         return client.generateStreaming(parameters.transactionId(), deploymentId, timeout, textGenRequest, handler);
     }
 
+    /**
+     * Sends a chat request to a deployment.
+     *
+     * @param chatRequest the {@link DeploymentChatRequest}
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
     @Override
-    public ChatResponse chat(ChatRequest chatRequest) {
+    public TextChatResponse chat(DeploymentChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
 
         var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
@@ -177,14 +173,14 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var chatResponse = client.chat(transactionId, deploymentId, Duration.ofMillis(timeout), textChatRequest);
 
         if (nonNull(messageInterceptor)) {
-            var newChoices = messageInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
+            var newChoices = messageInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
         }
 
         if (nonNull(toolInterceptor)) {
-            var newChoices = toolInterceptor.intercept(new InterceptorContext(chatProvider, chatRequest, chatResponse));
+            var newChoices = toolInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
             chatResponse = chatResponse.toBuilder()
                 .choices(newChoices)
                 .build();
@@ -211,7 +207,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      * @param chatRequest the chat request
      * @param handler a consumer that receives partial text responses
      */
-    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, Consumer<String> handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(DeploymentChatRequest chatRequest, Consumer<String> handler) {
         return chatStreaming(chatRequest, new ChatHandler() {
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -220,8 +216,15 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         });
     }
 
+    /**
+     * Sends a streaming chat request to a deployment.
+     *
+     * @param chatRequest the {@link DeploymentChatRequest}
+     * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
     @Override
-    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, ChatHandler handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(DeploymentChatRequest chatRequest, ChatHandler handler) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
@@ -229,7 +232,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         var textChatRequest = buildTextChatRequest(chatRequest);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
-        var context = ChatClientContext.builder()
+        var context = ChatClientContext.<DeploymentChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
             .toolInterceptor(toolInterceptor)
@@ -283,15 +286,16 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
     }
 
     /**
-     * Builds a {@link TextChatRequest} from the provided {@link ChatRequest}.
+     * Builds a {@link TextChatRequest} from the provided {@link DeploymentChatRequest}.
      *
-     * @param chatRequest the {@link ChatRequest} object
+     * @param chatRequest the {@link DeploymentChatRequest} object
      * @return a fully constructed {@link TextChatRequest} object
      */
-    private TextChatRequest buildTextChatRequest(ChatRequest chatRequest) {
+    private TextChatRequest buildTextChatRequest(DeploymentChatRequest chatRequest) {
         var messages = chatRequest.messages();
         var tools = isNull(chatRequest.tools()) ? defaultTools : chatRequest.tools();
         tools = nonNull(tools) && !tools.isEmpty() ? tools : null;
+
         var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
 
@@ -334,7 +338,6 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
             .lengthPenalty(getOrDefault(parameters.lengthPenalty(), defaultParameters.lengthPenalty()))
             .includeReasoning(includeReasoning)
             .reasoningEffort(thinkingEffort)
-            .moderations(chatRequest.moderations())
             .chatTemplateKwargs(chatTemplateKwargs)
             .build();
     }
@@ -361,8 +364,8 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
      * Builder class for constructing {@link DeploymentService} instances with configurable parameters.
      */
     public final static class Builder extends WatsonxService.Builder<Builder> {
-        private MessageInterceptor messageInterceptor;
-        private ToolInterceptor toolInterceptor;
+        private MessageInterceptor<DeploymentChatRequest> messageInterceptor;
+        private ToolInterceptor<DeploymentChatRequest> toolInterceptor;
         private ChatParameters defaultParameters;
         private List<Tool> defaultTools;
 
@@ -396,7 +399,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
          *
          * @param messageInterceptor the interceptor to apply
          */
-        public Builder messageInterceptor(MessageInterceptor messageInterceptor) {
+        public Builder messageInterceptor(MessageInterceptor<DeploymentChatRequest> messageInterceptor) {
             this.messageInterceptor = messageInterceptor;
             return this;
         }
@@ -421,7 +424,7 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
          *
          * @param toolInterceptor the interceptor to apply
          */
-        public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
+        public Builder toolInterceptor(ToolInterceptor<DeploymentChatRequest> toolInterceptor) {
             this.toolInterceptor = toolInterceptor;
             return this;
         }
@@ -458,6 +461,16 @@ public class DeploymentService extends WatsonxService implements ChatProvider, T
         public Builder tools(List<Tool> tools) {
             this.defaultTools = tools;
             return this;
+        }
+
+        /**
+         * Returns a copy of this builder without the registered interceptors.
+         * <p>
+         * The service built from it backs the {@link ChatProvider} handed to the interceptors, so that a request re-issued from within an interceptor
+         * reaches the deployment without triggering the interceptors again.
+         */
+        private Builder copyWithoutInterceptors() {
+            return new Builder().copyFrom(this).tools(defaultTools);
         }
 
         /**

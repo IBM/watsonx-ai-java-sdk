@@ -38,25 +38,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.chat.ChatHandler;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.ToolRegistry;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
@@ -70,6 +70,7 @@ import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.deployment.DeploymentChatRequest;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
@@ -460,7 +461,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var request = ChatRequest.builder()
+            var request = DeploymentChatRequest.builder()
                 .messages(List.of(UserMessage.text("Hello")))
                 .parameters(parameters)
                 .deploymentId("my-deployment-id")
@@ -486,7 +487,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 mockHttpRequest.getValue().uri()
             );
 
-            request = ChatRequest.builder()
+            request = DeploymentChatRequest.builder()
                 .messages(List.of(UserMessage.text("Hello")))
                 .deploymentId("my-deployment-id")
                 .build();
@@ -579,7 +580,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -598,14 +599,14 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
         };
 
-        var request = ChatRequest.builder()
+        var request = DeploymentChatRequest.builder()
             .messages(messages)
             .parameters(chatParameters)
             .deploymentId("my-deployment-id")
             .build();
 
         deploymentService.chatStreaming(request, chatHandler);
-        ChatResponse response = assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS));
+        TextChatResponse response = (TextChatResponse) assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS));
         assertNotNull(response);
         assertNotNull(response.choices());
         assertEquals(1, response.choices().size());
@@ -641,14 +642,14 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .transactionId("my-transaction-id")
             .build();
 
-        request = ChatRequest.builder()
+        request = DeploymentChatRequest.builder()
             .messages(messages)
             .parameters(chatParameters)
             .deploymentId("my-deployment-id")
             .build();
 
         deploymentService.chatStreaming(request, chatHandler);
-        response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        response = (TextChatResponse) assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         assertNotNull(response);
     }
 
@@ -691,7 +692,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        ChatRequest chatRequest = ChatRequest.builder()
+        DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
             .messages(UserMessage.text("Translate \"Hello\" in Italian"))
             .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
             .deploymentId("my-deployment-id")
@@ -710,7 +711,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1234,7 +1235,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .build();
 
-        var request = ChatRequest.builder()
+        var request = DeploymentChatRequest.builder()
             .messages(List.of(UserMessage.text("Hello")))
             .deploymentId("my-deployment-id")
             .build();
@@ -1252,7 +1253,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
                 assertTrue(Thread.currentThread().getName().startsWith("thread-"));
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1277,10 +1278,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .input("test")
                 .build();
 
-            var chatRequest = ChatRequest.builder()
-                .messages(UserMessage.text("test"))
-                .build();
-
             var forecastRequest = TimeSeriesRequest.builder()
                 .inputSchema(InputSchema.builder().timestampColumn("test").build())
                 .data(ForecastData.create())
@@ -1288,7 +1285,9 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate(textGenerationRequest));
             assertEquals(ex.getMessage(), "deploymentId must be provided");
-            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(chatRequest));
+            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(DeploymentChatRequest.builder()
+                .messages(UserMessage.text("test"))
+                .build()));
             assertEquals(ex.getMessage(), "deploymentId must be provided");
             ex = assertThrows(RuntimeException.class,
                 () -> deploymentService.forecast(forecastRequest));
@@ -1317,7 +1316,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .input("test")
                 .build();
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId("my-deployment-id")
                 .messages(UserMessage.text("test"))
                 .build();
@@ -1400,7 +1399,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             var tool = Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
             var messages = List.<ChatMessage>of(UserMessage.text("What time is it in Italy?"));
-            var chatRequest = ChatRequest.builder().deploymentId("my-deployment-id").messages(messages).tools(tool).build();
+            var chatRequest = DeploymentChatRequest.builder().deploymentId("my-deployment-id").messages(messages).tools(tool).build();
             var chatResponse = deploymentService.chat(chatRequest);
             var assistantMessage = chatResponse.toAssistantMessage();
             assertNull(assistantMessage.content());
@@ -1466,7 +1465,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId("my-deployment-id")
                 .messages(UserMessage.text("What time is it in Italy?"))
                 .build();
@@ -1598,7 +1597,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         List<String> partialResponses = new ArrayList<>();
-        ChatRequest chatRequest = ChatRequest.builder()
+        DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
             .deploymentId("my-deployment-id")
             .messages(UserMessage.text("How are you?"))
             .build();
@@ -1611,7 +1610,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1703,7 +1702,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         List<PartialToolCall> toolFetchers = new ArrayList<>();
         List<CompletedToolCall> toolCalls = new ArrayList<>();
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        ChatRequest chatRequest = ChatRequest.builder()
+        DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
             .deploymentId("my-deployment-id")
             .messages(messages)
             .tools(tools)
@@ -1716,7 +1715,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                result.complete(completeResponse);
+                result.complete((TextChatResponse) completeResponse);
             }
 
             @Override
@@ -1735,7 +1734,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             }
         });
 
-        ChatResponse response = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        TextChatResponse response = (TextChatResponse) assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         AssistantMessage assistantMessage = response.toAssistantMessage();
         JSONAssert.assertEquals("""
             {
@@ -1843,7 +1842,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId("deploymentId")
                 .messages(messages)
                 .build();
@@ -1957,7 +1956,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatRequest = ChatRequest.builder()
+            var chatRequest = DeploymentChatRequest.builder()
                 .deploymentId("deploymentId")
                 .messages(messages)
                 .tools(ovverideTool)
@@ -2081,7 +2080,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
         AtomicInteger completedToolCallCount = new AtomicInteger();
-        ChatRequest chatRequest = ChatRequest.builder()
+        DeploymentChatRequest chatRequest = DeploymentChatRequest.builder()
             .deploymentId("my-deployment-id")
             .messages(UserMessage.text("Message"))
             .build();
@@ -2092,7 +2091,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             @Override
             public void onCompleteResponse(ChatResponse completeResponse) {
-                future.complete(completeResponse);
+                future.complete((TextChatResponse) completeResponse);
             }
 
             @Override

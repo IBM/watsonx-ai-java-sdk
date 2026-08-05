@@ -122,7 +122,7 @@ public class ChatBot {
         return future;
     }
 
-    private FunctionCall sanitize(InterceptorContext ctx, FunctionCall fc) {
+    private FunctionCall sanitize(InterceptorContext<ChatRequest> ctx, FunctionCall fc) {
         logger.info("Invoked sanitize");
 
         String toolName = fc.name();

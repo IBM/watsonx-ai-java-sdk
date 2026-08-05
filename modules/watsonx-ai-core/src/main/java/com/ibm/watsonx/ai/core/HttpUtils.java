@@ -136,10 +136,16 @@ public final class HttpUtils {
                     // TODO: verify if this behavior persists once the Agent Tool APIs are no longer in beta.
                     return parseToolError(genericError);
                 } else if (genericError.size() == 1 && genericError.containsKey("error")) {
+                    var wrappedError = genericError.get("error");
+
+                    // Model Gateway errors wrap details in an "error" object with "code", "message", and "request_id".
+                    if (wrappedError instanceof Map<?, ?> gatewayError)
+                        return parseGatewayError(statusCode, gatewayError);
+
                     // The Create Schema API returns a single error message as a string in the body.
                     // TODO: verify if this behavior persists.
-                    String message = "schema_event_does_not_exist";
-                    return new WatsonxError(statusCode, "", List.of(new Error(message, (String) genericError.get("error"), "")));
+                    if (wrappedError instanceof String schemaError)
+                        return new WatsonxError(statusCode, "", List.of(new Error("schema_event_does_not_exist", schemaError, "")));
                 }
                 // Standard error body that simply has no "trace": still return the typed error instead of
                 // falling through to a generic RuntimeException and losing the WatsonxException mapping.
@@ -202,6 +208,21 @@ public final class HttpUtils {
         return new WatsonxError(
             (Integer) body.get("status"),
             (String) body.get("trace"),
+            List.of(new Error((String) error.get("code"), (String) error.get("message"), null)));
+    }
+
+    /**
+     * Parses an error response from the Model Gateway API into a {@link WatsonxError} with a standardized format. The Gateway wraps error details in
+     * an {@code "error"} object with {@code "code"}, {@code "message"}, and {@code "request_id"} fields.
+     *
+     * @param statusCode the HTTP status code
+     * @param error the deserialized {@code "error"} object from the response body
+     * @return An instance of {@link WatsonxError} parsed from the body.
+     */
+    private static WatsonxError parseGatewayError(int statusCode, Map<?, ?> error) {
+        return new WatsonxError(
+            statusCode,
+            (String) error.get("request_id"),
             List.of(new Error((String) error.get("code"), (String) error.get("message"), null)));
     }
 

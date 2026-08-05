@@ -7,8 +7,10 @@ package com.ibm.watsonx.ai.client.impl;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
+import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatRestClient;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 
 public class CustomChatRestClient extends ChatRestClient {
@@ -18,13 +20,13 @@ public class CustomChatRestClient extends ChatRestClient {
     }
 
     @Override
-    public ChatResponse chat(String transactionId, TextChatRequest textChatRequest) {
+    public TextChatResponse chat(String transactionId, TextChatRequest textChatRequest) {
         throw new UnsupportedOperationException("Unimplemented method 'chat'");
     }
 
     @Override
     public CompletableFuture<ChatResponse> chatStreaming(String transactionId, TextChatRequest textChatRequest,
-        ChatClientContext context, ChatHandler handler) {
+        ChatClientContext<ChatRequest> context, ChatHandler handler) {
         throw new UnsupportedOperationException("Unimplemented method 'chatStreaming'");
     }
 

@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import com.ibm.watsonx.ai.Crypto;
 import com.ibm.watsonx.ai.chat.ChatModeration;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.JsonSchemaObject;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ResponseFormat;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.JsonSchemaObject;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ResponseFormat;
 
 /**
  * Represents a chat request to used by the watsonx.ai API.

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
@@ -35,8 +36,10 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * <p>
  * This class is thread-safe and designed for concurrent use in streaming scenarios. All callback scheduling is handled through atomic operations and
  * thread-safe collections.
+ *
+ * @param <R> the concrete chat request type handled by the intercepted provider
  */
-public class ChatHandlerDecorator implements ChatHandler {
+public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHandler {
     /**
      * The underlying chat handler that receives the decorated callbacks.
      */
@@ -45,12 +48,12 @@ public class ChatHandlerDecorator implements ChatHandler {
     /**
      * Context information passed to the tool interceptor for processing tool calls.
      */
-    private final InterceptorContext context;
+    private final InterceptorContext<R> context;
 
     /**
      * Optional interceptor for modifying or validating tool calls before they reach the delegate.
      */
-    private final ToolInterceptor toolInterceptor;
+    private final ToolInterceptor<R> toolInterceptor;
 
     /**
      * Atomic reference to maintain a chain of sequential callbacks.
@@ -72,7 +75,7 @@ public class ChatHandlerDecorator implements ChatHandler {
      * @param context the interceptor context for tool call processing
      * @param toolInterceptor optional interceptor for tool calls
      */
-    public ChatHandlerDecorator(ChatHandler delegate, InterceptorContext context, ToolInterceptor toolInterceptor) {
+    public ChatHandlerDecorator(ChatHandler delegate, InterceptorContext<R> context, ToolInterceptor<R> toolInterceptor) {
         this.delegate = delegate;
         this.context = context;
         this.toolInterceptor = toolInterceptor;

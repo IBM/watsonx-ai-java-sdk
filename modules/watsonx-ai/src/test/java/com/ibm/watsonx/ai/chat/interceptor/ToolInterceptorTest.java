@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.chat.interceptor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
@@ -23,11 +24,11 @@ public class ToolInterceptorTest {
 
         var message = new ResultMessage("assistant", null, null, null, toolCalls);
         var choice = new ResultChoice(0, message, "tool_calls");
-        var response = ChatResponse.build().choices(List.of(choice)).build();
-        var context = new InterceptorContext(null, null, response);
+        var response = ChatResponse.builder().choices(List.of(choice)).build();
+        var context = new InterceptorContext<ChatRequest>(null, null, response);
 
         // Identity interceptor: each tool call must map to exactly itself, with no cross product.
-        ToolInterceptor interceptor = (ctx, fc) -> fc;
+        ToolInterceptor<ChatRequest> interceptor = (ctx, fc) -> fc;
 
         var result = interceptor.intercept(context);
         var resultToolCalls = result.get(0).message().toolCalls();

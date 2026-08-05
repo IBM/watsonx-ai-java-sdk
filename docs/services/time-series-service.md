@@ -42,7 +42,7 @@ ForecastResponse response = service.forecast(request);
 System.out.println("Forecasted points: " + response.outputDataPoints());
 ```
 
-> **Note:** To see the list of available models, refer to [Supported Foundation Models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx#ibm-provided).
+> **Note:** To see the list of available models, refer to [Supported Foundation Models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx#ibm-provided). To list only time series models programmatically, use the [Foundation Model Service](../foundation-model-service/) and filter by `function("function_time_series_forecast")`.
 
 ---
 
@@ -54,6 +54,18 @@ The `TimeSeriesService` enables you to:
 - Handle single-target and multi-variate time series with multiple ID columns.
 - Control prediction horizon via `predictionLength`.
 - Override the model ID per-request via `TimeSeriesParameters`.
+
+### Supported Models
+
+The Granite time series models (also known as **Tiny Time Mixers, TTM**) are compact pretrained models from IBM Research for multivariate time series forecasting. Your administrator must install at least one of the following models before use:
+
+| Model ID | Minimum data points per channel | Notes |
+|----------|---------------------------------|-------|
+| `ibm/granite-ttm-512-96-r2` | 512 | Smallest model, suitable when less historical data is available |
+| `ibm/granite-ttm-1024-96-r2` | 1,024 | Balanced model for medium history lengths |
+| `ibm/granite-ttm-1536-96-r2` | 1,536 | Best results when the most historical data is available |
+
+All three models output **96 data points per channel** by default and work best with data sampled at **minute or hour intervals**. If you provide more data points than the model requires, the model uses the most recent points up to its limit and ignores the rest. For best results, use the model that accepts the most data points based on the history available to you.
 
 ---
 
@@ -154,6 +166,34 @@ var request = TimeSeriesRequest.builder()
 
 ForecastResponse response = service.forecast(request);
 ```
+
+---
+
+## Data Requirements
+
+Before submitting a forecast request, ensure your data meets the following requirements:
+
+- **Numerical values only** - recorded observations must be numerical (for example temperatures, stock prices, or sensor readings). Non-numerical values are not supported.
+- **Minimum data points** - each time series must include at least as many data points as the chosen model requires per channel (512, 1,024, or 1,536 rows depending on the model). If fewer points are provided, the request will fail.
+- **No missing values** - all arrays for the timestamp column, ID columns, and target columns must have the same length. You cannot skip a data point or use `null` as a placeholder.
+- **Uniform sampling frequency** - data must be collected at a consistent interval (for example every 1 minute, 1 hour, or 1 day). Non-uniform timestamps do not cause an error, but may degrade forecast quality.
+- **ISO 8601 timestamps recommended** - use `2024-11-12T15:06:35` or `2024-11-12T15:06:35+0000` format to avoid date-convention ambiguity and apparent duplicates due to time-zone differences.
+
+### Frequency String Reference
+
+The `freq` field on `InputSchema` accepts [pandas Period aliases](https://pandas.pydata.org/docs/user_guide/timeseries.html#period-aliases). Common values:
+
+| Value | Meaning |
+|-------|---------|
+| `min` | Minute |
+| `h` | Hour |
+| `D` | Calendar day |
+| `W` | Week |
+| `M` | Month end |
+| `Q` | Quarter end |
+| `Y` | Year end |
+
+If `freq` is not specified, the service attempts to infer it from the timestamp data. The generated forecast data is formatted using the same frequency you specify.
 
 ---
 

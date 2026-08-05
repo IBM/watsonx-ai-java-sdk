@@ -9,14 +9,16 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 
 /**
  * Holds the context data for a chat interaction.
+ *
+ * @param <R> the concrete chat request type handled by the provider
  */
-public class ChatClientContext {
-    private final ChatProvider chatProvider;
-    private final ChatRequest chatRequest;
-    private final ToolInterceptor toolInterceptor;
+public class ChatClientContext<R extends BaseChatRequest> {
+    private final ChatProvider<R, ?> chatProvider;
+    private final R chatRequest;
+    private final ToolInterceptor<R> toolInterceptor;
     private final ExtractionTags extractionTags;
 
-    private ChatClientContext(Builder builder) {
+    private ChatClientContext(Builder<R> builder) {
         chatProvider = builder.chatProvider;
         chatRequest = builder.chatRequest;
         toolInterceptor = builder.toolInterceptor;
@@ -28,7 +30,7 @@ public class ChatClientContext {
      *
      * @return the chat provider
      */
-    public ChatProvider chatProvider() {
+    public ChatProvider<R, ?> chatProvider() {
         return chatProvider;
     }
 
@@ -37,7 +39,7 @@ public class ChatClientContext {
      *
      * @return the chat request
      */
-    public ChatRequest chatRequest() {
+    public R chatRequest() {
         return chatRequest;
     }
 
@@ -46,7 +48,7 @@ public class ChatClientContext {
      *
      * @return the tool interceptor
      */
-    public ToolInterceptor toolInterceptor() {
+    public ToolInterceptor<R> toolInterceptor() {
         return toolInterceptor;
     }
 
@@ -62,19 +64,22 @@ public class ChatClientContext {
     /**
      * Creates a new builder instance.
      *
+     * @param <R> the concrete chat request type handled by the provider
      * @return a new {@link Builder}
      */
-    public static Builder builder() {
-        return new Builder();
+    public static <R extends BaseChatRequest> Builder<R> builder() {
+        return new Builder<>();
     }
 
     /**
      * Builder for constructing {@link ChatClientContext} instances.
+     *
+     * @param <R> the concrete chat request type handled by the provider
      */
-    public static class Builder {
-        private ChatProvider chatProvider;
-        private ChatRequest chatRequest;
-        private ToolInterceptor toolInterceptor;
+    public static class Builder<R extends BaseChatRequest> {
+        private ChatProvider<R, ?> chatProvider;
+        private R chatRequest;
+        private ToolInterceptor<R> toolInterceptor;
         private ExtractionTags extractionTags;
 
         private Builder() {}
@@ -84,7 +89,7 @@ public class ChatClientContext {
          *
          * @param chatProvider the chat provider
          */
-        public Builder chatProvider(ChatProvider chatProvider) {
+        public Builder<R> chatProvider(ChatProvider<R, ?> chatProvider) {
             this.chatProvider = chatProvider;
             return this;
         }
@@ -94,7 +99,7 @@ public class ChatClientContext {
          *
          * @param chatRequest the chat request
          */
-        public Builder chatRequest(ChatRequest chatRequest) {
+        public Builder<R> chatRequest(R chatRequest) {
             this.chatRequest = chatRequest;
             return this;
         }
@@ -104,7 +109,7 @@ public class ChatClientContext {
          *
          * @param toolInterceptor the tool interceptor
          */
-        public Builder toolInterceptor(ToolInterceptor toolInterceptor) {
+        public Builder<R> toolInterceptor(ToolInterceptor<R> toolInterceptor) {
             this.toolInterceptor = toolInterceptor;
             return this;
         }
@@ -114,7 +119,7 @@ public class ChatClientContext {
          *
          * @param extractionTags the extractions tags
          */
-        public Builder extractionTags(ExtractionTags extractionTags) {
+        public Builder<R> extractionTags(ExtractionTags extractionTags) {
             this.extractionTags = extractionTags;
             return this;
         }
@@ -124,8 +129,8 @@ public class ChatClientContext {
          *
          * @return a new {@link ChatClientContext}
          */
-        public ChatClientContext build() {
-            return new ChatClientContext(this);
+        public ChatClientContext<R> build() {
+            return new ChatClientContext<>(this);
         }
     }
 }

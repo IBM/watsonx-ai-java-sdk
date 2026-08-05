@@ -23,6 +23,7 @@ import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
@@ -142,7 +143,7 @@ final class DefaultRestClient extends DeploymentRestClient {
     }
 
     @Override
-    public ChatResponse chat(String transactionId, String deploymentId, Duration timeout, TextChatRequest textChatRequest) {
+    public TextChatResponse chat(String transactionId, String deploymentId, Duration timeout, TextChatRequest textChatRequest) {
 
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat?version=%s".formatted(deploymentId, version));
 
@@ -160,7 +161,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         try {
 
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpResponse.body(), ChatResponse.class);
+            return fromJson(httpResponse.body(), TextChatResponse.class);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -172,7 +173,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         String transactionId,
         String deploymentId,
         TextChatRequest textChatRequest,
-        ChatClientContext context,
+        ChatClientContext<DeploymentChatRequest> context,
         ChatHandler handler) {
 
         var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat_stream?version=%s".formatted(deploymentId, version));
@@ -188,11 +189,11 @@ final class DefaultRestClient extends DeploymentRestClient {
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         var response = new CompletableFuture<ChatResponse>();
-        var interceptorContext = new InterceptorContext(context.chatProvider(), context.chatRequest(), null);
+        var interceptorContext = new InterceptorContext<>(context.chatProvider(), context.chatRequest(), null);
         var chatSubscriber =
             new DefaultChatSubscriber(
-                new SseEventProcessor(textChatRequest.tools(), context.extractionTags()),
-                new ChatHandlerDecorator(handler, interceptorContext, context.toolInterceptor())
+                new SseEventProcessor(textChatRequest.tools(), context.extractionTags(), TextChatResponse::builder),
+                new ChatHandlerDecorator<>(handler, interceptorContext, context.toolInterceptor())
             );
 
         var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());

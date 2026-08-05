@@ -10,6 +10,12 @@ permalink: /services/rerank-service/
 
 The `RerankService` provides functionality to rerank a list of text candidates against a query using **IBM watsonx.ai reranker models**. It scores and sorts input texts by their relevance to a given query, making it ideal for improving search results, retrieval-augmented generation (RAG) pipelines, and document retrieval systems.
 
+## How reranking works
+
+The reranker accepts a REST API request with a query and a list of passages. It submits these text strings to a **cross-encoder model**. The cross-encoder pairs the query with each passage, converts the text to embedding vectors, compares the vectors in each pair, and scores their similarity. The passages are then reranked based on the generated similarity scores. The intermediate text embeddings are **not** returned - only the final scores.
+
+> **Cross-encoder vs. embedding models:** Many embedding models also support a `rerank` function, but they use semantic reranking based on precomputed embedding vector values - a less accurate method. **Cross-encoder models** are more effective because they explicitly compare each passage to the query and generate per-pairing ranking scores. Use a dedicated reranker model when ranking accuracy matters.
+
 ## Quick Start
 
 ```java
@@ -33,7 +39,7 @@ response.results().forEach(r -> System.out.printf("[%d] score=%.4f%n", r.index()
 // → [1] score=-0.9204
 ```
 
-> **Note:** To see the list of available reranking models, refer to [supported reranker models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx&audience=wdp#rerank).
+> **Note:** To see the list of available reranking models, refer to [supported reranker models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx&audience=wdp#rerank). You can also query available reranker models programmatically - see [Foundation Model Service](../foundation-model-service/) and filter by `function("function_rerank")`.
 
 ---
 
@@ -136,7 +142,7 @@ response.results().forEach(r -> System.out.printf("[%d] %.4f%n", r.index(), r.sc
 
 ### Truncating Long Inputs
 
-If any of your inputs may exceed the model's token limit, use `truncateInputTokens` to avoid errors. Inputs are truncated from the right, preserving the start of the text.
+You can specify up to **1,000 inputs** per call. Each input must conform to the model's maximum input token limit. If any of your inputs may exceed the limit, use `truncateInputTokens` to avoid errors. Inputs are truncated from the right, preserving the start of the text. The more passages you specify, the longer the reranking takes - cross-encoder models process each passage together with the query sequentially.
 
 ```java
 RerankParameters parameters = RerankParameters.builder()
@@ -194,4 +200,5 @@ Each `RerankResult` exposes:
 
 - [Rerank API Reference](https://cloud.ibm.com/apidocs/watsonx-ai#text-rerank)
 - [Supported Reranker Models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx&audience=wdp#rerank)
+- [Supported Encoder Models (embedding + rerank)](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx)
 - [Sample Code](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/rerank)

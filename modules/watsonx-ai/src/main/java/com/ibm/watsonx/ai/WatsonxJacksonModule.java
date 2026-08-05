@@ -18,9 +18,10 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.JsonSchemaObject;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.JsonSchemaObject;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse.ResultChoice;
@@ -44,6 +45,9 @@ import com.ibm.watsonx.ai.detection.detector.GraniteGuardian;
 import com.ibm.watsonx.ai.detection.detector.Hap;
 import com.ibm.watsonx.ai.detection.detector.Pii;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
+import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
+import com.ibm.watsonx.ai.gateway.ModelGatewayTextChatRequest;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
 import com.ibm.watsonx.ai.textgeneration.Moderation.InputRanges;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
@@ -70,12 +74,17 @@ public class WatsonxJacksonModule extends SimpleModule {
         super("watsonx-ai-jackson-module");
 
         // --- Chat Mixin --- //
+        setMixInAnnotation(TextChatResponse.class, TextChatResponseMixin.class);
+        setMixInAnnotation(TextChatResponse.Builder.class, TextChatResponseBuilderMixin.class);
         setMixInAnnotation(ChatResponse.class, ChatResponseMixin.class);
         setMixInAnnotation(ChatResponse.Builder.class, ChatResponseBuilderMixin.class);
         setMixInAnnotation(AssistantMessage.class, AssistantMessageMixIn.class);
         setMixInAnnotation(TextChatRequest.class, TextChatRequestMixin.class);
         setMixInAnnotation(TextChatRequest.Builder.class, TextChatRequestBuilderMixin.class);
         setMixInAnnotation(ToolArguments.class, ToolArgumentsMixin.class);
+        setMixInAnnotation(ExtractionTags.class, ExtractionTagsMixin.class);
+        setMixInAnnotation(ExtractionTags.Think.class, ExtractionTagsThinkMixin.class);
+        setMixInAnnotation(ExtractionTags.Response.class, ExtractionTagsResponseMixin.class);
 
         // -- Text Generation Mixin --- //
         setMixInAnnotation(TextGenerationParameters.class, TextGenerationParametersMixin.class);
@@ -85,8 +94,18 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         // --- Chat Moderation Mixin --- //
         setMixInAnnotation(com.ibm.watsonx.ai.chat.ChatModeration.class, ChatModerationMixin.class);
-        setMixInAnnotation(ChatResponse.DetectionEntry.class, ChatResponseDetectionEntryMixin.class);
-        setMixInAnnotation(ChatResponse.DetectionResult.class, ChatResponseDetectionResultMixin.class);
+        setMixInAnnotation(TextChatResponse.DetectionEntry.class, TextChatResponseDetectionEntryMixin.class);
+        setMixInAnnotation(TextChatResponse.DetectionResult.class, TextChatResponseDetectionResultMixin.class);
+
+        // --- Gateway Mixin --- //
+        setMixInAnnotation(ModelGatewayChatResponse.class, ModelGatewayChatResponseMixin.class);
+        setMixInAnnotation(ModelGatewayChatResponse.Builder.class, ModelGatewayChatResponseBuilderMixin.class);
+        setMixInAnnotation(ModelGatewayTextChatRequest.class, ModelGatewayTextChatRequestMixin.class);
+        setMixInAnnotation(ModelGatewayTextChatRequest.Builder.class, ModelGatewayTextChatRequestBuilderMixin.class);
+        setMixInAnnotation(ModelGatewayParameters.Prediction.class, ModelGatewayPredictionMixin.class);
+        setMixInAnnotation(ModelGatewayParameters.StreamOptions.class, ModelGatewayStreamOptionsMixin.class);
+        setMixInAnnotation(ModelGatewayParameters.Cache.class, ModelGatewayCacheMixin.class);
+        setMixInAnnotation(ModelGatewayParameters.Router.class, ModelGatewayRouterMixin.class);
 
         // --- Schema Mixin --- //
         setMixInAnnotation(ArraySchema.class, ArraySchemaMixin.class);
@@ -320,6 +339,34 @@ public class WatsonxJacksonModule extends SimpleModule {
         @JsonProperty("object")
         abstract String object();
 
+        @JsonProperty("model")
+        abstract String model();
+
+        @JsonProperty("choices")
+        abstract List<ResultChoice> choices();
+
+        @JsonProperty("created")
+        abstract Long created();
+
+        @JsonProperty("usage")
+        abstract ChatUsage usage();
+
+        @JsonProperty("extraction_tags")
+        abstract ExtractionTags extractionTags();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class ChatResponseBuilderMixin {}
+
+    @JsonDeserialize(builder = TextChatResponse.Builder.class)
+    public abstract static class TextChatResponseMixin {
+
+        @JsonProperty("id")
+        abstract String id();
+
+        @JsonProperty("object")
+        abstract String object();
+
         @JsonProperty("model_id")
         abstract String modelId();
 
@@ -345,22 +392,52 @@ public class WatsonxJacksonModule extends SimpleModule {
         abstract ExtractionTags extractionTags();
 
         @JsonProperty("moderations")
-        abstract Map<String, List<ChatResponse.ModerationResult>> moderations();
+        abstract Map<String, List<TextChatResponse.ModerationResult>> moderations();
 
         @JsonProperty("detections")
-        abstract Map<String, List<ChatResponse.DetectionEntry>> detections();
+        abstract Map<String, List<TextChatResponse.DetectionEntry>> detections();
     }
 
-    public abstract static class ChatResponseDetectionEntryMixin {
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class TextChatResponseBuilderMixin {}
+
+    public abstract static class ExtractionTagsMixin {
         @JsonCreator
-        public ChatResponseDetectionEntryMixin(
+        public ExtractionTagsMixin(
+            @JsonProperty("think") ExtractionTags.Think think,
+            @JsonProperty("response") ExtractionTags.Response response) {}
+
+        @JsonProperty("think")
+        abstract ExtractionTags.Think think();
+
+        @JsonProperty("response")
+        abstract ExtractionTags.Response response();
+    }
+
+    public abstract static class ExtractionTagsThinkMixin {
+        @JsonCreator
+        public ExtractionTagsThinkMixin(
+            @JsonProperty("opening") String opening,
+            @JsonProperty("closing") String closing) {}
+    }
+
+    public abstract static class ExtractionTagsResponseMixin {
+        @JsonCreator
+        public ExtractionTagsResponseMixin(
+            @JsonProperty("opening") String opening,
+            @JsonProperty("closing") String closing) {}
+    }
+
+    public abstract static class TextChatResponseDetectionEntryMixin {
+        @JsonCreator
+        public TextChatResponseDetectionEntryMixin(
             @JsonProperty("choice_index") int choiceIndex,
-            @JsonProperty("results") List<ChatResponse.DetectionResult> results) {}
+            @JsonProperty("results") List<TextChatResponse.DetectionResult> results) {}
     }
 
-    public abstract static class ChatResponseDetectionResultMixin {
+    public abstract static class TextChatResponseDetectionResultMixin {
         @JsonCreator
-        public ChatResponseDetectionResultMixin(
+        public TextChatResponseDetectionResultMixin(
             @JsonProperty("detector_id") String detectorId,
             @JsonProperty("detection_type") String detectionType,
             @JsonProperty("detection") String detection,
@@ -369,9 +446,6 @@ public class WatsonxJacksonModule extends SimpleModule {
             @JsonProperty("start") int start,
             @JsonProperty("end") int end) {}
     }
-
-    @JsonPOJOBuilder(withPrefix = "")
-    public abstract static class ChatResponseBuilderMixin {}
 
     @JsonDeserialize(builder = TextChatRequest.Builder.class)
     public abstract static class TextChatRequestMixin {
@@ -689,4 +763,184 @@ public class WatsonxJacksonModule extends SimpleModule {
 
     @JsonPOJOBuilder(withPrefix = "")
     public abstract static class BatchCreateRequestBuilderMixin {}
+
+    @JsonDeserialize(builder = ModelGatewayChatResponse.Builder.class)
+    public abstract static class ModelGatewayChatResponseMixin {
+
+        @JsonProperty("id")
+        abstract String id();
+
+        @JsonProperty("object")
+        abstract String object();
+
+        @JsonProperty("model_id")
+        abstract String modelId();
+
+        @JsonProperty("model")
+        abstract String model();
+
+        @JsonProperty("choices")
+        abstract List<ChatResponse.ResultChoice> choices();
+
+        @JsonProperty("created")
+        abstract Long created();
+
+        @JsonProperty("model_version")
+        abstract String modelVersion();
+
+        @JsonProperty("created_at")
+        abstract String createdAt();
+
+        @JsonProperty("usage")
+        abstract ChatUsage usage();
+
+        @JsonProperty("extraction_tags")
+        abstract ExtractionTags extractionTags();
+
+        @JsonProperty("moderations")
+        abstract Map<String, List<TextChatResponse.ModerationResult>> moderations();
+
+        @JsonProperty("detections")
+        abstract Map<String, List<TextChatResponse.DetectionEntry>> detections();
+
+        @JsonProperty("service_tier")
+        abstract String serviceTier();
+
+        @JsonProperty("system_fingerprint")
+        abstract String systemFingerprint();
+
+        @JsonProperty("cached")
+        abstract Boolean cached();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class ModelGatewayChatResponseBuilderMixin {}
+
+    @JsonDeserialize(builder = ModelGatewayTextChatRequest.Builder.class)
+    public abstract static class ModelGatewayTextChatRequestMixin {
+
+        @JsonProperty("model")
+        abstract String model();
+
+        @JsonProperty("messages")
+        abstract List<ChatMessage> messages();
+
+        @JsonProperty("tools")
+        abstract List<Tool> tools();
+
+        // The gateway is OpenAI-compatible and exposes a single "tool_choice" union (string or function object), unlike the watsonx-native
+        // endpoint which splits selection into "tool_choice_option" and "tool_choice".
+        @JsonProperty("tool_choice")
+        abstract Object toolChoice();
+
+        @JsonProperty("frequency_penalty")
+        abstract Double frequencyPenalty();
+
+        @JsonProperty("logit_bias")
+        abstract Map<String, Integer> logitBias();
+
+        @JsonProperty("logprobs")
+        abstract Boolean logprobs();
+
+        @JsonProperty("top_logprobs")
+        abstract Integer topLogprobs();
+
+        @JsonProperty("max_completion_tokens")
+        abstract Integer maxCompletionTokens();
+
+        @JsonProperty("max_tokens")
+        abstract Integer maxTokens();
+
+        @JsonProperty("n")
+        abstract Integer n();
+
+        @JsonProperty("presence_penalty")
+        abstract Double presencePenalty();
+
+        @JsonProperty("seed")
+        abstract Integer seed();
+
+        @JsonProperty("stop")
+        abstract List<String> stop();
+
+        @JsonProperty("temperature")
+        abstract Double temperature();
+
+        @JsonProperty("top_p")
+        abstract Double topP();
+
+        // The gateway is OpenAI-compatible and does not accept the watsonx-native "time_limit" body field.
+        // It is retained on the request only to drive the client-side HTTP timeout, so it must not be serialized.
+        @JsonIgnore
+        abstract Long timeLimit();
+
+        @JsonProperty("response_format")
+        abstract Map<String, Object> responseFormat();
+
+        @JsonProperty("audio")
+        abstract Map<String, String> audio();
+
+        @JsonProperty("metadata")
+        abstract Map<String, String> metadata();
+
+        @JsonProperty("modalities")
+        abstract List<String> modalities();
+
+        @JsonProperty("parallel_tool_calls")
+        abstract Boolean parallelToolCalls();
+
+        @JsonProperty("prediction")
+        abstract ModelGatewayParameters.Prediction prediction();
+
+        @JsonProperty("reasoning_effort")
+        abstract String reasoningEffort();
+
+        @JsonProperty("service_tier")
+        abstract String serviceTier();
+
+        @JsonProperty("store")
+        abstract Boolean store();
+
+        @JsonProperty("stream_options")
+        abstract ModelGatewayParameters.StreamOptions streamOptions();
+
+        @JsonProperty("router")
+        abstract ModelGatewayParameters.Router router();
+
+        @JsonProperty("user")
+        abstract String user();
+
+        @JsonProperty("stream")
+        abstract Boolean stream();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class ModelGatewayTextChatRequestBuilderMixin {}
+
+    public abstract static class ModelGatewayPredictionMixin {
+        @JsonCreator
+        public ModelGatewayPredictionMixin(
+            @JsonProperty("type") String type,
+            @JsonProperty("content") Object content) {}
+    }
+
+    public abstract static class ModelGatewayStreamOptionsMixin {
+        @JsonCreator
+        public ModelGatewayStreamOptionsMixin(
+            @JsonProperty("include_usage") Boolean includeUsage) {}
+    }
+
+    public abstract static class ModelGatewayCacheMixin {
+        @JsonCreator
+        public ModelGatewayCacheMixin(
+            @JsonProperty("enabled") boolean enabled,
+            @JsonProperty("filter") Object filter,
+            @JsonProperty("threshold") Double threshold) {}
+    }
+
+    public abstract static class ModelGatewayRouterMixin {
+        @JsonCreator
+        public ModelGatewayRouterMixin(
+            @JsonProperty("cache") ModelGatewayParameters.Cache cache) {}
+    }
 }

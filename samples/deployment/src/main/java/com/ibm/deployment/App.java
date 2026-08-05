@@ -7,8 +7,8 @@ package com.ibm.deployment;
 import java.net.URI;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.deployment.DeploymentChatRequest;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.deployment.FindByIdRequest;
 
@@ -44,7 +44,7 @@ public class App {
             deploymentInfo.metadata().name(), deploymentInfo.entity().deployedAssetType(), deploymentInfo.entity().status().state()));
 
         var message = "How are you?";
-        var chatRequest = ChatRequest.builder()
+        var chatRequest = DeploymentChatRequest.builder()
             .deploymentId(deployment)
             .messages(UserMessage.text(message))
             .build();

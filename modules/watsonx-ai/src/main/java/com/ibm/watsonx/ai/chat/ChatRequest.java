@@ -4,23 +4,8 @@
  */
 package com.ibm.watsonx.ai.chat;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNullElse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import com.ibm.watsonx.ai.chat.model.ChatMessage;
-import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
-import com.ibm.watsonx.ai.chat.model.Thinking;
-import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
-import com.ibm.watsonx.ai.chat.model.Tool;
-import com.ibm.watsonx.ai.deployment.DeploymentService;
-
 /**
- * Represents a chat request.
+ * Represents a chat request for the {@link ChatService}.
  * <p>
  * Instances are created using the {@link Builder} pattern:
  * <p>
@@ -50,69 +35,23 @@ import com.ibm.watsonx.ai.deployment.DeploymentService;
  *         UserMessage.text("Tell me a joke")
  *     ).build();
  * }</pre>
+ *
+ * @see ChatService
+ * @see NativeChatRequest
  */
-public final class ChatRequest {
-    private final String deploymentId;
-    private final List<ChatMessage> messages;
-    private final List<Tool> tools;
-    private final ChatParameters parameters;
-    private final Thinking thinking;
+public final class ChatRequest extends NativeChatRequest {
     private final ChatModeration moderations;
 
     private ChatRequest(Builder builder) {
-        messages = requireNonNull(builder.messages, "messages cannot be null");
-        tools = builder.tools;
-        parameters = builder.parameters;
-        deploymentId = builder.deploymentId;
-        thinking = builder.thinking;
+        super(builder);
         moderations = builder.moderations;
     }
 
     /**
-     * Returns the deployment id.
+     * Returns the inline moderation configuration.
      *
-     * @return the deployment id, or {@code null} if not set
+     * @return the moderation configuration, or {@code null} if not set
      */
-    public String deploymentId() {
-        return deploymentId;
-    }
-
-    /**
-     * Returns the list of chat messages.
-     *
-     * @return the list of messages
-     */
-    public List<ChatMessage> messages() {
-        return messages;
-    }
-
-    /**
-     * Returns the list of tools available to the model.
-     *
-     * @return the list of tools, or {@code null} if not set
-     */
-    public List<Tool> tools() {
-        return tools;
-    }
-
-    /**
-     * Returns the chat parameters.
-     *
-     * @return the chat parameters, or {@code null} if not set
-     */
-    public ChatParameters parameters() {
-        return parameters;
-    }
-
-    /**
-     * Returns the thinking configuration.
-     *
-     * @return the thinking configuration, or {@code null} if not set
-     */
-    public Thinking thinking() {
-        return thinking;
-    }
-
     public ChatModeration moderations() {
         return moderations;
     }
@@ -124,7 +63,6 @@ public final class ChatRequest {
      */
     public Builder toBuilder() {
         return new Builder()
-            .deploymentId(deploymentId)
             .messages(messages)
             .tools(tools)
             .parameters(parameters)
@@ -138,23 +76,12 @@ public final class ChatRequest {
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * var tool = Tool.of(
-     *     "send_email",
-     *     "Send an email",
-     *     JsonSchema.object()
-     *         .property("email", JsonSchema.string())
-     *         .property("subject", JsonSchema.string())
-     *         .property("body", JsonSchema.string())
-     *         .required("email", "subject", "body")
-     * );
-     *
      * var parameters = ChatParameters.builder()
      *     .temperature(0.7)
      *     .maxCompletionTokens(0)
      *     .build();
      *
      * ChatRequest request = ChatRequest.builder()
-     *     .tools(tool)
      *     .parameters(parameters)
      *     .messages(
      *         SystemMessage.of("You are a helpful assistant"),
@@ -171,202 +98,16 @@ public final class ChatRequest {
     /**
      * Builder class for constructing {@link ChatRequest} instances.
      */
-    public final static class Builder {
-        private String deploymentId;
-        private List<ChatMessage> messages;
-        private List<Tool> tools;
-        private ChatParameters parameters;
-        private Thinking thinking;
+    public final static class Builder extends NativeChatRequest.Builder<Builder> {
         private ChatModeration moderations;
 
         private Builder() {}
 
         /**
-         * Sets the deployment identifier for the chat request.
-         * <p>
-         * This value is required if the request will be sent via a {@link DeploymentService}. For other services, this value may be ignored.
+         * Sets the inline moderation configuration applied to the request.
          *
-         * @param deploymentId the unique identifier of the deployment
+         * @param moderations the moderation configuration to apply
          */
-        public Builder deploymentId(String deploymentId) {
-            this.deploymentId = deploymentId;
-            return this;
-        }
-
-        /**
-         * Sets the conversation messages for the request, replacing any existing messages.
-         * <p>
-         * This method completely overwrites the current list of messages with the provided ones.
-         * <p>
-         * Use {@link #addMessages(ChatMessage...)} or {@link #addMessages(List)} to append messages instead.
-         *
-         * @param messages one or more {@link ChatMessage} objects to set
-         */
-        public Builder messages(ChatMessage... messages) {
-            return messages(Arrays.asList(messages));
-        }
-
-        /**
-         * Sets the conversation messages for the request, replacing any existing messages.
-         * <p>
-         * This method completely overwrites the current list of messages with the provided ones.
-         * <p>
-         * Use {@link #addMessages(ChatMessage...)} or {@link #addMessages(List)} to append messages instead.
-         *
-         * @param messages one or more {@link ChatMessage} objects to set
-         */
-        public Builder messages(List<? extends ChatMessage> messages) {
-            if (nonNull(messages))
-                this.messages = new ArrayList<>(messages);
-            return this;
-        }
-
-        /**
-         * Adds one or more messages to the existing list of messages for the chat request.
-         * <p>
-         * Unlike {@link #messages(ChatMessage...)}, which replaces the current list of messages, this method appends the provided messages to the
-         * existing list.
-         *
-         * @param messages one or more {@link ChatMessage} objects to add
-         */
-        public Builder addMessages(ChatMessage... messages) {
-            return addMessages(Arrays.asList(messages));
-        }
-
-        /**
-         * Adds one or more messages to the existing list of messages for the chat request.
-         * <p>
-         * Unlike {@link #messages(ChatMessage...)}, which replaces the current list of messages, this method appends the provided messages to the
-         * existing list.
-         *
-         * @param messages one or more {@link ChatMessage} objects to add
-         */
-        public Builder addMessages(List<? extends ChatMessage> messages) {
-            if (isNull(messages) || messages.isEmpty())
-                return this;
-
-            this.messages = requireNonNullElse(this.messages, new ArrayList<>());
-            this.messages.addAll(messages);
-            return this;
-        }
-
-        /**
-         * Sets the tools available for invocation by the model.
-         *
-         * @param executableTools list of {@link ExecutableTool} objects
-         */
-        public Builder tools(ExecutableTool... executableTools) {
-            return tools(Arrays.stream(executableTools).map(ExecutableTool::schema).toList());
-        }
-
-        /**
-         * Sets the tools available for invocation by the model.
-         *
-         * @param tools list of {@link Tool} objects
-         */
-        public Builder tools(Tool... tools) {
-            return tools(List.of(tools));
-        }
-
-        /**
-         * Sets the tools available for invocation by the model.
-         *
-         * @param tools list of {@link Tool} objects
-         */
-        public Builder tools(List<Tool> tools) {
-            this.tools = isNull(tools) ? null : List.copyOf(tools);
-            return this;
-        }
-
-        /**
-         * Sets the parameters controlling the chat model's behavior.
-         *
-         * @param parameters a {@link ChatParameters} instance
-         */
-        public Builder parameters(ChatParameters parameters) {
-            this.parameters = parameters;
-            return this;
-        }
-
-        /**
-         * Enables or disables reasoning for the chat request.
-         * <p>
-         * This method provides a simple way to toggle reasoning behavior without specifying any particular configuration. When {@code true},
-         * reasoning is enabled using the default {@link Thinking} settings. When {@code false}, reasoning is disabled entirely.
-         *
-         * @param enabled {@code true} to enable reasoning with default settings, {@code false} to disable reasoning
-         */
-        public Builder thinking(boolean enabled) {
-            return thinking(Thinking.builder().enabled(enabled).build());
-        }
-
-        /**
-         * Sets the reasoning extraction tags for the chat request.
-         * <p>
-         * This method is intended for models that return reasoning and response content within the same text string. The provided
-         * {@link ExtractionTags} define which XML-like tags (for example, {@code <think>} and {@code <response>}) should be used to automatically
-         * extract the reasoning and response segments.
-         *
-         * <p>
-         * Equivalent to calling:
-         *
-         * <pre>{@code
-         * builder.thinking(Thinking.of(tags));
-         * }</pre>
-         *
-         * @param tags an {@link ExtractionTags} instance defining the reasoning and response tags
-         */
-        public Builder thinking(ExtractionTags tags) {
-            if (isNull(tags)) {
-                thinking = null;
-                return this;
-            }
-
-            return thinking(Thinking.of(tags));
-        }
-
-        /**
-         * Sets the reasoning effort for the chat request.
-         * <p>
-         * The provided {@link ThinkingEffort} controls how much reasoning the model applies when generating a response. This method should be used
-         * with models that already separate reasoning and response automatically.
-         *
-         * <p>
-         * Equivalent to calling:
-         *
-         * <pre>{@code
-         * builder.thinking(Thinking.of(ThinkingEffort));
-         * }</pre>
-         *
-         * @param thinkingEffort the desired {@link ThinkingEffort} level
-         */
-        public Builder thinking(ThinkingEffort thinkingEffort) {
-            if (isNull(thinkingEffort)) {
-                thinking = null;
-                return this;
-            }
-
-            return thinking(Thinking.of(thinkingEffort));
-        }
-
-        /**
-         * Sets the reasoning configuration for the chat request.
-         * <p>
-         * The provided {@link Thinking} instance defines how the LLM should handle reasoning output.
-         * <p>
-         * If the {@link Thinking} instance includes {@link ExtractionTags}, they will be used to automatically extract reasoning and response
-         * segments from models that return both parts within a single text string (for example, models in the <b>ibm/granite-3-3-8b-instruct</b>).
-         * <p>
-         * If {@link ExtractionTags} are omitted, the model is assumed to already provide reasoning and response as separate fields.
-         *
-         * @param thinking a {@link Thinking} configuration defining how reasoning output is extracted and the level of reasoning effort
-         *
-         */
-        public Builder thinking(Thinking thinking) {
-            this.thinking = thinking;
-            return this;
-        }
-
         public Builder moderations(ChatModeration moderations) {
             this.moderations = moderations;
             return this;
@@ -384,7 +125,7 @@ public final class ChatRequest {
 
     @Override
     public String toString() {
-        return "ChatRequest [deploymentId=" + deploymentId + ", messages=" + messages + ", tools=" + tools + ", parameters=" + parameters
+        return "ChatRequest [messages=" + messages + ", tools=" + tools + ", parameters=" + parameters
             + ", thinking=" + thinking + ", moderations=" + moderations + "]";
     }
 }

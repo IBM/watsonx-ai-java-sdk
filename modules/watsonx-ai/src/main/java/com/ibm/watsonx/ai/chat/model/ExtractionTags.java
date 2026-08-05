@@ -46,6 +46,8 @@ public final class ExtractionTags {
 
     private final Think think;
     private final Response response;
+    private final Pattern thinkPattern;
+    private final Pattern responsePattern;
 
     /**
      * Creates an ExtractionTags instance with custom opening and closing delimiters.
@@ -56,6 +58,18 @@ public final class ExtractionTags {
     public ExtractionTags(Think think, Response response) {
         this.think = requireNonNull(think, "think tag must not be null");
         this.response = response;
+
+        String thinkRegex = Pattern.quote(think.opening()) + "(.*?)" + Pattern.quote(think.closing());
+        if (nonNull(response))
+            thinkRegex += ".*" + Pattern.quote(response.opening());
+        this.thinkPattern = Pattern.compile(thinkRegex, Pattern.DOTALL);
+
+        String responseRegex = "(?<=" + Pattern.quote(think.closing()) + ")\\s*";
+        this.responsePattern = isNull(response)
+            ? Pattern.compile(responseRegex.concat("(.*)"), Pattern.DOTALL)
+            : Pattern.compile(
+                responseRegex.concat(Pattern.quote(response.opening())).concat("(.*)").concat(Pattern.quote(response.closing())),
+                Pattern.DOTALL);
     }
 
     /**
@@ -110,13 +124,7 @@ public final class ExtractionTags {
         if (isNull(content))
             return null;
 
-        String regex = "(?<=" + Pattern.quote(think.closing()) + ")\\s*";
-        Pattern pattern = isNull(response)
-            ? Pattern.compile(regex.concat("(.*)"), Pattern.DOTALL)
-            : Pattern.compile(regex.concat(Pattern.quote(response.opening())).concat("(.*)").concat(Pattern.quote(response.closing())),
-                Pattern.DOTALL);
-
-        Matcher matcher = pattern.matcher(content);
+        Matcher matcher = responsePattern.matcher(content);
         return matcher.find() ? matcher.group(1).trim() : null;
     }
 
@@ -131,12 +139,7 @@ public final class ExtractionTags {
         if (isNull(content))
             return null;
 
-        String regex = Pattern.quote(think.opening()) + "(.*?)" + Pattern.quote(think.closing());
-        if (nonNull(response))
-            regex += ".*" + Pattern.quote(response.opening());
-
-        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(content);
+        Matcher matcher = thinkPattern.matcher(content);
         return matcher.find() ? matcher.group(1).trim() : null;
     }
 }

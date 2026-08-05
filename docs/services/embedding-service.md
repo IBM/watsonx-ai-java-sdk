@@ -10,6 +10,14 @@ permalink: /services/embedding-service/
 
 The `EmbeddingService` provides functionality to generate text embeddings using **IBM watsonx.ai encoder models**. It converts text inputs into dense vector representations that can be used for semantic search, similarity comparison, clustering, and retrieval-augmented generation (RAG).
 
+## How text embeddings work
+
+A text embedding is a numerical representation of a sentence or passage as a vector of real numbers. By converting sentences to number vectors, operations on sentences become more like math equations that computers can evaluate quickly.
+
+When an embedding model creates a vector, it assigns values that capture the **semantic meaning** of the text and positions the vector in a multidimensional space so that sentences with similar meanings are nearer to one another. This is what powers semantic search: unlike keyword search - which checks whether a word is present - semantic search weighs the context in which the word is used, which typically produces better results.
+
+Generated vectors can be stored in a **vector database**. When the same embedding model is used to convert all documents in the database, the vector store can leverage the inherent groupings among vectors to return relevant search results quickly.
+
 ## Quick Start
 
 ```java
@@ -25,7 +33,7 @@ System.out.println(response.results().get(0).embedding());
 // → [-0.029937625, 0.05433679, 0.013135133, 0.018311847, ...]
 ```
 
-> **Note:** To see the list of available embedding models, refer to [supported encoder models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx#embed).
+> **Note:** To see the list of available embedding models, refer to [supported encoder models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx#embed). You can also query available embedding models programmatically - see [Foundation Model Service](../foundation-model-service/) and filter by `function("function_embedding")`.
 
 ---
 
@@ -33,8 +41,7 @@ System.out.println(response.results().get(0).embedding());
 
 The `EmbeddingService` enables you to:
 
-- Embed single or multiple text inputs in a single request.
-- Process large batches automatically.
+- Embed single or multiple text inputs in one call.
 - Configure token truncation to handle long inputs gracefully.
 - Optionally return the original input text alongside each embedding vector.
 - Build semantic search, similarity, and RAG applications.
@@ -137,6 +144,8 @@ EmbeddingResponse response = embeddingService.embed(inputs);
 
 ### Customizing Generation Parameters
 
+You can pass any number of inputs. When the list exceeds 1,000 items the SDK automatically splits it into batches and runs them in parallel, so you do not need to manage chunking yourself. Each input must still conform to the embedding model's maximum token limit per input - use `truncateInputTokens` to handle inputs that may be too long (truncation happens from the right, preserving the beginning of the text).
+
 Use `EmbeddingParameters` to control token truncation and whether to include the original input text in the response.
 
 ```java
@@ -199,4 +208,5 @@ Each `Result` in the list exposes:
 
 - [Embeddings API Reference](https://cloud.ibm.com/apidocs/watsonx-ai#text-embeddings)
 - [Supported Encoder Models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx#embed)
+- [Adding vectorized documents for grounding prompts](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-embed-overview.html?context=wx)
 - [Sample Code](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/embedding-text)

@@ -25,5 +25,7 @@ This section documents each service available in the **IBM watsonx.ai Java SDK**
 - [Time Series Service](time-series-service/)
 - [Tool Service](tool-service/)
 - [Deployment Service](deployment-service/)
+- [Model Gateway](model-gateway/)
+  - [Chat](model-gateway/chat/)
 - [File Service](file-service/)
 - [Batch Service](batch-service/)

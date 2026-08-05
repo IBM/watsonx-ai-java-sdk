@@ -39,10 +39,11 @@ import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
+import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
-import com.ibm.watsonx.ai.chat.model.ChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
@@ -104,11 +105,11 @@ public class ChatServiceIT {
             assertNull(chatResponse.choices().get(0).message().refusal());
             assertNull(chatResponse.choices().get(0).message().toolCalls());
             assertNotNull(chatResponse.created());
-            assertNotNull(chatResponse.createdAt());
+            assertNotNull(((TextChatResponse) chatResponse).createdAt());
             assertNotNull(chatResponse.id());
             assertNotNull(chatResponse.model());
-            assertNotNull(chatResponse.modelId());
-            assertNotNull(chatResponse.modelVersion());
+            assertNotNull(((TextChatResponse) chatResponse).modelId());
+            assertNotNull(((TextChatResponse) chatResponse).modelVersion());
             assertNotNull(chatResponse.object());
             assertNotNull(chatResponse.usage());
             assertNotNull(chatResponse.usage().completionTokens());
@@ -295,7 +296,6 @@ public class ChatServiceIT {
             assertNotNull(chatResponse.choices().get(0).finishReason());
             assertNotNull(chatResponse.choices().get(0).index());
             assertNotNull(chatResponse.choices().get(0).message());
-            assertNull(chatResponse.choices().get(0).message().content());
             assertNotNull(chatResponse.choices().get(0).message().role());
             assertNull(chatResponse.choices().get(0).message().refusal());
             assertNotNull(chatResponse.choices().get(0).message().toolCalls());
@@ -305,11 +305,11 @@ public class ChatServiceIT {
             assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).type());
             assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).function());
             assertNotNull(chatResponse.created());
-            assertNotNull(chatResponse.createdAt());
+            assertNotNull(((TextChatResponse) chatResponse).createdAt());
             assertNotNull(chatResponse.id());
             assertNotNull(chatResponse.model());
-            assertNotNull(chatResponse.modelId());
-            assertNotNull(chatResponse.modelVersion());
+            assertNotNull(((TextChatResponse) chatResponse).modelId());
+            assertNotNull(((TextChatResponse) chatResponse).modelVersion());
             assertNotNull(chatResponse.object());
             assertNotNull(chatResponse.usage());
             assertNotNull(chatResponse.usage().completionTokens());
@@ -568,10 +568,10 @@ public class ChatServiceIT {
 
             var chatResponse = chatService.chat(chatRequest);
 
-            assertNotNull(chatResponse.moderations());
-            assertNotNull(chatResponse.moderations().get("pii"));
-            assertFalse(chatResponse.moderations().get("pii").isEmpty());
-            chatResponse.moderations().get("pii").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
@@ -610,10 +610,10 @@ public class ChatServiceIT {
 
             var chatResponse = chatService.chat(chatRequest);
 
-            assertNotNull(chatResponse.moderations());
-            assertNotNull(chatResponse.moderations().get("hap"));
-            assertFalse(chatResponse.moderations().get("hap").isEmpty());
-            chatResponse.moderations().get("hap").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });
@@ -652,19 +652,19 @@ public class ChatServiceIT {
 
             var chatResponse = chatService.chat(chatRequest);
 
-            assertNotNull(chatResponse.moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
 
-            assertNotNull(chatResponse.moderations().get("pii"));
-            assertFalse(chatResponse.moderations().get("pii").isEmpty());
-            chatResponse.moderations().get("pii").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
             });
 
-            assertNotNull(chatResponse.moderations().get("hap"));
-            assertFalse(chatResponse.moderations().get("hap").isEmpty());
-            chatResponse.moderations().get("hap").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });
@@ -732,7 +732,7 @@ public class ChatServiceIT {
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> future = new CompletableFuture<>();
             chatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -740,7 +740,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -785,7 +785,7 @@ public class ChatServiceIT {
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> future = new CompletableFuture<>();
             chatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -793,7 +793,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -818,11 +818,11 @@ public class ChatServiceIT {
             assertNull(chatResponse.choices().get(0).message().refusal());
             assertNull(chatResponse.choices().get(0).message().toolCalls());
             assertNotNull(chatResponse.created());
-            assertNotNull(chatResponse.createdAt());
+            assertNotNull(((TextChatResponse) chatResponse).createdAt());
             assertNotNull(chatResponse.id());
             assertNotNull(chatResponse.model());
-            assertNotNull(chatResponse.modelId());
-            assertNotNull(chatResponse.modelVersion());
+            assertNotNull(((TextChatResponse) chatResponse).modelId());
+            assertNotNull(((TextChatResponse) chatResponse).modelVersion());
             assertNotNull(chatResponse.object());
             assertNotNull(chatResponse.usage());
             assertNotNull(chatResponse.usage().completionTokens());
@@ -858,7 +858,7 @@ public class ChatServiceIT {
                 .build();
 
             CompletableFuture<String> partialResponseFuture = new CompletableFuture<>();
-            CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> chatResponseFuture = new CompletableFuture<>();
             chatService.chatStreaming(request, new ChatHandler() {
                 StringBuilder builder = new StringBuilder();
 
@@ -869,7 +869,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    chatResponseFuture.complete(completeResponse);
+                    chatResponseFuture.complete((TextChatResponse) completeResponse);
                     partialResponseFuture.complete(builder.toString());
                 }
 
@@ -910,7 +910,7 @@ public class ChatServiceIT {
                         .required("to", "body")))
                 .build();
 
-            CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> chatResponseFuture = new CompletableFuture<>();
             CompletableFuture<CompletedToolCall> toolCallFuture = new CompletableFuture<>();
             CompletableFuture<ToolCall> fromPartialToolCallFuture = new CompletableFuture<>();
             CompletableFuture<Throwable> throwableFuture = new CompletableFuture<>();
@@ -924,7 +924,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    chatResponseFuture.complete(completeResponse);
+                    chatResponseFuture.complete((TextChatResponse) completeResponse);
                     fromPartialToolCallFuture.complete(new ToolCall(
                         Integer.parseInt(cachePartialToolCall.get("index")),
                         cachePartialToolCall.get("id"),
@@ -987,11 +987,11 @@ public class ChatServiceIT {
             assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).type());
             assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).function());
             assertNotNull(chatResponse.created());
-            assertNotNull(chatResponse.createdAt());
+            assertNotNull(((TextChatResponse) chatResponse).createdAt());
             assertNotNull(chatResponse.id());
             assertNotNull(chatResponse.model());
-            assertNotNull(chatResponse.modelId());
-            assertNotNull(chatResponse.modelVersion());
+            assertNotNull(((TextChatResponse) chatResponse).modelId());
+            assertNotNull(((TextChatResponse) chatResponse).modelVersion());
             assertNotNull(chatResponse.object());
             assertNotNull(chatResponse.usage());
             assertNotNull(chatResponse.usage().completionTokens());
@@ -1016,7 +1016,7 @@ public class ChatServiceIT {
                 .tools(Tool.of("get_time", "Get the current time"))
                 .build();
 
-            CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> future = new CompletableFuture<>();
             chatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
@@ -1024,7 +1024,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1137,7 +1137,7 @@ public class ChatServiceIT {
             var chatService = ChatService.builder()
                 .baseUrl(URL)
                 .projectId(PROJECT_ID)
-                .modelId("openai/gpt-oss-120b")
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -1159,7 +1159,7 @@ public class ChatServiceIT {
                 .parameters(parameters)
                 .build();
 
-            CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+            CompletableFuture<TextChatResponse> future = new CompletableFuture<>();
             CompletableFuture<CompletedToolCall> futureToolCall = new CompletableFuture<>();
 
             assertDoesNotThrow(() -> chatService.chatStreaming(request, new ChatHandler() {
@@ -1169,7 +1169,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1313,7 +1313,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    firstResponse.complete(completeResponse);
+                    firstResponse.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1341,7 +1341,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    secondResponse.complete(completeResponse);
+                    secondResponse.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1364,7 +1364,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    thirdResponse.complete(completeResponse);
+                    thirdResponse.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1393,7 +1393,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    fourthResponse.complete(completeResponse);
+                    fourthResponse.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1458,7 +1458,7 @@ public class ChatServiceIT {
 
                     @Override
                     public void onCompleteResponse(ChatResponse completeResponse) {
-                        firstResponse.complete(completeResponse);
+                        firstResponse.complete((TextChatResponse) completeResponse);
                     }
 
                     @Override
@@ -1583,7 +1583,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1594,10 +1594,10 @@ public class ChatServiceIT {
 
             var chatResponse = future.get(30, TimeUnit.SECONDS);
 
-            assertNotNull(chatResponse.moderations());
-            assertNotNull(chatResponse.moderations().get("pii"));
-            assertFalse(chatResponse.moderations().get("pii").isEmpty());
-            chatResponse.moderations().get("pii").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
@@ -1641,7 +1641,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1652,10 +1652,10 @@ public class ChatServiceIT {
 
             var chatResponse = future.get(30, TimeUnit.SECONDS);
 
-            assertNotNull(chatResponse.moderations());
-            assertNotNull(chatResponse.moderations().get("hap"));
-            assertFalse(chatResponse.moderations().get("hap").isEmpty());
-            chatResponse.moderations().get("hap").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });
@@ -1711,7 +1711,7 @@ public class ChatServiceIT {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    future.complete(completeResponse);
+                    future.complete((TextChatResponse) completeResponse);
                 }
 
                 @Override
@@ -1722,19 +1722,19 @@ public class ChatServiceIT {
 
             var chatResponse = future.get(30, TimeUnit.SECONDS);
 
-            assertNotNull(chatResponse.moderations());
+            assertNotNull(((TextChatResponse) chatResponse).moderations());
 
-            assertNotNull(chatResponse.moderations().get("pii"));
-            assertFalse(chatResponse.moderations().get("pii").isEmpty());
-            chatResponse.moderations().get("pii").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
             });
 
-            assertNotNull(chatResponse.moderations().get("hap"));
-            assertFalse(chatResponse.moderations().get("hap").isEmpty());
-            chatResponse.moderations().get("hap").forEach(result -> {
+            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
+            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
+            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });

@@ -160,8 +160,18 @@ The `Filter` class provides a fluent API to build filter expressions for queryin
 | `tier(String)` | Match by input or output tier |
 | `task(String)` | Match by supported task ID (e.g., `"summarization"`) |
 | `lifecycle(String)` | Match by lifecycle state (e.g., `"active"`, `"deprecated"`) |
-| `function(String)` | Match by supported function (e.g., `"embedding"`, `"rerank"`) |
+| `function(String)` | Match by supported function capability (see table below) |
 | `not(expression)` | Negate any expression |
+
+**Common function filter values:**
+
+| Value | Use case |
+|-------|----------|
+| `function_text_chat` | Text-capable chat models (for use with `ChatService`) |
+| `function_audio_chat` | Audio-capable chat models |
+| `function_embedding` | Embedding / encoding models (for use with `EmbeddingService`) |
+| `function_rerank` | Reranking models (for use with `RerankService`) |
+| `function_time_series_forecast` | Time series forecasting models (for use with `TimeSeriesService`) |
 
 ### Filter Examples
 
@@ -179,6 +189,12 @@ var filter = Filter.of(modelId("ibm/granite-4-h-small"));
 
 // Models from IBM or Meta
 var filter = Filter.or(provider("IBM"), provider("Meta"));
+
+// Only active (non-deprecated) text chat models
+var filter = Filter.and(function("function_text_chat"), lifecycle("available"));
+
+// All time series forecasting models
+var filter = Filter.of(function("function_time_series_forecast"));
 ```
 ---
 

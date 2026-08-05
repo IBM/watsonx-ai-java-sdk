@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.ChatHandler;
-import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -18,6 +17,7 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
+import com.ibm.watsonx.ai.deployment.DeploymentChatRequest;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 public class AiService {
@@ -49,7 +49,7 @@ public class AiService {
 
         memory.addMessage(UserMessage.text(message));
 
-        var chatRequest = ChatRequest.builder()
+        var chatRequest = DeploymentChatRequest.builder()
             .messages(memory.getMemory())
             .deploymentId(deploymentId)
             .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))

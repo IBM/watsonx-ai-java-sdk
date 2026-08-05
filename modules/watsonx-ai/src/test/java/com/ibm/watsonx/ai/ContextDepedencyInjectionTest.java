@@ -16,6 +16,7 @@ import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
+import com.ibm.watsonx.ai.gateway.ModelGatewayService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -46,7 +47,7 @@ public class ContextDepedencyInjectionTest {
             RerankService.class, TextGenerationService.class,
             CreateSchemaService.class, ImproveSchemaService.class, MergeSchemaService.class, TextClassificationService.class,
             TextExtractionService.class, TimeSeriesService.class, FileService.class,
-            BatchService.class, ToolService.class)
+            BatchService.class, ToolService.class, ModelGatewayService.class)
         .build();
 
     @Inject
@@ -96,6 +97,9 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     ToolService toolService;
+
+    @Inject
+    ModelGatewayService modelGatewayService;
 
     @Inject
     GoogleSearchTool googleSearchTool;
@@ -196,6 +200,11 @@ public class ContextDepedencyInjectionTest {
     @Test
     void should_inject_tool_service() {
         assertNotNull(toolService);
+    }
+
+    @Test
+    void should_inject_model_gateway_service() {
+        assertNotNull(modelGatewayService);
     }
 
     @Test
@@ -387,6 +396,15 @@ public class ContextDepedencyInjectionTest {
             return ToolService.builder()
                 .baseUrl("https://example.com")
                 .apiKey("api-key")
+                .build();
+        }
+
+        @Produces
+        public ModelGatewayService produceModelGatewayService() {
+            return ModelGatewayService.builder()
+                .baseUrl("https://example.com")
+                .apiKey("api-key")
+                .modelId("model-id")
                 .build();
         }
 
