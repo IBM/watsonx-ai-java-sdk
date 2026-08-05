@@ -63,7 +63,7 @@ The SDK provides a unified Java interface to the watsonx.ai ecosystem and works 
 | Service | Description |
 |---------|-------------|
 | **[Chat](https://ibm.github.io/watsonx-ai-java-sdk/services/chat-service/)** | Conversational AI with multi-turn dialogue, streaming, tool calling, vision, and reasoning |
-| **[Model Gateway](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/)** | Chat with third-party models (OpenAI, Anthropic, Azure, Mistral, and others) through a single IBM Cloud-authenticated endpoint |
+| **[Model Gateway](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/)** | Chat with third-party models |
 | **[Embedding](https://ibm.github.io/watsonx-ai-java-sdk/services/embedding-service/)** | Dense vector representations for semantic search, similarity, and RAG |
 | **[Rerank](https://ibm.github.io/watsonx-ai-java-sdk/services/rerank-service/)** | Relevance scoring and reordering of candidate documents |
 | **[Detection](https://ibm.github.io/watsonx-ai-java-sdk/services/detection-service/)** | Identification of harmful content (HAP), PII, and safety violations |

@@ -8,6 +8,7 @@ package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
 import java.util.List;
+import java.util.stream.IntStream;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -152,16 +153,31 @@ public class ChatResponse {
      * was made with the {@code n} parameter greater than 1 to retrieve multiple alternative responses from the model.
      *
      * @return a list of {@code AssistantMessage} instances, one for each choice in the response
+     * @throws EmptyChatResponseException if the response contains no choices, or if any choice contains no content, tool calls or refusal
      * @see #toAssistantMessage()
      */
     public List<AssistantMessage> toAssistantMessages() {
 
         if (isNull(choices) || choices.isEmpty())
-            throw new IllegalStateException("The chat response contains no choices");
+            throw new EmptyChatResponseException(
+                "The chat response contains no choices",
+                this,
+                FinishReason.INCOMPLETE,
+                EmptyChatResponseException.NO_CHOICE);
 
-        return choices.stream()
-            .map(ResultChoice::message)
-            .map(message -> {
+        return IntStream.range(0, choices.size())
+            .mapToObj(index -> {
+
+                var choice = choices.get(index);
+                var message = choice.message();
+                var finishReason = FinishReason.fromValue(choice.finishReason());
+
+                if (isNull(message))
+                    throw new EmptyChatResponseException(
+                        "The choice at index %s contains no message".formatted(index),
+                        this,
+                        finishReason,
+                        index);
 
                 String content;
                 String thinking;
@@ -174,6 +190,13 @@ public class ChatResponse {
                     content = isNull(content) ? message.content() : content;
                     thinking = extractionTags.extractThinking(message.content());
                 }
+
+                if (isNullOrBlank(content) && isNullOrBlank(message.refusal()) && (isNull(message.toolCalls()) || message.toolCalls().isEmpty()))
+                    throw new EmptyChatResponseException(
+                        "The model generated no content, tool calls or refusal (finish reason: %s)".formatted(finishReason),
+                        this,
+                        finishReason,
+                        index);
 
                 return new AssistantMessage(
                     content,
@@ -192,10 +215,21 @@ public class ChatResponse {
      * than 1, use {@link #toAssistantMessages()} instead to retrieve all alternative responses.
      *
      * @return an {@code AssistantMessage} containing the assistant's reply content from the first choice
+     * @throws EmptyChatResponseException if the response contains no choices, or if the first choice contains no content, tool calls or refusal
      * @see #toAssistantMessages()
      */
     public AssistantMessage toAssistantMessage() {
         return toAssistantMessages().get(0);
+    }
+
+    /**
+     * Checks whether the given value is {@code null} or contains only whitespace.
+     *
+     * @param value the value to check
+     * @return {@code true} if the value is {@code null} or blank, {@code false} otherwise
+     */
+    private static boolean isNullOrBlank(String value) {
+        return isNull(value) || value.isBlank();
     }
 
     /**
