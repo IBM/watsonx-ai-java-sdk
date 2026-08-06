@@ -90,9 +90,12 @@
   border-bottom: 1px solid var(--ifm-toc-border-color);
 }
 
-/* Hide the empty title string (title set to '' in config) */
-.navbar__title {
-  display: none;
+/* Navbar brand: compact IBM square logo + "watsonx.ai" label */
+.navbar__logo img {
+  content: url('/img/ibm-logo.png');
+}
+.navbar__title::after {
+  content: 'watsonx.ai';
 }
 
 /* Navbar links: regular weight, not bold */

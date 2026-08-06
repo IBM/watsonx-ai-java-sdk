@@ -245,4 +245,48 @@ public class ChatResponseTest {
         assertEquals("Second answer", assistantMessages.get(1).content());
         assertEquals("The user is asking for", assistantMessages.get(1).thinking());
     }
+
+    @Test
+    void should_not_be_equal_when_null_fields_differ_in_chat_response() {
+        assertNotEquals(ChatResponse.builder().build(), ChatResponse.builder().id("id1").build());
+        assertNotEquals(ChatResponse.builder().object("o").build(), ChatResponse.builder().build());
+        assertNotEquals(ChatResponse.builder().model("m").build(), ChatResponse.builder().build());
+        assertNotEquals(ChatResponse.builder().choices(List.of()).build(), ChatResponse.builder().build());
+        assertNotEquals(ChatResponse.builder().created(1L).build(), ChatResponse.builder().build());
+        assertNotEquals(ChatResponse.builder().usage(new com.ibm.watsonx.ai.chat.model.ChatUsage(1, 2, 3)).build(), ChatResponse.builder().build());
+    }
+
+    @Test
+    void should_round_trip_chat_response_via_toBuilder() {
+        var original = ChatResponse.builder().id("id1").model("m1").object("chat.completion").created(100L).build();
+        assertEquals(original, original.toBuilder().build());
+    }
+
+    @Test
+    void should_include_id_in_chat_response_toString() {
+        assertTrue(ChatResponse.builder().id("test-id").build().toString().contains("test-id"));
+    }
+
+    @Test
+    void should_not_be_equal_when_null_fields_differ_in_text_chat_response() {
+        assertNotEquals(TextChatResponse.builder().build(), TextChatResponse.builder().modelVersion("v1").build());
+        assertNotEquals(TextChatResponse.builder().build(), TextChatResponse.builder().createdAt("2025").build());
+    }
+
+    @Test
+    void should_not_be_equal_when_null_fields_differ_in_gateway_response() {
+        assertNotEquals(ModelGatewayChatResponse.builder().build(), ModelGatewayChatResponse.builder().systemFingerprint("fp1").build());
+        assertNotEquals(ModelGatewayChatResponse.builder().build(), ModelGatewayChatResponse.builder().cached(true).build());
+    }
+
+    @Test
+    void should_round_trip_gateway_response_via_toBuilder() {
+        var orig = ModelGatewayChatResponse.builder().serviceTier("default").systemFingerprint("fp1").cached(false).build();
+        assertEquals(orig, orig.toBuilder().build());
+    }
+
+    @Test
+    void should_include_serviceTier_in_gateway_response_toString() {
+        assertTrue(ModelGatewayChatResponse.builder().serviceTier("default").build().toString().contains("default"));
+    }
 }

@@ -91,4 +91,24 @@ public class ChatMessageTest {
         when(is.readAllBytes()).thenThrow(new IOException());
         assertThrows(RuntimeException.class, () -> UserMessage.video("Describe this image", is, "video/mp4"));
     }
+
+    @Test
+    void should_create_user_message_with_text_and_audio_contents() throws IOException {
+        var is = new java.io.ByteArrayInputStream("fake-audio".getBytes());
+        var message = UserMessage.audio("Transcribe this", is, "audio/wav");
+        assertEquals(2, message.content().size());
+    }
+
+    @Test
+    void should_throw_runtime_exception_when_audio_file_does_not_exist() {
+        var file = new java.io.File("non-existent-audio.wav");
+        assertThrows(RuntimeException.class, () -> UserMessage.audio("Transcribe this", file));
+    }
+
+    @Test
+    void should_throw_runtime_exception_when_audio_stream_is_corrupted() throws IOException {
+        var is = mock(InputStream.class);
+        when(is.readAllBytes()).thenThrow(new IOException());
+        assertThrows(RuntimeException.class, () -> UserMessage.audio("Transcribe this", is, "audio/wav"));
+    }
 }

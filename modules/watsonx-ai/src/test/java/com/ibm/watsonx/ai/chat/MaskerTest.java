@@ -9,8 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult.Position;
+import com.ibm.watsonx.ai.chat.model.ResultMessage;
 
 public class MaskerTest {
 
@@ -91,5 +93,28 @@ public class MaskerTest {
             .build();
 
         assertEquals("You are ******, phone: **********.", Masker.mask(content, response));
+    }
+
+    @Test
+    void should_mask_content_and_return_assistant_message_with_default_replacer() {
+        var mod = new ModerationResult(0.8f, false, new Position(27, 37), "PhoneNumber", null);
+        var msg = new ResultMessage("assistant", "Sure, your phone number is 3572865321.", null, null, null);
+        var response = TextChatResponse.builder()
+            .moderations(Map.of("pii", List.of(mod)))
+            .choices(List.of(new ResultChoice(0, msg, "stop")))
+            .build();
+        assertEquals("Sure, your phone number is **********.", Masker.maskToMessage(response).content());
+    }
+
+    @Test
+    void should_mask_content_and_return_assistant_message_with_custom_replacer() {
+        var mod = new ModerationResult(0.8f, false, new Position(27, 37), "PhoneNumber", null);
+        var msg = new ResultMessage("assistant", "Sure, your phone number is 3572865321.", null, null, null);
+        var response = TextChatResponse.builder()
+            .moderations(Map.of("pii", List.of(mod)))
+            .choices(List.of(new ResultChoice(0, msg, "stop")))
+            .build();
+        assertEquals("Sure, your phone number is [PhoneNumber].",
+            Masker.maskToMessage(response, m -> "[" + m.entity() + "]").content());
     }
 }

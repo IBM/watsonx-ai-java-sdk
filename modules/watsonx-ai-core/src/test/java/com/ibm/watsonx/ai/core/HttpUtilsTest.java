@@ -295,4 +295,11 @@ public class HttpUtilsTest {
         );
         assertEquals("no_details", ex.getMessage());
     }
+
+    @Test
+    void should_throw_runtime_exception_when_extracting_body_from_unsupported_type() {
+        HttpResponse<Integer> resp = mock(HttpResponse.class);
+        when(resp.body()).thenReturn(42);
+        assertThrows(RuntimeException.class, () -> HttpUtils.extractBodyAsString(resp));
+    }
 }

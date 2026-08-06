@@ -8,6 +8,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,6 +52,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
@@ -427,6 +429,65 @@ public class LoggerInterceptorTest {
 
             assertDoesNotThrow(() -> interceptor.intercept(request, HttpResponse.BodyHandlers.ofString(), 0, chain));
             verify(chain).proceed(any(), any());
+        }
+    }
+
+    @Nested
+    class LogModeConstructor {
+
+        @Test
+        void should_construct_with_all_log_modes() {
+            assertDoesNotThrow(() -> new LoggerInterceptor(LogMode.BOTH));
+            assertDoesNotThrow(() -> new LoggerInterceptor(LogMode.REQUEST));
+            assertDoesNotThrow(() -> new LoggerInterceptor(LogMode.RESPONSE));
+            assertDoesNotThrow(() -> new LoggerInterceptor(LogMode.DISABLED));
+            assertDoesNotThrow(() -> new LoggerInterceptor((LogMode) null));
+        }
+
+        @Test
+        void log_mode_of_should_return_correct_mode_for_all_flag_combinations() {
+            assertEquals(LogMode.BOTH, LogMode.of(true, true));
+            assertEquals(LogMode.REQUEST, LogMode.of(true, false));
+            assertEquals(LogMode.RESPONSE, LogMode.of(false, true));
+            assertEquals(LogMode.DISABLED, LogMode.of(false, false));
+        }
+
+        @Test
+        void should_complete_exceptionally_and_log_watsonx_exception_in_async_intercept() throws Exception {
+            LoggerInterceptor interceptor = new LoggerInterceptor(LogMode.BOTH);
+            HttpRequest request = HttpRequest.newBuilder(URI.create("https://example.com"))
+                .header("Watsonx-AI-SDK-Request-Id", "req-1")
+                .GET()
+                .build();
+
+            AsyncHttpInterceptor.AsyncChain chain = mock(AsyncHttpInterceptor.AsyncChain.class);
+            CompletableFuture<HttpResponse<String>> failed = new CompletableFuture<>();
+            failed.completeExceptionally(new WatsonxException("auth error", 401, null));
+            when(chain.proceed(any(), any())).thenAnswer(inv -> failed);
+
+            CompletableFuture<HttpResponse<String>> result =
+                interceptor.intercept(request, BodyHandlers.ofString(), 0, chain);
+
+            assertThrows(Exception.class, () -> result.get(3, TimeUnit.SECONDS));
+        }
+
+        @Test
+        void should_complete_exceptionally_and_log_plain_exception_in_async_intercept() throws Exception {
+            LoggerInterceptor interceptor = new LoggerInterceptor(LogMode.BOTH);
+            HttpRequest request = HttpRequest.newBuilder(URI.create("https://example.com"))
+                .header("Watsonx-AI-SDK-Request-Id", "req-2")
+                .GET()
+                .build();
+
+            AsyncHttpInterceptor.AsyncChain chain = mock(AsyncHttpInterceptor.AsyncChain.class);
+            CompletableFuture<HttpResponse<String>> failed = new CompletableFuture<>();
+            failed.completeExceptionally(new RuntimeException("plain error"));
+            when(chain.proceed(any(), any())).thenAnswer(inv -> failed);
+
+            CompletableFuture<HttpResponse<String>> result =
+                interceptor.intercept(request, BodyHandlers.ofString(), 0, chain);
+
+            assertThrows(Exception.class, () -> result.get(3, TimeUnit.SECONDS));
         }
     }
 

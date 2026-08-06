@@ -7,8 +7,10 @@ package com.ibm.watsonx.ai.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.core.exception.JsonException;
@@ -116,5 +118,79 @@ public class JsonTest {
     @Test
     void should_throw_json_exception_when_serialization_fails() {
         assertThrows(JsonException.class, () -> Json.toJson(new Object()));
+    }
+
+    @Test
+    void should_pretty_print_non_string_object() {
+        record Sample(String name) {}
+        var result = Json.prettyPrint(new Sample("test"));
+        assertNotNull(result);
+        assertTrue(result.contains("test"));
+    }
+
+    @Test
+    void type_token_equals_same_instance_returns_true() {
+        TypeToken<List<String>> t = TypeToken.listOf(String.class);
+        assertEquals(t, t);
+    }
+
+    @Test
+    void type_token_not_equal_to_non_type_token_object() {
+        TypeToken<List<String>> t = TypeToken.listOf(String.class);
+        assertFalse(t.equals("not a token"));
+    }
+
+    @Test
+    void type_token_hash_code_is_consistent_for_equal_tokens() {
+        TypeToken<List<String>> t1 = TypeToken.listOf(String.class);
+        TypeToken<List<String>> t2 = TypeToken.listOf(String.class);
+        assertEquals(t1.hashCode(), t2.hashCode());
+    }
+
+    @Test
+    void type_token_to_string_contains_type_name() {
+        TypeToken<List<String>> token = TypeToken.listOf(String.class);
+        assertNotNull(token.toString());
+        assertTrue(token.toString().contains("String"));
+    }
+
+    @Test
+    void type_token_parameterized_impl_exposes_raw_type_and_arguments() {
+        TypeToken<Map<String, Integer>> token =
+            TypeToken.parameterizedOf(Map.class, String.class, Integer.class);
+        java.lang.reflect.ParameterizedType pt = (java.lang.reflect.ParameterizedType) token.getType();
+        assertEquals(Map.class, pt.getRawType());
+        assertEquals(null, pt.getOwnerType());
+        assertEquals(2, pt.getActualTypeArguments().length);
+    }
+
+    @Test
+    void type_token_parameterized_impl_equal_tokens_have_same_hash_code() {
+        TypeToken<Map<String, Integer>> a = TypeToken.parameterizedOf(Map.class, String.class, Integer.class);
+        TypeToken<Map<String, Integer>> b = TypeToken.parameterizedOf(Map.class, String.class, Integer.class);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    void type_token_parameterized_impl_not_equal_to_different_args() {
+        TypeToken<Map<String, Integer>> a = TypeToken.parameterizedOf(Map.class, String.class, Integer.class);
+        TypeToken<Map<String, String>> b = TypeToken.parameterizedOf(Map.class, String.class, String.class);
+        assertNotEquals(a, b);
+    }
+
+    @Test
+    void type_token_parameterized_impl_to_string_contains_arg_names() {
+        TypeToken<Map<String, Integer>> token =
+            TypeToken.parameterizedOf(Map.class, String.class, Integer.class);
+        assertNotNull(token.toString());
+        assertTrue(token.toString().contains("String"));
+    }
+
+    @Test
+    void json_exception_stores_message_and_cause() {
+        RuntimeException cause = new RuntimeException("root");
+        JsonException ex = new JsonException("wrap", cause);
+        assertEquals("wrap", ex.getMessage());
+        assertEquals(cause, ex.getCause());
     }
 }

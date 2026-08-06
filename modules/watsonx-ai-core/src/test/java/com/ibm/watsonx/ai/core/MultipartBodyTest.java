@@ -117,4 +117,13 @@ public class MultipartBodyTest {
 
         assertEquals("ex", ex.getCause().getMessage());
     }
+
+    @Test
+    void should_build_multipart_body_with_clean_field_name_without_escaping() {
+        com.ibm.watsonx.ai.core.http.MultipartBody body = com.ibm.watsonx.ai.core.http.MultipartBody.builder()
+            .addPart("field", "value")
+            .build();
+        String content = new String(body.body(), java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(content.contains("name=\"field\""));
+    }
 }
