@@ -54,14 +54,14 @@ import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
-import com.ibm.watsonx.ai.gateway.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY_GATEWAY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
-public class ModelGatewayIT {
+public class ModelGatewayServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY_GATEWAY");
     static final String URL = System.getenv("WATSONX_URL");

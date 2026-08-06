@@ -25,7 +25,7 @@ import com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemas;
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
-public class ClusterSchemaIT {
+public class ClusterSchemaServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
     static final String PROJECT_ID = System.getenv("WATSONX_PROJECT_ID");
@@ -104,7 +104,7 @@ public class ClusterSchemaIT {
 
         // Poll until complete using fetchRequest
         String id = response.metadata().id();
-        ClusterSchemaIT.waitUntilComplete(id);
+        ClusterSchemaServiceIT.waitUntilComplete(id);
 
         var completed = clusterSchemaService.fetchRequest(id);
         assertNotNull(completed.entity().results().schemas());

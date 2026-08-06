@@ -14,7 +14,7 @@ import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 
 /**
  * Represents the response from a chat completion request.

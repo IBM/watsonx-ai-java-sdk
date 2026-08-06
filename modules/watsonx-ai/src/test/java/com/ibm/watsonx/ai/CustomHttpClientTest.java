@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
-import com.ibm.watsonx.ai.gateway.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;

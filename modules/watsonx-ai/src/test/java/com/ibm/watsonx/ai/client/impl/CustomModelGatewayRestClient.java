@@ -9,10 +9,10 @@ import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
-import com.ibm.watsonx.ai.gateway.ModelGatewayRestClient;
-import com.ibm.watsonx.ai.gateway.ModelGatewayTextChatRequest;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayRestClient;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest;
 
 public class CustomModelGatewayRestClient extends ModelGatewayRestClient {
 

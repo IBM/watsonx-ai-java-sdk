@@ -63,7 +63,15 @@ System.out.println(response.content());
 | **[Rerank](services/rerank-service)** | Score and sort a list of candidate passages against a query |
 | **[Time Series](services/time-series-service)** | Forecast time series data using IBM Granite TTM models |
 | **[Deployment](services/deployment-service)** | Target a deployed model by `deploymentId` for chat and forecasting |
-| **[Model Gateway](services/model-gateway)** | Chat with third-party models (OpenAI, Anthropic, etc.) via a unified IBM-managed gateway |
+
+### Model Gateway
+
+Proxy layer that routes requests to third-party foundation models (OpenAI, Anthropic, Azure, Mistral, and others) through a single IBM-managed endpoint.
+
+| Service | Description |
+|---------|-------------|
+| **[Chat](services/model-gateway/chat)** | Synchronous and streaming chat completions to any configured model |
+| **[Catalog](services/model-gateway/catalog)** | List and retrieve models configured in the gateway |
 
 ### Document processing
 

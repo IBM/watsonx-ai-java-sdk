@@ -60,7 +60,8 @@ const sidebars: SidebarsConfig = {
           link: { type: 'doc', id: 'services/model-gateway/index' },
           collapsed: true,
           items: [
-            { type: 'doc', id: 'services/model-gateway/chat', label: 'Chat' },
+            { type: 'doc', id: 'services/model-gateway/chat',    label: 'Chat' },
+            { type: 'doc', id: 'services/model-gateway/catalog', label: 'Catalog' },
           ],
         },
         { type: 'doc', id: 'services/file-service',  label: 'File Service' },
@@ -83,7 +84,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Migration Guide',
       link: { type: 'doc', id: 'migration/migration' },
-      collapsed: false,
+      collapsed: true,
       items: [
         { type: 'doc', id: 'migration/0.22.0-to-0.30.0', label: '0.22.0 → 0.30.0' },
       ],

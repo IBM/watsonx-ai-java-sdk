@@ -20,7 +20,8 @@ import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
-import com.ibm.watsonx.ai.gateway.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -55,6 +56,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see CreateSchemaService
  * @see ImproveSchemaService
  * @see MergeSchemaService
+ * @see ModelGatewayCatalogService
  * @see ModelGatewayService
  */
 public abstract class WatsonxService {

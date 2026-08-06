@@ -24,6 +24,7 @@ import com.ibm.watsonx.ai.client.impl.CustomFoundationModelRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomImproveSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomMergeSchemaRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomModelGatewayCatalogRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomModelGatewayRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomRerankRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextClassificationRestClient;
@@ -41,7 +42,8 @@ import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
-import com.ibm.watsonx.ai.gateway.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -183,6 +185,22 @@ public class CustomRestClientTest {
         clientField.setAccessible(true);
         var client = clientField.get(modelGatewayService);
         assertTrue(client instanceof CustomModelGatewayRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogRestClient$ModelGatewayCatalogRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_model_gateway_catalog_service() throws Exception {
+
+        ModelGatewayCatalogService catalogService = ModelGatewayCatalogService.builder()
+            .apiKey("test")
+            .baseUrl("http://localhost")
+            .build();
+
+        Class<ModelGatewayCatalogService> clazz = ModelGatewayCatalogService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(catalogService);
+        assertTrue(client instanceof CustomModelGatewayCatalogRestClient);
     }
 
     @Test

@@ -60,21 +60,41 @@ See the [documentation](https://ibm.github.io/watsonx-ai-java-sdk/) for advanced
 
 The SDK provides a unified Java interface to the watsonx.ai ecosystem and works with both **IBM Cloud** and **CP4D** (on-premises) deployments.
 
+### Inference
+
 | Service | Description |
 |---------|-------------|
 | **[Chat](https://ibm.github.io/watsonx-ai-java-sdk/services/chat-service/)** | Conversational AI with multi-turn dialogue, streaming, tool calling, vision, and reasoning |
-| **[Model Gateway](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/)** | Chat with third-party models |
 | **[Embedding](https://ibm.github.io/watsonx-ai-java-sdk/services/embedding-service/)** | Dense vector representations for semantic search, similarity, and RAG |
 | **[Rerank](https://ibm.github.io/watsonx-ai-java-sdk/services/rerank-service/)** | Relevance scoring and reordering of candidate documents |
-| **[Detection](https://ibm.github.io/watsonx-ai-java-sdk/services/detection-service/)** | Identification of harmful content (HAP), PII, and safety violations |
-| **[Tokenization](https://ibm.github.io/watsonx-ai-java-sdk/services/tokenization-service/)** | Token counting and analysis for any model |
-| **[Foundation Model](https://ibm.github.io/watsonx-ai-java-sdk/services/foundation-model-service/)** | Browse and query the watsonx.ai model catalog |
-| **[Schema](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/schema/)** | Create, improve, merge, and cluster document schemas |
-| **[Text Classification](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/text-classification-service/)** | Document classification from IBM Cloud Object Storage |
-| **[Text Extraction](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/text-extraction-service/)** | Structured data extraction from documents in IBM Cloud Object Storage |
 | **[Time Series](https://ibm.github.io/watsonx-ai-java-sdk/services/time-series-service/)** | Time series forecasting using IBM Granite TTM models |
-| **[Tool](https://ibm.github.io/watsonx-ai-java-sdk/services/tool-service/)** | Server-side utility tools for agentic workflows |
 | **[Deployment](https://ibm.github.io/watsonx-ai-java-sdk/services/deployment-service/)** | Chat and forecasting via deployed model endpoints |
+
+### Model Gateway
+
+Proxy layer that routes requests to third-party foundation models (OpenAI, Anthropic, Azure, Mistral, and others) through a single IBM-managed endpoint.
+
+| Service | Description |
+|---------|-------------|
+| **[Chat](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/chat/)** | Synchronous and streaming chat completions to any configured model |
+| **[Catalog](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/catalog/)** | List all configured models and retrieve individual model details by UUID or alias |
+
+### Document Processing
+
+| Service | Description |
+|---------|-------------|
+| **[Schema](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/schema/)** | Create, improve, merge, and cluster document extraction schemas |
+| **[Text Extraction](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/text-extraction-service/)** | Structured data extraction from documents in IBM Cloud Object Storage |
+| **[Text Classification](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/text-classification-service/)** | Document classification from IBM Cloud Object Storage |
+
+### Utilities
+
+| Service | Description |
+|---------|-------------|
+| **[Tool](https://ibm.github.io/watsonx-ai-java-sdk/services/tool-service/)** | Server-side utility tools for agentic workflows |
+| **[Tokenization](https://ibm.github.io/watsonx-ai-java-sdk/services/tokenization-service/)** | Token counting and analysis for any model |
+| **[Detection](https://ibm.github.io/watsonx-ai-java-sdk/services/detection-service/)** | Identification of harmful content (HAP), PII, and safety violations |
+| **[Foundation Model](https://ibm.github.io/watsonx-ai-java-sdk/services/foundation-model-service/)** | Browse and query the watsonx.ai model catalog |
 | **[File](https://ibm.github.io/watsonx-ai-java-sdk/services/file-service/)** | Upload, list, and retrieve files for use in batch processing jobs |
 | **[Batch](https://ibm.github.io/watsonx-ai-java-sdk/services/batch-service/)** | High-volume asynchronous inference from JSONL input files |
 

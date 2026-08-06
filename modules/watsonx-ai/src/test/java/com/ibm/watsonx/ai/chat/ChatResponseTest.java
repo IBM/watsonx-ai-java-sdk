@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 
 public class ChatResponseTest {
 

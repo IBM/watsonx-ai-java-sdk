@@ -2,7 +2,7 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.gateway;
+package com.ibm.watsonx.ai.gateway.chat;
 
 import static com.ibm.watsonx.ai.core.Utils.getOrDefault;
 import static java.util.Objects.isNull;
@@ -10,7 +10,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.StreamOptions;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.StreamOptions;
 
 /**
  * Utility class for building {@link ModelGatewayTextChatRequest} wire payloads from a {@link ModelGatewayChatRequest} and default

@@ -2,7 +2,7 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.gateway;
+package com.ibm.watsonx.ai.gateway.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
