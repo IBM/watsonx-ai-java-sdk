@@ -8,12 +8,12 @@ import java.net.URI;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Router;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Cache;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.ServiceTier;
-import com.ibm.watsonx.ai.gateway.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Cache;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Router;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.ServiceTier;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
 
 public class App {
 
