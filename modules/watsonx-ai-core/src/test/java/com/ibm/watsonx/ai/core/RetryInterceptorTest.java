@@ -719,6 +719,28 @@ public class RetryInterceptorTest {
         assertTrue(String.valueOf(threadNames.get(0)).startsWith("http-io-"));
     }
 
+    @Test
+    void should_have_empty_predicate_when_retry_on_class_only() {
+        RetryInterceptor interceptor = RetryInterceptor.builder()
+            .retryOn(RuntimeException.class)
+            .build();
+        assertEquals(1, interceptor.retryOn().size());
+        assertTrue(interceptor.retryOn().get(0).predicate().isEmpty());
+    }
+
+    @Test
+    void should_expose_configured_retry_settings_via_accessors() {
+        RetryInterceptor interceptor = RetryInterceptor.builder()
+            .maxRetries(3)
+            .retryInterval(java.time.Duration.ofMillis(50))
+            .exponentialBackoff(true)
+            .retryOn(RuntimeException.class)
+            .build();
+        assertEquals(3, interceptor.maxRetries());
+        assertEquals(java.time.Duration.ofMillis(50), interceptor.retryInterval());
+        assertTrue(interceptor.exponentialBackoff());
+    }
+
     private RetryInterceptor onTokenExpired(int maxRetries) {
         return RetryInterceptor.builder()
             .maxRetries(maxRetries)

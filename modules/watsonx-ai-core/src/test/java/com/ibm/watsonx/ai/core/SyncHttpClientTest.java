@@ -587,4 +587,5 @@ public class SyncHttpClientTest {
         when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
         assertThrows(WatsonxException.class, () -> client.send(httpRequest, handler));
     }
+
 }
