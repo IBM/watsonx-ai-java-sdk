@@ -69,7 +69,7 @@ The SDK provides a unified Java interface to the watsonx.ai ecosystem and works 
 | **[Detection](https://ibm.github.io/watsonx-ai-java-sdk/services/detection-service/)** | Identification of harmful content (HAP), PII, and safety violations |
 | **[Tokenization](https://ibm.github.io/watsonx-ai-java-sdk/services/tokenization-service/)** | Token counting and analysis for any model |
 | **[Foundation Model](https://ibm.github.io/watsonx-ai-java-sdk/services/foundation-model-service/)** | Browse and query the watsonx.ai model catalog |
-| **[Schema](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/schema/)** | Create, improve, and merge document schemas |
+| **[Schema](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/schema/)** | Create, improve, merge, and cluster document schemas |
 | **[Text Classification](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/text-classification-service/)** | Document classification from IBM Cloud Object Storage |
 | **[Text Extraction](https://ibm.github.io/watsonx-ai-java-sdk/services/document-processing/text-extraction-service/)** | Structured data extraction from documents in IBM Cloud Object Storage |
 | **[Time Series](https://ibm.github.io/watsonx-ai-java-sdk/services/time-series-service/)** | Time series forecasting using IBM Granite TTM models |

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing;
 
+import com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaSemanticConfig;
 import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaSemanticConfig;
@@ -18,6 +19,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticCo
  * @see CreateSchemaSemanticConfig
  * @see ImproveSchemaSemanticConfig
  * @see MergeSchemaSemanticConfig
+ * @see ClusterSchemaSemanticConfig
  */
 public abstract class SemanticConfig {
     private final String defaultModelName;
