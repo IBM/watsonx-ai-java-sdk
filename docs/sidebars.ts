@@ -41,9 +41,10 @@ const sidebars: SidebarsConfig = {
               link: { type: 'doc', id: 'services/document-processing/schema/index' },
               collapsed: true,
               items: [
-                { type: 'doc', id: 'services/document-processing/schema/create-schema-service',  label: 'Create Schema' },
-                { type: 'doc', id: 'services/document-processing/schema/improve-schema-service', label: 'Improve Schema' },
-                { type: 'doc', id: 'services/document-processing/schema/merge-schema-service',   label: 'Merge Schema' },
+                { type: 'doc', id: 'services/document-processing/schema/create-schema-service',   label: 'Create Schema' },
+                { type: 'doc', id: 'services/document-processing/schema/improve-schema-service',  label: 'Improve Schema' },
+                { type: 'doc', id: 'services/document-processing/schema/merge-schema-service',    label: 'Merge Schema' },
+                { type: 'doc', id: 'services/document-processing/schema/cluster-schema-service',  label: 'Cluster Schema' },
               ],
             },
             { type: 'doc', id: 'services/document-processing/text-extraction-service',  label: 'Text Extraction' },
