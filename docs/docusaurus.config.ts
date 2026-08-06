@@ -65,8 +65,7 @@ const config: Config = {
       title: '',
       logo: {
         alt: 'IBM Logo',
-        src: 'img/ibm-logo.svg',
-        srcDark: 'img/ibm-logo-dark.svg',
+        src: 'img/ibm-logo.png',
       },
       items: [
         {
