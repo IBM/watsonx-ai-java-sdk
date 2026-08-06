@@ -7,7 +7,7 @@ const config: Config = {
   tagline: 'Java SDK for watsonx.ai',
   favicon: 'img/favicon.ico',
   customFields: {
-    sdkVersion: '0.22.0',
+    sdkVersion: '0.30.0',
   },
 
   future: {
