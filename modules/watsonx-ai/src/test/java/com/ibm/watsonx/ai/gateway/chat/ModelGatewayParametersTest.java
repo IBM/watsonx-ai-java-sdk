@@ -2,7 +2,7 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.gateway;
+package com.ibm.watsonx.ai.gateway.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -12,12 +12,12 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Cache;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Prediction;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.ReasoningEffort;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Router;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.ServiceTier;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.StreamOptions;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Cache;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Prediction;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.ReasoningEffort;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Router;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.ServiceTier;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.StreamOptions;
 
 @SuppressWarnings("deprecation")
 public class ModelGatewayParametersTest {

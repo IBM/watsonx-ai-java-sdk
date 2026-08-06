@@ -45,9 +45,11 @@ import com.ibm.watsonx.ai.detection.detector.GraniteGuardian;
 import com.ibm.watsonx.ai.detection.detector.Hap;
 import com.ibm.watsonx.ai.detection.detector.Pii;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters;
-import com.ibm.watsonx.ai.gateway.ModelGatewayTextChatRequest;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayListModelsResponse;
+import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayModel;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
 import com.ibm.watsonx.ai.textgeneration.Moderation.InputRanges;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
@@ -106,6 +108,9 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(ModelGatewayParameters.StreamOptions.class, ModelGatewayStreamOptionsMixin.class);
         setMixInAnnotation(ModelGatewayParameters.Cache.class, ModelGatewayCacheMixin.class);
         setMixInAnnotation(ModelGatewayParameters.Router.class, ModelGatewayRouterMixin.class);
+        setMixInAnnotation(ModelGatewayModel.class, ModelGatewayModelMixin.class);
+        setMixInAnnotation(ModelGatewayModel.Metadata.class, ModelGatewayModelMetadataMixin.class);
+        setMixInAnnotation(ModelGatewayListModelsResponse.class, ModelGatewayListModelsResponseMixin.class);
 
         // --- Schema Mixin --- //
         setMixInAnnotation(ArraySchema.class, ArraySchemaMixin.class);
@@ -942,5 +947,36 @@ public class WatsonxJacksonModule extends SimpleModule {
         @JsonCreator
         public ModelGatewayRouterMixin(
             @JsonProperty("cache") ModelGatewayParameters.Cache cache) {}
+    }
+
+    public abstract static class ModelGatewayModelMixin {
+        @JsonCreator
+        public ModelGatewayModelMixin(
+            @JsonProperty("uuid") String uuid,
+            @JsonProperty("object") String object,
+            @JsonProperty("created") Long created,
+            @JsonProperty("owned_by") String ownedBy,
+            @JsonProperty("id") String id,
+            @JsonProperty("alias") String alias,
+            @JsonProperty("description") String description,
+            @JsonProperty("metadata") ModelGatewayModel.Metadata metadata) {}
+    }
+
+    public abstract static class ModelGatewayModelMetadataMixin {
+        @JsonCreator
+        public ModelGatewayModelMetadataMixin(
+            @JsonProperty("cost") Double cost,
+            @JsonProperty("model_family") String modelFamily,
+            @JsonProperty("recommender_label") String recommenderLabel,
+            @JsonProperty("region") String region,
+            @JsonProperty("batch") Boolean batch,
+            @JsonProperty("context_window") Integer contextWindow) {}
+    }
+
+    public abstract static class ModelGatewayListModelsResponseMixin {
+        @JsonCreator
+        public ModelGatewayListModelsResponseMixin(
+            @JsonProperty("object") String object,
+            @JsonProperty("data") List<ModelGatewayModel> data) {}
     }
 }

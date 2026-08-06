@@ -6,7 +6,7 @@ package com.ibm.watsonx.ai.chat;
 
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
-import com.ibm.watsonx.ai.gateway.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
 
 /**
  * Interface representing a provider capable of executing chat interactions with language models.

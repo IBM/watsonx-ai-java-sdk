@@ -2,7 +2,7 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.gateway;
+package com.ibm.watsonx.ai.gateway.chat;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -49,7 +49,7 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.StreamOptions;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.StreamOptions;
 
 @SuppressWarnings("unchecked")
 public class ModelGatewayServiceTest extends AbstractWatsonxTest {
@@ -913,4 +913,5 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
         var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS)));
         assertEquals("Logged", response.choices().get(0).message().content());
     }
+
 }

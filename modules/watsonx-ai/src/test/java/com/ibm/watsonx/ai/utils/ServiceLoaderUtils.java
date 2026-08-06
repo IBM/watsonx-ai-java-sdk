@@ -47,7 +47,7 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient$CustomDeploymentRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
-            "com.ibm.watsonx.ai.gateway.ModelGatewayRestClient$ModelGatewayRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.gateway.chat.ModelGatewayRestClient$ModelGatewayRestClientBuilderFactory",
             "com.ibm.watsonx.ai.client.impl.CustomModelGatewayRestClient$CustomModelGatewayRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
@@ -109,6 +109,10 @@ public class ServiceLoaderUtils {
         createServiceFile(metaInfServices,
             "com.ibm.watsonx.ai.batch.BatchRestClient$BatchRestClientBuilderFactory",
             "com.ibm.watsonx.ai.client.impl.CustomBatchRestClient$CustomBatchRestClientBuilderFactory");
+
+        createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogRestClient$ModelGatewayCatalogRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomModelGatewayCatalogRestClient$CustomModelGatewayCatalogRestClientBuilderFactory");
 
         URLClassLoader tempClassLoader = new URLClassLoader(
             new URL[] { tempDir.toUri().toURL() },

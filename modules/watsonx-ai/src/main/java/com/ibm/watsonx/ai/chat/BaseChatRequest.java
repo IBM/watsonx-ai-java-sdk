@@ -15,7 +15,7 @@ import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.deployment.DeploymentChatRequest;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatRequest;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
 
 /**
  * Abstract base holding the chat request fields shared by every {@link ChatProvider}.

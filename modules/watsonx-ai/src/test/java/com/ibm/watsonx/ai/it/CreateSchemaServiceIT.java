@@ -36,7 +36,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 @EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_BUCKET", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "CLOUD_OBJECT_STORAGE_URL", matches = ".+")
 @ResourceLock("watsonx-cos-document-bucket")
-public class CreateSchemaIT {
+public class CreateSchemaServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
     static final String COS_API_KEY = System.getenv("CLOUD_OBJECT_STORAGE_API_KEY");

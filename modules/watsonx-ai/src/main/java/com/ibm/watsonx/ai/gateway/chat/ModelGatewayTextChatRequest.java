@@ -2,7 +2,7 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.gateway;
+package com.ibm.watsonx.ai.gateway.chat;
 
 import static java.util.Objects.isNull;
 import java.util.Collections;
@@ -12,9 +12,9 @@ import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.JsonSchemaObject;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Prediction;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.Router;
-import com.ibm.watsonx.ai.gateway.ModelGatewayParameters.StreamOptions;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Prediction;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Router;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.StreamOptions;
 
 /**
  * Payload request for the Model Gateway chat completions endpoint.

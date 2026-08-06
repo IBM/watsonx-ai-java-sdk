@@ -35,7 +35,7 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.streaming.StreamingToolFetcher;
 import com.ibm.watsonx.ai.core.Json;
-import com.ibm.watsonx.ai.gateway.ModelGatewayChatResponse;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 
 /**
  * Processes Server-Sent Events.
