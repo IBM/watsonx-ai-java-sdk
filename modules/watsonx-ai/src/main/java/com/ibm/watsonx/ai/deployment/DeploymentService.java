@@ -29,11 +29,13 @@ import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
+import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationHandler;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
@@ -240,6 +242,239 @@ public class DeploymentService extends WatsonxService
             .build();
 
         return client.chatStreaming(transactionId, deploymentId, textChatRequest, context, handler);
+    }
+
+    /**
+     * Sends a chat request to a deployment using the provided message.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param message Message to send.
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
+    public TextChatResponse chat(String deploymentId, String message) {
+        return chat(deploymentId, UserMessage.text(message));
+    }
+
+    /**
+     * Sends a chat request to a deployment using the provided messages.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages representing the conversation history
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
+    public TextChatResponse chat(String deploymentId, ChatMessage... messages) {
+        return chat(deploymentId, Arrays.asList(messages));
+    }
+
+    /**
+     * Sends a chat request to a deployment using the provided messages.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages representing the conversation history
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
+    public TextChatResponse chat(String deploymentId, List<ChatMessage> messages) {
+        return chat(deploymentId, messages, ChatParameters.builder().build());
+    }
+
+    /**
+     * Sends a chat request to a deployment using the provided messages and tools.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages representing the conversation history
+     * @param tools list of tools the model may call during generation
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
+    public TextChatResponse chat(String deploymentId, List<ChatMessage> messages, Tool... tools) {
+        return chat(deploymentId, messages, Arrays.asList(tools));
+    }
+
+    /**
+     * Sends a chat request to a deployment using the provided messages and tools.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages representing the conversation history
+     * @param tools list of tools the model may call during generation
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
+    public TextChatResponse chat(String deploymentId, List<ChatMessage> messages, List<Tool> tools) {
+        return chat(deploymentId, messages, null, tools);
+    }
+
+    /**
+     * Sends a chat request to a deployment using the provided messages, and parameters.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages representing the conversation history
+     * @param parameters parameters to customize the output generation
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
+    public TextChatResponse chat(String deploymentId, List<ChatMessage> messages, ChatParameters parameters) {
+        return chat(deploymentId, messages, parameters, null);
+    }
+
+    /**
+     * Sends a chat request to a deployment using the provided messages, parameters and tools.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages representing the conversation history
+     * @param parameters parameters to customize the output generation
+     * @param tools list of tools the model may call during generation
+     * @return a {@link TextChatResponse} object containing the model's reply
+     */
+    public TextChatResponse chat(String deploymentId, List<ChatMessage> messages, ChatParameters parameters, List<Tool> tools) {
+        return chat(
+            DeploymentChatRequest.builder()
+                .deploymentId(deploymentId)
+                .messages(messages)
+                .parameters(parameters)
+                .tools(tools)
+                .build()
+        );
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided message.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param message Message to send.
+     * @param handler a {@link ChatHandler} implementation
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, String message, ChatHandler handler) {
+        return chatStreaming(deploymentId, List.of(UserMessage.text(message)), handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param handler a {@link ChatHandler} implementation
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatHandler handler) {
+        return chatStreaming(deploymentId, messages, ChatParameters.builder().build(), handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages and tools.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param tools the list of tools that the model may use
+     * @param handler a {@link ChatHandler} implementation
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
+        return chatStreaming(deploymentId, messages, null, tools, handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages and parameters.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param handler a {@link ChatHandler} implementation
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatParameters parameters,
+        ChatHandler handler) {
+        return chatStreaming(deploymentId, messages, parameters, null, handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided message.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param message Message to send.
+     * @param handler a consumer that receives partial text responses
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, String message, Consumer<String> handler) {
+        return chatStreaming(deploymentId, List.of(UserMessage.text(message)), handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param handler a consumer that receives partial text responses
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, Consumer<String> handler) {
+        return chatStreaming(deploymentId, messages, ChatParameters.builder().build(), handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages and tools.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param tools the list of tools that the model may use
+     * @param handler a consumer that receives partial text responses
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, List<Tool> tools,
+        Consumer<String> handler) {
+        return chatStreaming(deploymentId, messages, null, tools, handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages and parameters.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param handler a consumer that receives partial text responses
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatParameters parameters,
+        Consumer<String> handler) {
+        return chatStreaming(deploymentId, messages, parameters, null, handler);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages, parameters and tools.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param tools the list of tools that the model may use
+     * @param handler a consumer that receives partial text responses
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatParameters parameters,
+        List<Tool> tools, Consumer<String> handler) {
+        return chatStreaming(deploymentId, messages, parameters, tools, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                handler.accept(partialResponse);
+            }
+        });
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages, parameters and tools.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param tools the list of tools that the model may use
+     * @param handler a {@link ChatHandler} implementation
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatParameters parameters,
+        List<Tool> tools, ChatHandler handler) {
+        var chatRequest = DeploymentChatRequest.builder()
+            .deploymentId(deploymentId)
+            .messages(messages)
+            .parameters(parameters)
+            .tools(tools)
+            .build();
+        return chatStreaming(chatRequest, handler);
     }
 
     @Override

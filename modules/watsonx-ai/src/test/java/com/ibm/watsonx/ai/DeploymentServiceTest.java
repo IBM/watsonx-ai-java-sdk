@@ -8,6 +8,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
@@ -35,6 +37,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +68,7 @@ import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
+import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -2112,5 +2116,334 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertEquals(23, chatResponse.usage().completionTokens());
         assertEquals(76, chatResponse.usage().promptTokens());
         assertEquals(99, chatResponse.usage().totalTokens());
+    }
+
+    @Test
+    void should_chat_using_shortcut_methods() throws Exception {
+
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .baseUrl(CloudRegion.DALLAS)
+                .authenticator(mockAuthenticator)
+                .build();
+
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn("""
+                {
+                  "id": "cmpl-shortcut",
+                  "model_id": "ibm/granite-3-2b-instruct",
+                  "created": 1689958352,
+                  "created_at": "2023-07-21T16:52:32.190Z",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "Ciao"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": {
+                    "completion_tokens": 27,
+                    "prompt_tokens": 186,
+                    "total_tokens": 213
+                  }
+                }""");
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var systemMessage = SystemMessage.of("You are a helpful assistant");
+            var userMessage = UserMessage.text("Hello");
+            var messages = List.<ChatMessage>of(systemMessage, userMessage);
+            var tool = Tool.of("get_current_time");
+            var tools = List.of(tool);
+            var parameters = ChatParameters.builder()
+                .temperature(0.5)
+                .transactionId("my-transaction-id")
+                .build();
+
+            var expectedUri = URI.create(CloudRegion.DALLAS.mlEndpoint()
+                .concat("/ml/v1/deployments/my-deployment-id/text/chat?version=%s".formatted(API_VERSION)));
+
+            // chat(deploymentId, message)
+            var response = deploymentService.chat("my-deployment-id", "Hello");
+            assertEquals("Ciao", response.toAssistantMessage().content());
+            assertEquals(expectedUri, mockHttpRequest.getValue().uri());
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(List.of(userMessage))
+                    .timeLimit(60000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+
+            // chat(deploymentId, messages...)
+            response = deploymentService.chat("my-deployment-id", systemMessage, userMessage);
+            assertEquals("Ciao", response.toAssistantMessage().content());
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(messages)
+                    .timeLimit(60000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+
+            // chat(deploymentId, messages)
+            response = deploymentService.chat("my-deployment-id", messages);
+            assertEquals("Ciao", response.toAssistantMessage().content());
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(messages)
+                    .timeLimit(60000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+
+            // chat(deploymentId, messages, tools...)
+            response = deploymentService.chat("my-deployment-id", messages, tool);
+            assertEquals("Ciao", response.toAssistantMessage().content());
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(messages)
+                    .tools(tools)
+                    .timeLimit(60000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+
+            // chat(deploymentId, messages, tools)
+            response = deploymentService.chat("my-deployment-id", messages, tools);
+            assertEquals("Ciao", response.toAssistantMessage().content());
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(messages)
+                    .tools(tools)
+                    .timeLimit(60000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+
+            // chat(deploymentId, messages, parameters)
+            response = deploymentService.chat("my-deployment-id", messages, parameters);
+            assertEquals("Ciao", response.toAssistantMessage().content());
+            assertEquals("my-transaction-id", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null));
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(messages)
+                    .temperature(0.5)
+                    .timeLimit(60000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+
+            // chat(deploymentId, messages, parameters, tools)
+            response = deploymentService.chat("my-deployment-id", messages, parameters, tools);
+            assertEquals("Ciao", response.toAssistantMessage().content());
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(messages)
+                    .tools(tools)
+                    .temperature(0.5)
+                    .timeLimit(60000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+
+            // An empty tools list is not forwarded to watsonx.ai
+            response = deploymentService.chat("my-deployment-id", messages, List.<Tool>of());
+            assertEquals("Ciao", response.toAssistantMessage().content());
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(messages)
+                    .timeLimit(60000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+        });
+    }
+
+    @Test
+    void should_chat_with_request_time_limit_and_thinking_effort() throws Exception {
+
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .baseUrl(CloudRegion.DALLAS)
+                .authenticator(mockAuthenticator)
+                .build();
+
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn("""
+                {
+                  "id": "cmpl-thinking-effort",
+                  "model_id": "ibm/granite-3-2b-instruct",
+                  "created": 1689958352,
+                  "created_at": "2023-07-21T16:52:32.190Z",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "Ciao"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ]
+                }""");
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var request = DeploymentChatRequest.builder()
+                .deploymentId("my-deployment-id")
+                .messages(UserMessage.text("Hello"))
+                .parameters(ChatParameters.builder()
+                    .timeLimit(Duration.ofSeconds(10))
+                    .build())
+                .thinking(ThinkingEffort.LOW)
+                .build();
+
+            var response = deploymentService.chat(request);
+            assertEquals("Ciao", response.toAssistantMessage().content());
+
+            // The time limit of the request overrides the timeout of the http client
+            assertEquals(Duration.ofSeconds(10), mockHttpRequest.getValue().timeout().orElseThrow());
+            JSONAssert.assertEquals(
+                toJson(TextChatRequest.builder()
+                    .messages(List.of(UserMessage.text("Hello")))
+                    .chatTemplateKwargs(Map.of("thinking", true, "enable_thinking", true))
+                    .reasoningEffort("low")
+                    .timeLimit(10000L)
+                    .build()),
+                bodyPublisherToString(mockHttpRequest), true);
+        });
+    }
+
+    @Test
+    void should_stream_chat_with_consumer_handler() throws Exception {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-consumer","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-consumer","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"stop","delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
+
+        var deploymentService = DeploymentService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticator(mockAuthenticator)
+            .build();
+
+        var request = DeploymentChatRequest.builder()
+            .deploymentId("my-deployment-id")
+            .messages(UserMessage.text("Translate \"Hello\" in Italian"))
+            .build();
+
+        var partial = new StringBuilder();
+        Consumer<String> consumer = partial::append;
+
+        assertStreamedContent(deploymentService.chatStreaming(request, consumer), partial);
+    }
+
+    @Test
+    void should_chat_streaming_using_shortcut_methods() throws Exception {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-shortcut","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-shortcut","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"C"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.542Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-shortcut","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"content":"iao"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-shortcut","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.563Z","usage":{"completion_tokens":3,"prompt_tokens":38,"total_tokens":41}}
+                        """)));
+
+        var deploymentService = DeploymentService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticator(mockAuthenticator)
+            .build();
+
+        var messages = List.<ChatMessage>of(
+            SystemMessage.of("You are an expert translator and you give the translation of single words"),
+            UserMessage.text("Translate \"Hello\" in Italian")
+        );
+        var tools = List.of(Tool.of("get_current_time"));
+        var parameters = ChatParameters.builder()
+            .temperature(0.5)
+            .build();
+
+        var partial = new StringBuilder();
+        var chatHandler = new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partial.append(partialResponse);
+            }
+        };
+        Consumer<String> consumer = partial::append;
+
+        // chatStreaming(deploymentId, message, chatHandler)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", "Translate \"Hello\" in Italian", chatHandler), partial);
+
+        // chatStreaming(deploymentId, messages, chatHandler)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", messages, chatHandler), partial);
+
+        // chatStreaming(deploymentId, messages, tools, chatHandler)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", messages, tools, chatHandler), partial);
+
+        // chatStreaming(deploymentId, messages, parameters, chatHandler)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", messages, parameters, chatHandler), partial);
+
+        // chatStreaming(deploymentId, messages, parameters, tools, chatHandler)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", messages, parameters, tools, chatHandler), partial);
+
+        // chatStreaming(deploymentId, message, consumer)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", "Translate \"Hello\" in Italian", consumer), partial);
+
+        // chatStreaming(deploymentId, messages, consumer)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", messages, consumer), partial);
+
+        // chatStreaming(deploymentId, messages, tools, consumer)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", messages, tools, consumer), partial);
+
+        // chatStreaming(deploymentId, messages, parameters, consumer)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", messages, parameters, consumer), partial);
+
+        // chatStreaming(deploymentId, messages, parameters, tools, consumer)
+        assertStreamedContent(deploymentService.chatStreaming("my-deployment-id", messages, parameters, tools, consumer), partial);
+
+        var requestBodies = wireMock.findAll(postRequestedFor(urlPathEqualTo("/ml/v1/deployments/my-deployment-id/text/chat_stream")))
+            .stream()
+            .map(request -> Json.fromJson(request.getBodyAsString(), Map.class))
+            .toList();
+
+        assertEquals(10, requestBodies.size());
+        assertEquals(4, requestBodies.stream().filter(body -> body.containsKey("tools")).count());
+        assertEquals(4, requestBodies.stream().filter(body -> body.containsKey("temperature")).count());
+        assertEquals(2, requestBodies.stream().filter(body -> ((List<?>) body.get("messages")).size() == 1).count());
+    }
+
+    /**
+     * Awaits the streaming response and asserts that both the aggregated response and the partial chunks contain the expected content.
+     */
+    private void assertStreamedContent(CompletableFuture<ChatResponse> future, StringBuilder partial) {
+        var response = assertDoesNotThrow(() -> future.get(30, TimeUnit.SECONDS));
+        assertEquals("Ciao", response.toAssistantMessage().content());
+        assertEquals("Ciao", partial.toString());
+        partial.setLength(0);
     }
 }
