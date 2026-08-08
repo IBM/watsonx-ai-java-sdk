@@ -14,6 +14,8 @@ The SDK uses the `Authenticator` interface as the single abstraction for token-b
 
 Both implementations handle **token caching and automatic renewal** transparently. The SDK fetches a token on the first request, caches it, checks expiry before each subsequent request, and refreshes silently when needed. You never manage token lifecycle manually.
 
+Any other credential source can be plugged in by implementing `Authenticator` yourself. See [Custom Authentication](#custom-authentication).
+
 ---
 
 ## IBM Cloud Authentication
@@ -153,6 +155,52 @@ ChatService chatService = ChatService.builder()
 | `authMode` | AuthMode | No | Authentication mode: `LEGACY` (default), `IAM`, or `ZEN_API_KEY` |
 | `timeout` | Duration | No | Timeout for token requests (default: 60 seconds) |
 | `httpClient` | HttpClient | No | Custom HTTP client (useful for SSL configuration) |
+
+---
+
+## Custom Authentication
+
+When the token comes from a source the built-in implementations do not cover, implement the `Authenticator` interface:
+
+```java
+import java.util.concurrent.CompletableFuture;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
+
+public class MyAuthenticator implements Authenticator {
+
+    private final MyTokenProvider tokenProvider;
+
+    public MyAuthenticator(MyTokenProvider tokenProvider) {
+        this.tokenProvider = tokenProvider;
+    }
+
+    @Override
+    public String token() {
+        return tokenProvider.accessToken();
+    }
+
+    @Override
+    public CompletableFuture<String> tokenAsync() {
+        return CompletableFuture.completedFuture(token());
+    }
+
+    @Override
+    public String scheme() {
+        return "Bearer";
+    }
+}
+```
+
+Then pass the instance to any service builder through `authenticator(Authenticator)`:
+
+```java
+ChatService chatService = ChatService.builder()
+    .authenticator(new MyAuthenticator(tokenProvider))
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl(CloudRegion.DALLAS)
+    .modelId("ibm/granite-4-h-small")
+    .build();
+```
 
 ---
 

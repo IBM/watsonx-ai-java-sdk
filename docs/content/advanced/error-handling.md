@@ -11,21 +11,22 @@ The SDK provides a typed exception hierarchy so you can catch exactly the errors
 
 ## Exception hierarchy
 
-All SDK exceptions extend `WatsonxException`, which in turn extends `RuntimeException`. You never need to declare them in `throws` clauses.
+API errors are reported through `WatsonxException`, which extends `RuntimeException`. You never need to declare SDK exceptions in `throws` clauses.
 
 ```
 RuntimeException
-└── WatsonxException              (base - always has statusCode, errorCode, message, traceId)
-    ├── AuthenticationTokenExpiredException   ← handled automatically by the SDK
-    ├── AuthorizationRejectedException
-    ├── InvalidInputArgumentException
-    ├── InvalidRequestEntityException
-    ├── JsonTypeErrorException
-    ├── JsonValidationErrorException
-    ├── ModelNotSupportedException
-    ├── ModelNoSupportForFunctionException
-    ├── TokenQuotaReachedException
-    └── UserAuthorizationFailedException
+├── WatsonxException              (base - always has statusCode, errorCode, message, traceId)
+│   ├── AuthenticationTokenExpiredException   ← handled automatically by the SDK
+│   ├── AuthorizationRejectedException
+│   ├── InvalidInputArgumentException
+│   ├── InvalidRequestEntityException
+│   ├── JsonTypeErrorException
+│   ├── JsonValidationErrorException
+│   ├── ModelNotSupportedException
+│   ├── ModelNoSupportForFunctionException
+│   ├── TokenQuotaReachedException
+│   └── UserAuthorizationFailedException
+└── EmptyChatResponseException    ← the call succeeded, but there is nothing to read
 ```
 
 `WatsonxException` exposes:
@@ -60,6 +61,26 @@ If the API returns an error code that does not map to a specific subclass, the b
 
 ---
 
+## Empty chat responses
+
+`EmptyChatResponseException` is not an API error. The request succeeded, but the response carries nothing that can be turned into an `AssistantMessage`, so the message cannot be built. It is thrown by `ChatResponse.toAssistantMessage()` and `ChatResponse.toAssistantMessages()` when:
+
+- the response contains no choices at all
+- a choice carries no message
+- a choice has no content, no tool calls and no refusal - for example when the model was truncated by `maxCompletionTokens` before emitting anything
+
+Because it extends `RuntimeException` directly and not `WatsonxException`, a `catch (WatsonxException e)` block will **not** catch it.
+
+`EmptyChatResponseException` exposes:
+
+| Method | Type | Description |
+|--------|------|-------------|
+| `finishReason()` | FinishReason | Finish reason of the empty choice (e.g. `LENGTH`, `TIME_LIMIT`, `CANCELLED`, `ERROR`), or `INCOMPLETE` when the response has no choices |
+| `index()` | int | Zero-based index of the empty choice, or `EmptyChatResponseException.NO_CHOICE` (`-1`) when the response has no choices |
+| `response()` | ChatResponse | The original response - useful to inspect token usage or log the raw payload |
+
+---
+
 ## Usage examples
 
 ### Basic error handling
@@ -82,6 +103,28 @@ try {
     // Any other API error
     logger.error("Watsonx error [{}] {}: {} (traceId={})",
         e.statusCode(), e.errorCode(), e.getMessage(), e.traceId());
+}
+```
+
+### Handling an empty chat response
+
+`EmptyChatResponseException` is raised when the assistant message is built, not when the request is sent, so catch it around the conversion:
+
+```java
+ChatResponse response = chatService.chat("Hello!");
+
+try {
+    AssistantMessage message = response.toAssistantMessage();
+    System.out.println(message.content());
+} catch (EmptyChatResponseException e) {
+    switch (e.finishReason()) {
+        // Truncated before producing output - raise maxCompletionTokens and retry
+        case LENGTH -> retryWithLargerBudget();
+        // The request hit the server time limit or was cancelled
+        case TIME_LIMIT, CANCELLED -> retryLater();
+        default -> logger.warn("Empty choice {} ({}): {}",
+            e.index(), e.finishReason(), e.getMessage());
+    }
 }
 ```
 

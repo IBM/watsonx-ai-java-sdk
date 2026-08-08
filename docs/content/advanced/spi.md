@@ -18,17 +18,23 @@ Every service delegates HTTP communication to an abstract `WatsonxRestClient`, w
 | Service | REST client |
 |---------|-------------|
 | `ChatService` | `ChatRestClient` |
+| `TextGenerationService` | `TextGenerationRestClient` |
 | `EmbeddingService` | `EmbeddingRestClient` |
 | `RerankService` | `RerankRestClient` |
 | `TokenizationService` | `TokenizationRestClient` |
 | `DetectionService` | `DetectionRestClient` |
 | `TextClassificationService` | `TextClassificationRestClient` |
 | `TextExtractionService` | `TextExtractionRestClient` |
+| `CreateSchemaService` | `CreateSchemaRestClient` |
+| `ImproveSchemaService` | `ImproveSchemaRestClient` |
+| `MergeSchemaService` | `MergeSchemaRestClient` |
+| `ClusterSchemaService` | `ClusterSchemaRestClient` |
 | `TimeSeriesService` | `TimeSeriesRestClient` |
 | `FoundationModelService` | `FoundationModelRestClient` |
 | `ToolService` | `ToolRestClient` |
 | `DeploymentService` | `DeploymentRestClient` |
 | `ModelGatewayService` | `ModelGatewayRestClient` |
+| `ModelGatewayCatalogService` | `ModelGatewayCatalogRestClient` |
 | `FileService` | `FileRestClient` |
 | `BatchService` | `BatchRestClient` |
 
