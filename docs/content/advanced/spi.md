@@ -35,6 +35,7 @@ Every service delegates HTTP communication to an abstract `WatsonxRestClient`, w
 | `DeploymentService` | `DeploymentRestClient` |
 | `ModelGatewayService` | `ModelGatewayRestClient` |
 | `ModelGatewayCatalogService` | `ModelGatewayCatalogRestClient` |
+| `ModelGatewayEmbeddingService` | `ModelGatewayEmbeddingRestClient` |
 | `FileService` | `FileRestClient` |
 | `BatchService` | `BatchRestClient` |
 
@@ -318,6 +319,7 @@ Additionally, the SDK uses **Jackson mix-in annotations** (via `WatsonxJacksonMo
 - Custom builders with `@JsonPOJOBuilder(withPrefix = "")`
 - Ignored fields (e.g., `@JsonIgnore` on `AssistantMessage.thinking()`)
 - Dynamic properties with `@JsonAnyGetter`/`@JsonAnySetter` (e.g., `ToolArguments`)
+- Suppressed auto-detection with `@JsonAutoDetect(getterVisibility = NONE)`, so a type is written from its explicitly annotated accessors only (e.g., `ModelGatewayEmbeddingResponse.Embedding`)
 
 **If you replace Jackson with another JSON library**, you must replicate these configurations. The mix-ins are defined in `com.ibm.watsonx.ai.WatsonxJacksonModule` and cover all SDK request/response types.
 

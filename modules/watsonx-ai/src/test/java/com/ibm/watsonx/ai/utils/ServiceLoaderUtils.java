@@ -114,6 +114,10 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogRestClient$ModelGatewayCatalogRestClientBuilderFactory",
             "com.ibm.watsonx.ai.client.impl.CustomModelGatewayCatalogRestClient$CustomModelGatewayCatalogRestClientBuilderFactory");
 
+        createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingRestClient$ModelGatewayEmbeddingRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomModelGatewayEmbeddingRestClient$CustomModelGatewayEmbeddingRestClientBuilderFactory");
+
         URLClassLoader tempClassLoader = new URLClassLoader(
             new URL[] { tempDir.toUri().toURL() },
             originalClassLoader

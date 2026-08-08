@@ -22,6 +22,7 @@ import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogService;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -57,6 +58,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see ImproveSchemaService
  * @see MergeSchemaService
  * @see ModelGatewayCatalogService
+ * @see ModelGatewayEmbeddingService
  * @see ModelGatewayService
  */
 public abstract class WatsonxService {
