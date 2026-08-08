@@ -60,8 +60,9 @@ const sidebars: SidebarsConfig = {
           link: { type: 'doc', id: 'services/model-gateway/index' },
           collapsed: true,
           items: [
-            { type: 'doc', id: 'services/model-gateway/chat',    label: 'Chat' },
-            { type: 'doc', id: 'services/model-gateway/catalog', label: 'Catalog' },
+            { type: 'doc', id: 'services/model-gateway/chat',       label: 'Chat' },
+            { type: 'doc', id: 'services/model-gateway/catalog',    label: 'Catalog' },
+            { type: 'doc', id: 'services/model-gateway/embeddings', label: 'Embeddings' },
           ],
         },
         { type: 'doc', id: 'services/file-service',  label: 'File Service' },

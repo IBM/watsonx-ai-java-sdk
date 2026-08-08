@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -50,6 +52,9 @@ import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayListModelsResponse;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayModel;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest;
+import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse;
+import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse.Embedding;
+import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse.Usage;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
 import com.ibm.watsonx.ai.textgeneration.Moderation.InputRanges;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
@@ -100,6 +105,9 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TextChatResponse.DetectionResult.class, TextChatResponseDetectionResultMixin.class);
 
         // --- Gateway Mixin --- //
+        setMixInAnnotation(ModelGatewayEmbeddingResponse.class, ModelGatewayEmbeddingResponseMixin.class);
+        setMixInAnnotation(Embedding.class, ModelGatewayEmbeddingMixin.class);
+        setMixInAnnotation(Usage.class, ModelGatewayEmbeddingUsageMixin.class);
         setMixInAnnotation(ModelGatewayChatResponse.class, ModelGatewayChatResponseMixin.class);
         setMixInAnnotation(ModelGatewayChatResponse.Builder.class, ModelGatewayChatResponseBuilderMixin.class);
         setMixInAnnotation(ModelGatewayTextChatRequest.class, ModelGatewayTextChatRequestMixin.class);
@@ -978,5 +986,41 @@ public class WatsonxJacksonModule extends SimpleModule {
         public ModelGatewayListModelsResponseMixin(
             @JsonProperty("object") String object,
             @JsonProperty("data") List<ModelGatewayModel> data) {}
+    }
+
+    public abstract static class ModelGatewayEmbeddingResponseMixin {
+        @JsonCreator
+        public ModelGatewayEmbeddingResponseMixin(
+            @JsonProperty("object") String object,
+            @JsonProperty("model") String model,
+            @JsonProperty("data") List<Embedding> data,
+            @JsonProperty("usage") Usage usage) {}
+    }
+
+    @JsonAutoDetect(getterVisibility = Visibility.NONE)
+    public abstract static class ModelGatewayEmbeddingMixin {
+        @JsonCreator
+        static Embedding of(
+            @JsonProperty("object") String object,
+            @JsonProperty("index") int index,
+            @JsonProperty("embedding") Object value) {
+            return null;
+        }
+
+        @JsonProperty("object")
+        abstract String object();
+
+        @JsonProperty("index")
+        abstract int index();
+
+        @JsonProperty("embedding")
+        abstract Object rawEmbedding();
+    }
+
+    public abstract static class ModelGatewayEmbeddingUsageMixin {
+        @JsonCreator
+        public ModelGatewayEmbeddingUsageMixin(
+            @JsonProperty("prompt_tokens") int promptTokens,
+            @JsonProperty("total_tokens") int totalTokens) {}
     }
 }

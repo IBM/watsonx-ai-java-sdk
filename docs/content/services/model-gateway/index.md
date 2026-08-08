@@ -67,7 +67,7 @@ The table below lists the Model Gateway operations available in this SDK.
 | Chat completions | `ModelGatewayService` | Available | [Chat](./chat/) |
 | List models | `ModelGatewayCatalogService` | Available | [Catalog](./catalog/) |
 | Get model | `ModelGatewayCatalogService` | Available | [Catalog](./catalog/) |
-| Embeddings | - | Not yet implemented | - |
+| Embeddings | `ModelGatewayEmbeddingService` | Available | [Embeddings](./embeddings/) |
 | Audio transcription | - | Not yet implemented | - |
 
 ---
