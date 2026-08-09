@@ -36,6 +36,7 @@ Every service delegates HTTP communication to an abstract `WatsonxRestClient`, w
 | `ModelGatewayService` | `ModelGatewayRestClient` |
 | `ModelGatewayCatalogService` | `ModelGatewayCatalogRestClient` |
 | `ModelGatewayEmbeddingService` | `ModelGatewayEmbeddingRestClient` |
+| `ModelGatewayImageService` | `ModelGatewayImageRestClient` |
 | `FileService` | `FileRestClient` |
 | `BatchService` | `BatchRestClient` |
 

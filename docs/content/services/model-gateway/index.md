@@ -68,6 +68,7 @@ The table below lists the Model Gateway operations available in this SDK.
 | List models | `ModelGatewayCatalogService` | Available | [Catalog](./catalog/) |
 | Get model | `ModelGatewayCatalogService` | Available | [Catalog](./catalog/) |
 | Embeddings | `ModelGatewayEmbeddingService` | Available | [Embeddings](./embeddings/) |
+| Image generation | `ModelGatewayImageService` | Available | [Image Generation](./image-generation/) |
 | Audio transcription | - | Not yet implemented | - |
 
 ---

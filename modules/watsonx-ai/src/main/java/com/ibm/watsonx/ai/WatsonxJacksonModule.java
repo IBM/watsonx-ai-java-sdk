@@ -55,6 +55,9 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse.Embedding;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse.Usage;
+import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse;
+import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse.ImageData;
+import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse.InputTokensDetails;
 import com.ibm.watsonx.ai.textgeneration.Moderation;
 import com.ibm.watsonx.ai.textgeneration.Moderation.InputRanges;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters;
@@ -105,6 +108,10 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TextChatResponse.DetectionResult.class, TextChatResponseDetectionResultMixin.class);
 
         // --- Gateway Mixin --- //
+        setMixInAnnotation(ModelGatewayImageResponse.class, ModelGatewayImageResponseMixin.class);
+        setMixInAnnotation(ImageData.class, ModelGatewayImageDataMixin.class);
+        setMixInAnnotation(ModelGatewayImageResponse.Usage.class, ModelGatewayImageUsageMixin.class);
+        setMixInAnnotation(InputTokensDetails.class, ModelGatewayImageInputTokensDetailsMixin.class);
         setMixInAnnotation(ModelGatewayEmbeddingResponse.class, ModelGatewayEmbeddingResponseMixin.class);
         setMixInAnnotation(Embedding.class, ModelGatewayEmbeddingMixin.class);
         setMixInAnnotation(Usage.class, ModelGatewayEmbeddingUsageMixin.class);
@@ -1023,4 +1030,41 @@ public class WatsonxJacksonModule extends SimpleModule {
             @JsonProperty("prompt_tokens") int promptTokens,
             @JsonProperty("total_tokens") int totalTokens) {}
     }
+
+    public abstract static class ModelGatewayImageResponseMixin {
+        @JsonCreator
+        public ModelGatewayImageResponseMixin(
+            @JsonProperty("created") long created,
+            @JsonProperty("data") List<ImageData> data,
+            @JsonProperty("background") String background,
+            @JsonProperty("output_format") String outputFormat,
+            @JsonProperty("quality") String quality,
+            @JsonProperty("size") String size,
+            @JsonProperty("usage") ModelGatewayImageResponse.Usage usage) {}
+    }
+
+    public abstract static class ModelGatewayImageDataMixin {
+        @JsonCreator
+        public ModelGatewayImageDataMixin(
+            @JsonProperty("url") String url,
+            @JsonProperty("b64_json") String b64Json,
+            @JsonProperty("revised_prompt") String revisedPrompt) {}
+    }
+
+    public abstract static class ModelGatewayImageUsageMixin {
+        @JsonCreator
+        public ModelGatewayImageUsageMixin(
+            @JsonProperty("input_tokens") long inputTokens,
+            @JsonProperty("output_tokens") long outputTokens,
+            @JsonProperty("total_tokens") long totalTokens,
+            @JsonProperty("input_tokens_details") InputTokensDetails inputTokensDetails) {}
+    }
+
+    public abstract static class ModelGatewayImageInputTokensDetailsMixin {
+        @JsonCreator
+        public ModelGatewayImageInputTokensDetailsMixin(
+            @JsonProperty("image_tokens") long imageTokens,
+            @JsonProperty("text_tokens") long textTokens) {}
+    }
+
 }
