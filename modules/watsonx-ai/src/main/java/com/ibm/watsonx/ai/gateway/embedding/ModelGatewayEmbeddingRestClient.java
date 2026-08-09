@@ -20,11 +20,10 @@ public abstract class ModelGatewayEmbeddingRestClient extends WatsonxRestClient 
     /**
      * Sends a synchronous embedding request to the Model Gateway.
      *
-     * @param model the model ID to use for generating embeddings
-     * @param request the {@link ModelGatewayEmbeddingRequest} containing the input and optional parameters
+     * @param request the {@link ModelGatewayEmbeddingPayload} already containing model, input and all parameters
      * @return a {@link ModelGatewayEmbeddingResponse} containing the generated embeddings
      */
-    public abstract ModelGatewayEmbeddingResponse embed(String model, ModelGatewayEmbeddingRequest request);
+    public abstract ModelGatewayEmbeddingResponse embed(ModelGatewayEmbeddingPayload request);
 
     /**
      * Creates a new {@link Builder} using the first available {@link ModelGatewayEmbeddingRestClientBuilderFactory} discovered via

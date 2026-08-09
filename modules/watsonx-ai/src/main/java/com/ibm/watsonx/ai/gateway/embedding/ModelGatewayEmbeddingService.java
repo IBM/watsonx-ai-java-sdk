@@ -101,7 +101,7 @@ public class ModelGatewayEmbeddingService extends WatsonxService {
         if (request.input().isEmpty())
             throw new IllegalArgumentException("At least one input must be provided");
 
-        return client.embed(modelId, request);
+        return client.embed(ModelGatewayEmbeddingPayload.of(modelId, request));
     }
 
     /**
