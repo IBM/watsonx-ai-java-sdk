@@ -11,12 +11,12 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayRestClient;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRestClient;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest;
 
-public class CustomModelGatewayRestClient extends ModelGatewayRestClient {
+public class CustomModelGatewayChatRestClient extends ModelGatewayChatRestClient {
 
-    CustomModelGatewayRestClient(Builder builder) {
+    CustomModelGatewayChatRestClient(Builder builder) {
         super(builder);
     }
 
@@ -31,17 +31,17 @@ public class CustomModelGatewayRestClient extends ModelGatewayRestClient {
         throw new UnsupportedOperationException("Unimplemented method 'chatStreaming'");
     }
 
-    public static final class CustomModelGatewayRestClientBuilderFactory implements ModelGatewayRestClientBuilderFactory {
+    public static final class CustomModelGatewayChatRestClientBuilderFactory implements ModelGatewayChatRestClientBuilderFactory {
         @Override
         public Builder get() {
-            return new CustomModelGatewayRestClient.Builder();
+            return new CustomModelGatewayChatRestClient.Builder();
         }
     }
 
-    static final class Builder extends ModelGatewayRestClient.Builder {
+    static final class Builder extends ModelGatewayChatRestClient.Builder {
         @Override
-        public ModelGatewayRestClient build() {
-            return new CustomModelGatewayRestClient(this);
+        public ModelGatewayChatRestClient build() {
+            return new CustomModelGatewayChatRestClient(this);
         }
     }
 }

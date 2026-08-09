@@ -33,7 +33,7 @@ Every service delegates HTTP communication to an abstract `WatsonxRestClient`, w
 | `FoundationModelService` | `FoundationModelRestClient` |
 | `ToolService` | `ToolRestClient` |
 | `DeploymentService` | `DeploymentRestClient` |
-| `ModelGatewayService` | `ModelGatewayRestClient` |
+| `ModelGatewayChatService` | `ModelGatewayChatRestClient` |
 | `ModelGatewayCatalogService` | `ModelGatewayCatalogRestClient` |
 | `ModelGatewayEmbeddingService` | `ModelGatewayEmbeddingRestClient` |
 | `ModelGatewayImageService` | `ModelGatewayImageRestClient` |
@@ -141,7 +141,7 @@ public final class QuarkusChatRestClient extends ChatRestClient {
 }
 ```
 
-> **Note:** `ChatClientContext` is parameterized by the request type of the service it belongs to, and the override must match. Use `ChatClientContext<ChatRequest>` in a `ChatRestClient`, `ChatClientContext<DeploymentChatRequest>` in a `DeploymentRestClient`, and `ChatClientContext<ModelGatewayChatRequest>` in a `ModelGatewayRestClient`.
+> **Note:** `ChatClientContext` is parameterized by the request type of the service it belongs to, and the override must match. Use `ChatClientContext<ChatRequest>` in a `ChatRestClient`, `ChatClientContext<DeploymentChatRequest>` in a `DeploymentRestClient`, and `ChatClientContext<ModelGatewayChatRequest>` in a `ModelGatewayChatRestClient`.
 
 #### Step 3 - Register via `ServiceLoader`
 

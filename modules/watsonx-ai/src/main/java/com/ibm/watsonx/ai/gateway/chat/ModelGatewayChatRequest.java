@@ -7,12 +7,12 @@ package com.ibm.watsonx.ai.gateway.chat;
 import com.ibm.watsonx.ai.chat.BaseChatRequest;
 
 /**
- * Represents a chat request for the {@link ModelGatewayService}.
+ * Represents a chat request for the {@link ModelGatewayChatService}.
  * <p>
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * var parameters = ModelGatewayParameters.builder()
+ * var parameters = ModelGatewayChatParameters.builder()
  *     .temperature(0.7)
  *     .reasoningEffort(ReasoningEffort.MEDIUM)
  *     .build();
@@ -25,11 +25,11 @@ import com.ibm.watsonx.ai.chat.BaseChatRequest;
  *     ).build();
  * }</pre>
  *
- * @see ModelGatewayService
- * @see ModelGatewayParameters
+ * @see ModelGatewayChatService
+ * @see ModelGatewayChatParameters
  */
 public final class ModelGatewayChatRequest extends BaseChatRequest {
-    private final ModelGatewayParameters parameters;
+    private final ModelGatewayChatParameters parameters;
 
     private ModelGatewayChatRequest(Builder builder) {
         super(builder);
@@ -42,7 +42,7 @@ public final class ModelGatewayChatRequest extends BaseChatRequest {
      * @return the gateway chat parameters, or {@code null} if not set
      */
     @Override
-    public ModelGatewayParameters parameters() {
+    public ModelGatewayChatParameters parameters() {
         return parameters;
     }
 
@@ -64,7 +64,7 @@ public final class ModelGatewayChatRequest extends BaseChatRequest {
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * var parameters = ModelGatewayParameters.builder()
+     * var parameters = ModelGatewayChatParameters.builder()
      *     .temperature(0.7)
      *     .reasoningEffort(ReasoningEffort.MEDIUM)
      *     .build();
@@ -77,8 +77,8 @@ public final class ModelGatewayChatRequest extends BaseChatRequest {
      *     ).build();
      * }</pre>
      *
-     * @see ModelGatewayService
-     * @see ModelGatewayParameters
+     * @see ModelGatewayChatService
+     * @see ModelGatewayChatParameters
      * @return {@link Builder} instance.
      */
     public static Builder builder() {
@@ -89,17 +89,17 @@ public final class ModelGatewayChatRequest extends BaseChatRequest {
      * Builder class for constructing {@link ModelGatewayChatRequest} instances.
      */
     public final static class Builder extends BaseChatRequest.Builder<Builder> {
-        private ModelGatewayParameters parameters;
+        private ModelGatewayChatParameters parameters;
 
         private Builder() {}
 
         /**
          * Sets the gateway parameters controlling the chat model's behavior.
          *
-         * @see ModelGatewayParameters
-         * @param parameters a {@link ModelGatewayParameters}.
+         * @see ModelGatewayChatParameters
+         * @param parameters a {@link ModelGatewayChatParameters}.
          */
-        public Builder parameters(ModelGatewayParameters parameters) {
+        public Builder parameters(ModelGatewayChatParameters parameters) {
             this.parameters = parameters;
             return this;
         }

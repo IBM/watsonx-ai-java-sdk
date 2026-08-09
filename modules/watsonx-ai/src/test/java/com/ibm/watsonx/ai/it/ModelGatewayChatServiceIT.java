@@ -56,12 +56,12 @@ import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY_GATEWAY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
-public class ModelGatewayServiceIT {
+public class ModelGatewayChatServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY_GATEWAY");
     static final String URL = System.getenv("WATSONX_URL");
@@ -76,7 +76,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_return_valid_chat_response_when_chat_is_invoked() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .apiKey(API_KEY)
                 .modelId("claude-sonnet-5")
@@ -84,7 +84,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat("Hello!"));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat("Hello!"));
             var text = chatResponse.toAssistantMessage().content();
 
             assertNotNull(chatResponse);
@@ -116,7 +116,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_return_answer_containing_user_name_when_chat_messages_are_sent() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -133,7 +133,7 @@ public class ModelGatewayServiceIT {
                 ).build();
 
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             var text = chatResponse.toAssistantMessage().content();
 
             assertNotNull(chatResponse);
@@ -147,7 +147,7 @@ public class ModelGatewayServiceIT {
 
             record Poem(String content, String topic) {}
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -155,7 +155,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ModelGatewayParameters.builder()
+            var parameters = ModelGatewayChatParameters.builder()
                 .responseAsJson()
                 .build();
 
@@ -171,7 +171,7 @@ public class ModelGatewayServiceIT {
                 .parameters(parameters)
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
@@ -185,7 +185,7 @@ public class ModelGatewayServiceIT {
 
             record Poem(String content, String topic) {}
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-5.6-terra-dzus")
                 .authenticator(authentication)
@@ -193,7 +193,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ModelGatewayParameters.builder()
+            var parameters = ModelGatewayChatParameters.builder()
                 .responseAsJsonSchema(
                     "poem",
                     JsonSchema.object()
@@ -210,7 +210,7 @@ public class ModelGatewayServiceIT {
                 .parameters(parameters)
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
@@ -224,7 +224,7 @@ public class ModelGatewayServiceIT {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -232,7 +232,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ModelGatewayParameters.builder()
+            var parameters = ModelGatewayChatParameters.builder()
                 .timeLimit(Duration.ofSeconds(30))
                 .build();
 
@@ -244,7 +244,7 @@ public class ModelGatewayServiceIT {
                 .parameters(parameters)
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             var text = chatResponse.toAssistantMessage().content();
             assertNotNull(text);
             assertFalse(text.isBlank());
@@ -253,7 +253,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -271,7 +271,7 @@ public class ModelGatewayServiceIT {
                         .required("to", "body")))
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             assertNotNull(chatResponse);
             var tools = chatResponse.toAssistantMessage().toolCalls();
             assertNotNull(tools);
@@ -315,7 +315,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_call_tool_without_parameters_when_chat_contains_tool_message() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -328,7 +328,7 @@ public class ModelGatewayServiceIT {
                 .tools(Tool.of("get_time", "Get the current time"))
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             assertNotNull(chatResponse);
 
             var tools = chatResponse.toAssistantMessage().toolCalls();
@@ -342,7 +342,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-5.6-terra-dzus")
                 .authenticator(authentication)
@@ -350,7 +350,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            ModelGatewayParameters parameters = ModelGatewayParameters.builder()
+            ModelGatewayChatParameters parameters = ModelGatewayChatParameters.builder()
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
@@ -365,7 +365,7 @@ public class ModelGatewayServiceIT {
                 .parameters(parameters)
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
@@ -376,7 +376,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_not_force_tool_execution_when_tool_choice_option_is_set_to_none() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-5.6-terra-dzus")
                 .authenticator(authentication)
@@ -384,7 +384,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            ModelGatewayParameters parameters = ModelGatewayParameters.builder()
+            ModelGatewayChatParameters parameters = ModelGatewayChatParameters.builder()
                 .toolChoiceOption(ToolChoiceOption.NONE)
                 .build();
 
@@ -399,7 +399,7 @@ public class ModelGatewayServiceIT {
                 .parameters(parameters)
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(nonNull(assistantMessage.content()) || !assistantMessage.content().isBlank());
             assertNull(assistantMessage.toolCalls());
@@ -408,7 +408,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_throw_exception_when_api_key_is_invalid() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .apiKey("invalid_api_key")
@@ -421,14 +421,14 @@ public class ModelGatewayServiceIT {
                 .messages(UserMessage.text("Hello!"))
                 .build();
 
-            var ex = assertThrows(WatsonxException.class, () -> modelGatewayService.chat(request));
+            var ex = assertThrows(WatsonxException.class, () -> modelGatewayChatService.chat(request));
             assertTrue(ex.getMessage().contains("Provided API key could not be found."));
         }
 
         @Test
         void should_force_tool_call_when_tool_choice_option_is_set() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -436,7 +436,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            ModelGatewayParameters parameters = ModelGatewayParameters.builder()
+            ModelGatewayChatParameters parameters = ModelGatewayChatParameters.builder()
                 .toolChoice("send_email")
                 .build();
 
@@ -451,7 +451,7 @@ public class ModelGatewayServiceIT {
                 .parameters(parameters)
                 .build();
 
-            var chatResponse = assertDoesNotThrow(() -> modelGatewayService.chat(request));
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());
             assertNotNull(assistantMessage.toolCalls());
@@ -461,16 +461,16 @@ public class ModelGatewayServiceIT {
         @Test
         void should_manage_multiple_choices() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-5.6-terra-dzus")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .parameters(ModelGatewayParameters.builder().n(2).build())
+                .parameters(ModelGatewayChatParameters.builder().n(2).build())
                 .build();
 
-            var chatResponse = modelGatewayService.chat("Tell me a joke");
+            var chatResponse = modelGatewayChatService.chat("Tell me a joke");
             var assistantMessages = chatResponse.toAssistantMessages();
             assertEquals(2, assistantMessages.size());
 
@@ -483,18 +483,18 @@ public class ModelGatewayServiceIT {
         @Test
         void should_manage_multiple_choices_with_tool() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-5.6-terra-dzus")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .parameters(ModelGatewayParameters.builder().n(2).build())
+                .parameters(ModelGatewayChatParameters.builder().n(2).build())
                 .build();
 
             var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));
             var tools = List.of(Tool.of("get_current_time"));
-            var chatResponse = modelGatewayService.chat(messages, tools);
+            var chatResponse = modelGatewayChatService.chat(messages, tools);
             var assistantMessages = chatResponse.toAssistantMessages();
 
             assertEquals(2, assistantMessages.size());
@@ -506,14 +506,14 @@ public class ModelGatewayServiceIT {
         @Test
         void should_handle_parallel_tool_calls() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-4o")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .parameters(
-                    ModelGatewayParameters.builder()
+                    ModelGatewayChatParameters.builder()
                         .parallelToolCalls(true)
                         .build()
                 )
@@ -526,7 +526,7 @@ public class ModelGatewayServiceIT {
                 ))
                 .build();
 
-            var assistantMessage = modelGatewayService.chat("Could you give me the time in Germany, Italy, and Japan?").toAssistantMessage();
+            var assistantMessage = modelGatewayChatService.chat("Could you give me the time in Germany, Italy, and Japan?").toAssistantMessage();
             assertNotNull(assistantMessage.content());
             assertEquals(3, assistantMessage.toolCalls().size());
         }
@@ -538,7 +538,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_return_valid_chat_response_when_chat_streaming_is_invoked() throws Exception {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -561,7 +561,7 @@ public class ModelGatewayServiceIT {
             var futures = IntStream.rangeClosed(1, 3)
                 .mapToObj(i -> {
                     CompletableFuture<String> future = new CompletableFuture<>();
-                    modelGatewayService.chatStreaming(chatRequest, new ChatHandler() {
+                    modelGatewayChatService.chatStreaming(chatRequest, new ChatHandler() {
                         StringBuilder builder = new StringBuilder();
 
                         @Override
@@ -595,7 +595,7 @@ public class ModelGatewayServiceIT {
 
             record Poem(String content, String topic) {}
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -603,7 +603,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ModelGatewayParameters.builder()
+            var parameters = ModelGatewayChatParameters.builder()
                 .responseAsJson()
                 .build();
 
@@ -620,7 +620,7 @@ public class ModelGatewayServiceIT {
                 .build();
 
             CompletableFuture<ModelGatewayChatResponse> future = new CompletableFuture<>();
-            modelGatewayService.chatStreaming(request, new ChatHandler() {
+            modelGatewayChatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -648,7 +648,7 @@ public class ModelGatewayServiceIT {
 
             record Poem(String content, String topic) {}
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-5.6-terra-dzus")
                 .authenticator(authentication)
@@ -656,7 +656,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ModelGatewayParameters.builder()
+            var parameters = ModelGatewayChatParameters.builder()
                 .responseAsJsonSchema(
                     "poem",
                     JsonSchema.object()
@@ -674,7 +674,7 @@ public class ModelGatewayServiceIT {
                 .build();
 
             CompletableFuture<ModelGatewayChatResponse> future = new CompletableFuture<>();
-            modelGatewayService.chatStreaming(request, new ChatHandler() {
+            modelGatewayChatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -730,7 +730,7 @@ public class ModelGatewayServiceIT {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -738,7 +738,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            var parameters = ModelGatewayParameters.builder()
+            var parameters = ModelGatewayChatParameters.builder()
                 .timeLimit(Duration.ofSeconds(30))
                 .build();
 
@@ -752,7 +752,7 @@ public class ModelGatewayServiceIT {
 
             CompletableFuture<String> partialResponseFuture = new CompletableFuture<>();
             CompletableFuture<ModelGatewayChatResponse> chatResponseFuture = new CompletableFuture<>();
-            modelGatewayService.chatStreaming(request, new ChatHandler() {
+            modelGatewayChatService.chatStreaming(request, new ChatHandler() {
                 StringBuilder builder = new StringBuilder();
 
                 @Override
@@ -783,7 +783,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_call_tool_and_return_valid_tool_response_when_chat_contains_tool_message() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -806,7 +806,7 @@ public class ModelGatewayServiceIT {
             CompletableFuture<CompletedToolCall> toolCallFuture = new CompletableFuture<>();
             CompletableFuture<ToolCall> fromPartialToolCallFuture = new CompletableFuture<>();
             CompletableFuture<Throwable> throwableFuture = new CompletableFuture<>();
-            modelGatewayService.chatStreaming(request, new ChatHandler() {
+            modelGatewayChatService.chatStreaming(request, new ChatHandler() {
                 Map<String, String> cachePartialToolCall = new HashMap<>();
 
                 @Override
@@ -901,7 +901,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_call_tool_without_parameters_when_chat_contains_tool_message() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
 
                 .modelId("claude-sonnet-5")
@@ -916,7 +916,7 @@ public class ModelGatewayServiceIT {
                 .build();
 
             CompletableFuture<ModelGatewayChatResponse> future = new CompletableFuture<>();
-            modelGatewayService.chatStreaming(request, new ChatHandler() {
+            modelGatewayChatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -946,7 +946,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_handle_multiple_streaming_responses_correctly_when_shared_handler_is_used() throws Exception {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -989,7 +989,7 @@ public class ModelGatewayServiceIT {
                 ).build();
 
             var futures = IntStream.rangeClosed(1, 3)
-                .mapToObj(i -> modelGatewayService.chatStreaming(chatRequest, sharedHandler))
+                .mapToObj(i -> modelGatewayChatService.chatStreaming(chatRequest, sharedHandler))
                 .toList();
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
@@ -1004,7 +1004,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_throw_exception_when_api_key_is_invalid() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .apiKey("invalid_api_key")
@@ -1018,7 +1018,7 @@ public class ModelGatewayServiceIT {
                 .build();
 
             CompletableFuture<Throwable> future = new CompletableFuture<>();
-            modelGatewayService.chatStreaming(request, new ChatHandler() {
+            modelGatewayChatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1040,7 +1040,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_force_tool_execution_when_tool_choice_option_is_set_to_required() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
                 .authenticator(authentication)
@@ -1048,7 +1048,7 @@ public class ModelGatewayServiceIT {
                 .logResponses(true)
                 .build();
 
-            ModelGatewayParameters parameters = ModelGatewayParameters.builder()
+            ModelGatewayChatParameters parameters = ModelGatewayChatParameters.builder()
                 .toolChoiceOption(ToolChoiceOption.REQUIRED)
                 .build();
 
@@ -1066,7 +1066,7 @@ public class ModelGatewayServiceIT {
             CompletableFuture<ModelGatewayChatResponse> future = new CompletableFuture<>();
             CompletableFuture<CompletedToolCall> futureToolCall = new CompletableFuture<>();
 
-            assertDoesNotThrow(() -> modelGatewayService.chatStreaming(request, new ChatHandler() {
+            assertDoesNotThrow(() -> modelGatewayChatService.chatStreaming(request, new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1098,7 +1098,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_handle_streaming_conversation_with_tool_interception() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .apiKey(API_KEY)
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
@@ -1130,7 +1130,7 @@ public class ModelGatewayServiceIT {
                 ));
 
             var firstResponse = new CompletableFuture<ChatResponse>();
-            modelGatewayService.chatStreaming(chatRequest.build(), new ChatHandler() {
+            modelGatewayChatService.chatStreaming(chatRequest.build(), new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1157,7 +1157,7 @@ public class ModelGatewayServiceIT {
                     }));
 
             var secondResponse = new CompletableFuture<ChatResponse>();
-            modelGatewayService.chatStreaming(chatRequest.build(), new ChatHandler() {
+            modelGatewayChatService.chatStreaming(chatRequest.build(), new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1180,7 +1180,7 @@ public class ModelGatewayServiceIT {
                 .parameters(null)
                 .addMessages(assistantMessage, UserMessage.text("And in Germany?"));
             var thirdResponse = new CompletableFuture<ChatResponse>();
-            modelGatewayService.chatStreaming(chatRequest.build(), new ChatHandler() {
+            modelGatewayChatService.chatStreaming(chatRequest.build(), new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1209,7 +1209,7 @@ public class ModelGatewayServiceIT {
                     }));
 
             var fourthResponse = new CompletableFuture<ChatResponse>();
-            modelGatewayService.chatStreaming(chatRequest.build(), new ChatHandler() {
+            modelGatewayChatService.chatStreaming(chatRequest.build(), new ChatHandler() {
 
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1231,7 +1231,7 @@ public class ModelGatewayServiceIT {
         @Test
         void should_handle_streaming_conversation_with_multiple_tools_in_interception_tools() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .apiKey(API_KEY)
                 .baseUrl(URL)
                 .modelId("claude-sonnet-5")
@@ -1273,7 +1273,7 @@ public class ModelGatewayServiceIT {
                     throw new RuntimeException("Too many attempts");
 
                 var firstResponse = new CompletableFuture<ChatResponse>();
-                modelGatewayService.chatStreaming(chatRequest.build(), new ChatHandler() {
+                modelGatewayChatService.chatStreaming(chatRequest.build(), new ChatHandler() {
 
                     @Override
                     public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1318,16 +1318,16 @@ public class ModelGatewayServiceIT {
         @Test
         void should_manage_multiple_choices() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-5.6-terra-dzus")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .parameters(ModelGatewayParameters.builder().n(2).build())
+                .parameters(ModelGatewayChatParameters.builder().n(2).build())
                 .build();
 
-            var chatResponse = modelGatewayService.chatStreaming("Tell me a joke", (partialResponse, partialChatResponse) -> {}).join();
+            var chatResponse = modelGatewayChatService.chatStreaming("Tell me a joke", (partialResponse, partialChatResponse) -> {}).join();
             var assistantMessages = chatResponse.toAssistantMessages();
             assertEquals(2, assistantMessages.size());
 
@@ -1340,18 +1340,18 @@ public class ModelGatewayServiceIT {
         @Test
         void should_manage_multiple_choices_with_tool() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-5.6-terra-dzus")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
-                .parameters(ModelGatewayParameters.builder().n(2).build())
+                .parameters(ModelGatewayChatParameters.builder().n(2).build())
                 .build();
 
             var messages = List.<ChatMessage>of(UserMessage.text("What time is it?"));
             var tools = List.of(Tool.of("get_current_time", "Get current time", JsonSchema.object()));
-            var chatResponse = modelGatewayService.chatStreaming(messages, tools, (partialResponse, partialChatResponse) -> {}).join();
+            var chatResponse = modelGatewayChatService.chatStreaming(messages, tools, (partialResponse, partialChatResponse) -> {}).join();
             var assistantMessages = chatResponse.toAssistantMessages();
 
             assertEquals(2, assistantMessages.size());
@@ -1366,14 +1366,14 @@ public class ModelGatewayServiceIT {
         @Test
         void should_handle_parallel_tool_calls() {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .modelId("gpt-4o")
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
                 .parameters(
-                    ModelGatewayParameters.builder()
+                    ModelGatewayChatParameters.builder()
                         .parallelToolCalls(true)
                         .build()
                 )
@@ -1403,7 +1403,7 @@ public class ModelGatewayServiceIT {
                 }
             };
 
-            var chatResponse = modelGatewayService.chatStreaming("Could you give me the time in Germany, Italy, and Japan?", chatHandler).join();
+            var chatResponse = modelGatewayChatService.chatStreaming("Could you give me the time in Germany, Italy, and Japan?", chatHandler).join();
             var assistantMessage = chatResponse.toAssistantMessage();
             assertNotNull(content);
             assertEquals(3, assistantMessage.toolCalls().size());

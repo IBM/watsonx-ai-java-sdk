@@ -28,18 +28,18 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
- * Service for interacting with the IBM watsonx.ai Model Gateway.
+ * Service for interacting with the IBM watsonx.ai Model Gateway chat APIs.
  * <p>
  * <b>Example usage:</b>
  *
  * <pre>{@code
- * ModelGatewayService modelGatewayService = ModelGatewayService.builder()
+ * ModelGatewayChatService modelGatewayChatService = ModelGatewayChatService.builder()
  *     .baseUrl("https://...")  // or use CloudRegion
  *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
  *     .modelId("gpt-4o")
  *     .build();
  *
- * ModelGatewayChatResponse response = modelGatewayService.chat(
+ * ModelGatewayChatResponse response = modelGatewayChatService.chat(
  *     SystemMessage.of("You are a helpful assistant"),
  *     UserMessage.text("Tell me a joke")
  * );
@@ -47,21 +47,21 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *
  * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
  * <p>
- * Gateway-specific generation knobs (reasoning effort, service tier, caching, modalities) are available through {@link ModelGatewayParameters}, which
- * extends the shared {@link com.ibm.watsonx.ai.chat.model.BaseChatParameters}.
+ * Gateway-specific generation knobs (reasoning effort, service tier, caching, modalities) are available through {@link ModelGatewayChatParameters},
+ * which extends the shared {@link com.ibm.watsonx.ai.chat.model.BaseChatParameters}.
  *
  * @see Authenticator
  */
-public class ModelGatewayService extends WatsonxService implements ChatProvider<ModelGatewayChatRequest, ModelGatewayChatResponse> {
-    private final ModelGatewayRestClient client;
+public class ModelGatewayChatService extends WatsonxService implements ChatProvider<ModelGatewayChatRequest, ModelGatewayChatResponse> {
+    private final ModelGatewayChatRestClient client;
     private final MessageInterceptor<ModelGatewayChatRequest> messageInterceptor;
     private final ToolInterceptor<ModelGatewayChatRequest> toolInterceptor;
     private final ChatProvider<ModelGatewayChatRequest, ModelGatewayChatResponse> chatProvider;
-    private final ModelGatewayParameters defaultParameters;
+    private final ModelGatewayChatParameters defaultParameters;
     private final List<Tool> defaultTools;
     private final String modelId;
 
-    private ModelGatewayService(Builder builder) {
+    private ModelGatewayChatService(Builder builder) {
         super(builder);
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         modelId = requireNonNull(builder.modelId, "The modelId must be provided");
@@ -70,7 +70,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
         defaultTools = builder.defaultTools;
         defaultParameters = builder.defaultParameters;
 
-        client = ModelGatewayRestClient.builder()
+        client = ModelGatewayChatRestClient.builder()
             .baseUrl(baseUrl)
             .version(version)
             .logRequests(logRequests)
@@ -95,7 +95,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
     @Override
     public ModelGatewayChatResponse chat(ModelGatewayChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
-        var gatewayRequest = ModelGatewayUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis());
+        var gatewayRequest = ModelGatewayChatUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis());
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
 
         var chatResponse = client.chat(transactionId, Duration.ofMillis(gatewayRequest.timeLimit()), gatewayRequest);
@@ -129,7 +129,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
-        var gatewayRequest = ModelGatewayUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis(), true);
+        var gatewayRequest = ModelGatewayChatUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis(), true);
         var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
         var context = ChatClientContext.<ModelGatewayChatRequest>builder()
             .chatProvider(chatProvider)
@@ -167,7 +167,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
     public ModelGatewayChatResponse chat(List<ChatMessage> messages) {
-        return chat(messages, (ModelGatewayParameters) null);
+        return chat(messages, (ModelGatewayChatParameters) null);
     }
 
     /**
@@ -199,7 +199,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @param parameters gateway parameters to customize the output generation
      * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public ModelGatewayChatResponse chat(List<ChatMessage> messages, ModelGatewayParameters parameters) {
+    public ModelGatewayChatResponse chat(List<ChatMessage> messages, ModelGatewayChatParameters parameters) {
         return chat(messages, parameters, null);
     }
 
@@ -211,7 +211,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @param tools list of tools the model may call during generation
      * @return a {@link ModelGatewayChatResponse} containing the model's reply
      */
-    public ModelGatewayChatResponse chat(List<ChatMessage> messages, ModelGatewayParameters parameters, List<Tool> tools) {
+    public ModelGatewayChatResponse chat(List<ChatMessage> messages, ModelGatewayChatParameters parameters, List<Tool> tools) {
         return chat(
             ModelGatewayChatRequest.builder()
                 .messages(messages)
@@ -240,7 +240,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatHandler handler) {
-        return chatStreaming(messages, (ModelGatewayParameters) null, handler);
+        return chatStreaming(messages, (ModelGatewayChatParameters) null, handler);
     }
 
     /**
@@ -263,7 +263,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @param handler a {@link ChatHandler} implementation
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
-    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayParameters parameters, ChatHandler handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayChatParameters parameters, ChatHandler handler) {
         return chatStreaming(messages, parameters, null, handler);
     }
 
@@ -286,7 +286,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, Consumer<String> handler) {
-        return chatStreaming(messages, (ModelGatewayParameters) null, handler);
+        return chatStreaming(messages, (ModelGatewayChatParameters) null, handler);
     }
 
     /**
@@ -297,7 +297,8 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @param handler a consumer that receives partial text responses
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
-    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayParameters parameters, Consumer<String> handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayChatParameters parameters,
+        Consumer<String> handler) {
         return chatStreaming(messages, parameters, null, handler);
     }
 
@@ -323,7 +324,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
     public CompletableFuture<ChatResponse> chatStreaming(
-        List<ChatMessage> messages, ModelGatewayParameters parameters, List<Tool> tools, Consumer<String> handler) {
+        List<ChatMessage> messages, ModelGatewayChatParameters parameters, List<Tool> tools, Consumer<String> handler) {
         return chatStreaming(messages, parameters, tools, new ChatHandler() {
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -341,7 +342,7 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * @param handler a {@link ChatHandler} implementation
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
-    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayParameters parameters, List<Tool> tools,
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayChatParameters parameters, List<Tool> tools,
         ChatHandler handler) {
         var chatRequest = ModelGatewayChatRequest.builder()
             .messages(messages)
@@ -357,13 +358,13 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * ModelGatewayService modelGatewayService = ModelGatewayService.builder()
+     * ModelGatewayChatService modelGatewayChatService = ModelGatewayChatService.builder()
      *     .baseUrl("https://...")  // or use CloudRegion
      *     .apiKey("my-api-key")    // creates an IBM Cloud Authenticator
      *     .modelId("gpt-4o")
      *     .build();
      *
-     * ModelGatewayChatResponse response = modelGatewayService.chat(
+     * ModelGatewayChatResponse response = modelGatewayChatService.chat(
      *     SystemMessage.of("You are a helpful assistant"),
      *     UserMessage.text("Tell me a joke")
      * );
@@ -376,13 +377,13 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
     }
 
     /**
-     * Builder class for constructing {@link ModelGatewayService} instances with configurable parameters.
+     * Builder class for constructing {@link ModelGatewayChatService} instances with configurable parameters.
      */
     public static final class Builder extends WatsonxService.Builder<Builder> {
         private String modelId;
         private MessageInterceptor<ModelGatewayChatRequest> messageInterceptor;
         private ToolInterceptor<ModelGatewayChatRequest> toolInterceptor;
-        private ModelGatewayParameters defaultParameters;
+        private ModelGatewayChatParameters defaultParameters;
         private List<Tool> defaultTools;
 
         private Builder() {}
@@ -398,14 +399,14 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
         }
 
         /**
-         * Sets the default {@link ModelGatewayParameters} applied to all chat requests when no per-request parameters are provided.
+         * Sets the default {@link ModelGatewayChatParameters} applied to all chat requests when no per-request parameters are provided.
          * <p>
          * These default values serve as fallbacks for any parameter not explicitly set. When parameters are provided in the chat method call, they
          * take precedence over these defaults.
          *
          * @param parameters the default parameters to use
          */
-        public Builder parameters(ModelGatewayParameters parameters) {
+        public Builder parameters(ModelGatewayChatParameters parameters) {
             this.defaultParameters = parameters;
             return this;
         }
@@ -466,12 +467,12 @@ public class ModelGatewayService extends WatsonxService implements ChatProvider<
         }
 
         /**
-         * Builds a {@link ModelGatewayService} instance using the configured parameters.
+         * Builds a {@link ModelGatewayChatService} instance using the configured parameters.
          *
-         * @return a new instance of {@link ModelGatewayService}
+         * @return a new instance of {@link ModelGatewayChatService}
          */
-        public ModelGatewayService build() {
-            return new ModelGatewayService(this);
+        public ModelGatewayChatService build() {
+            return new ModelGatewayChatService(this);
         }
     }
 }

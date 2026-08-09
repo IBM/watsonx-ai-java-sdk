@@ -10,3 +10,4 @@ Version-by-version guides for migrating between SDK releases that contain breaki
 | Version | Changes |
 |---------|---------|
 | [0.22.0 → 0.30.0](./0.22.0-to-0.30.0.md) | Typed chat request/response hierarchy, `DeploymentChatRequest`, `ModelGatewayService` |
+| [0.30.0 → 0.40.0](./0.30.0-to-0.40.0.md) | Model Gateway chat types renamed to `ModelGatewayChat*` |

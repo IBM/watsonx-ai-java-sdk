@@ -13,7 +13,7 @@ The **Model Gateway** is a proxy layer hosted inside IBM watsonx.ai that provide
 
 ## Prerequisites
 
-Before you can use `ModelGatewayService`, the component must be installed and configured in your IBM watsonx.ai instance. This is a one-time setup performed by an **administrator**.
+Before you can use any of the Model Gateway services, the component must be installed and configured in your IBM watsonx.ai instance. This is a one-time setup performed by an **administrator**.
 
 > **Official documentation:** [Setting up the Model Gateway in the UI](https://www.ibm.com/docs/en/watsonx/w-and-w/2.4.x?topic=gateway-setting-up-model-in-ui)
 
@@ -64,7 +64,7 @@ The table below lists the Model Gateway operations available in this SDK.
 
 | Operation | Class | Status | Page |
 |-----------|-------|--------|------|
-| Chat completions | `ModelGatewayService` | Available | [Chat](./chat/) |
+| Chat completions | `ModelGatewayChatService` | Available | [Chat](./chat/) |
 | List models | `ModelGatewayCatalogService` | Available | [Catalog](./catalog/) |
 | Get model | `ModelGatewayCatalogService` | Available | [Catalog](./catalog/) |
 | Embeddings | `ModelGatewayEmbeddingService` | Available | [Embeddings](./embeddings/) |

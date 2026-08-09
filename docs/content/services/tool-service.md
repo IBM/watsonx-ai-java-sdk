@@ -5,7 +5,7 @@ title: Tool Service
 
 # Tool Service
 
-The `ToolService` provides access to **IBM watsonx.ai Utility Agent Tools**, a set of server-side tools that can be invoked directly or integrated with [`ChatService`](/services/chat-service), [`DeploymentService`](/services/deployment-service), or [`ModelGatewayService`](/services/model-gateway) for agentic workflows. Each built-in tool also implements the `ExecutableTool` interface, enabling automatic dispatch when a foundation model requests a tool call.
+The `ToolService` provides access to **IBM watsonx.ai Utility Agent Tools**, a set of server-side tools that can be invoked directly or integrated with [`ChatService`](/services/chat-service), [`DeploymentService`](/services/deployment-service), or [`ModelGatewayChatService`](/services/model-gateway) for agentic workflows. Each built-in tool also implements the `ExecutableTool` interface, enabling automatic dispatch when a foundation model requests a tool call.
 
 ## Quick Start
 

@@ -23,7 +23,7 @@ import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
  * <b>Example usage</b>:
  *
  * <pre>{@code
- * ModelGatewayParameters params = ModelGatewayParameters.builder()
+ * ModelGatewayChatParameters params = ModelGatewayChatParameters.builder()
  *     .temperature(0.7)
  *     .maxCompletionTokens(2048)
  *     .reasoningEffort(ReasoningEffort.MEDIUM)
@@ -32,9 +32,9 @@ import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
  * }</pre>
  *
  * @see BaseChatParameters
- * @see ModelGatewayService
+ * @see ModelGatewayChatService
  */
-public final class ModelGatewayParameters extends BaseChatParameters {
+public final class ModelGatewayChatParameters extends BaseChatParameters {
 
     /**
      * Constrains reasoning effort for reasoning models.
@@ -144,7 +144,7 @@ public final class ModelGatewayParameters extends BaseChatParameters {
     private final Integer maxTokens;
     private final String user;
 
-    private ModelGatewayParameters(Builder builder) {
+    private ModelGatewayChatParameters(Builder builder) {
         super(builder);
         audio = isNull(builder.audio) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.audio));
         metadata = isNull(builder.metadata) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.metadata));
@@ -337,7 +337,7 @@ public final class ModelGatewayParameters extends BaseChatParameters {
      * <b>Example usage:</b>
      *
      * <pre>{@code
-     * ModelGatewayParameters params = ModelGatewayParameters.builder()
+     * ModelGatewayChatParameters params = ModelGatewayChatParameters.builder()
      *     .temperature(0.7)
      *     .maxCompletionTokens(2048)
      *     .reasoningEffort(ReasoningEffort.MEDIUM)
@@ -352,7 +352,7 @@ public final class ModelGatewayParameters extends BaseChatParameters {
     }
 
     /**
-     * Builder for constructing {@link ModelGatewayParameters} instances.
+     * Builder for constructing {@link ModelGatewayChatParameters} instances.
      */
     public static final class Builder extends BaseChatParameters.Builder<Builder> {
 
@@ -515,12 +515,12 @@ public final class ModelGatewayParameters extends BaseChatParameters {
         }
 
         /**
-         * Builds a {@link ModelGatewayParameters} instance.
+         * Builds a {@link ModelGatewayChatParameters} instance.
          *
-         * @return a new {@link ModelGatewayParameters}
+         * @return a new {@link ModelGatewayChatParameters}
          */
-        public ModelGatewayParameters build() {
-            return new ModelGatewayParameters(this);
+        public ModelGatewayChatParameters build() {
+            return new ModelGatewayChatParameters(this);
         }
     }
 }

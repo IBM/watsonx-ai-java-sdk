@@ -25,9 +25,9 @@ import com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomImproveSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomMergeSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomModelGatewayCatalogRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomModelGatewayChatRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomModelGatewayEmbeddingRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomModelGatewayImageRestClient;
-import com.ibm.watsonx.ai.client.impl.CustomModelGatewayRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomRerankRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextClassificationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextExtractionRestClient;
@@ -45,7 +45,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogService;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
 import com.ibm.watsonx.ai.rerank.RerankService;
@@ -175,20 +175,20 @@ public class CustomRestClientTest {
     }
 
     @Test
-    // com.ibm.watsonx.ai.gateway.ModelGatewayRestClient$ModelGatewayRestClientBuilderFactory
+    // com.ibm.watsonx.ai.gateway.ModelGatewayChatRestClient$ModelGatewayChatRestClientBuilderFactory
     public void should_use_custom_rest_client_when_building_model_gateway_service() throws Exception {
 
-        ModelGatewayService modelGatewayService = ModelGatewayService.builder()
+        ModelGatewayChatService modelGatewayChatService = ModelGatewayChatService.builder()
             .apiKey("test")
             .modelId("model-id")
             .baseUrl("http://localhost")
             .build();
 
-        Class<ModelGatewayService> clazz = ModelGatewayService.class;
+        Class<ModelGatewayChatService> clazz = ModelGatewayChatService.class;
         var clientField = clazz.getDeclaredField("client");
         clientField.setAccessible(true);
-        var client = clientField.get(modelGatewayService);
-        assertTrue(client instanceof CustomModelGatewayRestClient);
+        var client = clientField.get(modelGatewayChatService);
+        assertTrue(client instanceof CustomModelGatewayChatRestClient);
     }
 
     @Test

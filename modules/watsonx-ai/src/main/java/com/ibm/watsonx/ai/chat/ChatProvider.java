@@ -6,7 +6,7 @@ package com.ibm.watsonx.ai.chat;
 
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 
 /**
  * Interface representing a provider capable of executing chat interactions with language models.
@@ -15,7 +15,7 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
  * @param <C> the concrete chat response type returned by this provider
  * @see ChatService
  * @see DeploymentService
- * @see ModelGatewayService
+ * @see ModelGatewayChatService
  */
 public interface ChatProvider<R extends BaseChatRequest, C extends ChatResponse> {
 
