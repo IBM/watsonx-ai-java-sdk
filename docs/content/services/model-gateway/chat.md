@@ -5,14 +5,14 @@ title: Chat
 
 # Model Gateway - Chat
 
-The `ModelGatewayService` lets you send chat completions to any third-party model (OpenAI, Anthropic, and others) available through the **IBM watsonx.ai Model Gateway**.
+The `ModelGatewayChatService` lets you send chat completions to any third-party model (OpenAI, Anthropic, and others) available through the **IBM watsonx.ai Model Gateway**.
 
 > **Setup required:** The Model Gateway must be installed and configured by an administrator before use. See [Model Gateway Prerequisites](/services/model-gateway#prerequisites).
 
 ## Quick Start
 
 ```java
-ModelGatewayService service = ModelGatewayService.builder()
+ModelGatewayChatService service = ModelGatewayChatService.builder()
     .baseUrl(CloudRegion.DALLAS)
     .apiKey(WATSONX_API_KEY)
     .modelId("gpt-4o")
@@ -27,7 +27,7 @@ System.out.println(response.toAssistantMessage().content());
 
 ## Overview
 
-`ModelGatewayService` enables you to:
+`ModelGatewayChatService` enables you to:
 
 - Send synchronous and streaming chat requests to any model available through the gateway.
 - Use gateway-specific parameters such as service tier, reasoning effort, audio modalities, caching, and routing configuration.
@@ -41,7 +41,7 @@ System.out.println(response.toAssistantMessage().content());
 ### Basic Setup
 
 ```java
-ModelGatewayService service = ModelGatewayService.builder()
+ModelGatewayChatService service = ModelGatewayChatService.builder()
     .baseUrl(CloudRegion.DALLAS)
     .apiKey(WATSONX_API_KEY)
     .modelId("gpt-4o")
@@ -56,7 +56,7 @@ ModelGatewayService service = ModelGatewayService.builder()
 | `authenticator` | Authenticator | Conditional | Custom authentication (alternative to `apiKey`) |
 | `baseUrl` | String / CloudRegion | Yes | watsonx.ai ML endpoint |
 | `modelId` | String | Yes | Third-party model identifier (e.g., `"gpt-4o"`, `"claude-3-5-sonnet"`) |
-| `parameters` | ModelGatewayParameters | No | Default parameters applied to every request |
+| `parameters` | ModelGatewayChatParameters | No | Default parameters applied to every request |
 | `tools` | List\<Tool\> | No | Default tools available to the model |
 | `messageInterceptor` | MessageInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for the assistant's text content |
 | `toolInterceptor` | ToolInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for function call arguments |
@@ -74,13 +74,13 @@ ModelGatewayService service = ModelGatewayService.builder()
 Set default parameters and tools that apply to every request:
 
 ```java
-ModelGatewayParameters defaults = ModelGatewayParameters.builder()
+ModelGatewayChatParameters defaults = ModelGatewayChatParameters.builder()
     .temperature(0.7)
     .maxCompletionTokens(1000)
     .serviceTier(ServiceTier.AUTO)
     .build();
 
-ModelGatewayService service = ModelGatewayService.builder()
+ModelGatewayChatService service = ModelGatewayChatService.builder()
     .baseUrl(CloudRegion.DALLAS)
     .apiKey(WATSONX_API_KEY)
     .modelId("gpt-4o")
@@ -119,7 +119,7 @@ System.out.println(response.toAssistantMessage().content());
 ### With Parameters
 
 ```java
-ModelGatewayParameters parameters = ModelGatewayParameters.builder()
+ModelGatewayChatParameters parameters = ModelGatewayChatParameters.builder()
     .temperature(0.3)
     .maxCompletionTokens(200)
     .build();
@@ -196,7 +196,7 @@ service.chatStreaming(
 
 ## Model Gateway Parameters
 
-`ModelGatewayParameters` extends the common `BaseChatParameters` with fields specific to the Model Gateway.
+`ModelGatewayChatParameters` extends the common `BaseChatParameters` with fields specific to the Model Gateway.
 
 ### Builder Reference
 
@@ -243,7 +243,7 @@ service.chatStreaming(
 Controls the latency and resource class for a request:
 
 ```java
-ModelGatewayParameters.builder()
+ModelGatewayChatParameters.builder()
     .serviceTier(ServiceTier.AUTO)     // let the gateway choose
     .serviceTier(ServiceTier.FLEX)     // flexible, variable latency
     .serviceTier(ServiceTier.PRIORITY) // lower latency tier
@@ -255,7 +255,7 @@ ModelGatewayParameters.builder()
 For reasoning models (e.g., `o3`, `o1`), controls how many internal reasoning steps the model uses:
 
 ```java
-ModelGatewayParameters.builder()
+ModelGatewayChatParameters.builder()
     .reasoningEffort(ReasoningEffort.HIGH)
     .build();
 ```
@@ -267,7 +267,7 @@ Accepted values: `LOW`, `MEDIUM`, `HIGH`.
 The `Router` record wraps a `Cache` configuration. Caching is only honored for **non-streaming** requests:
 
 ```java
-ModelGatewayParameters.builder()
+ModelGatewayChatParameters.builder()
     .router(new Router(
         new Cache(
             true,    // enabled
@@ -309,7 +309,7 @@ System.out.println("Total tokens: " + response.usage().totalTokens());
 Interceptors work identically to how they work in `ChatService` - see the [Chat Service - Interceptors](../../services/chat-service#interceptors) section for the full description of `MessageInterceptor`, `ToolInterceptor`, and `InterceptorContext`.
 
 ```java
-ModelGatewayService service = ModelGatewayService.builder()
+ModelGatewayChatService service = ModelGatewayChatService.builder()
     .baseUrl(CloudRegion.DALLAS)
     .apiKey(WATSONX_API_KEY)
     .modelId("gpt-4o")

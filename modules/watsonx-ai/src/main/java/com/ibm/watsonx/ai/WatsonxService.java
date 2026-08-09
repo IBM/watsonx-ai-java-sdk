@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogService;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
 import com.ibm.watsonx.ai.rerank.RerankService;
@@ -61,7 +61,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see ModelGatewayCatalogService
  * @see ModelGatewayEmbeddingService
  * @see ModelGatewayImageService
- * @see ModelGatewayService
+ * @see ModelGatewayChatService
  */
 public abstract class WatsonxService {
 

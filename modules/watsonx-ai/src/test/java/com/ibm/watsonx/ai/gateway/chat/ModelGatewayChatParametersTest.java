@@ -12,15 +12,15 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Cache;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Prediction;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.ReasoningEffort;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Router;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.ServiceTier;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.StreamOptions;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Cache;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Prediction;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.ReasoningEffort;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Router;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.ServiceTier;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 @SuppressWarnings("deprecation")
-public class ModelGatewayParametersTest {
+public class ModelGatewayChatParametersTest {
 
     @Test
     void should_round_trip_all_fields_via_builder_and_getters() {
@@ -29,7 +29,7 @@ public class ModelGatewayParametersTest {
         var router = new Router(new Cache(true, null, 0.8));
         var streamOptions = new StreamOptions(true);
 
-        var params = ModelGatewayParameters.builder()
+        var params = ModelGatewayChatParameters.builder()
             .modelId("gpt-4o")
             .transactionId("txn-1")
             .temperature(0.7)
@@ -110,7 +110,7 @@ public class ModelGatewayParametersTest {
 
     @Test
     void should_leave_unset_fields_null() {
-        var params = ModelGatewayParameters.builder().build();
+        var params = ModelGatewayChatParameters.builder().build();
         assertNull(params.audio());
         assertNull(params.metadata());
         assertNull(params.modalities());
@@ -127,10 +127,10 @@ public class ModelGatewayParametersTest {
 
     @Test
     void should_accept_string_and_null_enum_setters() {
-        assertEquals("low", ModelGatewayParameters.builder().reasoningEffort("low").build().reasoningEffort());
-        assertEquals("flex", ModelGatewayParameters.builder().serviceTier("flex").build().serviceTier());
-        assertNull(ModelGatewayParameters.builder().reasoningEffort((ReasoningEffort) null).build().reasoningEffort());
-        assertNull(ModelGatewayParameters.builder().serviceTier((ServiceTier) null).build().serviceTier());
+        assertEquals("low", ModelGatewayChatParameters.builder().reasoningEffort("low").build().reasoningEffort());
+        assertEquals("flex", ModelGatewayChatParameters.builder().serviceTier("flex").build().serviceTier());
+        assertNull(ModelGatewayChatParameters.builder().reasoningEffort((ReasoningEffort) null).build().reasoningEffort());
+        assertNull(ModelGatewayChatParameters.builder().serviceTier((ServiceTier) null).build().serviceTier());
     }
 
     @Test

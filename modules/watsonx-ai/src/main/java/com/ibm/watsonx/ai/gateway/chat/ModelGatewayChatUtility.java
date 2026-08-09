@@ -10,15 +10,15 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.StreamOptions;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 /**
  * Utility class for building {@link ModelGatewayTextChatRequest} wire payloads from a {@link ModelGatewayChatRequest} and default
- * {@link ModelGatewayParameters}.
+ * {@link ModelGatewayChatParameters}.
  */
-public class ModelGatewayUtility {
+public class ModelGatewayChatUtility {
 
-    private ModelGatewayUtility() {}
+    private ModelGatewayChatUtility() {}
 
     /**
      * Builds a {@link ModelGatewayTextChatRequest} by merging per-request parameters over service-level defaults.
@@ -33,7 +33,7 @@ public class ModelGatewayUtility {
      * @return a fully resolved {@link ModelGatewayTextChatRequest}
      */
     public static ModelGatewayTextChatRequest buildGatewayRequest(
-        ModelGatewayChatRequest chatRequest, ModelGatewayParameters defaultParameters, String fallbackModelId, long fallbackTimeLimit) {
+        ModelGatewayChatRequest chatRequest, ModelGatewayChatParameters defaultParameters, String fallbackModelId, long fallbackTimeLimit) {
         return buildGatewayRequest(chatRequest, defaultParameters, fallbackModelId, fallbackTimeLimit, false);
     }
 
@@ -51,14 +51,14 @@ public class ModelGatewayUtility {
      * @return a fully resolved {@link ModelGatewayTextChatRequest}
      */
     public static ModelGatewayTextChatRequest buildGatewayRequest(
-        ModelGatewayChatRequest chatRequest, ModelGatewayParameters defaultParameters, String fallbackModelId, long fallbackTimeLimit,
+        ModelGatewayChatRequest chatRequest, ModelGatewayChatParameters defaultParameters, String fallbackModelId, long fallbackTimeLimit,
         boolean stream) {
 
         var messages = chatRequest.messages();
         var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
 
-        var parameters = requireNonNullElse(chatRequest.parameters(), ModelGatewayParameters.builder().build());
-        var defaults = requireNonNullElse(defaultParameters, ModelGatewayParameters.builder().build());
+        var parameters = requireNonNullElse(chatRequest.parameters(), ModelGatewayChatParameters.builder().build());
+        var defaults = requireNonNullElse(defaultParameters, ModelGatewayChatParameters.builder().build());
 
         var modelId = getOrDefault(parameters.modelId(), getOrDefault(defaults.modelId(), fallbackModelId));
         var timeLimit = getOrDefault(parameters.timeLimit(), getOrDefault(defaults.timeLimit(), fallbackTimeLimit));

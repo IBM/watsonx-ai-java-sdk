@@ -9,13 +9,13 @@ import static java.util.Objects.nonNull;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters;
 
 /**
  * Abstract base class that holds every chat parameter shared between the Text Chat API and the Model Gateway endpoint.
  *
  * @see ChatParameters
- * @see ModelGatewayParameters
+ * @see ModelGatewayChatParameters
  */
 public abstract class BaseChatParameters {
 

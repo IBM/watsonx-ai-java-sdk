@@ -21,7 +21,7 @@ import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
 import com.ibm.watsonx.ai.rerank.RerankService;
@@ -104,14 +104,14 @@ public class CustomHttpClientTest {
     void should_use_custom_http_client_for_model_gateway_service() throws Exception {
 
         HttpClient customClient = HttpClient.newHttpClient();
-        ModelGatewayService modelGatewayService = ModelGatewayService.builder()
+        ModelGatewayChatService modelGatewayChatService = ModelGatewayChatService.builder()
             .baseUrl("https://localhost")
             .modelId("modelId")
             .apiKey("apiKey")
             .httpClient(customClient)
             .build();
 
-        Object restclient = getFieldValue(modelGatewayService, "client");
+        Object restclient = getFieldValue(modelGatewayChatService, "client");
         assertEquals(customClient, getFieldValue(restclient, "httpClient"));
         assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(restclient, "httpClient"));
         assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(restclient, "httpClient"));
@@ -135,14 +135,14 @@ public class CustomHttpClientTest {
             try {
 
                 HttpClient customClient = HttpClient.newHttpClient();
-                ModelGatewayService modelGatewayService = ModelGatewayService.builder()
+                ModelGatewayChatService modelGatewayChatService = ModelGatewayChatService.builder()
                     .baseUrl("https://localhost")
                     .modelId("modelId")
                     .apiKey("apiKey")
                     .verifySsl(verifySsl)
                     .build();
 
-                Object restclient = getFieldValue(modelGatewayService, "client");
+                Object restclient = getFieldValue(modelGatewayChatService, "client");
                 assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
                 assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
 

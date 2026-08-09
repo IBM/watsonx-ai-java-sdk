@@ -49,10 +49,10 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.StreamOptions;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 @SuppressWarnings("unchecked")
-public class ModelGatewayServiceTest extends AbstractWatsonxTest {
+public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
 
     private static final String SIMPLE_JSON_RESPONSE =
         """
@@ -74,7 +74,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .authenticator(mockAuthenticator)
                 .modelId("gpt-4o")
                 .timeout(Duration.ofSeconds(60))
@@ -86,7 +86,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
                 SystemMessage.of("You are a helpful assistant"),
                 UserMessage.text("Hello"));
 
-            var parameters = ModelGatewayParameters.builder()
+            var parameters = ModelGatewayChatParameters.builder()
                 .temperature(0.0)
                 .maxCompletionTokens(0)
                 .build();
@@ -112,7 +112,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatResponse = modelGatewayService.chat(
+            var chatResponse = modelGatewayChatService.chat(
                 ModelGatewayChatRequest.builder().messages(messages).parameters(parameters).build());
 
             assertEquals("chatcmpl-abc", chatResponse.id());
@@ -210,7 +210,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
-        var modelGatewayService = ModelGatewayService.builder()
+        var modelGatewayChatService = ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .modelId("gpt-4o")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -218,14 +218,14 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
             .build();
 
         var messages = List.<ChatMessage>of(UserMessage.text("Come stai?"));
-        var parameters = ModelGatewayParameters.builder().temperature(0.0).maxCompletionTokens(0).build();
+        var parameters = ModelGatewayChatParameters.builder().temperature(0.0).maxCompletionTokens(0).build();
 
         var expectedText =
             "Ciao! Va bene, grazie per averlo chiesto! 😊 Sono qui e pronto ad aiutarti.\n\nTu come stai? C'è qualcosa in cui posso esserti utile oggi?";
 
         var partial = new StringBuilder();
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        modelGatewayService.chatStreaming(
+        modelGatewayChatService.chatStreaming(
             ModelGatewayChatRequest.builder().messages(messages).parameters(parameters).build(),
             new ChatHandler() {
                 @Override
@@ -290,21 +290,21 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
-        var modelGatewayService = ModelGatewayService.builder()
+        var modelGatewayChatService = ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .modelId("gpt-4o")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .version(API_VERSION)
             .build();
 
-        var parameters = ModelGatewayParameters.builder()
+        var parameters = ModelGatewayChatParameters.builder()
             .temperature(0.0)
             .maxCompletionTokens(0)
             .streamOptions(new StreamOptions(false))
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        modelGatewayService.chatStreaming(
+        modelGatewayChatService.chatStreaming(
             ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).parameters(parameters).build(),
             new ChatHandler() {
                 @Override
@@ -416,7 +416,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
-        var modelGatewayService = ModelGatewayService.builder()
+        var modelGatewayChatService = ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .modelId("claude-sonnet-5")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -441,7 +441,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
         var messages = List.<ChatMessage>of(UserMessage.text("What time is it in Rome and in the Netherlands?"));
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        modelGatewayService.chatStreaming(messages, tools, new ChatHandler() {
+        modelGatewayChatService.chatStreaming(messages, tools, new ChatHandler() {
 
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -515,7 +515,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
-        var modelGatewayService = ModelGatewayService.builder()
+        var modelGatewayChatService = ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .modelId("gpt-4o")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -523,7 +523,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        modelGatewayService.chatStreaming(
+        modelGatewayChatService.chatStreaming(
             ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build(),
             new ChatHandler() {
                 @Override
@@ -570,14 +570,14 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.token()).thenReturn("my-super-token");
 
-        var modelGatewayService = ModelGatewayService.builder()
+        var modelGatewayChatService = ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .modelId("foo")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .version(API_VERSION)
             .build();
 
-        var ex = assertThrows(WatsonxException.class, () -> modelGatewayService.chat("Hi"));
+        var ex = assertThrows(WatsonxException.class, () -> modelGatewayChatService.chat("Hi"));
         assertEquals(404, ex.statusCode());
         assertNotNull(ex.details().orElse(null));
         assertEquals("req-12345", ex.details().orElse(null).trace());
@@ -588,7 +588,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
     @Test
     void should_throw_when_model_id_is_missing() {
-        var ex = assertThrows(NullPointerException.class, () -> ModelGatewayService.builder()
+        var ex = assertThrows(NullPointerException.class, () -> ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .baseUrl(URI.create("http://localhost"))
             .build());
@@ -597,7 +597,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
     @Test
     void should_throw_when_authenticator_is_missing() {
-        var ex = assertThrows(NullPointerException.class, () -> ModelGatewayService.builder()
+        var ex = assertThrows(NullPointerException.class, () -> ModelGatewayChatService.builder()
             .modelId("gpt-4o")
             .baseUrl(URI.create("http://localhost"))
             .build());
@@ -609,7 +609,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .authenticator(mockAuthenticator)
                 .modelId("gpt-4o")
                 .baseUrl(URI.create("http://my-cloud-instance.com"))
@@ -638,7 +638,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatResponse = modelGatewayService.chat("Hi");
+            var chatResponse = modelGatewayChatService.chat("Hi");
             assertEquals("HI THERE", chatResponse.choices().get(0).message().content());
         });
     }
@@ -648,7 +648,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .authenticator(mockAuthenticator)
                 .modelId("gpt-4o")
                 .baseUrl(URI.create("http://my-cloud-instance.com"))
@@ -685,7 +685,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            var chatResponse = modelGatewayService.chat("What's the weather in Paris?");
+            var chatResponse = modelGatewayChatService.chat("What's the weather in Paris?");
             var toolCall = chatResponse.choices().get(0).message().toolCalls().get(0);
             assertEquals("get_weather", toolCall.function().name());
             assertEquals("{\"city\": \"Rome\"}", toolCall.function().arguments());
@@ -711,7 +711,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
-        var modelGatewayService = ModelGatewayService.builder()
+        var modelGatewayChatService = ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .modelId("gpt-4o")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -721,7 +721,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
         var partial = new StringBuilder();
         Consumer<String> consumer = partial::append;
 
-        var future = modelGatewayService.chatStreaming("Hi", consumer);
+        var future = modelGatewayChatService.chatStreaming("Hi", consumer);
         var response = assertInstanceOf(ModelGatewayChatResponse.class, assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS)));
 
         assertEquals("Hello world", partial.toString());
@@ -745,7 +745,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
-        var modelGatewayService = ModelGatewayService.builder()
+        var modelGatewayChatService = ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .modelId("gpt-4o")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -757,7 +757,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
         var partial = new StringBuilder();
         Consumer<String> consumer = partial::append;
 
-        var future = modelGatewayService.chatStreaming(List.<ChatMessage>of(UserMessage.text("Hi")), tools, consumer);
+        var future = modelGatewayChatService.chatStreaming(List.<ChatMessage>of(UserMessage.text("Hi")), tools, consumer);
         assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
         assertEquals("Hi!", partial.toString());
     }
@@ -767,7 +767,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         withWatsonxServiceMock(() -> {
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .authenticator(mockAuthenticator)
                 .modelId("gpt-4o")
                 .baseUrl(URI.create("http://my-cloud-instance.com"))
@@ -783,7 +783,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
             var tool = Tool.of("get_weather", "get the weather", JsonSchema.object().property("city", JsonSchema.string()));
-            var chatResponse = modelGatewayService.chat(List.<ChatMessage>of(UserMessage.text("Hi")), tool);
+            var chatResponse = modelGatewayChatService.chat(List.<ChatMessage>of(UserMessage.text("Hi")), tool);
 
             assertEquals("Hi!", chatResponse.choices().get(0).message().content());
             assertTrue(bodyPublisherToString(mockHttpRequest).contains("get_weather"));
@@ -797,13 +797,13 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
             var defaultTool = Tool.of("get_weather", "get the weather", JsonSchema.object().property("city", JsonSchema.string()));
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .authenticator(mockAuthenticator)
                 .modelId("gpt-4o")
                 .baseUrl(URI.create("http://my-cloud-instance.com"))
                 .version(API_VERSION)
                 .tools(defaultTool)
-                .parameters(ModelGatewayParameters.builder().temperature(0.5).maxCompletionTokens(10).build())
+                .parameters(ModelGatewayChatParameters.builder().temperature(0.5).maxCompletionTokens(10).build())
                 .build();
 
             when(mockAuthenticator.token()).thenReturn("my-super-token");
@@ -814,7 +814,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            modelGatewayService.chat("Hi");
+            modelGatewayChatService.chat("Hi");
 
             var body = bodyPublisherToString(mockHttpRequest);
             assertTrue(body.contains("get_weather"), "default tool should be forwarded");
@@ -845,7 +845,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
                 }
             };
 
-            var modelGatewayService = ModelGatewayService.builder()
+            var modelGatewayChatService = ModelGatewayChatService.builder()
                 .authenticator(mockAuthenticator)
                 .modelId("gpt-4o")
                 .baseUrl(URI.create("http://my-cloud-instance.com"))
@@ -861,7 +861,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
             mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
 
-            modelGatewayService.chat("Hi");
+            modelGatewayChatService.chat("Hi");
             assertTrue(bodyPublisherToString(mockHttpRequest).contains("exec_weather"));
         });
     }
@@ -883,7 +883,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
-        var modelGatewayService = ModelGatewayService.builder()
+        var modelGatewayChatService = ModelGatewayChatService.builder()
             .authenticator(mockAuthenticator)
             .modelId("gpt-4o")
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -893,7 +893,7 @@ public class ModelGatewayServiceTest extends AbstractWatsonxTest {
             .build();
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
-        modelGatewayService.chatStreaming(
+        modelGatewayChatService.chatStreaming(
             ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build(),
             new ChatHandler() {
                 @Override

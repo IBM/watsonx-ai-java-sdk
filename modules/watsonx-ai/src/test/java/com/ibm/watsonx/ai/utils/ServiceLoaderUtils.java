@@ -47,8 +47,8 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient$CustomDeploymentRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
-            "com.ibm.watsonx.ai.gateway.chat.ModelGatewayRestClient$ModelGatewayRestClientBuilderFactory",
-            "com.ibm.watsonx.ai.client.impl.CustomModelGatewayRestClient$CustomModelGatewayRestClientBuilderFactory");
+            "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRestClient$ModelGatewayChatRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomModelGatewayChatRestClient$CustomModelGatewayChatRestClientBuilderFactory");
 
         createServiceFile(metaInfServices,
             "com.ibm.watsonx.ai.embedding.EmbeddingRestClient$EmbeddingRestClientBuilderFactory",

@@ -14,11 +14,11 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 
 /**
- * Abstraction of a REST client for interacting with the IBM watsonx.ai Model Gateway APIs.
+ * Abstraction of a REST client for interacting with the IBM watsonx.ai Model Gateway chat APIs.
  */
-public abstract class ModelGatewayRestClient extends WatsonxRestClient {
+public abstract class ModelGatewayChatRestClient extends WatsonxRestClient {
 
-    protected ModelGatewayRestClient(Builder builder) {
+    protected ModelGatewayChatRestClient(Builder builder) {
         super(builder);
     }
 
@@ -56,25 +56,25 @@ public abstract class ModelGatewayRestClient extends WatsonxRestClient {
         ChatHandler handler);
 
     /**
-     * Creates a new {@link Builder} using the first available {@link ModelGatewayRestClientBuilderFactory} discovered via {@link ServiceLoader}.
+     * Creates a new {@link Builder} using the first available {@link ModelGatewayChatRestClientBuilderFactory} discovered via {@link ServiceLoader}.
      * <p>
      * If no factory is found, falls back to the default {@link DefaultRestClient}.
      */
-    static ModelGatewayRestClient.Builder builder() {
-        return ServiceLoader.load(ModelGatewayRestClientBuilderFactory.class).findFirst()
+    static ModelGatewayChatRestClient.Builder builder() {
+        return ServiceLoader.load(ModelGatewayChatRestClientBuilderFactory.class).findFirst()
             .map(Supplier::get)
             .orElse(DefaultRestClient.builder());
     }
 
     /**
-     * Builder abstract class for constructing {@link ModelGatewayRestClient} instances with configurable parameters.
+     * Builder abstract class for constructing {@link ModelGatewayChatRestClient} instances with configurable parameters.
      */
-    public abstract static class Builder extends WatsonxRestClient.Builder<ModelGatewayRestClient, Builder> {}
+    public abstract static class Builder extends WatsonxRestClient.Builder<ModelGatewayChatRestClient, Builder> {}
 
     /**
      * Service Provider Interface for supplying custom {@link Builder} implementations.
      * <p>
      * This allows frameworks to provide their own client implementations.
      */
-    public interface ModelGatewayRestClientBuilderFactory extends Supplier<ModelGatewayRestClient.Builder> {}
+    public interface ModelGatewayChatRestClientBuilderFactory extends Supplier<ModelGatewayChatRestClient.Builder> {}
 }

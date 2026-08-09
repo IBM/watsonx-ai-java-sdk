@@ -30,9 +30,9 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 
 /**
- * Default implementation of the {@link ModelGatewayRestClient} abstract class.
+ * Default implementation of the {@link ModelGatewayChatRestClient} abstract class.
  */
-final class DefaultRestClient extends ModelGatewayRestClient {
+final class DefaultRestClient extends ModelGatewayChatRestClient {
 
     private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
@@ -119,7 +119,7 @@ final class DefaultRestClient extends ModelGatewayRestClient {
     /**
      * Builder class for constructing {@link DefaultRestClient} instances with configurable parameters.
      */
-    public static final class Builder extends ModelGatewayRestClient.Builder {
+    public static final class Builder extends ModelGatewayChatRestClient.Builder {
 
         private Builder() {}
 

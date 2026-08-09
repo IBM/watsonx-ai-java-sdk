@@ -12,12 +12,12 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 
-public class ModelGatewayUtilityTest {
+public class ModelGatewayChatUtilityTest {
 
     private static final String MODEL_ID = "openai/gpt-4o";
     private static final long TIME_LIMIT = 10_000L;
 
-    private static ModelGatewayChatRequest requestWith(ModelGatewayParameters parameters) {
+    private static ModelGatewayChatRequest requestWith(ModelGatewayChatParameters parameters) {
         return ModelGatewayChatRequest.builder()
             .messages(List.of(UserMessage.text("Hi")))
             .parameters(parameters)
@@ -26,14 +26,14 @@ public class ModelGatewayUtilityTest {
 
     @Test
     void should_resolve_gateway_parameters() {
-        var parameters = ModelGatewayParameters.builder()
+        var parameters = ModelGatewayChatParameters.builder()
             .temperature(0.7)
-            .reasoningEffort(ModelGatewayParameters.ReasoningEffort.LOW)
+            .reasoningEffort(ModelGatewayChatParameters.ReasoningEffort.LOW)
             .store(true)
             .build();
         var request = requestWith(parameters);
 
-        var result = ModelGatewayUtility.buildGatewayRequest(request, null, MODEL_ID, TIME_LIMIT);
+        var result = ModelGatewayChatUtility.buildGatewayRequest(request, null, MODEL_ID, TIME_LIMIT);
 
         assertNotNull(result);
         assertEquals(MODEL_ID, result.model());
@@ -44,13 +44,13 @@ public class ModelGatewayUtilityTest {
 
     @Test
     void should_fall_back_to_service_defaults() {
-        var defaults = ModelGatewayParameters.builder()
+        var defaults = ModelGatewayChatParameters.builder()
             .temperature(0.3)
-            .serviceTier(ModelGatewayParameters.ServiceTier.PRIORITY)
+            .serviceTier(ModelGatewayChatParameters.ServiceTier.PRIORITY)
             .build();
         var request = ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build();
 
-        var result = ModelGatewayUtility.buildGatewayRequest(request, defaults, MODEL_ID, TIME_LIMIT);
+        var result = ModelGatewayChatUtility.buildGatewayRequest(request, defaults, MODEL_ID, TIME_LIMIT);
 
         assertNotNull(result);
         assertEquals(0.3, result.temperature());
@@ -59,10 +59,10 @@ public class ModelGatewayUtilityTest {
 
     @Test
     void should_prefer_request_over_defaults() {
-        var defaults = ModelGatewayParameters.builder().temperature(0.3).build();
-        var request = requestWith(ModelGatewayParameters.builder().temperature(0.9).build());
+        var defaults = ModelGatewayChatParameters.builder().temperature(0.3).build();
+        var request = requestWith(ModelGatewayChatParameters.builder().temperature(0.9).build());
 
-        var result = ModelGatewayUtility.buildGatewayRequest(request, defaults, MODEL_ID, TIME_LIMIT);
+        var result = ModelGatewayChatUtility.buildGatewayRequest(request, defaults, MODEL_ID, TIME_LIMIT);
 
         assertEquals(0.9, result.temperature());
     }
@@ -71,7 +71,7 @@ public class ModelGatewayUtilityTest {
     void should_use_fallback_model_and_time_limit_when_unset() {
         var request = ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build();
 
-        var result = ModelGatewayUtility.buildGatewayRequest(request, null, MODEL_ID, TIME_LIMIT);
+        var result = ModelGatewayChatUtility.buildGatewayRequest(request, null, MODEL_ID, TIME_LIMIT);
 
         assertNotNull(result);
         assertEquals(MODEL_ID, result.model());
@@ -82,7 +82,7 @@ public class ModelGatewayUtilityTest {
     void should_enable_usage_reporting_on_streaming() {
         var request = ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build();
 
-        var result = ModelGatewayUtility.buildGatewayRequest(request, null, MODEL_ID, TIME_LIMIT, true);
+        var result = ModelGatewayChatUtility.buildGatewayRequest(request, null, MODEL_ID, TIME_LIMIT, true);
 
         assertTrue(result.stream());
         assertNotNull(result.streamOptions());
@@ -93,7 +93,7 @@ public class ModelGatewayUtilityTest {
     void should_not_set_stream_on_non_streaming() {
         var request = ModelGatewayChatRequest.builder().messages(List.of(UserMessage.text("Hi"))).build();
 
-        var result = ModelGatewayUtility.buildGatewayRequest(request, null, MODEL_ID, TIME_LIMIT);
+        var result = ModelGatewayChatUtility.buildGatewayRequest(request, null, MODEL_ID, TIME_LIMIT);
 
         assertNull(result.stream());
         assertNull(result.streamOptions());

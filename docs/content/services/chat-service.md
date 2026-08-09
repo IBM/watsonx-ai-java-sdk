@@ -399,7 +399,7 @@ Both interceptors receive an `InterceptorContext` as their first argument, which
 | `ctx.response()` | An `Optional<ChatResponse>` with the current response |
 | `ctx.invoke(ChatRequest)` | Sends a new request to the model and returns its response |
 
-`MessageInterceptor`, `ToolInterceptor`, and `InterceptorContext` are parameterized by the request type of the service they are registered on, so `ctx.request()` returns that concrete type with no cast: `ChatRequest` here, `DeploymentChatRequest` on [`DeploymentService`](/services/deployment-service), and `ModelGatewayChatRequest` on [`ModelGatewayService`](/services/model-gateway). The type argument is inferred when you pass a lambda, and only needs to be written out if you declare the interceptor separately:
+`MessageInterceptor`, `ToolInterceptor`, and `InterceptorContext` are parameterized by the request type of the service they are registered on, so `ctx.request()` returns that concrete type with no cast: `ChatRequest` here, `DeploymentChatRequest` on [`DeploymentService`](/services/deployment-service), and `ModelGatewayChatRequest` on [`ModelGatewayChatService`](/services/model-gateway). The type argument is inferred when you pass a lambda, and only needs to be written out if you declare the interceptor separately:
 
 ```java
 MessageInterceptor<ChatRequest> interceptor = (ctx, message) -> message == null ? "" : message.strip();

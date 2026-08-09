@@ -12,9 +12,9 @@ import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.JsonSchemaObject;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.Tool;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Prediction;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.Router;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters.StreamOptions;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Prediction;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Router;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 /**
  * Payload request for the Model Gateway chat completions endpoint.

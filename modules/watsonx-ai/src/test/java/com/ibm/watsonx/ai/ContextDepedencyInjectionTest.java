@@ -16,7 +16,7 @@ import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
 import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
 import com.ibm.watsonx.ai.rerank.RerankService;
@@ -49,7 +49,7 @@ public class ContextDepedencyInjectionTest {
             RerankService.class, TextGenerationService.class,
             CreateSchemaService.class, ImproveSchemaService.class, MergeSchemaService.class, TextClassificationService.class,
             TextExtractionService.class, TimeSeriesService.class, FileService.class,
-            BatchService.class, ToolService.class, ModelGatewayService.class,
+            BatchService.class, ToolService.class, ModelGatewayChatService.class,
             ModelGatewayEmbeddingService.class, ModelGatewayImageService.class)
         .build();
 
@@ -102,7 +102,7 @@ public class ContextDepedencyInjectionTest {
     ToolService toolService;
 
     @Inject
-    ModelGatewayService modelGatewayService;
+    ModelGatewayChatService modelGatewayChatService;
 
     @Inject
     ModelGatewayEmbeddingService modelGatewayEmbeddingService;
@@ -213,7 +213,7 @@ public class ContextDepedencyInjectionTest {
 
     @Test
     void should_inject_model_gateway_service() {
-        assertNotNull(modelGatewayService);
+        assertNotNull(modelGatewayChatService);
     }
 
     @Test
@@ -437,8 +437,8 @@ public class ContextDepedencyInjectionTest {
         }
 
         @Produces
-        public ModelGatewayService produceModelGatewayService() {
-            return ModelGatewayService.builder()
+        public ModelGatewayChatService produceModelGatewayService() {
+            return ModelGatewayChatService.builder()
                 .baseUrl("https://example.com")
                 .apiKey("api-key")
                 .modelId("model-id")

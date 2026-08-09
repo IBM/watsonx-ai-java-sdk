@@ -50,7 +50,7 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayListModelsResponse;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayModel;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayParameters;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse.Embedding;
@@ -119,10 +119,10 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(ModelGatewayChatResponse.Builder.class, ModelGatewayChatResponseBuilderMixin.class);
         setMixInAnnotation(ModelGatewayTextChatRequest.class, ModelGatewayTextChatRequestMixin.class);
         setMixInAnnotation(ModelGatewayTextChatRequest.Builder.class, ModelGatewayTextChatRequestBuilderMixin.class);
-        setMixInAnnotation(ModelGatewayParameters.Prediction.class, ModelGatewayPredictionMixin.class);
-        setMixInAnnotation(ModelGatewayParameters.StreamOptions.class, ModelGatewayStreamOptionsMixin.class);
-        setMixInAnnotation(ModelGatewayParameters.Cache.class, ModelGatewayCacheMixin.class);
-        setMixInAnnotation(ModelGatewayParameters.Router.class, ModelGatewayRouterMixin.class);
+        setMixInAnnotation(ModelGatewayChatParameters.Prediction.class, ModelGatewayPredictionMixin.class);
+        setMixInAnnotation(ModelGatewayChatParameters.StreamOptions.class, ModelGatewayStreamOptionsMixin.class);
+        setMixInAnnotation(ModelGatewayChatParameters.Cache.class, ModelGatewayCacheMixin.class);
+        setMixInAnnotation(ModelGatewayChatParameters.Router.class, ModelGatewayRouterMixin.class);
         setMixInAnnotation(ModelGatewayModel.class, ModelGatewayModelMixin.class);
         setMixInAnnotation(ModelGatewayModel.Metadata.class, ModelGatewayModelMetadataMixin.class);
         setMixInAnnotation(ModelGatewayListModelsResponse.class, ModelGatewayListModelsResponseMixin.class);
@@ -910,7 +910,7 @@ public class WatsonxJacksonModule extends SimpleModule {
         abstract Boolean parallelToolCalls();
 
         @JsonProperty("prediction")
-        abstract ModelGatewayParameters.Prediction prediction();
+        abstract ModelGatewayChatParameters.Prediction prediction();
 
         @JsonProperty("reasoning_effort")
         abstract String reasoningEffort();
@@ -922,10 +922,10 @@ public class WatsonxJacksonModule extends SimpleModule {
         abstract Boolean store();
 
         @JsonProperty("stream_options")
-        abstract ModelGatewayParameters.StreamOptions streamOptions();
+        abstract ModelGatewayChatParameters.StreamOptions streamOptions();
 
         @JsonProperty("router")
-        abstract ModelGatewayParameters.Router router();
+        abstract ModelGatewayChatParameters.Router router();
 
         @JsonProperty("user")
         abstract String user();
@@ -961,7 +961,7 @@ public class WatsonxJacksonModule extends SimpleModule {
     public abstract static class ModelGatewayRouterMixin {
         @JsonCreator
         public ModelGatewayRouterMixin(
-            @JsonProperty("cache") ModelGatewayParameters.Cache cache) {}
+            @JsonProperty("cache") ModelGatewayChatParameters.Cache cache) {}
     }
 
     public abstract static class ModelGatewayModelMixin {
