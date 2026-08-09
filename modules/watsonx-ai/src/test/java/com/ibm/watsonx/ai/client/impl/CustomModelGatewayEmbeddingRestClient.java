@@ -4,7 +4,7 @@
  */
 package com.ibm.watsonx.ai.client.impl;
 
-import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingRequest;
+import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingPayload;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingRestClient;
 
@@ -15,7 +15,7 @@ public class CustomModelGatewayEmbeddingRestClient extends ModelGatewayEmbedding
     }
 
     @Override
-    public ModelGatewayEmbeddingResponse embed(String model, ModelGatewayEmbeddingRequest request) {
+    public ModelGatewayEmbeddingResponse embed(ModelGatewayEmbeddingPayload request) {
         throw new UnsupportedOperationException("Unimplemented method 'embed'");
     }
 
