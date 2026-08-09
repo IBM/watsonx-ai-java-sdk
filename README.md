@@ -69,6 +69,7 @@ The SDK provides a unified Java interface to the watsonx.ai ecosystem and works 
 | **[Rerank](https://ibm.github.io/watsonx-ai-java-sdk/services/rerank-service/)** | Relevance scoring and reordering of candidate documents |
 | **[Time Series](https://ibm.github.io/watsonx-ai-java-sdk/services/time-series-service/)** | Time series forecasting using IBM Granite TTM models |
 | **[Deployment](https://ibm.github.io/watsonx-ai-java-sdk/services/deployment-service/)** | Chat and forecasting via deployed model endpoints |
+| **[Foundation Model](https://ibm.github.io/watsonx-ai-java-sdk/services/foundation-model-service/)** | Browse and query the watsonx.ai model catalog |
 
 ### Model Gateway
 
@@ -96,7 +97,6 @@ Proxy layer that routes requests to third-party foundation models (OpenAI, Anthr
 | **[Tool](https://ibm.github.io/watsonx-ai-java-sdk/services/tool-service/)** | Server-side utility tools for agentic workflows |
 | **[Tokenization](https://ibm.github.io/watsonx-ai-java-sdk/services/tokenization-service/)** | Token counting and analysis for any model |
 | **[Detection](https://ibm.github.io/watsonx-ai-java-sdk/services/detection-service/)** | Identification of harmful content (HAP), PII, and safety violations |
-| **[Foundation Model](https://ibm.github.io/watsonx-ai-java-sdk/services/foundation-model-service/)** | Browse and query the watsonx.ai model catalog |
 | **[File](https://ibm.github.io/watsonx-ai-java-sdk/services/file-service/)** | Upload, list, and retrieve files for use in batch processing jobs |
 | **[Batch](https://ibm.github.io/watsonx-ai-java-sdk/services/batch-service/)** | High-volume asynchronous inference from JSONL input files |
 

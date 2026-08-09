@@ -17,6 +17,7 @@ Every service in the SDK follows the same **builder pattern**: configure it once
 | **[Time Series](time-series-service)** | Forecast time series data using IBM Granite TTM models |
 | **[Deployment](deployment-service)** | Target a deployed model by `deploymentId` for chat and forecasting |
 | **[Model Gateway](model-gateway)** | Chat with third-party models (OpenAI, Anthropic, etc.) via a unified IBM-managed gateway |
+| **[Foundation Model](foundation-model-service)** | Browse the model catalog - filter by provider, task, function, lifecycle |
 
 ## Document processing
 
@@ -37,6 +38,5 @@ These services read from and write to **IBM Cloud Object Storage (COS)**. A `CON
 | **[Tool](tool-service)** | Invoke IBM-hosted utility tools (search, weather, Python interpreter, RAG) |
 | **[Tokenization](tokenization-service)** | Count tokens and retrieve the individual token strings for a given model |
 | **[Detection](detection-service)** | Detect harmful content (HAP), PII, and safety violations |
-| **[Foundation Model](foundation-model-service)** | Browse the model catalog - filter by provider, task, function, lifecycle |
 | **[File](file-service)** | Upload, list, retrieve, and delete files used as batch job inputs |
 | **[Batch](batch-service)** | Submit high-volume asynchronous inference jobs from JSONL files |
