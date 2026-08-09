@@ -18,6 +18,7 @@ import com.ibm.watsonx.ai.file.FileService;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
+import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -49,7 +50,7 @@ public class ContextDepedencyInjectionTest {
             CreateSchemaService.class, ImproveSchemaService.class, MergeSchemaService.class, TextClassificationService.class,
             TextExtractionService.class, TimeSeriesService.class, FileService.class,
             BatchService.class, ToolService.class, ModelGatewayService.class,
-            ModelGatewayEmbeddingService.class)
+            ModelGatewayEmbeddingService.class, ModelGatewayImageService.class)
         .build();
 
     @Inject
@@ -105,6 +106,9 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     ModelGatewayEmbeddingService modelGatewayEmbeddingService;
+
+    @Inject
+    ModelGatewayImageService modelGatewayImageService;
 
     @Inject
     GoogleSearchTool googleSearchTool;
@@ -215,6 +219,11 @@ public class ContextDepedencyInjectionTest {
     @Test
     void should_inject_model_gateway_embedding_service() {
         assertNotNull(modelGatewayEmbeddingService);
+    }
+
+    @Test
+    void should_inject_model_gateway_image_service() {
+        assertNotNull(modelGatewayImageService);
     }
 
     @Test
@@ -412,6 +421,15 @@ public class ContextDepedencyInjectionTest {
         @Produces
         public ModelGatewayEmbeddingService produceModelGatewayEmbeddingService() {
             return ModelGatewayEmbeddingService.builder()
+                .baseUrl("https://example.com")
+                .apiKey("api-key")
+                .modelId("model-id")
+                .build();
+        }
+
+        @Produces
+        public ModelGatewayImageService produceModelGatewayImageService() {
+            return ModelGatewayImageService.builder()
                 .baseUrl("https://example.com")
                 .apiKey("api-key")
                 .modelId("model-id")

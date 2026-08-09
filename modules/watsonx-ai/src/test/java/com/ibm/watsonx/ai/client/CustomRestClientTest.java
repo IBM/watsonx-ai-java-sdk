@@ -26,6 +26,7 @@ import com.ibm.watsonx.ai.client.impl.CustomImproveSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomMergeSchemaRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomModelGatewayCatalogRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomModelGatewayEmbeddingRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomModelGatewayImageRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomModelGatewayRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomRerankRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTextClassificationRestClient;
@@ -46,6 +47,7 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogService;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayService;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
+import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
@@ -492,5 +494,22 @@ public class CustomRestClientTest {
         clientField.setAccessible(true);
         var client = clientField.get(batchService);
         assertTrue(client instanceof CustomBatchRestClient);
+    }
+
+    @Test
+    // com.ibm.watsonx.ai.gateway.image.ModelGatewayImageRestClient$ModelGatewayImageRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_model_gateway_image_service() throws Exception {
+
+        ModelGatewayImageService imageService = ModelGatewayImageService.builder()
+            .apiKey("test")
+            .modelId("model-id")
+            .baseUrl("http://localhost")
+            .build();
+
+        Class<ModelGatewayImageService> clazz = ModelGatewayImageService.class;
+        var clientField = clazz.getDeclaredField("client");
+        clientField.setAccessible(true);
+        var client = clientField.get(imageService);
+        assertTrue(client instanceof CustomModelGatewayImageRestClient);
     }
 }
