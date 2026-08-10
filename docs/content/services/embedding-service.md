@@ -30,7 +30,7 @@ System.out.println(response.results().get(0).embedding());
 // → [-0.029937625, 0.05433679, 0.013135133, 0.018311847, ...]
 ```
 
-> **Note:** To see the list of available embedding models, refer to [supported encoder models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx#embed). You can also query available embedding models programmatically - see [Foundation Model Service](/services/foundation-model-service) and filter by `function("function_embedding")`.
+> **Note:** To see the list of available embedding models, refer to [supported encoder models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx#embed). You can also query available embedding models programmatically. See [Foundation Model Service](/services/foundation-model-service) and filter by `function("function_embedding")`.
 
 ---
 
@@ -98,7 +98,7 @@ EmbeddingService embeddingService = EmbeddingService.builder()
 
 ### Embedding a Single Input
 
-The simplest use case - pass a single string and retrieve its vector representation.
+In the simplest use case you pass a single string and retrieve its vector representation.
 
 ```java
 EmbeddingResponse response = embeddingService.embed("Embedding this!");
@@ -141,7 +141,7 @@ EmbeddingResponse response = embeddingService.embed(inputs);
 
 ### Customizing Generation Parameters
 
-You can pass any number of inputs. When the list exceeds 1,000 items the SDK automatically splits it into batches and runs them in parallel, so you do not need to manage chunking yourself. Each input must still conform to the embedding model's maximum token limit per input - use `truncateInputTokens` to handle inputs that may be too long (truncation happens from the right, preserving the beginning of the text).
+You can pass any number of inputs. When the list exceeds 1,000 items the SDK automatically splits it into batches and runs them in parallel, so you do not need to manage chunking yourself. Each input must still conform to the embedding model's maximum token limit per input, so use `truncateInputTokens` to handle inputs that may be too long (truncation happens from the right, preserving the beginning of the text).
 
 Use `EmbeddingParameters` to control token truncation and whether to include the original input text in the response.
 

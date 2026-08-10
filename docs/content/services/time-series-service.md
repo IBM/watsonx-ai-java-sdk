@@ -253,7 +253,7 @@ The `TimeSeriesParameters` class controls the forecast behavior per request.
 
 ### Reading Results
 
-Each map in `results()` contains one entry per column - the timestamp column, ID columns, and forecasted target columns - all as lists of values aligned by index:
+Each map in `results()` contains one entry per column (the timestamp column, ID columns, and forecasted target columns), all as lists of values aligned by index:
 
 ```java
 ForecastResponse response = service.forecast(schema, data, params);

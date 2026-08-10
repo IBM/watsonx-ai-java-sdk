@@ -6,9 +6,9 @@ This is a simple example that demonstrates how to use IBM watsonx.ai to execute 
 
 Before running the application, set the following environment variables or create a new `.env` file in the project's root folder:
 
-- `WATSONX_API_KEY` – Your watsonx.ai API key
-- `WATSONX_URL` – The base URL for the watsonx.ai service
-- `WATSONX_PROJECT_ID` – Your watsonx.ai project id
+- `WATSONX_API_KEY` - Your watsonx.ai API key
+- `WATSONX_URL` - The base URL for the watsonx.ai service
+- `WATSONX_PROJECT_ID` - Your watsonx.ai project id
 
 Example (Linux/macOS):
 ```bash

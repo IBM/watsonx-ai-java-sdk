@@ -306,7 +306,7 @@ System.out.println("Total tokens: " + response.usage().totalTokens());
 
 ## Interceptors
 
-Interceptors work identically to how they work in `ChatService` - see the [Chat Service - Interceptors](../../services/chat-service#interceptors) section for the full description of `MessageInterceptor`, `ToolInterceptor`, and `InterceptorContext`.
+Interceptors work identically to how they work in `ChatService`. See the [Chat Service - Interceptors](../../services/chat-service#interceptors) section for the full description of `MessageInterceptor`, `ToolInterceptor`, and `InterceptorContext`.
 
 ```java
 ModelGatewayChatService service = ModelGatewayChatService.builder()

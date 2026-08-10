@@ -39,7 +39,7 @@ The `FileService` enables you to:
 - **Upload** - `BatchService` calls `FileService.upload()` internally when you submit a job via `Path`, `File`, or `InputStream`.
 - **Retrieval** - `BatchService` calls `FileService.retrieve()` internally when using `submitAndFetch()` to read the output file once the job completes.
 
-You can also use `FileService` directly to manage files independently of the batch lifecycle - for example, to inspect an output file manually or to pre-upload a file before submitting multiple jobs against it.
+You can also use `FileService` directly to manage files independently of the batch lifecycle, for example to inspect an output file manually or to pre-upload a file before submitting multiple jobs against it.
 
 ---
 

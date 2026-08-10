@@ -16,10 +16,10 @@ This is useful when you've already deployed a foundation model or prompt-tuned m
 
 Before running the application, set the following environment variables or create a `.env` file in the project root:
 
-- `WATSONX_API_KEY` – Your Watsonx.ai API key
-- `WATSONX_URL` – The base URL for the Watsonx.ai service
-- `WATSONX_DEPLOYMENT` – The ID of the deployment you want to invoke
-- `WATSONX_SPACE_ID` – The space ID that contains the deployment
+- `WATSONX_API_KEY` - Your Watsonx.ai API key
+- `WATSONX_URL` - The base URL for the Watsonx.ai service
+- `WATSONX_DEPLOYMENT` - The ID of the deployment you want to invoke
+- `WATSONX_SPACE_ID` - The space ID that contains the deployment
 
 ### Example (Linux/macOS):
 
@@ -54,5 +54,5 @@ mvn package exec:java
 
 ## References
 
-- [Deploy on Demand Overview](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/deploy-on-demand-overview.html?context=wx) – Overview of the on-demand deployment flow for foundation models in watsonx.ai.
-- [Foundation Models in watsonx.ai](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx#dod) – Information about available foundation models and their usage.
+- [Deploy on Demand Overview](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/deploy-on-demand-overview.html?context=wx) - Overview of the on-demand deployment flow for foundation models in watsonx.ai.
+- [Foundation Models in watsonx.ai](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx#dod) - Information about available foundation models and their usage.

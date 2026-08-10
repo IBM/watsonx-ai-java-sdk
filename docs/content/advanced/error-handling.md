@@ -57,7 +57,7 @@ If the API returns an error code that does not map to a specific subclass, the b
 | `TokenQuotaReachedException` | 429 | `token_quota_reached` | Token quota for the account or project has been reached |
 | `UserAuthorizationFailedException` | 403 | `user_authorization_failed` | User-level authorization check failed |
 
-> **Automatic token refresh:** `AuthenticationTokenExpiredException` is caught internally by the SDK, which refreshes the token and retries the request. You will only see this exception if the retry also fails. The retry limit is configurable via `WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES` - see [Environment Variables](./environment-variables).
+> **Automatic token refresh:** `AuthenticationTokenExpiredException` is caught internally by the SDK, which refreshes the token and retries the request. You will only see this exception if the retry also fails. The retry limit is configurable via `WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES`. See [Environment Variables](./environment-variables).
 
 ---
 
@@ -67,7 +67,7 @@ If the API returns an error code that does not map to a specific subclass, the b
 
 - the response contains no choices at all
 - a choice carries no message
-- a choice has no content, no tool calls and no refusal - for example when the model was truncated by `maxCompletionTokens` before emitting anything
+- a choice has no content, no tool calls and no refusal, for example when the model was truncated by `maxCompletionTokens` before emitting anything
 
 Because it extends `RuntimeException` directly and not `WatsonxException`, a `catch (WatsonxException e)` block will **not** catch it.
 

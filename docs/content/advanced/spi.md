@@ -5,7 +5,7 @@ title: Service Provider Interface
 
 # Service Provider Interface
 
-The **IBM watsonx.ai Java SDK** exposes several **Service Provider Interfaces** that allow framework integrators to replace or customize its core infrastructure - HTTP transport, thread management, and JSON serialization - without changing any application code. All SPIs are resolved at runtime via the Java `ServiceLoader` mechanism.
+The **IBM watsonx.ai Java SDK** exposes several **Service Provider Interfaces** that allow framework integrators to replace or customize its core infrastructure (HTTP transport, thread management, and JSON serialization) without changing any application code. All SPIs are resolved at runtime via the Java `ServiceLoader` mechanism.
 
 ---
 
@@ -151,7 +151,7 @@ Create the file:
 META-INF/services/com.ibm.watsonx.ai.chat.ChatRestClient$ChatRestClientBuilderFactory
 ```
 
-Note the `$` separator - this is the JVM convention for nested class names in `ServiceLoader` registration files. The file content is the fully qualified name of the factory:
+The `$` separator is the JVM convention for nested class names in `ServiceLoader` registration files. The file content is the fully qualified name of the factory:
 
 ```
 io.quarkiverse.langchain4j.watsonx.runtime.client.impl.QuarkusChatRestClient$QuarkusChatRestClientBuilderFactory
@@ -161,7 +161,7 @@ Once registered, any `ChatService` built in that runtime will automatically use 
 
 ### Real-world example: Quarkus integration
 
-The `quarkus-langchain4j-watsonx` integration uses this SPI to replace the default Java `HttpClient` with Quarkus's reactive RESTEasy client. This allows the SDK to participate in Quarkus's managed thread model, reactive pipelines (Mutiny), and GraalVM native compilation. A `*BuilderFactory` is registered for each service via CDI - the consuming application uses the same `ChatService`, `EmbeddingService`, etc. API without any modification.
+The `quarkus-langchain4j-watsonx` integration uses this SPI to replace the default Java `HttpClient` with Quarkus's reactive RESTEasy client. This allows the SDK to participate in Quarkus's managed thread model, reactive pipelines (Mutiny), and GraalVM native compilation. A `*BuilderFactory` is registered for each service via CDI, so the consuming application uses the same `ChatService`, `EmbeddingService`, etc. API without any modification.
 
 > See [quarkus-langchain4j-watsonx](https://github.com/quarkiverse/quarkus-langchain4j/tree/main/model-providers/watsonx/runtime/src/main/java/io/quarkiverse/langchain4j/watsonx/runtime/client) for the complete reference implementation.
 

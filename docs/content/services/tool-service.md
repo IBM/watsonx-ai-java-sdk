@@ -200,7 +200,7 @@ String result = weather.find("Naples", "Italy");
 
 ### WebCrawlerTool
 
-Fetch and extract the text content of a specific web page. Use when you know the URL and need to read its content - not for discovering new URLs.
+Fetch and extract the text content of a specific web page. Use when you know the URL and need to read its content, not for discovering new URLs.
 
 ```java
 WebCrawlerTool crawler = new WebCrawlerTool(toolService);

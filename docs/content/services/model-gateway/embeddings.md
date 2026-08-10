@@ -5,7 +5,7 @@ title: Embeddings
 
 # Model Gateway - Embeddings
 
-The `ModelGatewayEmbeddingService` generates vector embeddings from text using any third-party embedding model available through the **IBM watsonx.ai Model Gateway** (OpenAI, Azure OpenAI, Mistral, and others). Only providers that expose embedding models can be used here - `ModelGatewayCatalogService` lists what your gateway actually offers, see [Catalog](./catalog/).
+The `ModelGatewayEmbeddingService` generates vector embeddings from text using any third-party embedding model available through the **IBM watsonx.ai Model Gateway** (OpenAI, Azure OpenAI, Mistral, and others). Only providers that expose embedding models can be used here. To see what your gateway actually offers, ask `ModelGatewayCatalogService`, see [Catalog](./catalog/).
 
 > **Setup required:** The Model Gateway must be installed and configured by an administrator before use. See [Model Gateway Prerequisites](/services/model-gateway#prerequisites).
 
@@ -57,7 +57,7 @@ ModelGatewayEmbeddingService service = ModelGatewayEmbeddingService.builder()
 
 ### On-premises deployments
 
-`apiKey` configures an IBM Cloud authenticator. On **IBM watsonx.ai software** (on-premises, CP4D) pass a `CP4DAuthenticator` through `authenticator` and use your instance URL as the `baseUrl` - the `CloudRegion` enum does not apply. See [Authentication](/authentication#cp4d-authentication).
+`apiKey` configures an IBM Cloud authenticator. On **IBM watsonx.ai software** (on-premises, CP4D) pass a `CP4DAuthenticator` through `authenticator` and use your instance URL as the `baseUrl`. The `CloudRegion` enum does not apply. See [Authentication](/authentication#cp4d-authentication).
 
 ```java
 ModelGatewayEmbeddingService service = ModelGatewayEmbeddingService.builder()
@@ -152,7 +152,7 @@ The `encodingFormat` parameter accepts either the `ModelGatewayEmbeddingParamete
 | `EncodingFormat.FLOAT` | `"float"` | A JSON array of numbers |
 | `EncodingFormat.BASE64` | `"base64"` | A Base64 string encoding the same vector as binary `float32` values |
 
-Either way `embedding()` returns a `List<Float>`, so the format you request never changes the code that reads the vector - see [Encoding formats](#encoding-formats).
+Either way `embedding()` returns a `List<Float>`, so the format you request never changes the code that reads the vector. See [Encoding formats](#encoding-formats).
 
 ---
 
@@ -182,7 +182,7 @@ Either way `embedding()` returns a `List<Float>`, so the format you request neve
 List<Float> vector = response.data().get(0).embedding();
 ```
 
-The two formats differ only in what travels over the wire - `"base64"` sends the vector as binary `float32` values instead of JSON numbers, which makes the response smaller. When you need the untouched payload, for example to forward it to another service, `base64()` gives you the original string:
+The two formats differ only in what travels over the wire, with `"base64"` sending the vector as binary `float32` values instead of JSON numbers, which makes the response smaller. When you need the untouched payload, for example to forward it to another service, `base64()` gives you the original string:
 
 ```java
 String base64 = response.data().get(0).base64();
