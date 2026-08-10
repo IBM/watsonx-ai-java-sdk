@@ -122,7 +122,37 @@ public final class DetectionTextRequest extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((input == null) ? 0 : input.hashCode());
+        result = prime * result + ((detectors == null) ? 0 : detectors.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        DetectionTextRequest other = (DetectionTextRequest) obj;
+        if (input == null) {
+            if (other.input != null)
+                return false;
+        } else if (!input.equals(other.input))
+            return false;
+        if (detectors == null) {
+            if (other.detectors != null)
+                return false;
+        } else if (!detectors.equals(other.detectors))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "DetectionTextRequest [" + super.toString() + ", input=" + input + ", detectors=" + detectors + "]";
+        return "DetectionTextRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", input=" + input
+            + ", detectors=" + detectors + "]";
     }
 }

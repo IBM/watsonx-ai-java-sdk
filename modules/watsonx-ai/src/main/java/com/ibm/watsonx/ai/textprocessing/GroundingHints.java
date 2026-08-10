@@ -111,36 +111,6 @@ public final class GroundingHints {
         return new Builder();
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((fieldMap == null) ? 0 : fieldMap.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        GroundingHints other = (GroundingHints) obj;
-        if (fieldMap == null) {
-            if (other.fieldMap != null)
-                return false;
-        } else if (!fieldMap.equals(other.fieldMap))
-            return false;
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "GroundingHints [fields=" + fieldMap + "]";
-    }
-
     /**
      * Builder class for constructing {@link GroundingHints} instances.
      */
@@ -180,5 +150,35 @@ public final class GroundingHints {
         public GroundingHints build() {
             return new GroundingHints(this);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((fieldMap == null) ? 0 : fieldMap.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        GroundingHints other = (GroundingHints) obj;
+        if (fieldMap == null) {
+            if (other.fieldMap != null)
+                return false;
+        } else if (!fieldMap.equals(other.fieldMap))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "GroundingHints [fields=" + fieldMap + "]";
     }
 }

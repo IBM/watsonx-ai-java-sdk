@@ -9,7 +9,7 @@ The `RerankService` provides functionality to rerank a list of text candidates a
 
 ## How reranking works
 
-The reranker accepts a REST API request with a query and a list of passages. It submits these text strings to a **cross-encoder model**. The cross-encoder pairs the query with each passage, converts the text to embedding vectors, compares the vectors in each pair, and scores their similarity. The passages are then reranked based on the generated similarity scores. The intermediate text embeddings are **not** returned - only the final scores.
+The reranker accepts a REST API request with a query and a list of passages. It submits these text strings to a **cross-encoder model**. The cross-encoder pairs the query with each passage, converts the text to embedding vectors, compares the vectors in each pair, and scores their similarity. The passages are then reranked based on the generated similarity scores. Only the final similarity scores are returned, **not** the intermediate text embeddings.
 
 > **Cross-encoder vs. embedding models:** Many embedding models also support a `rerank` function, but they use semantic reranking based on precomputed embedding vector values, which is a less accurate method. **Cross-encoder models** are more effective because they explicitly compare each passage to the query and generate per-pairing ranking scores. Use a dedicated reranker model when ranking accuracy matters.
 
@@ -36,7 +36,7 @@ response.results().forEach(r -> System.out.printf("[%d] score=%.4f%n", r.index()
 // → [1] score=-0.9204
 ```
 
-> **Note:** To see the list of available reranking models, refer to [supported reranker models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx&audience=wdp#rerank). You can also query available reranker models programmatically - see [Foundation Model Service](/services/foundation-model-service) and filter by `function("function_rerank")`.
+> **Note:** To see the list of available reranking models, refer to [supported reranker models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models-embed.html?context=wx&audience=wdp#rerank). You can also query available reranker models programmatically. See [Foundation Model Service](/services/foundation-model-service) and filter by `function("function_rerank")`.
 
 ---
 
@@ -139,7 +139,7 @@ response.results().forEach(r -> System.out.printf("[%d] %.4f%n", r.index(), r.sc
 
 ### Truncating Long Inputs
 
-You can specify up to **1,000 inputs** per call. Each input must conform to the model's maximum input token limit. If any of your inputs may exceed the limit, use `truncateInputTokens` to avoid errors. Inputs are truncated from the right, preserving the start of the text. The more passages you specify, the longer the reranking takes - cross-encoder models process each passage together with the query sequentially.
+You can specify up to **1,000 inputs** per call. Each input must conform to the model's maximum input token limit. If any of your inputs may exceed the limit, use `truncateInputTokens` to avoid errors. Inputs are truncated from the right, preserving the start of the text. Cross-encoder models process each passage together with the query sequentially, so the more passages you specify, the longer the reranking takes.
 
 ```java
 RerankParameters parameters = RerankParameters.builder()

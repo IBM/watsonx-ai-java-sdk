@@ -99,11 +99,6 @@ public abstract class JsonSchema {
         return oneOf;
     }
 
-    @Override
-    public String toString() {
-        return "description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf;
-    }
-
     /**
      * Creates a required constraint for use with {@code oneOf} or {@code anyOf} in object schemas.
      * <p>
@@ -485,5 +480,50 @@ public abstract class JsonSchema {
          * @return the constructed schema instance
          */
         public abstract JS build();
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((description == null) ? 0 : description.hashCode());
+        result = prime * result + (nullable ? 1231 : 1237);
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        result = prime * result + ((oneOf == null) ? 0 : oneOf.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        JsonSchema other = (JsonSchema) obj;
+        if (description == null) {
+            if (other.description != null)
+                return false;
+        } else if (!description.equals(other.description))
+            return false;
+        if (nullable != other.nullable)
+            return false;
+        if (type == null) {
+            if (other.type != null)
+                return false;
+        } else if (!type.equals(other.type))
+            return false;
+        if (oneOf == null) {
+            if (other.oneOf != null)
+                return false;
+        } else if (!oneOf.equals(other.oneOf))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "JsonSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + "]";
     }
 }

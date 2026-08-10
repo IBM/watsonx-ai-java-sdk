@@ -5,7 +5,7 @@ title: Services
 
 # Services
 
-Every service in the SDK follows the same **builder pattern**: configure it once with credentials, endpoint, and (where applicable) a model ID, then call its methods to interact with the API. Service instances are **thread-safe** and intended to be shared - create one per service per application, not one per request.
+Every service in the SDK follows the same **builder pattern**: configure it once with credentials, endpoint, and (where applicable) a model ID, then call its methods to interact with the API. Service instances are **thread-safe** and intended to be shared, so create one per service per application, not one per request.
 
 ## Inference
 
@@ -21,7 +21,7 @@ Every service in the SDK follows the same **builder pattern**: configure it once
 
 ## Document processing
 
-These services read from and write to **IBM Cloud Object Storage (COS)**. A `CONNECTION_ID` and `BUCKET_NAME` are required in addition to the standard credentials - see [Setup & Prerequisites](../setup#6-set-up-cloud-object-storage-cos).
+These services read from and write to **IBM Cloud Object Storage (COS)**. A `CONNECTION_ID` and `BUCKET_NAME` are required in addition to the standard credentials. See [Setup & Prerequisites](../setup#6-set-up-cloud-object-storage-cos).
 
 | Service | What it does |
 |---------|-------------|

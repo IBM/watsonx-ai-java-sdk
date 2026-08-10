@@ -161,6 +161,43 @@ public final class ModelGatewayEmbeddingParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((dimensions == null) ? 0 : dimensions.hashCode());
+        result = prime * result + ((encodingFormat == null) ? 0 : encodingFormat.hashCode());
+        result = prime * result + ((user == null) ? 0 : user.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ModelGatewayEmbeddingParameters other = (ModelGatewayEmbeddingParameters) obj;
+        if (dimensions == null) {
+            if (other.dimensions != null)
+                return false;
+        } else if (!dimensions.equals(other.dimensions))
+            return false;
+        if (encodingFormat == null) {
+            if (other.encodingFormat != null)
+                return false;
+        } else if (!encodingFormat.equals(other.encodingFormat))
+            return false;
+        if (user == null) {
+            if (other.user != null)
+                return false;
+        } else if (!user.equals(other.user))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "ModelGatewayEmbeddingParameters [dimensions=" + dimensions + ", encodingFormat=" + encodingFormat + ", user=" + user + "]";
     }

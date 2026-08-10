@@ -70,6 +70,6 @@ public final class Pii extends BaseDetector {
 
     @Override
     public String toString() {
-        return "Pii [" + super.toString() + "]";
+        return "Pii [name=" + name() + ", properties=" + properties() + "]";
     }
 }

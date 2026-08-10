@@ -590,12 +590,125 @@ public final class TextExtractionParameters extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((requestedOutputs == null) ? 0 : requestedOutputs.hashCode());
+        result = prime * result + ((mode == null) ? 0 : mode.hashCode());
+        result = prime * result + ((ocrMode == null) ? 0 : ocrMode.hashCode());
+        result = prime * result + ((languages == null) ? 0 : languages.hashCode());
+        result = prime * result + ((autoRotationCorrection == null) ? 0 : autoRotationCorrection.hashCode());
+        result = prime * result + ((createEmbeddedImages == null) ? 0 : createEmbeddedImages.hashCode());
+        result = prime * result + ((outputDpi == null) ? 0 : outputDpi.hashCode());
+        result = prime * result + ((outputTokens == null) ? 0 : outputTokens.hashCode());
+        result = prime * result + ((kvpMode == null) ? 0 : kvpMode.hashCode());
+        result = prime * result + ((semanticConfig == null) ? 0 : semanticConfig.hashCode());
+        result = prime * result + (removeUploadedFile ? 1231 : 1237);
+        result = prime * result + (removeOutputFile ? 1231 : 1237);
+        result = prime * result + ((outputFileName == null) ? 0 : outputFileName.hashCode());
+        result = prime * result + ((documentReference == null) ? 0 : documentReference.hashCode());
+        result = prime * result + ((resultReference == null) ? 0 : resultReference.hashCode());
+        result = prime * result + ((custom == null) ? 0 : custom.hashCode());
+        result = prime * result + ((timeout == null) ? 0 : timeout.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        TextExtractionParameters other = (TextExtractionParameters) obj;
+        if (requestedOutputs == null) {
+            if (other.requestedOutputs != null)
+                return false;
+        } else if (!requestedOutputs.equals(other.requestedOutputs))
+            return false;
+        if (mode == null) {
+            if (other.mode != null)
+                return false;
+        } else if (!mode.equals(other.mode))
+            return false;
+        if (ocrMode == null) {
+            if (other.ocrMode != null)
+                return false;
+        } else if (!ocrMode.equals(other.ocrMode))
+            return false;
+        if (languages == null) {
+            if (other.languages != null)
+                return false;
+        } else if (!languages.equals(other.languages))
+            return false;
+        if (autoRotationCorrection == null) {
+            if (other.autoRotationCorrection != null)
+                return false;
+        } else if (!autoRotationCorrection.equals(other.autoRotationCorrection))
+            return false;
+        if (createEmbeddedImages == null) {
+            if (other.createEmbeddedImages != null)
+                return false;
+        } else if (!createEmbeddedImages.equals(other.createEmbeddedImages))
+            return false;
+        if (outputDpi == null) {
+            if (other.outputDpi != null)
+                return false;
+        } else if (!outputDpi.equals(other.outputDpi))
+            return false;
+        if (outputTokens == null) {
+            if (other.outputTokens != null)
+                return false;
+        } else if (!outputTokens.equals(other.outputTokens))
+            return false;
+        if (kvpMode == null) {
+            if (other.kvpMode != null)
+                return false;
+        } else if (!kvpMode.equals(other.kvpMode))
+            return false;
+        if (semanticConfig == null) {
+            if (other.semanticConfig != null)
+                return false;
+        } else if (!semanticConfig.equals(other.semanticConfig))
+            return false;
+        if (removeUploadedFile != other.removeUploadedFile)
+            return false;
+        if (removeOutputFile != other.removeOutputFile)
+            return false;
+        if (outputFileName == null) {
+            if (other.outputFileName != null)
+                return false;
+        } else if (!outputFileName.equals(other.outputFileName))
+            return false;
+        if (documentReference == null) {
+            if (other.documentReference != null)
+                return false;
+        } else if (!documentReference.equals(other.documentReference))
+            return false;
+        if (resultReference == null) {
+            if (other.resultReference != null)
+                return false;
+        } else if (!resultReference.equals(other.resultReference))
+            return false;
+        if (custom == null) {
+            if (other.custom != null)
+                return false;
+        } else if (!custom.equals(other.custom))
+            return false;
+        if (timeout == null) {
+            if (other.timeout != null)
+                return false;
+        } else if (!timeout.equals(other.timeout))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "TextExtractionParameters [" + super.toString() + ", requestedOutputs=" + requestedOutputs + ", mode=" + mode + ", ocrMode=" + ocrMode
-            + ", languages=" + languages + ", autoRotationCorrection=" + autoRotationCorrection + ", createEmbeddedImages=" + createEmbeddedImages
-            + ", outputDpi=" + outputDpi + ", outputTokens=" + outputTokens + ", kvpMode=" + kvpMode + ", semanticConfig=" + semanticConfig
-            + ", removeUploadedFile=" + removeUploadedFile + ", removeOutputFile=" + removeOutputFile + ", outputFileName=" + outputFileName
-            + ", documentReference=" + documentReference + ", resultReference=" + resultReference + ", custom=" + custom + ", timeout=" + timeout
-            + "]";
+        return "TextExtractionParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId
+            + ", requestedOutputs=" + requestedOutputs + ", mode=" + mode + ", ocrMode=" + ocrMode + ", languages=" + languages
+            + ", autoRotationCorrection=" + autoRotationCorrection + ", createEmbeddedImages=" + createEmbeddedImages + ", outputDpi=" + outputDpi
+            + ", outputTokens=" + outputTokens + ", kvpMode=" + kvpMode + ", semanticConfig=" + semanticConfig + ", removeUploadedFile="
+            + removeUploadedFile + ", removeOutputFile=" + removeOutputFile + ", outputFileName=" + outputFileName + ", documentReference="
+            + documentReference + ", resultReference=" + resultReference + ", custom=" + custom + ", timeout=" + timeout + "]";
     }
 }

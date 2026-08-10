@@ -127,10 +127,10 @@ var chatService = ChatService.builder()
 
 The `ChatService` uses structured **message objects** to represent all interactions in a conversation. Each message type serves a specific role, ensuring that conversation flows are consistent and easy to manage.
 
-- **SystemMessage** – defines the assistant's behavior and personality before the conversation begins. Use this to prime the model with instructions or context.
-- **UserMessage** – represents input from a user, which can include text, images, video, or audio. A single `UserMessage` can contain multiple content elements.
-- **AssistantMessage** – represents a response from the assistant, which can include text, reasoning information, and any tool calls executed during the conversation.
-- **ToolMessage** – represents a response from a tool invoked by the assistant.
+- **SystemMessage** - defines the assistant's behavior and personality before the conversation begins. Use this to prime the model with instructions or context.
+- **UserMessage** - represents input from a user, which can include text, images, video, or audio. A single `UserMessage` can contain multiple content elements.
+- **AssistantMessage** - represents a response from the assistant, which can include text, reasoning information, and any tool calls executed during the conversation.
+- **ToolMessage** - represents a response from a tool invoked by the assistant.
 
 > **Tip:** Always start your conversation with a `SystemMessage` to set clear instructions for the assistant. Default behavior, content, and context can then be extended with `UserMessage` inputs, and responses are represented by `AssistantMessage` and `ToolMessage`.
 
@@ -410,7 +410,7 @@ ChatService chatService = ChatService.builder()
     .build();
 ```
 
-`ctx.invoke()` reuses the same `ChatService` instance - same model, project, base URL, and default parameters - so you can add a second reasoning step without instantiating anything new. Per-request overrides are still possible via `ChatParameters`:
+`ctx.invoke()` reuses the same `ChatService` instance (same model, project, base URL, and default parameters), so you can add a second reasoning step without instantiating anything new. Per-request overrides are still possible via `ChatParameters`:
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -443,7 +443,7 @@ ChatService chatService = ChatService.builder()
 chatService.chat("Does water boil on the Moon?");
 ```
 
-> `ctx.invoke()` counts as a separate API call and consumes additional tokens. Use it when the benefit - validation, rewriting, classification - justifies the cost.
+> `ctx.invoke()` counts as a separate API call and consumes additional tokens. Use it when the benefit (validation, rewriting, classification) justifies the cost.
 
 ---
 
@@ -812,7 +812,7 @@ ChatService limitedService = ChatService.builder()
 
 ## Content Moderation
 
-Content moderation lets watsonx.ai screen chat input and output for **Personally Identifiable Information (PII)**, **Hate and Profanity (HAP)**, and **Granite Guardian** categories. When one or more detectors match, the results are returned alongside the assistant's response so your application can decide how to react - redact, block, log, warn the user - based on your own policy.
+Content moderation lets watsonx.ai screen chat input and output for **Personally Identifiable Information (PII)**, **Hate and Profanity (HAP)**, and **Granite Guardian** categories. When one or more detectors match, the results are returned alongside the assistant's response so your application can decide how to react (redact, block, log, or warn the user) based on your own policy.
 
 > **Two modes are available for content screening in the SDK:**
 > - **Inline chat moderation** (this section) - attach a `ChatModeration` to a `ChatRequest`. Detectors run as part of the chat call and results come back on the `TextChatResponse`. Use it when you want screening to happen *during* the generation.

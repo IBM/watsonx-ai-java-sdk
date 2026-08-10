@@ -179,6 +179,49 @@ public final class TimeSeriesRequest {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((deploymentId == null) ? 0 : deploymentId.hashCode());
+        result = prime * result + ((inputSchema == null) ? 0 : inputSchema.hashCode());
+        result = prime * result + ((data == null) ? 0 : data.hashCode());
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        TimeSeriesRequest other = (TimeSeriesRequest) obj;
+        if (deploymentId == null) {
+            if (other.deploymentId != null)
+                return false;
+        } else if (!deploymentId.equals(other.deploymentId))
+            return false;
+        if (inputSchema == null) {
+            if (other.inputSchema != null)
+                return false;
+        } else if (!inputSchema.equals(other.inputSchema))
+            return false;
+        if (data == null) {
+            if (other.data != null)
+                return false;
+        } else if (!data.equals(other.data))
+            return false;
+        if (parameters == null) {
+            if (other.parameters != null)
+                return false;
+        } else if (!parameters.equals(other.parameters))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "TimeSeriesRequest [deploymentId=" + deploymentId + ", inputSchema=" + inputSchema + ", data=" + data + ", parameters="
             + parameters + "]";

@@ -53,7 +53,7 @@ DeploymentService deploymentService = DeploymentService.builder()
     .build();
 ```
 
-No `projectId`, `spaceId`, or `modelId` is required - all routing is done through the `deploymentId` in each request.
+All routing is done through the `deploymentId` in each request, so no `projectId`, `spaceId`, or `modelId` is required.
 
 ### Builder Parameters
 
@@ -72,7 +72,7 @@ No `projectId`, `spaceId`, or `modelId` is required - all routing is done throug
 | `messageInterceptor` | MessageInterceptor\<DeploymentChatRequest\> | No | Post-processing hook for the assistant's text content |
 | `toolInterceptor` | ToolInterceptor\<DeploymentChatRequest\> | No | Post-processing hook for function call arguments |
 
-> Either `apiKey` or `authenticator` must be provided. `projectId`, `spaceId`, and `modelId` are **ignored** - if set on a request's parameters object, a warning is logged.
+> Either `apiKey` or `authenticator` must be provided. `projectId`, `spaceId`, and `modelId` are **ignored**, and a warning is logged if they are set on a request's parameters object.
 
 ---
 
@@ -125,7 +125,7 @@ future.join(); // wait for completion
 
 ## Time Series Forecasting
 
-The `DeploymentService` supports time series forecasting via `forecast()`, with one key addition over `TimeSeriesService`: **`futureData`** - exogenous features known in advance for the forecast horizon (e.g. holidays, scheduled events).
+The `DeploymentService` supports time series forecasting via `forecast()`, with one key addition over `TimeSeriesService`: **`futureData`**, exogenous features known in advance for the forecast horizon (e.g. holidays, scheduled events).
 
 ```java
 InputSchema schema = InputSchema.builder()

@@ -344,10 +344,78 @@ public final class TextClassificationParameters extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((ocrMode == null) ? 0 : ocrMode.hashCode());
+        result = prime * result + ((classificationMode == null) ? 0 : classificationMode.hashCode());
+        result = prime * result + ((autoRotationCorrection == null) ? 0 : autoRotationCorrection.hashCode());
+        result = prime * result + ((languages == null) ? 0 : languages.hashCode());
+        result = prime * result + ((semanticConfig == null) ? 0 : semanticConfig.hashCode());
+        result = prime * result + (removeUploadedFile ? 1231 : 1237);
+        result = prime * result + ((documentReference == null) ? 0 : documentReference.hashCode());
+        result = prime * result + ((custom == null) ? 0 : custom.hashCode());
+        result = prime * result + ((timeout == null) ? 0 : timeout.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        TextClassificationParameters other = (TextClassificationParameters) obj;
+        if (ocrMode == null) {
+            if (other.ocrMode != null)
+                return false;
+        } else if (!ocrMode.equals(other.ocrMode))
+            return false;
+        if (classificationMode == null) {
+            if (other.classificationMode != null)
+                return false;
+        } else if (!classificationMode.equals(other.classificationMode))
+            return false;
+        if (autoRotationCorrection == null) {
+            if (other.autoRotationCorrection != null)
+                return false;
+        } else if (!autoRotationCorrection.equals(other.autoRotationCorrection))
+            return false;
+        if (languages == null) {
+            if (other.languages != null)
+                return false;
+        } else if (!languages.equals(other.languages))
+            return false;
+        if (semanticConfig == null) {
+            if (other.semanticConfig != null)
+                return false;
+        } else if (!semanticConfig.equals(other.semanticConfig))
+            return false;
+        if (removeUploadedFile != other.removeUploadedFile)
+            return false;
+        if (documentReference == null) {
+            if (other.documentReference != null)
+                return false;
+        } else if (!documentReference.equals(other.documentReference))
+            return false;
+        if (custom == null) {
+            if (other.custom != null)
+                return false;
+        } else if (!custom.equals(other.custom))
+            return false;
+        if (timeout == null) {
+            if (other.timeout != null)
+                return false;
+        } else if (!timeout.equals(other.timeout))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "TextClassificationParameters [" + super.toString() + ", ocrMode=" + ocrMode + ", classificationMode=" + classificationMode
-            + ", autoRotationCorrection=" + autoRotationCorrection + ", languages=" + languages + ", semanticConfig=" + semanticConfig
-            + ", removeUploadedFile=" + removeUploadedFile + ", documentReference=" + documentReference + ", custom=" + custom + ", timeout="
-            + timeout + "]";
+        return "TextClassificationParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", ocrMode="
+            + ocrMode + ", classificationMode=" + classificationMode + ", autoRotationCorrection=" + autoRotationCorrection + ", languages="
+            + languages + ", semanticConfig=" + semanticConfig + ", removeUploadedFile=" + removeUploadedFile + ", documentReference="
+            + documentReference + ", custom=" + custom + ", timeout=" + timeout + "]";
     }
 }

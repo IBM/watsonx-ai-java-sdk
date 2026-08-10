@@ -586,4 +586,140 @@ public abstract class BaseChatParameters {
             throw new IllegalArgumentException("Unknown tool choice option: " + value);
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((modelId == null) ? 0 : modelId.hashCode());
+        result = prime * result + ((transactionId == null) ? 0 : transactionId.hashCode());
+        result = prime * result + ((toolChoiceOption == null) ? 0 : toolChoiceOption.hashCode());
+        result = prime * result + ((toolChoice == null) ? 0 : toolChoice.hashCode());
+        result = prime * result + ((frequencyPenalty == null) ? 0 : frequencyPenalty.hashCode());
+        result = prime * result + ((logitBias == null) ? 0 : logitBias.hashCode());
+        result = prime * result + ((logprobs == null) ? 0 : logprobs.hashCode());
+        result = prime * result + ((topLogprobs == null) ? 0 : topLogprobs.hashCode());
+        result = prime * result + ((maxCompletionTokens == null) ? 0 : maxCompletionTokens.hashCode());
+        result = prime * result + ((n == null) ? 0 : n.hashCode());
+        result = prime * result + ((presencePenalty == null) ? 0 : presencePenalty.hashCode());
+        result = prime * result + ((seed == null) ? 0 : seed.hashCode());
+        result = prime * result + ((stop == null) ? 0 : stop.hashCode());
+        result = prime * result + ((temperature == null) ? 0 : temperature.hashCode());
+        result = prime * result + ((topP == null) ? 0 : topP.hashCode());
+        result = prime * result + ((timeLimit == null) ? 0 : timeLimit.hashCode());
+        result = prime * result + ((responseFormat == null) ? 0 : responseFormat.hashCode());
+        result = prime * result + ((jsonSchema == null) ? 0 : jsonSchema.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        BaseChatParameters other = (BaseChatParameters) obj;
+        if (modelId == null) {
+            if (other.modelId != null)
+                return false;
+        } else if (!modelId.equals(other.modelId))
+            return false;
+        if (transactionId == null) {
+            if (other.transactionId != null)
+                return false;
+        } else if (!transactionId.equals(other.transactionId))
+            return false;
+        if (toolChoiceOption == null) {
+            if (other.toolChoiceOption != null)
+                return false;
+        } else if (!toolChoiceOption.equals(other.toolChoiceOption))
+            return false;
+        if (toolChoice == null) {
+            if (other.toolChoice != null)
+                return false;
+        } else if (!toolChoice.equals(other.toolChoice))
+            return false;
+        if (frequencyPenalty == null) {
+            if (other.frequencyPenalty != null)
+                return false;
+        } else if (!frequencyPenalty.equals(other.frequencyPenalty))
+            return false;
+        if (logitBias == null) {
+            if (other.logitBias != null)
+                return false;
+        } else if (!logitBias.equals(other.logitBias))
+            return false;
+        if (logprobs == null) {
+            if (other.logprobs != null)
+                return false;
+        } else if (!logprobs.equals(other.logprobs))
+            return false;
+        if (topLogprobs == null) {
+            if (other.topLogprobs != null)
+                return false;
+        } else if (!topLogprobs.equals(other.topLogprobs))
+            return false;
+        if (maxCompletionTokens == null) {
+            if (other.maxCompletionTokens != null)
+                return false;
+        } else if (!maxCompletionTokens.equals(other.maxCompletionTokens))
+            return false;
+        if (n == null) {
+            if (other.n != null)
+                return false;
+        } else if (!n.equals(other.n))
+            return false;
+        if (presencePenalty == null) {
+            if (other.presencePenalty != null)
+                return false;
+        } else if (!presencePenalty.equals(other.presencePenalty))
+            return false;
+        if (seed == null) {
+            if (other.seed != null)
+                return false;
+        } else if (!seed.equals(other.seed))
+            return false;
+        if (stop == null) {
+            if (other.stop != null)
+                return false;
+        } else if (!stop.equals(other.stop))
+            return false;
+        if (temperature == null) {
+            if (other.temperature != null)
+                return false;
+        } else if (!temperature.equals(other.temperature))
+            return false;
+        if (topP == null) {
+            if (other.topP != null)
+                return false;
+        } else if (!topP.equals(other.topP))
+            return false;
+        if (timeLimit == null) {
+            if (other.timeLimit != null)
+                return false;
+        } else if (!timeLimit.equals(other.timeLimit))
+            return false;
+        if (responseFormat == null) {
+            if (other.responseFormat != null)
+                return false;
+        } else if (!responseFormat.equals(other.responseFormat))
+            return false;
+        if (jsonSchema == null) {
+            if (other.jsonSchema != null)
+                return false;
+        } else if (!jsonSchema.equals(other.jsonSchema))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "BaseChatParameters [modelId=" + modelId + ", transactionId=" + transactionId + ", toolChoiceOption=" + toolChoiceOption
+            + ", toolChoice=" + toolChoice + ", frequencyPenalty=" + frequencyPenalty + ", logitBias=" + logitBias + ", logprobs=" + logprobs
+            + ", topLogprobs=" + topLogprobs + ", maxCompletionTokens=" + maxCompletionTokens + ", n=" + n + ", presencePenalty=" + presencePenalty
+            + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP + ", timeLimit=" + timeLimit
+            + ", responseFormat=" + responseFormat + ", jsonSchema=" + jsonSchema + "]";
+    }
 }

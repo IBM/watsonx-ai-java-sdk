@@ -222,6 +222,6 @@ Token expiry during a request
   → Configurable via WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES
 ```
 
-Both authenticators are **thread-safe** - the same instance can be shared across multiple service clients and called from multiple threads concurrently.
+Both authenticators are **thread-safe**, so the same instance can be shared across multiple service clients and called from multiple threads concurrently.
 
 > To tune how many times the SDK retries on token expiry, set the `WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES` environment variable. See [Environment Variables](advanced/environment-variables) for details.

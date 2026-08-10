@@ -114,6 +114,37 @@ public final class EmbeddingRequest {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((inputs == null) ? 0 : inputs.hashCode());
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        EmbeddingRequest other = (EmbeddingRequest) obj;
+        if (inputs == null) {
+            if (other.inputs != null)
+                return false;
+        } else if (!inputs.equals(other.inputs))
+            return false;
+        if (parameters == null) {
+            if (other.parameters != null)
+                return false;
+        } else if (!parameters.equals(other.parameters))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "EmbeddingRequest [inputs=" + inputs + ", parameters=" + parameters + "]";
     }

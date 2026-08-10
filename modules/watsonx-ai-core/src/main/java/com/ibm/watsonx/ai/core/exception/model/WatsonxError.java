@@ -38,52 +38,84 @@ public record WatsonxError(Integer statusCode, String trace, List<Error> errors)
      * Enumerates the known watsonx error codes.
      */
     public static enum Code {
-        /** Authorization was rejected. */
+        /**
+         * Authorization was rejected.
+         */
         AUTHORIZATION_REJECTED("authorization_rejected"),
 
-        /** Error due to JSON type mismatch. */
+        /**
+         * Error due to JSON type mismatch.
+         */
         JSON_TYPE_ERROR("json_type_error"),
 
-        /** The requested model is not supported. */
+        /**
+         * The requested model is not supported.
+         */
         MODEL_NOT_SUPPORTED("model_not_supported"),
 
-        /** The model does not support the requested function. */
+        /**
+         * The model does not support the requested function.
+         */
         MODEL_NO_SUPPORT_FOR_FUNCTION("model_no_support_for_function"),
 
-        /** User authorization failed. */
+        /**
+         * User authorization failed.
+         */
         USER_AUTHORIZATION_FAILED("user_authorization_failed"),
 
-        /** JSON validation failed. */
+        /**
+         * JSON validation failed.
+         */
         JSON_VALIDATION_ERROR("json_validation_error"),
 
-        /** The request entity is invalid. */
+        /**
+         * The request entity is invalid.
+         */
         INVALID_REQUEST_ENTITY("invalid_request_entity"),
 
-        /** An invalid input argument was provided. */
+        /**
+         * An invalid input argument was provided.
+         */
         INVALID_INPUT_ARGUMENT("invalid_input_argument"),
 
-        /** Token quota has been reached. */
+        /**
+         * Token quota has been reached.
+         */
         TOKEN_QUOTA_REACHED("token_quota_reached"),
 
-        /** Authentication token has expired. */
+        /**
+         * Authentication token has expired.
+         */
         AUTHENTICATION_TOKEN_EXPIRED("authentication_token_expired"),
 
-        /** Text extraction event does not exist. */
+        /**
+         * Text extraction event does not exist.
+         */
         TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST("text_extraction_event_does_not_exist"),
 
-        /** Text classification event does not exist. */
+        /**
+         * Text classification event does not exist.
+         */
         TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST("text_classification_event_does_not_exist"),
 
-        /** Create Schema event does not exist. */
+        /**
+         * Create Schema event does not exist.
+         */
         SCHEMA_EVENT_DOES_NOT_EXIST("schema_event_does_not_exist"),
 
-        /** Access to Cloud Object Storage was denied. */
+        /**
+         * Access to Cloud Object Storage was denied.
+         */
         COS_ACCESS_DENIED("AccessDenied"),
 
-        /** File not found in Cloud Object Storage */
+        /**
+         * File not found in Cloud Object Storage
+         */
         COS_FILE_NOT_FOUND("NoSuchKey"),
 
-        /** Unclassified. */
+        /**
+         * Unclassified.
+         */
         UNCLASSIFIED("Unclassified");
 
         private final String value;

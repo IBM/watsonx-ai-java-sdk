@@ -56,4 +56,46 @@ public abstract class BaseDetectionRequest {
     public String spaceId() {
         return spaceId;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((detectors == null) ? 0 : detectors.hashCode());
+        result = prime * result + ((projectId == null) ? 0 : projectId.hashCode());
+        result = prime * result + ((spaceId == null) ? 0 : spaceId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        BaseDetectionRequest other = (BaseDetectionRequest) obj;
+        if (detectors == null) {
+            if (other.detectors != null)
+                return false;
+        } else if (!detectors.equals(other.detectors))
+            return false;
+        if (projectId == null) {
+            if (other.projectId != null)
+                return false;
+        } else if (!projectId.equals(other.projectId))
+            return false;
+        if (spaceId == null) {
+            if (other.spaceId != null)
+                return false;
+        } else if (!spaceId.equals(other.spaceId))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "BaseDetectionRequest [detectors=" + detectors + ", projectId=" + projectId + ", spaceId=" + spaceId + "]";
+    }
 }

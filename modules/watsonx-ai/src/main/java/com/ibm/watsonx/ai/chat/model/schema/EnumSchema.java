@@ -72,7 +72,31 @@ public final class EnumSchema extends JsonSchema {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((enumValues == null) ? 0 : enumValues.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        EnumSchema other = (EnumSchema) obj;
+        if (enumValues == null) {
+            if (other.enumValues != null)
+                return false;
+        } else if (!enumValues.equals(other.enumValues))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "EnumSchema [" + super.toString() + ", enumValues=" + enumValues + "]";
+        return "EnumSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", enumValues="
+            + enumValues + "]";
     }
 }

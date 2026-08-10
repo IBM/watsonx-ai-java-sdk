@@ -125,7 +125,37 @@ public final class MergeSchemaParameters extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((semanticConfig == null) ? 0 : semanticConfig.hashCode());
+        result = prime * result + ((timeout == null) ? 0 : timeout.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        MergeSchemaParameters other = (MergeSchemaParameters) obj;
+        if (semanticConfig == null) {
+            if (other.semanticConfig != null)
+                return false;
+        } else if (!semanticConfig.equals(other.semanticConfig))
+            return false;
+        if (timeout == null) {
+            if (other.timeout != null)
+                return false;
+        } else if (!timeout.equals(other.timeout))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "MergeSchemaParameters [" + super.toString() + ", semanticConfig=" + semanticConfig + ", timeout=" + timeout + "]";
+        return "MergeSchemaParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", semanticConfig="
+            + semanticConfig + ", timeout=" + timeout + "]";
     }
 }

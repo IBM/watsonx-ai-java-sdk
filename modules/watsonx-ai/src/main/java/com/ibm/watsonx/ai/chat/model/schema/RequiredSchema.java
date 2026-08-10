@@ -79,7 +79,31 @@ public final class RequiredSchema extends JsonSchema {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((required == null) ? 0 : required.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        RequiredSchema other = (RequiredSchema) obj;
+        if (required == null) {
+            if (other.required != null)
+                return false;
+        } else if (!required.equals(other.required))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "RequiredSchema [" + super.toString() + ", required=" + required + "]";
+        return "RequiredSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", required="
+            + required + "]";
     }
 }

@@ -84,6 +84,6 @@ public final class Hap extends BaseDetector {
 
     @Override
     public String toString() {
-        return "Hap [" + super.toString() + "]";
+        return "Hap [name=" + name() + ", properties=" + properties() + "]";
     }
 }

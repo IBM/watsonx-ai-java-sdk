@@ -108,9 +108,9 @@ Examples of usage are available in the [samples/](samples) directory.
 
 The SDK integrates seamlessly with popular Java frameworks:
 
-- **[LangChain4j](https://docs.langchain4j.dev/)** – Native integration for building LLM-powered applications in Java.
-- **[Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)** – Optimized integration for building LLM-powered applications with Quarkus.
-- **[Apache Camel](https://camel.apache.org/components/ibm-watsonx-ai-component.html)** – Integrate AI capabilities into enterprise integration patterns and workflows.
+- **[LangChain4j](https://docs.langchain4j.dev/)** - Native integration for building LLM-powered applications in Java.
+- **[Quarkus LangChain4j](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)** - Optimized integration for building LLM-powered applications with Quarkus.
+- **[Apache Camel](https://camel.apache.org/components/ibm-watsonx-ai-component.html)** - Integrate AI capabilities into enterprise integration patterns and workflows.
 
 ## Contributing
 
@@ -145,4 +145,4 @@ git commit -s
 
 ## License
 
-Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+Apache License 2.0. See the [LICENSE](LICENSE) file for details.

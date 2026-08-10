@@ -5,7 +5,7 @@ title: Setup & Prerequisites
 
 # Setup & Prerequisites
 
-The code samples throughout this documentation reference a handful of values - an **API key**, a **Project** (or **Space**) **ID**, **Cloud Object Storage** details, and so on. These identify **resources you create in watsonx.ai**. The SDK does not create them for you.
+The code samples throughout this documentation reference a handful of values such as an **API key**, a **Project** (or **Space**) **ID**, and **Cloud Object Storage** details. These identify **resources you create in watsonx.ai**. The SDK does not create them for you.
 
 This page maps every value used in the samples to the resource behind it and links to the official IBM documentation that walks you through creating it.
 
@@ -46,7 +46,7 @@ Create an IBM Cloud account and provision a watsonx.ai service instance. The fre
 
 ## 2. Create an IBM Cloud API key
 
-The SDK authenticates to IBM Cloud by exchanging an API key for an IAM bearer token (handled automatically by `IBMCloudAuthenticator` - see [Authentication](authentication)). Create the key from **Manage → Access (IAM) → API keys** in the IBM Cloud console and store it securely. It is shown only once.
+The SDK authenticates to IBM Cloud by exchanging an API key for an IAM bearer token (handled automatically by `IBMCloudAuthenticator`, see [Authentication](authentication)). Create the key from **Manage → Access (IAM) → API keys** in the IBM Cloud console and store it securely. It is shown only once.
 
 This is the value passed to `apiKey(...)` and referenced as `WATSONX_API_KEY` in the samples.
 
@@ -61,7 +61,7 @@ A **project** is the workspace where inference requests run. After creating one,
 - 📖 [Creating a project](https://dataplatform.cloud.ibm.com/docs/content/wsj/getting-started/projects.html?context=wx&audience=wdp)
 - 📖 [Working in projects](https://dataplatform.cloud.ibm.com/docs/content/wsj/manage-data/manage-projects.html?context=wx&audience=wdp)
 
-> Every service accepts either a `projectId` **or** a `spaceId` - you do not need both.
+> Every service accepts either a `projectId` **or** a `spaceId`, so you do not need both.
 
 ---
 
@@ -110,7 +110,7 @@ The [Model Gateway Service](services/model-gateway/) routes requests to third-pa
 3. Select one or more models to expose and optionally assign aliases.
 4. Click **Submit**. The gateway is now ready to accept requests.
 
-> Once the admin setup is complete, end users need no additional credentials or identifiers - the standard `WATSONX_API_KEY` and `WATSONX_PROJECT_ID` are sufficient.
+> Once the admin setup is complete, the standard `WATSONX_API_KEY` and `WATSONX_PROJECT_ID` are all end users need.
 
 - 📖 [Setting up the Model Gateway in the UI](https://www.ibm.com/docs/en/watsonx/w-and-w/2.4.x?topic=gateway-setting-up-model-in-ui)
 - 📖 [IBM watsonx.ai Model Gateway](https://www.ibm.com/docs/en/watsonx/w-and-w/2.4.x?topic=models-model-gateway)
@@ -121,7 +121,7 @@ The [Model Gateway Service](services/model-gateway/) routes requests to third-pa
 
 Every service builder needs a `baseUrl`. On **IBM Cloud**, the SDK provides the `CloudRegion` enum (e.g. `CloudRegion.DALLAS`, which maps to `https://us-south.ml.cloud.ibm.com`) as a convenience, or you can pass the URL string directly. Use the region where your watsonx.ai instance was provisioned.
 
-> On **CP4D**, pass your instance URL as the `baseUrl` instead. The `CloudRegion` enum does not apply - see [On-premises (CP4D)](#on-premises-cp4d).
+> On **CP4D**, pass your instance URL as the `baseUrl` instead. The `CloudRegion` enum does not apply. See [On-premises (CP4D)](#on-premises-cp4d).
 
 - 📖 [Endpoint URLs by region (apidocs)](https://cloud.ibm.com/apidocs/watsonx-ai#endpoint-url)
 
@@ -134,7 +134,7 @@ The `modelId` passed to a service (e.g. `ibm/granite-4-h-small`) must match a mo
 The catalog groups models into two categories, and each is consumed through a different service:
 
 - **Provided with watsonx.ai (pay per token)** - models already hosted in watsonx.ai. Reference them directly by `modelId` through [Chat](services/chat-service/) and the other inference services. No deployment step is required.
-- **Deploy on demand (pay by the hour)** - models you first deploy into a deployment space from the **Resource Hub**. Once deployed, they are called by their `DEPLOYMENT_ID` through the [Deployment Service](services/deployment-service/) - see [Deploy an asset](#5-deploy-an-asset-optional).
+- **Deploy on demand (pay by the hour)** - models you first deploy into a deployment space from the **Resource Hub**. Once deployed, they are called by their `DEPLOYMENT_ID` through the [Deployment Service](services/deployment-service/). See [Deploy an asset](#5-deploy-an-asset-optional).
 
 - 📖 [Supported foundation models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx&audience=wdp)
 

@@ -84,11 +84,6 @@ public final class Filter {
         return toString();
     }
 
-    @Override
-    public String toString() {
-        return filterExpression.toString();
-    }
-
     /**
      * A utility class containing factory methods for creating {@link FilterExpression} instances.
      * <p>
@@ -243,5 +238,36 @@ public final class Filter {
 
             return () -> "function_".concat(function);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((filterExpression == null) ? 0 : filterExpression.toString().hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Filter other = (Filter) obj;
+        // StringJoiner has no value equality, so the rendered expression is what identifies a filter.
+        if (filterExpression == null) {
+            if (other.filterExpression != null)
+                return false;
+        } else if (!filterExpression.toString().equals(String.valueOf(other.filterExpression)))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return filterExpression.toString();
     }
 }

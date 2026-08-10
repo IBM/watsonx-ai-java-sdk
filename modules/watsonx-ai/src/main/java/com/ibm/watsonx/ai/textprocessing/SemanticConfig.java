@@ -37,11 +37,6 @@ public abstract class SemanticConfig {
         return defaultModelName;
     }
 
-    @Override
-    public String toString() {
-        return "defaultModelName=" + defaultModelName;
-    }
-
     /**
      * Builder abstract class for constructing {@link SemanticConfig} instance.
      *
@@ -60,5 +55,35 @@ public abstract class SemanticConfig {
             this.defaultModelName = defaultModelName;
             return (T) this;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((defaultModelName == null) ? 0 : defaultModelName.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SemanticConfig other = (SemanticConfig) obj;
+        if (defaultModelName == null) {
+            if (other.defaultModelName != null)
+                return false;
+        } else if (!defaultModelName.equals(other.defaultModelName))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "SemanticConfig [defaultModelName=" + defaultModelName + "]";
     }
 }

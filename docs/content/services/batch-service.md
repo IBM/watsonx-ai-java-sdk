@@ -96,7 +96,7 @@ BatchService batchService = BatchService.builder()
 
 ## Input File Format
 
-Input files must be in [JSONL](https://jsonlines.org/) format - one JSON object per line. Each line represents a single inference request and must include a `custom_id` to correlate results with inputs.
+Input files must be in [JSONL](https://jsonlines.org/) format, with one JSON object per line. Each line represents a single inference request and must include a `custom_id` to correlate results with inputs.
 
 ```json
 {"custom_id": "a", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "ibm/granite-4-h-small", "messages": [{"role": "user", "content": [{"type": "text", "text": "Capital of Italy"}]}], "max_completion_tokens": 0, "time_limit": 30000, "temperature": 0}}

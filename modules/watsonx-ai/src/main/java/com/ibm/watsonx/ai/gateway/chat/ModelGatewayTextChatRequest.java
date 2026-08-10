@@ -739,4 +739,215 @@ public final class ModelGatewayTextChatRequest {
             return new ModelGatewayTextChatRequest(this);
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((model == null) ? 0 : model.hashCode());
+        result = prime * result + ((messages == null) ? 0 : messages.hashCode());
+        result = prime * result + ((tools == null) ? 0 : tools.hashCode());
+        result = prime * result + ((toolChoice == null) ? 0 : toolChoice.hashCode());
+        result = prime * result + ((frequencyPenalty == null) ? 0 : frequencyPenalty.hashCode());
+        result = prime * result + ((logitBias == null) ? 0 : logitBias.hashCode());
+        result = prime * result + ((logprobs == null) ? 0 : logprobs.hashCode());
+        result = prime * result + ((topLogprobs == null) ? 0 : topLogprobs.hashCode());
+        result = prime * result + ((maxCompletionTokens == null) ? 0 : maxCompletionTokens.hashCode());
+        result = prime * result + ((maxTokens == null) ? 0 : maxTokens.hashCode());
+        result = prime * result + ((n == null) ? 0 : n.hashCode());
+        result = prime * result + ((presencePenalty == null) ? 0 : presencePenalty.hashCode());
+        result = prime * result + ((seed == null) ? 0 : seed.hashCode());
+        result = prime * result + ((stop == null) ? 0 : stop.hashCode());
+        result = prime * result + ((temperature == null) ? 0 : temperature.hashCode());
+        result = prime * result + ((topP == null) ? 0 : topP.hashCode());
+        result = prime * result + ((timeLimit == null) ? 0 : timeLimit.hashCode());
+        result = prime * result + ((responseFormat == null) ? 0 : responseFormat.hashCode());
+        result = prime * result + ((audio == null) ? 0 : audio.hashCode());
+        result = prime * result + ((metadata == null) ? 0 : metadata.hashCode());
+        result = prime * result + ((modalities == null) ? 0 : modalities.hashCode());
+        result = prime * result + ((parallelToolCalls == null) ? 0 : parallelToolCalls.hashCode());
+        result = prime * result + ((prediction == null) ? 0 : prediction.hashCode());
+        result = prime * result + ((reasoningEffort == null) ? 0 : reasoningEffort.hashCode());
+        result = prime * result + ((serviceTier == null) ? 0 : serviceTier.hashCode());
+        result = prime * result + ((store == null) ? 0 : store.hashCode());
+        result = prime * result + ((streamOptions == null) ? 0 : streamOptions.hashCode());
+        result = prime * result + ((router == null) ? 0 : router.hashCode());
+        result = prime * result + ((user == null) ? 0 : user.hashCode());
+        result = prime * result + ((stream == null) ? 0 : stream.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ModelGatewayTextChatRequest other = (ModelGatewayTextChatRequest) obj;
+        if (model == null) {
+            if (other.model != null)
+                return false;
+        } else if (!model.equals(other.model))
+            return false;
+        if (messages == null) {
+            if (other.messages != null)
+                return false;
+        } else if (!messages.equals(other.messages))
+            return false;
+        if (tools == null) {
+            if (other.tools != null)
+                return false;
+        } else if (!tools.equals(other.tools))
+            return false;
+        if (toolChoice == null) {
+            if (other.toolChoice != null)
+                return false;
+        } else if (!toolChoice.equals(other.toolChoice))
+            return false;
+        if (frequencyPenalty == null) {
+            if (other.frequencyPenalty != null)
+                return false;
+        } else if (!frequencyPenalty.equals(other.frequencyPenalty))
+            return false;
+        if (logitBias == null) {
+            if (other.logitBias != null)
+                return false;
+        } else if (!logitBias.equals(other.logitBias))
+            return false;
+        if (logprobs == null) {
+            if (other.logprobs != null)
+                return false;
+        } else if (!logprobs.equals(other.logprobs))
+            return false;
+        if (topLogprobs == null) {
+            if (other.topLogprobs != null)
+                return false;
+        } else if (!topLogprobs.equals(other.topLogprobs))
+            return false;
+        if (maxCompletionTokens == null) {
+            if (other.maxCompletionTokens != null)
+                return false;
+        } else if (!maxCompletionTokens.equals(other.maxCompletionTokens))
+            return false;
+        if (maxTokens == null) {
+            if (other.maxTokens != null)
+                return false;
+        } else if (!maxTokens.equals(other.maxTokens))
+            return false;
+        if (n == null) {
+            if (other.n != null)
+                return false;
+        } else if (!n.equals(other.n))
+            return false;
+        if (presencePenalty == null) {
+            if (other.presencePenalty != null)
+                return false;
+        } else if (!presencePenalty.equals(other.presencePenalty))
+            return false;
+        if (seed == null) {
+            if (other.seed != null)
+                return false;
+        } else if (!seed.equals(other.seed))
+            return false;
+        if (stop == null) {
+            if (other.stop != null)
+                return false;
+        } else if (!stop.equals(other.stop))
+            return false;
+        if (temperature == null) {
+            if (other.temperature != null)
+                return false;
+        } else if (!temperature.equals(other.temperature))
+            return false;
+        if (topP == null) {
+            if (other.topP != null)
+                return false;
+        } else if (!topP.equals(other.topP))
+            return false;
+        if (timeLimit == null) {
+            if (other.timeLimit != null)
+                return false;
+        } else if (!timeLimit.equals(other.timeLimit))
+            return false;
+        if (responseFormat == null) {
+            if (other.responseFormat != null)
+                return false;
+        } else if (!responseFormat.equals(other.responseFormat))
+            return false;
+        if (audio == null) {
+            if (other.audio != null)
+                return false;
+        } else if (!audio.equals(other.audio))
+            return false;
+        if (metadata == null) {
+            if (other.metadata != null)
+                return false;
+        } else if (!metadata.equals(other.metadata))
+            return false;
+        if (modalities == null) {
+            if (other.modalities != null)
+                return false;
+        } else if (!modalities.equals(other.modalities))
+            return false;
+        if (parallelToolCalls == null) {
+            if (other.parallelToolCalls != null)
+                return false;
+        } else if (!parallelToolCalls.equals(other.parallelToolCalls))
+            return false;
+        if (prediction == null) {
+            if (other.prediction != null)
+                return false;
+        } else if (!prediction.equals(other.prediction))
+            return false;
+        if (reasoningEffort == null) {
+            if (other.reasoningEffort != null)
+                return false;
+        } else if (!reasoningEffort.equals(other.reasoningEffort))
+            return false;
+        if (serviceTier == null) {
+            if (other.serviceTier != null)
+                return false;
+        } else if (!serviceTier.equals(other.serviceTier))
+            return false;
+        if (store == null) {
+            if (other.store != null)
+                return false;
+        } else if (!store.equals(other.store))
+            return false;
+        if (streamOptions == null) {
+            if (other.streamOptions != null)
+                return false;
+        } else if (!streamOptions.equals(other.streamOptions))
+            return false;
+        if (router == null) {
+            if (other.router != null)
+                return false;
+        } else if (!router.equals(other.router))
+            return false;
+        if (user == null) {
+            if (other.user != null)
+                return false;
+        } else if (!user.equals(other.user))
+            return false;
+        if (stream == null) {
+            if (other.stream != null)
+                return false;
+        } else if (!stream.equals(other.stream))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ModelGatewayTextChatRequest [model=" + model + ", messages=" + messages + ", tools=" + tools + ", toolChoice=" + toolChoice
+            + ", frequencyPenalty=" + frequencyPenalty + ", logitBias=" + logitBias + ", logprobs=" + logprobs + ", topLogprobs=" + topLogprobs
+            + ", maxCompletionTokens=" + maxCompletionTokens + ", maxTokens=" + maxTokens + ", n=" + n + ", presencePenalty=" + presencePenalty
+            + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP + ", timeLimit=" + timeLimit
+            + ", responseFormat=" + responseFormat + ", audio=" + audio + ", metadata=" + metadata + ", modalities=" + modalities
+            + ", parallelToolCalls=" + parallelToolCalls + ", prediction=" + prediction + ", reasoningEffort=" + reasoningEffort + ", serviceTier="
+            + serviceTier + ", store=" + store + ", streamOptions=" + streamOptions + ", router=" + router + ", user=" + user + ", stream=" + stream
+            + "]";
+    }
 }

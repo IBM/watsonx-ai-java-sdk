@@ -295,7 +295,7 @@ Controls how images embedded in the document are handled in the extracted output
 
 ## Key-Value Pair Extraction
 
-KVP extraction pulls structured field data out of documents alongside the text. It requires `kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)` and `Type.JSON` as output format - results are only included in the JSON output.
+KVP extraction pulls structured field data out of documents alongside the text. It requires `kvpMode(KvpMode.GENERIC_WITH_SEMANTIC)` and `Type.JSON` as output format, because results are only included in the JSON output.
 
 ### Basic KVP Extraction
 

@@ -144,4 +144,38 @@ public abstract class NativeChatRequest extends BaseChatRequest {
             return (T) this;
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+        result = prime * result + ((thinking == null) ? 0 : thinking.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        NativeChatRequest other = (NativeChatRequest) obj;
+        if (parameters == null) {
+            if (other.parameters != null)
+                return false;
+        } else if (!parameters.equals(other.parameters))
+            return false;
+        if (thinking == null) {
+            if (other.thinking != null)
+                return false;
+        } else if (!thinking.equals(other.thinking))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "NativeChatRequest [messages=" + messages + ", tools=" + tools + ", parameters=" + parameters + ", thinking=" + thinking + "]";
+    }
 }

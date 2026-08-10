@@ -5,7 +5,7 @@ title: Document Processing
 
 # Document Processing
 
-The document processing services work together to extract and classify structured information from documents stored in **IBM Cloud Object Storage (COS)**. A `CONNECTION_ID` and `BUCKET_NAME` are required in addition to the standard credentials - see [Setup & Prerequisites](../../setup#6-set-up-cloud-object-storage-cos).
+The document processing services work together to extract and classify structured information from documents stored in **IBM Cloud Object Storage (COS)**. A `CONNECTION_ID` and `BUCKET_NAME` are required in addition to the standard credentials. See [Setup & Prerequisites](../../setup#6-set-up-cloud-object-storage-cos).
 
 ## Services
 

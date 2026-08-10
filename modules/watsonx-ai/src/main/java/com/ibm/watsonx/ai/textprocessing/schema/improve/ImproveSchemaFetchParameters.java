@@ -62,6 +62,6 @@ public final class ImproveSchemaFetchParameters extends WatsonxParameters {
 
     @Override
     public String toString() {
-        return "ImproveSchemaFetchParameters [" + super.toString() + "]";
+        return "ImproveSchemaFetchParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + "]";
     }
 }

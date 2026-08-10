@@ -216,6 +216,49 @@ public final class InputSchema {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((timestampColumn == null) ? 0 : timestampColumn.hashCode());
+        result = prime * result + ((idColumns == null) ? 0 : idColumns.hashCode());
+        result = prime * result + ((freq == null) ? 0 : freq.hashCode());
+        result = prime * result + ((targetColumns == null) ? 0 : targetColumns.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        InputSchema other = (InputSchema) obj;
+        if (timestampColumn == null) {
+            if (other.timestampColumn != null)
+                return false;
+        } else if (!timestampColumn.equals(other.timestampColumn))
+            return false;
+        if (idColumns == null) {
+            if (other.idColumns != null)
+                return false;
+        } else if (!idColumns.equals(other.idColumns))
+            return false;
+        if (freq == null) {
+            if (other.freq != null)
+                return false;
+        } else if (!freq.equals(other.freq))
+            return false;
+        if (targetColumns == null) {
+            if (other.targetColumns != null)
+                return false;
+        } else if (!targetColumns.equals(other.targetColumns))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "InputSchema [timestampColumn=" + timestampColumn + ", idColumns=" + idColumns + ", freq=" + freq + ", targetColumns="
             + targetColumns + "]";

@@ -250,7 +250,7 @@ System.out.println(result.documentType());       // → (blank)
 
 During classification, two key-value-pair (KVP) extraction methods can be enabled independently or together:
 
-**Schema-based extraction** (`enableSchemaKvp: true`) classifies each page into a known document type and extracts only the fields declared in the matching schema. Use this when you have domain-specific knowledge of the document structure - it increases accuracy for known document types.
+**Schema-based extraction** (`enableSchemaKvp: true`) classifies each page into a known document type and extracts only the fields declared in the matching schema. Use this when you have domain-specific knowledge of the document structure, because it increases accuracy for known document types.
 
 **Generic extraction** (`enableGenericKvp: true`) performs a broad sweep and extracts any content that can be represented as key-value pairs, regardless of document type. Use this when you have no prior knowledge of the document structure.
 

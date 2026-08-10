@@ -227,4 +227,52 @@ public final class Moderation {
             return new Moderation(this);
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((hap == null) ? 0 : hap.hashCode());
+        result = prime * result + ((pii == null) ? 0 : pii.hashCode());
+        result = prime * result + ((graniteGuardian == null) ? 0 : graniteGuardian.hashCode());
+        result = prime * result + ((inputRanges == null) ? 0 : inputRanges.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Moderation other = (Moderation) obj;
+        if (hap == null) {
+            if (other.hap != null)
+                return false;
+        } else if (!hap.equals(other.hap))
+            return false;
+        if (pii == null) {
+            if (other.pii != null)
+                return false;
+        } else if (!pii.equals(other.pii))
+            return false;
+        if (graniteGuardian == null) {
+            if (other.graniteGuardian != null)
+                return false;
+        } else if (!graniteGuardian.equals(other.graniteGuardian))
+            return false;
+        if (inputRanges == null) {
+            if (other.inputRanges != null)
+                return false;
+        } else if (!inputRanges.equals(other.inputRanges))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Moderation [hap=" + hap + ", pii=" + pii + ", graniteGuardian=" + graniteGuardian + ", inputRanges=" + inputRanges + "]";
+    }
 }

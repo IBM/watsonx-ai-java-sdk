@@ -81,7 +81,30 @@ public final class FileDeleteRequest extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((fileId == null) ? 0 : fileId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        FileDeleteRequest other = (FileDeleteRequest) obj;
+        if (fileId == null) {
+            if (other.fileId != null)
+                return false;
+        } else if (!fileId.equals(other.fileId))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "FileDeleteRequest [" + super.toString() + ", fileId=" + fileId + "]";
+        return "FileDeleteRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", fileId=" + fileId + "]";
     }
 }

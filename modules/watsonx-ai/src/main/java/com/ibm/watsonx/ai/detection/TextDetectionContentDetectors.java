@@ -25,4 +25,33 @@ public final class TextDetectionContentDetectors extends BaseDetectionRequest {
     public String input() {
         return input;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((input == null) ? 0 : input.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        TextDetectionContentDetectors other = (TextDetectionContentDetectors) obj;
+        if (input == null) {
+            if (other.input != null)
+                return false;
+        } else if (!input.equals(other.input))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "TextDetectionContentDetectors [detectors=" + detectors() + ", projectId=" + projectId() + ", spaceId=" + spaceId() + ", input="
+            + input + "]";
+    }
 }

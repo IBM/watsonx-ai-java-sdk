@@ -80,7 +80,31 @@ public final class BatchCancelRequest extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((batchId == null) ? 0 : batchId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        BatchCancelRequest other = (BatchCancelRequest) obj;
+        if (batchId == null) {
+            if (other.batchId != null)
+                return false;
+        } else if (!batchId.equals(other.batchId))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "BatchCancelRequest [" + super.toString() + ", batchId=" + batchId + "]";
+        return "BatchCancelRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", batchId=" + batchId
+            + "]";
     }
 }

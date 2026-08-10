@@ -18,11 +18,17 @@ import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
  * Abstraction of a REST client for interacting with the IBM Cloud Pak for Data
  */
 public abstract class CP4DRestClient {
-    /** The base URL of the Cloud Pak for Data endpoint. */
+    /**
+     * The base URL of the Cloud Pak for Data endpoint.
+     */
     protected final URI baseUrl;
-    /** The request timeout. */
+    /**
+     * The request timeout.
+     */
     protected final Duration timeout;
-    /** The underlying {@link HttpClient} used for HTTP communication. */
+    /**
+     * The underlying {@link HttpClient} used for HTTP communication.
+     */
     protected final HttpClient httpClient;
 
     /**

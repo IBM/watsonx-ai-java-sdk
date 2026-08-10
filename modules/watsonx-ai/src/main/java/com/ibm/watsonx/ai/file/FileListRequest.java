@@ -157,7 +157,43 @@ public final class FileListRequest extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((after == null) ? 0 : after.hashCode());
+        result = prime * result + ((limit == null) ? 0 : limit.hashCode());
+        result = prime * result + ((order == null) ? 0 : order.hashCode());
+        result = prime * result + ((purpose == null) ? 0 : purpose.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        FileListRequest other = (FileListRequest) obj;
+        if (after == null) {
+            if (other.after != null)
+                return false;
+        } else if (!after.equals(other.after))
+            return false;
+        if (limit == null) {
+            if (other.limit != null)
+                return false;
+        } else if (!limit.equals(other.limit))
+            return false;
+        if (order != other.order)
+            return false;
+        if (purpose != other.purpose)
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "FileListRequest [" + super.toString() + ", after=" + after + ", limit=" + limit + ", order=" + order + ", purpose=" + purpose + "]";
+        return "FileListRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", after=" + after
+            + ", limit=" + limit + ", order=" + order + ", purpose=" + purpose + "]";
     }
 }
