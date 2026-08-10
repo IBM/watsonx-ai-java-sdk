@@ -133,8 +133,49 @@ public final class StringSchema extends JsonSchema {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());
+        result = prime * result + ((maxLength == null) ? 0 : maxLength.hashCode());
+        result = prime * result + ((minLength == null) ? 0 : minLength.hashCode());
+        result = prime * result + ((format == null) ? 0 : format.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        StringSchema other = (StringSchema) obj;
+        if (pattern == null) {
+            if (other.pattern != null)
+                return false;
+        } else if (!pattern.equals(other.pattern))
+            return false;
+        if (maxLength == null) {
+            if (other.maxLength != null)
+                return false;
+        } else if (!maxLength.equals(other.maxLength))
+            return false;
+        if (minLength == null) {
+            if (other.minLength != null)
+                return false;
+        } else if (!minLength.equals(other.minLength))
+            return false;
+        if (format == null) {
+            if (other.format != null)
+                return false;
+        } else if (!format.equals(other.format))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "StringSchema [" + super.toString() + ", pattern=" + pattern + ", maxLength=" + maxLength + ", minLength=" + minLength + ", format="
-            + format + "]";
+        return "StringSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", pattern=" + pattern
+            + ", maxLength=" + maxLength + ", minLength=" + minLength + ", format=" + format + "]";
     }
 }

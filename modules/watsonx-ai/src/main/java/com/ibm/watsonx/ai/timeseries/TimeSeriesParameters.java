@@ -119,7 +119,37 @@ public final class TimeSeriesParameters extends WatsonxModelParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((predictionLength == null) ? 0 : predictionLength.hashCode());
+        result = prime * result + ((futureData == null) ? 0 : futureData.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        TimeSeriesParameters other = (TimeSeriesParameters) obj;
+        if (predictionLength == null) {
+            if (other.predictionLength != null)
+                return false;
+        } else if (!predictionLength.equals(other.predictionLength))
+            return false;
+        if (futureData == null) {
+            if (other.futureData != null)
+                return false;
+        } else if (!futureData.equals(other.futureData))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "TimeSeriesParameters [" + super.toString() + ", predictionLength=" + predictionLength + ", futureData=" + futureData + "]";
+        return "TimeSeriesParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", modelId=" + modelId
+            + ", predictionLength=" + predictionLength + ", futureData=" + futureData + "]";
     }
 }

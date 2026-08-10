@@ -11,7 +11,9 @@ import com.ibm.watsonx.ai.chat.model.FinishReason;
  */
 public final class EmptyChatResponseException extends RuntimeException {
 
-    /** Value returned by {@link #index()} when the response contains no choices at all. */
+    /**
+     * Value returned by {@link #index()} when the response contains no choices at all.
+     */
     public static final int NO_CHOICE = -1;
 
     private final ChatResponse response;
@@ -58,5 +60,41 @@ public final class EmptyChatResponseException extends RuntimeException {
      */
     public int index() {
         return index;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((response == null) ? 0 : response.hashCode());
+        result = prime * result + ((finishReason == null) ? 0 : finishReason.hashCode());
+        result = prime * result + index;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        EmptyChatResponseException other = (EmptyChatResponseException) obj;
+        if (response == null) {
+            if (other.response != null)
+                return false;
+        } else if (!response.equals(other.response))
+            return false;
+        if (finishReason != other.finishReason)
+            return false;
+        if (index != other.index)
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "EmptyChatResponseException [response=" + response + ", finishReason=" + finishReason + ", index=" + index + "]";
     }
 }

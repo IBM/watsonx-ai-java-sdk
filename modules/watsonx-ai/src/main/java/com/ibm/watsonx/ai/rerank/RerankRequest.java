@@ -140,6 +140,43 @@ public final class RerankRequest {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((query == null) ? 0 : query.hashCode());
+        result = prime * result + ((inputs == null) ? 0 : inputs.hashCode());
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        RerankRequest other = (RerankRequest) obj;
+        if (query == null) {
+            if (other.query != null)
+                return false;
+        } else if (!query.equals(other.query))
+            return false;
+        if (inputs == null) {
+            if (other.inputs != null)
+                return false;
+        } else if (!inputs.equals(other.inputs))
+            return false;
+        if (parameters == null) {
+            if (other.parameters != null)
+                return false;
+        } else if (!parameters.equals(other.parameters))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "RerankRequest [query=" + query + ", inputs=" + inputs + ", parameters=" + parameters + "]";
     }

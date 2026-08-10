@@ -355,10 +355,91 @@ public final class CreateSchemaParameters extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((mode == null) ? 0 : mode.hashCode());
+        result = prime * result + ((ocrMode == null) ? 0 : ocrMode.hashCode());
+        result = prime * result + ((languages == null) ? 0 : languages.hashCode());
+        result = prime * result + ((autoRotationCorrection == null) ? 0 : autoRotationCorrection.hashCode());
+        result = prime * result + ((additionalPromptInstructions == null) ? 0 : additionalPromptInstructions.hashCode());
+        result = prime * result + ((enableGrounding == null) ? 0 : enableGrounding.hashCode());
+        result = prime * result + ((maxPagesToProcess == null) ? 0 : maxPagesToProcess.hashCode());
+        result = prime * result + ((semanticConfig == null) ? 0 : semanticConfig.hashCode());
+        result = prime * result + (removeUploadedFile ? 1231 : 1237);
+        result = prime * result + ((documentReference == null) ? 0 : documentReference.hashCode());
+        result = prime * result + ((timeout == null) ? 0 : timeout.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        CreateSchemaParameters other = (CreateSchemaParameters) obj;
+        if (mode == null) {
+            if (other.mode != null)
+                return false;
+        } else if (!mode.equals(other.mode))
+            return false;
+        if (ocrMode == null) {
+            if (other.ocrMode != null)
+                return false;
+        } else if (!ocrMode.equals(other.ocrMode))
+            return false;
+        if (languages == null) {
+            if (other.languages != null)
+                return false;
+        } else if (!languages.equals(other.languages))
+            return false;
+        if (autoRotationCorrection == null) {
+            if (other.autoRotationCorrection != null)
+                return false;
+        } else if (!autoRotationCorrection.equals(other.autoRotationCorrection))
+            return false;
+        if (additionalPromptInstructions == null) {
+            if (other.additionalPromptInstructions != null)
+                return false;
+        } else if (!additionalPromptInstructions.equals(other.additionalPromptInstructions))
+            return false;
+        if (enableGrounding == null) {
+            if (other.enableGrounding != null)
+                return false;
+        } else if (!enableGrounding.equals(other.enableGrounding))
+            return false;
+        if (maxPagesToProcess == null) {
+            if (other.maxPagesToProcess != null)
+                return false;
+        } else if (!maxPagesToProcess.equals(other.maxPagesToProcess))
+            return false;
+        if (semanticConfig == null) {
+            if (other.semanticConfig != null)
+                return false;
+        } else if (!semanticConfig.equals(other.semanticConfig))
+            return false;
+        if (removeUploadedFile != other.removeUploadedFile)
+            return false;
+        if (documentReference == null) {
+            if (other.documentReference != null)
+                return false;
+        } else if (!documentReference.equals(other.documentReference))
+            return false;
+        if (timeout == null) {
+            if (other.timeout != null)
+                return false;
+        } else if (!timeout.equals(other.timeout))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "CreateSchemaParameters [" + super.toString() + ", mode=" + mode + ", ocrMode=" + ocrMode + ", languages=" + languages
-            + ", autoRotationCorrection=" + autoRotationCorrection + ", additionalPromptInstructions=" + additionalPromptInstructions
-            + ", enableGrounding=" + enableGrounding + ", maxPagesToProcess=" + maxPagesToProcess + ", semanticConfig=" + semanticConfig
-            + ", removeUploadedFile=" + removeUploadedFile + ", documentReference=" + documentReference + ", timeout=" + timeout + "]";
+        return "CreateSchemaParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", mode=" + mode
+            + ", ocrMode=" + ocrMode + ", languages=" + languages + ", autoRotationCorrection=" + autoRotationCorrection
+            + ", additionalPromptInstructions=" + additionalPromptInstructions + ", enableGrounding=" + enableGrounding + ", maxPagesToProcess="
+            + maxPagesToProcess + ", semanticConfig=" + semanticConfig + ", removeUploadedFile=" + removeUploadedFile + ", documentReference="
+            + documentReference + ", timeout=" + timeout + "]";
     }
 }

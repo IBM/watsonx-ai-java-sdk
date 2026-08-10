@@ -62,6 +62,6 @@ public final class TextExtractionFetchParameters extends WatsonxParameters {
 
     @Override
     public String toString() {
-        return "TextExtractionFetchParameters [" + super.toString() + "]";
+        return "TextExtractionFetchParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + "]";
     }
 }

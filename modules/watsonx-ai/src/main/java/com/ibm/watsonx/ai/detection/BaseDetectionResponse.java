@@ -8,13 +8,21 @@ package com.ibm.watsonx.ai.detection;
  * Represents the response for a generic detection request.
  */
 public abstract class BaseDetectionResponse {
-    /** The detected text. */
+    /**
+     * The detected text.
+     */
     protected final String text;
-    /** The type of detection performed. */
+    /**
+     * The type of detection performed.
+     */
     protected final String detectionType;
-    /** The detection result. */
+    /**
+     * The detection result.
+     */
     protected final String detection;
-    /** The confidence score of the detection. */
+    /**
+     * The confidence score of the detection.
+     */
     protected final double score;
 
     /**
@@ -66,5 +74,52 @@ public abstract class BaseDetectionResponse {
      */
     public double score() {
         return score;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        long temp;
+        result = prime * result + ((text == null) ? 0 : text.hashCode());
+        result = prime * result + ((detectionType == null) ? 0 : detectionType.hashCode());
+        result = prime * result + ((detection == null) ? 0 : detection.hashCode());
+        temp = Double.doubleToLongBits(score);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        BaseDetectionResponse other = (BaseDetectionResponse) obj;
+        if (text == null) {
+            if (other.text != null)
+                return false;
+        } else if (!text.equals(other.text))
+            return false;
+        if (detectionType == null) {
+            if (other.detectionType != null)
+                return false;
+        } else if (!detectionType.equals(other.detectionType))
+            return false;
+        if (detection == null) {
+            if (other.detection != null)
+                return false;
+        } else if (!detection.equals(other.detection))
+            return false;
+        if (Double.doubleToLongBits(score) != Double.doubleToLongBits(other.score))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "BaseDetectionResponse [text=" + text + ", detectionType=" + detectionType + ", detection=" + detection + ", score=" + score + "]";
     }
 }

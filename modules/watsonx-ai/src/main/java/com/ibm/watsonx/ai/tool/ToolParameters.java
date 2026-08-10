@@ -80,6 +80,31 @@ public final class ToolParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((transactionId == null) ? 0 : transactionId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ToolParameters other = (ToolParameters) obj;
+        if (transactionId == null) {
+            if (other.transactionId != null)
+                return false;
+        } else if (!transactionId.equals(other.transactionId))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "ToolParameters [transactionId=" + transactionId + "]";
     }

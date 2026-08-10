@@ -165,4 +165,53 @@ public final class TextGenerationRequest {
             return new TextGenerationRequest(this);
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((deploymentId == null) ? 0 : deploymentId.hashCode());
+        result = prime * result + ((input == null) ? 0 : input.hashCode());
+        result = prime * result + ((moderation == null) ? 0 : moderation.hashCode());
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        TextGenerationRequest other = (TextGenerationRequest) obj;
+        if (deploymentId == null) {
+            if (other.deploymentId != null)
+                return false;
+        } else if (!deploymentId.equals(other.deploymentId))
+            return false;
+        if (input == null) {
+            if (other.input != null)
+                return false;
+        } else if (!input.equals(other.input))
+            return false;
+        if (moderation == null) {
+            if (other.moderation != null)
+                return false;
+        } else if (!moderation.equals(other.moderation))
+            return false;
+        if (parameters == null) {
+            if (other.parameters != null)
+                return false;
+        } else if (!parameters.equals(other.parameters))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "TextGenerationRequest [deploymentId=" + deploymentId + ", input=" + input + ", moderation=" + moderation + ", parameters="
+            + parameters + "]";
+    }
 }

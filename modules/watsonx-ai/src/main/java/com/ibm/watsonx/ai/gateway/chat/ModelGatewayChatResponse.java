@@ -91,7 +91,9 @@ public class ModelGatewayChatResponse extends TextChatResponse {
     @SuppressWarnings("unchecked")
     public static class Builder<B extends Builder<B>> extends TextChatResponse.Builder<B> {
 
-        /** Creates a new {@code Builder}. */
+        /**
+         * Creates a new {@code Builder}.
+         */
         public Builder() {}
 
         private String serviceTier;

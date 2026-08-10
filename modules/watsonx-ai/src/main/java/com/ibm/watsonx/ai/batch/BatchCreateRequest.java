@@ -264,9 +264,68 @@ public final class BatchCreateRequest extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((inputFileId == null) ? 0 : inputFileId.hashCode());
+        result = prime * result + ((endpoint == null) ? 0 : endpoint.hashCode());
+        result = prime * result + ((completionWindow == null) ? 0 : completionWindow.hashCode());
+        result = prime * result + ((metadata == null) ? 0 : metadata.hashCode());
+        result = prime * result + ((removeUploadedFile == null) ? 0 : removeUploadedFile.hashCode());
+        result = prime * result + ((removeOutputFile == null) ? 0 : removeOutputFile.hashCode());
+        result = prime * result + ((timeout == null) ? 0 : timeout.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        BatchCreateRequest other = (BatchCreateRequest) obj;
+        if (inputFileId == null) {
+            if (other.inputFileId != null)
+                return false;
+        } else if (!inputFileId.equals(other.inputFileId))
+            return false;
+        if (endpoint == null) {
+            if (other.endpoint != null)
+                return false;
+        } else if (!endpoint.equals(other.endpoint))
+            return false;
+        if (completionWindow == null) {
+            if (other.completionWindow != null)
+                return false;
+        } else if (!completionWindow.equals(other.completionWindow))
+            return false;
+        if (metadata == null) {
+            if (other.metadata != null)
+                return false;
+        } else if (!metadata.equals(other.metadata))
+            return false;
+        if (removeUploadedFile == null) {
+            if (other.removeUploadedFile != null)
+                return false;
+        } else if (!removeUploadedFile.equals(other.removeUploadedFile))
+            return false;
+        if (removeOutputFile == null) {
+            if (other.removeOutputFile != null)
+                return false;
+        } else if (!removeOutputFile.equals(other.removeOutputFile))
+            return false;
+        if (timeout == null) {
+            if (other.timeout != null)
+                return false;
+        } else if (!timeout.equals(other.timeout))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "BatchCreateRequest [" + super.toString() + ", inputFileId=" + inputFileId + ", endpoint=" + endpoint + ", completionWindow="
-            + completionWindow + ", metadata=" + metadata + ", removeUploadedFile=" + removeUploadedFile + ", removeOutputFile=" + removeOutputFile
-            + ", timeout=" + timeout + "]";
+        return "BatchCreateRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", inputFileId="
+            + inputFileId + ", endpoint=" + endpoint + ", completionWindow=" + completionWindow + ", metadata=" + metadata + ", removeUploadedFile="
+            + removeUploadedFile + ", removeOutputFile=" + removeOutputFile + ", timeout=" + timeout + "]";
     }
 }

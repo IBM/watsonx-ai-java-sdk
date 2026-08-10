@@ -542,6 +542,91 @@ public final class ModelGatewayImageParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((background == null) ? 0 : background.hashCode());
+        result = prime * result + ((moderation == null) ? 0 : moderation.hashCode());
+        result = prime * result + ((n == null) ? 0 : n.hashCode());
+        result = prime * result + ((outputCompression == null) ? 0 : outputCompression.hashCode());
+        result = prime * result + ((outputFormat == null) ? 0 : outputFormat.hashCode());
+        result = prime * result + ((partialImages == null) ? 0 : partialImages.hashCode());
+        result = prime * result + ((quality == null) ? 0 : quality.hashCode());
+        result = prime * result + ((responseFormat == null) ? 0 : responseFormat.hashCode());
+        result = prime * result + ((size == null) ? 0 : size.hashCode());
+        result = prime * result + ((style == null) ? 0 : style.hashCode());
+        result = prime * result + ((user == null) ? 0 : user.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ModelGatewayImageParameters other = (ModelGatewayImageParameters) obj;
+        if (background == null) {
+            if (other.background != null)
+                return false;
+        } else if (!background.equals(other.background))
+            return false;
+        if (moderation == null) {
+            if (other.moderation != null)
+                return false;
+        } else if (!moderation.equals(other.moderation))
+            return false;
+        if (n == null) {
+            if (other.n != null)
+                return false;
+        } else if (!n.equals(other.n))
+            return false;
+        if (outputCompression == null) {
+            if (other.outputCompression != null)
+                return false;
+        } else if (!outputCompression.equals(other.outputCompression))
+            return false;
+        if (outputFormat == null) {
+            if (other.outputFormat != null)
+                return false;
+        } else if (!outputFormat.equals(other.outputFormat))
+            return false;
+        if (partialImages == null) {
+            if (other.partialImages != null)
+                return false;
+        } else if (!partialImages.equals(other.partialImages))
+            return false;
+        if (quality == null) {
+            if (other.quality != null)
+                return false;
+        } else if (!quality.equals(other.quality))
+            return false;
+        if (responseFormat == null) {
+            if (other.responseFormat != null)
+                return false;
+        } else if (!responseFormat.equals(other.responseFormat))
+            return false;
+        if (size == null) {
+            if (other.size != null)
+                return false;
+        } else if (!size.equals(other.size))
+            return false;
+        if (style == null) {
+            if (other.style != null)
+                return false;
+        } else if (!style.equals(other.style))
+            return false;
+        if (user == null) {
+            if (other.user != null)
+                return false;
+        } else if (!user.equals(other.user))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "ModelGatewayImageParameters [background=" + background + ", moderation=" + moderation + ", n=" + n + ", outputCompression="
             + outputCompression + ", outputFormat=" + outputFormat + ", partialImages=" + partialImages + ", quality=" + quality

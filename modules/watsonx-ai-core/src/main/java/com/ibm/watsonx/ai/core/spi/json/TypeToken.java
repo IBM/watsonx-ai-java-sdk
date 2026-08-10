@@ -96,27 +96,6 @@ public abstract class TypeToken<T> {
         return new TypeToken<>(new ParameterizedTypeImpl(rawType, null, typeArguments)) {};
     }
 
-    @Override
-    public String toString() {
-        return type.getTypeName();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(type);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-
-        if (!(obj instanceof TypeToken<?> other))
-            return false;
-
-        return Objects.equals(type, other.type);
-    }
-
     private static final class ParameterizedTypeImpl implements ParameterizedType {
         private final Type rawType;
         private final Type ownerType;
@@ -173,5 +152,26 @@ public abstract class TypeToken<T> {
 
             return rawType.getTypeName() + joiner;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(type);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+
+        if (!(obj instanceof TypeToken<?> other))
+            return false;
+
+        return Objects.equals(type, other.type);
+    }
+
+    @Override
+    public String toString() {
+        return type.getTypeName();
     }
 }

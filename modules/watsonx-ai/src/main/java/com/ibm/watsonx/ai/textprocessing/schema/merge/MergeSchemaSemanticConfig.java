@@ -61,6 +61,6 @@ public final class MergeSchemaSemanticConfig extends SemanticConfig {
 
     @Override
     public String toString() {
-        return "MergeSchemaSemanticConfig [" + super.toString() + "]";
+        return "MergeSchemaSemanticConfig [defaultModelName=" + defaultModelName() + "]";
     }
 }

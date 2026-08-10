@@ -119,10 +119,10 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
 
     @Override
     public String toString() {
-        return super.toString() + ", enableTextHints=" + enableTextHints + ", enableGenericKvp=" + enableGenericKvp
-            + ", enableSchemaKvp=" + enableSchemaKvp + ", groundingMode=" + groundingMode
-            + ", schemasMergeStrategy=" + schemasMergeStrategy + ", forceSchemaName=" + forceSchemaName
-            + ", schemas=" + schemas + ", taskModelNameOverride=" + taskModelNameOverride;
+        return "ExtendedSemanticConfig [defaultModelName=" + defaultModelName() + ", enableTextHints=" + enableTextHints + ", enableGenericKvp="
+            + enableGenericKvp + ", enableSchemaKvp=" + enableSchemaKvp + ", groundingMode=" + groundingMode + ", schemasMergeStrategy="
+            + schemasMergeStrategy + ", forceSchemaName=" + forceSchemaName + ", schemas=" + schemas + ", taskModelNameOverride="
+            + taskModelNameOverride + "]";
     }
 
     /**
@@ -332,5 +332,70 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
         public String value() {
             return value;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((enableTextHints == null) ? 0 : enableTextHints.hashCode());
+        result = prime * result + ((enableGenericKvp == null) ? 0 : enableGenericKvp.hashCode());
+        result = prime * result + ((enableSchemaKvp == null) ? 0 : enableSchemaKvp.hashCode());
+        result = prime * result + ((groundingMode == null) ? 0 : groundingMode.hashCode());
+        result = prime * result + ((schemasMergeStrategy == null) ? 0 : schemasMergeStrategy.hashCode());
+        result = prime * result + ((forceSchemaName == null) ? 0 : forceSchemaName.hashCode());
+        result = prime * result + ((schemas == null) ? 0 : schemas.hashCode());
+        result = prime * result + ((taskModelNameOverride == null) ? 0 : taskModelNameOverride.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ExtendedSemanticConfig other = (ExtendedSemanticConfig) obj;
+        if (enableTextHints == null) {
+            if (other.enableTextHints != null)
+                return false;
+        } else if (!enableTextHints.equals(other.enableTextHints))
+            return false;
+        if (enableGenericKvp == null) {
+            if (other.enableGenericKvp != null)
+                return false;
+        } else if (!enableGenericKvp.equals(other.enableGenericKvp))
+            return false;
+        if (enableSchemaKvp == null) {
+            if (other.enableSchemaKvp != null)
+                return false;
+        } else if (!enableSchemaKvp.equals(other.enableSchemaKvp))
+            return false;
+        if (groundingMode == null) {
+            if (other.groundingMode != null)
+                return false;
+        } else if (!groundingMode.equals(other.groundingMode))
+            return false;
+        if (schemasMergeStrategy == null) {
+            if (other.schemasMergeStrategy != null)
+                return false;
+        } else if (!schemasMergeStrategy.equals(other.schemasMergeStrategy))
+            return false;
+        if (forceSchemaName == null) {
+            if (other.forceSchemaName != null)
+                return false;
+        } else if (!forceSchemaName.equals(other.forceSchemaName))
+            return false;
+        if (schemas == null) {
+            if (other.schemas != null)
+                return false;
+        } else if (!schemas.equals(other.schemas))
+            return false;
+        if (taskModelNameOverride == null) {
+            if (other.taskModelNameOverride != null)
+                return false;
+        } else if (!taskModelNameOverride.equals(other.taskModelNameOverride))
+            return false;
+        return true;
     }
 }

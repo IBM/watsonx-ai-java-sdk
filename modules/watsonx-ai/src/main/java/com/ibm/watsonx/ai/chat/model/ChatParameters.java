@@ -372,4 +372,75 @@ public final class ChatParameters extends BaseChatParameters {
             return new ChatParameters(this);
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((projectId == null) ? 0 : projectId.hashCode());
+        result = prime * result + ((spaceId == null) ? 0 : spaceId.hashCode());
+        result = prime * result + ((crypto == null) ? 0 : crypto.hashCode());
+        result = prime * result + ((guidedChoice == null) ? 0 : guidedChoice.hashCode());
+        result = prime * result + ((guidedRegex == null) ? 0 : guidedRegex.hashCode());
+        result = prime * result + ((guidedGrammar == null) ? 0 : guidedGrammar.hashCode());
+        result = prime * result + ((repetitionPenalty == null) ? 0 : repetitionPenalty.hashCode());
+        result = prime * result + ((lengthPenalty == null) ? 0 : lengthPenalty.hashCode());
+        result = prime * result + ((context == null) ? 0 : context.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ChatParameters other = (ChatParameters) obj;
+        if (projectId == null) {
+            if (other.projectId != null)
+                return false;
+        } else if (!projectId.equals(other.projectId))
+            return false;
+        if (spaceId == null) {
+            if (other.spaceId != null)
+                return false;
+        } else if (!spaceId.equals(other.spaceId))
+            return false;
+        if (crypto == null) {
+            if (other.crypto != null)
+                return false;
+        } else if (!crypto.equals(other.crypto))
+            return false;
+        if (guidedChoice == null) {
+            if (other.guidedChoice != null)
+                return false;
+        } else if (!guidedChoice.equals(other.guidedChoice))
+            return false;
+        if (guidedRegex == null) {
+            if (other.guidedRegex != null)
+                return false;
+        } else if (!guidedRegex.equals(other.guidedRegex))
+            return false;
+        if (guidedGrammar == null) {
+            if (other.guidedGrammar != null)
+                return false;
+        } else if (!guidedGrammar.equals(other.guidedGrammar))
+            return false;
+        if (repetitionPenalty == null) {
+            if (other.repetitionPenalty != null)
+                return false;
+        } else if (!repetitionPenalty.equals(other.repetitionPenalty))
+            return false;
+        if (lengthPenalty == null) {
+            if (other.lengthPenalty != null)
+                return false;
+        } else if (!lengthPenalty.equals(other.lengthPenalty))
+            return false;
+        if (context == null) {
+            if (other.context != null)
+                return false;
+        } else if (!context.equals(other.context))
+            return false;
+        return true;
+    }
 }

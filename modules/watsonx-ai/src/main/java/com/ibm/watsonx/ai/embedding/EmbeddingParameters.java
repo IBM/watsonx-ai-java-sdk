@@ -121,7 +121,37 @@ public final class EmbeddingParameters extends WatsonxCryptoParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((truncateInputTokens == null) ? 0 : truncateInputTokens.hashCode());
+        result = prime * result + ((inputText == null) ? 0 : inputText.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        EmbeddingParameters other = (EmbeddingParameters) obj;
+        if (truncateInputTokens == null) {
+            if (other.truncateInputTokens != null)
+                return false;
+        } else if (!truncateInputTokens.equals(other.truncateInputTokens))
+            return false;
+        if (inputText == null) {
+            if (other.inputText != null)
+                return false;
+        } else if (!inputText.equals(other.inputText))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "EmbeddingParameters [" + super.toString() + ", truncateInputTokens=" + truncateInputTokens + ", inputText=" + inputText + "]";
+        return "EmbeddingParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", modelId=" + modelId
+            + ", crypto=" + crypto + ", truncateInputTokens=" + truncateInputTokens + ", inputText=" + inputText + "]";
     }
 }

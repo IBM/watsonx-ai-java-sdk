@@ -124,6 +124,29 @@ public final class ChatRequest extends NativeChatRequest {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((moderations == null) ? 0 : moderations.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ChatRequest other = (ChatRequest) obj;
+        if (moderations == null) {
+            if (other.moderations != null)
+                return false;
+        } else if (!moderations.equals(other.moderations))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "ChatRequest [messages=" + messages + ", tools=" + tools + ", parameters=" + parameters
             + ", thinking=" + thinking + ", moderations=" + moderations + "]";

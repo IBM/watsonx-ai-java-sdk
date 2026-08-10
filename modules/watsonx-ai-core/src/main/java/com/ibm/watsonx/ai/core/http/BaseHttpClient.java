@@ -16,7 +16,9 @@ import java.util.UUID;
  */
 public abstract class BaseHttpClient {
 
-    /** The name of the HTTP header used to carry the unique request identifier. */
+    /**
+     * The name of the HTTP header used to carry the unique request identifier.
+     */
     public static final String REQUEST_ID_HEADER = "Watsonx-AI-SDK-Request-Id";
 
     final HttpClient delegate;

@@ -253,15 +253,6 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
         return builder.build();
     }
 
-    @Override
-    public String toString() {
-        return "TextGenerationParameters [" + super.toString() + ", decodingMethod=" + decodingMethod + ", lengthPenalty=" + lengthPenalty
-            + ", maxNewTokens=" + maxNewTokens + ", minNewTokens=" + minNewTokens + ", randomSeed=" + randomSeed + ", stopSequences=" + stopSequences
-            + ", temperature=" + temperature + ", timeLimit=" + timeLimit + ", topK=" + topK + ", topP=" + topP + ", repetitionPenalty="
-            + repetitionPenalty + ", truncateInputTokens=" + truncateInputTokens + ", returnOptions=" + returnOptions + ", includeStopSequence="
-            + includeStopSequence + ", promptVariables=" + promptVariables + "]";
-    }
-
     /**
      * Returns a new {@link Builder} instance.
      * <p>
@@ -687,5 +678,183 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
                 return new ReturnOptions(this);
             }
         }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((inputText == null) ? 0 : inputText.hashCode());
+            result = prime * result + ((generatedText == null) ? 0 : generatedText.hashCode());
+            result = prime * result + ((inputTokens == null) ? 0 : inputTokens.hashCode());
+            result = prime * result + ((tokenLogprobs == null) ? 0 : tokenLogprobs.hashCode());
+            result = prime * result + ((tokenRanks == null) ? 0 : tokenRanks.hashCode());
+            result = prime * result + ((topNTokens == null) ? 0 : topNTokens.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ReturnOptions other = (ReturnOptions) obj;
+            if (inputText == null) {
+                if (other.inputText != null)
+                    return false;
+            } else if (!inputText.equals(other.inputText))
+                return false;
+            if (generatedText == null) {
+                if (other.generatedText != null)
+                    return false;
+            } else if (!generatedText.equals(other.generatedText))
+                return false;
+            if (inputTokens == null) {
+                if (other.inputTokens != null)
+                    return false;
+            } else if (!inputTokens.equals(other.inputTokens))
+                return false;
+            if (tokenLogprobs == null) {
+                if (other.tokenLogprobs != null)
+                    return false;
+            } else if (!tokenLogprobs.equals(other.tokenLogprobs))
+                return false;
+            if (tokenRanks == null) {
+                if (other.tokenRanks != null)
+                    return false;
+            } else if (!tokenRanks.equals(other.tokenRanks))
+                return false;
+            if (topNTokens == null) {
+                if (other.topNTokens != null)
+                    return false;
+            } else if (!topNTokens.equals(other.topNTokens))
+                return false;
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "ReturnOptions [inputText=" + inputText + ", generatedText=" + generatedText + ", inputTokens=" + inputTokens + ", tokenLogprobs="
+                + tokenLogprobs + ", tokenRanks=" + tokenRanks + ", topNTokens=" + topNTokens + "]";
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((decodingMethod == null) ? 0 : decodingMethod.hashCode());
+        result = prime * result + ((lengthPenalty == null) ? 0 : lengthPenalty.hashCode());
+        result = prime * result + ((maxNewTokens == null) ? 0 : maxNewTokens.hashCode());
+        result = prime * result + ((minNewTokens == null) ? 0 : minNewTokens.hashCode());
+        result = prime * result + ((randomSeed == null) ? 0 : randomSeed.hashCode());
+        result = prime * result + ((stopSequences == null) ? 0 : stopSequences.hashCode());
+        result = prime * result + ((temperature == null) ? 0 : temperature.hashCode());
+        result = prime * result + ((timeLimit == null) ? 0 : timeLimit.hashCode());
+        result = prime * result + ((topK == null) ? 0 : topK.hashCode());
+        result = prime * result + ((topP == null) ? 0 : topP.hashCode());
+        result = prime * result + ((repetitionPenalty == null) ? 0 : repetitionPenalty.hashCode());
+        result = prime * result + ((truncateInputTokens == null) ? 0 : truncateInputTokens.hashCode());
+        result = prime * result + ((returnOptions == null) ? 0 : returnOptions.hashCode());
+        result = prime * result + ((includeStopSequence == null) ? 0 : includeStopSequence.hashCode());
+        result = prime * result + ((promptVariables == null) ? 0 : promptVariables.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        TextGenerationParameters other = (TextGenerationParameters) obj;
+        if (decodingMethod == null) {
+            if (other.decodingMethod != null)
+                return false;
+        } else if (!decodingMethod.equals(other.decodingMethod))
+            return false;
+        if (lengthPenalty == null) {
+            if (other.lengthPenalty != null)
+                return false;
+        } else if (!lengthPenalty.equals(other.lengthPenalty))
+            return false;
+        if (maxNewTokens == null) {
+            if (other.maxNewTokens != null)
+                return false;
+        } else if (!maxNewTokens.equals(other.maxNewTokens))
+            return false;
+        if (minNewTokens == null) {
+            if (other.minNewTokens != null)
+                return false;
+        } else if (!minNewTokens.equals(other.minNewTokens))
+            return false;
+        if (randomSeed == null) {
+            if (other.randomSeed != null)
+                return false;
+        } else if (!randomSeed.equals(other.randomSeed))
+            return false;
+        if (stopSequences == null) {
+            if (other.stopSequences != null)
+                return false;
+        } else if (!stopSequences.equals(other.stopSequences))
+            return false;
+        if (temperature == null) {
+            if (other.temperature != null)
+                return false;
+        } else if (!temperature.equals(other.temperature))
+            return false;
+        if (timeLimit == null) {
+            if (other.timeLimit != null)
+                return false;
+        } else if (!timeLimit.equals(other.timeLimit))
+            return false;
+        if (topK == null) {
+            if (other.topK != null)
+                return false;
+        } else if (!topK.equals(other.topK))
+            return false;
+        if (topP == null) {
+            if (other.topP != null)
+                return false;
+        } else if (!topP.equals(other.topP))
+            return false;
+        if (repetitionPenalty == null) {
+            if (other.repetitionPenalty != null)
+                return false;
+        } else if (!repetitionPenalty.equals(other.repetitionPenalty))
+            return false;
+        if (truncateInputTokens == null) {
+            if (other.truncateInputTokens != null)
+                return false;
+        } else if (!truncateInputTokens.equals(other.truncateInputTokens))
+            return false;
+        if (returnOptions == null) {
+            if (other.returnOptions != null)
+                return false;
+        } else if (!returnOptions.equals(other.returnOptions))
+            return false;
+        if (includeStopSequence == null) {
+            if (other.includeStopSequence != null)
+                return false;
+        } else if (!includeStopSequence.equals(other.includeStopSequence))
+            return false;
+        if (promptVariables == null) {
+            if (other.promptVariables != null)
+                return false;
+        } else if (!promptVariables.equals(other.promptVariables))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "TextGenerationParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", modelId="
+            + modelId + ", decodingMethod=" + decodingMethod + ", lengthPenalty=" + lengthPenalty + ", maxNewTokens=" + maxNewTokens
+            + ", minNewTokens=" + minNewTokens + ", randomSeed=" + randomSeed + ", stopSequences=" + stopSequences + ", temperature=" + temperature
+            + ", timeLimit=" + timeLimit + ", topK=" + topK + ", topP=" + topP + ", repetitionPenalty=" + repetitionPenalty + ", truncateInputTokens="
+            + truncateInputTokens + ", returnOptions=" + returnOptions + ", includeStopSequence=" + includeStopSequence + ", promptVariables="
+            + promptVariables + "]";
     }
 }

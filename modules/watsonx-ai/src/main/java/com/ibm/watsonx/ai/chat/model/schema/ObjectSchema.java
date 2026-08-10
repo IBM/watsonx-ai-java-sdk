@@ -320,9 +320,68 @@ public final class ObjectSchema extends JsonSchema {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((properties == null) ? 0 : properties.hashCode());
+        result = prime * result + ((patternProperties == null) ? 0 : patternProperties.hashCode());
+        result = prime * result + ((required == null) ? 0 : required.hashCode());
+        result = prime * result + ((anyOf == null) ? 0 : anyOf.hashCode());
+        result = prime * result + ((minProperties == null) ? 0 : minProperties.hashCode());
+        result = prime * result + ((maxProperties == null) ? 0 : maxProperties.hashCode());
+        result = prime * result + ((additionalProperties == null) ? 0 : additionalProperties.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ObjectSchema other = (ObjectSchema) obj;
+        if (properties == null) {
+            if (other.properties != null)
+                return false;
+        } else if (!properties.equals(other.properties))
+            return false;
+        if (patternProperties == null) {
+            if (other.patternProperties != null)
+                return false;
+        } else if (!patternProperties.equals(other.patternProperties))
+            return false;
+        if (required == null) {
+            if (other.required != null)
+                return false;
+        } else if (!required.equals(other.required))
+            return false;
+        if (anyOf == null) {
+            if (other.anyOf != null)
+                return false;
+        } else if (!anyOf.equals(other.anyOf))
+            return false;
+        if (minProperties == null) {
+            if (other.minProperties != null)
+                return false;
+        } else if (!minProperties.equals(other.minProperties))
+            return false;
+        if (maxProperties == null) {
+            if (other.maxProperties != null)
+                return false;
+        } else if (!maxProperties.equals(other.maxProperties))
+            return false;
+        if (additionalProperties == null) {
+            if (other.additionalProperties != null)
+                return false;
+        } else if (!additionalProperties.equals(other.additionalProperties))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "ObjectSchema [" + super.toString() + ", properties=" + properties + ", patternProperties=" + patternProperties + ", required="
-            + required + ", anyOf=" + anyOf + ", minProperties=" + minProperties + ", maxProperties=" + maxProperties + ", additionalProperties="
-            + additionalProperties + "]";
+        return "ObjectSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", properties="
+            + properties + ", patternProperties=" + patternProperties + ", required=" + required + ", anyOf=" + anyOf + ", minProperties="
+            + minProperties + ", maxProperties=" + maxProperties + ", additionalProperties=" + additionalProperties + "]";
     }
 }

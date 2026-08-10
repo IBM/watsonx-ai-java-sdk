@@ -86,7 +86,31 @@ public final class ImproveSchemaDeleteParameters extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((hardDelete == null) ? 0 : hardDelete.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ImproveSchemaDeleteParameters other = (ImproveSchemaDeleteParameters) obj;
+        if (hardDelete == null) {
+            if (other.hardDelete != null)
+                return false;
+        } else if (!hardDelete.equals(other.hardDelete))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "ImproveSchemaDeleteParameters [" + super.toString() + ", hardDelete=" + hardDelete + "]";
+        return "ImproveSchemaDeleteParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", hardDelete="
+            + hardDelete + "]";
     }
 }

@@ -40,7 +40,9 @@ public record AssistantMessage(
     String refusal,
     List<ToolCall> toolCalls) implements ChatMessage {
 
-    /** The role identifier for assistant messages. */
+    /**
+     * The role identifier for assistant messages.
+     */
     public static final String ROLE = "assistant";
 
     /**

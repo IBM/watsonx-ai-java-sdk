@@ -36,6 +36,29 @@ public final class DetectionTextResponse extends BaseDetectionResponse {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + start;
+        result = prime * result + end;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        DetectionTextResponse other = (DetectionTextResponse) obj;
+        if (start != other.start)
+            return false;
+        if (end != other.end)
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "DetectionTextResponse [text=" + text + ", start=" + start + ", detectionType=" + detectionType + ", end=" + end + ", detection="
             + detection + ", score=" + score + "]";

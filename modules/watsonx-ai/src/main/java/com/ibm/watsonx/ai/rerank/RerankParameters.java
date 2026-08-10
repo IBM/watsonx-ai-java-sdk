@@ -172,8 +172,50 @@ public final class RerankParameters extends WatsonxCryptoParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((truncateInputTokens == null) ? 0 : truncateInputTokens.hashCode());
+        result = prime * result + ((topN == null) ? 0 : topN.hashCode());
+        result = prime * result + ((returnInputs == null) ? 0 : returnInputs.hashCode());
+        result = prime * result + ((returnQuery == null) ? 0 : returnQuery.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        RerankParameters other = (RerankParameters) obj;
+        if (truncateInputTokens == null) {
+            if (other.truncateInputTokens != null)
+                return false;
+        } else if (!truncateInputTokens.equals(other.truncateInputTokens))
+            return false;
+        if (topN == null) {
+            if (other.topN != null)
+                return false;
+        } else if (!topN.equals(other.topN))
+            return false;
+        if (returnInputs == null) {
+            if (other.returnInputs != null)
+                return false;
+        } else if (!returnInputs.equals(other.returnInputs))
+            return false;
+        if (returnQuery == null) {
+            if (other.returnQuery != null)
+                return false;
+        } else if (!returnQuery.equals(other.returnQuery))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "RerankParameters [" + super.toString() + ", truncateInputTokens=" + truncateInputTokens + ", topN=" + topN + ", returnInputs="
-            + returnInputs + ", returnQuery=" + returnQuery + "]";
+        return "RerankParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", modelId=" + modelId
+            + ", crypto=" + crypto + ", truncateInputTokens=" + truncateInputTokens + ", topN=" + topN + ", returnInputs=" + returnInputs
+            + ", returnQuery=" + returnQuery + "]";
     }
 }

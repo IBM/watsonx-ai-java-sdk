@@ -171,6 +171,55 @@ public final class FoundationModelParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((start == null) ? 0 : start.hashCode());
+        result = prime * result + ((limit == null) ? 0 : limit.hashCode());
+        result = prime * result + ((filter == null) ? 0 : filter.hashCode());
+        result = prime * result + ((transactionId == null) ? 0 : transactionId.hashCode());
+        result = prime * result + ((techPreview == null) ? 0 : techPreview.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        FoundationModelParameters other = (FoundationModelParameters) obj;
+        if (start == null) {
+            if (other.start != null)
+                return false;
+        } else if (!start.equals(other.start))
+            return false;
+        if (limit == null) {
+            if (other.limit != null)
+                return false;
+        } else if (!limit.equals(other.limit))
+            return false;
+        if (filter == null) {
+            if (other.filter != null)
+                return false;
+        } else if (!filter.equals(other.filter))
+            return false;
+        if (transactionId == null) {
+            if (other.transactionId != null)
+                return false;
+        } else if (!transactionId.equals(other.transactionId))
+            return false;
+        if (techPreview == null) {
+            if (other.techPreview != null)
+                return false;
+        } else if (!techPreview.equals(other.techPreview))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "FoundationModelParameters [start=" + start + ", limit=" + limit + ", filter=" + filter + ", transactionId=" + transactionId
             + ", techPreview=" + techPreview + "]";

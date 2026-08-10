@@ -62,6 +62,6 @@ public final class ClusterSchemaFetchParameters extends WatsonxParameters {
 
     @Override
     public String toString() {
-        return "ClusterSchemaFetchParameters [" + super.toString() + "]";
+        return "ClusterSchemaFetchParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + "]";
     }
 }

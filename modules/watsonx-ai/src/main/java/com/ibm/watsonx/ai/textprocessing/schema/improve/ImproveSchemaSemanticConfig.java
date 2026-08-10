@@ -61,6 +61,6 @@ public final class ImproveSchemaSemanticConfig extends SemanticConfig {
 
     @Override
     public String toString() {
-        return "ImproveSchemaSemanticConfig [" + super.toString() + "]";
+        return "ImproveSchemaSemanticConfig [defaultModelName=" + defaultModelName() + "]";
     }
 }

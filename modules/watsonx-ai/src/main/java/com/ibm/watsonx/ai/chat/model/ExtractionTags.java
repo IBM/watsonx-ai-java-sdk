@@ -142,4 +142,44 @@ public final class ExtractionTags {
         Matcher matcher = thinkPattern.matcher(content);
         return matcher.find() ? matcher.group(1).trim() : null;
     }
+
+    // thinkPattern and responsePattern are compiled from think and response, and Pattern compares by identity, so the
+    // two tags alone define this value: equal tags always mean equal patterns.
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((think == null) ? 0 : think.hashCode());
+        result = prime * result + ((response == null) ? 0 : response.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ExtractionTags other = (ExtractionTags) obj;
+        if (think == null) {
+            if (other.think != null)
+                return false;
+        } else if (!think.equals(other.think))
+            return false;
+        if (response == null) {
+            if (other.response != null)
+                return false;
+        } else if (!response.equals(other.response))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ExtractionTags [think=" + think + ", response=" + response + ", thinkPattern=" + thinkPattern
+            + ", responsePattern=" + responsePattern + "]";
+    }
 }

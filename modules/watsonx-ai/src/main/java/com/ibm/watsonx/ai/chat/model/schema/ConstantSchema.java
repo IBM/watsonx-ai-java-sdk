@@ -76,7 +76,31 @@ public final class ConstantSchema extends JsonSchema {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((constant == null) ? 0 : constant.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ConstantSchema other = (ConstantSchema) obj;
+        if (constant == null) {
+            if (other.constant != null)
+                return false;
+        } else if (!constant.equals(other.constant))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "ConstantSchema [" + super.toString() + ", constant=" + constant + "]";
+        return "ConstantSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", constant="
+            + constant + "]";
     }
 }

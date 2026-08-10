@@ -117,6 +117,29 @@ public final class DeploymentChatRequest extends NativeChatRequest {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((deploymentId == null) ? 0 : deploymentId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        DeploymentChatRequest other = (DeploymentChatRequest) obj;
+        if (deploymentId == null) {
+            if (other.deploymentId != null)
+                return false;
+        } else if (!deploymentId.equals(other.deploymentId))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "DeploymentChatRequest [deploymentId=" + deploymentId + ", messages=" + messages + ", tools=" + tools
             + ", parameters=" + parameters + ", thinking=" + thinking + "]";

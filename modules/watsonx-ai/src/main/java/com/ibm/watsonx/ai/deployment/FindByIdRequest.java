@@ -83,7 +83,31 @@ public final class FindByIdRequest extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((deploymentId == null) ? 0 : deploymentId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        FindByIdRequest other = (FindByIdRequest) obj;
+        if (deploymentId == null) {
+            if (other.deploymentId != null)
+                return false;
+        } else if (!deploymentId.equals(other.deploymentId))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "FindByIdRequest [" + super.toString() + ", deploymentId=" + deploymentId + "]";
+        return "FindByIdRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", deploymentId="
+            + deploymentId + "]";
     }
 }

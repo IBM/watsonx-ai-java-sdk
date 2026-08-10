@@ -523,4 +523,106 @@ public final class ModelGatewayChatParameters extends BaseChatParameters {
             return new ModelGatewayChatParameters(this);
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((audio == null) ? 0 : audio.hashCode());
+        result = prime * result + ((metadata == null) ? 0 : metadata.hashCode());
+        result = prime * result + ((modalities == null) ? 0 : modalities.hashCode());
+        result = prime * result + ((parallelToolCalls == null) ? 0 : parallelToolCalls.hashCode());
+        result = prime * result + ((prediction == null) ? 0 : prediction.hashCode());
+        result = prime * result + ((reasoningEffort == null) ? 0 : reasoningEffort.hashCode());
+        result = prime * result + ((serviceTier == null) ? 0 : serviceTier.hashCode());
+        result = prime * result + ((store == null) ? 0 : store.hashCode());
+        result = prime * result + ((streamOptions == null) ? 0 : streamOptions.hashCode());
+        result = prime * result + ((router == null) ? 0 : router.hashCode());
+        result = prime * result + ((maxTokens == null) ? 0 : maxTokens.hashCode());
+        result = prime * result + ((user == null) ? 0 : user.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ModelGatewayChatParameters other = (ModelGatewayChatParameters) obj;
+        if (audio == null) {
+            if (other.audio != null)
+                return false;
+        } else if (!audio.equals(other.audio))
+            return false;
+        if (metadata == null) {
+            if (other.metadata != null)
+                return false;
+        } else if (!metadata.equals(other.metadata))
+            return false;
+        if (modalities == null) {
+            if (other.modalities != null)
+                return false;
+        } else if (!modalities.equals(other.modalities))
+            return false;
+        if (parallelToolCalls == null) {
+            if (other.parallelToolCalls != null)
+                return false;
+        } else if (!parallelToolCalls.equals(other.parallelToolCalls))
+            return false;
+        if (prediction == null) {
+            if (other.prediction != null)
+                return false;
+        } else if (!prediction.equals(other.prediction))
+            return false;
+        if (reasoningEffort == null) {
+            if (other.reasoningEffort != null)
+                return false;
+        } else if (!reasoningEffort.equals(other.reasoningEffort))
+            return false;
+        if (serviceTier == null) {
+            if (other.serviceTier != null)
+                return false;
+        } else if (!serviceTier.equals(other.serviceTier))
+            return false;
+        if (store == null) {
+            if (other.store != null)
+                return false;
+        } else if (!store.equals(other.store))
+            return false;
+        if (streamOptions == null) {
+            if (other.streamOptions != null)
+                return false;
+        } else if (!streamOptions.equals(other.streamOptions))
+            return false;
+        if (router == null) {
+            if (other.router != null)
+                return false;
+        } else if (!router.equals(other.router))
+            return false;
+        if (maxTokens == null) {
+            if (other.maxTokens != null)
+                return false;
+        } else if (!maxTokens.equals(other.maxTokens))
+            return false;
+        if (user == null) {
+            if (other.user != null)
+                return false;
+        } else if (!user.equals(other.user))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ModelGatewayChatParameters [modelId=" + modelId + ", transactionId=" + transactionId + ", toolChoiceOption=" + toolChoiceOption
+            + ", toolChoice=" + toolChoice + ", frequencyPenalty=" + frequencyPenalty + ", logitBias=" + logitBias + ", logprobs=" + logprobs
+            + ", topLogprobs=" + topLogprobs + ", maxCompletionTokens=" + maxCompletionTokens + ", n=" + n + ", presencePenalty=" + presencePenalty
+            + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP + ", timeLimit=" + timeLimit
+            + ", responseFormat=" + responseFormat + ", jsonSchema=" + jsonSchema + ", audio=" + audio + ", metadata=" + metadata + ", modalities="
+            + modalities
+            + ", parallelToolCalls=" + parallelToolCalls + ", prediction=" + prediction + ", reasoningEffort=" + reasoningEffort + ", serviceTier="
+            + serviceTier + ", store=" + store + ", streamOptions=" + streamOptions + ", router=" + router + ", maxTokens=" + maxTokens
+            + ", user=" + user + "]";
+    }
 }

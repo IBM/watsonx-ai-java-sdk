@@ -18,11 +18,17 @@ import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
  * Abstraction of a REST client for interacting with the IBM Cloud Identity and Access Management service.
  */
 public abstract class IBMCloudRestClient {
-    /** The base URL of the IAM endpoint. */
+    /**
+     * The base URL of the IAM endpoint.
+     */
     protected final URI baseUrl;
-    /** The request timeout. */
+    /**
+     * The request timeout.
+     */
     protected final Duration timeout;
-    /** The underlying {@link HttpClient} used for HTTP communication. */
+    /**
+     * The underlying {@link HttpClient} used for HTTP communication.
+     */
     protected final HttpClient httpClient;
 
     /**

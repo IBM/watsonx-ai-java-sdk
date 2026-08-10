@@ -61,6 +61,6 @@ public final class ClusterSchemaSemanticConfig extends SemanticConfig {
 
     @Override
     public String toString() {
-        return "ClusterSchemaSemanticConfig [" + super.toString() + "]";
+        return "ClusterSchemaSemanticConfig [defaultModelName=" + defaultModelName() + "]";
     }
 }

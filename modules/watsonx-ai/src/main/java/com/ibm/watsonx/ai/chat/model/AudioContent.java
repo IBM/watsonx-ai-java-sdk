@@ -26,7 +26,9 @@ import java.util.Base64;
  */
 public record AudioContent(String type, Audio inputAudio) implements UserContent {
 
-    /** The type identifier for audio content. */
+    /**
+     * The type identifier for audio content.
+     */
     public static final String TYPE = "input_audio";
 
     /**

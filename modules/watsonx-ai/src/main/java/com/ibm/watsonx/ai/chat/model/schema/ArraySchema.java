@@ -165,9 +165,49 @@ public final class ArraySchema extends JsonSchema {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((items == null) ? 0 : items.hashCode());
+        result = prime * result + ((contains == null) ? 0 : contains.hashCode());
+        result = prime * result + ((minItems == null) ? 0 : minItems.hashCode());
+        result = prime * result + ((maxItems == null) ? 0 : maxItems.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ArraySchema other = (ArraySchema) obj;
+        if (items == null) {
+            if (other.items != null)
+                return false;
+        } else if (!items.equals(other.items))
+            return false;
+        if (contains == null) {
+            if (other.contains != null)
+                return false;
+        } else if (!contains.equals(other.contains))
+            return false;
+        if (minItems == null) {
+            if (other.minItems != null)
+                return false;
+        } else if (!minItems.equals(other.minItems))
+            return false;
+        if (maxItems == null) {
+            if (other.maxItems != null)
+                return false;
+        } else if (!maxItems.equals(other.maxItems))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "ArraySchema [" + super.toString() + ", items=" + items + ", contains=" + contains + ", minItems=" + minItems + ", maxItems="
-            + maxItems
-            + "]";
+        return "ArraySchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", items=" + items
+            + ", contains=" + contains + ", minItems=" + minItems + ", maxItems=" + maxItems + "]";
     }
 }

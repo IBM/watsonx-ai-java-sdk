@@ -94,7 +94,31 @@ public final class TokenizationParameters extends WatsonxCryptoParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((returnTokens == null) ? 0 : returnTokens.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        TokenizationParameters other = (TokenizationParameters) obj;
+        if (returnTokens == null) {
+            if (other.returnTokens != null)
+                return false;
+        } else if (!returnTokens.equals(other.returnTokens))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "TokenizationParameters [" + super.toString() + ", returnTokens=" + returnTokens + "]";
+        return "TokenizationParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", modelId=" + modelId
+            + ", crypto=" + crypto + ", returnTokens=" + returnTokens + "]";
     }
 }

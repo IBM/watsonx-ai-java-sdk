@@ -11,10 +11,16 @@ package com.ibm.watsonx.ai.core.auth.cp4d;
  * credentials are interpreted and which authentication flow is executed.
  */
 public enum AuthMode {
-    /** Legacy Cloud Pak for Data authentication using username and password. */
+    /**
+     * Legacy Cloud Pak for Data authentication using username and password.
+     */
     LEGACY,
-    /** IAM-based authentication using an API key. */
+    /**
+     * IAM-based authentication using an API key.
+     */
     IAM,
-    /** Zen authentication using a ZenApiKey. */
+    /**
+     * Zen authentication using a ZenApiKey.
+     */
     ZEN_API_KEY,
 }

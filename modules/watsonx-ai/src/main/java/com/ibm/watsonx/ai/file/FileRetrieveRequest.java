@@ -80,7 +80,31 @@ public final class FileRetrieveRequest extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((fileId == null) ? 0 : fileId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        FileRetrieveRequest other = (FileRetrieveRequest) obj;
+        if (fileId == null) {
+            if (other.fileId != null)
+                return false;
+        } else if (!fileId.equals(other.fileId))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "FileRetrieveRequest [" + super.toString() + ", fileId=" + fileId + "]";
+        return "FileRetrieveRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", fileId=" + fileId
+            + "]";
     }
 }

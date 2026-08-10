@@ -103,6 +103,37 @@ public final class ModelGatewayImageRequest {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((prompt == null) ? 0 : prompt.hashCode());
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ModelGatewayImageRequest other = (ModelGatewayImageRequest) obj;
+        if (prompt == null) {
+            if (other.prompt != null)
+                return false;
+        } else if (!prompt.equals(other.prompt))
+            return false;
+        if (parameters == null) {
+            if (other.parameters != null)
+                return false;
+        } else if (!parameters.equals(other.parameters))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "ModelGatewayImageRequest [prompt=" + prompt + ", parameters=" + parameters + "]";
     }

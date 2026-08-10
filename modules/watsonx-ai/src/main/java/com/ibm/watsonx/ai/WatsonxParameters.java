@@ -45,11 +45,6 @@ public abstract class WatsonxParameters {
         return transactionId;
     }
 
-    @Override
-    public String toString() {
-        return "projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId;
-    }
-
     /**
      * Abstract builder class for constructing {@link WatsonxParameters} instances.
      *
@@ -112,11 +107,6 @@ public abstract class WatsonxParameters {
             return modelId;
         }
 
-        @Override
-        public String toString() {
-            return super.toString() + ", modelId=" + modelId;
-        }
-
         /**
          * Abstract builder class for constructing {@link WatsonxModelParameters} instances.
          *
@@ -135,6 +125,35 @@ public abstract class WatsonxParameters {
                 this.modelId = modelId;
                 return (T) this;
             }
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = super.hashCode();
+            result = prime * result + ((modelId == null) ? 0 : modelId.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!super.equals(obj))
+                return false;
+            WatsonxModelParameters other = (WatsonxModelParameters) obj;
+            if (modelId == null) {
+                if (other.modelId != null)
+                    return false;
+            } else if (!modelId.equals(other.modelId))
+                return false;
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "WatsonxModelParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", modelId="
+                + modelId + "]";
         }
     }
 
@@ -156,11 +175,6 @@ public abstract class WatsonxParameters {
          */
         public String crypto() {
             return crypto;
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() + ", crypto=" + crypto;
         }
 
         /**
@@ -187,5 +201,76 @@ public abstract class WatsonxParameters {
                 return (T) this;
             }
         }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = super.hashCode();
+            result = prime * result + ((crypto == null) ? 0 : crypto.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!super.equals(obj))
+                return false;
+            WatsonxCryptoParameters other = (WatsonxCryptoParameters) obj;
+            if (crypto == null) {
+                if (other.crypto != null)
+                    return false;
+            } else if (!crypto.equals(other.crypto))
+                return false;
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "WatsonxCryptoParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", modelId="
+                + modelId + ", crypto=" + crypto + "]";
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((projectId == null) ? 0 : projectId.hashCode());
+        result = prime * result + ((spaceId == null) ? 0 : spaceId.hashCode());
+        result = prime * result + ((transactionId == null) ? 0 : transactionId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        WatsonxParameters other = (WatsonxParameters) obj;
+        if (projectId == null) {
+            if (other.projectId != null)
+                return false;
+        } else if (!projectId.equals(other.projectId))
+            return false;
+        if (spaceId == null) {
+            if (other.spaceId != null)
+                return false;
+        } else if (!spaceId.equals(other.spaceId))
+            return false;
+        if (transactionId == null) {
+            if (other.transactionId != null)
+                return false;
+        } else if (!transactionId.equals(other.transactionId))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "WatsonxParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + "]";
     }
 }

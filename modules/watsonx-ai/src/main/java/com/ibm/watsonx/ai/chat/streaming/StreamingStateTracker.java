@@ -200,16 +200,24 @@ public final class StreamingStateTracker {
      */
     public enum State {
 
-        /** The LLM is not producing any output */
+        /**
+         * The LLM is not producing any output
+         */
         START,
 
-        /** The LLM is producing reasoning */
+        /**
+         * The LLM is producing reasoning
+         */
         THINKING,
 
-        /** The LLM is producing the final response */
+        /**
+         * The LLM is producing the final response
+         */
         RESPONSE,
 
-        /** The LLM is producing output, without thinking */
+        /**
+         * The LLM is producing output, without thinking
+         */
         NO_THINKING,
 
         UNKNOWN

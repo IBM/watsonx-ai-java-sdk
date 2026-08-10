@@ -130,7 +130,37 @@ public final class ClusterSchemaParameters extends WatsonxParameters {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((schemas == null) ? 0 : schemas.hashCode());
+        result = prime * result + ((semanticConfig == null) ? 0 : semanticConfig.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        ClusterSchemaParameters other = (ClusterSchemaParameters) obj;
+        if (schemas == null) {
+            if (other.schemas != null)
+                return false;
+        } else if (!schemas.equals(other.schemas))
+            return false;
+        if (semanticConfig == null) {
+            if (other.semanticConfig != null)
+                return false;
+        } else if (!semanticConfig.equals(other.semanticConfig))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "ClusterSchemaParameters [" + super.toString() + ", schemas=" + schemas + ", semanticConfig=" + semanticConfig + "]";
+        return "ClusterSchemaParameters [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", schemas="
+            + schemas + ", semanticConfig=" + semanticConfig + "]";
     }
 }
