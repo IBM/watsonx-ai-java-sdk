@@ -114,7 +114,7 @@ Configure the improvement process with custom parameters:
 
 ```java
 ImproveSchemaSemanticConfig semanticConfig = ImproveSchemaSemanticConfig.builder()
-    .defaultModelName("mistralai/mistral-medium-2505")
+    .defaultModelName("mistralai/mistral-small-3-1-24b-instruct-2503")
     .build();
 
 ImproveSchemaParameters parameters = ImproveSchemaParameters.builder()

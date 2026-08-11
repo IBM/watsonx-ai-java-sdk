@@ -127,7 +127,7 @@ ClusterSchemaParameters parameters = ClusterSchemaParameters.builder()
     .projectId("other-project-id")
     .semanticConfig(
         ClusterSchemaSemanticConfig.builder()
-            .defaultModelName("mistralai/mistral-medium-2505")
+            .defaultModelName("mistralai/mistral-small-3-1-24b-instruct-2503")
             .build()
     )
     .build();

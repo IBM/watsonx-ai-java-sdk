@@ -28,7 +28,7 @@ public class AiService {
         final var url = URI.create(config.getValue("WATSONX_URL", String.class));
         final var apiKey = config.getValue("WATSONX_API_KEY", String.class);
         final var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
-        modelId = config.getOptionalValue("WATSONX_MODEL_ID", String.class).orElse("mistralai/mistral-medium-2505");
+        modelId = config.getOptionalValue("WATSONX_MODEL_ID", String.class).orElse("mistralai/mistral-small-3-1-24b-instruct-2503");
 
         chatService = ChatService.builder()
             .apiKey(apiKey)

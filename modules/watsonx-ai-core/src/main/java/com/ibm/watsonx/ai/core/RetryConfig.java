@@ -49,7 +49,7 @@ public final class RetryConfig {
      * <p>
      * This value can be customized by setting the {@code WATSONX_RETRY_STATUS_CODES_MAX_RETRIES} environment variable.
      * <p>
-     * Applies to status codes: {@code 429}, {@code 503}, {@code 504}, and {@code 520}.
+     * Applies to status codes: {@code 429}, {@code 502}, {@code 503}, {@code 504}, and {@code 520}.
      * </p>
      *
      * @return the maximum number of retries for status codes, defaults to 10

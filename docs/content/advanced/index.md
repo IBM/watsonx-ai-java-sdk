@@ -20,6 +20,6 @@ This section covers lower-level aspects of the SDK for developers who need to cu
 
 **Custom TLS for CP4D.** Pass a configured `HttpClient` to both the authenticator and the service builder so all requests use the same SSL context. See [HTTP Client - SSL / TLS configuration](http-client#ssl--tls-configuration).
 
-**Tuning retries in production.** The SDK retries on token expiry and transient errors (`429`, `503`, `504`, `520`) by default. Adjust the limits and backoff via environment variables. See [Environment Variables - Retry configuration](environment-variables#retry-configuration).
+**Tuning retries in production.** The SDK retries on token expiry and transient errors (`429`, `502`, `503`, `504`, `520`) by default. Adjust the limits and backoff via environment variables. See [Environment Variables - Retry configuration](environment-variables#retry-configuration).
 
 **Quarkus / framework integration.** Replace the default `java.net.http.HttpClient` transport with a framework-native REST client via the REST Client SPI. See [SPI - REST Client SPI](spi#rest-client-spi).

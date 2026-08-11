@@ -12,11 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogService;
 
-@EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY_GATEWAY", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
 public class ModelGatewayCatalogServiceIT {
 
-    static final String API_KEY = System.getenv("WATSONX_API_KEY_GATEWAY");
+    static final String API_KEY = System.getenv("WATSONX_API_KEY");
     static final String URL = System.getenv("WATSONX_URL");
 
     @Test

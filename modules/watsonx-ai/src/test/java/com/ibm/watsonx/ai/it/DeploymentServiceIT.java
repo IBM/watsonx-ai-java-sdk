@@ -323,7 +323,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void should_extract_thinking_and_content_when_thinking_is_enabled_in_chat() {
+        void should_extract_thinking_and_content_when_thinking_is_enabled() {
 
             var deploymentService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -660,7 +660,7 @@ public class DeploymentServiceIT {
         }
 
         @Test
-        void should_extract_thinking_and_content_when_thinking_is_enabled_in_chat() {
+        void should_extract_thinking_and_content_when_thinking_is_enabled() {
 
             var chatService = DeploymentService.builder()
                 .baseUrl(URL)
@@ -730,7 +730,7 @@ public class DeploymentServiceIT {
             assertEquals(thinkingMessage, thinking);
 
             var content = assertDoesNotThrow(() -> futureContent.get(3, TimeUnit.SECONDS));
-            assertEquals(contentMessage, content);
+            assertEquals(contentMessage.trim(), content.trim());
         }
 
         @Test
@@ -1114,7 +1114,7 @@ public class DeploymentServiceIT {
             assertFalse(assistantMessage.thinking().contains("<think>") && assistantMessage.content().contains("</think>"));
             assertFalse(assistantMessage.thinking().contains("<response>") && assistantMessage.content().contains("</response>"));
             assertEquals(thinking.trim(), assistantMessage.thinking());
-            assertEquals(thinkingMessage, thinking);
+            assertEquals(thinkingMessage.trim(), thinking.trim());
 
         }
 

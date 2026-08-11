@@ -287,7 +287,7 @@ chatService.chatStreaming(
 | `onPartialThinking` | No | Called for each chunk of reasoning content |
 | `failOnFirstError` | No | Return `true` to stop streaming on first error (default: `false`) |
 
-> **Threading note:** Callbacks run on the callback executor (virtual threads on Java 21+, configurable via the `CallbackExecutorProvider` SPI). They are delivered sequentially, with one exception: `onCompleteToolCall` is dispatched on the same callback executor but outside the sequential chain, so multiple tool calls can be processed concurrently and may overlap the other callbacks. `onCompleteResponse` is always invoked only after every `onCompleteToolCall` has returned. If your handler shares mutable state between `onCompleteToolCall` and any other callback, synchronize access to it yourself.
+> **Threading note:** Callbacks run on the callback executor (virtual threads on Java 21+, configurable via the `CallbackExecutorProvider` SPI). Within a single request every callback is delivered sequentially, in the order the events were emitted, and never concurrently with another one: all the `onPartialToolCall` fragments of a tool call reach the handler before its `onCompleteToolCall`, tool calls arrive in index order, and `onCompleteResponse` comes last. Consecutive callbacks may run on different threads, but each one returns before the next one starts and what it wrote is visible to the next one, so your handler can accumulate into unsynchronized fields. The flip side is that a callback that blocks delays the ones after it in the same request.
 
 ---
 
@@ -513,7 +513,7 @@ ChatService chatService = ChatService.builder()
     .apiKey(WATSONX_API_KEY)
     .projectId(WATSONX_PROJECT_ID)
     .baseUrl(CloudRegion.DALLAS)
-    .modelId("mistralai/mistral-medium-2505")
+    .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
     .build();
 
 var message = UserMessage.image(

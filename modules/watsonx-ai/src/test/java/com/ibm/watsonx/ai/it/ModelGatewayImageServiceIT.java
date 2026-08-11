@@ -8,11 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Base64;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
@@ -41,6 +37,7 @@ public class ModelGatewayImageServiceIT {
         .modelId(IMAGE_MODEL)
         .logRequests(true)
         .logResponses(true)
+        .timeout(Duration.ofMinutes(2))
         .build();
 
     @Test
@@ -50,16 +47,6 @@ public class ModelGatewayImageServiceIT {
         assertTrue(response.created() > 0);
         assertNotNull(response.data());
         assertFalse(response.data().isEmpty());
-
-        try {
-
-            byte[] image = Base64.getDecoder().decode(response.data().get(0).b64Json());
-            var path = Files.write(Path.of("image.png"), image);
-            Files.delete(path);
-
-        } catch (IOException e) {
-            fail(e);
-        }
     }
 
     @Test

@@ -69,6 +69,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
      * codes:
      * <ul>
      * <li><code>429</code> - Too Many Requests</li>
+     * <li><code>502</code> - Bad Gateway</li>
      * <li><code>503</code> - Service Unavailable</li>
      * <li><code>504</code> - Gateway Timeout</li>
      * <li><code>520</code> - Unknown Error</li>
@@ -82,7 +83,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
             WatsonxException.class,
             ex -> {
                 var statusCode = ((WatsonxException) ex).statusCode();
-                return statusCode == 429 || statusCode == 503 || statusCode == 504 || statusCode == 520;
+                return statusCode == 429 || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 520;
             }
         ).build();
 

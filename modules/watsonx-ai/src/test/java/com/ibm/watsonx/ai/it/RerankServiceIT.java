@@ -29,7 +29,7 @@ public class RerankServiceIT {
         .baseUrl(URL)
         .projectId(PROJECT_ID)
         .authenticator(authentication)
-        .modelId("cross-encoder/ms-marco-minilm-l-12-v2")
+        .modelId("ibm/slate-125m-english-rtrvr-v2")
         .logRequests(true)
         .logResponses(true)
         .build();
