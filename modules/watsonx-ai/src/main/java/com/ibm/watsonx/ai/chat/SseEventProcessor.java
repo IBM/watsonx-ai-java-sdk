@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.chat;
 import static com.ibm.watsonx.ai.chat.model.FinishReason.TOOL_CALLS;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toMap;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -64,7 +63,6 @@ public class SseEventProcessor {
     private final Map<Integer, StringBuilder> thinkingBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, List<StreamingToolFetcher>> toolFetchers = new ConcurrentHashMap<>();
     private final StreamingStateTracker stateTracker;
-    private final Map<String, Boolean> toolHasParameters;
     private final ExtractionTags extractionTags;
     private final Supplier<TextChatResponse.Builder<?>> responseBuilderFactory;
 
@@ -167,7 +165,6 @@ public class SseEventProcessor {
      * @param responseBuilderFactory supplies the builder used by {@link #buildResponse()}
      */
     public SseEventProcessor(List<Tool> tools, ExtractionTags extractionTags, Supplier<TextChatResponse.Builder<?>> responseBuilderFactory) {
-        this.toolHasParameters = toolHasParameters(tools);
         this.extractionTags = extractionTags;
         this.responseBuilderFactory = responseBuilderFactory;
         stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
@@ -248,7 +245,7 @@ public class SseEventProcessor {
                     return;
 
                 finishReasons.put(messageIndex, FinishReason.TOOL_CALLS.value());
-                events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
+                completeToolCall(tools.get(tools.size() - 1), events);
             });
 
 
@@ -319,7 +316,7 @@ public class SseEventProcessor {
                 if (isNull(toolFetcher)) {
                     // First occurrence of the object, create it.
                     if (!tools.isEmpty()) {
-                        events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
+                        completeToolCall(tools.get(tools.size() - 1), events);
                     }
                     toolFetcher = new StreamingToolFetcher(id, messageIndex, toolIndex);
                     tools.add(toolFetcher);
@@ -331,15 +328,10 @@ public class SseEventProcessor {
                     toolFetcher.setName(deltaTool.function().name());
                     toolFetcher.appendArguments(deltaTool.function().arguments());
 
-                    // There is a bug in the Streaming API: it does not return an empty object for tools without arguments.
-                    // Open an issue.
-                    var toolHasParameter = nonNull(toolFetcher.getName()) ? toolHasParameters.get(toolFetcher.getName()) : null;
-                    var parameterless = nonNull(toolHasParameter) && !toolHasParameter;
-                    var arguments = parameterless && toolFetcher.markEmptyArgumentsEmitted()
-                        ? "{}"
-                        : deltaTool.function().arguments();
+                    var arguments = deltaTool.function().arguments();
 
                     if (nonNull(arguments) && !arguments.isEmpty()) {
+                        toolFetcher.markArgumentsEmitted();
                         var partialToolCall =
                             new PartialToolCall(id, messageIndex, toolFetcher.getToolIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
                         events.add(new PartialToolCallEvent(partialToolCall));
@@ -387,7 +379,7 @@ public class SseEventProcessor {
         if (finishReasonJustSet && TOOL_CALLS.value().equals(finishReason)) {
             var tools = toolFetchers.get(messageIndex);
             if (nonNull(tools) && !tools.isEmpty())
-                events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
+                completeToolCall(tools.get(tools.size() - 1), events);
         }
 
         return ProcessResult.events(events);
@@ -444,19 +436,21 @@ public class SseEventProcessor {
     }
 
     /**
-     * Builds a map indicating whether each tool has parameters.
-     *
-     * @param tools the list of available {@link Tool}s
-     * @return a map where keys are tool names and values indicate if the tool has parameters
+     * Completes the given tool call, emitting the synthetic empty arguments when the model never streamed any.
+     * <p>
+     * The watsonx.ai Streaming API does not return an empty object for tools without parameters, while OpenAI-compatible endpoints do. Synthesizing
+     * the fragment on completion, instead of on the first delta, emits a single {@link PartialToolCallEvent} in both cases.
      */
-    private static Map<String, Boolean> toolHasParameters(List<Tool> tools) {
-        if (isNull(tools) || tools.size() == 0)
-            return Map.of();
+    private void completeToolCall(StreamingToolFetcher toolFetcher, List<CallbackEvent> events) {
 
-        return tools.stream().collect(toMap(
-            tool -> tool.function().name(),
-            Tool::hasParameters
-        ));
+        var completedToolCall = toolFetcher.build();
+        var toolCall = completedToolCall.toolCall();
+
+        if (toolFetcher.markArgumentsEmitted())
+            events.add(new PartialToolCallEvent(new PartialToolCall(id, toolFetcher.getChoiceIndex(), toolFetcher.getToolIndex(),
+                toolCall.id(), toolCall.function().name(), toolCall.function().arguments())));
+
+        events.add(new CompleteToolCallEvent(completedToolCall));
     }
 
     /**
