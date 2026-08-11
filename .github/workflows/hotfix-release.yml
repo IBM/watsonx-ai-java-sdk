@@ -1,0 +1,92 @@
+name: Hotfix Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Hotfix version"
+        required: true
+      base_tag:
+        description: "Tag to branch from"
+        required: true
+      cherry_pick_commits:
+        description: "Space-separated commit SHAs to cherry-pick"
+        required: true
+
+jobs:
+  hotfix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_BOT_TOKEN }}@github.com/${{ github.repository }}.git
+
+      - name: Create hotfix branch from base tag
+        run: |
+          git checkout -b hotfix/${{ inputs.version }} ${{ inputs.base_tag }}
+
+      - name: Cherry-pick commits
+        run: |
+          for sha in ${{ inputs.cherry_pick_commits }}; do
+            git cherry-pick "$sha"
+          done
+
+      - name: Update pom.xml to hotfix version
+        run: |
+          ./mvnw versions:set -DnewVersion=${{ inputs.version }}
+          ./mvnw versions:set -f samples/pom.xml -DnewVersion=${{ inputs.version }}
+
+      - name: Update README.md
+        run: |
+          sed -E -i "s|(<version>)[^<]*(</version>)|\1${{ inputs.version }}\2|" README.md
+          sed -E -i "s|(com\.ibm\.watsonx:watsonx-ai:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ inputs.version }}|" README.md
+
+      - name: Update SDK version in docusaurus.config.ts
+        run: |
+          sed -i "s/[0-9]\+\.[0-9]\+\.[0-9]\+/${{ inputs.version }}/g" docs/docusaurus.config.ts
+
+      - name: Commit and push hotfix branch
+        uses: ./.github/actions/commit-push
+        with:
+          commit_message: "Prepare release ${{ inputs.version }}"
+          token: ${{ secrets.GH_BOT_TOKEN }}
+          branch: hotfix/${{ inputs.version }}
+
+      - name: Tag and push
+        run: |
+          git tag ${{ inputs.version }}
+          git push origin ${{ inputs.version }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: "${{ inputs.version }}"
+          name: "${{ inputs.version }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          token: ${{ secrets.GH_BOT_TOKEN }}
+
+      - name: Cherry-pick bugfix commits onto main
+        run: |
+          git checkout main
+          git pull origin main
+          for sha in ${{ inputs.cherry_pick_commits }}; do
+            git cherry-pick "$sha" || git cherry-pick --skip
+          done
+          git push origin main
