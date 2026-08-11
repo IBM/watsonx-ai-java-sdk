@@ -136,7 +136,7 @@ Configure the merge process with custom parameters:
 
 ```java
 MergeSchemaSemanticConfig semanticConfig = MergeSchemaSemanticConfig.builder()
-    .defaultModelName("mistralai/mistral-medium-2505")
+    .defaultModelName("mistralai/mistral-small-3-1-24b-instruct-2503")
     .build();
 
 MergeSchemaParameters parameters = MergeSchemaParameters.builder()

@@ -16,7 +16,10 @@ import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEvent;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
+import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 
 public class SseEventProcessorTest {
 
@@ -337,5 +340,204 @@ public class SseEventProcessorTest {
         var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
         assertEquals(FinishReason.LENGTH, ex.finishReason());
         assertEquals(0, ex.index());
+    }
+
+    @Test
+    void should_emit_a_single_partial_tool_call_for_a_parameterless_tool() {
+
+        var processor = new SseEventProcessor(List.of(Tool.of("get_current_time")), null, TextChatResponse::builder);
+
+        // The Streaming API sends empty arguments for a tool without parameters, and the number of deltas depends on the model.
+        var firstDelta = "data: " + """
+            {"id":"chatcmpl-8","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"id":"call_a","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var secondDelta = "data: " + """
+            {"id":"chatcmpl-8","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"function":{"name":"","arguments":""}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        var terminalChunk = "data: " + """
+            {"id":"chatcmpl-8","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.002Z"}""";
+
+        var events = Stream.of(firstDelta, secondDelta, terminalChunk)
+            .map(processor::processChunk)
+            .flatMap(result -> result.events().stream())
+            .toList();
+
+        var partials = events.stream()
+            .filter(PartialToolCallEvent.class::isInstance)
+            .map(PartialToolCallEvent.class::cast)
+            .map(PartialToolCallEvent::toolCall)
+            .toList();
+
+        assertEquals(1, partials.size(), "the synthetic empty arguments must be emitted once per tool call");
+        assertEquals("{}", partials.get(0).arguments());
+        assertEquals("get_current_time", partials.get(0).name());
+        assertEquals("call_a", partials.get(0).id());
+        assertEquals(0, partials.get(0).toolIndex());
+
+        var completed = events.stream()
+            .filter(CompleteToolCallEvent.class::isInstance)
+            .map(CompleteToolCallEvent.class::cast)
+            .map(CompleteToolCallEvent::completeToolCall)
+            .toList();
+
+        assertEquals(1, completed.size());
+        assertEquals("{}", completed.get(0).toolCall().function().arguments());
+    }
+
+    @Test
+    void should_not_fail_when_a_tool_call_delta_has_no_arguments() {
+
+        var tool = Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
+        var processor = new SseEventProcessor(List.of(tool), null, TextChatResponse::builder);
+
+        var delta = "data: " + """
+            {"id":"chatcmpl-9","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"id":"call_a","type":"function","function":{"name":"get_current_time"}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var events = processor.processChunk(delta).events();
+
+        assertFalse(events.stream().anyMatch(PartialToolCallEvent.class::isInstance), "a delta without arguments carries no fragment to emit");
+    }
+
+    @Test
+    void should_not_fail_when_the_finish_reason_is_tool_calls_without_any_tool_call() {
+
+        var tool = Tool.of("getWeather", JsonSchema.object().property("city", JsonSchema.string()));
+        var processor = new SseEventProcessor(List.of(tool), null, TextChatResponse::builder);
+
+        var roleChunk = "data: " + """
+            {"id":"chatcmpl-10","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct",\
+            "model":"meta-llama/llama-3-3-70b-instruct",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var toolCallsChunk = "data: " + """
+            {"id":"chatcmpl-10","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct",\
+            "model":"meta-llama/llama-3-3-70b-instruct",\
+            "choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        var usageChunk = "data: " + """
+            {"id":"chatcmpl-10","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct",\
+            "model":"meta-llama/llama-3-3-70b-instruct","choices":[],\
+            "created":1,"created_at":"2026-07-26T00:00:00.002Z",\
+            "usage":{"completion_tokens":8,"prompt_tokens":243,"total_tokens":251}}""";
+
+        assertTrue(processor.processChunk(roleChunk).events().isEmpty());
+        assertTrue(processor.processChunk(toolCallsChunk).events().isEmpty(), "there is no tool call to complete");
+        assertTrue(processor.processChunk(usageChunk).events().isEmpty());
+
+        var response = processor.buildResponse();
+
+        assertEquals(1, response.choices().size());
+        assertNull(response.choices().get(0).message().content());
+        assertNull(response.choices().get(0).message().toolCalls());
+        assertEquals("tool_calls", response.choices().get(0).finishReason());
+        assertEquals(251, response.usage().totalTokens());
+
+        var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
+        assertEquals("The model generated no content, tool calls or refusal (finish reason: TOOL_CALLS)", ex.getMessage());
+        assertEquals(FinishReason.TOOL_CALLS, ex.finishReason());
+        assertEquals(0, ex.index());
+    }
+
+    @Test
+    void should_complete_the_tool_call_of_the_choice_that_has_one() {
+
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+
+        // n=2: choices[0] streams a tool call, choices[1] declares "tool_calls" without emitting any.
+        var toolCallChunk = "data: " + """
+            {"id":"chatcmpl-11","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"id":"call_a","type":"function","function":{"name":"sum","arguments":"{\\"a\\":1,\\"b\\":2}"}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var emptyToolCallsChunk = "data: " + """
+            {"id":"chatcmpl-11","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":1,"finish_reason":"tool_calls","delta":{}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        var terminalChunk = "data: " + """
+            {"id":"chatcmpl-11","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.002Z"}""";
+
+        var completed = Stream.of(toolCallChunk, emptyToolCallsChunk, terminalChunk)
+            .map(processor::processChunk)
+            .flatMap(result -> result.events().stream())
+            .filter(CompleteToolCallEvent.class::isInstance)
+            .map(CompleteToolCallEvent.class::cast)
+            .map(CompleteToolCallEvent::completeToolCall)
+            .toList();
+
+        assertEquals(1, completed.size(), "the guard must not suppress the legitimate completion of choices[0]");
+        assertEquals(0, completed.get(0).index());
+        assertEquals("call_a", completed.get(0).toolCall().id());
+        assertEquals("{\"a\":1,\"b\":2}", completed.get(0).toolCall().function().arguments());
+    }
+
+    @Test
+    void should_accumulate_tool_call_deltas_that_arrive_out_of_order() {
+
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+
+        // The tool call of index 1 is streamed first, the one of index 0 afterwards.
+        var chunk1 = "data: " + """
+            {"id":"chatcmpl-12","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":1,"id":"call_b","type":"function","function":{"name":"diff","arguments":"{\\"a\\":3"}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var chunk2 = "data: " + """
+            {"id":"chatcmpl-12","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[\
+            {"index":1,"function":{"arguments":",\\"b\\":4}"}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        var chunk3 = "data: " + """
+            {"id":"chatcmpl-12","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[\
+            {"index":0,"id":"call_a","type":"function","function":{"name":"sum","arguments":"{\\"a\\":1,\\"b\\":2}"}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.002Z"}""";
+
+        var chunk4 = "data: " + """
+            {"id":"chatcmpl-12","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.003Z"}""";
+
+        var completed = Stream.of(chunk1, chunk2, chunk3, chunk4)
+            .map(processor::processChunk)
+            .flatMap(result -> result.events().stream())
+            .filter(CompleteToolCallEvent.class::isInstance)
+            .map(CompleteToolCallEvent.class::cast)
+            .map(CompleteToolCallEvent::completeToolCall)
+            .toList();
+
+        assertEquals(2, completed.size(), "each tool call must be completed exactly once");
+
+        // The tool call of index 1 is completed when the one of index 0 starts, not by itself.
+        assertEquals(1, completed.get(0).toolCall().index());
+        assertEquals("call_b", completed.get(0).toolCall().id());
+        assertEquals("{\"a\":3,\"b\":4}", completed.get(0).toolCall().function().arguments());
+
+        assertEquals(0, completed.get(1).toolCall().index());
+        assertEquals("call_a", completed.get(1).toolCall().id());
+        assertEquals("{\"a\":1,\"b\":2}", completed.get(1).toolCall().function().arguments());
+
+        var toolCalls = processor.buildResponse().toAssistantMessage().toolCalls();
+        assertEquals(2, toolCalls.size(), "the deltas of the two indexes must not be merged into a single tool call");
+        assertEquals("diff", toolCalls.get(0).function().name());
+        assertEquals("sum", toolCalls.get(1).function().name());
     }
 }

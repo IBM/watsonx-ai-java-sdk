@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.chat.streaming;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 
@@ -22,6 +23,7 @@ public final class StreamingToolFetcher {
     private volatile int toolIndex;
     private StringBuffer arguments;
     private volatile String id, name;
+    private final AtomicBoolean emptyArgumentsEmitted = new AtomicBoolean();
 
     public StreamingToolFetcher(String completionId, int choiceIndex, int toolIndex) {
         this.completionId = completionId;
@@ -63,6 +65,15 @@ public final class StreamingToolFetcher {
 
     public int getChoiceIndex() {
         return choiceIndex;
+    }
+
+    /**
+     * Marks the synthetic empty arguments of this tool call as emitted.
+     *
+     * @return {@code true} the first time it is called, {@code false} afterwards
+     */
+    public boolean markEmptyArgumentsEmitted() {
+        return emptyArgumentsEmitted.compareAndSet(false, true);
     }
 
     public CompletedToolCall build() {

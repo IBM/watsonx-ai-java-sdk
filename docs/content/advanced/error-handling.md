@@ -87,7 +87,7 @@ try {
 
 ### Handling transient errors
 
-The SDK automatically retries `429`, `503`, `504`, and `520` responses with exponential backoff (see [Environment Variables](./environment-variables)). If retries are exhausted, `WatsonxException` is thrown with the final status code. To implement your own retry on top:
+The SDK automatically retries `429`, `502`, `503`, `504`, and `520` responses with exponential backoff (see [Environment Variables](./environment-variables)). If retries are exhausted, `WatsonxException` is thrown with the final status code. To implement your own retry on top:
 
 ```java
 int attempts = 0;

@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -2349,7 +2348,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_invoke_tool_calls_in_parallels() {
+    void should_deliver_complete_tool_calls_sequentially_when_a_callback_is_slow() {
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
@@ -2378,7 +2377,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .build();
 
-        List<ToolMessage> toolMessages = new LinkedList<>();
+        List<ToolMessage> toolMessages = new ArrayList<>();
         CountDownLatch latch = new CountDownLatch(2);
         chatService.chatStreaming("Message", new ChatHandler() {
 
@@ -2396,7 +2395,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 var toolMessage = completeToolCall.processTool((toolName, toolArgs) -> {
                     String country = toolArgs.get("country");
                     if (country.equals("Italy"))
-                        assertDoesNotThrow(() -> Thread.sleep(3000));
+                        assertDoesNotThrow(() -> Thread.sleep(500));
                     return toolArgs.get("country");
                 });
                 toolMessages.add(toolMessage);
@@ -2405,8 +2404,87 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         });
 
         assertTrue(assertDoesNotThrow(() -> latch.await(5, TimeUnit.SECONDS)));
-        assertEquals("Germany", toolMessages.get(0).content());
-        assertEquals("Italy", toolMessages.get(1).content());
+        assertEquals("Italy", toolMessages.get(0).content());
+        assertEquals("Germany", toolMessages.get(1).content());
+    }
+
+    @Test
+    void should_deliver_partial_tool_calls_before_the_complete_tool_call() {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 20)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.262Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": "}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.304Z"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"id":"ADvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": "}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.305Z"}
+
+                        id: 5
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"function":{"arguments":"\\"Germany\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.306Z","usage":{"completion_tokens":23,"prompt_tokens":76,"total_tokens":99}}
+                        """)));
+
+        var chatService = ChatService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .modelId("mistral-large-2512")
+            .projectId("project-id")
+            .authenticator(mockAuthenticator)
+            .build();
+
+        List<String> events = Collections.synchronizedList(new ArrayList<String>());
+        CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+
+        chatService.chatStreaming("Message", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                events.add("partial(%s)".formatted(partialToolCall.toolIndex()));
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                events.add("complete(%s)".formatted(completeToolCall.toolCall().index()));
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                future.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
+
+        var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+
+        assertEquals(2, events.stream().filter("partial(0)"::equals).count(), events::toString);
+        assertEquals(2, events.stream().filter("partial(1)"::equals).count(), events::toString);
+        assertTrue(events.lastIndexOf("partial(0)") < events.indexOf("complete(0)"), events::toString);
+        assertTrue(events.lastIndexOf("partial(1)") < events.indexOf("complete(1)"), events::toString);
+
+        var toolCalls = chatResponse.toAssistantMessage().toolCalls();
+        assertEquals(2, toolCalls.size());
+        assertEquals("{\"country\": \"Italy\"}", toolCalls.get(0).function().arguments());
+        assertEquals("{\"country\": \"Germany\"}", toolCalls.get(1).function().arguments());
     }
 
     @Test
@@ -4012,5 +4090,80 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertEquals(23, chatResponse.usage().completionTokens());
         assertEquals(76, chatResponse.usage().promptTokens());
         assertEquals(99, chatResponse.usage().totalTokens());
+    }
+
+    @Test
+    void should_complete_the_stream_when_the_model_declares_tool_calls_without_emitting_any() throws Exception {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 20)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-13","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct","model":"meta-llama/llama-3-3-70b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1,"created_at":"2026-07-26T00:00:00.000Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-13","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct","model":"meta-llama/llama-3-3-70b-instruct","choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}],"created":1,"created_at":"2026-07-26T00:00:00.001Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-13","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct","model":"meta-llama/llama-3-3-70b-instruct","choices":[],"created":1,"created_at":"2026-07-26T00:00:00.002Z","usage":{"completion_tokens":8,"prompt_tokens":243,"total_tokens":251}}
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("meta-llama/llama-3-3-70b-instruct")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        var parameters = ChatParameters.builder()
+            .responseAsJsonSchema("weather", Map.of("type", "object"), true)
+            .build();
+
+        var tools = List.of(Tool.of("getWeather", JsonSchema.object().property("city", JsonSchema.string())));
+
+        var errorCount = new AtomicInteger(0);
+        var completeToolCallCount = new AtomicInteger(0);
+
+        var future = chatService.chatStreaming(List.of(UserMessage.text("What is the weather in Munich?")), parameters, tools, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                completeToolCallCount.incrementAndGet();
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                errorCount.incrementAndGet();
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {}
+        });
+
+        var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+
+        Thread.sleep(500);
+        assertEquals(0, errorCount.get(), "the missing tool call is not a streaming error");
+        assertEquals(0, completeToolCallCount.get(), "there is no tool call to complete");
+
+        assertEquals("tool_calls", chatResponse.finishReason().value());
+        assertEquals(251, chatResponse.usage().totalTokens());
+        assertNull(chatResponse.choices().get(0).message().content());
+        assertNull(chatResponse.choices().get(0).message().toolCalls());
+
+        var ex = assertThrows(EmptyChatResponseException.class, chatResponse::toAssistantMessage);
+        assertEquals(FinishReason.TOOL_CALLS, ex.finishReason());
+        assertEquals(0, ex.index());
     }
 }
