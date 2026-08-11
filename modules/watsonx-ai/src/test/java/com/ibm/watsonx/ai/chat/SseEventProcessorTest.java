@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -390,6 +391,149 @@ public class SseEventProcessorTest {
 
         assertEquals(1, completed.size());
         assertEquals("{}", completed.get(0).toolCall().function().arguments());
+
+        assertEquals(2, events.size(), "the synthetic fragment and the completion are emitted by the terminal chunk");
+        assertInstanceOf(PartialToolCallEvent.class, events.get(0), "the partial tool call must precede the completion");
+        assertInstanceOf(CompleteToolCallEvent.class, events.get(1));
+    }
+
+    @Test
+    void should_emit_a_single_partial_tool_call_when_a_parameterless_tool_streams_the_empty_arguments() {
+
+        var processor = new SseEventProcessor(List.of(Tool.of("get_current_time")), null, TextChatResponse::builder);
+
+        // OpenAI-compatible endpoints (Model Gateway) do return an empty object for a tool without parameters.
+        var nameDelta = "data: " + """
+            {"id":"chatcmpl-13","object":"chat.completion.chunk","model":"gpt-4o",\
+            "choices":[{"index":0,"finish_reason":"","delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"id":"call_a","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],\
+            "created":1}""";
+
+        var argumentsDelta = "data: " + """
+            {"id":"chatcmpl-13","object":"chat.completion.chunk","model":"gpt-4o",\
+            "choices":[{"index":0,"finish_reason":"","delta":{"tool_calls":[\
+            {"index":0,"function":{"arguments":"{}"}}]}}],\
+            "created":1}""";
+
+        var terminalChunk = "data: " + """
+            {"id":"chatcmpl-13","object":"chat.completion.chunk","model":"gpt-4o",\
+            "choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}],\
+            "created":1}""";
+
+        var usageChunk = "data: " + """
+            {"id":"chatcmpl-13","object":"chat.completion.chunk","model":"gpt-4o","choices":[],\
+            "created":1,"usage":{"completion_tokens":12,"prompt_tokens":45,"total_tokens":57}}""";
+
+        var events = Stream.of(nameDelta, argumentsDelta, terminalChunk, usageChunk)
+            .map(processor::processChunk)
+            .flatMap(result -> result.events().stream())
+            .toList();
+
+        var partials = events.stream()
+            .filter(PartialToolCallEvent.class::isInstance)
+            .map(PartialToolCallEvent.class::cast)
+            .map(PartialToolCallEvent::toolCall)
+            .toList();
+
+        assertEquals(1, partials.size(), "the streamed fragment must not be followed by a synthetic one");
+        assertEquals("{}", partials.get(0).arguments());
+        assertEquals("get_current_time", partials.get(0).name());
+        assertEquals("call_a", partials.get(0).id());
+
+        var completed = events.stream()
+            .filter(CompleteToolCallEvent.class::isInstance)
+            .map(CompleteToolCallEvent.class::cast)
+            .map(CompleteToolCallEvent::completeToolCall)
+            .toList();
+
+        assertEquals(1, completed.size());
+        assertEquals("{}", completed.get(0).toolCall().function().arguments(), "the streamed fragments must add up to the final arguments");
+    }
+
+    @Test
+    void should_emit_a_single_partial_tool_call_for_each_parameterless_tool() {
+
+        var tools = List.of(Tool.of("get_current_time"), Tool.of("get_current_date"));
+        var processor = new SseEventProcessor(tools, null, TextChatResponse::builder);
+
+        var firstToolDelta = "data: " + """
+            {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"id":"call_a","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var secondToolDelta = "data: " + """
+            {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[\
+            {"index":1,"id":"call_b","type":"function","function":{"name":"get_current_date","arguments":""}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        var terminalChunk = "data: " + """
+            {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.002Z"}""";
+
+        var events = Stream.of(firstToolDelta, secondToolDelta, terminalChunk)
+            .map(processor::processChunk)
+            .flatMap(result -> result.events().stream())
+            .toList();
+
+        var partials = events.stream()
+            .filter(PartialToolCallEvent.class::isInstance)
+            .map(PartialToolCallEvent.class::cast)
+            .map(PartialToolCallEvent::toolCall)
+            .toList();
+
+        assertEquals(2, partials.size(), "each tool call must get its own synthetic empty arguments");
+
+        assertEquals(0, partials.get(0).toolIndex());
+        assertEquals("get_current_time", partials.get(0).name());
+        assertEquals("{}", partials.get(0).arguments());
+
+        assertEquals(1, partials.get(1).toolIndex());
+        assertEquals("get_current_date", partials.get(1).name());
+        assertEquals("{}", partials.get(1).arguments());
+
+        // The tool call of index 0 is completed when the one of index 1 starts, its partial must come first.
+        assertEquals(4, events.size());
+        assertInstanceOf(PartialToolCallEvent.class, events.get(0));
+        assertInstanceOf(CompleteToolCallEvent.class, events.get(1));
+        assertInstanceOf(PartialToolCallEvent.class, events.get(2));
+        assertInstanceOf(CompleteToolCallEvent.class, events.get(3));
+    }
+
+    @Test
+    void should_emit_the_synthetic_partial_tool_call_with_the_generated_id() {
+
+        var processor = new SseEventProcessor(List.of(Tool.of("get_current_time")), null, TextChatResponse::builder);
+
+        // Watsonx doesn't return "id" nor FinishReason.TOOL_CALLS if the option tool-choice is set to REQUIRED.
+        var toolCallDelta = "data: " + """
+            {"id":"chatcmpl-15","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"type":"function","function":{"name":"get_current_time","arguments":""}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var usageChunk = "data: " + """
+            {"id":"chatcmpl-15","object":"chat.completion.chunk","model_id":"mistral","model":"mistral","choices":[],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z",\
+            "usage":{"completion_tokens":8,"prompt_tokens":243,"total_tokens":251}}""";
+
+        var events = Stream.of(toolCallDelta, usageChunk)
+            .map(processor::processChunk)
+            .flatMap(result -> result.events().stream())
+            .toList();
+
+        assertEquals(2, events.size());
+
+        var partial = assertInstanceOf(PartialToolCallEvent.class, events.get(0)).toolCall();
+        var completed = assertInstanceOf(CompleteToolCallEvent.class, events.get(1)).completeToolCall();
+
+        assertNotNull(partial.id());
+        assertEquals(completed.toolCall().id(), partial.id(), "the partial must carry the same id as the completed tool call");
+        assertEquals("{}", partial.arguments());
+        assertEquals("{}", completed.toolCall().function().arguments());
+        assertEquals("tool_calls", processor.buildResponse().choices().get(0).finishReason());
     }
 
     @Test
