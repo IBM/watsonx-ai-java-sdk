@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -2378,7 +2377,8 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .build();
 
-        List<ToolMessage> toolMessages = new LinkedList<>();
+        // The two onCompleteToolCall run in parallel, so the list they append to must be thread-safe.
+        List<ToolMessage> toolMessages = Collections.synchronizedList(new ArrayList<>());
         CountDownLatch latch = new CountDownLatch(2);
         chatService.chatStreaming("Message", new ChatHandler() {
 
@@ -2407,6 +2407,85 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertTrue(assertDoesNotThrow(() -> latch.await(5, TimeUnit.SECONDS)));
         assertEquals("Germany", toolMessages.get(0).content());
         assertEquals("Italy", toolMessages.get(1).content());
+    }
+
+    @Test
+    void should_deliver_partial_tool_calls_before_the_complete_tool_call() {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 20)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.262Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"oDvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": "}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.303Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"Italy\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.304Z"}
+
+                        id: 4
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"id":"ADvEIPEBZ","function":{"name":"get_current_time","arguments":"{\\"country\\": "}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.305Z"}
+
+                        id: 5
+                        event: message
+                        data: {"id":"36e24c3f72494eac9a4f3b3930aeb757","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"function":{"arguments":"\\"Germany\\"}"}}]}}],"created":1765110996,"model_version":"1.0.0","created_at":"2025-12-07T12:36:36.306Z","usage":{"completion_tokens":23,"prompt_tokens":76,"total_tokens":99}}
+                        """)));
+
+        var chatService = ChatService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .modelId("mistral-large-2512")
+            .projectId("project-id")
+            .authenticator(mockAuthenticator)
+            .build();
+
+        List<String> events = Collections.synchronizedList(new ArrayList<String>());
+        CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+
+        chatService.chatStreaming("Message", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                events.add("partial(%s)".formatted(partialToolCall.toolIndex()));
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                events.add("complete(%s)".formatted(completeToolCall.toolCall().index()));
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                future.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
+
+        var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+
+        assertEquals(2, events.stream().filter("partial(0)"::equals).count(), events::toString);
+        assertEquals(2, events.stream().filter("partial(1)"::equals).count(), events::toString);
+        assertTrue(events.lastIndexOf("partial(0)") < events.indexOf("complete(0)"), events::toString);
+        assertTrue(events.lastIndexOf("partial(1)") < events.indexOf("complete(1)"), events::toString);
+
+        var toolCalls = chatResponse.toAssistantMessage().toolCalls();
+        assertEquals(2, toolCalls.size());
+        assertEquals("{\"country\": \"Italy\"}", toolCalls.get(0).function().arguments());
+        assertEquals("{\"country\": \"Germany\"}", toolCalls.get(1).function().arguments());
     }
 
     @Test

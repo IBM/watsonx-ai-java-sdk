@@ -16,7 +16,10 @@ import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEvent;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
+import com.ibm.watsonx.ai.chat.model.Tool;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 
 public class SseEventProcessorTest {
 
@@ -337,5 +340,72 @@ public class SseEventProcessorTest {
         var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessage);
         assertEquals(FinishReason.LENGTH, ex.finishReason());
         assertEquals(0, ex.index());
+    }
+
+    @Test
+    void should_emit_a_single_partial_tool_call_for_a_parameterless_tool() {
+
+        var processor = new SseEventProcessor(List.of(Tool.of("get_current_time")), null, TextChatResponse::builder);
+
+        // The Streaming API sends empty arguments for a tool without parameters, and the number of deltas depends on the model.
+        var firstDelta = "data: " + """
+            {"id":"chatcmpl-8","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"id":"call_a","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var secondDelta = "data: " + """
+            {"id":"chatcmpl-8","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"function":{"name":"","arguments":""}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        var terminalChunk = "data: " + """
+            {"id":"chatcmpl-8","object":"chat.completion.chunk","model_id":"google/gemma","model":"google/gemma",\
+            "choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.002Z"}""";
+
+        var events = Stream.of(firstDelta, secondDelta, terminalChunk)
+            .map(processor::processChunk)
+            .flatMap(result -> result.events().stream())
+            .toList();
+
+        var partials = events.stream()
+            .filter(PartialToolCallEvent.class::isInstance)
+            .map(PartialToolCallEvent.class::cast)
+            .map(PartialToolCallEvent::toolCall)
+            .toList();
+
+        assertEquals(1, partials.size(), "the synthetic empty arguments must be emitted once per tool call");
+        assertEquals("{}", partials.get(0).arguments());
+        assertEquals("get_current_time", partials.get(0).name());
+        assertEquals("call_a", partials.get(0).id());
+        assertEquals(0, partials.get(0).toolIndex());
+
+        var completed = events.stream()
+            .filter(CompleteToolCallEvent.class::isInstance)
+            .map(CompleteToolCallEvent.class::cast)
+            .map(CompleteToolCallEvent::completeToolCall)
+            .toList();
+
+        assertEquals(1, completed.size());
+        assertEquals("{}", completed.get(0).toolCall().function().arguments());
+    }
+
+    @Test
+    void should_not_fail_when_a_tool_call_delta_has_no_arguments() {
+
+        var tool = Tool.of("get_current_time", JsonSchema.object().property("country", JsonSchema.string()));
+        var processor = new SseEventProcessor(List.of(tool), null, TextChatResponse::builder);
+
+        var delta = "data: " + """
+            {"id":"chatcmpl-9","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
+            {"index":0,"id":"call_a","type":"function","function":{"name":"get_current_time"}}]}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var events = processor.processChunk(delta).events();
+
+        assertFalse(events.stream().anyMatch(PartialToolCallEvent.class::isInstance), "a delta without arguments carries no fragment to emit");
     }
 }

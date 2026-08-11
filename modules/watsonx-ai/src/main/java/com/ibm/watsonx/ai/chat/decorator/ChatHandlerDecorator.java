@@ -5,10 +5,9 @@
 package com.ibm.watsonx.ai.chat.decorator;
 
 import static java.util.Objects.nonNull;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
@@ -28,7 +27,8 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * This class wraps a delegate {@link ChatHandler} and ensures that all callbacks are executed in a controlled manner:
  * <ul>
  * <li>Sequential execution of standard callbacks (partial responses, complete responses, errors, thinking)</li>
- * <li>Parallel execution of tool call callbacks with optional interception</li>
+ * <li>Tool call callbacks, with optional interception, delivered after every callback emitted before them and executed in parallel with one
+ * another</li>
  * <li>Thread-safe callback scheduling using {@link CompletableFuture}</li>
  * </ul>
  *
@@ -65,8 +65,7 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
      * Thread-safe list of pending tool call futures that can execute in parallel. These are tracked separately to allow concurrent tool call
      * processing.
      */
-    private final List<CompletableFuture<CompletedToolCall>> pendingToolCallCallbacks =
-        Collections.synchronizedList(new ArrayList<>());
+    private final List<CompletableFuture<CompletedToolCall>> pendingToolCallCallbacks = new CopyOnWriteArrayList<>();
 
     /**
      * Constructs a new {@code ChatHandlerDecorator}.
@@ -108,21 +107,23 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
 
     @Override
     public void onCompleteToolCall(CompletedToolCall completeToolCall) {
-        var future = CompletableFuture
+
+        var intercepted = CompletableFuture
             .supplyAsync(() -> nonNull(toolInterceptor)
                 ? toolInterceptor.intercept(context, completeToolCall)
-                : completeToolCall, ExecutorProvider.callbackExecutor())
-            .thenApplyAsync(toolCallNormalized -> {
-                try {
-                    delegate.onCompleteToolCall(toolCallNormalized);
-                    return toolCallNormalized;
-                } catch (RuntimeException e) {
-                    delegate.onError(e);
-                    throw e;
-                }
-            }, ExecutorProvider.callbackExecutor());
+                : completeToolCall, ExecutorProvider.callbackExecutor());
 
-        pendingToolCallCallbacks.add(future);
+        var delivered = callbackChain.get().thenCombineAsync(intercepted, (unused, toolCallNormalized) -> {
+            try {
+                delegate.onCompleteToolCall(toolCallNormalized);
+                return toolCallNormalized;
+            } catch (RuntimeException e) {
+                delegate.onError(e);
+                throw e;
+            }
+        }, ExecutorProvider.callbackExecutor());
+
+        pendingToolCallCallbacks.add(delivered);
     }
 
     @Override
@@ -140,8 +141,7 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
      * </ol>
      *
      * <p>
-     * The returned future resolves to a list of all processed {@link CompletedToolCall} objects, in the order they were completed (not necessarily
-     * the order they were received).
+     * The returned future resolves to a list of all processed {@link CompletedToolCall} objects, in the order they were received.
      *
      * @return a CompletableFuture that resolves to a list of all processed tool calls
      */
@@ -159,10 +159,10 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
         callbackChain.updateAndGet(chain -> chain.thenRunAsync(() -> {
             try {
                 callback.run();
-            } catch (Exception e) {
+            } catch (RuntimeException | Error e) {
                 try {
                     delegate.onError(e);
-                } catch (Exception ignored) {
+                } catch (RuntimeException | Error ignored) {
                     // Nothing more we can do.
                 }
             }

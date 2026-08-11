@@ -324,9 +324,12 @@ public class SseEventProcessor {
                     // There is a bug in the Streaming API: it does not return an empty object for tools without arguments.
                     // Open an issue.
                     var toolHasParameter = toolHasParameters.get(toolFetcher.getName());
-                    var arguments = isNull(toolHasParameter) || toolHasParameter ? deltaTool.function().arguments() : "{}";
+                    var parameterless = nonNull(toolHasParameter) && !toolHasParameter;
+                    var arguments = parameterless && toolFetcher.markEmptyArgumentsEmitted()
+                        ? "{}"
+                        : deltaTool.function().arguments();
 
-                    if (!arguments.isEmpty()) {
+                    if (nonNull(arguments) && !arguments.isEmpty()) {
                         var partialToolCall =
                             new PartialToolCall(id, messageIndex, toolFetcher.getToolIndex(), toolFetcher.getId(), toolFetcher.getName(), arguments);
                         events.add(new PartialToolCallEvent(partialToolCall));
