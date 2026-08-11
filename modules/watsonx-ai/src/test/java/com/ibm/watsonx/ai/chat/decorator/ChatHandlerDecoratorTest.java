@@ -4,18 +4,16 @@
  */
 package com.ibm.watsonx.ai.chat.decorator;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
@@ -28,7 +26,8 @@ public class ChatHandlerDecoratorTest {
      */
     static class Recorder implements ChatHandler {
 
-        final List<String> events = Collections.synchronizedList(new ArrayList<>());
+        // Not synchronized on purpose: the decorator must publish each callback to the next one.
+        final List<String> events = new ArrayList<>();
 
         @Override
         public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -64,75 +63,97 @@ public class ChatHandlerDecoratorTest {
         return new CompletedToolCall("cmpl-1", 0, ToolCall.of(toolIndex, "call_" + toolIndex, name, "{\"country\": \"Italy\"}"));
     }
 
-    static boolean awaitQuietly(CountDownLatch latch) {
+    static void sleep(long millis) {
         try {
-            return latch.await(5, SECONDS);
+            Thread.sleep(millis);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return false;
         }
     }
 
-    @Test
-    void should_deliver_complete_tool_call_after_its_partial_fragments() {
-
-        // Repeated because the callbacks run on the callback executor: a single run would not tell a fix from a lucky interleaving.
-        for (int i = 0; i < 50; i++) {
-
-            var recorder = new Recorder();
-            var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
-
-            // The order in which SseEventProcessor emits two sequential tool calls.
-            decorator.onPartialToolCall(partial(0, "get_weather"));
-            decorator.onCompleteToolCall(complete(0, "get_weather"));
-            decorator.onPartialToolCall(partial(1, "get_current_time"));
-            decorator.onCompleteToolCall(complete(1, "get_current_time"));
-            decorator.awaitCallbacks().join();
-
-            var events = recorder.events;
-            assertEquals(4, events.size(), events::toString);
-            assertTrue(events.indexOf("partial(0)") < events.indexOf("complete(0)"), events::toString);
-            assertTrue(events.indexOf("partial(1)") < events.indexOf("complete(1)"), events::toString);
-        }
-    }
-
-    @Test
-    void should_run_complete_tool_call_callbacks_in_parallel() {
-
-        var completed = Collections.synchronizedList(new ArrayList<Integer>());
-        var firstToolCallStarted = new CountDownLatch(1);
-        var secondToolCallReturned = new CountDownLatch(1);
-        var ranInParallel = new AtomicBoolean();
-
-        var decorator = new ChatHandlerDecorator<ChatRequest>(new ChatHandler() {
-
-            @Override
-            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
-
-            @Override
-            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
-
-                if (completeToolCall.toolCall().index() == 0) {
-                    firstToolCallStarted.countDown();
-                    // The second tool call can only return while the first one is still running if the two are delivered in parallel.
-                    ranInParallel.set(awaitQuietly(secondToolCallReturned));
-                    completed.add(0);
-                } else {
-                    awaitQuietly(firstToolCallStarted);
-                    completed.add(1);
-                    secondToolCallReturned.countDown();
-                }
-            }
-        }, null, null);
-
+    /**
+     * Emits the sequence produced by SseEventProcessor for a response carrying two sequential tool calls.
+     */
+    static void emitTwoToolCalls(ChatHandlerDecorator<ChatRequest> decorator) {
+        decorator.onPartialResponse("Hello", null);
         decorator.onPartialToolCall(partial(0, "get_weather"));
         decorator.onCompleteToolCall(complete(0, "get_weather"));
         decorator.onPartialToolCall(partial(1, "get_current_time"));
         decorator.onCompleteToolCall(complete(1, "get_current_time"));
+        decorator.onCompleteResponse(null);
+    }
+
+    static final List<String> EXPECTED_ORDER =
+        List.of("partialResponse", "partial(0)", "complete(0)", "partial(1)", "complete(1)", "completeResponse");
+
+    @Test
+    void should_deliver_every_callback_in_emission_order() {
+
+        var recorder = new Recorder();
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
+
+        emitTwoToolCalls(decorator);
         decorator.awaitCallbacks().join();
 
-        assertTrue(ranInParallel.get(), "the two onCompleteToolCall invocations did not overlap");
-        assertEquals(List.of(1, 0), completed);
+        assertEquals(EXPECTED_ORDER, recorder.events);
+    }
+
+    @Test
+    void should_deliver_every_callback_in_emission_order_with_a_slow_interceptor() {
+
+        var recorder = new Recorder();
+        ToolInterceptor<ChatRequest> slow = (ctx, functionCall) -> {
+            sleep(200);
+            return functionCall;
+        };
+
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, slow);
+
+        emitTwoToolCalls(decorator);
+        decorator.awaitCallbacks().join();
+
+        assertEquals(EXPECTED_ORDER, recorder.events);
+    }
+
+    @Test
+    void should_never_run_two_callbacks_at_the_same_time() {
+
+        var running = new AtomicInteger();
+        var peak = new AtomicInteger();
+
+        Runnable body = () -> {
+            peak.accumulateAndGet(running.incrementAndGet(), Math::max);
+            sleep(50);
+            running.decrementAndGet();
+        };
+
+        var decorator = new ChatHandlerDecorator<ChatRequest>(new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                body.run();
+            }
+
+            @Override
+            public void onPartialToolCall(PartialToolCall partialToolCall) {
+                body.run();
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                body.run();
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                body.run();
+            }
+        }, null, null);
+
+        emitTwoToolCalls(decorator);
+        decorator.awaitCallbacks().join();
+
+        assertEquals(1, peak.get(), "two callbacks overlapped");
     }
 
     @Test
@@ -169,6 +190,60 @@ public class ChatHandlerDecoratorTest {
         decorator.awaitCallbacks().join();
 
         assertEquals(List.of("partialResponse", "error(AssertionError)", "partial(0)", "completeResponse"), recorder.events);
+    }
+
+    @Test
+    void should_keep_delivering_when_a_complete_tool_call_callback_throws() {
+
+        var recorder = new Recorder();
+        var decorator = new ChatHandlerDecorator<ChatRequest>(new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                recorder.onPartialResponse(partialResponse, partialChatResponse);
+            }
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                recorder.onCompleteToolCall(completeToolCall);
+                throw new IllegalStateException("thrown by the handler");
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                recorder.onError(error);
+            }
+        }, null, null);
+
+        decorator.onCompleteToolCall(complete(0, "get_weather"));
+        decorator.onPartialResponse("Hello", null);
+
+        // The failure is reported through onError only: it must not fail the future the streaming response is built on.
+        var toolCalls = assertDoesNotThrow(() -> decorator.awaitCallbacks().join());
+
+        assertEquals(List.of("complete(0)", "error(IllegalStateException)", "partialResponse"), recorder.events);
+        assertEquals(List.of(0), toolCalls.stream().map(toolCall -> toolCall.toolCall().index()).toList());
+    }
+
+    @Test
+    void should_report_interceptor_failure_and_deliver_the_un_normalized_tool_call() {
+
+        var recorder = new Recorder();
+        ToolInterceptor<ChatRequest> failing = (ctx, functionCall) -> {
+            throw new IllegalStateException("thrown by the interceptor");
+        };
+
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, failing);
+
+        decorator.onPartialToolCall(partial(0, "get_weather"));
+        decorator.onCompleteToolCall(complete(0, "get_weather"));
+        decorator.onPartialResponse("Hello", null);
+
+        var toolCalls = assertDoesNotThrow(() -> decorator.awaitCallbacks().join());
+
+        assertEquals(List.of("partial(0)", "error(IllegalStateException)", "complete(0)", "partialResponse"), recorder.events);
+        assertEquals(1, toolCalls.size());
+        assertEquals("{\"country\": \"Italy\"}", toolCalls.get(0).toolCall().function().arguments());
     }
 
     @Test

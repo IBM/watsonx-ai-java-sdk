@@ -35,9 +35,8 @@ import com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider;
  * Within a single streaming request, callbacks follow this lifecycle:
  * <ol>
  * <li>{@link #onPartialResponse}, {@link #onPartialThinking}, {@link #onPartialToolCall} - invoked zero or more times as data arrives</li>
- * <li>{@link #onCompleteToolCall} - invoked zero or more times (once per completed tool call), after every callback emitted before that tool call was
- * assembled, and therefore after all the {@link #onPartialToolCall} fragments of that same tool call. Two of them may run at the same time and may
- * overlap the streaming callbacks emitted afterwards (see <b>Threading Model</b> below)</li>
+ * <li>{@link #onCompleteToolCall} - invoked zero or more times (once per completed tool call), after all the {@link #onPartialToolCall} fragments of
+ * that same tool call and before the fragments of the tool call that follows</li>
  * <li>Terminal callback, always invoked last (after every {@link #onCompleteToolCall} has returned):
  * <ul>
  * <li>{@link #onCompleteResponse} - invoked on successful completion</li>
@@ -65,19 +64,13 @@ import com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider;
  * <b>Custom Executor:</b> Developers can customize the threading behavior by implementing the {@link CallbackExecutorProvider} SPI and registering it
  * via {@link ServiceLoader}. This allows full control over thread management, pooling strategies, and execution policies.
  * <p>
- * Within a single streaming request, the streaming and terminal callbacks - {@link #onPartialResponse}, {@link #onPartialThinking},
- * {@link #onPartialToolCall}, {@link #onCompleteResponse} and {@link #onError} - are invoked <b>sequentially</b> and are never executed concurrently
- * with one another.
+ * Within a single streaming request, <b>every</b> callback - including {@link #onCompleteToolCall} - is invoked <b>sequentially</b>, in the order the
+ * events were emitted, and is never executed concurrently with another one. Consecutive callbacks may run on different threads of the callback
+ * executor, but each one is guaranteed to have returned before the next one starts, and the state it wrote is visible to the next one. A handler can
+ * therefore accumulate into unsynchronized fields without any locking of its own.
  * <p>
- * <b>Tool call callbacks are an exception.</b> To allow several tool calls to be processed and executed concurrently, {@link #onCompleteToolCall} is
- * not part of that chain: it is dispatched on the callback executor as soon as every callback emitted before the tool call was assembled has
- * returned. As a consequence, within a single streaming request multiple {@link #onCompleteToolCall} invocations may run <b>at the same time</b> (one
- * per completed tool call), and a callback emitted after the tool call was assembled - typically the {@link #onPartialToolCall} fragments of the tool
- * call that follows - may run concurrently with them or be delivered before them.
- * <p>
- * It is guaranteed that all the {@link #onPartialToolCall} fragments of a tool call are delivered before its {@link #onCompleteToolCall}, and that
- * every {@link #onCompleteToolCall} has returned before {@link #onCompleteResponse} is invoked. If your handler shares mutable state between
- * {@link #onCompleteToolCall} and any other callback, it must synchronize access to that state itself.
+ * Because delivery is serialized, a callback that blocks delays the callbacks that follow it in the same request. This is intentional: it is what
+ * keeps the ordering above observable.
  * <p>
  * <b>Important:</b> If the same {@code ChatHandler} instance is shared across multiple concurrent streaming requests, the implementation must handle
  * synchronization internally. The SDK does not serialize callbacks across different requests.
@@ -133,8 +126,9 @@ public interface ChatHandler {
     /**
      * Called once the model has finished streaming a single tool call and the arguments are fully assembled.
      * <p>
-     * When multiple tools are called in the same response, this method is invoked once per tool. The {@link CompletedToolCall#toolCall()} contains an
-     * {@code index} field that can be used to determine the original order of tool calls if needed.
+     * When multiple tools are called in the same response, this method is invoked once per tool, in tool call order, and never concurrently with
+     * another callback. The {@link CompletedToolCall#toolCall()} contains an {@code index} field carrying the position of the tool call in the
+     * response.
      *
      * @param completeToolCall the completed tool call
      */

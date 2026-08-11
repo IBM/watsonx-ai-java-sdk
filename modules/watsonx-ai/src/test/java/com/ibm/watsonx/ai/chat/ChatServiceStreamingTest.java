@@ -2348,7 +2348,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_invoke_tool_calls_in_parallels() {
+    void should_deliver_complete_tool_calls_sequentially_when_a_callback_is_slow() {
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
             .withHeader("Authorization", equalTo("Bearer token"))
@@ -2377,8 +2377,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .build();
 
-        // The two onCompleteToolCall run in parallel, so the list they append to must be thread-safe.
-        List<ToolMessage> toolMessages = Collections.synchronizedList(new ArrayList<>());
+        List<ToolMessage> toolMessages = new ArrayList<>();
         CountDownLatch latch = new CountDownLatch(2);
         chatService.chatStreaming("Message", new ChatHandler() {
 
@@ -2396,7 +2395,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                 var toolMessage = completeToolCall.processTool((toolName, toolArgs) -> {
                     String country = toolArgs.get("country");
                     if (country.equals("Italy"))
-                        assertDoesNotThrow(() -> Thread.sleep(3000));
+                        assertDoesNotThrow(() -> Thread.sleep(500));
                     return toolArgs.get("country");
                 });
                 toolMessages.add(toolMessage);
@@ -2405,8 +2404,8 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         });
 
         assertTrue(assertDoesNotThrow(() -> latch.await(5, TimeUnit.SECONDS)));
-        assertEquals("Germany", toolMessages.get(0).content());
-        assertEquals("Italy", toolMessages.get(1).content());
+        assertEquals("Italy", toolMessages.get(0).content());
+        assertEquals("Germany", toolMessages.get(1).content());
     }
 
     @Test
