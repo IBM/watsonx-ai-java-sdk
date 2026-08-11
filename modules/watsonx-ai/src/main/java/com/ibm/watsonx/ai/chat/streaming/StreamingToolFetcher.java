@@ -23,7 +23,7 @@ public final class StreamingToolFetcher {
     private volatile int toolIndex;
     private StringBuffer arguments;
     private volatile String id, name;
-    private final AtomicBoolean emptyArgumentsEmitted = new AtomicBoolean();
+    private final AtomicBoolean argumentsEmitted = new AtomicBoolean();
 
     public StreamingToolFetcher(String completionId, int choiceIndex, int toolIndex) {
         this.completionId = completionId;
@@ -68,12 +68,12 @@ public final class StreamingToolFetcher {
     }
 
     /**
-     * Marks the synthetic empty arguments of this tool call as emitted.
+     * Marks that an arguments fragment has been emitted for this tool call.
      *
      * @return {@code true} the first time it is called, {@code false} afterwards
      */
-    public boolean markEmptyArgumentsEmitted() {
-        return emptyArgumentsEmitted.compareAndSet(false, true);
+    public boolean markArgumentsEmitted() {
+        return argumentsEmitted.compareAndSet(false, true);
     }
 
     public CompletedToolCall build() {
