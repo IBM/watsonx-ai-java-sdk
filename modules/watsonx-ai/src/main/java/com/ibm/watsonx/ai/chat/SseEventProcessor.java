@@ -230,7 +230,7 @@ public class SseEventProcessor {
 
             // For certain models, watsonx.ai does not return FinishReason.TOOL_CHOICE when ToolChoiceOption.REQUIRED is set.
             // Therefore, this check is required to ensure that ChatHandler.onCompleteToolCall is called for the last tool in the
-            // StreamingToolFetcher. Lines #301–#304 are not enough.
+            // StreamingToolFetcher. The completion performed when a new tool call delta starts is not enough.
 
             if (toolFetchers.isEmpty())
                 return ProcessResult.empty();
@@ -241,8 +241,13 @@ public class SseEventProcessor {
                     // FinishReason is not null, so the tool call has already been processed.
                     return;
 
-                finishReasons.put(messageIndex, FinishReason.TOOL_CALLS.value());
                 var tools = toolFetchers.get(messageIndex);
+
+                if (isNull(tools) || tools.isEmpty())
+                    // Nothing to complete, so the index must not be marked as processed.
+                    return;
+
+                finishReasons.put(messageIndex, FinishReason.TOOL_CALLS.value());
                 events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
             });
 
@@ -299,20 +304,25 @@ public class SseEventProcessor {
 
             for (ToolCall deltaTool : message.delta().toolCalls()) {
 
-                var toolIndex = deltaTool.index();
                 var tools = toolFetchers.computeIfAbsent(messageIndex, ArrayList::new);
 
+                var toolIndex = nonNull(deltaTool.index())
+                    ? deltaTool.index()
+                    : tools.isEmpty() ? 0 : tools.get(tools.size() - 1).getToolIndex();
+
                 // Check if there is an incomplete version of the TextChatToolCall object.
-                if ((toolIndex + 1) > tools.size()) {
+                toolFetcher = tools.stream()
+                    .filter(fetcher -> fetcher.getToolIndex() == toolIndex)
+                    .findFirst()
+                    .orElse(null);
+
+                if (isNull(toolFetcher)) {
                     // First occurrence of the object, create it.
+                    if (!tools.isEmpty()) {
+                        events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
+                    }
                     toolFetcher = new StreamingToolFetcher(id, messageIndex, toolIndex);
                     tools.add(toolFetcher);
-                    if (toolIndex - 1 >= 0) {
-                        events.add(new CompleteToolCallEvent(tools.get(toolIndex - 1).build()));
-                    }
-                } else {
-                    // Incomplete version is present, complete it.
-                    toolFetcher = tools.get(toolIndex);
                 }
 
                 toolFetcher.setId(deltaTool.id());
@@ -323,7 +333,7 @@ public class SseEventProcessor {
 
                     // There is a bug in the Streaming API: it does not return an empty object for tools without arguments.
                     // Open an issue.
-                    var toolHasParameter = toolHasParameters.get(toolFetcher.getName());
+                    var toolHasParameter = nonNull(toolFetcher.getName()) ? toolHasParameters.get(toolFetcher.getName()) : null;
                     var parameterless = nonNull(toolHasParameter) && !toolHasParameter;
                     var arguments = parameterless && toolFetcher.markEmptyArgumentsEmitted()
                         ? "{}"
@@ -372,9 +382,12 @@ public class SseEventProcessor {
         // Complete the last tool call only on the chunk that transitions the finish reason to "tool_calls". OpenAI-compatible endpoints
         // (Model Gateway) send a trailing usage chunk that still carries a populated choices[0] with finish_reason "" after the terminal
         // chunk, guarding on finishReasonJustSet prevents that chunk from emitting a duplicate CompleteToolCallEvent.
+        // Some models declare "tool_calls" without ever emitting a tool_calls delta (observed on llama-3-3-70b when tools are combined with
+        // a json_schema response_format), so there may be no fetcher to complete.
         if (finishReasonJustSet && TOOL_CALLS.value().equals(finishReason)) {
             var tools = toolFetchers.get(messageIndex);
-            events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
+            if (nonNull(tools) && !tools.isEmpty())
+                events.add(new CompleteToolCallEvent(tools.get(tools.size() - 1).build()));
         }
 
         return ProcessResult.events(events);

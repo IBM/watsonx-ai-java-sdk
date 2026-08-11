@@ -4092,4 +4092,79 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertEquals(76, chatResponse.usage().promptTokens());
         assertEquals(99, chatResponse.usage().totalTokens());
     }
+
+    @Test
+    void should_complete_the_stream_when_the_model_declares_tool_calls_without_emitting_any() throws Exception {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(3, 20)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-13","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct","model":"meta-llama/llama-3-3-70b-instruct","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1,"created_at":"2026-07-26T00:00:00.000Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-13","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct","model":"meta-llama/llama-3-3-70b-instruct","choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}],"created":1,"created_at":"2026-07-26T00:00:00.001Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-13","object":"chat.completion.chunk","model_id":"meta-llama/llama-3-3-70b-instruct","model":"meta-llama/llama-3-3-70b-instruct","choices":[],"created":1,"created_at":"2026-07-26T00:00:00.002Z","usage":{"completion_tokens":8,"prompt_tokens":243,"total_tokens":251}}
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("meta-llama/llama-3-3-70b-instruct")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        var parameters = ChatParameters.builder()
+            .responseAsJsonSchema("weather", Map.of("type", "object"), true)
+            .build();
+
+        var tools = List.of(Tool.of("getWeather", JsonSchema.object().property("city", JsonSchema.string())));
+
+        var errorCount = new AtomicInteger(0);
+        var completeToolCallCount = new AtomicInteger(0);
+
+        var future = chatService.chatStreaming(List.of(UserMessage.text("What is the weather in Munich?")), parameters, tools, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onCompleteToolCall(CompletedToolCall completeToolCall) {
+                completeToolCallCount.incrementAndGet();
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                errorCount.incrementAndGet();
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {}
+        });
+
+        var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+
+        Thread.sleep(500);
+        assertEquals(0, errorCount.get(), "the missing tool call is not a streaming error");
+        assertEquals(0, completeToolCallCount.get(), "there is no tool call to complete");
+
+        assertEquals("tool_calls", chatResponse.finishReason().value());
+        assertEquals(251, chatResponse.usage().totalTokens());
+        assertNull(chatResponse.choices().get(0).message().content());
+        assertNull(chatResponse.choices().get(0).message().toolCalls());
+
+        var ex = assertThrows(EmptyChatResponseException.class, chatResponse::toAssistantMessage);
+        assertEquals(FinishReason.TOOL_CALLS, ex.finishReason());
+        assertEquals(0, ex.index());
+    }
 }
