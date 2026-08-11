@@ -310,7 +310,7 @@ Override the default model (`mistral-small-3-1-24b-instruct-2503`) with `default
 
 ```java
 CreateSchemaSemanticConfig semanticConfig = CreateSchemaSemanticConfig.builder()
-    .defaultModelName("mistralai/mistral-medium-2505")
+    .defaultModelName("mistralai/mistral-small-3-1-24b-instruct-2503")
     .build();
 
 CreateSchemaParameters parameters = CreateSchemaParameters.builder()

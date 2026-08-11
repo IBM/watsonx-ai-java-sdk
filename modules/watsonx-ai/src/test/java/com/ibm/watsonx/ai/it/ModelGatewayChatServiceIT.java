@@ -61,10 +61,14 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_CLAUDE", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_OPENAI", matches = ".+")
 public class ModelGatewayChatServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
     static final String URL = System.getenv("WATSONX_URL");
+    static final String CHAT_MODEL_CLAUDE = System.getenv("WATSONX_GATEWAY_CHAT_MODEL_CLAUDE");
+    static final String CHAT_MODEL_OPENAI = System.getenv("WATSONX_GATEWAY_CHAT_MODEL_OPENAI");
 
     static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
@@ -79,7 +83,7 @@ public class ModelGatewayChatServiceIT {
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
                 .apiKey(API_KEY)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -118,7 +122,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -149,7 +153,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -187,7 +191,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-5.6-terra-dzus")
+                .modelId(CHAT_MODEL_OPENAI)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -226,7 +230,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -255,7 +259,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -317,7 +321,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -344,7 +348,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-5.6-terra-dzus")
+                .modelId(CHAT_MODEL_OPENAI)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -378,7 +382,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-5.6-terra-dzus")
+                .modelId(CHAT_MODEL_OPENAI)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -410,7 +414,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .apiKey("invalid_api_key")
                 .logRequests(true)
                 .logResponses(true)
@@ -430,7 +434,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -463,7 +467,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-5.6-terra-dzus")
+                .modelId(CHAT_MODEL_OPENAI)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -485,7 +489,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-5.6-terra-dzus")
+                .modelId(CHAT_MODEL_OPENAI)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -540,7 +544,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -597,7 +601,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -650,7 +654,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-5.6-terra-dzus")
+                .modelId(CHAT_MODEL_OPENAI)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -732,7 +736,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -785,7 +789,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -904,7 +908,7 @@ public class ModelGatewayChatServiceIT {
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
 
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -948,7 +952,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -1006,7 +1010,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .apiKey("invalid_api_key")
                 .logRequests(true)
                 .logResponses(true)
@@ -1042,7 +1046,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -1101,7 +1105,7 @@ public class ModelGatewayChatServiceIT {
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .apiKey(API_KEY)
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .logRequests(true)
                 .logResponses(true)
                 .toolInterceptor((ctx, fc) -> {
@@ -1234,7 +1238,7 @@ public class ModelGatewayChatServiceIT {
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .apiKey(API_KEY)
                 .baseUrl(URL)
-                .modelId("claude-sonnet-5")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .logRequests(true)
                 .toolInterceptor((ctx, fc) -> {
 
@@ -1320,7 +1324,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-5.6-terra-dzus")
+                .modelId(CHAT_MODEL_OPENAI)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -1342,7 +1346,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-5.6-terra-dzus")
+                .modelId(CHAT_MODEL_OPENAI)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)

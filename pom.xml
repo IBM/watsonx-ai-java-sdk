@@ -301,6 +301,9 @@
                     <include>**/it/ChatServiceIT.java</include>
                     <include>**/it/DeploymentServiceIT.java</include>
                     <include>**/it/ToolServiceIT.java</include>
+                    <include>**/it/ModelGatewayChatServiceIT.java</include>
+                    <include>**/it/ModelGatewayImageServiceIT.java</include>
+                    <include>**/it/ModelGatewayEmbeddingServiceIT.java</include>
                   </includes>
                   <rerunFailingTestsCount>3</rerunFailingTestsCount>
                   <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -319,6 +322,9 @@
                     <exclude>**/it/ChatServiceIT.java</exclude>
                     <exclude>**/it/DeploymentServiceIT.java</exclude>
                     <exclude>**/it/ToolServiceIT.java</exclude>
+                    <exclude>**/it/ModelGatewayChatServiceIT.java</exclude>
+                    <exclude>**/it/ModelGatewayImageServiceIT.java</exclude>
+                    <exclude>**/it/ModelGatewayEmbeddingServiceIT.java</exclude>
                   </excludes>
                   <rerunFailingTestsCount>0</rerunFailingTestsCount>
                   <redirectTestOutputToFile>true</redirectTestOutputToFile>

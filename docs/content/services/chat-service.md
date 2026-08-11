@@ -513,7 +513,7 @@ ChatService chatService = ChatService.builder()
     .apiKey(WATSONX_API_KEY)
     .projectId(WATSONX_PROJECT_ID)
     .baseUrl(CloudRegion.DALLAS)
-    .modelId("mistralai/mistral-medium-2505")
+    .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
     .build();
 
 var message = UserMessage.image(
