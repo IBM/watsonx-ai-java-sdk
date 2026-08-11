@@ -37,3 +37,4 @@ jobs:
         with:
           commit_message: "Prepare for next development iteration"
           token: ${{ secrets.GH_BOT_TOKEN }}
+          branch: main
