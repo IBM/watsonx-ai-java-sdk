@@ -2,10 +2,9 @@ name: Release to the Maven repository
 run-name: Release ${{ github.ref_name }}
 
 on:
-  workflow_dispatch:
   push:
     tags:
-      - "*"
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   release:
@@ -16,7 +15,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-          ref: main
+          ref: ${{ github.ref }}
           
       - name: Build and deploy to Maven repository
         uses: actions/setup-java@v5
