@@ -69,3 +69,17 @@ jobs:
           prerelease: false
           generate_release_notes: true
           token: ${{ secrets.GH_BOT_TOKEN }}
+
+      - name: Update README.md on main
+        run: |
+          git checkout main
+          git pull origin main
+          sed -E -i "s|(<version>)[^<]*(</version>)|\1${{ inputs.version }}\2|" README.md
+          sed -E -i "s|(com\.ibm\.watsonx:watsonx-ai:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ inputs.version }}|" README.md
+
+      - name: Commit and push main
+        uses: ./.github/actions/commit-push
+        with:
+          commit_message: "Update README.md to ${{ inputs.version }}"
+          token: ${{ secrets.GH_BOT_TOKEN }}
+          branch: main
