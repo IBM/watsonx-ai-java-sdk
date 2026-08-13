@@ -14,6 +14,7 @@ concurrency:
 jobs:
   prepare-release:
     name: Prepare Release
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -42,7 +43,7 @@ jobs:
 
       - name: Update SDK version in docusaurus.config.ts
         run: |
-          sed -i "s/0\.[0-9]\+\.[0-9]\+/${{ env.CURRENT_VERSION }}/g" docs/docusaurus.config.ts
+          sed -E -i "s|(sdkVersion:[[:space:]]*')[^']*(')|\1${{ env.CURRENT_VERSION }}\2|" docs/docusaurus.config.ts
 
       - name: Commit and push release updates
         uses: ./.github/actions/commit-push
