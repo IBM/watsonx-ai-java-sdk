@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.core.http;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
@@ -161,7 +162,7 @@ public final class SyncHttpClient extends BaseHttpClient {
          * @return {@code Builder} instance for method chaining.
          */
         public Builder interceptors(List<SyncHttpInterceptor> interceptors) {
-            this.interceptors = interceptors;
+            this.interceptors = isNull(interceptors) ? null : new ArrayList<>(interceptors);
             return this;
         }
 

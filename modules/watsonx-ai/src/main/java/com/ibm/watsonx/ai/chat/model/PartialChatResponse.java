@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionEntry;
@@ -31,6 +34,12 @@ public record PartialChatResponse(String id, String object, String modelId, Stri
     List<ResultChoice> choices, Long created, String modelVersion, String createdAt, ChatUsage usage,
     Map<String, List<ModerationResult>> moderations, Map<String, List<DetectionEntry>> detections,
     String serviceTier, String systemFingerprint, Boolean cached) {
+
+    public PartialChatResponse {
+        choices = isNull(choices) ? null : List.copyOf(choices);
+        moderations = isNull(moderations) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(moderations));
+        detections = isNull(detections) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(detections));
+    }
 
     /**
      * Returns the index of the first result choice.

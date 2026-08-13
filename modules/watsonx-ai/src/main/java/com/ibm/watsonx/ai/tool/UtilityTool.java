@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.tool;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.core.Experimental;
 
@@ -24,5 +27,11 @@ public record UtilityTool(
     String description,
     String agentDescription,
     Map<String, Object> inputSchema,
-    Map<String, Object> configSchema) {}
+    Map<String, Object> configSchema) {
+
+    public UtilityTool {
+        inputSchema = isNull(inputSchema) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(inputSchema));
+        configSchema = isNull(configSchema) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(configSchema));
+    }
+}
 

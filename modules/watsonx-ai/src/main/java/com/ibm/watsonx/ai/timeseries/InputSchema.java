@@ -34,9 +34,9 @@ public final class InputSchema {
      */
     private InputSchema(Builder builder) {
         timestampColumn = requireNonNull(builder.timestampColumn, "The timestampColumn must be provided");
-        idColumns = builder.idColumns.isEmpty() ? null : builder.idColumns;
+        idColumns = builder.idColumns.isEmpty() ? null : List.copyOf(builder.idColumns);
         freq = builder.freq;
-        targetColumns = builder.targetColumns.isEmpty() ? null : builder.targetColumns;
+        targetColumns = builder.targetColumns.isEmpty() ? null : List.copyOf(builder.targetColumns);
     }
 
     /**
@@ -132,8 +132,7 @@ public final class InputSchema {
          * @return {@code Builder} instance for method chaining
          */
         public Builder idColumns(List<String> idColumns) {
-            idColumns = requireNonNullElse(idColumns, new ArrayList<>());
-            this.idColumns = requireNonNullElse(idColumns, this.idColumns);
+            this.idColumns = new ArrayList<>(requireNonNullElse(idColumns, List.<String>of()));
             return this;
         }
 
@@ -145,7 +144,7 @@ public final class InputSchema {
          * @return {@code Builder} instance for method chaining
          */
         public Builder idColumns(String... idColumns) {
-            return idColumns(new ArrayList<>(List.of(idColumns)));
+            return idColumns(List.of(idColumns));
         }
 
         /**
@@ -178,8 +177,7 @@ public final class InputSchema {
          * @return {@code Builder} instance for method chaining
          */
         public Builder targetColumns(List<String> targetColumns) {
-            targetColumns = requireNonNullElse(targetColumns, new ArrayList<>());
-            this.targetColumns = requireNonNullElse(targetColumns, this.targetColumns);
+            this.targetColumns = new ArrayList<>(requireNonNullElse(targetColumns, List.<String>of()));
             return this;
         }
 
@@ -191,7 +189,7 @@ public final class InputSchema {
          * @return {@code Builder} instance for method chaining
          */
         public Builder targetColumns(String... targetColumns) {
-            return targetColumns(new ArrayList<>(List.of(targetColumns)));
+            return targetColumns(List.of(targetColumns));
         }
 
         /**

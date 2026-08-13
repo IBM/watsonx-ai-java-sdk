@@ -5,6 +5,7 @@
 
 package com.ibm.watsonx.ai.embedding;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 import com.ibm.watsonx.ai.Crypto;
 
@@ -19,5 +20,9 @@ import com.ibm.watsonx.ai.Crypto;
  * @param crypto the crypto configuration for encryption
  */
 public record EmbeddingPayload(String modelId, String spaceId, String projectId,
-    List<String> inputs, EmbeddingRequestParameters parameters, Crypto crypto) {}
+    List<String> inputs, EmbeddingRequestParameters parameters, Crypto crypto) {
+    public EmbeddingPayload {
+        inputs = isNull(inputs) ? null : List.copyOf(inputs);
+    }
+}
 

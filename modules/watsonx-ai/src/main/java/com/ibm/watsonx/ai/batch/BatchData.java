@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.batch;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -54,13 +57,21 @@ public record BatchData(
     RequestCounts requestCounts,
     Map<String, String> metadata) {
 
+    public BatchData {
+        metadata = isNull(metadata) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(metadata));
+    }
+
     /**
      * Represents the errors associated with a batch job.
      *
      * @param object the object type of the error container
      * @param data the list of {@link FileError} entries describing individual errors
      */
-    public record FileErrors(String object, List<FileError> data) {}
+    public record FileErrors(String object, List<FileError> data) {
+        public FileErrors {
+            data = isNull(data) ? null : List.copyOf(data);
+        }
+    }
 
     /**
      * Represents a single error detail within a batch job.

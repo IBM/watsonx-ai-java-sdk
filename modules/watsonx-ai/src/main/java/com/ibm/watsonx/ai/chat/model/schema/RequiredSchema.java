@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ public final class RequiredSchema extends JsonSchema {
 
     RequiredSchema(Builder builder) {
         super(null, builder);
-        this.required = builder.required;
+        required = isNull(builder.required) ? null : List.copyOf(builder.required);
     }
 
     public List<String> required() {

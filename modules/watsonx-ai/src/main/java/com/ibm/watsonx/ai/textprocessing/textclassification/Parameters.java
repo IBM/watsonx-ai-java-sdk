@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textclassification;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.Schema;
@@ -23,6 +26,11 @@ public record Parameters(
     Boolean autoRotationCorrection,
     List<String> languages,
     SemanticConfig semanticConfig) {
+
+    public Parameters {
+        languages = isNull(languages) ? null : List.copyOf(languages);
+    }
+
     public record SemanticConfig(
         Boolean enableTextHints,
         Boolean enableGenericKvp,
@@ -32,5 +40,12 @@ public record Parameters(
         String defaultModelName,
         Map<String, Object> taskModelNameOverride,
         String schemasMergeStrategy,
-        List<Schema> schemas) {}
+        List<Schema> schemas) {
+
+        public SemanticConfig {
+            taskModelNameOverride =
+                isNull(taskModelNameOverride) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(taskModelNameOverride));
+            schemas = isNull(schemas) ? null : List.copyOf(schemas);
+        }
+    }
 }

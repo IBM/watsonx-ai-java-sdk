@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textgeneration;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -19,6 +20,10 @@ public record TextGenerationResponse(
     String createdAt,
     String modelVersion,
     List<Result> results) {
+
+    public TextGenerationResponse {
+        results = isNull(results) ? null : List.copyOf(results);
+    }
 
     /**
      * Returns the textual content of text request response.
@@ -50,7 +55,12 @@ public record TextGenerationResponse(
         Integer seed,
         List<TokenInfo> generatedTokens,
         List<TokenInfo> inputTokens,
-        ModerationResults moderations) {}
+        ModerationResults moderations) {
+        public Result {
+            generatedTokens = isNull(generatedTokens) ? null : List.copyOf(generatedTokens);
+            inputTokens = isNull(inputTokens) ? null : List.copyOf(inputTokens);
+        }
+    }
 
     /**
      * Detailed information about a single token.

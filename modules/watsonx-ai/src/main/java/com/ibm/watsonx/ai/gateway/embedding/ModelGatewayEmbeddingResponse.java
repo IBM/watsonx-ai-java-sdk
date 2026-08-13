@@ -21,6 +21,10 @@ import java.util.List;
  */
 public record ModelGatewayEmbeddingResponse(String object, String model, List<Embedding> data, Usage usage) {
 
+    public ModelGatewayEmbeddingResponse {
+        data = isNull(data) ? null : List.copyOf(data);
+    }
+
     /**
      * Represents token usage information for an embedding request.
      *

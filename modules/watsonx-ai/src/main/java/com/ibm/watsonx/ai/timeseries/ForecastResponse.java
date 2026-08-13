@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.timeseries;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 import java.util.Map;
 
@@ -23,4 +24,9 @@ public record ForecastResponse(
     String createdAt,
     List<Map<String, Object>> results,
     int inputDataPoints,
-    int outputDataPoints) {}
+    int outputDataPoints) {
+
+    public ForecastResponse {
+        results = isNull(results) ? null : List.copyOf(results);
+    }
+}

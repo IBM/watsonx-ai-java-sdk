@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textclassification;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.DataReference;
 
@@ -17,4 +20,9 @@ import com.ibm.watsonx.ai.textprocessing.DataReference;
  * @param custom user-defined custom properties
  */
 public record TextClassificationRequest(String projectId, String spaceId, DataReference documentReference, Parameters parameters,
-    Map<String, Object> custom) {}
+    Map<String, Object> custom) {
+
+    public TextClassificationRequest {
+        custom = isNull(custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(custom));
+    }
+}

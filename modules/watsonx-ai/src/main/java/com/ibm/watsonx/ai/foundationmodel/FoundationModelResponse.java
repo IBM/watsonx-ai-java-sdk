@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.foundationmodel;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -25,6 +26,10 @@ import java.util.regex.Pattern;
  * @see FoundationModelTask
  */
 public record FoundationModelResponse<T>(Integer limit, Pagination first, Integer totalCount, Pagination next, List<T> resources) {
+
+    public FoundationModelResponse {
+        resources = isNull(resources) ? null : List.copyOf(resources);
+    }
 
     /**
      * Represents a hyperlink reference to a specific point in pagination.

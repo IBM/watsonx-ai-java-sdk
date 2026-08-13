@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.schema.create;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -27,6 +28,10 @@ public record Parameters(
     Boolean enableGrounding,
     Integer maxPagesToProcess,
     SemanticConfig semanticConfig) {
+
+    public Parameters {
+        languages = isNull(languages) ? null : List.copyOf(languages);
+    }
 
     /**
      * Represents the semantic configuration for the Create Schema API.

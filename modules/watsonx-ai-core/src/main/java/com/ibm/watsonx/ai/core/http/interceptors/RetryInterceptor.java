@@ -96,7 +96,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
         requireNonNull(builder);
         retryInterval = requireNonNullElse(builder.retryInterval, Duration.ofMillis(0));
         maxRetries = requireNonNullElse(builder.maxRetries, 1);
-        retryOn = requireNonNull(builder.retryOn, "At least one exception must be specified");
+        retryOn = List.copyOf(requireNonNull(builder.retryOn, "At least one exception must be specified"));
         exponentialBackoff = builder.exponentialBackoff;
         if (exponentialBackoff && retryInterval.isZero())
             throw new IllegalArgumentException("Retry interval must be positive when exponential backoff is enabled");

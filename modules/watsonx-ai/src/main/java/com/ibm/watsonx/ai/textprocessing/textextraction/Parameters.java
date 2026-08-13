@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.Schema;
@@ -34,6 +37,11 @@ public record Parameters(
     String kvpMode,
     SemanticConfig semanticConfig) {
 
+    public Parameters {
+        requestedOutputs = isNull(requestedOutputs) ? null : List.copyOf(requestedOutputs);
+        languages = isNull(languages) ? null : List.copyOf(languages);
+    }
+
     public static Parameters of(List<String> requestedOutputs) {
         return new Parameters(requestedOutputs, null, null, null, null, null, null, null, null, null);
     }
@@ -47,5 +55,12 @@ public record Parameters(
         String defaultModelName,
         Map<String, Object> taskModelNameOverride,
         String schemasMergeStrategy,
-        List<Schema> schemas) {}
+        List<Schema> schemas) {
+
+        public SemanticConfig {
+            taskModelNameOverride =
+                isNull(taskModelNameOverride) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(taskModelNameOverride));
+            schemas = isNull(schemas) ? null : List.copyOf(schemas);
+        }
+    }
 }

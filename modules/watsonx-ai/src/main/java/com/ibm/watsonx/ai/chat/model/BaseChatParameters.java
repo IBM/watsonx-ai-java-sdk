@@ -7,6 +7,8 @@ package com.ibm.watsonx.ai.chat.model;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters;
@@ -26,7 +28,12 @@ public abstract class BaseChatParameters {
      * @param schema the JSON schema object
      * @param strict whether strict schema adherence is enforced
      */
-    public record JsonSchemaObject(String name, Object schema, boolean strict) {}
+    public record JsonSchemaObject(String name, Object schema, boolean strict) {
+        public JsonSchemaObject {
+            if (schema instanceof Map<?, ?> map)
+                schema = Collections.unmodifiableMap(new LinkedHashMap<>(map));
+        }
+    }
 
     protected final String modelId;
     protected final String transactionId;

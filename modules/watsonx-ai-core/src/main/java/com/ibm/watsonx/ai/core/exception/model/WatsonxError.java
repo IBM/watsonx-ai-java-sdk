@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.core.exception.model;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -14,6 +15,10 @@ import java.util.List;
  * @param errors the list of individual error details
  */
 public record WatsonxError(Integer statusCode, String trace, List<Error> errors) {
+
+    public WatsonxError {
+        errors = isNull(errors) ? null : List.copyOf(errors);
+    }
 
     /**
      * Represents a single error item in the watsonx error response.

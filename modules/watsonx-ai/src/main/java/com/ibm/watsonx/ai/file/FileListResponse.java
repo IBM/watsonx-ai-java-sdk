@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.file;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -17,4 +18,9 @@ import java.util.List;
  * @param lastId the identifier of the last entry in the page
  * @param hasMore whether more entries are available beyond this page
  */
-public record FileListResponse(String object, List<FileData> data, String firstId, String lastId, boolean hasMore) {}
+public record FileListResponse(String object, List<FileData> data, String firstId, String lastId, boolean hasMore) {
+
+    public FileListResponse {
+        data = isNull(data) ? null : List.copyOf(data);
+    }
+}
