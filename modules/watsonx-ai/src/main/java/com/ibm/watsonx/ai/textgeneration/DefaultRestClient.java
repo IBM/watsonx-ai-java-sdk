@@ -20,6 +20,8 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -81,62 +83,122 @@ final class DefaultRestClient extends TextGenerationRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        var subscriber = subscriber(handler);
-        return asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+        var response = new CompletableFuture<Void>();
+        var subscriber = new CancellableSubscriber(handler);
+        var httpFuture = asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-            : BodySubscribers.fromLineSubscriber(subscriber))
-            .thenAccept(r -> {})
-            .exceptionally(t -> handleError(t, handler));
+            : BodySubscribers.fromLineSubscriber(subscriber));
+
+        httpFuture
+            .thenAccept(r -> response.complete(null))
+            .exceptionally(t -> {
+                if (subscriber.isCancelled())
+                    return null;
+
+                handleError(t, handler);
+                response.completeExceptionally(nonNull(t.getCause()) ? t.getCause() : t);
+                return null;
+            });
+
+        response.whenComplete((r, t) -> {
+            if (response.isCancelled()) {
+                subscriber.cancelStream();
+                httpFuture.cancel(true);
+            }
+        });
+
+        return response;
     }
 
     /**
-     * Creates a subscriber that listens to raw SSE messages from the chat stream, and delegates processing to a {@link TextGenerationSubscriber}.
-     *
-     * @param handler the handler that receives processed chat events
-     * @return a {@link Flow.Subscriber} suitable for consumption by the HTTP client
+     * A subscriber of raw SSE messages that delegates processing to a {@link TextGenerationSubscriber} and can be stopped through
+     * {@link #cancelStream()}.
      */
-    private Flow.Subscriber<String> subscriber(TextGenerationHandler handler) {
+    private static final class CancellableSubscriber implements Flow.Subscriber<String> {
 
-        return new Flow.Subscriber<String>() {
-            private Flow.Subscription subscription;
-            private volatile boolean success = true;
-            private volatile TextGenerationSubscriber chatSubscriber = createSubscriber(handler);
+        private final TextGenerationHandler handler;
+        private final TextGenerationSubscriber chatSubscriber;
+        private final AtomicBoolean cancelled = new AtomicBoolean(false);
+        private final AtomicReference<Flow.Subscription> subscriptionRef = new AtomicReference<>();
+        private Flow.Subscription subscription;
+        private volatile boolean success = true;
 
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                this.subscription = subscription;
-                this.subscription.request(1);
+        CancellableSubscriber(TextGenerationHandler handler) {
+            this.handler = handler;
+            this.chatSubscriber = createSubscriber(handler);
+        }
+
+        /**
+         * Stops the stream: no further callback is delivered to the handler and the body subscription is cancelled.
+         */
+        void cancelStream() {
+            cancelled.set(true);
+
+            var subscription = subscriptionRef.get();
+            if (nonNull(subscription))
+                subscription.cancel();
+        }
+
+        /**
+         * Returns whether the stream has been cancelled.
+         */
+        boolean isCancelled() {
+            return cancelled.get();
+        }
+
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            this.subscription = subscription;
+            subscriptionRef.set(subscription);
+
+            if (isCancelled()) {
+                subscription.cancel();
+                return;
             }
 
-            @Override
-            public void onNext(String partialMessage) {
-                try {
+            this.subscription.request(1);
+        }
 
-                    chatSubscriber.onNext(partialMessage);
+        @Override
+        public void onNext(String partialMessage) {
 
-                } catch (RuntimeException e) {
-
-                    onError(e);
-                    success = !handler.failOnFirstError();
-
-                } finally {
-                    if (success)
-                        subscription.request(1);
-                    else
-                        subscription.cancel();
-                }
+            if (isCancelled()) {
+                subscription.cancel();
+                return;
             }
 
-            @Override
-            public void onError(Throwable throwable) {
-                chatSubscriber.onError(throwable);
-            }
+            try {
 
-            @Override
-            public void onComplete() {
-                chatSubscriber.onComplete();
+                chatSubscriber.onNext(partialMessage);
+
+            } catch (RuntimeException e) {
+
+                onError(e);
+                success = !handler.failOnFirstError();
+
+            } finally {
+                if (success && !isCancelled())
+                    subscription.request(1);
+                else
+                    subscription.cancel();
             }
-        };
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            if (isCancelled())
+                return;
+
+            chatSubscriber.onError(throwable);
+        }
+
+        @Override
+        public void onComplete() {
+            if (isCancelled())
+                return;
+
+            chatSubscriber.onComplete();
+        }
     }
 
     /**

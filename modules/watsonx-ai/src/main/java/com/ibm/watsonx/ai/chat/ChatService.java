@@ -134,6 +134,9 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
 
     /**
      * Sends a streaming chat request.
+     * <p>
+     * Calling {@code cancel(...)} on the returned future stops the stream: the response body subscription is aborted and no further callback is
+     * dispatched to the handler.
      *
      * @param chatRequest the {@link ChatRequest}
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications

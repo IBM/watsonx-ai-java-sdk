@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -1412,6 +1413,58 @@ public class ModelGatewayChatServiceIT {
             assertNotNull(content);
             assertEquals(3, assistantMessage.toolCalls().size());
             assertTrue(countries.contains("Germany") && countries.contains("Italy") && countries.contains("Japan"));
+        }
+
+        @Test
+        void should_stop_the_stream_when_the_returned_future_is_cancelled() throws Exception {
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .modelId(CHAT_MODEL_CLAUDE)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var chatRequest = ModelGatewayChatRequest.builder()
+                .messages(UserMessage.text("Count from 1 to 300, one number per line, without any other text."))
+                .parameters(ModelGatewayChatParameters.builder().maxTokens(1000).build())
+                .build();
+
+            var partialResponses = new AtomicInteger();
+            var terminalCallbacks = new AtomicInteger();
+            var firstPartialResponse = new CountDownLatch(1);
+
+            var future = modelGatewayChatService.chatStreaming(chatRequest, new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    partialResponses.incrementAndGet();
+                    firstPartialResponse.countDown();
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    terminalCallbacks.incrementAndGet();
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    terminalCallbacks.incrementAndGet();
+                }
+            });
+
+            assertTrue(firstPartialResponse.await(60, TimeUnit.SECONDS), "the model never started streaming");
+            assertTrue(future.cancel(true));
+
+            Thread.sleep(500);
+            var deliveredAtCancel = partialResponses.get();
+            Thread.sleep(3000);
+
+            assertEquals(deliveredAtCancel, partialResponses.get());
+            assertEquals(0, terminalCallbacks.get());
+            assertTrue(future.isCancelled());
+            assertThrows(CancellationException.class, future::join);
         }
     }
 }

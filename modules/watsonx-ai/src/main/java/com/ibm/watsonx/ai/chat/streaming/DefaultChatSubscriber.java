@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
@@ -33,17 +34,53 @@ public class DefaultChatSubscriber extends ChatSubscriber {
     private final AtomicBoolean errorReported = new AtomicBoolean(false);
 
     /**
+     * The same handler as {@link #handler}, typed to expose callback cancellation and {@code awaitCallbacks}.
+     */
+    private final ChatHandlerDecorator<?> decorator;
+
+    /**
+     * The subscription of the body stream, set once {@code onSubscribe} fires and read by {@link #cancelStream()}.
+     */
+    private final AtomicReference<Flow.Subscription> subscriptionRef = new AtomicReference<>();
+
+    /**
      * Creates a new DefaultChatSubscriber.
      *
      * @param processor the stream processor that parses SSE chunks
      * @param handler the decorated handler that executes user callbacks
      */
-    public DefaultChatSubscriber(SseEventProcessor processor, ChatHandlerDecorator handler) {
+    public DefaultChatSubscriber(SseEventProcessor processor, ChatHandlerDecorator<?> handler) {
         super(processor, handler);
+        this.decorator = handler;
+    }
+
+    /**
+     * Stops the stream: no further callback is delivered to the handler and the body subscription is cancelled.
+     * <p>
+     * Safe to call from any thread, before the subscription is established, and more than once.
+     */
+    public void cancelStream() {
+        decorator.cancel();
+
+        var subscription = subscriptionRef.get();
+        if (nonNull(subscription))
+            subscription.cancel();
+    }
+
+    /**
+     * Returns whether the stream has been cancelled.
+     *
+     * @return {@code true} if {@link #cancelStream()} has been called
+     */
+    public boolean isCancelled() {
+        return decorator.isCancelled();
     }
 
     @Override
     public CompletableFuture<ChatResponse> onComplete() {
+        if (isCancelled())
+            return CompletableFuture.completedFuture(null);
+
         return awaitCallbacks()
             .thenCompose(completeToolCalls -> {
                 var response = processor.buildResponse();
@@ -84,11 +121,24 @@ public class DefaultChatSubscriber extends ChatSubscriber {
             @Override
             public void onSubscribe(Subscription subscription) {
                 this.subscription = subscription;
+                subscriptionRef.set(subscription);
+
+                if (isCancelled()) {
+                    subscription.cancel();
+                    return;
+                }
+
                 this.subscription.request(1);
             }
 
             @Override
             public void onNext(String partialMessage) {
+
+                if (isCancelled()) {
+                    subscription.cancel();
+                    return;
+                }
+
                 try {
 
                     DefaultChatSubscriber.this.onNext(partialMessage);
@@ -107,7 +157,7 @@ public class DefaultChatSubscriber extends ChatSubscriber {
                     }
 
                 } finally {
-                    if (continueProcessing)
+                    if (continueProcessing && !isCancelled())
                         subscription.request(1);
                     else {
                         subscription.cancel();
@@ -117,6 +167,10 @@ public class DefaultChatSubscriber extends ChatSubscriber {
 
             @Override
             public void onError(Throwable throwable) {
+
+                if (isCancelled())
+                    return;
+
                 Throwable t = nonNull(throwable.getCause()) ? throwable.getCause() : throwable;
                 if (markErrorReported())
                     DefaultChatSubscriber.this.onError(t);
@@ -150,11 +204,7 @@ public class DefaultChatSubscriber extends ChatSubscriber {
      * @return a CompletableFuture that resolves to a list of all processed {@link CompletedToolCall} objects
      */
     private CompletableFuture<List<CompletedToolCall>> awaitCallbacks() {
-        // This cast is safe because the constructor enforces ChatHandlerDecorator type
-        if (!(handler instanceof ChatHandlerDecorator handlerDecorator))
-            throw new IllegalStateException("Handler must be a ChatHandlerDecorator");
-
-        return handlerDecorator.awaitCallbacks();
+        return decorator.awaitCallbacks();
     }
 
     /**

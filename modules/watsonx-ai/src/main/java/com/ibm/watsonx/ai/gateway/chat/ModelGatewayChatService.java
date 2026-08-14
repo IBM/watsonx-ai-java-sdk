@@ -119,6 +119,9 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
 
     /**
      * Sends a streaming chat request to the Model Gateway.
+     * <p>
+     * Calling {@code cancel(...)} on the returned future stops the stream: the response body subscription is aborted and no further callback is
+     * dispatched to the handler.
      *
      * @param chatRequest the {@link ModelGatewayChatRequest}
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications

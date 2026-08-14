@@ -6,9 +6,12 @@ package com.ibm.watsonx.ai.chat.decorator;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatRequest;
@@ -256,5 +259,66 @@ public class ChatHandlerDecoratorTest {
 
         var toolCalls = decorator.awaitCallbacks().join();
         assertEquals(List.of(0, 1), toolCalls.stream().map(toolCall -> toolCall.toolCall().index()).toList());
+    }
+
+    @Test
+    void should_take_effect_only_once_when_cancelled_more_than_once() {
+
+        var decorator = new ChatHandlerDecorator<ChatRequest>(new Recorder(), null, null);
+
+        assertTrue(decorator.cancel());
+        assertFalse(decorator.cancel());
+        assertTrue(decorator.isCancelled());
+    }
+
+    @Test
+    void should_deliver_no_callback_after_cancel() {
+
+        var recorder = new Recorder();
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
+
+        decorator.onPartialResponse("Hello", null);
+        decorator.awaitCallbacks().join();
+        decorator.cancel();
+
+        emitTwoToolCalls(decorator);
+
+        // The callback chain must keep advancing while cancelled, otherwise awaitCallbacks would never complete.
+        assertDoesNotThrow(() -> decorator.awaitCallbacks().join());
+
+        assertEquals(List.of("partialResponse"), recorder.events);
+    }
+
+    @Test
+    void should_not_report_the_error_of_a_callback_that_throws_after_cancel() {
+
+        var recorder = new Recorder();
+        var decorator = new AtomicReference<ChatHandlerDecorator<ChatRequest>>();
+
+        decorator.set(new ChatHandlerDecorator<ChatRequest>(new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                recorder.onPartialResponse(partialResponse, partialChatResponse);
+                decorator.get().cancel();
+                throw new IllegalStateException("thrown by the handler");
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                recorder.onCompleteResponse(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                recorder.onError(error);
+            }
+        }, null, null));
+
+        decorator.get().onPartialResponse("Hello", null);
+        decorator.get().onCompleteResponse(null);
+        decorator.get().awaitCallbacks().join();
+
+        assertEquals(List.of("partialResponse"), recorder.events);
     }
 }

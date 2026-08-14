@@ -28,6 +28,9 @@ public interface TextGenerationProvider {
      * <p>
      * This method initiates an asynchronous text generation operation where partial responses are delivered incrementally through the provided
      * {@link TextGenerationHandler}.
+     * <p>
+     * Calling {@code cancel(...)} on the returned future stops the stream: the response body subscription is aborted and no further callback is
+     * dispatched to the handler.
      *
      * @param request the {@link TextGenerationRequest} containing input, moderation, parameters, and optional deployment ID
      * @param handler the handler that will receive streamed generation events
