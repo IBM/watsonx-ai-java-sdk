@@ -43,7 +43,11 @@ public class TextChatResponse extends ChatResponse {
      * @param choiceIndex the index of the choice this detection refers to
      * @param results the list of detection results found for the choice
      */
-    public record DetectionEntry(int choiceIndex, List<DetectionResult> results) {}
+    public record DetectionEntry(int choiceIndex, List<DetectionResult> results) {
+        public DetectionEntry {
+            results = isNull(results) ? null : List.copyOf(results);
+        }
+    }
 
     /**
      * Represents a single detection result produced by a detector.

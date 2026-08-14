@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.schema.cluster;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -13,6 +14,10 @@ import java.util.List;
  * @param semanticConfig properties related to semantic config
  */
 public record Parameters(List<ClusterSchemas> schemas, SemanticConfig semanticConfig) {
+
+    public Parameters {
+        schemas = isNull(schemas) ? null : List.copyOf(schemas);
+    }
 
     /**
      * Represents the semantic configuration for the Cluster Schema API.

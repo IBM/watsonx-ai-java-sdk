@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.deployment;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +46,12 @@ public record DeploymentResource(ResourceMeta metadata, DeploymentEntity entity)
         List<String> tags,
         ResourceCommitInfo commitInfo,
         String spaceId,
-        String projectId) {}
+        String projectId) {
+
+        public ResourceMeta {
+            tags = isNull(tags) ? null : List.copyOf(tags);
+        }
+    }
 
     /**
      * Commit information for a resource.
@@ -81,14 +89,24 @@ public record DeploymentResource(ResourceMeta metadata, DeploymentEntity entity)
         String deployedAssetType,
         String verbalizer,
         DeploymentStatus status,
-        Map<String, String> tooling) {}
+        Map<String, String> tooling) {
+
+        public DeploymentEntity {
+            custom = isNull(custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(custom));
+            tooling = isNull(tooling) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(tooling));
+        }
+    }
 
     /**
      * Online deployment configuration.
      *
      * @param parameters deployment parameters
      */
-    public record OnlineDeployment(Map<String, Object> parameters) {}
+    public record OnlineDeployment(Map<String, Object> parameters) {
+        public OnlineDeployment {
+            parameters = isNull(parameters) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(parameters));
+        }
+    }
 
     /**
      * Simple resource reference.
@@ -145,7 +163,12 @@ public record DeploymentResource(ResourceMeta metadata, DeploymentEntity entity)
         String state,
         Message message,
         ApiErrorResponse failure,
-        List<Inference> inference) {}
+        List<Inference> inference) {
+
+        public DeploymentStatus {
+            inference = isNull(inference) ? null : List.copyOf(inference);
+        }
+    }
 
     /**
      * Status message.
@@ -165,7 +188,12 @@ public record DeploymentResource(ResourceMeta metadata, DeploymentEntity entity)
      */
     public record ApiErrorResponse(
         String trace,
-        List<ApiError> errors) {}
+        List<ApiError> errors) {
+
+        public ApiErrorResponse {
+            errors = isNull(errors) ? null : List.copyOf(errors);
+        }
+    }
 
     /**
      * API error details.

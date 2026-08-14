@@ -4,7 +4,7 @@
  */
 package com.ibm.watsonx.ai.timeseries;
 
-import static java.util.Objects.requireNonNullElse;
+import static java.util.Objects.isNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,7 +36,7 @@ public final class ForecastData {
      * Constructs an ForecastData instance.
      */
     protected ForecastData(Map<String, List<Object>> data) {
-        this.data = requireNonNullElse(data, new LinkedHashMap<>());
+        this.data = isNull(data) ? new LinkedHashMap<>() : new LinkedHashMap<>(data);
     }
 
     /**
@@ -141,8 +141,8 @@ public final class ForecastData {
     /**
      * Creates a new instance of {@code ForecastData} from the given map.
      *
-     * @param data the columnar data map to wrap
-     * @return a new {@code ForecastData} instance wrapping the given map
+     * @param data the columnar data map to copy
+     * @return a new {@code ForecastData} instance containing a copy of the given map
      */
     public static ForecastData from(Map<String, List<Object>> data) {
         return new ForecastData(data);

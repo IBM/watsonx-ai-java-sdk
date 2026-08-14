@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.DataReference;
@@ -28,7 +31,12 @@ public record TextExtractionResponse(Metadata metadata, Entity entity) {
      * @param custom User defined properties specified as key-value pairs.
      */
     public record Entity(DataReference documentReference, DataReference resultsReference, ExtractionResult results, Parameters parameters,
-        Map<String, Object> custom) {}
+        Map<String, Object> custom) {
+
+        public Entity {
+            custom = isNull(custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(custom));
+        }
+    }
 
     /**
      * Represents the result and status of a text extraction process.
@@ -42,5 +50,10 @@ public record TextExtractionResponse(Metadata metadata, Entity entity) {
      * @param error Optional error details in case of failure.
      */
     public record ExtractionResult(String status, int numberPagesProcessed, String runningAt, String completedAt, Integer totalPages,
-        List<String> location, Error error) {}
+        List<String> location, Error error) {
+
+        public ExtractionResult {
+            location = isNull(location) ? null : List.copyOf(location);
+        }
+    }
 }

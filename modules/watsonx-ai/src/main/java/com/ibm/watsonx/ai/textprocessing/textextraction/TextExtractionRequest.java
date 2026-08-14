@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.DataReference;
 
@@ -18,4 +21,9 @@ import com.ibm.watsonx.ai.textprocessing.DataReference;
  * @param custom user-defined custom properties
  */
 public record TextExtractionRequest(String projectId, String spaceId, DataReference documentReference, DataReference resultsReference,
-    Parameters parameters, Map<String, Object> custom) {}
+    Parameters parameters, Map<String, Object> custom) {
+
+    public TextExtractionRequest {
+        custom = isNull(custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(custom));
+    }
+}

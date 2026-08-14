@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.rerank;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -23,6 +24,10 @@ public record RerankResponse(
     int inputTokenCount,
     String modelVersion,
     String query) {
+
+    public RerankResponse {
+        results = isNull(results) ? null : List.copyOf(results);
+    }
 
     /**
      * Represents an input text that was reranked.

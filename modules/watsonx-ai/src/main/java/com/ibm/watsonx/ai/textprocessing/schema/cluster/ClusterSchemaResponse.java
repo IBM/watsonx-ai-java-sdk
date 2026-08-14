@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.schema.cluster;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 import com.ibm.watsonx.ai.textprocessing.Error;
 import com.ibm.watsonx.ai.textprocessing.Metadata;
@@ -33,5 +34,9 @@ public record ClusterSchemaResponse(Metadata metadata, Entity entity) {
      * @param schemas the schemas after being clustered, grouped into semantically similar clusters
      * @param error optional error details in case of failure
      */
-    public record ClusterSchemaResult(String status, String runningAt, String completedAt, List<List<ClusterSchemas>> schemas, Error error) {}
+    public record ClusterSchemaResult(String status, String runningAt, String completedAt, List<List<ClusterSchemas>> schemas, Error error) {
+        public ClusterSchemaResult {
+            schemas = isNull(schemas) ? null : List.copyOf(schemas);
+        }
+    }
 }

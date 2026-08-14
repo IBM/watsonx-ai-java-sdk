@@ -135,6 +135,10 @@ public class SseEventProcessor {
      */
     public record ProcessResult(List<CallbackEvent> events, boolean hasError, Throwable error) {
 
+        public ProcessResult {
+            events = isNull(events) ? null : List.copyOf(events);
+        }
+
         /**
          * Creates an empty result (no events, no error).
          */

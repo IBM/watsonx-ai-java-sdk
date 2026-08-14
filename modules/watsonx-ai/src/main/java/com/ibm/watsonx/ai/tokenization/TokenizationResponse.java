@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.tokenization;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -20,5 +21,9 @@ public record TokenizationResponse(String modelId, Result result) {
      * @param tokenCount The total number of tokens produced.
      * @param tokens The list of individual tokens (if requested).
      */
-    public record Result(int tokenCount, List<String> tokens) {}
+    public record Result(int tokenCount, List<String> tokens) {
+        public Result {
+            tokens = isNull(tokens) ? null : List.copyOf(tokens);
+        }
+    }
 }

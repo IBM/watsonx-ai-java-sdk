@@ -80,7 +80,7 @@ public class DeploymentService extends WatsonxService
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
-        defaultTools = builder.defaultTools;
+        defaultTools = isNull(builder.defaultTools) ? null : List.copyOf(builder.defaultTools);
         defaultParameters = requireNonNullElse(builder.defaultParameters, ChatParameters.builder().build());
 
         client = DeploymentRestClient.builder()

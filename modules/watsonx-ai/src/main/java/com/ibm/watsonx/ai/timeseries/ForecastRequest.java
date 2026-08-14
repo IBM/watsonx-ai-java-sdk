@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai.timeseries;
 
+import static java.util.Objects.isNull;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +31,11 @@ public record ForecastRequest(
     InputSchema schema,
     Map<String, List<Object>> futureData,
     Parameters parameters) {
+
+    public ForecastRequest {
+        data = isNull(data) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(data));
+        futureData = isNull(futureData) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(futureData));
+    }
 
     /**
      * Parameters for controlling the forecast.

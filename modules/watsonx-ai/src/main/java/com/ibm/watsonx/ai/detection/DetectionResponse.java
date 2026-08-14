@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.detection;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -12,4 +13,9 @@ import java.util.List;
  * @param <T> the type of detection results contained in the response
  * @param detections the list of detection results
  */
-public record DetectionResponse<T extends BaseDetectionResponse>(List<T> detections) {}
+public record DetectionResponse<T extends BaseDetectionResponse>(List<T> detections) {
+
+    public DetectionResponse {
+        detections = isNull(detections) ? null : List.copyOf(detections);
+    }
+}

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.tool;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.util.List;
@@ -53,7 +54,11 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
  */
 @Experimental
 public class ToolService extends WatsonxService {
-    public record Resources(List<UtilityTool> resources) {}
+    public record Resources(List<UtilityTool> resources) {
+        public Resources {
+            resources = isNull(resources) ? null : List.copyOf(resources);
+        }
+    }
 
     private final ToolRestClient client;
 

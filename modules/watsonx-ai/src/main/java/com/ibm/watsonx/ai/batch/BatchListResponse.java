@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.batch;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -17,4 +18,9 @@ import java.util.List;
  * @param lastId The identifier of the last batch job in the list.
  * @param hasMore Whether more results are available beyond this page.
  */
-public record BatchListResponse(String object, List<BatchData> data, String firstId, String lastId, boolean hasMore) {}
+public record BatchListResponse(String object, List<BatchData> data, String firstId, String lastId, boolean hasMore) {
+
+    public BatchListResponse {
+        data = isNull(data) ? null : List.copyOf(data);
+    }
+}

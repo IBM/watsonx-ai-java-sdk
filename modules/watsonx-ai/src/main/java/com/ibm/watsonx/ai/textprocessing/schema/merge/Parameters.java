@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.schema.merge;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 
@@ -16,6 +17,10 @@ import com.ibm.watsonx.ai.textprocessing.Schema;
 public record Parameters(
     List<Schema> schemas,
     SemanticConfig semanticConfig) {
+
+    public Parameters {
+        schemas = isNull(schemas) ? null : List.copyOf(schemas);
+    }
 
     /**
      * Represents the semantic configuration for the Merge Schema API.

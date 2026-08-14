@@ -4,7 +4,10 @@
  */
 package com.ibm.watsonx.ai.foundationmodel;
 
+import static java.util.Objects.isNull;
 import static java.util.Optional.ofNullable;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +67,17 @@ public record FoundationModel(
     CuratedModelInfo curatedModelInfo,
     List<DeploymentParameter> deploymentParameters) {
 
+    public FoundationModel {
+        functions = isNull(functions) ? null : List.copyOf(functions);
+        taskIds = isNull(taskIds) ? null : List.copyOf(taskIds);
+        tasks = isNull(tasks) ? null : List.copyOf(tasks);
+        limits = isNull(limits) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(limits));
+        lifecycle = isNull(lifecycle) ? null : List.copyOf(lifecycle);
+        versions = isNull(versions) ? null : List.copyOf(versions);
+        supportedLanguages = isNull(supportedLanguages) ? null : List.copyOf(supportedLanguages);
+        deploymentParameters = isNull(deploymentParameters) ? null : List.copyOf(deploymentParameters);
+    }
+
     /**
      * Returns the maximum sequence length supported by the model.
      *
@@ -108,7 +122,11 @@ public record FoundationModel(
      *
      * @param defaultValue the list of default target modules
      */
-    public record TargetModules(List<String> defaultValue) {}
+    public record TargetModules(List<String> defaultValue) {
+        public TargetModules {
+            defaultValue = isNull(defaultValue) ? null : List.copyOf(defaultValue);
+        }
+    }
 
     /**
      * Represents gradient checkpointing configuration.
@@ -136,7 +154,11 @@ public record FoundationModel(
         String id,
         Ratings ratings,
         List<String> tags,
-        TrainingParameters trainingParameters) {}
+        TrainingParameters trainingParameters) {
+        public Task {
+            tags = isNull(tags) ? null : List.copyOf(tags);
+        }
+    }
 
     /**
      * Represents model limits and constraints.
@@ -172,7 +194,11 @@ public record FoundationModel(
     public record Lifecycle(
         String id,
         String startDate,
-        List<String> alternativeModelIds) {}
+        List<String> alternativeModelIds) {
+        public Lifecycle {
+            alternativeModelIds = isNull(alternativeModelIds) ? null : List.copyOf(alternativeModelIds);
+        }
+    }
 
     /**
      * Represents training parameters for the model.
@@ -210,7 +236,11 @@ public record FoundationModel(
      */
     public record InitMethod(
         List<String> supported,
-        String defaultValue) {}
+        String defaultValue) {
+        public InitMethod {
+            supported = isNull(supported) ? null : List.copyOf(supported);
+        }
+    }
 
     /**
      * Represents virtual tokens configuration.
@@ -220,7 +250,11 @@ public record FoundationModel(
      */
     public record NumVirtualTokens(
         List<Integer> supported,
-        Integer defaultValue) {}
+        Integer defaultValue) {
+        public NumVirtualTokens {
+            supported = isNull(supported) ? null : List.copyOf(supported);
+        }
+    }
 
     /**
      * Represents an integer range with default, min, and max values.
@@ -308,7 +342,11 @@ public record FoundationModel(
      */
     public record Type(
         List<String> supported,
-        String defaultValue) {}
+        String defaultValue) {
+        public Type {
+            supported = isNull(supported) ? null : List.copyOf(supported);
+        }
+    }
 
     /**
      * Represents rank configuration.
@@ -318,7 +356,11 @@ public record FoundationModel(
      */
     public record Rank(
         List<Integer> supported,
-        Integer defaultValue) {}
+        Integer defaultValue) {
+        public Rank {
+            supported = isNull(supported) ? null : List.copyOf(supported);
+        }
+    }
 
     /**
      * Represents curated model information.

@@ -67,7 +67,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
         modelId = requireNonNull(builder.modelId, "The modelId must be provided");
         messageInterceptor = builder.messageInterceptor;
         toolInterceptor = builder.toolInterceptor;
-        defaultTools = builder.defaultTools;
+        defaultTools = isNull(builder.defaultTools) ? null : List.copyOf(builder.defaultTools);
         defaultParameters = builder.defaultParameters;
 
         client = ModelGatewayChatRestClient.builder()

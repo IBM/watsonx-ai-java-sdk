@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 
 /**
@@ -23,6 +24,10 @@ public record ResultMessage(
     String reasoningContent,
     String refusal,
     List<ToolCall> toolCalls) {
+
+    public ResultMessage {
+        toolCalls = isNull(toolCalls) ? null : List.copyOf(toolCalls);
+    }
 
     /**
      * Creates a new {@code ResultMessage} with the specified tool calls, preserving all other fields.

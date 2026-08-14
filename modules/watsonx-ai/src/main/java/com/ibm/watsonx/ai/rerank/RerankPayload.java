@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.rerank;
 
+import static java.util.Objects.isNull;
 import java.util.List;
 import com.ibm.watsonx.ai.Crypto;
 
@@ -26,6 +27,10 @@ public record RerankPayload(
     String projectId,
     Parameters parameters,
     Crypto crypto) {
+
+    public RerankPayload {
+        inputs = isNull(inputs) ? null : List.copyOf(inputs);
+    }
 
     /**
      * Represents a single input text to be reranked.

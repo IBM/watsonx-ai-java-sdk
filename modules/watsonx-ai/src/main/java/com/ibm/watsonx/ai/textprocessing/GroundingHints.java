@@ -126,7 +126,7 @@ public final class GroundingHints {
          * @return this builder instance
          */
         public Builder fields(Map<String, FieldData> fields) {
-            this.fields = fields != null ? fields : new HashMap<>();
+            this.fields = fields != null ? new HashMap<>(fields) : new HashMap<>();
             return this;
         }
 
