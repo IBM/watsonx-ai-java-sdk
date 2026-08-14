@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -27,6 +28,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -1742,6 +1744,93 @@ public class ChatServiceIT {
             // At least one chunk during streaming must have carried each moderation signal in its PartialChatResponse.
             assertTrue(piiFlaggedInChunk.get(), "expected at least one streaming chunk with a PII moderation match");
             assertTrue(hapFlaggedInChunk.get(), "expected at least one streaming chunk with a HAP moderation match");
+        }
+
+        @Test
+        void should_stop_the_stream_when_the_returned_future_is_cancelled() throws Exception {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var partialResponses = new AtomicInteger();
+            var terminalCallbacks = new AtomicInteger();
+            var firstPartialResponse = new CountDownLatch(1);
+
+            var future = chatService.chatStreaming(createLongChatRequest(), new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    partialResponses.incrementAndGet();
+                    firstPartialResponse.countDown();
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    terminalCallbacks.incrementAndGet();
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    terminalCallbacks.incrementAndGet();
+                }
+            });
+
+            assertTrue(firstPartialResponse.await(60, TimeUnit.SECONDS), "the model never started streaming");
+            assertTrue(future.cancel(true));
+
+            Thread.sleep(500);
+            var deliveredAtCancel = partialResponses.get();
+            Thread.sleep(3000);
+
+            assertEquals(deliveredAtCancel, partialResponses.get());
+            assertEquals(0, terminalCallbacks.get());
+            assertTrue(future.isCancelled());
+            assertThrows(CancellationException.class, future::join);
+        }
+
+        @Test
+        void should_keep_the_service_usable_after_a_cancelled_stream() throws Exception {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var firstPartialResponse = new CountDownLatch(1);
+            var cancelled = chatService.chatStreaming(createLongChatRequest(),
+                (partialResponse, partialChatResponse) -> firstPartialResponse.countDown());
+
+            assertTrue(firstPartialResponse.await(60, TimeUnit.SECONDS), "the model never started streaming");
+            assertTrue(cancelled.cancel(true));
+
+            var chatResponse = chatService.chatStreaming("Hello!", (partialResponse, partialChatResponse) -> {})
+                .get(60, TimeUnit.SECONDS);
+
+            assertNotNull(chatResponse.toAssistantMessage().content());
+            assertFalse(chatResponse.toAssistantMessage().content().isBlank());
+        }
+
+        private ChatRequest createLongChatRequest() {
+
+            var parameters = ChatParameters.builder()
+                .temperature(0.0)
+                .maxCompletionTokens(1000)
+                .build();
+
+            return ChatRequest.builder()
+                .messages(UserMessage.text("Count from 1 to 300, one number per line, without any other text."))
+                .parameters(parameters)
+                .build();
         }
     }
 }

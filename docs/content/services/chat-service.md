@@ -289,6 +289,41 @@ chatService.chatStreaming(
 
 > **Threading note:** Callbacks run on the callback executor (virtual threads on Java 21+, configurable via the `CallbackExecutorProvider` SPI). Within a single request every callback is delivered sequentially, in the order the events were emitted, and never concurrently with another one: all the `onPartialToolCall` fragments of a tool call reach the handler before its `onCompleteToolCall`, tool calls arrive in index order, and `onCompleteResponse` comes last. Consecutive callbacks may run on different threads, but each one returns before the next one starts and what it wrote is visible to the next one, so your handler can accumulate into unsynchronized fields. The flip side is that a callback that blocks delays the ones after it in the same request.
 
+### Cancelling a Stream
+
+Cancel the returned future to stop a stream early, for example when the user navigates away or your own deadline expires:
+
+```java
+CompletableFuture<ChatResponse> future = chatService.chatStreaming(
+    List.of(UserMessage.text("Tell me a very long story")),
+    System.out::print
+);
+
+future.cancel(true);
+```
+
+Cancellation aborts the response body subscription and closes the connection, so the model stops streaming. After `cancel(...)` returns, no further callback reaches the handler, not even `onError`, because stopping the stream is a decision of the caller rather than a failure. A callback that is already running is allowed to finish.
+
+The future ends in the cancelled state, so a later `get()` or `join()` throws a `CancellationException`. Cancelling twice is a no-op, and so is cancelling a stream that has already completed. The `mayInterruptIfRunning` flag is ignored, therefore `cancel(false)` behaves exactly like `cancel(true)`.
+
+Calling `cancel(...)` from inside a callback is safe, which is the usual way to stop as soon as a condition is met:
+
+```java
+var future = new AtomicReference<CompletableFuture<ChatResponse>>();
+var chunks = new AtomicInteger();
+
+future.set(chatService.chatStreaming(messages, new ChatHandler() {
+    @Override
+    public void onPartialResponse(String text, PartialChatResponse partial) {
+        System.out.print(text);
+        if (chunks.incrementAndGet() == 10)
+            future.get().cancel(true);
+    }
+}));
+```
+
+> **Note:** The request has already been sent when you cancel, so the model may have generated tokens that you never receive. Cancellation stops the delivery of the response, it does not undo the work already done on the server.
+
 ---
 
 ## Tool Calling

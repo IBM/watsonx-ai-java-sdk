@@ -95,17 +95,30 @@ final class DefaultRestClient extends ModelGatewayChatRestClient {
             );
 
         var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());
-        asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
+        var httpFuture = asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
-            : BodySubscribers.fromLineSubscriber(subscriber))
+            : BodySubscribers.fromLineSubscriber(subscriber));
+
+        httpFuture
             .thenAccept(r -> {})
             .exceptionally(t -> {
+                if (chatSubscriber.isCancelled())
+                    return null;
+
                 Throwable cause = nonNull(t.getCause()) ? t.getCause() : t;
                 if (chatSubscriber.markErrorReported())
                     handler.onError(cause);
                 response.completeExceptionally(cause);
                 return null;
             });
+
+        response.whenComplete((r, t) -> {
+            if (response.isCancelled()) {
+                chatSubscriber.cancelStream();
+                httpFuture.cancel(true);
+            }
+        });
+
         return response;
     }
 

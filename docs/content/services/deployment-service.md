@@ -121,6 +121,18 @@ CompletableFuture<ChatResponse> future = deploymentService.chatStreaming(chatReq
 future.join(); // wait for completion
 ```
 
+### Cancelling a Stream
+
+Both `chatStreaming` and `generateStreaming` return a future that can be cancelled to stop the stream early:
+
+```java
+future.cancel(true);
+```
+
+Cancellation aborts the response body subscription and closes the connection, so the model stops streaming. After `cancel(...)` returns, no further callback reaches the handler, not even `onError`, because stopping the stream is a decision of the caller rather than a failure. A callback that is already running is allowed to finish.
+
+The future ends in the cancelled state, so a later `get()` or `join()` throws a `CancellationException`. Cancelling twice is a no-op, and so is cancelling a stream that has already completed. Calling `cancel(...)` from inside a callback is safe. See [Chat](../chat-service#cancelling-a-stream) for the full contract.
+
 ---
 
 ## Time Series Forecasting

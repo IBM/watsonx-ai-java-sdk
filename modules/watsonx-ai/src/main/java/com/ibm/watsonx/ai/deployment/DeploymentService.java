@@ -220,6 +220,9 @@ public class DeploymentService extends WatsonxService
 
     /**
      * Sends a streaming chat request to a deployment.
+     * <p>
+     * Calling {@code cancel(...)} on the returned future stops the stream: the response body subscription is aborted and no further callback is
+     * dispatched to the handler.
      *
      * @param chatRequest the {@link DeploymentChatRequest}
      * @param handler a {@link ChatHandler} implementation that receives partial responses, the complete response, and error notifications

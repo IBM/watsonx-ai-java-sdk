@@ -8,6 +8,7 @@ import static java.util.Objects.isNull;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
@@ -70,6 +71,11 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
         new AtomicReference<>(CompletableFuture.completedFuture(null));
 
     /**
+     * Set once the streaming request has been cancelled, after which no callback is delivered to the delegate.
+     */
+    private final AtomicBoolean cancelled = new AtomicBoolean(false);
+
+    /**
      * Constructs a new {@code ChatHandlerDecorator}.
      *
      * @param delegate the underlying chat handler to receive decorated callbacks
@@ -122,6 +128,27 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
     }
 
     /**
+     * Stops the delivery of every callback that has not started yet.
+     * <p>
+     * A callback already running is allowed to finish, but nothing further is handed to the delegate, including {@link ChatHandler#onError}. Safe to
+     * call from any thread and idempotent.
+     *
+     * @return {@code true} if this call cancelled the delivery, {@code false} if it was already cancelled
+     */
+    public boolean cancel() {
+        return cancelled.compareAndSet(false, true);
+    }
+
+    /**
+     * Returns whether callback delivery has been cancelled.
+     *
+     * @return {@code true} if {@link #cancel()} has been called
+     */
+    public boolean isCancelled() {
+        return cancelled.get();
+    }
+
+    /**
      * Waits for every callback scheduled so far to be delivered.
      * <p>
      * The returned future resolves to a list of all processed {@link CompletedToolCall} objects, in the order they were received.
@@ -160,7 +187,8 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
 
         previous.thenRunAsync(() -> {
             try {
-                callback.run();
+                if (!cancelled.get())
+                    callback.run();
             } catch (RuntimeException | Error e) {
                 safeOnError(e);
             } finally {
@@ -173,6 +201,9 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
      * Reports an error to the delegate, ignoring any failure of the error callback itself.
      */
     private void safeOnError(Throwable error) {
+        if (cancelled.get())
+            return;
+
         try {
             delegate.onError(error);
         } catch (RuntimeException | Error ignored) {

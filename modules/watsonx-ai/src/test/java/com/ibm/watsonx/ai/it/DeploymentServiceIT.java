@@ -18,11 +18,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -1156,6 +1158,66 @@ public class DeploymentServiceIT {
                         Return only the list of number without any other text."""),
                     UserMessage.text("Count")
                 )
+                .deploymentId(DEPLOYMENT_ID)
+                .parameters(parameters)
+                .build();
+        }
+
+        @Test
+        void should_stop_the_stream_when_the_returned_future_is_cancelled() throws Exception {
+
+            var chatService = DeploymentService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var partialResponses = new AtomicInteger();
+            var terminalCallbacks = new AtomicInteger();
+            var firstPartialResponse = new CountDownLatch(1);
+
+            var future = chatService.chatStreaming(createLongChatRequest(), new ChatHandler() {
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    partialResponses.incrementAndGet();
+                    firstPartialResponse.countDown();
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    terminalCallbacks.incrementAndGet();
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    terminalCallbacks.incrementAndGet();
+                }
+            });
+
+            assertTrue(firstPartialResponse.await(60, TimeUnit.SECONDS), "the model never started streaming");
+            assertTrue(future.cancel(true));
+
+            Thread.sleep(500);
+            var deliveredAtCancel = partialResponses.get();
+            Thread.sleep(3000);
+
+            assertEquals(deliveredAtCancel, partialResponses.get());
+            assertEquals(0, terminalCallbacks.get());
+            assertTrue(future.isCancelled());
+            assertThrows(CancellationException.class, future::join);
+        }
+
+        private DeploymentChatRequest createLongChatRequest() {
+
+            var parameters = ChatParameters.builder()
+                .temperature(0.0)
+                .maxCompletionTokens(400)
+                .build();
+
+            return DeploymentChatRequest.builder()
+                .messages(UserMessage.text("Count from 1 to 300, one number per line, without any other text."))
                 .deploymentId(DEPLOYMENT_ID)
                 .parameters(parameters)
                 .build();
