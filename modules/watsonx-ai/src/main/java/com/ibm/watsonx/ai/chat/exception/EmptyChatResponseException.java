@@ -2,8 +2,9 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai.chat;
+package com.ibm.watsonx.ai.chat.exception;
 
+import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 
 /**

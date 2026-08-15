@@ -234,7 +234,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         return future;
     }
 
-    // Test 1, 5 and 11: cancellation through the service API, triggered from inside a callback.
     @Test
     void should_stop_delivering_callbacks_after_cancel() throws Exception {
 
@@ -255,7 +254,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertThrows(CancellationException.class, future::join);
     }
 
-    // Test 2: cancelling before the first chunk reaches the subscriber.
     @Test
     void should_deliver_no_callback_when_cancelled_before_the_first_chunk() throws Exception {
 
@@ -278,7 +276,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertTrue(future.isCancelled());
     }
 
-    // Test 3: cancelling after normal completion changes nothing.
     @Test
     void should_be_a_no_op_when_cancelled_after_completion() throws Exception {
 
@@ -298,7 +295,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertEquals(0, recorder.errors.get());
     }
 
-    // Test 4: two threads cancelling concurrently.
     @Test
     void should_take_effect_once_when_two_threads_cancel() throws Exception {
 
@@ -344,7 +340,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertEquals(0, recorder.errors.get());
     }
 
-    // Test 6: cancelling while a tool call is being assembled.
     @Test
     void should_not_deliver_the_complete_tool_call_when_cancelled_while_assembling() throws Exception {
 
@@ -364,7 +359,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertTrue(future.isCancelled());
     }
 
-    // Test 7: failOnFirstError does not change the cancellation behaviour.
     @Test
     void should_cancel_the_same_way_when_fail_on_first_error_is_enabled() throws Exception {
 
@@ -383,7 +377,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertTrue(future.isCancelled());
     }
 
-    // Test 8: the SseEventLogger path behaves the same. Log output is not part of the contract, only handler behaviour.
     @Test
     void should_cancel_the_same_way_when_log_responses_is_enabled() throws Exception {
 
@@ -402,7 +395,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertTrue(future.isCancelled());
     }
 
-    // Test 12: cancel(false) is equivalent to cancel(true), because CompletableFuture ignores the interrupt flag.
     @Test
     void should_treat_cancel_false_like_cancel_true() throws Exception {
 
@@ -421,7 +413,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertTrue(future.isCancelled());
     }
 
-    // Test 9: the body subscription is really cancelled, and no further element is requested.
     @Test
     void should_cancel_the_body_subscription() {
 
@@ -449,7 +440,6 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertEquals(requestsAtCancel, subscription.requests.get());
     }
 
-    // Test 10: the signals the JDK is still allowed to deliver after cancel are dropped.
     @Test
     void should_drop_the_signals_delivered_after_cancel() {
 
@@ -480,6 +470,28 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         assertTrue(response.isCancelled());
     }
 
+    @Test
+    void should_not_report_a_moderation_error_when_the_stream_is_cancelled() {
+
+        var recorder = new Recorder(0);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
+        var subscriber = new DefaultChatSubscriber(new SseEventProcessor(null, null, TextChatResponse::builder), decorator);
+        var response = cancellableResponse(subscriber);
+        var flowSubscriber = subscriber.asFlowSubscriber(response, true);
+
+        flowSubscriber.onSubscribe(new RecordingSubscription());
+        flowSubscriber.onNext(moderationLine());
+
+        response.cancel(true);
+        flowSubscriber.onComplete();
+
+        decorator.awaitCallbacks().join();
+
+        assertEquals(0, recorder.errors.get());
+        assertEquals(0, recorder.completeResponses.get());
+        assertTrue(response.isCancelled());
+    }
+
     /**
      * Wires the cancellation hook the routes install, so that the subscriber can be driven by hand.
      */
@@ -492,6 +504,13 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
         });
 
         return response;
+    }
+
+    static String moderationLine() {
+        return "data: {\"id\":\"089c113655af4032ba63b2676806197d\",\"object\":\"chat.completion.chunk\",\"model_id\":\"ibm/granite-4-h-small\","
+            + "\"model\":\"ibm/granite-4-h-small\",\"choices\":[{\"index\":0,\"finish_reason\":null}],\"created\":1786783200,"
+            + "\"created_at\":\"2026-08-15T08:40:00.656Z\",\"moderations\":{\"pii\":[{\"score\":0.8,\"input\":true,"
+            + "\"position\":{\"start\":19,\"end\":29},\"entity\":\"PhoneNumber\",\"word\":\"3334523123\"}]}}";
     }
 
     static String dataLine(String content) {

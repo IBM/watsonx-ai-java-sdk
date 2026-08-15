@@ -5,9 +5,12 @@
 package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import java.util.List;
 import java.util.Map;
+import com.ibm.watsonx.ai.chat.exception.ModerationException;
+import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 
 /**
  * Response returned by the text chat and deployment endpoints.
@@ -149,6 +152,25 @@ public class TextChatResponse extends ChatResponse {
     }
 
     /**
+     * Returns whether the moderation system blocked this response.
+     *
+     * @return {@code true} if the response was blocked by the moderation system, {@code false} otherwise
+     */
+    public boolean isBlockedByModeration() {
+        return (nonNull(moderations) && !moderations.isEmpty()) &&
+            (isNull(choices()) || choices().isEmpty() || choices().stream().anyMatch(c -> isNull(c.message()) && isNull(c.finishReason())));
+    }
+
+    @Override
+    public List<AssistantMessage> toAssistantMessages() {
+
+        if (isBlockedByModeration())
+            throw new ModerationException(moderations);
+
+        return super.toAssistantMessages();
+    }
+
+    /**
      * Returns a new {@link Builder} instance for {@link TextChatResponse}.
      *
      * @return a new {@link Builder} instance
@@ -156,6 +178,7 @@ public class TextChatResponse extends ChatResponse {
     public static Builder<?> builder() {
         return new Builder<>();
     }
+
 
     /**
      * Builder for constructing {@link TextChatResponse} instances.

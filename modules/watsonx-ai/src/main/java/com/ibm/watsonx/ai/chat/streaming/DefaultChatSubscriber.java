@@ -15,6 +15,7 @@ import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.SseEventProcessor;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
+import com.ibm.watsonx.ai.chat.exception.ModerationException;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
@@ -84,6 +85,10 @@ public class DefaultChatSubscriber extends ChatSubscriber {
         return awaitCallbacks()
             .thenCompose(completeToolCalls -> {
                 var response = processor.buildResponse();
+
+                if (response.isBlockedByModeration())
+                    return CompletableFuture.failedFuture(new ModerationException(response.moderations()));
+
                 if (nonNull(completeToolCalls) && !completeToolCalls.isEmpty()) {
                     var choices = response.choices().stream()
                         .map(choice -> {

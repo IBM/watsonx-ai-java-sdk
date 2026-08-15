@@ -330,6 +330,12 @@
                   <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 </configuration>
               </execution>
+              <execution>
+                <id>it-verify</id>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
             </executions>
           </plugin>
         </plugins>

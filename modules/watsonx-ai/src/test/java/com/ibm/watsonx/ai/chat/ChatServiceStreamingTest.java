@@ -70,6 +70,8 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
+import com.ibm.watsonx.ai.chat.exception.EmptyChatResponseException;
+import com.ibm.watsonx.ai.chat.exception.ModerationException;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
@@ -1878,103 +1880,103 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                     """
                         id: 1
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.494Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.494Z","system":{"warnings":[{"message":"This model is a Non-IBM Product governed by a third-party license that may impose use restrictions and other obligations. By using this model you agree to its terms as identified in the following URL.","id":"disclaimer_warning","more_info":"https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx"},{"message":"The value of 'max_tokens' for this model was set to value 1024","id":"unspecified_max_token","additional_properties":{"limit":0,"new_value":1024,"parameter":"max_tokens","value":0}}]}}
 
                         id: 2
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Saving"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.494Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Saving"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.494Z"}
 
                         id: 3
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" to"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.505Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" to"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.505Z"}
 
                         id: 4
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" get"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.515Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" get"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.515Z"}
 
                         id: 5
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" the"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.526Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" the"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.526Z"}
 
                         id: 6
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" current"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.537Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" current"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.537Z"}
 
                         id: 7
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" time"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.548Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" time"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.548Z"}
 
                         id: 8
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.559Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" in"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.559Z"}
 
                         id: 9
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Italy"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.570Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Italy"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.570Z"}
 
                         id: 10
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" and"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.581Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" and"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.581Z"}
 
                         id: 11
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Germany"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.591Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Germany"}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.591Z"}
 
                         id: 12
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"content":"..."}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.602Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"content":"..."}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.602Z"}
 
                         id: 13
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"ENqBTHVxT","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.710Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"id":"ENqBTHVxT","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.710Z"}
 
                         id: 14
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.785Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.785Z"}
 
                         id: 15
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"Italy\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.796Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"Italy\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.796Z"}
 
                         id: 16
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.807Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.807Z"}
 
                         id: 17
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.818Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.818Z"}
 
                         id: 18
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.828Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.828Z"}
 
                         id: 19
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"id":"IWoeRYrcI","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.904Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"id":"IWoeRYrcI","type":"function","function":{"name":"get_current_time","arguments":""}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.904Z"}
 
                         id: 20
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.979Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.979Z"}
 
                         id: 21
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"Germany\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.990Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"Germany\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:26.990Z"}
 
                         id: 22
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.001Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.001Z"}
 
                         id: 23
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.012Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.012Z"}
 
                         id: 24
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.022Z"}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[{"index":0,"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":1,"function":{"name":"","arguments":"{\\\"country\\\": \\\"\\\"}"}}]}}],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.022Z"}
 
                         id: 25
                         event: message
-                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistralai/mistral-small-3-1-24b-instruct-2503","model":"mistralai/mistral-small-3-1-24b-instruct-2503","choices":[],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.022Z","usage":{"completion_tokens":50,"prompt_tokens":75,"total_tokens":125}}
+                        data: {"id":"chatcmpl-0c239eb5-f88e-44ae-80e4-7ff2dd010256---213c98b8196585142f3018f0a6c31fde---57f182f8-175f-401a-ae5e-6bd4d577d25c","object":"chat.completion.chunk","model_id":"mistral-large-2512","model":"mistral-large-2512","choices":[],"created":1764884186,"model_version":"1.0.0","created_at":"2025-12-04T21:36:27.022Z","usage":{"completion_tokens":50,"prompt_tokens":75,"total_tokens":125}}
                         """
                 )));
 
@@ -1986,7 +1988,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         var chatService = ChatService.builder()
             .authenticator(mockAuthenticator)
-            .modelId("mistralai/mistral-small-3-1-24b-instruct-2503")
+            .modelId("mistral-large-2512")
             .projectId("project-id")
             .logResponses(true)
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
@@ -4165,5 +4167,114 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         var ex = assertThrows(EmptyChatResponseException.class, chatResponse::toAssistantMessage);
         assertEquals(FinishReason.TOOL_CALLS, ex.finishReason());
         assertEquals(0, ex.index());
+    }
+
+    @Test
+    void should_fail_the_stream_when_the_input_is_blocked_by_the_moderation_system() throws Exception {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"089c113655af4032ba63b2676806197d","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null}],"created":1786783200,"model_version":"4.0.0","created_at":"2026-08-15T08:40:00.656Z","usage":{"prompt_tokens":9},"system":{"warnings":[{"message":"Unsuitable input detected. Please check the detected entities on your input and try again with the unsuitable input removed.","id":"UNSUITABLE_INPUT"}]},"moderations":{"pii":[{"score":0.8,"input":true,"position":{"start":19,"end":29},"entity":"PhoneNumber","word":"3334523123"}]},"detections":{"input":[{"message_index":0,"results":[{"detector_id":"en_syntax_rbr_pii","detection_type":"pii","detection":"PhoneNumber","score":0.8,"text":"3334523123","start":19,"end":29}]}]}}
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-4-h-small")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        var mockChatHandler = mock(ChatHandler.class);
+        var latch = new CountDownLatch(1);
+        var reportedError = new AtomicReference<Throwable>();
+
+        doAnswer(invocation -> {
+            reportedError.set(invocation.getArgument(0));
+            latch.countDown();
+            return null;
+        }).when(mockChatHandler).onError(any());
+
+        var future = chatService.chatStreaming(List.of(UserMessage.text("My phone number is 3334523123")), mockChatHandler);
+
+        var ex = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+        var moderationException = assertInstanceOf(ModerationException.class, ex.getCause());
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertEquals(moderationException, reportedError.get());
+
+        var pii = moderationException.moderations().get("pii");
+        assertEquals(1, pii.size());
+        assertEquals("PhoneNumber", pii.get(0).entity());
+        assertEquals("3334523123", pii.get(0).word());
+        assertTrue(pii.get(0).input());
+        assertEquals(19, pii.get(0).position().start());
+        assertEquals(29, pii.get(0).position().end());
+
+        verify(mockChatHandler, never()).onCompleteResponse(any());
+        verify(mockChatHandler, never()).onPartialResponse(anyString(), any());
+    }
+
+    @Test
+    void should_complete_the_stream_when_the_moderation_system_reports_the_output_without_blocking_it() throws Exception {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(4, 20)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":""}}],"created":1786783200,"created_at":"2026-08-15T08:40:00.656Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":"Call 3334523123"}}],"created":1786783200,"created_at":"2026-08-15T08:40:00.657Z"}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"stop","delta":{}}],"created":1786783200,"created_at":"2026-08-15T08:40:00.658Z","moderations":{"pii":[{"score":0.8,"input":false,"position":{"start":5,"end":15},"entity":"PhoneNumber","word":"3334523123"}]},"detections":{"output":[{"message_index":0,"results":[{"detector_id":"en_syntax_rbr_pii","detection_type":"pii","detection":"PhoneNumber","score":0.8,"text":"3334523123","start":5,"end":15}]}]}}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1786783200,"created_at":"2026-08-15T08:40:00.659Z","usage":{"completion_tokens":5,"prompt_tokens":9,"total_tokens":14}}
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-4-h-small")
+            .projectId("63dc4cf1-252f-424b-b52d-5cdd9814987f")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+
+        var mockChatHandler = mock(ChatHandler.class);
+        var latch = new CountDownLatch(1);
+
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(mockChatHandler).onCompleteResponse(any());
+
+        var future = chatService.chatStreaming(List.of(UserMessage.text("Which number should I call?")), mockChatHandler);
+        var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        verify(mockChatHandler, never()).onError(any());
+        verify(mockChatHandler).onCompleteResponse(chatResponse);
+
+        var textChatResponse = assertInstanceOf(TextChatResponse.class, chatResponse);
+        assertFalse(textChatResponse.isBlockedByModeration());
+        assertEquals(1, textChatResponse.moderations().get("pii").size());
+        assertFalse(textChatResponse.moderations().get("pii").get(0).input());
+        assertEquals("Call 3334523123", assertDoesNotThrow(chatResponse::toAssistantMessage).content());
     }
 }

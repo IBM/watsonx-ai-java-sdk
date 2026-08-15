@@ -9,6 +9,7 @@ package com.ibm.watsonx.ai.chat;
 import static java.util.Objects.isNull;
 import java.util.List;
 import java.util.stream.IntStream;
+import com.ibm.watsonx.ai.chat.exception.EmptyChatResponseException;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
@@ -191,7 +192,9 @@ public class ChatResponse {
                     thinking = extractionTags.extractThinking(message.content());
                 }
 
-                if (isNullOrBlank(content) && isNullOrBlank(message.refusal()) && (isNull(message.toolCalls()) || message.toolCalls().isEmpty()))
+                if ((isNull(content) || content.isBlank()) &&
+                    (isNull(message.refusal()) || message.refusal().isBlank()) &&
+                    (isNull(message.toolCalls()) || message.toolCalls().isEmpty()))
                     throw new EmptyChatResponseException(
                         "The model generated no content, tool calls or refusal (finish reason: %s)".formatted(finishReason),
                         this,
@@ -220,16 +223,6 @@ public class ChatResponse {
      */
     public AssistantMessage toAssistantMessage() {
         return toAssistantMessages().get(0);
-    }
-
-    /**
-     * Checks whether the given value is {@code null} or contains only whitespace.
-     *
-     * @param value the value to check
-     * @return {@code true} if the value is {@code null} or blank, {@code false} otherwise
-     */
-    private static boolean isNullOrBlank(String value) {
-        return isNull(value) || value.isBlank();
     }
 
     /**

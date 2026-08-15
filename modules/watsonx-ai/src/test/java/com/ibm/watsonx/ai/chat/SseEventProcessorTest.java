@@ -18,6 +18,7 @@ import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallE
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEvent;
+import com.ibm.watsonx.ai.chat.exception.EmptyChatResponseException;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
@@ -683,5 +684,36 @@ public class SseEventProcessorTest {
         assertEquals(2, toolCalls.size(), "the deltas of the two indexes must not be merged into a single tool call");
         assertEquals("diff", toolCalls.get(0).function().name());
         assertEquals("sum", toolCalls.get(1).function().name());
+    }
+
+    @Test
+    void should_not_throw_npe_when_input_moderation_blocks_before_generation_and_delta_is_null() {
+
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+
+        var sentinelChunk = "data: "
+            + """
+                {"id":"089c113655af4032ba63b2676806197d","object":"chat.completion.chunk",\
+                "model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small",\
+                "choices":[{"index":0,"finish_reason":null}],\
+                "created":1786783200,"model_version":"4.0.0","created_at":"2026-08-15T08:40:00.656Z",\
+                "usage":{"prompt_tokens":9},\
+                "moderations":{"pii":[{"score":0.8,"input":true,"position":{"start":19,"end":29},"entity":"PhoneNumber","word":"3334523123"}]},\
+                "detections":{"input":[{"choice_index":0,"results":[{"detector_id":"en_syntax_rbr_pii","detection_type":"pii","detection":"PhoneNumber","score":0.8,"text":"3334523123","start":19,"end":29}]}]}}""";
+
+        var result = processor.processChunk(sentinelChunk);
+        assertFalse(result.hasError());
+
+        var response = processor.buildResponse();
+        assertNotNull(response.moderations());
+        assertTrue(response.moderations().containsKey("pii"));
+        assertEquals(1, response.moderations().get("pii").size());
+        assertEquals("PhoneNumber", response.moderations().get("pii").get(0).entity());
+        assertEquals("3334523123", response.moderations().get("pii").get(0).word());
+        assertTrue(response.moderations().get("pii").get(0).input());
+
+        assertNotNull(response.detections());
+        assertTrue(response.detections().containsKey("input"));
+        assertEquals("en_syntax_rbr_pii", response.detections().get("input").get(0).results().get(0).detectorId());
     }
 }
