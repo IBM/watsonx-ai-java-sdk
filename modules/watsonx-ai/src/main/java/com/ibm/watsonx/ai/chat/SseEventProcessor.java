@@ -259,8 +259,6 @@ public class SseEventProcessor {
         var message = chunk.choices().get(0);
         var messageIndex = message.index();
         var finishReason = finishReasons.get(messageIndex);
-        var contentBuffer = contentBuffers.computeIfAbsent(messageIndex, StringBuilder::new);
-        var thinkingBuffer = thinkingBuffers.computeIfAbsent(messageIndex, StringBuilder::new);
 
         if (isNull(created) && nonNull(chunk.created()))
             created = chunk.created();
@@ -282,6 +280,14 @@ public class SseEventProcessor {
 
         if (isNull(model) && nonNull(chunk.model()))
             model = chunk.model();
+
+        // Moderation sentinel chunk: choices is present but delta is null, the API blocked the
+        // request before generation started. No content to process, return what we have so far.
+        if (isNull(message.delta()))
+            return ProcessResult.events(events);
+
+        var contentBuffer = contentBuffers.computeIfAbsent(messageIndex, StringBuilder::new);
+        var thinkingBuffer = thinkingBuffers.computeIfAbsent(messageIndex, StringBuilder::new);
 
         // OpenAI-compatible endpoints (Model Gateway) send finish_reason as an empty string on intermediate chunks and only set the real
         // value ("stop", "tool_calls", ...) on the terminal chunk. Treating a blank value as absent prevents it from poisoning the map and

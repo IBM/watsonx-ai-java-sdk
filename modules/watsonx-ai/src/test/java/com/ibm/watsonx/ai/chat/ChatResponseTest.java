@@ -18,6 +18,8 @@ import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionEntry;
 import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionResult;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult.Position;
+import com.ibm.watsonx.ai.chat.exception.EmptyChatResponseException;
+import com.ibm.watsonx.ai.chat.exception.ModerationException;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
@@ -288,5 +290,128 @@ public class ChatResponseTest {
     @Test
     void should_include_serviceTier_in_gateway_response_toString() {
         assertTrue(ModelGatewayChatResponse.builder().serviceTier("default").build().toString().contains("default"));
+    }
+
+    @Test
+    void should_throw_moderation_exception_when_moderations_present_and_no_choices() {
+
+        var piiResult = new ModerationResult(0.95f, true, new Position(0, 10), "PhoneNumber", "3572865321");
+        var moderationsMap = Map.of("pii", List.of(piiResult));
+
+        var response = TextChatResponse.builder()
+            .id("chat-1")
+            .moderations(moderationsMap)
+            .build();
+
+        var ex = assertThrows(ModerationException.class, response::toAssistantMessage);
+        assertEquals(moderationsMap, ex.moderations());
+        assertTrue(ex.getMessage().contains("pii"));
+        assertTrue(ex.getMessage().contains("The chat response was blocked by the moderation system"));
+    }
+
+    @Test
+    void should_throw_moderation_exception_when_moderations_present_and_empty_choices() {
+
+        var hapResult = new ModerationResult(0.88f, false, new Position(5, 15), null, "bad word");
+        var moderationsMap = Map.of("hap", List.of(hapResult));
+
+        var response = TextChatResponse.builder()
+            .id("chat-2")
+            .choices(List.of())
+            .moderations(moderationsMap)
+            .build();
+
+        var ex = assertThrows(ModerationException.class, response::toAssistantMessages);
+        assertEquals(1, ex.moderations().size());
+        assertTrue(ex.moderations().containsKey("hap"));
+        assertTrue(ex.getMessage().contains("hap"));
+    }
+
+    @Test
+    void should_throw_moderation_exception_listing_all_triggered_policies() {
+
+        var moderationsMap = Map.of(
+            "pii", List.of(new ModerationResult(0.9f, true, new Position(0, 5), "EmailAddress", "a@b.c")),
+            "hap", List.of(new ModerationResult(0.8f, false, new Position(6, 10), null, "hate")));
+
+        var response = TextChatResponse.builder()
+            .moderations(moderationsMap)
+            .build();
+
+        var ex = assertThrows(ModerationException.class, response::toAssistantMessage);
+        assertTrue(ex.getMessage().contains("pii") || ex.getMessage().contains("hap"));
+        assertEquals(2, ex.moderations().size());
+    }
+
+    @Test
+    void should_not_throw_moderation_exception_when_choices_are_present_alongside_moderations() {
+
+        var piiResult = new ModerationResult(0.7f, false, new Position(0, 3), "PhoneNumber", "123");
+        var message = new com.ibm.watsonx.ai.chat.model.ResultMessage("assistant", "Hello!", null, null, null);
+
+        var response = TextChatResponse.builder()
+            .moderations(Map.of("pii", List.of(piiResult)))
+            .choices(List.of(new ResultChoice(0, message, "stop")))
+            .build();
+
+        var assistantMessage = response.toAssistantMessage();
+        assertEquals("Hello!", assistantMessage.content());
+    }
+
+    @Test
+    void should_not_throw_moderation_exception_when_moderations_are_null() {
+
+        var message = new com.ibm.watsonx.ai.chat.model.ResultMessage("assistant", "Hello!", null, null, null);
+
+        var response = TextChatResponse.builder()
+            .choices(List.of(new ResultChoice(0, message, "stop")))
+            .build();
+
+        var assistantMessage = response.toAssistantMessage();
+        assertEquals("Hello!", assistantMessage.content());
+    }
+
+    @Test
+    void should_not_throw_moderation_exception_when_moderations_are_empty() {
+
+        var message = new com.ibm.watsonx.ai.chat.model.ResultMessage("assistant", "Hello!", null, null, null);
+
+        var response = TextChatResponse.builder()
+            .moderations(Map.of())
+            .choices(List.of(new ResultChoice(0, message, "stop")))
+            .build();
+
+        var assistantMessage = response.toAssistantMessage();
+        assertEquals("Hello!", assistantMessage.content());
+    }
+
+    @Test
+    void should_return_unmodifiable_moderations_from_moderation_exception() {
+
+        var moderationsMap = Map.of("pii", List.of(new ModerationResult(0.9f, true, new Position(0, 5), "PhoneNumber", "12345")));
+
+        var response = TextChatResponse.builder().moderations(moderationsMap).build();
+
+        var ex = assertThrows(ModerationException.class, response::toAssistantMessage);
+        assertThrows(UnsupportedOperationException.class, () -> ex.moderations().put("hap", List.of()));
+    }
+
+    @Test
+    void should_be_equal_when_moderation_exception_has_same_moderations() {
+
+        var moderationsMap = Map.of("pii", List.of(new ModerationResult(0.9f, true, new Position(0, 5), "PhoneNumber", "12345")));
+        var ex1 = new ModerationException(moderationsMap);
+        var ex2 = new ModerationException(moderationsMap);
+
+        assertEquals(ex1, ex2);
+        assertEquals(ex1.hashCode(), ex2.hashCode());
+    }
+
+    @Test
+    void should_include_moderations_in_moderation_exception_toString() {
+
+        var ex = new ModerationException(Map.of("pii", List.of(new ModerationResult(0.9f, true, new Position(0, 5), "PhoneNumber", "12345"))));
+        assertTrue(ex.toString().contains("ModerationException"));
+        assertTrue(ex.toString().contains("pii"));
     }
 }

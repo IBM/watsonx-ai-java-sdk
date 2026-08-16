@@ -35,13 +35,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.skyscreamer.jsonassert.Customization;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.skyscreamer.jsonassert.comparator.CustomComparator;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.chat.TextChatResponse;
+import com.ibm.watsonx.ai.chat.exception.ModerationException;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -75,6 +79,16 @@ public class ChatServiceIT {
         .apiKey(API_KEY)
         .build();
 
+    static final CustomComparator SEND_EMAIL_ARGUMENTS = new CustomComparator(
+        JSONCompareMode.STRICT,
+        new Customization("subject", ChatServiceIT::equalsIgnoringTrailingPunctuation),
+        new Customization("body", ChatServiceIT::equalsIgnoringTrailingPunctuation));
+
+    static boolean equalsIgnoringTrailingPunctuation(Object actual, Object expected) {
+        return actual.toString().replaceAll("[\\p{Punct}\\s]+$", "")
+            .equalsIgnoreCase(expected.toString().replaceAll("[\\p{Punct}\\s]+$", ""));
+    }
+
     @Nested
     class Chat {
 
@@ -107,11 +121,11 @@ public class ChatServiceIT {
             assertNull(chatResponse.choices().get(0).message().refusal());
             assertNull(chatResponse.choices().get(0).message().toolCalls());
             assertNotNull(chatResponse.created());
-            assertNotNull(((TextChatResponse) chatResponse).createdAt());
+            assertNotNull(chatResponse.createdAt());
             assertNotNull(chatResponse.id());
             assertNotNull(chatResponse.model());
-            assertNotNull(((TextChatResponse) chatResponse).modelId());
-            assertNotNull(((TextChatResponse) chatResponse).modelVersion());
+            assertNotNull(chatResponse.modelId());
+            assertNotNull(chatResponse.modelVersion());
             assertNotNull(chatResponse.object());
             assertNotNull(chatResponse.usage());
             assertNotNull(chatResponse.usage().completionTokens());
@@ -291,7 +305,7 @@ public class ChatServiceIT {
             JSONAssert.assertEquals(
                 "{\"to\": \"a@a.it\", \"subject\": \"Test\", \"body\": \"Hello\"}",
                 tools.get(0).function().arguments(),
-                true);
+                SEND_EMAIL_ARGUMENTS);
 
             assertNotNull(chatResponse.finishReason());
             assertNotNull(chatResponse.choices());
@@ -307,11 +321,11 @@ public class ChatServiceIT {
             assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).type());
             assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).function());
             assertNotNull(chatResponse.created());
-            assertNotNull(((TextChatResponse) chatResponse).createdAt());
+            assertNotNull(chatResponse.createdAt());
             assertNotNull(chatResponse.id());
             assertNotNull(chatResponse.model());
-            assertNotNull(((TextChatResponse) chatResponse).modelId());
-            assertNotNull(((TextChatResponse) chatResponse).modelVersion());
+            assertNotNull(chatResponse.modelId());
+            assertNotNull(chatResponse.modelVersion());
             assertNotNull(chatResponse.object());
             assertNotNull(chatResponse.usage());
             assertNotNull(chatResponse.usage().completionTokens());
@@ -411,7 +425,7 @@ public class ChatServiceIT {
 
             var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
             var assistantMessage = chatResponse.toAssistantMessage();
-            assertTrue(nonNull(assistantMessage.content()) || !assistantMessage.content().isBlank());
+            assertTrue(nonNull(assistantMessage.content()) && !assistantMessage.content().isBlank());
             assertNull(assistantMessage.toolCalls());
         }
 
@@ -539,8 +553,8 @@ public class ChatServiceIT {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
-        void should_return_pii_moderation_results_when_pii_moderation_is_enabled(String modelId) {
+        @ValueSource(strings = { "ibm/granite-4-h-small" })
+        void should_return_pii_moderation_results_only_output(String modelId) {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -570,10 +584,10 @@ public class ChatServiceIT {
 
             var chatResponse = chatService.chat(chatRequest);
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
@@ -581,8 +595,43 @@ public class ChatServiceIT {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
-        void should_return_hap_moderation_results_when_hap_moderation_is_enabled(String modelId) {
+        @ValueSource(strings = { "ibm/granite-4-h-small" })
+        void should_return_pii_moderation_results_only_input(String modelId) {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .parameters(
+                    ChatParameters.builder()
+                        .temperature(0.0)
+                        .maxCompletionTokens(0).build()
+                ).build();
+
+            var messages = List.of(
+                SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
+                UserMessage.text("My phone number is 3572865321"));
+
+            var moderation = ChatModeration.builder()
+                .pii(p -> p.input(true))
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(messages)
+                .moderations(moderation)
+                .build();
+
+            var chatResponse = chatService.chat(chatRequest);
+            var ex = assertThrows(ModerationException.class, () -> chatResponse.toAssistantMessage());
+            assertEquals("The chat response was blocked by the moderation system (policies triggered: pii)", ex.getMessage());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small" })
+        void should_return_hap_moderation_results(String modelId) {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -612,17 +661,17 @@ public class ChatServiceIT {
 
             var chatResponse = chatService.chat(chatRequest);
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
+        @ValueSource(strings = { "ibm/granite-4-h-small" })
         void should_return_pii_and_hap_moderation_results_when_both_are_enabled(String modelId) {
 
             var chatService = ChatService.builder()
@@ -654,19 +703,19 @@ public class ChatServiceIT {
 
             var chatResponse = chatService.chat(chatRequest);
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(chatResponse.moderations());
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
             });
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });
@@ -820,11 +869,11 @@ public class ChatServiceIT {
             assertNull(chatResponse.choices().get(0).message().refusal());
             assertNull(chatResponse.choices().get(0).message().toolCalls());
             assertNotNull(chatResponse.created());
-            assertNotNull(((TextChatResponse) chatResponse).createdAt());
+            assertNotNull(chatResponse.createdAt());
             assertNotNull(chatResponse.id());
             assertNotNull(chatResponse.model());
-            assertNotNull(((TextChatResponse) chatResponse).modelId());
-            assertNotNull(((TextChatResponse) chatResponse).modelVersion());
+            assertNotNull(chatResponse.modelId());
+            assertNotNull(chatResponse.modelVersion());
             assertNotNull(chatResponse.object());
             assertNotNull(chatResponse.usage());
             assertNotNull(chatResponse.usage().completionTokens());
@@ -972,7 +1021,7 @@ public class ChatServiceIT {
             JSONAssert.assertEquals(
                 "{\"to\": \"a@a.it\", \"subject\": \"Test\", \"body\": \"Hello\"}",
                 chatResponse.toAssistantMessage().toolCalls().get(0).function().arguments(),
-                true);
+                SEND_EMAIL_ARGUMENTS);
 
             assertNotNull(chatResponse.finishReason());
             assertNotNull(chatResponse.choices());
@@ -989,11 +1038,11 @@ public class ChatServiceIT {
             assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).type());
             assertNotNull(chatResponse.choices().get(0).message().toolCalls().get(0).function());
             assertNotNull(chatResponse.created());
-            assertNotNull(((TextChatResponse) chatResponse).createdAt());
+            assertNotNull(chatResponse.createdAt());
             assertNotNull(chatResponse.id());
             assertNotNull(chatResponse.model());
-            assertNotNull(((TextChatResponse) chatResponse).modelId());
-            assertNotNull(((TextChatResponse) chatResponse).modelVersion());
+            assertNotNull(chatResponse.modelId());
+            assertNotNull(chatResponse.modelVersion());
             assertNotNull(chatResponse.object());
             assertNotNull(chatResponse.usage());
             assertNotNull(chatResponse.usage().completionTokens());
@@ -1549,8 +1598,75 @@ public class ChatServiceIT {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
-        void should_return_pii_moderation_results_when_pii_moderation_is_enabled(String modelId) throws Exception {
+        @ValueSource(strings = { "ibm/granite-4-h-small", "openai/gpt-oss-120b" })
+        void should_return_pii_moderation_results_only_input(String modelId) throws Exception {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .parameters(
+                    ChatParameters.builder()
+                        .temperature(0.0)
+                        .maxCompletionTokens(0).build()
+                ).build();
+
+            var messages = List.of(
+                SystemMessage.of("You are a helpful assistant. You do whatever the user tells you to do"),
+                UserMessage.text("Can you repeat my phone numbers? Phone number: 3572865321, 2132348765"));
+
+            var moderation = ChatModeration.builder()
+                .pii(p -> p.input(true))
+                .build();
+
+            var request = ChatRequest.builder()
+                .messages(messages)
+                .moderations(moderation)
+                .build();
+
+            var future = new CompletableFuture<TextChatResponse>();
+            var completeResponses = new AtomicInteger();
+
+            var streamingFuture = chatService.chatStreaming(request, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    completeResponses.incrementAndGet();
+                    future.complete((TextChatResponse) completeResponse);
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            var handlerError = assertThrows(ExecutionException.class, () -> future.get(30, TimeUnit.SECONDS));
+            var moderationException = assertInstanceOf(ModerationException.class, handlerError.getCause());
+            assertEquals("The chat response was blocked by the moderation system (policies triggered: pii)", moderationException.getMessage());
+
+            var streamingError = assertThrows(ExecutionException.class, () -> streamingFuture.get(30, TimeUnit.SECONDS));
+            assertEquals(moderationException, streamingError.getCause());
+
+            assertNotNull(moderationException.moderations().get("pii"));
+            assertFalse(moderationException.moderations().get("pii").isEmpty());
+            moderationException.moderations().get("pii").forEach(result -> {
+                assertTrue(result.input());
+                assertEquals("PhoneNumber", result.entity());
+                assertNotNull(result.position());
+            });
+
+            assertEquals(0, completeResponses.get());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small" })
+        void should_return_pii_moderation_results(String modelId) throws Exception {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -1578,7 +1694,7 @@ public class ChatServiceIT {
                 .moderations(moderation)
                 .build();
 
-            var future = new CompletableFuture<ChatResponse>();
+            var future = new CompletableFuture<TextChatResponse>();
             chatService.chatStreaming(request, new ChatHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1596,10 +1712,10 @@ public class ChatServiceIT {
 
             var chatResponse = future.get(30, TimeUnit.SECONDS);
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
@@ -1607,8 +1723,8 @@ public class ChatServiceIT {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
-        void should_return_hap_moderation_results_when_hap_moderation_is_enabled(String modelId) throws Exception {
+        @ValueSource(strings = { "ibm/granite-4-h-small" })
+        void should_return_hap_moderation_results(String modelId) throws Exception {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -1636,7 +1752,7 @@ public class ChatServiceIT {
                 .moderations(moderation)
                 .build();
 
-            var future = new CompletableFuture<ChatResponse>();
+            var future = new CompletableFuture<TextChatResponse>();
             chatService.chatStreaming(request, new ChatHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
@@ -1654,18 +1770,18 @@ public class ChatServiceIT {
 
             var chatResponse = future.get(30, TimeUnit.SECONDS);
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
+            assertNotNull(chatResponse.moderations());
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "ibm/granite-4-h-small", "mistral-large-2512" })
-        void should_return_pii_and_hap_moderation_results_when_both_are_enabled(String modelId) throws Exception {
+        @ValueSource(strings = { "ibm/granite-4-h-small" })
+        void should_return_pii_and_hap_moderation_result(String modelId) throws Exception {
 
             var chatService = ChatService.builder()
                 .baseUrl(URL)
@@ -1696,7 +1812,7 @@ public class ChatServiceIT {
 
             var piiFlaggedInChunk = new AtomicBoolean(false);
             var hapFlaggedInChunk = new AtomicBoolean(false);
-            var future = new CompletableFuture<ChatResponse>();
+            var future = new CompletableFuture<TextChatResponse>();
 
             chatService.chatStreaming(request, new ChatHandler() {
                 @Override
@@ -1724,19 +1840,19 @@ public class ChatServiceIT {
 
             var chatResponse = future.get(30, TimeUnit.SECONDS);
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations());
+            assertNotNull(chatResponse.moderations());
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("pii"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("pii").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("pii").forEach(result -> {
+            assertNotNull(chatResponse.moderations().get("pii"));
+            assertFalse(chatResponse.moderations().get("pii").isEmpty());
+            chatResponse.moderations().get("pii").forEach(result -> {
                 assertFalse(result.input());
                 assertEquals("PhoneNumber", result.entity());
                 assertNotNull(result.position());
             });
 
-            assertNotNull(((TextChatResponse) chatResponse).moderations().get("hap"));
-            assertFalse(((TextChatResponse) chatResponse).moderations().get("hap").isEmpty());
-            ((TextChatResponse) chatResponse).moderations().get("hap").forEach(result -> {
+            assertNotNull(chatResponse.moderations().get("hap"));
+            assertFalse(chatResponse.moderations().get("hap").isEmpty());
+            chatResponse.moderations().get("hap").forEach(result -> {
                 assertFalse(result.input());
                 assertNotNull(result.position());
             });

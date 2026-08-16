@@ -20,13 +20,13 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
-import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.JsonSchemaObject;
+import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
-import com.ibm.watsonx.ai.chat.model.PartialChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolArguments;
@@ -47,10 +47,10 @@ import com.ibm.watsonx.ai.detection.detector.GraniteGuardian;
 import com.ibm.watsonx.ai.detection.detector.Hap;
 import com.ibm.watsonx.ai.detection.detector.Pii;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModel;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayListModelsResponse;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayModel;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse.Embedding;
@@ -103,7 +103,7 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(Moderation.Builder.class, ModerationBuilderMixin.class);
 
         // --- Chat Moderation Mixin --- //
-        setMixInAnnotation(com.ibm.watsonx.ai.chat.ChatModeration.class, ChatModerationMixin.class);
+        setMixInAnnotation(ChatModeration.class, ChatModerationMixin.class);
         setMixInAnnotation(TextChatResponse.DetectionEntry.class, TextChatResponseDetectionEntryMixin.class);
         setMixInAnnotation(TextChatResponse.DetectionResult.class, TextChatResponseDetectionResultMixin.class);
 
@@ -416,6 +416,9 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("detections")
         abstract Map<String, List<TextChatResponse.DetectionEntry>> detections();
+
+        @JsonIgnore
+        abstract boolean isBlockedByModeration();
     }
 
     @JsonPOJOBuilder(withPrefix = "")
