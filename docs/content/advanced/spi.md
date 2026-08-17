@@ -147,13 +147,13 @@ public final class QuarkusChatRestClient extends ChatRestClient {
 
 Create the file:
 
-```
+```text
 META-INF/services/com.ibm.watsonx.ai.chat.ChatRestClient$ChatRestClientBuilderFactory
 ```
 
 The `$` separator is the JVM convention for nested class names in `ServiceLoader` registration files. The file content is the fully qualified name of the factory:
 
-```
+```text
 io.quarkiverse.langchain4j.watsonx.runtime.client.impl.QuarkusChatRestClient$QuarkusChatRestClientBuilderFactory
 ```
 
@@ -229,13 +229,13 @@ public class CustomCallbackExecutorProvider implements CallbackExecutorProvider 
 
 Create the file:
 
-```
+```text
 META-INF/services/com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider
 ```
 
 With the content:
 
-```
+```text
 com.example.watsonx.executor.CustomCallbackExecutorProvider
 ```
 
@@ -266,13 +266,13 @@ public class CustomCpuExecutorProvider implements CpuExecutorProvider {
 
 Register it in:
 
-```
+```text
 META-INF/services/com.ibm.watsonx.ai.core.spi.executor.CpuExecutorProvider
 ```
 
 With:
 
-```
+```text
 com.example.watsonx.executor.CustomCpuExecutorProvider
 ```
 
@@ -379,13 +379,13 @@ public class CustomJsonProvider implements JsonProvider {
 
 Create the file:
 
-```
+```text
 META-INF/services/com.ibm.watsonx.ai.core.spi.json.JsonProvider
 ```
 
 With the content:
 
-```
+```text
 com.example.watsonx.json.CustomJsonProvider
 ```
 

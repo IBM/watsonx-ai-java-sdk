@@ -1,0 +1,54 @@
+name: Release Notes
+description: "Builds the release body from the auto-generated notes, followed by a link to the documentation page of the version when one exists"
+inputs:
+  version:
+    description: "Version being released, used as the tag name"
+    required: true
+  token:
+    description: "GitHub token"
+    required: true
+  target_commitish:
+    description: "Commitish the tag points to, required when the tag does not exist yet"
+    required: false
+    default: "main"
+outputs:
+  path:
+    description: "Path of the file containing the release body"
+    value: ${{ steps.build.outputs.path }}
+runs:
+  using: "composite"
+  steps:
+    - name: Build release notes
+      id: build
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPOSITORY: ${{ github.repository }}
+        VERSION: ${{ inputs.version }}
+        TARGET_COMMITISH: ${{ inputs.target_commitish }}
+      run: |
+        file="${RUNNER_TEMP}/release-notes.md"
+
+        gh api --method POST "repos/${REPOSITORY}/releases/generate-notes" \
+          -f tag_name="$VERSION" \
+          -f target_commitish="$TARGET_COMMITISH" \
+          --jq .body > "$file"
+
+        shopt -s nullglob
+        pages=(docs/content/migration/*-to-"$VERSION".md)
+
+        if [ ${#pages[@]} -eq 0 ]; then
+          echo "No page matches docs/content/migration/*-to-${VERSION}.md, the release notes will not link one."
+        else
+          slug=$(basename "${pages[0]}" .md)
+          title=${slug//-to-/ → }
+          {
+            echo
+            echo "## Upgrading"
+            echo
+            echo "See [$title](https://ibm.github.io/watsonx-ai-java-sdk/migration/$slug/) in the documentation for what this release changes and how to adopt it."
+          } >> "$file"
+          echo "Linked the $title page."
+        fi
+
+        echo "path=$file" >> "$GITHUB_OUTPUT"

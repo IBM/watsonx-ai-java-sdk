@@ -13,7 +13,7 @@ The SDK provides a typed exception hierarchy so you can catch exactly the errors
 
 API errors are reported through `WatsonxException`, which extends `RuntimeException`. You never need to declare SDK exceptions in `throws` clauses.
 
-```
+```text
 RuntimeException
 ├── WatsonxException              (base - always has statusCode, errorCode, message, traceId)
 │   ├── AuthenticationTokenExpiredException   ← handled automatically by the SDK
@@ -26,8 +26,11 @@ RuntimeException
 │   ├── ModelNoSupportForFunctionException
 │   ├── TokenQuotaReachedException
 │   └── UserAuthorizationFailedException
-└── EmptyChatResponseException    ← the call succeeded, but there is nothing to read
+├── EmptyChatResponseException    ← the call succeeded, but there is nothing to read
+└── ModerationException           ← the call succeeded, but moderation blocked the output
 ```
+
+Both chat exceptions live in `com.ibm.watsonx.ai.chat.exception`.
 
 `WatsonxException` exposes:
 
@@ -78,6 +81,21 @@ Because it extends `RuntimeException` directly and not `WatsonxException`, a `ca
 | `finishReason()` | FinishReason | Finish reason of the empty choice (e.g. `LENGTH`, `TIME_LIMIT`, `CANCELLED`, `ERROR`), or `INCOMPLETE` when the response has no choices |
 | `index()` | int | Zero-based index of the empty choice, or `EmptyChatResponseException.NO_CHOICE` (`-1`) when the response has no choices |
 | `response()` | ChatResponse | The original response - useful to inspect token usage or log the raw payload |
+
+---
+
+## Moderation-blocked responses
+
+`ModerationException` is thrown when the moderation system blocked the response entirely, leaving no choices in the output. Like `EmptyChatResponseException`, it is raised by `ChatResponse.toAssistantMessage()` and `toAssistantMessages()` rather than by the request itself, and it extends `RuntimeException` directly, so `catch (WatsonxException e)` will **not** catch it. In streaming mode the returned `CompletableFuture` completes exceptionally with it and `ChatHandler.onError` receives it.
+
+`ModerationException` exposes:
+
+| Method | Type | Description |
+|--------|------|-------------|
+| `moderations()` | Map\<String, List\<ModerationResult\>\> | Unmodifiable map from detector name (`"pii"`, `"hap"`, `"granite_guardian"`) to the flagged spans, never `null` |
+| `getMessage()` | String | Lists the policies that were triggered |
+
+To decide without catching an exception, `TextChatResponse.isBlockedByModeration()` reports the same condition on the response object. See [Content Moderation](/services/chat-service#content-moderation) for the detector configuration.
 
 ---
 

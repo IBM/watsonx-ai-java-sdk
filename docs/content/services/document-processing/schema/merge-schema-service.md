@@ -1,6 +1,6 @@
 ---
 id: merge-schema-service
-title: Merge
+title: Merge Schema Service
 ---
 
 # Merge Schema Service

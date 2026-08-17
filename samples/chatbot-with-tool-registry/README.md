@@ -1,4 +1,4 @@
-# Watsonx Chatbot with Tool Registry Example
+# Chatbot with Tool Registry Example
 
 This example demonstrates how to use the `ToolRegistry` to manage and execute tools in a chatbot application. The registry provides a clean, type-safe way to register multiple tools and handle their execution with optional lifecycle callbacks.
 

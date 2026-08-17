@@ -1,4 +1,4 @@
-# Watsonx Embedding Example
+# Text Extraction Example
 
 This example demonstrates how to use IBM watsonx.ai to perform text extraction from documents stored in IBM Cloud Object Storage (COS).
 

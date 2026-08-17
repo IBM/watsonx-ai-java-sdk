@@ -206,7 +206,7 @@ ChatService chatService = ChatService.builder()
 
 ## Token lifecycle
 
-```
+```text
 First request
   → Authenticator fetches a token from IAM / CP4D
   → Token cached in memory

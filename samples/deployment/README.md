@@ -1,4 +1,4 @@
-# Watsonx Deployment Sample
+# Deployment Example
 
 This sample demonstrates how interact with a LLM deployment via the `DeploymentService`. It retrieves deployment metadata and performs a chat completion using the deployed model.
 

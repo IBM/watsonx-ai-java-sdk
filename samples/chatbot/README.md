@@ -1,4 +1,4 @@
-# Watsonx Chatbot Example
+# Chatbot Example
 
 This is a simple chatbot project.
 

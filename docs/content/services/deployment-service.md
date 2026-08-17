@@ -22,7 +22,7 @@ DeploymentService deploymentService = DeploymentService.builder()
     .build();
 
 var chatRequest = DeploymentChatRequest.builder()
-    .deploymentId(DEPLOYMENT_ID)
+    .deploymentId(WATSONX_DEPLOYMENT_ID)
     .messages(UserMessage.text("Hello!"))
     .build();
 
@@ -82,7 +82,7 @@ All routing is done through the `deploymentId` in each request, so no `projectId
 
 ```java
 var chatRequest = DeploymentChatRequest.builder()
-    .deploymentId(DEPLOYMENT_ID)
+    .deploymentId(WATSONX_DEPLOYMENT_ID)
     .messages(
         SystemMessage.of("You are a helpful assistant."),
         UserMessage.text("Hello, how are you?")
@@ -95,7 +95,7 @@ ChatResponse response = deploymentService.chat(chatRequest);
 
 ```java
 var chatRequest = DeploymentChatRequest.builder()
-    .deploymentId(DEPLOYMENT_ID)
+    .deploymentId(WATSONX_DEPLOYMENT_ID)
     .messages(UserMessage.text("Tell me a joke."))
     .build();
 
@@ -131,7 +131,7 @@ future.cancel(true);
 
 Cancellation aborts the response body subscription and closes the connection, so the model stops streaming. After `cancel(...)` returns, no further callback reaches the handler, not even `onError`, because stopping the stream is a decision of the caller rather than a failure. A callback that is already running is allowed to finish.
 
-The future ends in the cancelled state, so a later `get()` or `join()` throws a `CancellationException`. Cancelling twice is a no-op, and so is cancelling a stream that has already completed. Calling `cancel(...)` from inside a callback is safe. See [Chat](../chat-service#cancelling-a-stream) for the full contract.
+The future ends in the cancelled state, so a later `get()` or `join()` throws a `CancellationException`. Cancelling twice is a no-op, and so is cancelling a stream that has already completed. Calling `cancel(...)` from inside a callback is safe. See [Chat](/services/chat-service#cancelling-a-stream) for the full contract.
 
 ---
 
@@ -160,7 +160,7 @@ TimeSeriesParameters parameters = TimeSeriesParameters.builder()
     .build();
 
 TimeSeriesRequest request = TimeSeriesRequest.builder()
-    .deploymentId(DEPLOYMENT_ID)
+    .deploymentId(WATSONX_DEPLOYMENT_ID)
     .inputSchema(schema)
     .data(historicalData)
     .parameters(parameters)
@@ -180,8 +180,8 @@ Use `findById` to inspect a deployment's metadata, status, and inference endpoin
 
 ```java
 var request = FindByIdRequest.builder()
-    .deploymentId(DEPLOYMENT_ID)
-    .spaceId(SPACE_ID)             
+    .deploymentId(WATSONX_DEPLOYMENT_ID)
+    .spaceId(WATSONX_SPACE_ID)
     .build();
 
 DeploymentResource resource = deploymentService.findById(request);

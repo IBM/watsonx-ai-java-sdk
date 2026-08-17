@@ -1,4 +1,4 @@
-# Watsonx Batch Example
+# Batch Example
 
 This sample demonstrates how to use IBM watsonx.ai to submit and execute batch inference jobs using the `BatchService`. It sends multiple chat completion requests in a single batch and waits for the results.
 

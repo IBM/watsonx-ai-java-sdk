@@ -95,6 +95,14 @@ jobs:
           git tag ${{ inputs.version }}
           git push origin ${{ inputs.version }}
 
+      - name: Build release notes
+        id: release_notes
+        uses: ./.github/actions/release-notes
+        with:
+          version: ${{ inputs.version }}
+          token: ${{ secrets.GH_BOT_TOKEN }}
+          target_commitish: ${{ inputs.branch }}
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3
         with:
@@ -102,7 +110,7 @@ jobs:
           name: "${{ inputs.version }}"
           draft: false
           prerelease: false
-          generate_release_notes: true
+          body_path: ${{ steps.release_notes.outputs.path }}
           token: ${{ secrets.GH_BOT_TOKEN }}
 
       - name: Sync main to the hotfix version

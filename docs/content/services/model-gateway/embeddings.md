@@ -1,9 +1,9 @@
 ---
 id: embeddings
-title: Embeddings
+title: Embedding
 ---
 
-# Model Gateway - Embeddings
+# Model Gateway - Embedding
 
 The `ModelGatewayEmbeddingService` generates vector embeddings from text using any third-party embedding model available through the **IBM watsonx.ai Model Gateway** (OpenAI, Azure OpenAI, Mistral, and others). Only providers that expose embedding models can be used here. To see what your gateway actually offers, ask `ModelGatewayCatalogService`, see [Catalog](./catalog/).
 

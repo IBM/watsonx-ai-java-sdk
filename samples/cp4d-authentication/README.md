@@ -1,4 +1,4 @@
-# CP4D Authenticator Sample
+# CP4D Authentication Example
 
 This sample demonstrates how to authenticate and interact with the watsonx.ai service using the `CP4DAuthenticator` class in the SDK. The sample uses the legacy authentication mode (`AuthMode.LEGACY`), which is the default when no specific `AuthMode` is set. It shows how to configure authentication using a **base URL**, **username**, and **API key**, and then sends a chat message to the watsonx.ai service.
 

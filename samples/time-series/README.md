@@ -1,4 +1,4 @@
-# Watsonx Time Series Forecast Example
+# Time Series Forecast Example
 
 This is a simple example that demonstrates how to use IBM watsonx.ai to generate time series forecasts using the `ibm/granite-ttm-512-96-r2` model.
 

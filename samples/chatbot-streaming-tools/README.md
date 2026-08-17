@@ -1,4 +1,4 @@
-# Watsonx Chatbot Example
+# Streaming Chatbot with Tools Example
 
 This is a simple chatbot project that uses streaming with tools.
 

@@ -1,4 +1,4 @@
-# Watsonx Embedding Example
+# Embedding Example
 
 This is a simple example that demonstrates how to use IBM watsonx.ai to generate text embeddings using the `ibm/granite-embedding-278m-multilingual` model.
 

@@ -1,6 +1,6 @@
 ---
 id: improve-schema-service
-title: Improve
+title: Improve Schema Service
 ---
 
 # Improve Schema Service

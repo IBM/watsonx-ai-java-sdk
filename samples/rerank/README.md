@@ -1,4 +1,4 @@
-# Watsonx Embedding Example
+# Rerank Example
 
 This is a simple example that demonstrates how to use IBM watsonx.ai to execute rerank.
 
