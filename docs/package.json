@@ -23,6 +23,8 @@
     "@ibm/plex": "^6.4.1",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
+    "image-size": "^2.0.2",
+    "nanoid": "^3.3.18",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -51,7 +53,6 @@
   },
   "overrides": {
     "serialize-javascript": ">=7.0.5",
-    "uuid": ">=10.0.0",
-    "image-size": ">=2.0.2"
+    "uuid": ">=10.0.0"
   }
 }
