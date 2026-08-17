@@ -1,4 +1,4 @@
-# Watsonx Chatbot with Tool Interceptor
+# Streaming Chatbot with Tool Interceptor Example
 
 This sample demonstrates how to use the **Tool Interceptor** feature to handle malformed tool call arguments during streaming chat sessions.
 

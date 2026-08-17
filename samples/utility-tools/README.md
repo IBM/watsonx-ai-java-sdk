@@ -1,4 +1,4 @@
-# Watsonx Utility Tools Sample
+# Utility Tools Example
 
 This sample demonstrates how to use IBM watsonx.ai Utility Agent Tools through the Java SDK. It shows how to invoke built-in tools like `GoogleSearchTool`, `TavilySearchTool`, `RAGQueryTool`, `WebCrawlerTool`, `WikipediaTool` and `WeatherTool`.
 

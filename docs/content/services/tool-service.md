@@ -262,7 +262,7 @@ WebCrawlerTool webCrawler = new WebCrawlerTool(toolService);
 var chatService = ChatService.builder()
     .baseUrl(CloudRegion.DALLAS)
     .apiKey(WATSONX_API_KEY)
-    .projectId(PROJECT_ID)
+    .projectId(WATSONX_PROJECT_ID)
     .modelId("ibm/granite-4-h-small")
     .tools(googleSearch.schema(), webCrawler.schema())
     .build();
@@ -296,7 +296,7 @@ System.out.println(assistantMessage.content());
 ```java
 RAGQueryTool ragQuery = RAGQueryTool.builder()
     .toolService(toolService)
-    .projectId(PROJECT_ID)
+    .projectId(WATSONX_PROJECT_ID)
     .vectorIndexIds(VECTOR_INDEX_ID)
     .description("Documents contain information about our internal project.")
     .build();

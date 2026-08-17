@@ -1,4 +1,4 @@
-# Watsonx Embedding Example
+# Tokenization Example
 
 This is a simple example that demonstrates how to use IBM watsonx.ai to check the conversion of the provided input into tokens for a given model.
 

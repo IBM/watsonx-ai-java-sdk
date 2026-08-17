@@ -1,5 +1,5 @@
 ---
-id: document-processing
+id: index
 title: Document Processing
 ---
 

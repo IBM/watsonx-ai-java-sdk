@@ -79,7 +79,7 @@ Proxy layer that routes requests to third-party foundation models (OpenAI, Anthr
 |---------|-------------|
 | **[Chat](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/chat/)** | Synchronous and streaming chat completions to any configured model |
 | **[Catalog](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/catalog/)** | List all configured models and retrieve individual model details by UUID or alias |
-| **[Embeddings](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/embeddings/)** | Generate vector embeddings from text using any configured embedding model |
+| **[Embedding](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/embeddings/)** | Generate vector embeddings from text using any configured embedding model |
 | **[Image Generation](https://ibm.github.io/watsonx-ai-java-sdk/services/model-gateway/image-generation/)** | Generate images from text prompts using any configured image model |
 
 ### Document Processing

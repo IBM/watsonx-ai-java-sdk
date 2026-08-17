@@ -1,4 +1,4 @@
-# Watsonx Detection Example
+# Detection Example
 
 This is a simple example that demonstrates how to use IBM watsonx.ai to detect hate and profanity (HAP) and personally identifiable information (PII).
 

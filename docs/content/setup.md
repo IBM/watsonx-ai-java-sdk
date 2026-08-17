@@ -20,8 +20,8 @@ This page maps every value used in the samples to the resource behind it and lin
 | A provisioned watsonx.ai instance on IBM Cloud | [Sign up for watsonx.ai](#1-sign-up-for-watsonxai) |
 | IBM Cloud API key (`WATSONX_API_KEY`), exchanged for an IAM token | [Create an API key](#2-create-an-ibm-cloud-api-key) |
 | The project where inference runs (`WATSONX_PROJECT_ID`) | [Find your Project ID](#3-create-a-project--find-the-project-id) |
-| A deployment space - alternative to a project (`SPACE_ID`) | [Create a deployment space](#4-create-a-deployment-space-optional) |
-| An asset deployed to a space (`DEPLOYMENT_ID`) | [Deploy an asset](#5-deploy-an-asset-optional) |
+| A deployment space - alternative to a project (`WATSONX_SPACE_ID`) | [Create a deployment space](#4-create-a-deployment-space-optional) |
+| An asset deployed to a space (`WATSONX_DEPLOYMENT_ID`) | [Deploy an asset](#5-deploy-an-asset-optional) |
 | A Cloud Object Storage connection and bucket (`CONNECTION_ID` + `BUCKET_NAME`) | [Set up Cloud Object Storage](#6-set-up-cloud-object-storage-cos) |
 | Gateway component + provider secrets configured by an admin | [Set up Model Gateway](#7-set-up-model-gateway-optional) |
 | The regional watsonx.ai endpoint (`baseUrl` / `CloudRegion`) | [Choose your region](#8-choose-your-region-base-url) |
@@ -29,9 +29,9 @@ This page maps every value used in the samples to the resource behind it and lin
 
 Not every service needs every value:
 
-- **`WATSONX_API_KEY` + `WATSONX_PROJECT_ID` (or `SPACE_ID`) + `baseUrl` + `modelId`** - required by most services: [Chat](services/chat-service/), [Embedding](services/embedding-service/), [Rerank](services/rerank-service/), [Tokenization](services/tokenization-service/), [Detection](services/detection-service/).
+- **`WATSONX_API_KEY` + `WATSONX_PROJECT_ID` (or `WATSONX_SPACE_ID`) + `baseUrl` + `modelId`** - required by most services: [Chat](services/chat-service/), [Embedding](services/embedding-service/), [Rerank](services/rerank-service/), [Tokenization](services/tokenization-service/), [Detection](services/detection-service/).
 - **`CONNECTION_ID` + `BUCKET_NAME`** - required only by [Text Extraction](services/document-processing/text-extraction-service/), [Text Classification](services/document-processing/text-classification-service/), and [Batch](services/batch-service/).
-- **`DEPLOYMENT_ID`** - required only by the [Deployment Service](services/deployment-service/).
+- **`WATSONX_DEPLOYMENT_ID`** - required only by the [Deployment Service](services/deployment-service/).
 - **Model Gateway** - requires a one-time admin setup. No extra values are needed in your code beyond the standard `WATSONX_API_KEY`.
 
 ---
@@ -75,7 +75,7 @@ A **deployment space** is a workspace for assets that are ready for testing or p
 
 ## 5. Deploy an asset (optional)
 
-The [Deployment Service](services/deployment-service/) targets a `DEPLOYMENT_ID` instead of a `modelId`. To obtain one, deploy an asset (a foundation model or a prompt template) into a deployment space. Once deployed, the deployment's unique ID is shown in the space.
+The [Deployment Service](services/deployment-service/) targets a `WATSONX_DEPLOYMENT_ID` instead of a `modelId`. To obtain one, deploy an asset (a foundation model or a prompt template) into a deployment space. Once deployed, the deployment's unique ID is shown in the space.
 
 - 📖 [Creating online deployments](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/deploy-online.html?context=wx&audience=wdp)
 
@@ -134,7 +134,7 @@ The `modelId` passed to a service (e.g. `ibm/granite-4-h-small`) must match a mo
 The catalog groups models into two categories, and each is consumed through a different service:
 
 - **Provided with watsonx.ai (pay per token)** - models already hosted in watsonx.ai. Reference them directly by `modelId` through [Chat](services/chat-service/) and the other inference services. No deployment step is required.
-- **Deploy on demand (pay by the hour)** - models you first deploy into a deployment space from the **Resource Hub**. Once deployed, they are called by their `DEPLOYMENT_ID` through the [Deployment Service](services/deployment-service/). See [Deploy an asset](#5-deploy-an-asset-optional).
+- **Deploy on demand (pay by the hour)** - models you first deploy into a deployment space from the **Resource Hub**. Once deployed, they are called by their `WATSONX_DEPLOYMENT_ID` through the [Deployment Service](services/deployment-service/). See [Deploy an asset](#5-deploy-an-asset-optional).
 
 - 📖 [Supported foundation models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx&audience=wdp)
 

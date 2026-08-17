@@ -257,7 +257,7 @@ The output file name is derived from the input file name. When requesting a **si
 
 When requesting **multiple outputs**, set `outputFileName` to a directory path ending with `/`. All output files are written into that directory using their default names. For example, with `outputFileName("results/")` and outputs `PLAIN_TEXT`, `JSON`, `HTML`:
 
-```
+```text
 results/plain.txt
 results/assembly.json
 results/assembly.html

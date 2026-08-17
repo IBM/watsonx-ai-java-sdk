@@ -1,6 +1,6 @@
 ---
 id: cluster-schema-service
-title: Cluster
+title: Cluster Schema Service
 ---
 
 # Cluster Schema Service

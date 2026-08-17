@@ -28,6 +28,7 @@ These services read from and write to **IBM Cloud Object Storage (COS)**. A `CON
 | **[Create Schema](document-processing/schema/create-schema-service)** | Generate a key-value extraction schema from sample documents |
 | **[Improve Schema](document-processing/schema/improve-schema-service)** | Refine an existing schema using additional examples |
 | **[Merge Schema](document-processing/schema/merge-schema-service)** | Consolidate multiple schemas into one |
+| **[Cluster Schema](document-processing/schema/cluster-schema-service)** | Group a set of schemas into semantically similar clusters |
 | **[Text Extraction](document-processing/text-extraction-service)** | Extract structured key-value pairs from documents in COS |
 | **[Text Classification](document-processing/text-classification-service)** | Classify documents stored in COS |
 

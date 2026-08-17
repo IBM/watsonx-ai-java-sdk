@@ -1,4 +1,4 @@
-# Watsonx Image Analyzer Example
+# Image Analyzer Example
 
 This is a simple chatbot project that uses a large language model (LLM) to generate a description of an image.
 

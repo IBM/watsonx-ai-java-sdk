@@ -1,4 +1,4 @@
-# Watsonx Streaming Chatbot - Simple Blocking Approach
+# Streaming Chatbot with Simple Blocking Example
 
 This sample demonstrates how to build a streaming chatbot using a **simplified blocking approach** with the `Consumer<String>` handler and default tools configuration.
 

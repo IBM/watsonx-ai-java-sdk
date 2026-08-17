@@ -1,6 +1,6 @@
 ---
 id: create-schema-service
-title: Create
+title: Create Schema Service
 ---
 
 # Create Schema Service

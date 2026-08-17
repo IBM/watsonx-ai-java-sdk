@@ -1,4 +1,4 @@
-# Watsonx Chat Inline Moderation Example
+# Chat Inline Moderation Example
 
 This is a simple example that demonstrates how to enable **inline content moderation** on an IBM watsonx.ai chat request and how to mask the detected values on the assistant response using the `Masker` utility.
 

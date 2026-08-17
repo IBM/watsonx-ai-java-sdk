@@ -287,7 +287,7 @@ chatService.chatStreaming(
 | `onPartialThinking` | No | Called for each chunk of reasoning content |
 | `failOnFirstError` | No | Return `true` to stop streaming on first error (default: `false`) |
 
-> **Threading note:** Callbacks run on the callback executor (virtual threads on Java 21+, configurable via the `CallbackExecutorProvider` SPI). Within a single request every callback is delivered sequentially, in the order the events were emitted, and never concurrently with another one: all the `onPartialToolCall` fragments of a tool call reach the handler before its `onCompleteToolCall`, tool calls arrive in index order, and `onCompleteResponse` comes last. Consecutive callbacks may run on different threads, but each one returns before the next one starts and what it wrote is visible to the next one, so your handler can accumulate into unsynchronized fields. The flip side is that a callback that blocks delays the ones after it in the same request.
+> **Threading note:** Callbacks run on the callback executor (virtual threads on Java 21+, configurable via the `CallbackExecutorProvider` SPI).
 
 ### Cancelling a Stream
 
@@ -916,6 +916,21 @@ Fields on `ModerationResult`:
 | `position` | `Position` | Start (inclusive) / end (exclusive) offsets in the text |
 | `entity` | `String` | Detected entity type (e.g. `"PhoneNumber"`) |
 | `word` | `String` | The matched text |
+
+### Blocked Responses
+
+When moderation blocks the response entirely there is no usable choice to read, and `response.toAssistantMessage()` throws `ModerationException` carrying the detector results. Use `response.isBlockedByModeration()` to check for it beforehand:
+
+```java
+if (response.isBlockedByModeration()) {
+    logger.warn("Blocked by: {}", response.moderations().keySet());
+    return fallbackAnswer();
+}
+
+var message = response.toAssistantMessage();
+```
+
+In streaming mode the returned `CompletableFuture` completes exceptionally with `ModerationException` and `onError` receives it. See [Error Handling](/advanced/error-handling#moderation-blocked-responses).
 
 ### Restricting Moderation to Input Ranges
 

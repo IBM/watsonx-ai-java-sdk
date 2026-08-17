@@ -1,4 +1,4 @@
-# Watsonx Chatbot with reasoning Example
+# Chatbot with Reasoning Example
 
 This is a simple chatbot project.
 

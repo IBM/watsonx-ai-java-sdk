@@ -203,5 +203,5 @@ The field you did not request comes back `null`, so it also tells you which form
 - [Managing the Model Gateway](https://www.ibm.com/docs/en/watsonx/w-and-w/2.4.x?topic=gateway-managing-model)
 - [Model Gateway Catalog Documentation](./catalog)
 - [Model Gateway Chat Documentation](./chat)
-- [Model Gateway Embeddings Documentation](./embeddings)
+- [Model Gateway Embedding Documentation](./embeddings)
 - [Authentication](/authentication)

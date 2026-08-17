@@ -1,4 +1,4 @@
-# Watsonx Chatbot with reasoning Example
+# Streaming Chatbot with Reasoning Example
 
 This is a simple chatbot project that uses streaming and reasoning.
 
