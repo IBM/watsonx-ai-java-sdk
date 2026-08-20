@@ -210,3 +210,4 @@ The returned vector is unmodifiable.
 - [Model Gateway Chat Documentation](./chat)
 - [Embedding Service Documentation](../../services/embedding-service)
 - [Authentication](/authentication)
+- [Sample Code](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/model-gateway-embedding)

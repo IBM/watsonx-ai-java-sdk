@@ -9,10 +9,6 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Cache;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Router;
-import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.ServiceTier;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 
 public class App {
@@ -25,27 +21,15 @@ public class App {
         var apiKey = config.getValue("WATSONX_API_KEY", String.class);
         var modelId = config.getValue("WATSONX_MODEL_ID", String.class);
 
-        // Build default ModelGatewayChatParameters with router/cache and service tier
-        var defaultParameters = ModelGatewayChatParameters.builder()
-            .temperature(0.7)
-            .serviceTier(ServiceTier.AUTO)
-            .router(new Router(new Cache(false, null, null)))
-            .build();
-
         var gatewayProvider = ModelGatewayChatService.builder()
             .apiKey(apiKey)
             .baseUrl(url)
             .modelId(modelId)
-            .parameters(defaultParameters)
             .build();
 
         var message = "What is the capital of Italy?";
         var chatRequest = ModelGatewayChatRequest.builder()
             .messages(UserMessage.text(message))
-            .parameters(
-                ModelGatewayChatParameters.builder()
-                    .temperature(0.3)
-                    .build())
             .build();
 
         var response = gatewayProvider.chat(chatRequest);

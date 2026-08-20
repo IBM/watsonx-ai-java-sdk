@@ -28,7 +28,9 @@
     <module>batch</module>
     <module>utility-tools</module>
     <module>deployment</module>
-    <module>model-gateway</module>
+    <module>model-gateway-chat</module>
+    <module>model-gateway-embedding</module>
+    <module>model-gateway-image</module>
     <module>detection</module>
     <module>cp4d-authentication</module>
   </modules>
@@ -48,7 +50,7 @@
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai</artifactId>
-      <version>0.30.0</version>
+      <version>999-SNAPSHOT</version>
     </dependency>
 
     <dependency>
