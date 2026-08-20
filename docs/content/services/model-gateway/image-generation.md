@@ -205,3 +205,4 @@ The field you did not request comes back `null`, so it also tells you which form
 - [Model Gateway Chat Documentation](./chat)
 - [Model Gateway Embedding Documentation](./embeddings)
 - [Authentication](/authentication)
+- [Sample Code](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/model-gateway-image)
