@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import java.io.File;
@@ -44,6 +45,7 @@ import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
@@ -2164,6 +2166,33 @@ public class ChatServiceTest extends AbstractWatsonxTest {
             assertEquals("tool_calls", chatResponse.choices().get(0).finishReason());
             assertEquals("tool_calls", chatResponse.choices().get(1).finishReason());
             assertEquals(FinishReason.TOOL_CALLS, chatResponse.finishReason());
+        });
+    }
+
+    @Test
+    void should_throw_exception_when_using_developer_message() {
+
+        withWatsonxServiceMock(() -> {
+
+            var chatService = ChatService.builder()
+                .baseUrl("http://localhost:%d".formatted(wireMock.getPort()))
+                .authenticator(mockAuthenticator)
+                .modelId("model-id")
+                .projectId("project-id")
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(
+                    DeveloperMessage.of("You are a helpful assistant"),
+                    UserMessage.text("Why the sky is blue?"))
+                .build();
+
+            var ex = assertThrows(IllegalArgumentException.class, () -> chatService.chat(chatRequest));
+            assertEquals("Developer messages are supported only by the Model Gateway", ex.getMessage());
+
+            ex = assertThrows(IllegalArgumentException.class,
+                () -> chatService.chatStreaming(chatRequest, mock(ChatHandler.class)));
+            assertEquals("Developer messages are supported only by the Model Gateway", ex.getMessage());
         });
     }
 }

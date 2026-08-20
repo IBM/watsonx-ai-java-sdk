@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
@@ -61,6 +62,7 @@ import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
+import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
@@ -1299,6 +1301,28 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             ex = assertThrows(RuntimeException.class,
                 () -> deploymentService.findById(FindByIdRequest.builder().build()));
             assertEquals(ex.getMessage(), "deploymentId must be provided");
+        });
+    }
+
+    @Test
+    void should_throw_exception_when_using_developer_message() throws Exception {
+        withWatsonxServiceMock(() -> {
+            DeploymentService deploymentService = DeploymentService.builder()
+                .baseUrl(CloudRegion.DALLAS)
+                .authenticator(mockAuthenticator)
+                .build();
+
+            var chatRequest = DeploymentChatRequest.builder()
+                .deploymentId("my-deployment-id")
+                .messages(DeveloperMessage.of("You are a helpful assistant"), UserMessage.text("Hello"))
+                .build();
+
+            var ex = assertThrows(IllegalArgumentException.class, () -> deploymentService.chat(chatRequest));
+            assertEquals("Developer messages are supported only by the Model Gateway", ex.getMessage());
+
+            ex = assertThrows(IllegalArgumentException.class,
+                () -> deploymentService.chatStreaming(chatRequest, mock(ChatHandler.class)));
+            assertEquals("Developer messages are supported only by the Model Gateway", ex.getMessage());
         });
     }
 

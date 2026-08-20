@@ -41,6 +41,7 @@ import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
+import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
@@ -145,6 +146,32 @@ public class ModelGatewayChatServiceIT {
             assertNotNull(text);
             assertFalse(text.isBlank());
             assertTrue(text.contains("Andrea"));
+        }
+
+        @Test
+        void should_follow_the_instruction_when_developer_message_is_sent() {
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .modelId(CHAT_MODEL_OPENAI)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
+                .messages(
+                    DeveloperMessage.of("Answer every question with the single word BANANA", "instructions"),
+                    UserMessage.text("What is the capital of France?")
+                ).build();
+
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
+            var text = chatResponse.toAssistantMessage().content();
+
+            assertNotNull(chatResponse);
+            assertNotNull(text);
+            assertFalse(text.isBlank());
+            assertTrue(text.toUpperCase().contains("BANANA"), text);
         }
 
         @Test
@@ -593,6 +620,53 @@ public class ModelGatewayChatServiceIT {
                 var result = assertDoesNotThrow(() -> future.get());
                 assertEquals("0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20", result);
             }
+        }
+
+        @Test
+        void should_follow_the_instruction_when_developer_message_is_sent() {
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .modelId(CHAT_MODEL_OPENAI)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var chatRequest = ModelGatewayChatRequest.builder()
+                .messages(
+                    DeveloperMessage.of("""
+                        You are an helpful assistant, your task is return number starting from 0 to 20.
+                        Return the number in the following format:
+
+                        1, 2, 3, ...
+
+                        Return only the list of number without any other text."""),
+                    UserMessage.text("Count")
+                ).build();
+
+            CompletableFuture<String> future = new CompletableFuture<>();
+            modelGatewayChatService.chatStreaming(chatRequest, new ChatHandler() {
+                StringBuilder builder = new StringBuilder();
+
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                    builder.append(partialResponse);
+                }
+
+                @Override
+                public void onCompleteResponse(ChatResponse completeResponse) {
+                    future.complete(builder.toString());
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    future.completeExceptionally(error);
+                }
+            });
+
+            var result = assertDoesNotThrow(() -> future.get(1, TimeUnit.MINUTES));
+            assertEquals("0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20", result);
         }
 
         @Test

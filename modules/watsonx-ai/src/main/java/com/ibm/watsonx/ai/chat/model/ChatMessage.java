@@ -9,10 +9,11 @@ package com.ibm.watsonx.ai.chat.model;
  *
  * @see AssistantMessage
  * @see ControlMessage
+ * @see DeveloperMessage
  * @see SystemMessage
  * @see ToolMessage
  * @see UserMessage
  */
 public sealed interface ChatMessage permits
-    AssistantMessage, ControlMessage, SystemMessage, ToolMessage, UserMessage {}
+    AssistantMessage, ControlMessage, DeveloperMessage, SystemMessage, ToolMessage, UserMessage {}
 

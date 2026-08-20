@@ -10,6 +10,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
+import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 /**
@@ -56,6 +57,9 @@ public class ModelGatewayChatUtility {
 
         var messages = chatRequest.messages();
         var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
+
+        if (messages.stream().anyMatch(ControlMessage.class::isInstance))
+            throw new IllegalArgumentException("Control messages are not supported by the Model Gateway");
 
         var parameters = requireNonNullElse(chatRequest.parameters(), ModelGatewayChatParameters.builder().build());
         var defaults = requireNonNullElse(defaultParameters, ModelGatewayChatParameters.builder().build());

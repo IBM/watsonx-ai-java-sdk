@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNullElse;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 
 public class ChatUtility {
@@ -28,6 +29,9 @@ public class ChatUtility {
 
         var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
         defaultParameters = requireNonNullElse(defaultParameters, ChatParameters.builder().build());
+
+        if (messages.stream().anyMatch(DeveloperMessage.class::isInstance))
+            throw new IllegalArgumentException("Developer messages are supported only by the Model Gateway");
 
         if (messages.stream().anyMatch(ControlMessage.class::isInstance)
             && (isNull(chatRequest.thinking()) || isNull(chatRequest.thinking().extractionTags())))

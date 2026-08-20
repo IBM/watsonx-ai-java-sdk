@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -15,6 +16,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
 import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -110,5 +112,21 @@ public class ChatMessageTest {
         var is = mock(InputStream.class);
         when(is.readAllBytes()).thenThrow(new IOException());
         assertThrows(RuntimeException.class, () -> UserMessage.audio("Transcribe this", is, "audio/wav"));
+    }
+
+    @Test
+    void should_create_a_developer_message_with_the_developer_role() {
+        var developerMessage = DeveloperMessage.of("You are a helpful assistant");
+        assertEquals(DeveloperMessage.ROLE, developerMessage.role());
+        assertEquals("developer", developerMessage.role());
+        assertEquals("You are a helpful assistant", developerMessage.content());
+        assertNull(developerMessage.name());
+        assertEquals("my-name", DeveloperMessage.of("You are a helpful assistant", "my-name").name());
+        assertEquals("developer", new DeveloperMessage("system", "You are a helpful assistant", null).role());
+    }
+
+    @Test
+    void should_throw_exception_when_developer_message_content_is_null() {
+        assertThrows(NullPointerException.class, () -> DeveloperMessage.of(null));
     }
 }

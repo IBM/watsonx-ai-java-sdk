@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.net.http.HttpHeaders;
@@ -39,6 +40,8 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
+import com.ibm.watsonx.ai.chat.model.ControlMessage;
+import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
@@ -914,4 +917,68 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
         assertEquals("Logged", response.choices().get(0).message().content());
     }
 
+    @Test
+    void should_send_developer_message_in_the_payload() {
+
+        withWatsonxServiceMock(() -> {
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("gpt-4o")
+                .baseUrl(URI.create("http://my-cloud-instance.com"))
+                .version("1988-03-23")
+                .build();
+
+            when(mockAuthenticator.token()).thenReturn("my-super-token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.headers()).thenReturn(HttpHeaders.of(
+                Map.of("Content-Type", List.of("application/json")), (k, v) -> true));
+            when(mockHttpResponse.body()).thenReturn(SIMPLE_JSON_RESPONSE);
+
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            modelGatewayChatService.chat(ModelGatewayChatRequest.builder()
+                .messages(
+                    DeveloperMessage.of("You are a helpful assistant", "my-name"),
+                    UserMessage.text("Hello"))
+                .build());
+
+            String expectedBody =
+                """
+                    {
+                        "model": "gpt-4o",
+                        "messages": [
+                            { "role": "developer", "content": "You are a helpful assistant", "name": "my-name" },
+                            { "role": "user", "content": [ { "type": "text", "text": "Hello" } ] }
+                        ]
+                    }""";
+
+            JSONAssert.assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest), true);
+        });
+    }
+
+    @Test
+    void should_throw_exception_when_using_control_message() {
+
+        withWatsonxServiceMock(() -> {
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("gpt-4o")
+                .baseUrl(URI.create("http://my-cloud-instance.com"))
+                .version("1988-03-23")
+                .build();
+
+            var chatRequest = ModelGatewayChatRequest.builder()
+                .messages(ControlMessage.of("thinking"), UserMessage.text("Hello"))
+                .build();
+
+            var ex = assertThrows(IllegalArgumentException.class, () -> modelGatewayChatService.chat(chatRequest));
+            assertEquals("Control messages are not supported by the Model Gateway", ex.getMessage());
+
+            ex = assertThrows(IllegalArgumentException.class,
+                () -> modelGatewayChatService.chatStreaming(chatRequest, mock(ChatHandler.class)));
+            assertEquals("Control messages are not supported by the Model Gateway", ex.getMessage());
+        });
+    }
 }

@@ -116,6 +116,24 @@ response = service.chat(messages);
 System.out.println(response.toAssistantMessage().content());
 ```
 
+### Developer Messages
+
+`DeveloperMessage` sets the assistant's behavior in the same way as `SystemMessage`, using the OpenAI `developer` role that newer models expect in its place. It is accepted only by the Model Gateway.
+
+```java
+var messages = new ArrayList<ChatMessage>();
+messages.add(DeveloperMessage.of("You are a helpful assistant"));
+messages.add(UserMessage.text("What is the capital of France?"));
+
+ModelGatewayChatResponse response = service.chat(messages);
+```
+
+An optional participant name can be passed as the second argument to distinguish between authors sharing the same role:
+
+```java
+DeveloperMessage.of("You are a helpful assistant", "planner");
+```
+
 ### With Parameters
 
 ```java
