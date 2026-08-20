@@ -134,6 +134,8 @@ The `ChatService` uses structured **message objects** to represent all interacti
 
 > **Tip:** Always start your conversation with a `SystemMessage` to set clear instructions for the assistant. Default behavior, content, and context can then be extended with `UserMessage` inputs, and responses are represented by `AssistantMessage` and `ToolMessage`.
 
+> **Note:** `DeveloperMessage` is reserved for the [Model Gateway](/services/model-gateway/chat#developer-messages) chat APIs. Passing one to `ChatService` throws an `IllegalArgumentException`, use `SystemMessage` here instead.
+
 ### SystemMessage
 
 Sets the assistant's behavior and personality.

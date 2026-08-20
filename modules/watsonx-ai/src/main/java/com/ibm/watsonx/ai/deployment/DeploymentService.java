@@ -31,6 +31,7 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
@@ -533,6 +534,9 @@ public class DeploymentService extends WatsonxService
         var messages = chatRequest.messages();
         var tools = isNull(chatRequest.tools()) ? defaultTools : chatRequest.tools();
         tools = nonNull(tools) && !tools.isEmpty() ? tools : null;
+
+        if (messages.stream().anyMatch(DeveloperMessage.class::isInstance))
+            throw new IllegalArgumentException("Developer messages are supported only by the Model Gateway");
 
         var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
