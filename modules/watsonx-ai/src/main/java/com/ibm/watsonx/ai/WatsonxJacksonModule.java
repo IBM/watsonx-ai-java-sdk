@@ -143,7 +143,6 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(DetectionTextRequest.class, DetectionTextRequestMixin.class);
         setMixInAnnotation(DetectionTextRequest.Builder.class, DetectionTextRequestBuilderMixin.class);
         setMixInAnnotation(TextDetectionContentDetectors.class, TextDetectionContentDetectorsMixin.class);
-        setMixInAnnotation(TextDetectionContentDetectors.class, TextDetectionContentDetectorsMixin.class);
         setMixInAnnotation(BaseDetectionRequest.class, BaseDetectionRequestMixin.class);
 
         // --- Foudation Mixin --- //
@@ -582,7 +581,7 @@ public class WatsonxJacksonModule extends SimpleModule {
         abstract Map<String, Object> getRaw();
     }
 
-    public abstract class ArraySchemaMixin {
+    public abstract static class ArraySchemaMixin {
 
         @JsonProperty("items")
         abstract JsonSchema items();
@@ -644,7 +643,7 @@ public class WatsonxJacksonModule extends SimpleModule {
 
     }
 
-    public abstract class ObjectSchemaMixin {
+    public abstract static class ObjectSchemaMixin {
 
         @JsonProperty("properties")
         abstract Map<String, JsonSchema> properties();
@@ -712,7 +711,7 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     @JsonDeserialize(builder = Schema.Builder.class)
-    public abstract class SchemaMixin {
+    public abstract static class SchemaMixin {
 
         @JsonProperty("document_type")
         abstract String documentType();
@@ -732,25 +731,25 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public abstract class SchemaBuilderMixin {}
+    public abstract static class SchemaBuilderMixin {}
 
     @JsonDeserialize(builder = KvpFields.Builder.class)
-    public abstract class KvpFieldsMixin {}
+    public abstract static class KvpFieldsMixin {}
 
     @JsonPOJOBuilder(withPrefix = "")
-    public abstract class KvpFieldsBuilderMixin {
+    public abstract static class KvpFieldsBuilderMixin {
         @JsonAnySetter
         public abstract KvpFields.Builder add(String key, KvpFields.KvpField value);
     }
 
     @JsonDeserialize(builder = GroundingHints.Builder.class)
-    public abstract class GroundingHintsMixin {
+    public abstract static class GroundingHintsMixin {
         @JsonProperty("fields")
         abstract Map<String, GroundingHints.FieldData> fields();
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public abstract class GroundingHintsBuilderMixin {}
+    public abstract static class GroundingHintsBuilderMixin {}
 
     public abstract static class GroundingHintFieldDataMixin {
         @JsonCreator
