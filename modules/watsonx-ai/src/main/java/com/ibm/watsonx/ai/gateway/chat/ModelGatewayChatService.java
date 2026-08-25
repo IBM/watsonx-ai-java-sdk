@@ -20,6 +20,7 @@ import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
+import com.ibm.watsonx.ai.chat.interceptor.PartialResponseInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -55,6 +56,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
 public class ModelGatewayChatService extends WatsonxService implements ChatProvider<ModelGatewayChatRequest, ModelGatewayChatResponse> {
     private final ModelGatewayChatRestClient client;
     private final MessageInterceptor<ModelGatewayChatRequest> messageInterceptor;
+    private final PartialResponseInterceptor<ModelGatewayChatRequest> partialResponseInterceptor;
     private final ToolInterceptor<ModelGatewayChatRequest> toolInterceptor;
     private final ChatProvider<ModelGatewayChatRequest, ModelGatewayChatResponse> chatProvider;
     private final ModelGatewayChatParameters defaultParameters;
@@ -66,6 +68,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         modelId = requireNonNull(builder.modelId, "The modelId must be provided");
         messageInterceptor = builder.messageInterceptor;
+        partialResponseInterceptor = builder.partialResponseInterceptor;
         toolInterceptor = builder.toolInterceptor;
         defaultTools = isNull(builder.defaultTools) ? null : List.copyOf(builder.defaultTools);
         defaultParameters = builder.defaultParameters;
@@ -81,7 +84,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
             .verifySsl(verifySsl)
             .build();
 
-        chatProvider = nonNull(messageInterceptor) || nonNull(toolInterceptor)
+        chatProvider = nonNull(messageInterceptor) || nonNull(partialResponseInterceptor) || nonNull(toolInterceptor)
             ? builder.copyWithoutInterceptors().parameters(defaultParameters).build()
             : null;
     }
@@ -137,6 +140,8 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
         var context = ChatClientContext.<ModelGatewayChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
+            .messageInterceptor(messageInterceptor)
+            .partialResponseInterceptor(partialResponseInterceptor)
             .toolInterceptor(toolInterceptor)
             .build();
 
@@ -385,6 +390,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
     public static final class Builder extends WatsonxService.Builder<Builder> {
         private String modelId;
         private MessageInterceptor<ModelGatewayChatRequest> messageInterceptor;
+        private PartialResponseInterceptor<ModelGatewayChatRequest> partialResponseInterceptor;
         private ToolInterceptor<ModelGatewayChatRequest> toolInterceptor;
         private ModelGatewayChatParameters defaultParameters;
         private List<Tool> defaultTools;
@@ -416,11 +422,42 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
 
         /**
          * Registers a {@link MessageInterceptor} used to modify or sanitize the assistant's textual content before it is returned to the caller.
+         * <p>
+         * The interceptor is invoked once per assistant message with the complete content, both on non-streaming responses and on the aggregated
+         * message of a streaming session.
+         * <p>
+         * <b>Example:</b>
+         *
+         * <pre>{@code
+         * ModelGatewayChatService.builder()
+         *     .messageInterceptor((ctx, content) -> content.replace("error", "issue"));
+         * }</pre>
          *
          * @param messageInterceptor the interceptor to apply
          */
         public Builder messageInterceptor(MessageInterceptor<ModelGatewayChatRequest> messageInterceptor) {
             this.messageInterceptor = messageInterceptor;
+            return this;
+        }
+
+        /**
+         * Registers a {@link PartialResponseInterceptor} used to modify each partial response before it is delivered to
+         * {@link ChatHandler#onPartialResponse}.
+         * <p>
+         * This interceptor has no effect on non-streaming requests and does not alter the {@link ChatResponse} delivered to
+         * {@link ChatHandler#onCompleteResponse}.
+         * <p>
+         * <b>Example:</b>
+         *
+         * <pre>{@code
+         * ModelGatewayChatService.builder()
+         *     .partialResponseInterceptor((ctx, partialResponse) -> partialResponse.toUpperCase());
+         * }</pre>
+         *
+         * @param partialResponseInterceptor the interceptor to apply
+         */
+        public Builder partialResponseInterceptor(PartialResponseInterceptor<ModelGatewayChatRequest> partialResponseInterceptor) {
+            this.partialResponseInterceptor = partialResponseInterceptor;
             return this;
         }
 

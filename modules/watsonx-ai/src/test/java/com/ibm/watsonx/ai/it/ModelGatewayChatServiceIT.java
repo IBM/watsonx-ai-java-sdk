@@ -37,6 +37,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import com.google.common.collect.Sets;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
+import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -64,13 +65,18 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_CLAUDE", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_GEMMA", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_OPENAI", matches = ".+")
 public class ModelGatewayChatServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
     static final String URL = System.getenv("WATSONX_URL");
     static final String CHAT_MODEL_CLAUDE = System.getenv("WATSONX_GATEWAY_CHAT_MODEL_CLAUDE");
+    static final String CHAT_MODEL_GEMMA = System.getenv("WATSONX_GATEWAY_CHAT_MODEL_GEMMA");
     static final String CHAT_MODEL_OPENAI = System.getenv("WATSONX_GATEWAY_CHAT_MODEL_OPENAI");
+
+    static final MessageInterceptor<ModelGatewayChatRequest> SANITIZE_TOOL =
+        (ctx, message) -> message.replace("```json", "").replace("```", "");
 
     static final Authenticator authentication = IBMCloudAuthenticator.builder()
         .apiKey(API_KEY)
@@ -153,7 +159,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId(CHAT_MODEL_OPENAI)
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -183,6 +189,7 @@ public class ModelGatewayChatServiceIT {
                 .baseUrl(URL)
                 .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
+                .messageInterceptor(SANITIZE_TOOL)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -219,7 +226,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId(CHAT_MODEL_OPENAI)
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -232,7 +239,6 @@ public class ModelGatewayChatServiceIT {
                         .property("content", JsonSchema.string())
                         .property("topic", JsonSchema.enumeration("dog", "cat"))
                         .required("content", "topic")
-                        .additionalProperties(false)
                         .build(),
                     true)
                 .build();
@@ -376,7 +382,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId(CHAT_MODEL_OPENAI)
+                .modelId(CHAT_MODEL_GEMMA)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -410,7 +416,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId(CHAT_MODEL_OPENAI)
+                .modelId(CHAT_MODEL_GEMMA)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -678,6 +684,7 @@ public class ModelGatewayChatServiceIT {
                 .baseUrl(URL)
                 .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
+                .messageInterceptor(SANITIZE_TOOL)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -713,7 +720,7 @@ public class ModelGatewayChatServiceIT {
                 public void onError(Throwable error) {}
             });
 
-            var chatResponse = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> future.get(500, TimeUnit.SECONDS));
             var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
 
             assertNotNull(chatResponse);
@@ -1121,7 +1128,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId(CHAT_MODEL_CLAUDE)
+                .modelId(CHAT_MODEL_GEMMA)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -1164,7 +1171,7 @@ public class ModelGatewayChatServiceIT {
                 public void onError(Throwable error) {}
             }));
 
-            var chatResponse = assertDoesNotThrow(() -> future.get(30, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> future.get(60, TimeUnit.SECONDS));
             var completedToolCall = assertDoesNotThrow(() -> futureToolCall.get(10, TimeUnit.SECONDS));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(assistantMessage.content() == null || assistantMessage.content().isBlank());

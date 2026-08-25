@@ -44,6 +44,16 @@ public final class InterceptorContext<R extends BaseChatRequest> {
     }
 
     /**
+     * Returns a copy of this context bound to the given response.
+     *
+     * @param response the chat response to bind
+     * @return a new {@link InterceptorContext} carrying the given response
+     */
+    public InterceptorContext<R> withResponse(ChatResponse response) {
+        return new InterceptorContext<>(chatProvider, request, response);
+    }
+
+    /**
      * Sends a request to an LLM for auxiliary processing.
      * <p>
      * This method enables interceptors to perform additional reasoning steps, validation passes, rewriting, classification, or any other operation

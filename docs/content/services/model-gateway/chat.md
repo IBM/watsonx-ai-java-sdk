@@ -31,7 +31,7 @@ System.out.println(response.toAssistantMessage().content());
 
 - Send synchronous and streaming chat requests to any model available through the gateway.
 - Use gateway-specific parameters such as service tier, reasoning effort, audio modalities, caching, and routing configuration.
-- Apply `MessageInterceptor` and `ToolInterceptor` for post-processing.
+- Apply `MessageInterceptor`, `PartialResponseInterceptor`, and `ToolInterceptor` for post-processing.
 - Read gateway metadata on every response: `serviceTier()`, `systemFingerprint()`, and `cached()`.
 
 ---
@@ -58,7 +58,8 @@ ModelGatewayChatService service = ModelGatewayChatService.builder()
 | `modelId` | String | Yes | Third-party model identifier (e.g., `"gpt-4o"`, `"claude-3-5-sonnet"`) |
 | `parameters` | ModelGatewayChatParameters | No | Default parameters applied to every request |
 | `tools` | List\<Tool\> | No | Default tools available to the model |
-| `messageInterceptor` | MessageInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for the assistant's text content |
+| `messageInterceptor` | MessageInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for the complete assistant message |
+| `partialResponseInterceptor` | PartialResponseInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for each streamed content token |
 | `toolInterceptor` | ToolInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for function call arguments |
 | `timeout` | Duration | No | Default request timeout (default: 60 seconds) |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
@@ -341,7 +342,7 @@ System.out.println("Total tokens: " + response.usage().totalTokens());
 
 ## Interceptors
 
-Interceptors work identically to how they work in `ChatService`. See the [Chat Service - Interceptors](../../services/chat-service#interceptors) section for the full description of `MessageInterceptor`, `ToolInterceptor`, and `InterceptorContext`.
+Interceptors work identically to how they work in `ChatService`. See the [Chat Service - Interceptors](../../services/chat-service#interceptors) section for the full description of `MessageInterceptor`, `PartialResponseInterceptor`, `ToolInterceptor`, and `InterceptorContext`.
 
 ```java
 ModelGatewayChatService service = ModelGatewayChatService.builder()

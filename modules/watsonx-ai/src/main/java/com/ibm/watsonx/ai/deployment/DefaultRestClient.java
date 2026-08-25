@@ -214,7 +214,8 @@ final class DefaultRestClient extends DeploymentRestClient {
         var chatSubscriber =
             new DefaultChatSubscriber(
                 new SseEventProcessor(textChatRequest.tools(), context.extractionTags(), TextChatResponse::builder),
-                new ChatHandlerDecorator<>(handler, interceptorContext, context.toolInterceptor())
+                new ChatHandlerDecorator<>(handler, interceptorContext, context.messageInterceptor(), context.partialResponseInterceptor(),
+                    context.toolInterceptor())
             );
 
         var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());

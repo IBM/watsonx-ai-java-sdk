@@ -14,6 +14,8 @@ import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
+import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
+import com.ibm.watsonx.ai.chat.interceptor.PartialResponseInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -29,7 +31,7 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * <ul>
  * <li>Sequential delivery of every callback (partial responses, partial thinking, partial and complete tool calls, complete responses, errors), one
  * at a time and in the order they were emitted</li>
- * <li>Optional interception of complete tool calls, applied before they are delivered</li>
+ * <li>Optional interception of partial responses, complete tool calls and the complete message, applied before they are delivered</li>
  * <li>Callback scheduling using {@link CompletableFuture}, so the emitting thread is never blocked by user code</li>
  * </ul>
  *
@@ -53,6 +55,16 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
      * Context information passed to the tool interceptor for processing tool calls.
      */
     private final InterceptorContext<R> context;
+
+    /**
+     * Optional interceptor for modifying the complete message before it reaches the delegate.
+     */
+    private final MessageInterceptor<R> messageInterceptor;
+
+    /**
+     * Optional interceptor for modifying each partial response before it reaches the delegate.
+     */
+    private final PartialResponseInterceptor<R> partialResponseInterceptor;
 
     /**
      * Optional interceptor for modifying or validating tool calls before they reach the delegate.
@@ -80,17 +92,22 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
      *
      * @param delegate the underlying chat handler to receive decorated callbacks
      * @param context the interceptor context for tool call processing
+     * @param messageInterceptor optional interceptor for the complete message
+     * @param partialResponseInterceptor optional interceptor for partial responses
      * @param toolInterceptor optional interceptor for tool calls
      */
-    public ChatHandlerDecorator(ChatHandler delegate, InterceptorContext<R> context, ToolInterceptor<R> toolInterceptor) {
+    public ChatHandlerDecorator(ChatHandler delegate, InterceptorContext<R> context, MessageInterceptor<R> messageInterceptor,
+        PartialResponseInterceptor<R> partialResponseInterceptor, ToolInterceptor<R> toolInterceptor) {
         this.delegate = delegate;
         this.context = context;
+        this.messageInterceptor = messageInterceptor;
+        this.partialResponseInterceptor = partialResponseInterceptor;
         this.toolInterceptor = toolInterceptor;
     }
 
     @Override
     public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-        scheduleCallback(() -> delegate.onPartialResponse(partialResponse, partialChatResponse));
+        scheduleCallback(() -> delegate.onPartialResponse(normalize(partialResponse), partialChatResponse));
     }
 
     @Override
@@ -157,6 +174,41 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
      */
     public CompletableFuture<List<CompletedToolCall>> awaitCallbacks() {
         return callbackChain.get().thenApply(v -> List.copyOf(deliveredToolCalls));
+    }
+
+    /**
+     * Applies {@link #messageInterceptor} to the given response, falling back to the un-normalized response when the interceptor fails.
+     *
+     * @param response the response to normalize
+     * @return the response with the interceptor applied
+     */
+    public ChatResponse normalize(ChatResponse response) {
+        if (isNull(messageInterceptor))
+            return response;
+
+        try {
+            return response.toBuilder()
+                .choices(messageInterceptor.intercept(context.withResponse(response)))
+                .build();
+        } catch (RuntimeException | Error e) {
+            safeOnError(e);
+            return response;
+        }
+    }
+
+    /**
+     * Applies {@link #partialResponseInterceptor} to the given token, falling back to the un-normalized token when the interceptor fails.
+     */
+    private String normalize(String partialResponse) {
+        if (isNull(partialResponseInterceptor))
+            return partialResponse;
+
+        try {
+            return partialResponseInterceptor.intercept(context, partialResponse);
+        } catch (RuntimeException | Error e) {
+            safeOnError(e);
+            return partialResponse;
+        }
     }
 
     /**
