@@ -116,7 +116,8 @@ public final class HttpUtils {
      * @param statusCode status code of the http response.
      * @param body The error response body as a String.
      * @param contentType The content type of the error response.
-     * @return An instance of WatsonxError parsed from the body.
+     * @return An instance of WatsonxError parsed from the body, or an unclassified error carrying the status code when the content type is neither
+     *         JSON nor XML.
      */
     public static WatsonxError parseErrorBody(int statusCode, String body, String contentType) {
         if (isNull(contentType))
@@ -160,7 +161,7 @@ public final class HttpUtils {
         if (contentType.contains("application/xml"))
             return parseXmlError(body);
 
-        throw new RuntimeException(body);
+        return new WatsonxError(statusCode, "", List.of(new Error(Code.UNCLASSIFIED.value(), body, null)));
     }
 
     /**

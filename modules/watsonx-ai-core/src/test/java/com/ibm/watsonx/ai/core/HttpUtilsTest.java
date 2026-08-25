@@ -277,10 +277,23 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void should_throw_runtime_exception_when_parsing_error_body_with_unsupported_content_type() {
-        assertThrows(RuntimeException.class, () -> {
-            HttpUtils.parseErrorBody(500, "test body", "text/plain");
-        });
+    void should_parse_error_body_as_unclassified_when_content_type_is_not_supported() {
+        WatsonxError result = HttpUtils.parseErrorBody(500, "test body", "text/plain");
+        assertEquals(500, result.statusCode());
+        assertEquals(1, result.errors().size());
+        assertEquals(WatsonxError.Code.UNCLASSIFIED.value(), result.errors().get(0).code());
+        assertEquals("test body", result.errors().get(0).message());
+        assertEquals(null, result.errors().get(0).moreInfo());
+    }
+
+    @Test
+    void should_keep_status_code_when_gateway_returns_plain_text_error() {
+        WatsonxError result = HttpUtils.parseErrorBody(502, "error code: 502", "text/plain");
+        assertEquals(502, result.statusCode());
+        assertEquals("error code: 502", result.errors().get(0).message());
+
+        var ex = HttpUtils.mapWatsonxException(new WatsonxException("error code: 502", 502, result));
+        assertEquals(502, ex.statusCode());
     }
 
     @Test
