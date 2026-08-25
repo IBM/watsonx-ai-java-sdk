@@ -362,6 +362,39 @@ public class RetryInterceptorTest {
             client.send(httpRequest, bodyHandler);
             verify(httpClient, times(4)).send(any(), eq(bodyHandler));
         }
+
+        @Test
+        @SuppressWarnings("unchecked")
+        void should_retry_when_plain_text_response_has_retryable_status_code() throws Exception {
+
+            SyncHttpClient client = SyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(mockInterceptor.intercept(any(), eq(bodyHandler), anyInt(), any()))
+                .thenAnswer(CHAIN_MOCK);
+
+            var badGatewayResponse = mock(HttpResponse.class);
+            when(badGatewayResponse.statusCode()).thenReturn(502);
+            when(badGatewayResponse.headers())
+                .thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("text/plain")), (t, u) -> true));
+            when(badGatewayResponse.body()).thenReturn("error code: 502");
+
+            when(httpResponse.statusCode())
+                .thenReturn(200);
+
+            when(httpClient.send(any(), eq(bodyHandler)))
+                .thenReturn(badGatewayResponse)
+                .thenReturn(httpResponse);
+
+            var result = client.send(httpRequest, bodyHandler);
+            assertEquals(httpResponse, result);
+            verify(httpClient, times(2)).send(any(), eq(bodyHandler));
+            verify(mockInterceptor, times(2)).intercept(any(), eq(bodyHandler), anyInt(), any());
+        }
+
     }
 
     @Nested
@@ -625,6 +658,49 @@ public class RetryInterceptorTest {
             client.send(httpRequest, bodyHandler).join();
             verify(httpClient, times(4)).sendAsync(any(), any(BodyHandler.class));
         }
+
+        @Test
+        @SuppressWarnings("unchecked")
+        void should_retry_when_plain_text_response_has_retryable_status_code() throws Exception {
+
+            AsyncHttpClient client = AsyncHttpClient.builder()
+                .httpClient(httpClient)
+                .interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES)
+                .interceptor(mockInterceptor)
+                .build();
+
+            when(mockInterceptor.intercept(any(), eq(bodyHandler), anyInt(), any()))
+                .thenAnswer(CHAIN_MOCK);
+
+            when(httpClient.sendAsync(any(), any(BodyHandler.class)))
+                .thenAnswer(invocation -> {
+                    BodyHandler<String> handler = invocation.getArgument(1);
+                    var responseInfo = mock(HttpResponse.ResponseInfo.class);
+                    when(responseInfo.statusCode()).thenReturn(502);
+                    when(responseInfo.headers())
+                        .thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("text/plain")), (t, u) -> true));
+
+                    var subscriber = handler.apply(responseInfo);
+
+                    subscriber.onSubscribe(mock(Flow.Subscription.class));
+                    subscriber.onNext(List.of(ByteBuffer.wrap("error code: 502".getBytes(StandardCharsets.UTF_8))));
+                    subscriber.onComplete();
+
+                    return subscriber.getBody().handle((body, throwable) -> {
+                        if (throwable != null) {
+                            return CompletableFuture.failedFuture(throwable);
+                        }
+                        return CompletableFuture.failedFuture(new IllegalStateException("Exception was expected"));
+                    }).thenCompose(cf -> cf);
+                })
+                .thenReturn(completedFuture(httpResponse));
+
+            var result = client.send(httpRequest, bodyHandler).get();
+            assertEquals(httpResponse, result);
+            verify(httpClient, times(2)).sendAsync(any(), any(BodyHandler.class));
+            verify(mockInterceptor, times(2)).intercept(any(), eq(bodyHandler), anyInt(), any());
+        }
+
     }
 
     @Test
