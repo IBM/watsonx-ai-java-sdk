@@ -69,7 +69,8 @@ All routing is done through the `deploymentId` in each request, so no `projectId
 | `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
 | `parameters` | ChatParameters | No | Default chat parameters applied to every chat request |
 | `tools` | List\<Tool\> | No | Default tools available to the model |
-| `messageInterceptor` | MessageInterceptor\<DeploymentChatRequest\> | No | Post-processing hook for the assistant's text content |
+| `messageInterceptor` | MessageInterceptor\<DeploymentChatRequest\> | No | Post-processing hook for the complete assistant message |
+| `partialResponseInterceptor` | PartialResponseInterceptor\<DeploymentChatRequest\> | No | Post-processing hook for each streamed content token |
 | `toolInterceptor` | ToolInterceptor\<DeploymentChatRequest\> | No | Post-processing hook for function call arguments |
 
 > Either `apiKey` or `authenticator` must be provided. `projectId`, `spaceId`, and `modelId` are **ignored**, and a warning is logged if they are set on a request's parameters object.

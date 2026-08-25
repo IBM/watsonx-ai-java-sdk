@@ -106,6 +106,31 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 @Isolated("Verifies executor/thread behavior with tight timeouts; must run without concurrent CPU contention.")
 public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
+    /**
+     * A minimal stream whose assistant message is split so that the words "Hello world" span three tokens.
+     */
+    private static final String SPLIT_WORD_STREAMING_RESPONSE =
+        """
+            id: 1
+            event: message
+            data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Hello"}}],"created":1764692529}
+
+            id: 2
+            event: message
+            data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" wor"}}],"created":1764692529}
+
+            id: 3
+            event: message
+            data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":"ld!"}}],"created":1764692529}
+
+            id: 4
+            event: message
+            data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1764692529}
+
+            id: 5
+            event: message
+            data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1764692529,"usage":{"completion_tokens":3,"prompt_tokens":10,"total_tokens":13}}
+            """;
 
     @Test
     void should_stream_chat_response_in_chunks_correctly() throws Exception {
@@ -1569,7 +1594,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_not_override_assistant_content_in_streaming() {
+    void should_apply_message_interceptor_to_the_complete_streaming_message() {
 
         String REQUEST = """
             {
@@ -1694,7 +1719,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         CompletableFuture<ChatResponse> result = new CompletableFuture<>();
         List<String> partialResponses = new ArrayList<>();
-        chatService.chatStreaming("How are you?", new ChatHandler() {
+        var future = chatService.chatStreaming("How are you?", new ChatHandler() {
 
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
@@ -1713,10 +1738,15 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         });
 
         var chatResponse = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        var returnedResponse = assertDoesNotThrow(() -> future.get(3, TimeUnit.SECONDS));
         var assistantMessage = chatResponse.toAssistantMessage();
-        assertEquals("Hello! I'm doing well, thank you. How can I assist you today?", assistantMessage.content());
+
+        assertEquals("I don't feel good.", assistantMessage.content());
+        assertEquals("I don't feel good.", returnedResponse.toAssistantMessage().content());
         assertFalse(assistantMessage.hasToolCalls());
-        assertEquals("Hello! I'm doing well, thank you. How can I assist you today?", partialResponses.stream().collect(Collectors.joining()));
+        assertEquals(
+            "Hello! I'm doing well, thank you. How can I assist you today?",
+            partialResponses.stream().collect(Collectors.joining()));
     }
 
     @Test
@@ -4276,5 +4306,233 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertEquals(1, textChatResponse.moderations().get("pii").size());
         assertFalse(textChatResponse.moderations().get("pii").get(0).input());
         assertEquals("Call 3334523123", assertDoesNotThrow(chatResponse::toAssistantMessage).content());
+    }
+
+    @Test
+    void should_apply_message_interceptor_across_token_boundaries_in_streaming() {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 200)
+                .withBody(SPLIT_WORD_STREAMING_RESPONSE)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var intercepted = new AtomicReference<String>();
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-4-h-small")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .messageInterceptor((ctx, message) -> {
+                intercepted.set(message);
+                return message.replace("Hello world", "Ciao mondo");
+            })
+            .build();
+
+        List<String> partialResponses = new ArrayList<>();
+        CompletableFuture<ChatResponse> delivered = new CompletableFuture<>();
+        var future = chatService.chatStreaming("Hi", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partialResponses.add(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                delivered.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                delivered.completeExceptionally(error);
+            }
+        });
+
+        var returnedResponse = assertDoesNotThrow(() -> future.get(3, TimeUnit.SECONDS));
+        var completeResponse = assertDoesNotThrow(() -> delivered.get(3, TimeUnit.SECONDS));
+
+        assertEquals("Hello world!", intercepted.get());
+        assertEquals("Ciao mondo!", completeResponse.toAssistantMessage().content());
+        assertEquals("Ciao mondo!", returnedResponse.toAssistantMessage().content());
+        assertEquals(List.of("Hello", " wor", "ld!"), partialResponses);
+    }
+
+    @Test
+    void should_apply_message_interceptor_to_streaming_message_with_extraction_tags() throws Exception {
+
+        String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_streaming_response.txt").readAllBytes());
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(159, 200)
+                .withBody(BODY)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var intercepted = new AtomicReference<String>();
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-3-3-8b-instruct")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .messageInterceptor((ctx, message) -> {
+                intercepted.set(message);
+                return message.replace("Ciao", "Salve");
+            })
+            .build();
+
+        var chatRequest = ChatRequest.builder()
+            .messages(UserMessage.text("Translate \"Hello\" in Italian"))
+            .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
+            .build();
+
+        var partialResponses = new StringBuilder();
+        CompletableFuture<ChatResponse> result = new CompletableFuture<>();
+        chatService.chatStreaming(chatRequest, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partialResponses.append(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                result.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                result.completeExceptionally(error);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {}
+        });
+
+        var chatResponse = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+        var assistantMessage = chatResponse.toAssistantMessage();
+
+        assertTrue(intercepted.get().contains("<think>") && intercepted.get().contains("</think>"));
+        assertTrue(intercepted.get().contains("<response>") && intercepted.get().contains("</response>"));
+        assertFalse(assistantMessage.content().contains("Ciao"));
+        assertTrue(assistantMessage.content().contains("**Salve**"));
+        assertFalse(assistantMessage.thinking().contains("Ciao"));
+        assertTrue(assistantMessage.thinking().contains("\"Salve\""));
+        assertTrue(partialResponses.toString().contains("**Ciao**"));
+    }
+
+    @Test
+    void should_apply_partial_response_interceptor_in_streaming() {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 200)
+                .withBody(SPLIT_WORD_STREAMING_RESPONSE)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var responseSeenByInterceptor = new AtomicBoolean(false);
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-4-h-small")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .partialResponseInterceptor((ctx, partialResponse) -> {
+                if (ctx.response().isPresent())
+                    responseSeenByInterceptor.set(true);
+                return partialResponse.toUpperCase();
+            })
+            .build();
+
+        List<String> partialResponses = new ArrayList<>();
+        CompletableFuture<ChatResponse> delivered = new CompletableFuture<>();
+        var future = chatService.chatStreaming("Hi", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partialResponses.add(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                delivered.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                delivered.completeExceptionally(error);
+            }
+        });
+
+        var returnedResponse = assertDoesNotThrow(() -> future.get(3, TimeUnit.SECONDS));
+        var completeResponse = assertDoesNotThrow(() -> delivered.get(3, TimeUnit.SECONDS));
+
+        assertEquals(List.of("HELLO", " WOR", "LD!"), partialResponses);
+        assertEquals("Hello world!", completeResponse.toAssistantMessage().content());
+        assertEquals("Hello world!", returnedResponse.toAssistantMessage().content());
+        assertFalse(responseSeenByInterceptor.get());
+    }
+
+    @Test
+    void should_report_streaming_interceptor_failures_and_keep_the_original_values() {
+
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 200)
+                .withBody(SPLIT_WORD_STREAMING_RESPONSE)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var chatService = ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-4-h-small")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .messageInterceptor((ctx, message) -> {
+                throw new IllegalStateException("message boom");
+            })
+            .partialResponseInterceptor((ctx, partialResponse) -> {
+                throw new IllegalStateException("partial boom");
+            })
+            .build();
+
+        List<String> partialResponses = Collections.synchronizedList(new ArrayList<>());
+        List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
+        CompletableFuture<ChatResponse> delivered = new CompletableFuture<>();
+        var future = chatService.chatStreaming("Hi", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partialResponses.add(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                delivered.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                errors.add(error);
+            }
+        });
+
+        var returnedResponse = assertDoesNotThrow(() -> future.get(3, TimeUnit.SECONDS));
+        var completeResponse = assertDoesNotThrow(() -> delivered.get(3, TimeUnit.SECONDS));
+
+        assertEquals(List.of("Hello", " wor", "ld!"), partialResponses);
+        assertEquals("Hello world!", completeResponse.toAssistantMessage().content());
+        assertEquals("Hello world!", returnedResponse.toAssistantMessage().content());
+
+        var messages = errors.stream().map(Throwable::getMessage).collect(Collectors.toList());
+        assertEquals(4, messages.size());
+        assertEquals(3, Collections.frequency(messages, "partial boom"));
+        assertEquals(1, Collections.frequency(messages, "message boom"));
     }
 }

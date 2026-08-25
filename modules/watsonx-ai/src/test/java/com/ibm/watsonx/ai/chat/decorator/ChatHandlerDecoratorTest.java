@@ -93,7 +93,7 @@ public class ChatHandlerDecoratorTest {
     void should_deliver_every_callback_in_emission_order() {
 
         var recorder = new Recorder();
-        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null, null, null);
 
         emitTwoToolCalls(decorator);
         decorator.awaitCallbacks().join();
@@ -110,7 +110,7 @@ public class ChatHandlerDecoratorTest {
             return functionCall;
         };
 
-        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, slow);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null, null, slow);
 
         emitTwoToolCalls(decorator);
         decorator.awaitCallbacks().join();
@@ -151,7 +151,7 @@ public class ChatHandlerDecoratorTest {
             public void onCompleteResponse(ChatResponse completeResponse) {
                 body.run();
             }
-        }, null, null);
+        }, null, null, null, null);
 
         emitTwoToolCalls(decorator);
         decorator.awaitCallbacks().join();
@@ -185,7 +185,7 @@ public class ChatHandlerDecoratorTest {
             public void onError(Throwable error) {
                 recorder.onError(error);
             }
-        }, null, null);
+        }, null, null, null, null);
 
         decorator.onPartialResponse("Hello", null);
         decorator.onPartialToolCall(partial(0, "get_weather"));
@@ -216,7 +216,7 @@ public class ChatHandlerDecoratorTest {
             public void onError(Throwable error) {
                 recorder.onError(error);
             }
-        }, null, null);
+        }, null, null, null, null);
 
         decorator.onCompleteToolCall(complete(0, "get_weather"));
         decorator.onPartialResponse("Hello", null);
@@ -236,7 +236,7 @@ public class ChatHandlerDecoratorTest {
             throw new IllegalStateException("thrown by the interceptor");
         };
 
-        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, failing);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null, null, failing);
 
         decorator.onPartialToolCall(partial(0, "get_weather"));
         decorator.onCompleteToolCall(complete(0, "get_weather"));
@@ -252,7 +252,7 @@ public class ChatHandlerDecoratorTest {
     @Test
     void should_return_tool_calls_in_receive_order() {
 
-        var decorator = new ChatHandlerDecorator<ChatRequest>(new Recorder(), null, null);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(new Recorder(), null, null, null, null);
 
         decorator.onCompleteToolCall(complete(0, "get_weather"));
         decorator.onCompleteToolCall(complete(1, "get_current_time"));
@@ -264,7 +264,7 @@ public class ChatHandlerDecoratorTest {
     @Test
     void should_take_effect_only_once_when_cancelled_more_than_once() {
 
-        var decorator = new ChatHandlerDecorator<ChatRequest>(new Recorder(), null, null);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(new Recorder(), null, null, null, null);
 
         assertTrue(decorator.cancel());
         assertFalse(decorator.cancel());
@@ -275,7 +275,7 @@ public class ChatHandlerDecoratorTest {
     void should_deliver_no_callback_after_cancel() {
 
         var recorder = new Recorder();
-        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null, null, null);
 
         decorator.onPartialResponse("Hello", null);
         decorator.awaitCallbacks().join();
@@ -313,7 +313,7 @@ public class ChatHandlerDecoratorTest {
             public void onError(Throwable error) {
                 recorder.onError(error);
             }
-        }, null, null));
+        }, null, null, null, null));
 
         decorator.get().onPartialResponse("Hello", null);
         decorator.get().onCompleteResponse(null);

@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import com.ibm.watsonx.ai.WatsonxService.CryptoService;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
+import com.ibm.watsonx.ai.chat.interceptor.PartialResponseInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -51,6 +52,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
 public class ChatService extends CryptoService implements ChatProvider<ChatRequest, TextChatResponse> {
     private final ChatRestClient client;
     private final MessageInterceptor<ChatRequest> messageInterceptor;
+    private final PartialResponseInterceptor<ChatRequest> partialResponseInterceptor;
     private final ToolInterceptor<ChatRequest> toolInterceptor;
     private final ChatProvider<ChatRequest, TextChatResponse> chatProvider;
     private final ChatParameters defaultParameters;
@@ -60,6 +62,7 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
         super(builder);
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         messageInterceptor = builder.messageInterceptor;
+        partialResponseInterceptor = builder.partialResponseInterceptor;
         toolInterceptor = builder.toolInterceptor;
         defaultTools = isNull(builder.defaultTools) ? null : List.copyOf(builder.defaultTools);
 
@@ -85,7 +88,7 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
             .authenticator(builder.authenticator())
             .build();
 
-        chatProvider = nonNull(messageInterceptor) || nonNull(toolInterceptor)
+        chatProvider = nonNull(messageInterceptor) || nonNull(partialResponseInterceptor) || nonNull(toolInterceptor)
             ? builder.copyWithoutInterceptors().parameters(defaultParameters).build()
             : null;
     }
@@ -153,6 +156,8 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
         var context = ChatClientContext.<ChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
+            .messageInterceptor(messageInterceptor)
+            .partialResponseInterceptor(partialResponseInterceptor)
             .toolInterceptor(toolInterceptor)
             .extractionTags(extractionTags)
             .build();
@@ -391,6 +396,7 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
      */
     public final static class Builder extends CryptoService.Builder<Builder> {
         private MessageInterceptor<ChatRequest> messageInterceptor;
+        private PartialResponseInterceptor<ChatRequest> partialResponseInterceptor;
         private ToolInterceptor<ChatRequest> toolInterceptor;
         private ChatParameters defaultParameters;
         private List<Tool> defaultTools;
@@ -413,20 +419,39 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
         /**
          * Registers a {@link MessageInterceptor} used to modify or sanitize the assistant's textual content before it is returned to the caller.
          * <p>
-         * This interceptor is invoked on the final aggregated content (non-streaming responses only), allowing adjustments such as rewriting,
-         * filtering, or normalization.
+         * The interceptor is invoked once per assistant message with the complete content, both on non-streaming responses and on the aggregated
+         * message of a streaming session.
          * <p>
          * <b>Example:</b>
          *
          * <pre>{@code
-         * ChatService.builder()
-         *     .messageInterceptor((request, content) -> content.replace("error", "issue"));
+         * ChatService.builder().messageInterceptor((ctx, content) -> content.replace("error", "issue"));
          * }</pre>
          *
          * @param messageInterceptor the interceptor to apply
          */
         public Builder messageInterceptor(MessageInterceptor<ChatRequest> messageInterceptor) {
             this.messageInterceptor = messageInterceptor;
+            return this;
+        }
+
+        /**
+         * Registers a {@link PartialResponseInterceptor} used to modify each partial response before it is delivered to
+         * {@link ChatHandler#onPartialResponse}.
+         * <p>
+         * This interceptor has no effect on non-streaming requests and does not alter the {@link ChatResponse} delivered to
+         * {@link ChatHandler#onCompleteResponse}.
+         * <p>
+         * <b>Example:</b>
+         *
+         * <pre>{@code
+         * ChatService.builder().partialResponseInterceptor((ctx, partialResponse) -> partialResponse.toUpperCase());
+         * }</pre>
+         *
+         * @param partialResponseInterceptor the interceptor to apply
+         */
+        public Builder partialResponseInterceptor(PartialResponseInterceptor<ChatRequest> partialResponseInterceptor) {
+            this.partialResponseInterceptor = partialResponseInterceptor;
             return this;
         }
 

@@ -27,6 +27,7 @@ import com.ibm.watsonx.ai.chat.ExecutableTool;
 import com.ibm.watsonx.ai.chat.TextChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
+import com.ibm.watsonx.ai.chat.interceptor.PartialResponseInterceptor;
 import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
@@ -71,6 +72,7 @@ public class DeploymentService extends WatsonxService
     private static final Logger logger = LoggerFactory.getLogger(DeploymentService.class);
     private final DeploymentRestClient client;
     private final MessageInterceptor<DeploymentChatRequest> messageInterceptor;
+    private final PartialResponseInterceptor<DeploymentChatRequest> partialResponseInterceptor;
     private final ToolInterceptor<DeploymentChatRequest> toolInterceptor;
     private final ChatProvider<DeploymentChatRequest, TextChatResponse> chatProvider;
     private final ChatParameters defaultParameters;
@@ -80,6 +82,7 @@ public class DeploymentService extends WatsonxService
         super(builder);
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         messageInterceptor = builder.messageInterceptor;
+        partialResponseInterceptor = builder.partialResponseInterceptor;
         toolInterceptor = builder.toolInterceptor;
         defaultTools = isNull(builder.defaultTools) ? null : List.copyOf(builder.defaultTools);
         defaultParameters = requireNonNullElse(builder.defaultParameters, ChatParameters.builder().build());
@@ -95,7 +98,7 @@ public class DeploymentService extends WatsonxService
             .verifySsl(verifySsl)
             .build();
 
-        chatProvider = nonNull(messageInterceptor) || nonNull(toolInterceptor)
+        chatProvider = nonNull(messageInterceptor) || nonNull(partialResponseInterceptor) || nonNull(toolInterceptor)
             ? builder.copyWithoutInterceptors().parameters(defaultParameters).build()
             : null;
     }
@@ -241,6 +244,8 @@ public class DeploymentService extends WatsonxService
         var context = ChatClientContext.<DeploymentChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
+            .messageInterceptor(messageInterceptor)
+            .partialResponseInterceptor(partialResponseInterceptor)
             .toolInterceptor(toolInterceptor)
             .extractionTags(extractionTags)
             .build();
@@ -607,6 +612,7 @@ public class DeploymentService extends WatsonxService
      */
     public final static class Builder extends WatsonxService.Builder<Builder> {
         private MessageInterceptor<DeploymentChatRequest> messageInterceptor;
+        private PartialResponseInterceptor<DeploymentChatRequest> partialResponseInterceptor;
         private ToolInterceptor<DeploymentChatRequest> toolInterceptor;
         private ChatParameters defaultParameters;
         private List<Tool> defaultTools;
@@ -629,20 +635,39 @@ public class DeploymentService extends WatsonxService
         /**
          * Registers a {@link MessageInterceptor} used to modify or sanitize the assistant's textual content before it is returned to the caller.
          * <p>
-         * This interceptor is invoked on the final aggregated content (non-streaming responses only), allowing adjustments such as rewriting,
-         * filtering, or normalization.
+         * The interceptor is invoked once per assistant message with the complete content, both on non-streaming responses and on the aggregated
+         * message of a streaming session.
          * <p>
          * <b>Example:</b>
          *
          * <pre>{@code
-         * ChatService.builder()
-         *     .messageInterceptor((request, content) -> content.replace("error", "issue"));
+         * DeploymentService.builder().messageInterceptor((ctx, content) -> content.replace("error", "issue"));
          * }</pre>
          *
          * @param messageInterceptor the interceptor to apply
          */
         public Builder messageInterceptor(MessageInterceptor<DeploymentChatRequest> messageInterceptor) {
             this.messageInterceptor = messageInterceptor;
+            return this;
+        }
+
+        /**
+         * Registers a {@link PartialResponseInterceptor} used to modify each partial response before it is delivered to
+         * {@link ChatHandler#onPartialResponse}.
+         * <p>
+         * This interceptor has no effect on non-streaming requests and does not alter the {@link ChatResponse} delivered to
+         * {@link ChatHandler#onCompleteResponse}.
+         * <p>
+         * <b>Example:</b>
+         *
+         * <pre>{@code
+         * DeploymentService.builder().partialResponseInterceptor((ctx, partialResponse) -> partialResponse.toUpperCase());
+         * }</pre>
+         *
+         * @param partialResponseInterceptor the interceptor to apply
+         */
+        public Builder partialResponseInterceptor(PartialResponseInterceptor<DeploymentChatRequest> partialResponseInterceptor) {
+            this.partialResponseInterceptor = partialResponseInterceptor;
             return this;
         }
 

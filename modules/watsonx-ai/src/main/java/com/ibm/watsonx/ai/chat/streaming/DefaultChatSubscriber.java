@@ -83,11 +83,13 @@ public class DefaultChatSubscriber extends ChatSubscriber {
             return CompletableFuture.completedFuture(null);
 
         return awaitCallbacks()
-            .thenCompose(completeToolCalls -> {
-                var response = processor.buildResponse();
+            .thenComposeAsync(completeToolCalls -> {
+                var builtResponse = processor.buildResponse();
 
-                if (response.isBlockedByModeration())
-                    return CompletableFuture.failedFuture(new ModerationException(response.moderations()));
+                if (builtResponse.isBlockedByModeration())
+                    return CompletableFuture.failedFuture(new ModerationException(builtResponse.moderations()));
+
+                ChatResponse response = decorator.normalize(builtResponse);
 
                 if (nonNull(completeToolCalls) && !completeToolCalls.isEmpty()) {
                     var choices = response.choices().stream()
@@ -103,7 +105,7 @@ public class DefaultChatSubscriber extends ChatSubscriber {
                     handler.onCompleteResponse(response);
                 }
                 return awaitCallbacks().thenApply(ignored -> response);
-            });
+            }, ExecutorProvider.callbackExecutor());
     }
 
     @Override

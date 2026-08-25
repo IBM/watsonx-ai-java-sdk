@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
@@ -1506,7 +1507,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_not_override_assistant_content_in_streaming() {
+    void should_apply_message_interceptor_to_the_complete_streaming_message() {
 
         String REQUEST = """
             {
@@ -1649,7 +1650,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         var chatResponse = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
         var assistantMessage = chatResponse.toAssistantMessage();
-        assertEquals("Hello! I'm doing well, thank you. How can I assist you today?", assistantMessage.content());
+        assertEquals("I don't feel good.", assistantMessage.content());
         assertFalse(assistantMessage.hasToolCalls());
         assertEquals("Hello! I'm doing well, thank you. How can I assist you today?", partialResponses.stream().collect(Collectors.joining()));
     }
@@ -2459,6 +2460,83 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertEquals(4, requestBodies.stream().filter(body -> body.containsKey("tools")).count());
         assertEquals(4, requestBodies.stream().filter(body -> body.containsKey("temperature")).count());
         assertEquals(2, requestBodies.stream().filter(body -> ((List<?>) body.get("messages")).size() == 1).count());
+    }
+
+    @Test
+    void should_apply_message_and_partial_response_interceptors_in_streaming() {
+
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Hello"}}],"created":1764692529}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":" wor"}}],"created":1764692529}
+
+                        id: 3
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null,"delta":{"content":"ld!"}}],"created":1764692529}
+
+                        id: 4
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"stop","delta":{"content":""}}],"created":1764692529}
+
+                        id: 5
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[],"created":1764692529,"usage":{"completion_tokens":3,"prompt_tokens":10,"total_tokens":13}}
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var intercepted = new AtomicReference<String>();
+        var deploymentService = DeploymentService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticator(mockAuthenticator)
+            .messageInterceptor((ctx, message) -> {
+                intercepted.set(message);
+                return message.replace("Hello world", "Ciao mondo");
+            })
+            .partialResponseInterceptor((ctx, partialResponse) -> partialResponse.toUpperCase())
+            .build();
+
+        var request = DeploymentChatRequest.builder()
+            .messages(UserMessage.text("Hi"))
+            .deploymentId("my-deployment-id")
+            .build();
+
+        List<String> partialResponses = new ArrayList<>();
+        CompletableFuture<ChatResponse> delivered = new CompletableFuture<>();
+        var future = deploymentService.chatStreaming(request, new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partialResponses.add(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                delivered.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                delivered.completeExceptionally(error);
+            }
+        });
+
+        var returnedResponse = assertDoesNotThrow(() -> future.get(3, TimeUnit.SECONDS));
+        var completeResponse = assertDoesNotThrow(() -> delivered.get(3, TimeUnit.SECONDS));
+
+        assertEquals("Hello world!", intercepted.get());
+        assertEquals(List.of("HELLO", " WOR", "LD!"), partialResponses);
+        assertEquals("Ciao mondo!", completeResponse.toAssistantMessage().content());
+        assertEquals("Ciao mondo!", returnedResponse.toAssistantMessage().content());
     }
 
     /**

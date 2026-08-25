@@ -81,7 +81,8 @@ ChatService chatService = ChatService.builder()
 | `timeout` | Duration | No | Request timeout (default: 60 seconds) |
 | `parameters` | ChatParameters | No | Default parameters applied to all requests |
 | `tools` | List\<Tool\> | No | Default tools available to the model |
-| `messageInterceptor` | MessageInterceptor\<ChatRequest\> | No | Modify assistant messages before returning |
+| `messageInterceptor` | MessageInterceptor\<ChatRequest\> | No | Modify the complete assistant message before returning |
+| `partialResponseInterceptor` | PartialResponseInterceptor\<ChatRequest\> | No | Modify each streamed content token before delivery |
 | `toolInterceptor` | ToolInterceptor\<ChatRequest\> | No | Normalize/modify tool call arguments |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
@@ -394,13 +395,13 @@ System.out.println(answer);
 
 ## Interceptors
 
-Interceptors run automatically after every non-streaming response, before the result is returned to your application. They are configured once on the service builder and apply transparently to all subsequent calls. Both are `@FunctionalInterface`, so you can pass a lambda directly.
+Interceptors are configured once on the service builder and apply transparently to all subsequent calls. Each one is a `@FunctionalInterface`, so you can pass a lambda directly.
 
 ### Message Interceptor
 
 `MessageInterceptor` lets you modify or sanitize the assistant's text content. Common uses: stripping whitespace, filtering unwanted patterns, normalizing formatting.
 
-> **Note:** `MessageInterceptor` applies to **non-streaming** requests only. For streaming, process the content directly inside `ChatHandler` callbacks.
+It is always called **once per assistant message, with the complete content**, in both modes. In **non-streaming** mode it runs before the response is returned to the caller. In **streaming** mode it runs on the aggregated message, before that message reaches `onCompleteResponse` and before the `CompletableFuture` returned by `chatStreaming` completes. Transformations that need the whole text, such as `strip()` or a pattern that spans several tokens, are therefore safe everywhere.
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -408,6 +409,21 @@ ChatService chatService = ChatService.builder()
     .messageInterceptor((ctx, message) -> message == null ? "" : message.strip())
     .build();
 ```
+
+> **Note:** the tokens delivered to `onPartialResponse` are left untouched, so a caller that renders the stream sees the original text and only the final message carries the transformation. Use `PartialResponseInterceptor` when the tokens themselves have to change.
+
+### Partial Response Interceptor
+
+`PartialResponseInterceptor` intercepts each content token in **streaming** mode, before it is delivered to `onPartialResponse`. Common uses: masking or highlighting text as it appears, adapting tokens for a terminal or a UI widget.
+
+```java
+ChatService chatService = ChatService.builder()
+    // ...
+    .partialResponseInterceptor((ctx, partialResponse) -> partialResponse.toUpperCase())
+    .build();
+```
+
+Every invocation receives one token exactly as the model streamed it. Tokens are never buffered, so a transformation that has to match across token boundaries belongs in a `MessageInterceptor` instead. This interceptor has no effect on non-streaming requests and does not alter the `ChatResponse` delivered to `onCompleteResponse`, which means the two hooks can be combined freely.
 
 ### Tool Interceptor
 
@@ -428,15 +444,15 @@ ChatService chatService = ChatService.builder()
 
 ### InterceptorContext
 
-Both interceptors receive an `InterceptorContext` as their first argument, which provides access to the current request, the current response, and a way to invoke the model again.
+Every interceptor receives an `InterceptorContext` as its first argument, which provides access to the current request, the current response, and a way to invoke the model again.
 
 | Method | Description |
 |--------|-------------|
 | `ctx.request()` | The original `ChatRequest` that triggered this response |
-| `ctx.response()` | An `Optional<ChatResponse>` with the current response |
+| `ctx.response()` | An `Optional<ChatResponse>` with the current response, empty in `PartialResponseInterceptor` because no response exists yet |
 | `ctx.invoke(ChatRequest)` | Sends a new request to the model and returns its response |
 
-`MessageInterceptor`, `ToolInterceptor`, and `InterceptorContext` are parameterized by the request type of the service they are registered on, so `ctx.request()` returns that concrete type with no cast: `ChatRequest` here, `DeploymentChatRequest` on [`DeploymentService`](/services/deployment-service), and `ModelGatewayChatRequest` on [`ModelGatewayChatService`](/services/model-gateway). The type argument is inferred when you pass a lambda, and only needs to be written out if you declare the interceptor separately:
+`MessageInterceptor`, `PartialResponseInterceptor`, `ToolInterceptor`, and `InterceptorContext` are parameterized by the request type of the service they are registered on, so `ctx.request()` returns that concrete type with no cast: `ChatRequest` here, `DeploymentChatRequest` on [`DeploymentService`](/services/deployment-service), and `ModelGatewayChatRequest` on [`ModelGatewayChatService`](/services/model-gateway). The type argument is inferred when you pass a lambda, and only needs to be written out if you declare the interceptor separately:
 
 ```java
 MessageInterceptor<ChatRequest> interceptor = (ctx, message) -> message == null ? "" : message.strip();

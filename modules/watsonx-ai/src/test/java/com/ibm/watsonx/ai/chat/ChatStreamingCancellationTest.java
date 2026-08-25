@@ -417,7 +417,7 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
     void should_cancel_the_body_subscription() {
 
         var recorder = new Recorder(0);
-        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null, null, null);
         var subscriber = new DefaultChatSubscriber(new SseEventProcessor(null, null, TextChatResponse::builder), decorator);
         var response = cancellableResponse(subscriber);
         var flowSubscriber = subscriber.asFlowSubscriber(response, true);
@@ -444,7 +444,7 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
     void should_drop_the_signals_delivered_after_cancel() {
 
         var recorder = new Recorder(0);
-        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null, null, null);
         var subscriber = new DefaultChatSubscriber(new SseEventProcessor(null, null, TextChatResponse::builder), decorator);
         var response = cancellableResponse(subscriber);
         var flowSubscriber = subscriber.asFlowSubscriber(response, true);
@@ -474,7 +474,7 @@ public class ChatStreamingCancellationTest extends AbstractWatsonxTest {
     void should_not_report_a_moderation_error_when_the_stream_is_cancelled() {
 
         var recorder = new Recorder(0);
-        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null);
+        var decorator = new ChatHandlerDecorator<ChatRequest>(recorder, null, null, null, null);
         var subscriber = new DefaultChatSubscriber(new SseEventProcessor(null, null, TextChatResponse::builder), decorator);
         var response = cancellableResponse(subscriber);
         var flowSubscriber = subscriber.asFlowSubscriber(response, true);

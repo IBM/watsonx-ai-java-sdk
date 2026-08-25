@@ -91,7 +91,8 @@ final class DefaultRestClient extends ModelGatewayChatRestClient {
         var chatSubscriber =
             new DefaultChatSubscriber(
                 new SseEventProcessor(gatewayRequest.tools(), context.extractionTags(), ModelGatewayChatResponse::builder),
-                new ChatHandlerDecorator<>(handler, interceptorContext, context.toolInterceptor())
+                new ChatHandlerDecorator<>(handler, interceptorContext, context.messageInterceptor(), context.partialResponseInterceptor(),
+                    context.toolInterceptor())
             );
 
         var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -980,5 +981,69 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
                 () -> modelGatewayChatService.chatStreaming(chatRequest, mock(ChatHandler.class)));
             assertEquals("Control messages are not supported by the Model Gateway", ex.getMessage());
         });
+    }
+
+    @Test
+    void should_apply_message_and_partial_response_interceptors_in_streaming() {
+
+        wireMock.stubFor(post("/ml/gateway/v1/chat/completions?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(5, 200)
+                .withBody(
+                    """
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"},"finish_reason":""}],"created":1785169730,"model":"gpt-4o"}
+
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":" wor"},"finish_reason":""}],"created":1785169730,"model":"gpt-4o"}
+
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"ld!"},"finish_reason":""}],"created":1785169730,"model":"gpt-4o"}
+
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":""},"finish_reason":"stop"}],"created":1785169730,"model":"gpt-4o"}
+
+                        data: [DONE]
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var intercepted = new AtomicReference<String>();
+        var modelGatewayChatService = ModelGatewayChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("gpt-4o")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .version(API_VERSION)
+            .messageInterceptor((ctx, message) -> {
+                intercepted.set(message);
+                return message.replace("Hello world", "Ciao mondo");
+            })
+            .partialResponseInterceptor((ctx, partialResponse) -> partialResponse.toUpperCase())
+            .build();
+
+        List<String> partialResponses = new ArrayList<>();
+        CompletableFuture<ChatResponse> delivered = new CompletableFuture<>();
+        var future = modelGatewayChatService.chatStreaming("Hi", new ChatHandler() {
+
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partialResponses.add(partialResponse);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                delivered.complete(completeResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                delivered.completeExceptionally(error);
+            }
+        });
+
+        var returnedResponse = assertDoesNotThrow(() -> future.get(3, TimeUnit.SECONDS));
+        var completeResponse = assertDoesNotThrow(() -> delivered.get(3, TimeUnit.SECONDS));
+
+        assertEquals("Hello world!", intercepted.get());
+        assertEquals(List.of("HELLO", " WOR", "LD!"), partialResponses);
+        assertEquals("Ciao mondo!", completeResponse.toAssistantMessage().content());
+        assertEquals("Ciao mondo!", returnedResponse.toAssistantMessage().content());
     }
 }
