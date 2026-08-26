@@ -40,7 +40,7 @@ Not every service needs every value:
 
 Create an IBM Cloud account and provision a watsonx.ai service instance. The free plan is enough to get started.
 
-- 📖 [Signing up for watsonx.ai](https://dataplatform.cloud.ibm.com/docs/content/wsj/getting-started/signup-wx.html?context=wx&audience=wdp)
+- [Signing up for watsonx.ai](https://dataplatform.cloud.ibm.com/docs/content/wsj/getting-started/signup-wx.html?context=wx&audience=wdp)
 
 ---
 
@@ -50,7 +50,7 @@ The SDK authenticates to IBM Cloud by exchanging an API key for an IAM bearer to
 
 This is the value passed to `apiKey(...)` and referenced as `WATSONX_API_KEY` in the samples.
 
-- 📖 [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey)
+- [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey)
 
 ---
 
@@ -58,8 +58,8 @@ This is the value passed to `apiKey(...)` and referenced as `WATSONX_API_KEY` in
 
 A **project** is the workspace where inference requests run. After creating one, open its **Manage → General** tab. The **Project ID** is listed there. This is the value for `projectId(...)` / `WATSONX_PROJECT_ID`.
 
-- 📖 [Creating a project](https://dataplatform.cloud.ibm.com/docs/content/wsj/getting-started/projects.html?context=wx&audience=wdp)
-- 📖 [Working in projects](https://dataplatform.cloud.ibm.com/docs/content/wsj/manage-data/manage-projects.html?context=wx&audience=wdp)
+- [Creating a project](https://dataplatform.cloud.ibm.com/docs/content/wsj/getting-started/projects.html?context=wx&audience=wdp)
+- [Working in projects](https://dataplatform.cloud.ibm.com/docs/content/wsj/manage-data/manage-projects.html?context=wx&audience=wdp)
 
 > Every service accepts either a `projectId` **or** a `spaceId`, so you do not need both.
 
@@ -69,7 +69,7 @@ A **project** is the workspace where inference requests run. After creating one,
 
 A **deployment space** is a workspace for assets that are ready for testing or production. Most services can use a space instead of a project via `spaceId(...)`. Create one under **Deployments**, then find the **Space ID** in the space's **Manage** tab.
 
-- 📖 [Deployment spaces](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/ml-spaces_local.html?context=wx&audience=wdp)
+- [Deployment spaces](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/ml-spaces_local.html?context=wx&audience=wdp)
 
 ---
 
@@ -77,7 +77,7 @@ A **deployment space** is a workspace for assets that are ready for testing or p
 
 The [Deployment Service](services/deployment-service/) targets a `WATSONX_DEPLOYMENT_ID` instead of a `modelId`. To obtain one, deploy an asset (a foundation model or a prompt template) into a deployment space. Once deployed, the deployment's unique ID is shown in the space.
 
-- 📖 [Creating online deployments](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/deploy-online.html?context=wx&audience=wdp)
+- [Creating online deployments](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/deploy-online.html?context=wx&audience=wdp)
 
 ---
 
@@ -88,9 +88,9 @@ The [Text Extraction](services/document-processing/text-extraction-service/), [T
 1. **Provision COS and create a bucket** - this gives you the `BUCKET_NAME` and the `cosUrl` (the regional S3 endpoint, e.g. `https://s3.us-south.cloud-object-storage.appdomain.cloud`).
 2. **Create a connection asset** in your project or space - this yields the `CONNECTION_ID` the SDK uses to reference the bucket.
 
-- 📖 [Provisioning Cloud Object Storage and creating buckets](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-provision)
-- 📖 [Creating a Cloud Object Storage connection](https://dataplatform.cloud.ibm.com/docs/content/wsj/manage-data/conn-cos.html?context=wx&audience=wdp)
-- 📖 [Adding connections to a project](https://dataplatform.cloud.ibm.com/docs/content/wsj/manage-data/create-conn.html?context=wx&audience=wdp)
+- [Provisioning Cloud Object Storage and creating buckets](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-provision)
+- [Creating a Cloud Object Storage connection](https://dataplatform.cloud.ibm.com/docs/content/wsj/manage-data/conn-cos.html?context=wx&audience=wdp)
+- [Adding connections to a project](https://dataplatform.cloud.ibm.com/docs/content/wsj/manage-data/create-conn.html?context=wx&audience=wdp)
 
 ---
 
@@ -112,8 +112,8 @@ The [Model Gateway Service](services/model-gateway/) routes requests to third-pa
 
 > Once the admin setup is complete, the standard `WATSONX_API_KEY` and `WATSONX_PROJECT_ID` are all end users need.
 
-- 📖 [Setting up the Model Gateway in the UI](https://www.ibm.com/docs/en/watsonx/w-and-w/2.4.x?topic=gateway-setting-up-model-in-ui)
-- 📖 [IBM watsonx.ai Model Gateway](https://www.ibm.com/docs/en/watsonx/w-and-w/2.4.x?topic=models-model-gateway)
+- [Setting up the Model Gateway in the UI](https://www.ibm.com/docs/en/watsonx/w-and-w/2.4.x?topic=gateway-setting-up-model-in-ui)
+- [IBM watsonx.ai Model Gateway](https://www.ibm.com/docs/en/watsonx/w-and-w/2.4.x?topic=models-model-gateway)
 
 ---
 
@@ -123,7 +123,7 @@ Every service builder needs a `baseUrl`. On **IBM Cloud**, the SDK provides the 
 
 > On **CP4D**, pass your instance URL as the `baseUrl` instead. The `CloudRegion` enum does not apply. See [On-premises (CP4D)](#on-premises-cp4d).
 
-- 📖 [Endpoint URLs by region (apidocs)](https://cloud.ibm.com/apidocs/watsonx-ai#endpoint-url)
+- [Endpoint URLs by region (apidocs)](https://cloud.ibm.com/apidocs/watsonx-ai#endpoint-url)
 
 ---
 
@@ -136,7 +136,7 @@ The catalog groups models into two categories, and each is consumed through a di
 - **Provided with watsonx.ai (pay per token)** - models already hosted in watsonx.ai. Reference them directly by `modelId` through [Chat](services/chat-service/) and the other inference services. No deployment step is required.
 - **Deploy on demand (pay by the hour)** - models you first deploy into a deployment space from the **Resource Hub**. Once deployed, they are called by their `WATSONX_DEPLOYMENT_ID` through the [Deployment Service](services/deployment-service/). See [Deploy an asset](#5-deploy-an-asset-optional).
 
-- 📖 [Supported foundation models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx&audience=wdp)
+- [Supported foundation models](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx&audience=wdp)
 
 ---
 
