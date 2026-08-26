@@ -122,6 +122,62 @@ public class LoggerInterceptorTest {
         }
 
         @Test
+        void should_truncate_base64_image_in_request_body() throws Exception {
+
+            String fullPayload = "AAAAAAAAAAAAAAAABBBBBBBBBBBBBBBCCCCCCCCCCCCCCCDDDDDDDDDDDDDD";
+            String body = "{\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64," + fullPayload + "\"}}";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost"))
+                .header("Content-Type", "application/json")
+                .POST(BodyPublishers.ofString(body))
+                .build();
+
+            List<String> logs = captureLogs(() -> {
+                try {
+                    LoggerInterceptor interceptor = new LoggerInterceptor(LogMode.REQUEST);
+                    LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+                    HttpResponse<String> response = mock(HttpResponse.class);
+                    when(chain.proceed(request, BodyHandlers.ofString())).thenReturn(response);
+                    interceptor.intercept(request, HttpResponse.BodyHandlers.ofString(), 0, chain);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            String requestLog = findLog(logs, "Request:");
+            assertFalse(requestLog.contains(fullPayload), "Full base64 image payload must not appear in the log");
+            assertTrue(requestLog.contains("AAAAAAAAAAAAAAA..."), () -> "Log must contain truncated image payload, but was: " + requestLog);
+        }
+
+        @Test
+        void should_truncate_base64_audio_in_request_body() throws Exception {
+
+            String fullPayload = "UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+            String body = "{\"type\":\"input_audio\",\"input_audio\":{\"format\":\"audio/wav\",\"data\":\"" + fullPayload + "\"}}";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost"))
+                .header("Content-Type", "application/json")
+                .POST(BodyPublishers.ofString(body))
+                .build();
+
+            List<String> logs = captureLogs(() -> {
+                try {
+                    LoggerInterceptor interceptor = new LoggerInterceptor(LogMode.REQUEST);
+                    LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+                    HttpResponse<String> response = mock(HttpResponse.class);
+                    when(chain.proceed(request, BodyHandlers.ofString())).thenReturn(response);
+                    interceptor.intercept(request, HttpResponse.BodyHandlers.ofString(), 0, chain);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            String requestLog = findLog(logs, "Request:");
+            assertFalse(requestLog.contains(fullPayload), "Full base64 audio payload must not appear in the log");
+            assertTrue(requestLog.contains("UklGRiQAAABXQVZ..."), () -> "Log must contain truncated audio payload, but was: " + requestLog);
+        }
+
+        @Test
         void should_log_json_body_when_content_type_is_json() throws Exception {
 
             String json = "{\"name\":\"Alan\",\"last_name\":\"Wake\"}";
