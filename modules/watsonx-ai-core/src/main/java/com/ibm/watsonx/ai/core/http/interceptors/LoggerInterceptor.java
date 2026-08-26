@@ -40,6 +40,9 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     private static final Pattern BASE64_IMAGE_PATTERN =
         Pattern.compile("(data:[\\w\\/+]+;base64,)(.{15})([^\"]+)");
 
+    private static final Pattern BASE64_AUDIO_PATTERN =
+        Pattern.compile("(\"data\"\\s*:\\s*\")(.{15})([^\"]+)(?=\")");
+
     private static final Pattern JSON_SECRET_PATTERN =
         Pattern.compile("\"([^\"]*(?:api[_-]?key|password|secret|access_token|refresh_token)[^\"]*)\"\\s*:\\s*\"[^\"]*\"", Pattern.CASE_INSENSITIVE);
 
@@ -127,7 +130,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
     private void logRequest(HttpRequest request) {
         if (!logRequest || !logger.isInfoEnabled())
-            return;
+            return; // skip body read entirely when INFO is disabled
 
         Optional<BodyPublisher> maybePublisher = request.bodyPublisher();
         if (maybePublisher.isEmpty()) {
@@ -170,89 +173,91 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
     private <T> void logResponse(String watsonxAISDKRequestId, Throwable exception) {
-        if (!logResponse || !logger.isInfoEnabled())
+        if (!logResponse)
             return;
 
-        StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
-        joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
+        logger.atInfo().log(() -> {
+            StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
+            joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
 
-        if (exception instanceof WatsonxException e) {
-            joiner.add("- status code: " + e.statusCode());
-            joiner.add("- body: " + Json.prettyPrint(exception.getMessage()));
-        } else {
-            joiner.add("- body: " + exception.getMessage());
-        }
+            if (exception instanceof WatsonxException e) {
+                joiner.add("- status code: " + e.statusCode());
+                joiner.add("- body: " + Json.prettyPrint(exception.getMessage()));
+            } else {
+                joiner.add("- body: " + exception.getMessage());
+            }
 
-        logger.info(joiner.toString());
+            return joiner.toString();
+        });
     }
 
     private <T> void logResponse(String watsonxAISDKRequestId, HttpResponse<T> response) {
-        if (!logResponse || !logger.isInfoEnabled())
+        if (!logResponse)
             return;
 
-        try {
+        logger.atInfo().log(() -> {
+            try {
 
-            String body = null;
-            String headers = null;
-            boolean prettyPrint = false;
+                String body = null;
+                boolean prettyPrint = false;
 
-            T responseBody = response.body();
-            boolean isStream = responseBody instanceof InputStream;
+                T responseBody = response.body();
+                boolean isStream = responseBody instanceof InputStream;
 
-            if (!isStream)
-                body = HttpUtils.extractBodyAsString(response).orElse(null);
+                if (!isStream)
+                    body = HttpUtils.extractBodyAsString(response).orElse(null);
 
-            StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
-            joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
-            joiner.add("- url: " + response.uri());
-            joiner.add("- status code: " + response.statusCode());
+                StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
+                joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
+                joiner.add("- url: " + response.uri());
+                joiner.add("- status code: " + response.statusCode());
 
-            if (nonNull(response.headers())) {
-                headers = HttpUtils.inOneLine(response.headers().map());
-                joiner.add("- headers: " + headers);
+                if (nonNull(response.headers())) {
+                    joiner.add("- headers: " + HttpUtils.inOneLine(response.headers().map()));
 
-                var contentType = response.headers().firstValue("Content-Type");
+                    var contentType = response.headers().firstValue("Content-Type");
 
-                if (contentType.isPresent() && contentType.get().contains("application/json"))
-                    prettyPrint = true;
+                    if (contentType.isPresent() && contentType.get().contains("application/json"))
+                        prettyPrint = true;
+                }
+
+                if (nonNull(body)) {
+                    body = maskSecrets(body);
+                    body = prettyPrint ? Json.prettyPrint(body) : body;
+                    joiner.add("- body: " + body);
+                }
+
+                return joiner.toString();
+
+            } catch (Exception e) {
+                return "Failed to log response: " + e.getMessage();
             }
-
-            if (nonNull(body)) {
-                body = maskSecrets(body);
-                body = prettyPrint ? Json.prettyPrint(body) : body;
-                joiner.add("- body: " + body);
-            }
-
-            logger.info(joiner.toString());
-
-        } catch (Exception e) {
-            logger.warn("Failed to log response", e);
-        }
+        });
     }
 
     private void logRequest(HttpRequest request, String body) {
-        String headers = null;
-        StringJoiner joiner = new StringJoiner("\n", "Request:\n", "");
-        joiner.add("- method: " + request.method());
-        joiner.add("- url: " + request.uri());
+        logger.atInfo().log(() -> {
+            StringJoiner joiner = new StringJoiner("\n", "Request:\n", "");
+            joiner.add("- method: " + request.method());
+            joiner.add("- url: " + request.uri());
 
-        if (nonNull(request.headers())) {
-            headers = HttpUtils.inOneLine(request.headers().map());
-            joiner.add("- headers: " + headers);
-            if (nonNull(body)) {
-                body = formatBase64Image(body);
-                body = maskSecrets(body);
+            if (nonNull(request.headers())) {
+                joiner.add("- headers: " + HttpUtils.inOneLine(request.headers().map()));
+                if (nonNull(body)) {
+                    String formatted = formatBase64Image(body);
+                    formatted = maskSecrets(formatted);
 
-                var contentType = request.headers().firstValue("Content-Type");
+                    var contentType = request.headers().firstValue("Content-Type");
 
-                if (contentType.isPresent() && contentType.get().contains("application/json"))
-                    body = Json.prettyPrint(body);
+                    if (contentType.isPresent() && contentType.get().contains("application/json"))
+                        formatted = Json.prettyPrint(formatted);
 
-                joiner.add("- body: " + body);
+                    joiner.add("- body: " + formatted);
+                }
             }
-        }
 
-        logger.info(joiner.toString());
+            return joiner.toString();
+        });
     }
 
     private boolean isNonRepeatablePublisher(HttpRequest.BodyPublisher publisher) {
@@ -292,6 +297,15 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
         Matcher matcher = BASE64_IMAGE_PATTERN.matcher(body);
         StringBuilder sb = new StringBuilder();
+
+        while (matcher.find())
+            matcher.appendReplacement(sb, matcher.group(1) + matcher.group(2) + "...");
+
+        matcher.appendTail(sb);
+        body = sb.toString();
+
+        matcher = BASE64_AUDIO_PATTERN.matcher(body);
+        sb = new StringBuilder();
 
         while (matcher.find())
             matcher.appendReplacement(sb, matcher.group(1) + matcher.group(2) + "...");
