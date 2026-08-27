@@ -58,6 +58,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters;
+import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.ReasoningEffort;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
@@ -441,6 +442,30 @@ public class ModelGatewayChatServiceIT {
             var assistantMessage = chatResponse.toAssistantMessage();
             assertTrue(nonNull(assistantMessage.content()) || !assistantMessage.content().isBlank());
             assertNull(assistantMessage.toolCalls());
+        }
+
+        @Test
+        void should_throw_exception_for_unsupported_model_parameter() {
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .modelId(CHAT_MODEL_GEMMA)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var parameters = ModelGatewayChatParameters.builder()
+                .reasoningEffort(ReasoningEffort.HIGH)
+                .build();
+
+            var request = ModelGatewayChatRequest.builder()
+                .messages(UserMessage.text("Hello!"))
+                .parameters(parameters)
+                .build();
+
+            var ex = assertThrows(WatsonxException.class, () -> modelGatewayChatService.chat(request));
+            assertTrue(ex.getMessage().contains("gemini does not support parameters: ['reasoning_effort']"));
         }
 
         @Test
