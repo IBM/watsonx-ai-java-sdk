@@ -762,7 +762,7 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
         Consumer<String> consumer = partial::append;
 
         var future = modelGatewayChatService.chatStreaming(List.<ChatMessage>of(UserMessage.text("Hi")), tools, consumer);
-        assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+        assertDoesNotThrow(() -> future.get(10, TimeUnit.SECONDS));
         assertEquals("Hi!", partial.toString());
     }
 

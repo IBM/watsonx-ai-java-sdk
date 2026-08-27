@@ -5,12 +5,16 @@ on:
     branches:
       - main
     paths-ignore:
-      - '.gitignore'
-      - 'CODEOWNERS'
-      - 'LICENSE'
-      - '*.txt'
-      - '.all-contributorsrc'
-      
+      - ".gitignore"
+      - "CODEOWNERS"
+      - "LICENSE"
+      - "*.txt"
+      - ".all-contributorsrc"
+
+env:
+  JAVA_MIN: "17"
+  JAVA_MAX: "25"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,7 +30,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: ${{ env.JAVA_MIN }}
           cache: "maven"
 
       - name: Check License and Code Formatting
@@ -43,6 +47,7 @@ jobs:
     needs: verify-license-and-format
     runs-on: ubuntu-latest
     strategy:
+      # Keep this list aligned with JAVA_MIN/JAVA_MAX above.
       matrix:
         java: [17, 21, 25]
     steps:
@@ -58,6 +63,47 @@ jobs:
       - name: Run tests
         run: ./mvnw verify -B -ntp
 
+  native-tests-core:
+    needs: verify-license-and-format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup GraalVM
+        uses: actions/setup-java@v5
+        with:
+          distribution: graalvm
+          java-version: ${{ env.JAVA_MAX }}
+          cache: maven
+
+      - name: Install parent POM
+        run: ./mvnw install -N -B -ntp
+
+      - name: Run native image tests (watsonx-ai-core)
+        run: ./mvnw -Pnative clean test -pl modules/watsonx-ai-core -B -ntp
+
+  native-tests-ai:
+    needs: verify-license-and-format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup GraalVM
+        uses: actions/setup-java@v5
+        with:
+          distribution: graalvm
+          java-version: ${{ env.JAVA_MAX }}
+          cache: maven
+
+      - name: Install parent POM
+        run: ./mvnw install -N -B -ntp
+
+      - name: Install watsonx-ai-core
+        run: ./mvnw install -pl modules/watsonx-ai-core -B -ntp -DskipTests -Dmaven.test.skip=true
+
+      - name: Run native image tests (watsonx-ai)
+        run: ./mvnw -Pnative clean test -pl modules/watsonx-ai -B -ntp
+
   detect-release:
     runs-on: ubuntu-latest
     needs: verify-license-and-format
@@ -66,7 +112,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Detect version change
         id: detect
@@ -79,7 +125,7 @@ jobs:
 
   build-samples:
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - verify-license-and-format
       - detect-release
 
@@ -93,7 +139,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: ${{ env.JAVA_MIN }}
           cache: "maven"
 
       - name: Extract next version from project.yml
@@ -112,7 +158,7 @@ jobs:
 
   run-integration-tests:
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - junit-test
       - build-samples
       - detect-release
@@ -122,12 +168,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      
-      - name: Setup JDK 17
+
+      - name: Setup JDK ${{ env.JAVA_MIN }}
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: ${{ env.JAVA_MIN }}
           cache: maven
 
       - name: Run Integration Tests
