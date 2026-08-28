@@ -19,6 +19,7 @@ import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 public class JsonTest {
 
     record Person(String name, String lastname) {};
+    record User(String name) {};
 
     @Test
     void should_serialize_object_to_json_string() {
@@ -66,8 +67,6 @@ public class JsonTest {
 
     @Test
     void should_deserialize_json_array_to_list_using_type_token() {
-        record User(String name) {}
-        ;
         var json = "[{ \"name\": \"Alan\"}]";
         var result = Json.fromJson(json, TypeToken.listOf(User.class));
         assertTrue(result.size() == 1);

@@ -39,4 +39,107 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>native</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <!--
+                Only the tests that exercise pure serialization/deserialization and value-type
+                behaviour are run in native mode. Tests that rely on Mockito, WireMock, or the
+                CDI container (Weld) are excluded because those frameworks are not compatible
+                with native-image
+              -->
+              <testExcludes>
+                <testExclude>**/AbstractWatsonxTest.java</testExclude>
+                <testExclude>**/BatchServiceTest.java</testExclude>
+                <testExclude>**/CustomHttpClientTest.java</testExclude>
+                <testExclude>**/DeploymentServiceTest.java</testExclude>
+                <testExclude>**/DetectionServiceTest.java</testExclude>
+                <testExclude>**/EmbeddingServiceTest.java</testExclude>
+                <testExclude>**/FileServiceTest.java</testExclude>
+                <testExclude>**/RerankServiceTest.java</testExclude>
+                <testExclude>**/TextGenerationServiceTest.java</testExclude>
+                <testExclude>**/TokenizationServiceTest.java</testExclude>
+                <testExclude>**/ToolServiceTest.java</testExclude>
+                <testExclude>**/ContextDepedencyInjectionTest.java</testExclude>
+                <testExclude>**/ChatMessageTest.java</testExclude>
+                <testExclude>**/ChatRequestTest.java</testExclude>
+                <testExclude>**/ChatServiceStreamingTest.java</testExclude>
+                <testExclude>**/ChatServiceTest.java</testExclude>
+                <testExclude>**/ChatServiceThinkingTest.java</testExclude>
+                <testExclude>**/ChatStreamingCancellationTest.java</testExclude>
+                <testExclude>**/ToolRegistryTest.java</testExclude>
+                <testExclude>**/CustomRestClientTest.java</testExclude>
+                <testExclude>**/DeploymentStreamingCancellationTest.java</testExclude>
+                <testExclude>**/FoundationModelServiceTest.java</testExclude>
+                <testExclude>**/ModelGatewayCatalogServiceTest.java</testExclude>
+                <testExclude>**/ModelGatewayChatServiceTest.java</testExclude>
+                <testExclude>**/ModelGatewayChatStreamingCancellationTest.java</testExclude>
+                <testExclude>**/ModelGatewayEmbeddingServiceTest.java</testExclude>
+                <testExclude>**/ModelGatewayImageServiceTest.java</testExclude>
+                <testExclude>**/TextGenerationStreamingCancellationTest.java</testExclude>
+                <testExclude>**/ClusterSchemaTest.java</testExclude>
+                <testExclude>**/CreateSchemaTest.java</testExclude>
+                <testExclude>**/ImproveSchemaTest.java</testExclude>
+                <testExclude>**/MergeSchemaTest.java</testExclude>
+                <testExclude>**/TextClassificationTest.java</testExclude>
+                <testExclude>**/TextExtractionTest.java</testExclude>
+                <testExclude>**/TimeSeriesServiceTest.java</testExclude>
+                <testExclude>**/PaginationTest.java</testExclude>
+                <testExclude>**/StreamingUtilsTest.java</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>native-agent</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes>
+                <testExclude>**/ContextDepedencyInjectionTest.java</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <configuration>
+              <agent>
+                <enabled>true</enabled>
+                <options>
+                  <callerFilterFiles>
+                    <filterFile>${project.basedir}/native-agent-filter.json</filterFile>
+                  </callerFilterFiles>
+                  <accessFilterFiles>
+                    <filterFile>${project.basedir}/native-agent-filter.json</filterFile>
+                  </accessFilterFiles>
+                </options>
+                <metadataCopy>
+                  <merge>false</merge>
+                  <outputDirectory>${project.basedir}/src/main/resources/META-INF/native-image/com.ibm.watsonx/${project.artifactId}</outputDirectory>
+                  <disabledStages>
+                    <stage>main</stage>
+                  </disabledStages>
+                </metadataCopy>
+              </agent>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>

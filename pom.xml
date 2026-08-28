@@ -45,6 +45,7 @@
     <license-maven-plugin-version>5.1.2</license-maven-plugin-version>
     <formatter-maven-plugin-version>2.29.0</formatter-maven-plugin-version>
     <maven-surefire-plugin-version>3.5.6</maven-surefire-plugin-version>
+    <native-build-tools-version>1.1.10</native-build-tools-version>
   </properties>
 
   <dependencies>
@@ -270,6 +271,71 @@
   </build>
 
   <profiles>
+
+    <profile>
+      <id>native</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.junit.platform</groupId>
+          <artifactId>junit-platform-launcher</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>${native-build-tools-version}</version>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>test-native</id>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <phase>test</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <buildArgs>
+                <arg>-H:+ReportExceptionStackTraces</arg>
+              </buildArgs>
+              <!--
+                Do not fail the build when a module has no native-compatible tests
+                (e.g. when all tests are excluded via the child-module profile).
+              -->
+              <failNoTests>false</failNoTests>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>native-agent</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>${native-build-tools-version}</version>
+            <extensions>true</extensions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
 
     <profile>
       <id>integration-tests</id>

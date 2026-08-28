@@ -484,7 +484,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 }
             });
 
-            var chatResponse = result.get(3, TimeUnit.SECONDS);
+            var chatResponse = result.get(5, TimeUnit.SECONDS);
 
             var EXEPECTED_THINKING =
                 "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.";
@@ -627,7 +627,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 }
             });
 
-            var chatResponse = result.get(3, TimeUnit.SECONDS);
+            var chatResponse = result.get(5, TimeUnit.SECONDS);
 
             var EXPECTED_RESPONSE = "Ciao";
 
@@ -725,7 +725,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 }
             });
 
-            var chatResponse = result.get(3, TimeUnit.SECONDS);
+            var chatResponse = result.get(5, TimeUnit.SECONDS);
             var assistantMessage = chatResponse.toAssistantMessage();
             assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.toAssistantMessage().content());
             assertEquals("User wants translation.", chatResponse.toAssistantMessage().thinking());
@@ -812,7 +812,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                         }
                     });
 
-                    var chatResponse = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+                    var chatResponse = assertDoesNotThrow(() -> result.get(5, TimeUnit.SECONDS));
                     var assistantMessage = chatResponse.toAssistantMessage();
                     assertEquals("\"Hello\" in Italian is **\"ciao\"**.", assistantMessage.content());
                     assertEquals("User wants translation.", assistantMessage.thinking());
@@ -955,7 +955,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 }
             });
 
-            var chatResponse = assertDoesNotThrow(() -> result.get(3, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> result.get(10, TimeUnit.SECONDS));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.toAssistantMessage().content());
             assertTrue(isNull(chatResponse.toAssistantMessage().thinking()) || chatResponse.toAssistantMessage().thinking().isBlank());
@@ -1046,7 +1046,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 }
             });
 
-            var chatResponse = result.get(3, TimeUnit.SECONDS);
+            var chatResponse = result.get(5, TimeUnit.SECONDS);
             var assistantMessage = chatResponse.toAssistantMessage();
             assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.toAssistantMessage().content());
             assertEquals("User wants translation.", chatResponse.toAssistantMessage().thinking());

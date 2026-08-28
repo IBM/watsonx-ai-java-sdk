@@ -40,4 +40,79 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>native</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <!-- Exclude tests that require reflection-heavy mocking frameworks -->
+              <testExcludes>
+                <testExclude>**/AsyncHttpClientTest.java</testExclude>
+                <testExclude>**/AuthenticationInterceptorTest.java</testExclude>
+                <testExclude>**/CP4DAuthenticationTest.java</testExclude>
+                <testExclude>**/HttpClientFactoryTest.java</testExclude>
+                <testExclude>**/HttpUtilsTest.java</testExclude>
+                <testExclude>**/IBMCloudAuthenticatorTest.java</testExclude>
+                <testExclude>**/LoggerInterceptorTest.java</testExclude>
+                <testExclude>**/MultipartBodyTest.java</testExclude>
+                <testExclude>**/RetryInterceptorTest.java</testExclude>
+                <testExclude>**/SseEventLoggerTest.java</testExclude>
+                <testExclude>**/SyncHttpClientTest.java</testExclude>
+                <testExclude>**/BaseHttpClientTest.java</testExclude>
+                <testExclude>**/CustomHttpClientTest.java</testExclude>
+                <testExclude>**/HttpClientProviderTest.java</testExclude>
+                <testExclude>**/RetryConfigTest.java</testExclude>
+                <testExclude>**/ExecutorProviderTest.java</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>native-agent</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes>
+              </testExcludes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <configuration>
+              <agent>
+                <enabled>true</enabled>
+                <options>
+                  <callerFilterFiles>
+                    <filterFile>${project.basedir}/native-agent-filter.json</filterFile>
+                  </callerFilterFiles>
+                  <accessFilterFiles>
+                    <filterFile>${project.basedir}/native-agent-filter.json</filterFile>
+                  </accessFilterFiles>
+                </options>
+                <metadataCopy>
+                  <merge>false</merge>
+                  <outputDirectory>${project.basedir}/src/main/resources/META-INF/native-image/com.ibm.watsonx/${project.artifactId}</outputDirectory>
+                  <disabledStages>
+                    <stage>main</stage>
+                  </disabledStages>
+                </metadataCopy>
+              </agent>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
