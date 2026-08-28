@@ -179,18 +179,6 @@ public final class ChatParameters extends BaseChatParameters {
         return builder;
     }
 
-    @Override
-    public String toString() {
-        return "ChatParameters [modelId=" + modelId + ", transactionId=" + transactionId + ", projectId=" + projectId + ", spaceId=" + spaceId
-            + ", crypto=" + crypto + ", toolChoiceOption=" + toolChoiceOption + ", toolChoice=" + toolChoice + ", guidedChoice=" + guidedChoice
-            + ", guidedRegex=" + guidedRegex + ", guidedGrammar=" + guidedGrammar + ", frequencyPenalty=" + frequencyPenalty + ", logitBias="
-            + logitBias
-            + ", logprobs=" + logprobs + ", topLogprobs=" + topLogprobs + ", maxCompletionTokens=" + maxCompletionTokens + ", n=" + n
-            + ", presencePenalty=" + presencePenalty + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP
-            + ", timeLimit=" + timeLimit + ", responseFormat=" + responseFormat + ", jsonSchema=" + jsonSchema + ", repetitionPenalty="
-            + repetitionPenalty + ", lengthPenalty=" + lengthPenalty + ", context=" + context + "]";
-    }
-
     /**
      * Returns a new {@link Builder} instance.
      * <p>
@@ -442,5 +430,17 @@ public final class ChatParameters extends BaseChatParameters {
         } else if (!context.equals(other.context))
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ChatParameters [modelId=" + modelId + ", transactionId=" + transactionId + ", projectId=" + projectId + ", spaceId=" + spaceId
+            + ", crypto=" + crypto + ", toolChoiceOption=" + toolChoiceOption + ", toolChoice=" + toolChoice + ", guidedChoice=" + guidedChoice
+            + ", guidedRegex=" + guidedRegex + ", guidedGrammar=" + guidedGrammar + ", frequencyPenalty=" + frequencyPenalty + ", logitBias="
+            + logitBias
+            + ", logprobs=" + logprobs + ", topLogprobs=" + topLogprobs + ", maxCompletionTokens=" + maxCompletionTokens + ", n=" + n
+            + ", presencePenalty=" + presencePenalty + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP
+            + ", timeLimit=" + timeLimit + ", responseFormat=" + responseFormat + ", jsonSchema=" + jsonSchema + ", repetitionPenalty="
+            + repetitionPenalty + ", lengthPenalty=" + lengthPenalty + ", context=" + context + "]";
     }
 }
