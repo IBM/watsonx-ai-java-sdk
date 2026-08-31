@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * Container class for different moderation configurations used in a chat request.
@@ -178,7 +177,6 @@ public final class ChatModeration {
             properties = Collections.unmodifiableMap(new HashMap<>(builder.properties));
         }
 
-        @JsonValue
         public Map<String, Object> properties() {
             return properties;
         }
