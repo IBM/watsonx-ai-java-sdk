@@ -45,7 +45,7 @@
     <license-maven-plugin-version>5.1.2</license-maven-plugin-version>
     <formatter-maven-plugin-version>2.29.0</formatter-maven-plugin-version>
     <maven-surefire-plugin-version>3.5.6</maven-surefire-plugin-version>
-    <native-build-tools-version>1.1.10</native-build-tools-version>
+    <native-build-tools-version>1.1.11</native-build-tools-version>
   </properties>
 
   <dependencies>
