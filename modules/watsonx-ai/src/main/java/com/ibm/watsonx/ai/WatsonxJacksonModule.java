@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +15,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -104,6 +108,9 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         // --- Chat Moderation Mixin --- //
         setMixInAnnotation(ChatModeration.class, ChatModerationMixin.class);
+        addSerializer(ChatModeration.Hap.class, new HapSerializer());
+        addSerializer(ChatModeration.Pii.class, new PiiSerializer());
+        addSerializer(ChatModeration.GraniteGuardian.class, new GraniteGuardianSerializer());
         setMixInAnnotation(TextChatResponse.DetectionEntry.class, TextChatResponseDetectionEntryMixin.class);
         setMixInAnnotation(TextChatResponse.DetectionResult.class, TextChatResponseDetectionResultMixin.class);
 
@@ -1067,6 +1074,30 @@ public class WatsonxJacksonModule extends SimpleModule {
         public ModelGatewayImageInputTokensDetailsMixin(
             @JsonProperty("image_tokens") long imageTokens,
             @JsonProperty("text_tokens") long textTokens) {}
+    }
+
+    private static final class HapSerializer extends JsonSerializer<ChatModeration.Hap> {
+
+        @Override
+        public void serialize(ChatModeration.Hap value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeObject(value.properties());
+        }
+    }
+
+    private static final class PiiSerializer extends JsonSerializer<ChatModeration.Pii> {
+
+        @Override
+        public void serialize(ChatModeration.Pii value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeObject(value.properties());
+        }
+    }
+
+    private static final class GraniteGuardianSerializer extends JsonSerializer<ChatModeration.GraniteGuardian> {
+
+        @Override
+        public void serialize(ChatModeration.GraniteGuardian value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeObject(value.properties());
+        }
     }
 
 }
