@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
@@ -86,6 +87,25 @@ public abstract class AbstractWatsonxTest {
             insecureClient.set(null, null);
         } catch (Exception e) {
             fail(e);
+        }
+    }
+
+    /**
+     * Polls {@code server} until at least {@code count} requests matching {@code pattern} have been received, or until 2 seconds have elapsed. Use
+     * this instead of a fixed {@code Thread.sleep} when verifying that async fire-and-forget calls (e.g. file deletes) eventually reach the mock
+     * server.
+     *
+     * @param server the WireMock server to poll
+     * @param pattern the request pattern to wait for
+     * @param count the minimum number of matching requests expected
+     */
+    protected static void waitForRequests(WireMockExtension server, RequestPatternBuilder pattern, int count)
+        throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 2_000;
+        while (System.currentTimeMillis() < deadline) {
+            if (server.countRequestsMatching(pattern.build()).getCount() >= count)
+                return;
+            Thread.sleep(50);
         }
     }
 }

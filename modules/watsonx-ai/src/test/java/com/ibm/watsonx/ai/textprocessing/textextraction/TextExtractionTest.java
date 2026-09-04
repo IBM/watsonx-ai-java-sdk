@@ -1234,7 +1234,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         String extractedText = textExtractionService.extractAndFetch(FILE_NAME, parameters);
         assertEquals("Hello", extractedText);
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
@@ -1249,7 +1249,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         extractedText = textExtractionService.uploadExtractAndFetch(file, parameters);
         assertEquals("Hello", extractedText);
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
@@ -1292,7 +1292,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         assertEquals("Hello", textExtractionService.extractAndFetch(FILE_NAME, parameters));
 
-        Thread.sleep(200); // the deletes are performed asynchronously
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(documentBucket, FILE_NAME))), 1);
 
         // Read targets the results bucket (not the document bucket).
         cosServer.verify(1, getRequestedFor(urlEqualTo("/%s/%s".formatted(resultsBucket, outputFileName))));
@@ -1744,7 +1744,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 2);
         watsonxServer.verify(2, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(4, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));

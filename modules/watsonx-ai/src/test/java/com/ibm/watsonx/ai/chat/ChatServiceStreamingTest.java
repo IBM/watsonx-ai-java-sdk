@@ -65,7 +65,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.fasterxml.jackson.core.JsonParseException;
+import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
@@ -993,7 +993,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
         doAnswer(invocation -> {
             Throwable error = invocation.getArgument(0);
-            assertInstanceOf(JsonParseException.class, error);
+            assertInstanceOf(JsonException.class, error);
             counter.incrementAndGet();
             return null;
         }).when(mockChatHandler).onError(any());
@@ -1005,7 +1005,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         var response = result.get(3, TimeUnit.SECONDS);
 
         inOrder.verify(mockChatHandler).onPartialResponse(eq("C"), any());
-        inOrder.verify(mockChatHandler).onError(any(JsonParseException.class));
+        inOrder.verify(mockChatHandler).onError(any(JsonException.class));
         inOrder.verify(mockChatHandler).onPartialResponse(eq("iao"), any());
         inOrder.verify(mockChatHandler).onCompleteResponse(any());
 
@@ -1579,7 +1579,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             @Override
             public void onError(Throwable error) {
                 assertTrue(Thread.currentThread().getName().startsWith("thread"));
-                assertInstanceOf(JsonParseException.class, error.getCause());
+                assertInstanceOf(JsonException.class, error);
             }
 
             @Override
@@ -4209,7 +4209,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                     """
                         id: 1
                         event: message
-                        data: {"id":"089c113655af4032ba63b2676806197d","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null}],"created":1786783200,"model_version":"4.0.0","created_at":"2026-08-15T08:40:00.656Z","usage":{"prompt_tokens":9},"system":{"warnings":[{"message":"Unsuitable input detected. Please check the detected entities on your input and try again with the unsuitable input removed.","id":"UNSUITABLE_INPUT"}]},"moderations":{"pii":[{"score":0.8,"input":true,"position":{"start":19,"end":29},"entity":"PhoneNumber","word":"3334523123"}]},"detections":{"input":[{"message_index":0,"results":[{"detector_id":"en_syntax_rbr_pii","detection_type":"pii","detection":"PhoneNumber","score":0.8,"text":"3334523123","start":19,"end":29}]}]}}
+                        data: {"id":"089c113655af4032ba63b2676806197d","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":null}],"created":1786783200,"model_version":"4.0.0","created_at":"2026-08-15T08:40:00.656Z","usage":{"prompt_tokens":9},"system":{"warnings":[{"message":"Unsuitable input detected. Please check the detected entities on your input and try again with the unsuitable input removed.","id":"UNSUITABLE_INPUT"}]},"moderations":{"pii":[{"score":0.8,"input":true,"position":{"start":19,"end":29},"entity":"PhoneNumber","word":"3334523123"}]},"detections":{"input":[{"choice_index":0,"results":[{"detector_id":"en_syntax_rbr_pii","detection_type":"pii","detection":"PhoneNumber","score":0.8,"text":"3334523123","start":19,"end":29}]}]}}
                         """)));
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
@@ -4270,7 +4270,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 3
                         event: message
-                        data: {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"stop","delta":{}}],"created":1786783200,"created_at":"2026-08-15T08:40:00.658Z","moderations":{"pii":[{"score":0.8,"input":false,"position":{"start":5,"end":15},"entity":"PhoneNumber","word":"3334523123"}]},"detections":{"output":[{"message_index":0,"results":[{"detector_id":"en_syntax_rbr_pii","detection_type":"pii","detection":"PhoneNumber","score":0.8,"text":"3334523123","start":5,"end":15}]}]}}
+                        data: {"id":"chatcmpl-14","object":"chat.completion.chunk","model_id":"ibm/granite-4-h-small","model":"ibm/granite-4-h-small","choices":[{"index":0,"finish_reason":"stop","delta":{}}],"created":1786783200,"created_at":"2026-08-15T08:40:00.658Z","moderations":{"pii":[{"score":0.8,"input":false,"position":{"start":5,"end":15},"entity":"PhoneNumber","word":"3334523123"}]},"detections":{"output":[{"choice_index":0,"results":[{"detector_id":"en_syntax_rbr_pii","detection_type":"pii","detection":"PhoneNumber","score":0.8,"text":"3334523123","start":5,"end":15}]}]}}
 
                         id: 4
                         event: message

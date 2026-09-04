@@ -33,17 +33,59 @@
       <version>999-SNAPSHOT</version>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.jboss.weld</groupId>
       <artifactId>weld-junit5</artifactId>
-      <version>5.0.3.Final</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven-jar-plugin-version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <excludes>
+                <exclude>META-INF/services/com.ibm.watsonx.ai.core.spi.json.JsonProvider</exclude>
+                <exclude>com/ibm/watsonx/ai/JsonProviderTest.class</exclude>
+                <exclude>com/ibm/watsonx/ai/WatsonxJacksonModuleTest.class</exclude>
+                <exclude>com/ibm/watsonx/ai/WatsonxJacksonModuleTest$*.class</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
   <profiles>
     <profile>
       <id>native</id>
       <build>
+        <testResources>
+          <testResource>
+            <directory>src/test/resources</directory>
+            <!--
+              JsonProviderTest.java is excluded from compilation below, so its SPI
+              registration must also be excluded here or ServiceLoader fails with
+              "Provider com.ibm.watsonx.ai.JsonProviderTest not found".
+            -->
+            <excludes>
+              <exclude>META-INF/services/com.ibm.watsonx.ai.core.spi.json.JsonProvider</exclude>
+            </excludes>
+          </testResource>
+        </testResources>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -93,6 +135,22 @@
                 <testExclude>**/TimeSeriesServiceTest.java</testExclude>
                 <testExclude>**/PaginationTest.java</testExclude>
                 <testExclude>**/StreamingUtilsTest.java</testExclude>
+                <!-- These tests use WatsonxJacksonModuleTest/JsonProviderTest (test-only Jackson
+                     wiring) which is not compatible with native image. The same serialization
+                     tests are covered by watsonx-ai-jackson2 and watsonx-ai-jackson3. -->
+                <testExclude>**/JsonProviderTest.java</testExclude>
+                <testExclude>**/WatsonxJacksonModuleTest.java</testExclude>
+                <testExclude>**/JsonSchemaTest.java</testExclude>
+                <testExclude>**/ModerationTest.java</testExclude>
+                <!-- These tests call Json.toJson/fromJson at runtime, which needs the
+                     JsonProviderTest above to be registered as the JsonProvider. With it
+                     excluded, watsonx-ai has no native-compatible provider left, so these
+                     also have to be excluded; the same tests run via the shared test-jar in
+                     watsonx-ai-jackson2 and watsonx-ai-jackson3, using their own provider. -->
+                <testExclude>**/JsonTest.java</testExclude>
+                <testExclude>**/AssistantMessageTest.java</testExclude>
+                <testExclude>**/ToolExecutorTest.java</testExclude>
+                <testExclude>**/SseEventProcessorTest.java</testExclude>
               </testExcludes>
             </configuration>
           </plugin>
@@ -110,6 +168,7 @@
             <configuration>
               <testExcludes>
                 <testExclude>**/ContextDepedencyInjectionTest.java</testExclude>
+                <testExclude>**/CustomRestClientTest.java</testExclude>
               </testExcludes>
             </configuration>
           </plugin>

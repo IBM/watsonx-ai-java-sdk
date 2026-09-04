@@ -76,15 +76,9 @@ import com.ibm.watsonx.ai.timeseries.ForecastData;
 import com.ibm.watsonx.ai.timeseries.InputSchema;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
 
-/**
- * Custom Jackson module used to register mix-in annotations for serializing and deserializing specific components.
- */
-public class WatsonxJacksonModule extends SimpleModule {
+public class WatsonxJacksonModuleTest extends SimpleModule {
 
-    /**
-     * Constructs a new WatsonxJacksonModule and registers all mix-in annotations.
-     */
-    public WatsonxJacksonModule() {
+    public WatsonxJacksonModuleTest() {
         super("watsonx-ai-jackson-module");
 
         // --- Chat Mixin --- //
@@ -152,7 +146,7 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TextDetectionContentDetectors.class, TextDetectionContentDetectorsMixin.class);
         setMixInAnnotation(BaseDetectionRequest.class, BaseDetectionRequestMixin.class);
 
-        // --- Foudation Mixin --- //
+        // --- Foundation Mixin --- //
         setMixInAnnotation(FoundationModel.DefaultValue.class, DefaultValueMixin.class);
         setMixInAnnotation(FoundationModel.NumGpus.class, DefaultValueMixin.class);
         setMixInAnnotation(FoundationModel.InitMethod.class, DefaultValueMixin.class);

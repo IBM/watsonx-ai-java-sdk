@@ -1,7 +1,11 @@
 {
   "reflection": [
     {
-      "type": "byte[]"
+      "type": "byte[]",
+      "jniAccessible": true
+    },
+    {
+      "type": "byte[][]"
     },
     {
       "type": "char[]"
@@ -29,6 +33,11 @@
     },
     {
       "type": "com.fasterxml.jackson.annotation.JsonInclude$Include",
+      "fields": [
+        {
+          "name": "NON_NULL"
+        }
+      ],
       "methods": [
         {
           "name": "values",
@@ -92,6 +101,11 @@
     },
     {
       "type": "com.fasterxml.jackson.databind.DeserializationFeature",
+      "fields": [
+        {
+          "name": "FAIL_ON_UNKNOWN_PROPERTIES"
+        }
+      ],
       "methods": [
         {
           "name": "values",
@@ -112,7 +126,85 @@
       "type": "com.fasterxml.jackson.databind.KeyDeserializer$None"
     },
     {
-      "type": "com.fasterxml.jackson.databind.ObjectMapper"
+      "type": "com.fasterxml.jackson.databind.ObjectMapper",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "configure",
+          "parameterTypes": [
+            "com.fasterxml.jackson.databind.DeserializationFeature",
+            "boolean"
+          ]
+        },
+        {
+          "name": "getTypeFactory",
+          "parameterTypes": []
+        },
+        {
+          "name": "readTree",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "readValue",
+          "parameterTypes": [
+            "java.lang.String",
+            "com.fasterxml.jackson.databind.JavaType"
+          ]
+        },
+        {
+          "name": "readValue",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.Class"
+          ]
+        },
+        {
+          "name": "setDefaultPropertyInclusion",
+          "parameterTypes": [
+            "com.fasterxml.jackson.annotation.JsonInclude$Include"
+          ]
+        },
+        {
+          "name": "setPropertyNamingStrategy",
+          "parameterTypes": [
+            "com.fasterxml.jackson.databind.PropertyNamingStrategy"
+          ]
+        },
+        {
+          "name": "writeValueAsString",
+          "parameterTypes": [
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "writerWithDefaultPrettyPrinter",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.ObjectWriter",
+      "methods": [
+        {
+          "name": "writeValueAsString",
+          "parameterTypes": [
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.PropertyNamingStrategies",
+      "fields": [
+        {
+          "name": "SNAKE_CASE"
+        }
+      ]
     },
     {
       "type": "com.fasterxml.jackson.databind.SerializationFeature",
@@ -181,7 +273,13 @@
       "type": "com.fasterxml.jackson.databind.node.JsonNodeCreator"
     },
     {
-      "type": "com.fasterxml.jackson.databind.node.ObjectNode"
+      "type": "com.fasterxml.jackson.databind.node.ObjectNode",
+      "methods": [
+        {
+          "name": "isObject",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "com.fasterxml.jackson.databind.ser.BeanSerializerModifier[]"
@@ -190,19 +288,21 @@
       "type": "com.fasterxml.jackson.databind.ser.Serializers[]"
     },
     {
+      "type": "com.fasterxml.jackson.databind.type.TypeFactory",
+      "methods": [
+        {
+          "name": "constructType",
+          "parameterTypes": [
+            "java.lang.reflect.Type"
+          ]
+        }
+      ]
+    },
+    {
       "type": "com.fasterxml.jackson.databind.util.Converter$None"
     },
     {
       "type": "com.fasterxml.jackson.dataformat.yaml.YAMLFactory"
-    },
-    {
-      "type": "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
     },
     {
       "type": "com.ibm.watsonx.ai.core.auth.Authenticator"
@@ -889,6 +989,30 @@
       ]
     },
     {
+      "type": "java.lang.ProcessHandleImpl$Info",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "arguments"
+        },
+        {
+          "name": "command"
+        },
+        {
+          "name": "commandLine"
+        },
+        {
+          "name": "startTime"
+        },
+        {
+          "name": "totalTime"
+        },
+        {
+          "name": "user"
+        }
+      ]
+    },
+    {
       "type": "java.lang.Record"
     },
     {
@@ -950,6 +1074,31 @@
       "type": "java.lang.StackTraceElement"
     },
     {
+      "type": "java.lang.StackWalker",
+      "methods": [
+        {
+          "name": "getInstance",
+          "parameterTypes": [
+            "java.util.Set",
+            "int"
+          ]
+        },
+        {
+          "name": "walk",
+          "parameterTypes": [
+            "java.util.function.Function"
+          ]
+        },
+        {
+          "name": "walk",
+          "parameterTypes": [
+            "java.util.function.Function",
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
       "type": "java.lang.StackWalker$Option",
       "methods": [
         {
@@ -959,7 +1108,17 @@
       ]
     },
     {
-      "type": "java.lang.StackWalker$StackFrame"
+      "type": "java.lang.StackWalker$StackFrame",
+      "methods": [
+        {
+          "name": "getClassName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMethodName",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "java.lang.String",
@@ -1007,6 +1166,12 @@
           "parameterTypes": [
             "java.lang.Object"
           ]
+        },
+        {
+          "name": "concat",
+          "parameterTypes": [
+            "boolean"
+          ]
         }
       ]
     },
@@ -1015,6 +1180,15 @@
     },
     {
       "type": "java.lang.System",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "err"
+        },
+        {
+          "name": "out"
+        }
+      ],
       "methods": [
         {
           "name": "getSecurityManager",
@@ -1379,6 +1553,9 @@
       "type": "java.lang.invoke.LambdaForm$Name[]"
     },
     {
+      "type": "java.lang.invoke.MethodHandle"
+    },
+    {
       "type": "java.lang.invoke.MethodHandleImpl",
       "methods": [
         {
@@ -1413,6 +1590,17 @@
             "java.lang.Object[]",
             "int",
             "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.MethodHandleImpl$BindCaller",
+      "methods": [
+        {
+          "name": "checkCallerClass",
+          "parameterTypes": [
+            "java.lang.Class"
           ]
         }
       ]
@@ -1600,6 +1788,9 @@
           "parameterTypes": []
         }
       ]
+    },
+    {
+      "type": "java.lang.reflect.Type"
     },
     {
       "type": "java.lang.reflect.TypeVariable",
@@ -2467,9 +2658,6 @@
       "type": "javax.net.ssl.SSLSocket"
     },
     {
-      "type": "javax.net.ssl.TrustManager[]"
-    },
-    {
       "type": "javax.xml.parsers.DocumentBuilder"
     },
     {
@@ -2484,6 +2672,36 @@
         {
           "name": "<init>",
           "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.management.VMManagementImpl",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
         }
       ]
     },
@@ -3374,6 +3592,38 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.Json",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.Json",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.core.RetryConfig",
           "interfaces": [
             "java.util.function.Function"
@@ -3994,6 +4244,22 @@
           "declaringClass": "java.lang.VirtualThread",
           "interfaces": [
             "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.invoke.MethodHandleImpl$BindCaller",
+          "interfaces": [
+            "java.util.function.Consumer"
           ]
         }
       },
@@ -5395,9 +5661,6 @@
     }
   ],
   "resources": [
-    {
-      "glob": "META-INF/services/com.fasterxml.jackson.databind.Module"
-    },
     {
       "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DIAMRestClientBuilderFactory"
     },

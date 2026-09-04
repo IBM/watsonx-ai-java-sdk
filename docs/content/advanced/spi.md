@@ -280,7 +280,14 @@ com.example.watsonx.executor.CustomCpuExecutorProvider
 
 ## JSON SPI
 
-By default, the SDK uses **Jackson** for JSON serialization and deserialization, configured with `snake_case` property naming and `NON_NULL` inclusion. The `JsonProvider` SPI allows replacing this with any other JSON library.
+`watsonx-ai-core` has no dependency on any JSON library. JSON serialization and deserialization go through the `JsonProvider` SPI, and a JSON binding module supplies the actual implementation:
+
+| Binding module | Jackson version | Package |
+|----------------|------------------|---------|
+| `watsonx-ai-jackson2` | Jackson 2 | `com.fasterxml.jackson` |
+| `watsonx-ai-jackson3` | Jackson 3 | `tools.jackson` |
+
+Add exactly one to your project alongside `watsonx-ai`. Both bundle a `JacksonProvider` configured with `snake_case` property naming and `NON_NULL` inclusion.
 
 ```java
 public interface JsonProvider {
@@ -289,30 +296,56 @@ public interface JsonProvider {
     String toJson(Object object);
     String prettyPrint(Object object);
     boolean isValidObject(String json);
+
+    default boolean isDefault() {
+        return false;
+    }
 }
 ```
 
 `TypeToken<T>` is a utility class provided by the SDK to capture generic type information at runtime, used for deserializing parameterized types like `List<ChatMessage>` or `DetectionResponse<DetectionTextResponse>`.
 
-The SDK loads the provider via `ServiceLoader` at startup:
+### Resolution
+
+The SDK collects every `JsonProvider` registered via `ServiceLoader` at startup and resolves them to one:
 
 ```java
 private static JsonProvider loadProvider() {
-    return ServiceLoader.load(JsonProvider.class)
-        .findFirst().orElse(new JacksonProvider());
+    var providers = ServiceLoader.load(JsonProvider.class)
+        .stream()
+        .map(ServiceLoader.Provider::get)
+        .toList();
+
+    return resolveProvider(providers);
+}
+
+static JsonProvider resolveProvider(List<JsonProvider> providers) {
+    if (providers.isEmpty())
+        throw new IllegalStateException(
+            "No JsonProvider found. Add exactly one JSON binding, for example watsonx-ai-jackson2 or watsonx-ai-jackson3.");
+
+    var explicit = providers.stream().filter(p -> !p.isDefault()).toList();
+    var candidates = explicit.isEmpty() ? providers : explicit;
+
+    if (candidates.size() > 1)
+        throw new IllegalStateException("Multiple JsonProvider implementations found: " + candidates + ". Add exactly one JSON binding.");
+
+    return candidates.get(0);
 }
 ```
 
+`isDefault()` distinguishes a bundled binding (both `watsonx-ai-jackson2` and `watsonx-ai-jackson3` return `true`) from an explicit choice (any other implementation, `false` by default). An explicit provider always wins over bundled ones. This lets an integrator depend on a binding module purely to reuse its mix-ins (see below) while registering their own `JsonProvider` tied to their own JSON setup, without needing to exclude the bundled provider. Resolution fails only on real ambiguity: zero providers, two or more bundled bindings with no explicit override, or two or more explicit providers.
+
 ### Jackson configuration & mix-in annotations
 
-The default `JacksonProvider` is configured with:
+The bundled `JacksonProvider` (same configuration in both `watsonx-ai-jackson2` and `watsonx-ai-jackson3`, each written against that Jackson major version's API) is configured with:
 
 ```java
 new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     .setDefaultPropertyInclusion(Include.NON_NULL)
     .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-    .findAndRegisterModules();
+    .registerModule(new WatsonxJacksonModule());
 ```
 
 Additionally, the SDK uses **Jackson mix-in annotations** (via `WatsonxJacksonModule`) to handle special serialization/deserialization requirements for SDK types:
@@ -322,7 +355,7 @@ Additionally, the SDK uses **Jackson mix-in annotations** (via `WatsonxJacksonMo
 - Dynamic properties with `@JsonAnyGetter`/`@JsonAnySetter` (e.g., `ToolArguments`)
 - Suppressed auto-detection with `@JsonAutoDetect(getterVisibility = NONE)`, so a type is written from its explicitly annotated accessors only (e.g., `ModelGatewayEmbeddingResponse.Embedding`)
 
-**If you replace Jackson with another JSON library**, you must replicate these configurations. The mix-ins are defined in `com.ibm.watsonx.ai.WatsonxJacksonModule` and cover all SDK request/response types.
+`WatsonxJacksonModule` is maintained as two classes sharing the fully qualified name `com.ibm.watsonx.ai.WatsonxJacksonModule`, one per binding module, kept in sync with each other. **If you replace Jackson with another JSON library**, you must replicate these mix-ins yourself. They cover all SDK request/response types.
 
 ### Providing a custom JSON provider
 
@@ -389,7 +422,7 @@ With the content:
 com.example.watsonx.json.CustomJsonProvider
 ```
 
-Once registered, all JSON operations in the SDK will use your custom provider instead of Jackson.
+`CustomJsonProvider` does not override `isDefault()`, so it stays an explicit provider (`false`). Once registered, all JSON operations in the SDK will use it instead of Jackson, even if `watsonx-ai-jackson2` or `watsonx-ai-jackson3` is also on the classpath: an explicit provider always wins over a bundled one.
 
 ### Using TypeToken for generic types
 

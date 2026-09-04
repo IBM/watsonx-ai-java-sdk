@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
 IMAGE="ghcr.io/graalvm/native-image-community:25"
-MODULES=(watsonx-ai-core watsonx-ai)
+MODULES=(watsonx-ai-core watsonx-ai watsonx-ai-jackson2 watsonx-ai-jackson3)
 REFLECTION_DENY_PREFIXES_JSON='[
   "com.github.jknack.handlebars",
   "com.google.common",
@@ -79,7 +79,7 @@ echo "==> Installing watsonx-ai-core"
 ./mvnw install \
   -pl modules/watsonx-ai-core \
   -B -ntp -q \
-  -DskipTests -Dmaven.test.skip=true
+  -DskipTests
 
 
 clean_metadata() {
@@ -158,7 +158,7 @@ generate_metadata() {
   ./mvnw install \
     -pl "$module_dir" \
     -B -ntp -q \
-    -DskipTests -Dmaven.test.skip=true
+    -DskipTests
 }
 
 run_native_tests() {

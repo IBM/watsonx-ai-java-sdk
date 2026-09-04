@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.chat.streaming;
 
 import static java.util.Objects.nonNull;
 import java.util.List;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
@@ -152,15 +153,15 @@ public class DefaultChatSubscriber extends ChatSubscriber {
 
                 } catch (RuntimeException e) {
 
-                    Throwable t = nonNull(e.getCause()) ? e.getCause() : e;
                     continueProcessing = continueOnError;
+                    Throwable cause = (e instanceof CompletionException && e.getCause() != null) ? e.getCause() : e;
 
                     if (continueProcessing) {
                         // Non-terminal error: report it and keep streaming (multiple errors may be reported).
-                        DefaultChatSubscriber.this.onError(t);
+                        DefaultChatSubscriber.this.onError(cause);
                     } else if (markErrorReported()) {
                         // Terminal error: report once and fail the response.
-                        DefaultChatSubscriber.this.onError(t).whenComplete((v, err) -> response.completeExceptionally(t));
+                        DefaultChatSubscriber.this.onError(cause).whenComplete((v, err) -> response.completeExceptionally(cause));
                     }
 
                 } finally {
@@ -178,7 +179,7 @@ public class DefaultChatSubscriber extends ChatSubscriber {
                 if (isCancelled())
                     return;
 
-                Throwable t = nonNull(throwable.getCause()) ? throwable.getCause() : throwable;
+                Throwable t = (throwable instanceof CompletionException && throwable.getCause() != null) ? throwable.getCause() : throwable;
                 if (markErrorReported())
                     DefaultChatSubscriber.this.onError(t);
                 response.completeExceptionally(t);
@@ -189,9 +190,9 @@ public class DefaultChatSubscriber extends ChatSubscriber {
                 DefaultChatSubscriber.this.onComplete()
                     .whenComplete((chatResponse, error) -> {
                         if (nonNull(error)) {
-                            error = nonNull(error.getCause()) ? error.getCause() : error;
-                            DefaultChatSubscriber.this.onError(error);
-                            response.completeExceptionally(error);
+                            Throwable t = (error instanceof CompletionException && error.getCause() != null) ? error.getCause() : error;
+                            DefaultChatSubscriber.this.onError(t);
+                            response.completeExceptionally(t);
                         } else
                             response.complete(chatResponse);
                     });

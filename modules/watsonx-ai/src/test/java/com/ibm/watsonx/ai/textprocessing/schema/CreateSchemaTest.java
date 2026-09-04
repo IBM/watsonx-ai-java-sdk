@@ -181,7 +181,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
                                 "space_id": "space-id"
                             }
                         }
-                }""".formatted(PARAMETERS);
+                """.formatted(PARAMETERS);
 
         Schema schema = Schema.builder()
             .documentType("Invoice")
@@ -629,7 +629,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
 
         CreateSchemaResult result = createSchemaService.createSchemaAndFetch("test.pdf", parameters);
         assertNotNull(result);
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
@@ -642,7 +642,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
 
         result = createSchemaService.uploadCreateSchemaAndFetch(file, parameters);
         assertNotNull(result);
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
@@ -828,7 +828,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
         assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 2);
         watsonxServer.verify(2, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
         watsonxServer.verify(4, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));

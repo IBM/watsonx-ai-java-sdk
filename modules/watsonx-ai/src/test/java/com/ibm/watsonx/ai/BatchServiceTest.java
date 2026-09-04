@@ -1677,7 +1677,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_batch_chat_responses() {
+    void should_batch_chat_responses() throws InterruptedException {
 
         stubFileUpload("X-IBM-Project-ID", PROJECT_ID);
 
@@ -1734,7 +1734,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
                 .toList();
 
         var results = batchService.submitChatRequestsAndFetch(chatRequests);
-        assertDoesNotThrow(() -> Thread.sleep(200)); // Wait for async files deletion to complete
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
 
         assertEquals(3, results.size());
         assertEquals("0", results.get(0).customId());

@@ -101,9 +101,6 @@
       ]
     },
     {
-      "type": "com.fasterxml.jackson.annotation.JsonValue"
-    },
-    {
       "type": "com.fasterxml.jackson.annotation.OptBoolean",
       "methods": [
         {
@@ -227,15 +224,6 @@
       "type": "com.fasterxml.jackson.dataformat.yaml.YAMLFactory"
     },
     {
-      "type": "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "com.ibm.watsonx.ai.Crypto",
       "methods": [
         {
@@ -243,174 +231,6 @@
           "parameterTypes": []
         }
       ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ArraySchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$AssistantMessageMixIn"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$BaseDetectionRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$BatchCreateRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatModerationMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatResponseBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ConstantSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DefaultValueMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionTextResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$EnumSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsThinkMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintFieldDataMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintsBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$InputSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$IntegerSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$JsonSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$KvpFieldsBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayCacheMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayChatResponseBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingUsageMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageDataMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageInputTokensDetailsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageUsageMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayListModelsResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayModelMetadataMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayModelMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayPredictionMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayRouterMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayStreamOptionsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayTextChatRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModerationMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$NumberSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ObjectSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$RequiredSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$SchemaBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$SchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$StringSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseDetectionEntryMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseDetectionResultMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextDetectionContentDetectorsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextGenerationParametersMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TimeSeriesParametersMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ToolArgumentsMixin"
     },
     {
       "type": "com.ibm.watsonx.ai.WatsonxParameters"
@@ -724,30 +544,6 @@
       ]
     },
     {
-      "type": "com.ibm.watsonx.ai.chat.ChatModeration$Detector",
-      "methods": [
-        {
-          "name": "properties",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.chat.ChatModeration$DetectorBuilder"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.chat.ChatModeration$GraniteGuardian"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.chat.ChatModeration$GraniteGuardian$Builder"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.chat.ChatModeration$Hap"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.chat.ChatModeration$Hap$Builder"
-    },
-    {
       "type": "com.ibm.watsonx.ai.chat.ChatModeration$InputRanges",
       "methods": [
         {
@@ -759,12 +555,6 @@
           "parameterTypes": []
         }
       ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.chat.ChatModeration$Pii"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.chat.ChatModeration$Pii$Builder"
     },
     {
       "type": "com.ibm.watsonx.ai.chat.ChatResponse",
@@ -1847,251 +1637,13 @@
       "type": "com.ibm.watsonx.ai.chat.model.schema.StringSchema$Builder"
     },
     {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomBatchRestClient$CustomBatchRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomCP4DIAMRestClient$CustomCP4DIAMRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomCP4DLegacyRestClient$CustomCP4DLegacyRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomCP4DZenRestClient$CustomCP4DZenRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomChatRestClient$CustomChatRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomCreateSchemaRestClient$CustomCreateSchemaRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomDeploymentRestClient$CustomDeploymentRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomDetectionRestClient$CustomDetectionRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomEmbeddingRestClient$CustomEmbeddingRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomFileRestClient$CustomFileRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomFoundationModelRestClient$CustomFoundationModelRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomIBMCloudRestClient$CustomIBMCloudRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomImproveSchemaRestClient$CustomImproveSchemaRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomMergeSchemaRestClient$CustomMergeSchemaRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomModelGatewayCatalogRestClient$CustomModelGatewayCatalogRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomModelGatewayChatRestClient$CustomModelGatewayChatRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomModelGatewayEmbeddingRestClient$CustomModelGatewayEmbeddingRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomModelGatewayImageRestClient$CustomModelGatewayImageRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomRerankRestClient$CustomRerankRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomTextClassificationRestClient$CustomTextClassificationRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomTextExtractionRestClient$CustomTextExtractionRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomTextGenerationRestClient$CustomTextGenerationRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomTimeSeriesRestClient$CustomTimeSeriesRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomTokenizationRestClient$CustomTokenizationRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.client.impl.CustomToolRestClient$CustomToolRestClientBuilderFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "com.ibm.watsonx.ai.core.Json"
     },
     {
       "type": "com.ibm.watsonx.ai.core.auth.Authenticator"
     },
     {
-      "type": "com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator",
-      "fields": [
-        {
-          "name": "client"
-        }
-      ]
-    },
-    {
       "type": "com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator",
-      "fields": [
-        {
-          "name": "client"
-        }
-      ],
       "methods": [
         {
           "name": "<init>",
@@ -2207,6 +1759,9 @@
           "name": "secureClient"
         }
       ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.core.spi.json.JsonProvider"
     },
     {
       "type": "com.ibm.watsonx.ai.core.spi.json.TypeToken"
@@ -2710,6 +2265,9 @@
           "name": "client"
         }
       ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionTextRequest$Builder"
     },
     {
       "type": "com.ibm.watsonx.ai.detection.DetectionTextResponse",
@@ -3835,14 +3393,6 @@
         {
           "name": "taskId",
           "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.gateway.catalog.ModelGatewayCatalogService",
-      "fields": [
-        {
-          "name": "client"
         }
       ]
     },
@@ -7074,11 +6624,6 @@
     },
     {
       "type": "java.lang.ClassLoader",
-      "fields": [
-        {
-          "name": "classLoaderValueMap"
-        }
-      ],
       "methods": [
         {
           "name": "getClassLoadingLock",
@@ -7287,6 +6832,30 @@
       ]
     },
     {
+      "type": "java.lang.ProcessHandleImpl$Info",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "arguments"
+        },
+        {
+          "name": "command"
+        },
+        {
+          "name": "commandLine"
+        },
+        {
+          "name": "startTime"
+        },
+        {
+          "name": "totalTime"
+        },
+        {
+          "name": "user"
+        }
+      ]
+    },
+    {
       "type": "java.lang.Record"
     },
     {
@@ -7348,6 +6917,31 @@
       "type": "java.lang.StackTraceElement"
     },
     {
+      "type": "java.lang.StackWalker",
+      "methods": [
+        {
+          "name": "getInstance",
+          "parameterTypes": [
+            "java.util.Set",
+            "int"
+          ]
+        },
+        {
+          "name": "walk",
+          "parameterTypes": [
+            "java.util.function.Function"
+          ]
+        },
+        {
+          "name": "walk",
+          "parameterTypes": [
+            "java.util.function.Function",
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
       "type": "java.lang.StackWalker$Option",
       "methods": [
         {
@@ -7357,7 +6951,17 @@
       ]
     },
     {
-      "type": "java.lang.StackWalker$StackFrame"
+      "type": "java.lang.StackWalker$StackFrame",
+      "methods": [
+        {
+          "name": "getClassName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMethodName",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "java.lang.String",
@@ -7413,6 +7017,15 @@
     },
     {
       "type": "java.lang.System",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "err"
+        },
+        {
+          "name": "out"
+        }
+      ],
       "methods": [
         {
           "name": "getSecurityManager",
@@ -8176,6 +7789,9 @@
       "type": "java.lang.invoke.LambdaForm$Name[]"
     },
     {
+      "type": "java.lang.invoke.MethodHandle"
+    },
+    {
       "type": "java.lang.invoke.MethodHandleImpl",
       "methods": [
         {
@@ -8210,6 +7826,17 @@
             "java.lang.Object[]",
             "int",
             "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.MethodHandleImpl$BindCaller",
+      "methods": [
+        {
+          "name": "checkCallerClass",
+          "parameterTypes": [
+            "java.lang.Class"
           ]
         }
       ]
@@ -8689,15 +8316,6 @@
     },
     {
       "type": "java.nio.file.Path"
-    },
-    {
-      "type": "java.nio.file.attribute.PosixFilePermission",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
     },
     {
       "type": "java.security.AccessController",
@@ -9212,14 +8830,6 @@
       ]
     },
     {
-      "type": "java.util.concurrent.atomic.Striped64$Cell",
-      "fields": [
-        {
-          "name": "value"
-        }
-      ]
-    },
-    {
       "type": "java.util.concurrent.locks.AbstractQueuedLongSynchronizer",
       "fields": [
         {
@@ -9320,6 +8930,36 @@
     },
     {
       "type": "org.slf4j.Logger"
+    },
+    {
+      "type": "sun.management.VMManagementImpl",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
+        }
+      ]
     },
     {
       "type": "sun.net.www.protocol.http.Handler",
@@ -9974,21 +9614,6 @@
       "type": {
         "proxy": [
           "com.fasterxml.jackson.annotation.JsonTypeInfo"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.annotation.JsonValue"
         ]
       },
       "methods": [
@@ -11122,7 +10747,7 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.RetryConfig",
+          "declaringClass": "com.ibm.watsonx.ai.core.Json",
           "interfaces": [
             "java.util.function.Function"
           ]
@@ -11138,7 +10763,23 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient",
+          "declaringClass": "com.ibm.watsonx.ai.core.Json",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.RetryConfig",
           "interfaces": [
             "java.util.function.Function"
           ]
@@ -12868,38 +12509,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.utils.ServiceLoaderUtils",
-          "interfaces": [
-            "java.util.Comparator"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.utils.ServiceLoaderUtils",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "java.lang.ProcessHandleImpl",
           "interfaces": [
             "java.util.concurrent.ThreadFactory"
@@ -12993,6 +12602,22 @@
           "declaringClass": "java.lang.VirtualThread",
           "interfaces": [
             "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.invoke.MethodHandleImpl$BindCaller",
+          "interfaces": [
+            "java.util.function.Consumer"
           ]
         }
       },
@@ -13293,40 +12918,6 @@
           "parameterTypes": [
             "java.nio.charset.Charset"
           ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.nio.file.Files",
-          "interfaces": [
-            "java.lang.Runnable"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.nio.file.FileTreeIterator"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.nio.file.Files",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
         }
       ]
     },
@@ -14597,22 +14188,10 @@
   ],
   "resources": [
     {
-      "glob": "META-INF/services/com.fasterxml.jackson.databind.Module"
-    },
-    {
       "glob": "META-INF/services/com.ibm.watsonx.ai.batch.BatchRestClient$BatchRestClientBuilderFactory"
     },
     {
       "glob": "META-INF/services/com.ibm.watsonx.ai.chat.ChatRestClient$ChatRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DIAMRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DLegacyRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DZenRestClientBuilderFactory"
     },
     {
       "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudRestClient$IBMCloudRestClientBuilderFactory"
