@@ -1235,6 +1235,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         String extractedText = textExtractionService.extractAndFetch(FILE_NAME, parameters);
         assertEquals("Hello", extractedText);
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
@@ -1250,6 +1251,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         extractedText = textExtractionService.uploadExtractAndFetch(file, parameters);
         assertEquals("Hello", extractedText);
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
@@ -1293,6 +1295,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         assertEquals("Hello", textExtractionService.extractAndFetch(FILE_NAME, parameters));
 
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(documentBucket, FILE_NAME))), 1);
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(resultsBucket, outputFileName))), 1);
 
         // Read targets the results bucket (not the document bucket).
         cosServer.verify(1, getRequestedFor(urlEqualTo("/%s/%s".formatted(resultsBucket, outputFileName))));
@@ -1601,7 +1604,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_throw_exception_when_extraction_timeout_exceeded() {
+    void should_throw_exception_when_extraction_timeout_exceeded() throws Exception {
 
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
         when(mockAuthenticator.token()).thenReturn("my-super-token");
@@ -1671,8 +1674,10 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         assertEquals("Execution to extract test.pdf file took longer than the timeout set by 100 milliseconds",
             ex.getMessage());
 
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
     }
 
     @Test

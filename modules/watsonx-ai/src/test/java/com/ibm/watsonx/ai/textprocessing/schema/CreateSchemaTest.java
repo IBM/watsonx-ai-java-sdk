@@ -759,8 +759,10 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
         assertEquals("Execution to create schema for test.pdf file took longer than the timeout set by 100 milliseconds",
             ex.getMessage());
 
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test

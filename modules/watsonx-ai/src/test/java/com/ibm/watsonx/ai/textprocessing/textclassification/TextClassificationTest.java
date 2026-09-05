@@ -750,8 +750,10 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         assertEquals("The execution of the classification test.pdf file took longer than the timeout set by 100 milliseconds",
             ex.getMessage());
 
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
