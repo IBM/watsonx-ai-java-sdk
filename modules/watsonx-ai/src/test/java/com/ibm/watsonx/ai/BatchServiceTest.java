@@ -416,7 +416,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_submit_and_fetch_results_when_job_completes_immediately() {
+    void should_submit_and_fetch_results_when_job_completes_immediately() throws Exception {
 
         var OUTPUT_CONTENT = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
 
@@ -467,13 +467,15 @@ public class BatchServiceTest extends AbstractWatsonxTest {
                 .build(),
             ChatResponse.class);
 
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
         assertEquals(3, results.size());
         assertEquals(200, results.get(0).response().statusCode());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_submit_and_fetch_results_after_polling() {
+    void should_submit_and_fetch_results_after_polling() throws Exception {
 
         var IN_PROGRESS_RESPONSE = SUBMIT_RESPONSE.replace("\"completed\"", "\"in_progress\"");
         var OUTPUT_CONTENT = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
@@ -531,12 +533,14 @@ public class BatchServiceTest extends AbstractWatsonxTest {
                 .build(),
             ChatResponse.class);
 
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
         assertEquals(3, results.size());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_submit_and_fetch_results_via_path() {
+    void should_submit_and_fetch_results_via_path() throws Exception {
 
         var OUTPUT_CONTENT = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
 
@@ -585,12 +589,14 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         var path = assertDoesNotThrow(() -> Path.of(ClassLoader.getSystemResource("file_to_upload.jsonl").toURI()));
         var results = batchService.submitAndFetch(path, ChatResponse.class);
 
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
         assertEquals(3, results.size());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_submit_and_fetch_results_via_path_with_parameters() {
+    void should_submit_and_fetch_results_via_path_with_parameters() throws Exception {
 
         var OUTPUT_CONTENT = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
 
@@ -639,12 +645,14 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         var path = assertDoesNotThrow(() -> Path.of(ClassLoader.getSystemResource("file_to_upload.jsonl").toURI()));
         var results = batchService.submitAndFetch(path, BatchCreateRequest.builder().build(), ChatResponse.class);
 
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
         assertEquals(3, results.size());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_submit_and_fetch_results_via_file() {
+    void should_submit_and_fetch_results_via_file() throws Exception {
 
         var OUTPUT_CONTENT = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
 
@@ -693,12 +701,14 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         var file = assertDoesNotThrow(() -> new File(ClassLoader.getSystemResource("file_to_upload.jsonl").toURI()));
         var results = batchService.submitAndFetch(file, ChatResponse.class);
 
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
         assertEquals(3, results.size());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_submit_and_fetch_results_via_file_with_parameters() {
+    void should_submit_and_fetch_results_via_file_with_parameters() throws Exception {
 
         var OUTPUT_CONTENT = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
 
@@ -747,12 +757,14 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         var file = assertDoesNotThrow(() -> new File(ClassLoader.getSystemResource("file_to_upload.jsonl").toURI()));
         var results = batchService.submitAndFetch(file, BatchCreateRequest.builder().build(), ChatResponse.class);
 
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
         assertEquals(3, results.size());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_submit_and_fetch_results_via_input_stream() {
+    void should_submit_and_fetch_results_via_input_stream() throws Exception {
 
         var OUTPUT_CONTENT = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
 
@@ -801,12 +813,14 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         var is = assertDoesNotThrow(() -> new FileInputStream(new File(ClassLoader.getSystemResource("file_to_upload.jsonl").toURI())));
         var results = batchService.submitAndFetch(is, "file_to_upload.jsonl", ChatResponse.class);
 
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
         assertEquals(3, results.size());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_submit_and_fetch_results_via_input_stream_with_parameters() {
+    void should_submit_and_fetch_results_via_input_stream_with_parameters() throws Exception {
 
         var OUTPUT_CONTENT = assertDoesNotThrow(() -> Files.readString(Path.of(ClassLoader.getSystemResource("file_retrive.jsonl").toURI())));
 
@@ -855,12 +869,14 @@ public class BatchServiceTest extends AbstractWatsonxTest {
         var is = assertDoesNotThrow(() -> new FileInputStream(new File(ClassLoader.getSystemResource("file_to_upload.jsonl").toURI())));
         var results = batchService.submitAndFetch(is, "file_to_upload.jsonl", BatchCreateRequest.builder().build(), ChatResponse.class);
 
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
         assertEquals(3, results.size());
         assertEquals("The capital of Italy is Rome.", results.get(0).response().body().toAssistantMessage().content());
+        wireMock.verify(2, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_throw_exception_when_batch_job_fails() {
+    void should_throw_exception_when_batch_job_fails() throws Exception {
 
         var FAILED_RESPONSE = SUBMIT_RESPONSE.replace("\"completed\"", "\"failed\"");
 
@@ -906,10 +922,12 @@ public class BatchServiceTest extends AbstractWatsonxTest {
             ChatResponse.class));
 
         assertEquals(true, ex.getMessage().startsWith("The batch operation did not complete successfully (status: failed)"));
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 1);
+        wireMock.verify(1, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_terminate_cleanly_on_unrecognized_status() {
+    void should_terminate_cleanly_on_unrecognized_status() throws Exception {
 
         var CANCELLED_RESPONSE = SUBMIT_RESPONSE.replace("\"completed\"", "\"cancelled\"");
 
@@ -946,10 +964,12 @@ public class BatchServiceTest extends AbstractWatsonxTest {
             ChatResponse.class));
 
         assertEquals(true, ex.getMessage().startsWith("The batch operation did not complete successfully (status: cancelled)"));
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 1);
+        wireMock.verify(1, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_throw_exception_when_timeout_is_exceeded() {
+    void should_throw_exception_when_timeout_is_exceeded() throws Exception {
 
         var IN_PROGRESS_RESPONSE = SUBMIT_RESPONSE.replace("\"completed\"", "\"in_progress\"");
 
@@ -1000,10 +1020,12 @@ public class BatchServiceTest extends AbstractWatsonxTest {
 
         assertEquals(true, ex.getMessage().startsWith(
             "The execution of the batch operation for the file \"%s\" took longer than the timeout".formatted(FILE_ID)));
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 1);
+        wireMock.verify(1, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_throw_exception_when_service_level_timeout_is_exceeded() {
+    void should_throw_exception_when_service_level_timeout_is_exceeded() throws Exception {
 
         var IN_PROGRESS_RESPONSE = SUBMIT_RESPONSE.replace("\"completed\"", "\"in_progress\"");
 
@@ -1056,10 +1078,12 @@ public class BatchServiceTest extends AbstractWatsonxTest {
 
         assertEquals(true, ex.getMessage().startsWith(
             "The execution of the batch operation for the file \"%s\" took longer than the timeout".formatted(FILE_ID)));
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 1);
+        wireMock.verify(1, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
-    void should_use_request_timeout_over_service_level_timeout() {
+    void should_use_request_timeout_over_service_level_timeout() throws Exception {
 
         var IN_PROGRESS_RESPONSE = SUBMIT_RESPONSE.replace("\"completed\"", "\"in_progress\"");
 
@@ -1112,6 +1136,8 @@ public class BatchServiceTest extends AbstractWatsonxTest {
 
         assertEquals(true, ex.getMessage().startsWith(
             "The execution of the batch operation for the file \"%s\" took longer than the timeout".formatted(FILE_ID)));
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 1);
+        wireMock.verify(1, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")));
     }
 
     @Test
@@ -1677,7 +1703,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_batch_chat_responses() {
+    void should_batch_chat_responses() throws InterruptedException {
 
         stubFileUpload("X-IBM-Project-ID", PROJECT_ID);
 
@@ -1734,7 +1760,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
                 .toList();
 
         var results = batchService.submitChatRequestsAndFetch(chatRequests);
-        assertDoesNotThrow(() -> Thread.sleep(200)); // Wait for async files deletion to complete
+        waitForRequests(wireMock, deleteRequestedFor(urlPathMatching("/ml/v1/files/.*")), 2);
 
         assertEquals(3, results.size());
         assertEquals("0", results.get(0).customId());

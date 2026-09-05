@@ -4,14 +4,13 @@
  */
 package com.ibm.watsonx.ai.core;
 
+import java.util.List;
 import java.util.ServiceLoader;
-import com.ibm.watsonx.ai.core.provider.JacksonProvider;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
- * The Json class provides utility methods for JSON serialization and deserialization. It uses a {@link JsonProvider} to handle the actual conversion
- * between JSON and Java objects. The provider can be loaded via {@link ServiceLoader} and falls back to a {@link JacksonProvider} if none is found.
+ * Utility methods for JSON serialization and deserialization using the configured {@link JsonProvider}.
  */
 public final class Json {
 
@@ -73,13 +72,26 @@ public final class Json {
         return provider.isValidObject(json);
     }
 
-    /**
-     * Attempts to load a {@link JsonProvider} via {@link ServiceLoader}.
-     * <p>
-     * Falls back to {@link JacksonProvider} if none is found.
-     */
     private static JsonProvider loadProvider() {
-        return ServiceLoader.load(JsonProvider.class)
-            .findFirst().orElse(new JacksonProvider());
+        var providers = ServiceLoader.load(JsonProvider.class)
+            .stream()
+            .map(ServiceLoader.Provider::get)
+            .toList();
+
+        return resolveProvider(providers);
+    }
+
+    static JsonProvider resolveProvider(List<JsonProvider> providers) {
+        if (providers.isEmpty())
+            throw new IllegalStateException(
+                "No JsonProvider found. Add exactly one JSON binding, for example watsonx-ai-jackson2 or watsonx-ai-jackson3.");
+
+        var explicit = providers.stream().filter(p -> !p.isDefault()).toList();
+        var candidates = explicit.isEmpty() ? providers : explicit;
+
+        if (candidates.size() > 1)
+            throw new IllegalStateException("Multiple JsonProvider implementations found: " + candidates + ". Add exactly one JSON binding.");
+
+        return candidates.get(0);
     }
 }

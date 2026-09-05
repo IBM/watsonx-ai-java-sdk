@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {"includeClasses": "**"},
+    {"excludeClasses": "org.mockito.**"},
+    {"excludeClasses": "net.bytebuddy.**"},
+    {"excludeClasses": "org.jboss.weld.**"},
+    {"excludeClasses": "com.github.tomakehurst.wiremock.**"},
+    {"excludeClasses": "org.eclipse.jetty.**"},
+    {"excludeClasses": "org.apache.maven.surefire.**"},
+    {"excludeClasses": "org.junit.**"}
+  ],
+  "regexRules": [
+    {"excludeClasses": "^com\\.ibm\\.watsonx\\..*Test(\\$.*)?$"},
+    {"excludeClasses": ".*/0x[0-9a-fA-F]+$"}
+  ]
+}

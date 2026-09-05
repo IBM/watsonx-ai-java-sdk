@@ -19,6 +19,8 @@
   <modules>
     <module>modules/watsonx-ai-core</module>
     <module>modules/watsonx-ai</module>
+    <module>modules/watsonx-ai-jackson2</module>
+    <module>modules/watsonx-ai-jackson3</module>
   </modules>
 
   <licenses>
@@ -36,6 +38,7 @@
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven-jar-plugin-version>3.5.1</maven-jar-plugin-version>
     <maven-source-plugin-version>3.4.0</maven-source-plugin-version>
     <maven-javadoc-plugin-version>3.12.0</maven-javadoc-plugin-version>
     <maven-gpg-plugin-version>3.2.8</maven-gpg-plugin-version>
@@ -45,6 +48,7 @@
     <license-maven-plugin-version>5.1.2</license-maven-plugin-version>
     <formatter-maven-plugin-version>2.29.0</formatter-maven-plugin-version>
     <maven-surefire-plugin-version>3.6.0</maven-surefire-plugin-version>
+    <maven-dependency-plugin-version>3.11.0</maven-dependency-plugin-version>
     <native-build-tools-version>1.1.11</native-build-tools-version>
   </properties>
 
@@ -123,6 +127,14 @@
       </dependency>
 
       <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>3.2.2</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-bom</artifactId>
         <version>2.0.18</version>
@@ -153,10 +165,45 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
+      <dependency>
+        <groupId>org.jboss.weld</groupId>
+        <artifactId>weld-junit5</artifactId>
+        <version>5.0.3.Final</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <versionRange>[3.0,)</versionRange>
+                    <goals>
+                      <goal>unpack-dependencies</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore/>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

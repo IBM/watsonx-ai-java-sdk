@@ -14,12 +14,76 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.core.exception.JsonException;
+import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 public class JsonTest {
 
     record Person(String name, String lastname) {};
     record User(String name) {};
+
+    record StubJsonProvider(boolean isDefault) implements JsonProvider {
+
+        @Override
+        public <T> T fromJson(String json, Class<T> clazz) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <T> T fromJson(String json, TypeToken<T> typeToken) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String toJson(Object object) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String prettyPrint(Object object) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isValidObject(String json) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @Test
+    void resolve_provider_should_throw_when_no_provider_found() {
+        assertThrows(IllegalStateException.class, () -> Json.resolveProvider(List.of()));
+    }
+
+    @Test
+    void resolve_provider_should_return_the_only_default_provider() {
+        var provider = new StubJsonProvider(true);
+        assertEquals(provider, Json.resolveProvider(List.of(provider)));
+    }
+
+    @Test
+    void resolve_provider_should_return_the_only_explicit_provider() {
+        var provider = new StubJsonProvider(false);
+        assertEquals(provider, Json.resolveProvider(List.of(provider)));
+    }
+
+    @Test
+    void resolve_provider_should_prefer_the_explicit_provider_over_defaults() {
+        var explicit = new StubJsonProvider(false);
+        assertEquals(explicit, Json.resolveProvider(List.of(new StubJsonProvider(true), explicit)));
+    }
+
+    @Test
+    void resolve_provider_should_throw_when_multiple_defaults_and_no_explicit() {
+        assertThrows(IllegalStateException.class,
+            () -> Json.resolveProvider(List.of(new StubJsonProvider(true), new StubJsonProvider(true))));
+    }
+
+    @Test
+    void resolve_provider_should_throw_when_multiple_explicit_providers() {
+        assertThrows(IllegalStateException.class,
+            () -> Json.resolveProvider(List.of(new StubJsonProvider(false), new StubJsonProvider(false))));
+    }
 
     @Test
     void should_serialize_object_to_json_string() {

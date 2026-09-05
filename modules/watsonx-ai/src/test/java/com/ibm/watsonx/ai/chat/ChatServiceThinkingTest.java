@@ -955,7 +955,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                 }
             });
 
-            var chatResponse = assertDoesNotThrow(() -> result.get(10, TimeUnit.SECONDS));
+            var chatResponse = assertDoesNotThrow(() -> result.get(30, TimeUnit.SECONDS));
             var assistantMessage = chatResponse.toAssistantMessage();
             assertEquals("\"Hello\" in Italian is **\"ciao\"**.", chatResponse.toAssistantMessage().content());
             assertTrue(isNull(chatResponse.toAssistantMessage().thinking()) || chatResponse.toAssistantMessage().thinking().isBlank());

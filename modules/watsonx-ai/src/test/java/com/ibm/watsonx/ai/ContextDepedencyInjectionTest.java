@@ -5,12 +5,15 @@
 package com.ibm.watsonx.ai;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.net.http.HttpClient;
 import org.jboss.weld.junit5.EnableWeld;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldSetup;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
@@ -41,6 +44,20 @@ import jakarta.inject.Inject;
 
 @EnableWeld
 public class ContextDepedencyInjectionTest {
+
+    @BeforeAll
+    static void resetHttpClientSingletons() throws Exception {
+        var secureClient = HttpClientProvider.class.getDeclaredField("secureClient");
+        secureClient.setAccessible(true);
+        if (secureClient.get(null) == null) {
+            secureClient.set(null, HttpClient.newHttpClient());
+        }
+        var insecureClient = HttpClientProvider.class.getDeclaredField("insecureClient");
+        insecureClient.setAccessible(true);
+        if (insecureClient.get(null) == null) {
+            insecureClient.set(null, HttpClient.newHttpClient());
+        }
+    }
 
     @WeldSetup
     WeldInitiator weld = WeldInitiator
