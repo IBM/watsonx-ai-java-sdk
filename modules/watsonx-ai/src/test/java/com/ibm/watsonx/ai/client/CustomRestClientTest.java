@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.client;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.batch.BatchService;
@@ -61,6 +62,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.utils.ServiceLoaderUtils;
 
+@DisabledInNativeImage
 public class CustomRestClientTest extends AbstractWatsonxTest {
 
     @BeforeEach

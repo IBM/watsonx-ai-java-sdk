@@ -23,6 +23,7 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,6 +32,7 @@ import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
     @Test

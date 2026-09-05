@@ -179,6 +179,7 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         // --- Batch Mixin --- //
         setMixInAnnotation(BatchCreateRequest.class, BatchCreateRequestMixin.class);
+        setMixInAnnotation(BatchCreateRequest.Builder.class, BatchCreateRequestBuilderMixin.class);
     }
 
     @JsonDeserialize(builder = Moderation.Builder.class)
@@ -300,7 +301,20 @@ public class WatsonxJacksonModule extends SimpleModule {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public abstract static class InputSchemaBuilderMixin {}
+    public abstract static class InputSchemaBuilderMixin {
+
+        @JsonProperty("id_columns")
+        abstract InputSchema.Builder idColumns(List<String> idColumns);
+
+        @JsonIgnore
+        abstract InputSchema.Builder idColumns(String... idColumns);
+
+        @JsonProperty("target_columns")
+        abstract InputSchema.Builder targetColumns(List<String> targetColumns);
+
+        @JsonIgnore
+        abstract InputSchema.Builder targetColumns(String... targetColumns);
+    }
 
     public abstract static class BaseDetectionRequestMixin {
 

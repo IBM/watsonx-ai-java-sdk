@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InOrder;
@@ -65,6 +66,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@DisabledInNativeImage
 public class AsyncHttpClientTest {
 
     @Mock

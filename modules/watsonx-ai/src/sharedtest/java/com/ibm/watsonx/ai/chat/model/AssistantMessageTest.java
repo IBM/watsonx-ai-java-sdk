@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 
+@DisabledInNativeImage
 public class AssistantMessageTest {
 
     @Test

@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -47,6 +48,7 @@ import com.ibm.watsonx.ai.file.Order;
 import com.ibm.watsonx.ai.file.Purpose;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class FileServiceTest extends AbstractWatsonxTest {
 
     private final String PROJECT_ID = "project_id";

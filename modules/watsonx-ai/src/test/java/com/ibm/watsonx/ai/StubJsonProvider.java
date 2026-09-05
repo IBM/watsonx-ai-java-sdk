@@ -16,16 +16,19 @@ import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
-public class JsonProviderTest implements JsonProvider {
+/**
+ * Test-only {@link JsonProvider} registered via {@code ServiceLoader} for the {@code watsonx-ai} test suite.
+ */
+public class StubJsonProvider implements JsonProvider {
 
     private final ObjectMapper objectMapper;
 
-    public JsonProviderTest() {
+    public StubJsonProvider() {
         this.objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setDefaultPropertyInclusion(Include.NON_NULL)
             .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-            .registerModule(new WatsonxJacksonModuleTest());
+            .registerModule(new StubJacksonModule());
     }
 
     @Override

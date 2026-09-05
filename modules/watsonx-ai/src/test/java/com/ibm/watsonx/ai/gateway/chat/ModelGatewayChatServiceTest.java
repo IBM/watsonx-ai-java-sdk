@@ -33,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
@@ -56,6 +57,7 @@ import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 @SuppressWarnings("unchecked")
+@DisabledInNativeImage
 public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
 
     private static final String SIMPLE_JSON_RESPONSE =

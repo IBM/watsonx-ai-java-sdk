@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,6 +37,7 @@ import com.ibm.watsonx.ai.tool.builtin.WebCrawlerTool;
 import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class ToolRegistryTest {
 
     @Test

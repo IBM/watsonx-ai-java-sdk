@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -61,6 +62,7 @@ import com.ibm.watsonx.ai.textprocessing.schema.improve.Parameters.SemanticConfi
 
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class ImproveSchemaTest extends AbstractWatsonxTest {
 
     @RegisterExtension

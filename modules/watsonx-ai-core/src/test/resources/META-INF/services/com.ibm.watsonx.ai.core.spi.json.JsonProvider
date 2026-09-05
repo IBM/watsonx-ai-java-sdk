@@ -1,1 +1,1 @@
-com.ibm.watsonx.ai.core.JsonProviderTest
+com.ibm.watsonx.ai.core.StubJsonProvider

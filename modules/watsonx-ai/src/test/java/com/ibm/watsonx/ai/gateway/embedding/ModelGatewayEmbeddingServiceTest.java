@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
@@ -34,6 +35,7 @@ import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingParameters.EncodingFormat;
 
 @SuppressWarnings("unchecked")
+@DisabledInNativeImage
 public class ModelGatewayEmbeddingServiceTest extends AbstractWatsonxTest {
 
     private static final String MODEL_ID = "text-embedding-3-small";

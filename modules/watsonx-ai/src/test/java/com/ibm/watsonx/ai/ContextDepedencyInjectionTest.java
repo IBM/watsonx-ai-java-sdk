@@ -10,6 +10,7 @@ import org.jboss.weld.junit5.EnableWeld;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
@@ -43,6 +44,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 
 @EnableWeld
+@DisabledInNativeImage
 public class ContextDepedencyInjectionTest {
 
     @BeforeAll

@@ -48,11 +48,6 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.jboss.weld</groupId>
-      <artifactId>weld-junit5</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -80,32 +75,6 @@
   </build>
 
   <profiles>
-    <profile>
-      <id>native</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>unpack-shared-tests</id>
-                <configuration>
-                  <!--
-                    Tests that rely on Mockito, WireMock, or the CDI container (Weld) are excluded
-                    because those frameworks are not compatible with native-image. This mirrors the
-                    testExcludes in watsonx-ai's own native profile: the shared tests here arrive as
-                    precompiled classes unpacked from watsonx-ai's test-jar, so maven-compiler-plugin
-                    excludes don't apply and the exclusion has to happen at unpack time instead.
-                  -->
-                  <excludes>**/AbstractWatsonxTest.class,**/AbstractWatsonxTest$*.class,**/BatchServiceTest.class,**/BatchServiceTest$*.class,**/CustomHttpClientTest.class,**/CustomHttpClientTest$*.class,**/DeploymentServiceTest.class,**/DeploymentServiceTest$*.class,**/DetectionServiceTest.class,**/DetectionServiceTest$*.class,**/EmbeddingServiceTest.class,**/EmbeddingServiceTest$*.class,**/FileServiceTest.class,**/FileServiceTest$*.class,**/RerankServiceTest.class,**/RerankServiceTest$*.class,**/TextGenerationServiceTest.class,**/TextGenerationServiceTest$*.class,**/TokenizationServiceTest.class,**/TokenizationServiceTest$*.class,**/ToolServiceTest.class,**/ToolServiceTest$*.class,**/ContextDepedencyInjectionTest.class,**/ContextDepedencyInjectionTest$*.class,**/ChatMessageTest.class,**/ChatMessageTest$*.class,**/ChatRequestTest.class,**/ChatRequestTest$*.class,**/ChatServiceStreamingTest.class,**/ChatServiceStreamingTest$*.class,**/ChatServiceTest.class,**/ChatServiceTest$*.class,**/ChatServiceThinkingTest.class,**/ChatServiceThinkingTest$*.class,**/ChatStreamingCancellationTest.class,**/ChatStreamingCancellationTest$*.class,**/ToolRegistryTest.class,**/ToolRegistryTest$*.class,**/CustomRestClientTest.class,**/CustomRestClientTest$*.class,**/DeploymentStreamingCancellationTest.class,**/DeploymentStreamingCancellationTest$*.class,**/FoundationModelServiceTest.class,**/FoundationModelServiceTest$*.class,**/ModelGatewayCatalogServiceTest.class,**/ModelGatewayCatalogServiceTest$*.class,**/ModelGatewayChatServiceTest.class,**/ModelGatewayChatServiceTest$*.class,**/ModelGatewayChatStreamingCancellationTest.class,**/ModelGatewayChatStreamingCancellationTest$*.class,**/ModelGatewayEmbeddingServiceTest.class,**/ModelGatewayEmbeddingServiceTest$*.class,**/ModelGatewayImageServiceTest.class,**/ModelGatewayImageServiceTest$*.class,**/TextGenerationStreamingCancellationTest.class,**/TextGenerationStreamingCancellationTest$*.class,**/ClusterSchemaTest.class,**/ClusterSchemaTest$*.class,**/CreateSchemaTest.class,**/CreateSchemaTest$*.class,**/ImproveSchemaTest.class,**/ImproveSchemaTest$*.class,**/MergeSchemaTest.class,**/MergeSchemaTest$*.class,**/TextClassificationTest.class,**/TextClassificationTest$*.class,**/TextExtractionTest.class,**/TextExtractionTest$*.class,**/TimeSeriesServiceTest.class,**/TimeSeriesServiceTest$*.class,**/PaginationTest.class,**/PaginationTest$*.class,**/StreamingUtilsTest.class,**/StreamingUtilsTest$*.class</excludes>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
     <profile>
       <id>native-agent</id>
       <build>

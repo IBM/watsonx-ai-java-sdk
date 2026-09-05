@@ -6,10 +6,12 @@ package com.ibm.watsonx.ai.foundationmodel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelResponse.Pagination;
 
+@DisabledInNativeImage
 public class PaginationTest extends AbstractWatsonxTest {
 
     @Test

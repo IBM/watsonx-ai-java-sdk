@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,6 +43,7 @@ import com.ibm.watsonx.ai.tool.builtin.WikipediaTool;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class ToolServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach

@@ -24,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -40,6 +41,7 @@ import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class ChatServiceThinkingTest extends AbstractWatsonxTest {
 
     @Test

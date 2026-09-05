@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,6 +36,7 @@ import com.ibm.watsonx.ai.utils.HttpUtils;
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@DisabledInNativeImage
 public class EmbeddingServiceTest extends AbstractWatsonxTest {
 
     private final String MODEL_ID = "slate";

@@ -16,8 +16,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 
+@DisabledInNativeImage
 public class ModelGatewayCatalogServiceTest extends AbstractWatsonxTest {
 
     private ModelGatewayCatalogService buildService() {
@@ -27,10 +29,6 @@ public class ModelGatewayCatalogServiceTest extends AbstractWatsonxTest {
             .version(API_VERSION)
             .build();
     }
-
-    // -------------------------------------------------------------------------
-    // listModels
-    // -------------------------------------------------------------------------
 
     @Test
     void should_list_models_and_parse_all_fields() {
@@ -124,10 +122,6 @@ public class ModelGatewayCatalogServiceTest extends AbstractWatsonxTest {
             assertThrows(Exception.class, () -> service.listModels());
         });
     }
-
-    // -------------------------------------------------------------------------
-    // getModel
-    // -------------------------------------------------------------------------
 
     @Test
     void should_get_model_by_uuid_and_parse_all_fields() {
@@ -268,10 +262,6 @@ public class ModelGatewayCatalogServiceTest extends AbstractWatsonxTest {
             assertThrows(Exception.class, () -> service.getModel("some-uuid"));
         });
     }
-
-    // -------------------------------------------------------------------------
-    // Builder validation
-    // -------------------------------------------------------------------------
 
     @Test
     void should_throw_when_authenticator_is_missing() {

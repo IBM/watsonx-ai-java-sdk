@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
@@ -46,6 +47,7 @@ import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class SyncHttpClientTest {
 
     @Mock

@@ -1,35 +1,7 @@
 {
   "reflection": [
     {
-      "type": "byte[]",
-      "jniAccessible": true
-    },
-    {
-      "type": "byte[][]"
-    },
-    {
-      "type": "char[]"
-    },
-    {
       "type": "com.fasterxml.jackson.annotation.JacksonAnnotation"
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonCreator"
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonCreator$Mode",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonIgnore"
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonInclude"
     },
     {
       "type": "com.fasterxml.jackson.annotation.JsonInclude$Include",
@@ -37,67 +9,7 @@
         {
           "name": "NON_NULL"
         }
-      ],
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
       ]
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonProperty"
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonProperty$Access",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonSubTypes"
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonSubTypes$Type"
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonSubTypes$Type[]"
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonTypeInfo"
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonTypeInfo$As",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.JsonTypeInfo$Id",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.fasterxml.jackson.annotation.OptBoolean",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.fasterxml.jackson.core.JsonParser"
     },
     {
       "type": "com.fasterxml.jackson.databind.DeserializationFeature",
@@ -114,16 +26,7 @@
       ]
     },
     {
-      "type": "com.fasterxml.jackson.databind.JsonDeserializer$None"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.JsonNode"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.JsonSerializer$None"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.KeyDeserializer$None"
+      "type": "com.fasterxml.jackson.databind.JavaType"
     },
     {
       "type": "com.fasterxml.jackson.databind.ObjectMapper",
@@ -207,6 +110,9 @@
       ]
     },
     {
+      "type": "com.fasterxml.jackson.databind.PropertyNamingStrategy"
+    },
+    {
       "type": "com.fasterxml.jackson.databind.SerializationFeature",
       "methods": [
         {
@@ -217,42 +123,6 @@
     },
     {
       "type": "com.fasterxml.jackson.databind.annotation.JacksonStdImpl"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.annotation.JsonDeserialize"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.annotation.JsonSerialize"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.annotation.JsonSerialize$Inclusion",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.annotation.JsonSerialize$Typing",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.deser.BeanDeserializerModifier[]"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.deser.Deserializers[]"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.deser.KeyDeserializers[]"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.deser.ValueInstantiators[]"
     },
     {
       "type": "com.fasterxml.jackson.databind.ext.Java7SupportImpl",
@@ -282,12 +152,6 @@
       ]
     },
     {
-      "type": "com.fasterxml.jackson.databind.ser.BeanSerializerModifier[]"
-    },
-    {
-      "type": "com.fasterxml.jackson.databind.ser.Serializers[]"
-    },
-    {
       "type": "com.fasterxml.jackson.databind.type.TypeFactory",
       "methods": [
         {
@@ -299,145 +163,11 @@
       ]
     },
     {
-      "type": "com.fasterxml.jackson.databind.util.Converter$None"
-    },
-    {
-      "type": "com.fasterxml.jackson.dataformat.yaml.YAMLFactory"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.Authenticator"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator",
-      "fields": [
-        {
-          "name": "client"
-        }
-      ],
+      "type": "com.ibm.watsonx.ai.core.StubJsonProvider",
       "methods": [
         {
           "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient",
-      "fields": [
-        {
-          "name": "httpClient"
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.cp4d.DefaultIAMRestClient",
-      "fields": [
-        {
-          "name": "asyncHttpClient"
-        },
-        {
-          "name": "syncHttpClient"
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.cp4d.DefaultLegacyRestClient",
-      "fields": [
-        {
-          "name": "asyncHttpClient"
-        },
-        {
-          "name": "syncHttpClient"
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.cp4d.TokenRequest",
-      "methods": [
-        {
-          "name": "apiKey",
           "parameterTypes": []
-        },
-        {
-          "name": "password",
-          "parameterTypes": []
-        },
-        {
-          "name": "username",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.cp4d.TokenResponse",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.Long",
-            "java.lang.Long",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.ibmcloud.DefaultRestClient",
-      "fields": [
-        {
-          "name": "asyncHttpClient"
-        },
-        {
-          "name": "syncHttpClient"
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator",
-      "fields": [
-        {
-          "name": "apiKey"
-        },
-        {
-          "name": "baseUrl"
-        },
-        {
-          "name": "client"
-        },
-        {
-          "name": "grantType"
-        },
-        {
-          "name": "timeout"
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudRestClient",
-      "fields": [
-        {
-          "name": "httpClient"
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.auth.ibmcloud.TokenResponse",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "long",
-            "long",
-            "java.lang.String"
-          ]
         }
       ]
     },
@@ -451,27 +181,6 @@
             "java.lang.String",
             "java.util.List"
           ]
-        },
-        {
-          "name": "errors",
-          "parameterTypes": []
-        },
-        {
-          "name": "statusCode",
-          "parameterTypes": []
-        },
-        {
-          "name": "trace",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.exception.model.WatsonxError$Code",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
         }
       ]
     },
@@ -485,160 +194,11 @@
             "java.lang.String",
             "java.lang.String"
           ]
-        },
-        {
-          "name": "code",
-          "parameterTypes": []
-        },
-        {
-          "name": "message",
-          "parameterTypes": []
-        },
-        {
-          "name": "moreInfo",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.http.AsyncHttpClient"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor$AsyncChain"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.http.BaseHttpClient",
-      "fields": [
-        {
-          "name": "delegate"
-        }
-      ],
-      "methods": [
-        {
-          "name": "addRequestIdHeaderIfNotPresent",
-          "parameterTypes": [
-            "java.net.http.HttpRequest"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.http.SyncHttpClient"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.http.SyncHttpInterceptor"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.http.SyncHttpInterceptor$Chain"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.provider.ExecutorProvider",
-      "fields": [
-        {
-          "name": "callbackExecutor"
-        },
-        {
-          "name": "ioExecutor"
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.provider.HttpClientProvider",
-      "fields": [
-        {
-          "name": "insecureClient"
-        },
-        {
-          "name": "secureClient"
         }
       ]
     },
     {
       "type": "com.ibm.watsonx.ai.core.spi.json.TypeToken"
-    },
-    {
-      "type": "com.sun.crypto.provider.AESCipher$General",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.sun.crypto.provider.ARCFOURCipher",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.sun.crypto.provider.ChaCha20Cipher$ChaCha20Poly1305",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.sun.crypto.provider.DESCipher",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.sun.crypto.provider.DESedeCipher",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.sun.crypto.provider.DHParameters",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.sun.crypto.provider.GaloisCounterMode$AESGCM",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.sun.crypto.provider.TlsMasterSecretGenerator",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "int[]"
-    },
-    {
-      "type": "java.io.Closeable"
-    },
-    {
-      "type": "java.io.File"
     },
     {
       "type": "java.io.FileDescriptor",
@@ -650,22 +210,10 @@
       ]
     },
     {
-      "type": "java.io.IOException"
-    },
-    {
-      "type": "java.io.InputStream"
-    },
-    {
       "type": "java.io.PrintWriter"
     },
     {
       "type": "java.io.Serializable"
-    },
-    {
-      "type": "java.lang.AssertionError"
-    },
-    {
-      "type": "java.lang.AutoCloseable"
     },
     {
       "type": "java.lang.Boolean",
@@ -709,9 +257,6 @@
       ]
     },
     {
-      "type": "java.lang.CharSequence"
-    },
-    {
       "type": "java.lang.Character",
       "methods": [
         {
@@ -730,33 +275,12 @@
     },
     {
       "type": "java.lang.Class",
-      "jniAccessible": true,
       "methods": [
         {
           "name": "cast",
           "parameterTypes": [
             "java.lang.Object"
           ]
-        },
-        {
-          "name": "getAnnotatedSuperclass",
-          "parameterTypes": []
-        },
-        {
-          "name": "getModule",
-          "parameterTypes": []
-        },
-        {
-          "name": "getNestHost",
-          "parameterTypes": []
-        },
-        {
-          "name": "getNestMembers",
-          "parameterTypes": []
-        },
-        {
-          "name": "getPackageName",
-          "parameterTypes": []
         },
         {
           "name": "getRecordComponents",
@@ -771,39 +295,11 @@
         {
           "name": "isRecord",
           "parameterTypes": []
-        },
-        {
-          "name": "isSealed",
-          "parameterTypes": []
         }
       ]
     },
     {
-      "type": "java.lang.ClassLoader",
-      "methods": [
-        {
-          "name": "getClassLoadingLock",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        },
-        {
-          "name": "getDefinedPackage",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        },
-        {
-          "name": "getUnnamedModule",
-          "parameterTypes": []
-        },
-        {
-          "name": "registerAsParallelCapable",
-          "parameterTypes": [
-            "java.lang.Class"
-          ]
-        }
-      ]
+      "type": "java.lang.ClassLoader"
     },
     {
       "type": "java.lang.Class[]"
@@ -813,9 +309,6 @@
     },
     {
       "type": "java.lang.Comparable"
-    },
-    {
-      "type": "java.lang.Deprecated"
     },
     {
       "type": "java.lang.Double",
@@ -858,16 +351,6 @@
       ]
     },
     {
-      "type": "java.lang.FunctionalInterface"
-    },
-    {
-      "type": "java.lang.IllegalArgumentException",
-      "serializable": true
-    },
-    {
-      "type": "java.lang.IllegalStateException"
-    },
-    {
       "type": "java.lang.Integer",
       "methods": [
         {
@@ -905,64 +388,17 @@
       ]
     },
     {
-      "type": "java.lang.Module",
-      "methods": [
-        {
-          "name": "canRead",
-          "parameterTypes": [
-            "java.lang.Module"
-          ]
-        },
-        {
-          "name": "isExported",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        },
-        {
-          "name": "isExported",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.Module"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.lang.NullPointerException",
-      "serializable": true
-    },
-    {
       "type": "java.lang.Number"
     },
     {
-      "type": "java.lang.Object",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
+      "type": "java.lang.Object"
     },
     {
       "type": "java.lang.Object[]"
     },
     {
-      "type": "java.lang.ProcessEnvironment"
-    },
-    {
-      "type": "java.lang.ProcessEnvironment$Value"
-    },
-    {
-      "type": "java.lang.ProcessEnvironment$Variable"
-    },
-    {
       "type": "java.lang.ProcessHandle",
       "methods": [
-        {
-          "name": "current",
-          "parameterTypes": []
-        },
         {
           "name": "info",
           "parameterTypes": []
@@ -972,10 +408,6 @@
           "parameterTypes": [
             "long"
           ]
-        },
-        {
-          "name": "pid",
-          "parameterTypes": []
         }
       ]
     },
@@ -1016,27 +448,6 @@
       "type": "java.lang.Record"
     },
     {
-      "type": "java.lang.Runnable"
-    },
-    {
-      "type": "java.lang.Runtime",
-      "methods": [
-        {
-          "name": "version",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.lang.Runtime$Version",
-      "methods": [
-        {
-          "name": "feature",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "java.lang.RuntimeException"
     },
     {
@@ -1069,9 +480,6 @@
     },
     {
       "type": "java.lang.StackFrameInfo[]"
-    },
-    {
-      "type": "java.lang.StackTraceElement"
     },
     {
       "type": "java.lang.StackWalker",
@@ -1121,18 +529,7 @@
       ]
     },
     {
-      "type": "java.lang.String",
-      "methods": [
-        {
-          "name": "valueOf",
-          "parameterTypes": [
-            "long"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.lang.StringBuilder"
+      "type": "java.lang.String"
     },
     {
       "type": "java.lang.StringConcatHelper",
@@ -1149,18 +546,6 @@
     {
       "type": "java.lang.StringConcatHelper$Concat1",
       "methods": [
-        {
-          "name": "concat",
-          "parameterTypes": [
-            "int"
-          ]
-        },
-        {
-          "name": "concat",
-          "parameterTypes": [
-            "long"
-          ]
-        },
         {
           "name": "concat",
           "parameterTypes": [
@@ -1188,16 +573,7 @@
         {
           "name": "out"
         }
-      ],
-      "methods": [
-        {
-          "name": "getSecurityManager",
-          "parameterTypes": []
-        }
       ]
-    },
-    {
-      "type": "java.lang.System$Logger$Level"
     },
     {
       "type": "java.lang.Thread",
@@ -1223,49 +599,10 @@
         {
           "name": "threadLocals"
         }
-      ],
-      "methods": [
-        {
-          "name": "isVirtual",
-          "parameterTypes": []
-        },
-        {
-          "name": "ofVirtual",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.lang.Thread$Builder",
-      "methods": [
-        {
-          "name": "factory",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.lang.Thread$Builder$OfVirtual",
-      "methods": [
-        {
-          "name": "name",
-          "parameterTypes": [
-            "java.lang.String",
-            "long"
-          ]
-        }
       ]
     },
     {
       "type": "java.lang.Thread$ThreadNumbering"
-    },
-    {
-      "type": "java.lang.ThreadBuilders$BaseThreadFactory",
-      "fields": [
-        {
-          "name": "count"
-        }
-      ]
     },
     {
       "type": "java.lang.ThreadGroup",
@@ -1276,30 +613,7 @@
       ]
     },
     {
-      "type": "java.lang.ThreadLocal"
-    },
-    {
       "type": "java.lang.Throwable"
-    },
-    {
-      "type": "java.lang.VirtualThread",
-      "fields": [
-        {
-          "name": "carrierThread"
-        },
-        {
-          "name": "onWaitingList"
-        },
-        {
-          "name": "parkPermit"
-        },
-        {
-          "name": "state"
-        },
-        {
-          "name": "termination"
-        }
-      ]
     },
     {
       "type": "java.lang.Void"
@@ -1332,13 +646,7 @@
       "type": "java.lang.annotation.Repeatable"
     },
     {
-      "type": "java.lang.annotation.Retention",
-      "methods": [
-        {
-          "name": "value",
-          "parameterTypes": []
-        }
-      ]
+      "type": "java.lang.annotation.Retention"
     },
     {
       "type": "java.lang.annotation.RetentionPolicy",
@@ -1360,39 +668,6 @@
     },
     {
       "type": "java.lang.constant.ConstantDesc"
-    },
-    {
-      "type": "java.lang.instrument.Instrumentation",
-      "methods": [
-        {
-          "name": "addTransformer",
-          "parameterTypes": [
-            "java.lang.instrument.ClassFileTransformer",
-            "boolean"
-          ]
-        },
-        {
-          "name": "isRetransformClassesSupported",
-          "parameterTypes": []
-        },
-        {
-          "name": "redefineModule",
-          "parameterTypes": [
-            "java.lang.Module",
-            "java.util.Set",
-            "java.util.Map",
-            "java.util.Map",
-            "java.util.Set",
-            "java.util.Map"
-          ]
-        },
-        {
-          "name": "retransformClasses",
-          "parameterTypes": [
-            "java.lang.Class[]"
-          ]
-        }
-      ]
     },
     {
       "type": "java.lang.invoke.BoundMethodHandle"
@@ -1612,42 +887,6 @@
       "type": "java.lang.invoke.MethodHandle[]"
     },
     {
-      "type": "java.lang.invoke.MethodHandles",
-      "methods": [
-        {
-          "name": "lookup",
-          "parameterTypes": [
-            "java.lang.Class"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.lang.invoke.MethodHandles$Lookup",
-      "methods": [
-        {
-          "name": "findVirtual",
-          "parameterTypes": [
-            "java.lang.Class",
-            "java.lang.String",
-            "java.lang.invoke.MethodType"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.lang.invoke.MethodType",
-      "methods": [
-        {
-          "name": "methodType",
-          "parameterTypes": [
-            "java.lang.Class",
-            "java.lang.Class[]"
-          ]
-        }
-      ]
-    },
-    {
       "type": "java.lang.invoke.VarHandle",
       "fields": [
         {
@@ -1656,125 +895,22 @@
       ]
     },
     {
-      "type": "java.lang.management.ManagementFactory",
-      "methods": [
-        {
-          "name": "getRuntimeMXBean",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.lang.management.RuntimeMXBean",
-      "methods": [
-        {
-          "name": "getInputArguments",
-          "parameterTypes": []
-        },
-        {
-          "name": "getUptime",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.lang.ref.WeakReference"
-    },
-    {
-      "type": "java.lang.reflect.AnnotatedArrayType",
-      "methods": [
-        {
-          "name": "getAnnotatedGenericComponentType",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "java.lang.reflect.AnnotatedElement"
-    },
-    {
-      "type": "java.lang.reflect.AnnotatedParameterizedType",
-      "methods": [
-        {
-          "name": "getAnnotatedActualTypeArguments",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.lang.reflect.AnnotatedType",
-      "methods": [
-        {
-          "name": "getAnnotatedOwnerType",
-          "parameterTypes": []
-        },
-        {
-          "name": "getType",
-          "parameterTypes": []
-        }
-      ]
     },
     {
       "type": "java.lang.reflect.Constructor"
     },
     {
-      "type": "java.lang.reflect.Executable",
-      "methods": [
-        {
-          "name": "getAnnotatedExceptionTypes",
-          "parameterTypes": []
-        },
-        {
-          "name": "getAnnotatedParameterTypes",
-          "parameterTypes": []
-        },
-        {
-          "name": "getAnnotatedReceiverType",
-          "parameterTypes": []
-        },
-        {
-          "name": "getParameterCount",
-          "parameterTypes": []
-        },
-        {
-          "name": "getParameters",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.lang.reflect.Field",
-      "methods": [
-        {
-          "name": "getAnnotatedType",
-          "parameterTypes": []
-        }
-      ]
+      "type": "java.lang.reflect.Field"
     },
     {
       "type": "java.lang.reflect.Member"
     },
     {
-      "type": "java.lang.reflect.Method",
-      "methods": [
-        {
-          "name": "getAnnotatedReturnType",
-          "parameterTypes": []
-        }
-      ]
+      "type": "java.lang.reflect.Method"
     },
     {
-      "type": "java.lang.reflect.Parameter",
-      "methods": [
-        {
-          "name": "getModifiers",
-          "parameterTypes": []
-        },
-        {
-          "name": "isNamePresent",
-          "parameterTypes": []
-        }
-      ]
+      "type": "java.lang.reflect.Parameter"
     },
     {
       "type": "java.lang.reflect.RecordComponent",
@@ -1791,15 +927,6 @@
     },
     {
       "type": "java.lang.reflect.Type"
-    },
-    {
-      "type": "java.lang.reflect.TypeVariable",
-      "methods": [
-        {
-          "name": "getAnnotatedBounds",
-          "parameterTypes": []
-        }
-      ]
     },
     {
       "type": "java.lang.runtime.ObjectMethods",
@@ -1877,165 +1004,6 @@
       ]
     },
     {
-      "type": "java.math.BigDecimal"
-    },
-    {
-      "type": "java.math.BigInteger"
-    },
-    {
-      "type": "java.net.Authenticator"
-    },
-    {
-      "type": "java.net.CookieHandler"
-    },
-    {
-      "type": "java.net.Inet4Address",
-      "jniAccessible": true,
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.net.Inet6Address",
-      "jniAccessible": true,
-      "fields": [
-        {
-          "name": "holder6"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.net.Inet6Address$Inet6AddressHolder",
-      "jniAccessible": true,
-      "fields": [
-        {
-          "name": "ipaddress"
-        },
-        {
-          "name": "scope_id"
-        },
-        {
-          "name": "scope_id_set"
-        },
-        {
-          "name": "scope_ifname"
-        }
-      ]
-    },
-    {
-      "type": "java.net.InetAddress",
-      "jniAccessible": true,
-      "fields": [
-        {
-          "name": "holder"
-        }
-      ]
-    },
-    {
-      "type": "java.net.InetAddress$InetAddressHolder",
-      "jniAccessible": true,
-      "fields": [
-        {
-          "name": "address"
-        },
-        {
-          "name": "family"
-        },
-        {
-          "name": "hostName"
-        },
-        {
-          "name": "originalHostName"
-        }
-      ]
-    },
-    {
-      "type": "java.net.InetAddress[]"
-    },
-    {
-      "type": "java.net.InetSocketAddress",
-      "jniAccessible": true,
-      "fields": [
-        {
-          "name": "holder"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.net.InetAddress",
-            "int"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.net.Proxy"
-    },
-    {
-      "type": "java.net.ProxySelector"
-    },
-    {
-      "type": "java.net.Socket",
-      "fields": [
-        {
-          "name": "in"
-        },
-        {
-          "name": "out"
-        },
-        {
-          "name": "state"
-        }
-      ]
-    },
-    {
-      "type": "java.net.URI"
-    },
-    {
-      "type": "java.net.URL"
-    },
-    {
-      "type": "java.net.http.HttpClient"
-    },
-    {
-      "type": "java.net.http.HttpClient$Version"
-    },
-    {
-      "type": "java.net.http.HttpRequest"
-    },
-    {
-      "type": "java.net.http.HttpRequest$BodyPublisher"
-    },
-    {
-      "type": "java.net.http.HttpRequest$Builder"
-    },
-    {
-      "type": "java.net.http.HttpResponse"
-    },
-    {
-      "type": "java.net.http.HttpResponse$BodyHandler"
-    },
-    {
-      "type": "java.net.http.HttpResponse$BodySubscriber"
-    },
-    {
-      "type": "java.net.http.HttpResponse$PushPromiseHandler"
-    },
-    {
-      "type": "java.net.http.HttpResponse$ResponseInfo"
-    },
-    {
       "type": "java.nio.ByteBuffer",
       "fields": [
         {
@@ -2047,23 +1015,6 @@
       ]
     },
     {
-      "type": "java.nio.ByteBuffer[]"
-    },
-    {
-      "type": "java.nio.channels.SelectableChannel"
-    },
-    {
-      "type": "java.nio.channels.SelectionKey",
-      "fields": [
-        {
-          "name": "attachment"
-        }
-      ]
-    },
-    {
-      "type": "java.nio.channels.Selector"
-    },
-    {
       "type": "java.nio.channels.spi.AbstractInterruptibleChannel",
       "fields": [
         {
@@ -2072,100 +1023,7 @@
       ]
     },
     {
-      "type": "java.nio.channels.spi.AbstractSelectionKey",
-      "fields": [
-        {
-          "name": "invalid"
-        }
-      ]
-    },
-    {
-      "type": "java.nio.channels.spi.AbstractSelector",
-      "fields": [
-        {
-          "name": "closed"
-        }
-      ]
-    },
-    {
-      "type": "java.nio.charset.Charset"
-    },
-    {
-      "type": "java.nio.file.FileVisitOption",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "java.nio.file.Path"
-    },
-    {
-      "type": "java.nio.file.attribute.PosixFilePermission",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.security.AccessController",
-      "methods": [
-        {
-          "name": "doPrivileged",
-          "parameterTypes": [
-            "java.security.PrivilegedAction"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.security.AlgorithmParametersSpi"
-    },
-    {
-      "type": "java.security.CryptoPrimitive",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.security.KeyStoreSpi"
-    },
-    {
-      "type": "java.security.Provider"
-    },
-    {
-      "type": "java.sql.Date"
-    },
-    {
-      "type": "java.sql.Time"
-    },
-    {
-      "type": "java.time.Duration"
-    },
-    {
-      "type": "java.time.Instant"
-    },
-    {
-      "type": "java.time.OffsetDateTime"
-    },
-    {
-      "type": "java.time.ZoneId"
-    },
-    {
-      "type": "java.time.ZonedDateTime"
-    },
-    {
-      "type": "java.time.temporal.ChronoUnit"
-    },
-    {
-      "type": "java.time.temporal.Temporal"
     },
     {
       "type": "java.util.AbstractCollection"
@@ -2177,64 +1035,22 @@
       "type": "java.util.AbstractMap"
     },
     {
-      "type": "java.util.ArrayList"
-    },
-    {
       "type": "java.util.Collection"
     },
     {
       "type": "java.util.Comparator"
     },
     {
-      "type": "java.util.EventListener"
-    },
-    {
       "type": "java.util.HashMap"
     },
     {
-      "type": "java.util.HashSet",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.util.ImmutableCollections$AbstractImmutableCollection"
-    },
-    {
-      "type": "java.util.ImmutableCollections$AbstractImmutableList"
-    },
-    {
-      "type": "java.util.ImmutableCollections$List12"
-    },
-    {
-      "type": "java.util.Iterator"
-    },
-    {
-      "type": "java.util.LinkedHashMap"
-    },
-    {
-      "type": "java.util.LinkedList"
-    },
-    {
       "type": "java.util.List"
-    },
-    {
-      "type": "java.util.ListIterator"
-    },
-    {
-      "type": "java.util.Locale"
     },
     {
       "type": "java.util.Map"
     },
     {
       "type": "java.util.Map$Entry"
-    },
-    {
-      "type": "java.util.Map$Entry[]"
     },
     {
       "type": "java.util.Objects",
@@ -2267,9 +1083,6 @@
       "type": "java.util.OptionalInt"
     },
     {
-      "type": "java.util.Properties"
-    },
-    {
       "type": "java.util.Random"
     },
     {
@@ -2286,21 +1099,6 @@
     },
     {
       "type": "java.util.Set"
-    },
-    {
-      "type": "java.util.Spliterator"
-    },
-    {
-      "type": "java.util.TimeZone"
-    },
-    {
-      "type": "java.util.TreeMap"
-    },
-    {
-      "type": "java.util.TreeSet"
-    },
-    {
-      "type": "java.util.UUID"
     },
     {
       "type": "java.util.concurrent.Callable"
@@ -2321,34 +1119,6 @@
       "fields": [
         {
           "name": "next"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.CompletionStage"
-    },
-    {
-      "type": "java.util.concurrent.ConcurrentLinkedDeque",
-      "fields": [
-        {
-          "name": "head"
-        },
-        {
-          "name": "tail"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.ConcurrentLinkedDeque$Node",
-      "fields": [
-        {
-          "name": "item"
-        },
-        {
-          "name": "next"
-        },
-        {
-          "name": "prev"
         }
       ]
     },
@@ -2378,71 +1148,6 @@
       "type": "java.util.concurrent.ConcurrentMap"
     },
     {
-      "type": "java.util.concurrent.ConcurrentSkipListMap",
-      "fields": [
-        {
-          "name": "adder"
-        },
-        {
-          "name": "head"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.ConcurrentSkipListMap$Index",
-      "fields": [
-        {
-          "name": "right"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.ConcurrentSkipListMap$Node",
-      "fields": [
-        {
-          "name": "next"
-        },
-        {
-          "name": "val"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.DelayScheduler",
-      "fields": [
-        {
-          "name": "active"
-        },
-        {
-          "name": "pending"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.Executor"
-    },
-    {
-      "type": "java.util.concurrent.Executors",
-      "methods": [
-        {
-          "name": "newThreadPerTaskExecutor",
-          "parameterTypes": [
-            "java.util.concurrent.ThreadFactory"
-          ]
-        },
-        {
-          "name": "newVirtualThreadPerTaskExecutor",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.Flow$Subscriber"
-    },
-    {
-      "type": "java.util.concurrent.Flow$Subscription"
-    },
-    {
       "type": "java.util.concurrent.ForkJoinPool",
       "fields": [
         {
@@ -2459,23 +1164,6 @@
         },
         {
           "name": "threadIds"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.ForkJoinPool$WorkQueue",
-      "fields": [
-        {
-          "name": "array"
-        },
-        {
-          "name": "base"
-        },
-        {
-          "name": "phase"
-        },
-        {
-          "name": "top"
         }
       ]
     },
@@ -2519,31 +1207,6 @@
       ]
     },
     {
-      "type": "java.util.concurrent.LinkedTransferQueue$DualNode",
-      "fields": [
-        {
-          "name": "item"
-        },
-        {
-          "name": "next"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.ScheduledExecutorService"
-    },
-    {
-      "type": "java.util.concurrent.ThreadLocalRandom$Access"
-    },
-    {
-      "type": "java.util.concurrent.ThreadPerTaskExecutor",
-      "fields": [
-        {
-          "name": "state"
-        }
-      ]
-    },
-    {
       "type": "java.util.concurrent.atomic.AtomicBoolean",
       "fields": [
         {
@@ -2555,24 +1218,10 @@
       "type": "java.util.concurrent.atomic.AtomicInteger"
     },
     {
-      "type": "java.util.concurrent.atomic.AtomicLong"
-    },
-    {
       "type": "java.util.concurrent.atomic.AtomicReference",
       "fields": [
         {
           "name": "value"
-        }
-      ]
-    },
-    {
-      "type": "java.util.concurrent.atomic.Striped64",
-      "fields": [
-        {
-          "name": "base"
-        },
-        {
-          "name": "cellsBusy"
         }
       ]
     },
@@ -2611,9 +1260,6 @@
       "type": "java.util.function.BiFunction"
     },
     {
-      "type": "java.util.function.BiPredicate"
-    },
-    {
       "type": "java.util.function.Consumer"
     },
     {
@@ -2629,48 +1275,52 @@
       "type": "java.util.logging.LogManager"
     },
     {
-      "type": "java.util.regex.Pattern"
-    },
-    {
-      "type": "java.util.stream.BaseStream"
-    },
-    {
       "type": "java.util.stream.IntStream"
     },
     {
       "type": "java.util.stream.Stream"
     },
     {
-      "type": "javax.annotation.Nonnull"
-    },
-    {
-      "type": "javax.net.ssl.SSLContext",
-      "fields": [
+      "type": "org.mockito.Answers",
+      "methods": [
         {
-          "name": "defaultContext"
+          "name": "values",
+          "parameterTypes": []
         }
       ]
     },
     {
-      "type": "javax.net.ssl.SSLSession"
+      "type": "org.mockito.Captor"
     },
     {
-      "type": "javax.net.ssl.SSLSocket"
+      "type": "org.mockito.Mock"
     },
     {
-      "type": "javax.xml.parsers.DocumentBuilder"
+      "type": "org.mockito.Mock$Strictness",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
     },
     {
-      "type": "javax.xml.parsers.DocumentBuilderFactory"
-    },
-    {
-      "type": "jdk.net.ExtendedSocketOptions"
-    },
-    {
-      "type": "jdk.net.LinuxSocketOptions",
+      "type": "org.mockito.junit.jupiter.MockitoExtension",
       "methods": [
         {
           "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.junit.jupiter.MockitoSettings"
+    },
+    {
+      "type": "org.mockito.quality.Strictness",
+      "methods": [
+        {
+          "name": "values",
           "parameterTypes": []
         }
       ]
@@ -2706,107 +1356,6 @@
       ]
     },
     {
-      "type": "sun.net.www.protocol.http.Handler",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.nio.ch.SelectionKeyImpl",
-      "fields": [
-        {
-          "name": "interestOps"
-        }
-      ]
-    },
-    {
-      "type": "sun.nio.fs.UnixException",
-      "jniAccessible": true,
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "int"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.jgss.SunProvider",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.pkcs11.SunPKCS11",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.pkcs12.PKCS12KeyStore",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.DSA$SHA224withDSA",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.DSA$SHA256withDSA",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.JavaKeyStore$DualFormatJKS",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.JavaKeyStore$JKS",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "sun.security.provider.NativePRNG",
       "methods": [
         {
@@ -2823,261 +1372,6 @@
         {
           "name": "<init>",
           "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.SHA2$SHA224",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.SHA2$SHA256",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.SHA5$SHA384",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.SHA5$SHA512",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.X509Factory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.provider.certpath.ldap.JdkLDAP",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.rsa.PSSParameters",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.rsa.RSAKeyFactory$Legacy",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.rsa.RSAPSSSignature",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.rsa.RSASignature$SHA224withRSA",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.smartcardio.SunPCSC",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.ssl.KeyManagerFactoryImpl$SunX509",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.ssl.SSLContextImpl$DefaultSSLContext",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.ssl.SSLContextImpl$TLSContext",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.ssl.TrustManagerFactoryImpl$PKIXFactory",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.AuthorityInfoAccessExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.AuthorityKeyIdentifierExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.BasicConstraintsExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.CRLDistributionPointsExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.CertificatePoliciesExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.ExtendedKeyUsageExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.KeyUsageExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.NetscapeCertTypeExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.PrivateKeyUsageExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "sun.security.x509.SubjectKeyIdentifierExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
         }
       ]
     },
@@ -3141,187 +1435,7 @@
     {
       "type": {
         "proxy": [
-          "com.fasterxml.jackson.annotation.JacksonAnnotation"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.annotation.JsonCreator"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.annotation.JsonIgnore"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.annotation.JsonInclude"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.annotation.JsonProperty"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.annotation.JsonSubTypes"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.annotation.JsonSubTypes$Type"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.annotation.JsonTypeInfo"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
           "com.fasterxml.jackson.databind.annotation.JacksonStdImpl"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.databind.annotation.JsonDeserialize"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "com.fasterxml.jackson.databind.annotation.JsonSerialize"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "java.lang.Deprecated"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "java.lang.FunctionalInterface"
         ]
       },
       "methods": [
@@ -3410,6 +1524,51 @@
     },
     {
       "type": {
+        "proxy": [
+          "org.mockito.Captor"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "org.mockito.Mock"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "org.mockito.junit.jupiter.MockitoSettings"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
         "lambda": {
           "declaringClass": "com.fasterxml.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap",
           "interfaces": [
@@ -3430,168 +1589,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer",
-          "interfaces": [
-            "java.util.function.BiFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer",
-          "interfaces": [
-            "java.util.function.ToIntFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer",
-          "interfaces": [
-            "java.util.function.ToLongFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.OffsetDateTimeSerializer",
-          "interfaces": [
-            "java.util.function.ToIntFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.OffsetDateTimeSerializer",
-          "interfaces": [
-            "java.util.function.ToLongFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer",
-          "interfaces": [
-            "java.util.function.ToIntFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer",
-          "interfaces": [
-            "java.util.function.ToLongFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.HttpUtils",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.HttpUtils",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.exception.WatsonxException"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.core.Json",
           "interfaces": [
             "java.util.function.Function"
@@ -3618,533 +1615,6 @@
         {
           "name": "<init>",
           "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.RetryConfig",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.auth.cp4d.DefaultIAMRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.auth.cp4d.DefaultIAMRestClient",
-            "com.ibm.watsonx.ai.core.auth.cp4d.TokenRequest"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.auth.cp4d.DefaultIAMRestClient",
-            "com.ibm.watsonx.ai.core.auth.cp4d.TokenResponse"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.auth.cp4d.DefaultLegacyRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.auth.cp4d.DefaultLegacyRestClient"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.auth.ibmcloud.DefaultRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.AsyncHttpClient$InterceptorChain",
-          "interfaces": [
-            "java.net.http.HttpResponse$BodyHandler"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.net.http.HttpResponse$BodyHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.AsyncHttpClient$InterceptorChain",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "int",
-            "java.net.http.HttpResponse$ResponseInfo"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.AsyncHttpClient$InterceptorChain",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "int"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.BaseHttpClient",
-          "interfaces": [
-            "java.util.function.BiPredicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.BaseHttpClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.net.http.HttpRequest"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.SyncHttpClient$InterceptorChain",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "int"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor",
-          "interfaces": [
-            "java.util.function.BiPredicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor",
-            "com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor$AsyncChain",
-            "java.net.http.HttpRequest",
-            "java.net.http.HttpResponse$BodyHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor",
-          "interfaces": [
-            "java.lang.Runnable"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor",
-            "java.net.http.HttpRequest"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor",
-          "interfaces": [
-            "java.util.function.BiConsumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor",
-            "java.net.http.HttpRequest"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor$AsyncChain",
-            "java.net.http.HttpRequest",
-            "java.net.http.HttpResponse$BodyHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor",
-            "java.net.http.HttpRequest",
-            "java.lang.String"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor",
-            "java.net.http.HttpResponse",
-            "java.lang.String"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.Throwable"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor",
-            "java.net.http.HttpRequest",
-            "int",
-            "java.time.Duration",
-            "com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor$AsyncChain",
-            "int",
-            "java.net.http.HttpResponse$BodyHandler"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Exception"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Throwable"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor",
-          "interfaces": [
-            "java.util.function.Predicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Exception"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Throwable"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor",
-            "java.lang.String",
-            "int",
-            "java.lang.Throwable",
-            "com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor$AsyncChain",
-            "int",
-            "java.net.http.HttpRequest",
-            "java.net.http.HttpResponse$BodyHandler",
-            "java.time.Duration"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.provider.ExecutorProvider",
-          "interfaces": [
-            "java.util.concurrent.ThreadFactory"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.util.concurrent.atomic.AtomicInteger"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.utils.Utils",
-          "interfaces": [
-            "java.util.function.BiPredicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.lang.ClassLoader",
-          "interfaces": [
-            "java.util.function.BiFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.ClassLoader",
-            "java.lang.Module"
-          ]
         }
       ]
     },
@@ -4163,94 +1633,6 @@
           "parameterTypes": [
             "long"
           ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.lang.ProcessImpl",
-          "interfaces": [
-            "java.util.function.BiFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.ProcessImpl"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.lang.VirtualThread",
-          "interfaces": [
-            "java.lang.Runnable"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.VirtualThread"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.lang.VirtualThread",
-          "interfaces": [
-            "java.lang.Thread$UncaughtExceptionHandler"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.lang.VirtualThread",
-          "interfaces": [
-            "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.lang.VirtualThread",
-          "interfaces": [
-            "java.util.function.Predicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
         }
       ]
     },
@@ -4341,278 +1723,9 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "java.lang.runtime.SwitchBootstraps",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "boolean",
-            "java.lang.Class",
-            "java.lang.Object[]",
-            "java.util.List",
-            "java.util.List"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Object[]",
-            "int",
-            "int",
-            "java.util.List",
-            "java.lang.Class",
-            "int",
-            "java.util.List",
-            "java.util.List",
-            "int"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.InetAddress",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.InetAddress",
-          "interfaces": [
-            "java.util.function.IntFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.http.HttpHeaders",
-          "interfaces": [
-            "java.util.function.BiConsumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.function.BiPredicate",
-            "java.util.ArrayList",
-            "java.util.TreeMap",
-            "java.util.TreeSet"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.http.HttpHeaders",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.function.BiPredicate",
-            "java.lang.String",
-            "java.util.ArrayList"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.http.HttpHeaders",
-          "interfaces": [
-            "java.util.function.ToLongFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.http.HttpRequest",
-          "interfaces": [
-            "java.lang.Runnable"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.net.http.HttpRequest$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.http.HttpRequest",
-          "interfaces": [
-            "java.util.function.BiConsumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.net.http.HttpRequest$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.http.HttpRequest",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.net.http.HttpRequest$Builder"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.net.http.HttpRequest$Builder",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.http.HttpResponse$BodyHandlers",
-          "interfaces": [
-            "java.net.http.HttpResponse$BodyHandler"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.net.http.HttpResponse$BodySubscribers",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.nio.charset.Charset"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "java.security.Provider",
           "interfaces": [
             "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.security.spec.EncodedKeySpec",
-          "interfaces": [
-            "jdk.internal.access.JavaSecuritySpecAccess"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.time.format.DateTimeFormatter",
-          "interfaces": [
-            "java.time.temporal.TemporalQuery"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.time.format.DateTimeFormatterBuilder",
-          "interfaces": [
-            "java.time.temporal.TemporalQuery"
           ]
         }
       },
@@ -4693,32 +1806,7 @@
         {
           "name": "<init>",
           "parameterTypes": [
-            "java.util.function.ToDoubleFunction"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
             "java.util.function.ToIntFunction"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.util.Map$Entry",
-          "interfaces": [
-            "java.io.Serializable",
-            "java.util.Comparator"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.Comparator"
           ]
         }
       ]
@@ -4758,77 +1846,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "java.util.ResourceBundle$ResourceBundleControlProviderHolder",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.util.concurrent.Executors$AutoShutdownDelegatedExecutorService",
-          "interfaces": [
-            "java.lang.Runnable"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.concurrent.ExecutorService"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.util.function.BiPredicate",
-          "interfaces": [
-            "java.util.function.BiPredicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.function.BiPredicate",
-            "java.util.function.BiPredicate"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.util.function.BinaryOperator",
-          "interfaces": [
-            "java.util.function.BinaryOperator"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.Comparator"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "java.util.function.Function",
           "interfaces": [
             "java.util.function.Function"
@@ -4836,10 +1853,6 @@
         }
       },
       "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
         {
           "name": "<init>",
           "parameterTypes": [
@@ -4972,13 +1985,6 @@
             "int",
             "int"
           ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.regex.Pattern$CharPredicate",
-            "java.util.regex.Pattern$CharPredicate"
-          ]
         }
       ]
     },
@@ -5062,14 +2068,6 @@
             "java.util.function.Function",
             "java.util.function.Function"
           ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.function.Function",
-            "java.util.function.Function",
-            "java.util.function.BinaryOperator"
-          ]
         }
       ]
     },
@@ -5086,12 +2084,6 @@
         {
           "name": "<init>",
           "parameterTypes": []
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.function.BinaryOperator"
-          ]
         }
       ]
     },
@@ -5117,54 +2109,6 @@
           "declaringClass": "java.util.stream.Collectors",
           "interfaces": [
             "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.util.stream.FindOps$FindSink$OfLong",
-          "interfaces": [
-            "java.util.function.Predicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.util.stream.FindOps$FindSink$OfLong",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.util.stream.IntPipeline",
-          "interfaces": [
-            "java.util.function.IntBinaryOperator"
           ]
         }
       },
@@ -5308,31 +2252,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "javax.xml.transform.FactoryFinder",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Class",
-            "java.lang.ClassLoader"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "jdk.xml.internal.XMLSecurityManager$StringMapper",
           "interfaces": [
             "java.util.function.Function"
@@ -5343,271 +2262,6 @@
         {
           "name": "<init>",
           "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "org.apache.hc.client5.http.impl.classic.HttpClientBuilder",
-          "interfaces": [
-            "java.security.PrivilegedAction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "org.apache.hc.client5.http.impl.classic.HttpClientBuilder",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator",
-          "interfaces": [
-            "org.apache.hc.client5.http.io.DetachedSocketFactory"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder",
-          "interfaces": [
-            "org.apache.hc.client5.http.ssl.TlsSocketStrategy"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder",
-          "interfaces": [
-            "org.apache.hc.core5.function.Resolver"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "org.apache.hc.client5.http.config.ConnectionConfig"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "org.apache.hc.core5.util.Tokenizer",
-          "interfaces": [
-            "org.apache.hc.core5.util.Tokenizer$Delimiter"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "char"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "char",
-            "char"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "char",
-            "char",
-            "char"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.nio.fs.LinuxDosFileAttributeView",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.nio.fs.UnixSecureDirectoryStream",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "sun.nio.fs.UnixSecureDirectoryStream"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.security.ec.ed.EdDSAParameters",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.security.ec.ed.EdDSASignature",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.security.pkcs.PKCS9Attribute",
-          "interfaces": [
-            "sun.security.pkcs.PKCS9Attribute$Decoder"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.security.pkcs.PKCS9Attribute",
-          "interfaces": [
-            "sun.security.pkcs.PKCS9Attribute$Encoder"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.security.pkcs11.SunPKCS11",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.security.ssl.SSLContextImpl",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.security.util.DisabledAlgorithmConstraints",
-          "interfaces": [
-            "java.util.function.Predicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
         }
       ]
     },
@@ -5662,46 +2316,10 @@
   ],
   "resources": [
     {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DIAMRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DLegacyRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient$CP4DZenRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudRestClient$IBMCloudRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.executor.CpuExecutorProvider"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.executor.IOExecutorProvider"
-    },
-    {
       "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.json.JsonProvider"
     },
     {
-      "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"
-    },
-    {
-      "glob": "META-INF/services/java.net.spi.URLStreamHandlerProvider"
-    },
-    {
-      "glob": "META-INF/services/java.nio.channels.spi.SelectorProvider"
-    },
-    {
-      "glob": "META-INF/services/java.util.spi.ResourceBundleControlProvider"
-    },
-    {
       "glob": "META-INF/services/javax.xml.parsers.DocumentBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/org.slf4j.spi.SLF4JServiceProvider"
     }
   ]
 }

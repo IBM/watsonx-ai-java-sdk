@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Isolated;
@@ -31,6 +32,7 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 
 @ExtendWith(MockitoExtension.class)
 @Isolated("Asserts the absence of callbacks within timing windows; must run without concurrent CPU contention.")
+@DisabledInNativeImage
 public class ModelGatewayChatStreamingCancellationTest extends AbstractWatsonxTest {
 
     /**

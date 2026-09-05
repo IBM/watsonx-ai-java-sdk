@@ -61,10 +61,6 @@ import com.ibm.watsonx.ai.tokenization.TokenizationParameters;
  */
 public class ToStringTest {
 
-    // -------------------------------------------------------------------------
-    // WatsonxParameters hierarchy
-    // -------------------------------------------------------------------------
-
     @Test
     void batch_cancel_request_toString_includes_parent_fields() {
         var s = BatchCancelRequest.builder().projectId("p1").spaceId("s1").transactionId("t1").batchId("b1").build().toString();
@@ -193,10 +189,6 @@ public class ToStringTest {
         assertTrue(s.contains("maxNewTokens=512"), s);
     }
 
-    // -------------------------------------------------------------------------
-    // TextProcessing parameters hierarchy
-    // -------------------------------------------------------------------------
-
     @Test
     void text_extraction_fetch_parameters_toString_includes_parent_fields() {
         var s = TextExtractionFetchParameters.builder().projectId("p1").build().toString();
@@ -307,10 +299,6 @@ public class ToStringTest {
         assertTrue(s.contains("projectId=p1"), s);
     }
 
-    // -------------------------------------------------------------------------
-    // SemanticConfig hierarchy
-    // -------------------------------------------------------------------------
-
     @Test
     void create_schema_semantic_config_toString_includes_parent_fields() {
         var s = CreateSchemaSemanticConfig.builder().defaultModelName("my-model").build().toString();
@@ -348,10 +336,6 @@ public class ToStringTest {
         assertTrue(s.contains("forceSchemaName=receipt"), s);
     }
 
-    // -------------------------------------------------------------------------
-    // BaseDetector hierarchy
-    // -------------------------------------------------------------------------
-
     @Test
     void pii_toString_includes_name_and_properties() {
         var s = Pii.builder().build().toString();
@@ -375,10 +359,6 @@ public class ToStringTest {
         assertTrue(s.contains("name=granite_guardian"), s);
         assertTrue(s.contains("threshold"), s);
     }
-
-    // -------------------------------------------------------------------------
-    // ChatModeration hierarchy
-    // -------------------------------------------------------------------------
 
     @Test
     void chat_moderation_toString_includes_configured_detectors() {
@@ -419,10 +399,6 @@ public class ToStringTest {
         assertTrue(s.contains("properties"), s);
         assertTrue(s.contains("input"), s);
     }
-
-    // -------------------------------------------------------------------------
-    // JsonSchema hierarchy
-    // -------------------------------------------------------------------------
 
     @Test
     void boolean_schema_toString_includes_base_fields() {

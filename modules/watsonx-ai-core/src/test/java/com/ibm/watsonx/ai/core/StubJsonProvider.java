@@ -9,7 +9,10 @@ import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
-public class JsonProviderTest implements JsonProvider {
+/**
+ * Test-only {@link JsonProvider} registered via {@code ServiceLoader} for the {@code watsonx-ai-core} test suite.
+ */
+public class StubJsonProvider implements JsonProvider {
 
     private static final Object MAPPER;
 
