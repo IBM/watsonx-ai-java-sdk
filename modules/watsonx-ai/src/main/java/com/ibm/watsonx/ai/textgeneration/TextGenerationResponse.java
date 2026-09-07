@@ -70,7 +70,7 @@ public record TextGenerationResponse(
      * @param rank the token's rank among other candidate tokens
      * @param topTokens the top candidate tokens at this position
      */
-    public record TokenInfo(String text, Double logprob, Integer rank, TopTokenInfo topTokens) {}
+    public record TokenInfo(String text, Double logprob, Integer rank, List<TopTokenInfo> topTokens) {}
 
     /**
      * Represents the top tokens.

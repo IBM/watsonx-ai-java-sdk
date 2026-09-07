@@ -216,28 +216,25 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                       "text": "Swimwear",
                       "logprob": -0.123,
                       "rank": 1,
-                      "top_tokens": {
-                        "text": "Swimwear",
-                        "logprob": -0.123
-                      }
+                      "top_tokens": [
+                        { "text": "Swimwear", "logprob": -0.123 }
+                      ]
                     },
                     {
                       "text": " Unlimited",
                       "logprob": -0.234,
                       "rank": 2,
-                      "top_tokens": {
-                        "text": " Unlimited",
-                        "logprob": -0.234
-                      }
+                      "top_tokens": [
+                        { "text": " Unlimited", "logprob": -0.234 }
+                      ]
                     },
                     {
                       "text": " - Mid-Summer Sale!",
                       "logprob": -0.345,
                       "rank": 3,
-                      "top_tokens": {
-                        "text": " - Mid-Summer Sale!",
-                        "logprob": -0.345
-                      }
+                      "top_tokens": [
+                        { "text": " - Mid-Summer Sale!", "logprob": -0.345 }
+                      ]
                     }
                   ],
                   "input_tokens": [
@@ -245,19 +242,17 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                       "text": "Check",
                       "logprob": -0.111,
                       "rank": 1,
-                      "top_tokens": {
-                        "text": "Check",
-                        "logprob": -0.111
-                      }
+                      "top_tokens": [
+                        { "text": "Check", "logprob": -0.111 }
+                      ]
                     },
                     {
                       "text": " out",
                       "logprob": -0.222,
                       "rank": 2,
-                      "top_tokens": {
-                        "text": " out",
-                        "logprob": -0.222
-                      }
+                      "top_tokens": [
+                        { "text": " out", "logprob": -0.222 }
+                      ]
                     }
                   ],
                   "moderations": {
@@ -303,13 +298,13 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             List.of(
                 new Result("Swimwear Unlimited - Mid-Summer Sale!", "token_limit", 3, 11, 42,
                     List.of(
-                        new TokenInfo("Swimwear", -0.123, 1, new TopTokenInfo("Swimwear", -0.123)),
-                        new TokenInfo(" Unlimited", -0.234, 2, new TopTokenInfo(" Unlimited", -0.234)),
-                        new TokenInfo(" - Mid-Summer Sale!", -0.345, 3, new TopTokenInfo(" - Mid-Summer Sale!", -0.345))
+                        new TokenInfo("Swimwear", -0.123, 1, List.of(new TopTokenInfo("Swimwear", -0.123))),
+                        new TokenInfo(" Unlimited", -0.234, 2, List.of(new TopTokenInfo(" Unlimited", -0.234))),
+                        new TokenInfo(" - Mid-Summer Sale!", -0.345, 3, List.of(new TopTokenInfo(" - Mid-Summer Sale!", -0.345)))
                     ),
                     List.of(
-                        new TokenInfo("Check", -0.111, 1, new TopTokenInfo("Check", -0.111)),
-                        new TokenInfo(" out", -0.222, 2, new TopTokenInfo(" out", -0.222))
+                        new TokenInfo("Check", -0.111, 1, List.of(new TopTokenInfo("Check", -0.111))),
+                        new TokenInfo(" out", -0.222, 2, List.of(new TopTokenInfo(" out", -0.222)))
                     ),
                     new ModerationResults(
                         new ModerationResult(0.01f, false, new ModerationRange(0, 9), "Profanity", "Swimwear"),
