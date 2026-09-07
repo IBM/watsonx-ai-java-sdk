@@ -63,4 +63,13 @@ public interface JsonProvider {
      * @return {@code true} if the string is a valid JSON object, {@code false} otherwise
      */
     boolean isValidObject(String json);
+
+    /**
+     * Indicates whether this is a bundled default implementation rather than an explicit choice.
+     *
+     * @return {@code true} if this is a default implementation, {@code false} otherwise
+     */
+    default boolean isDefault() {
+        return false;
+    }
 }

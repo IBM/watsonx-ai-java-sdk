@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -72,6 +73,7 @@ import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRe
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse.Entity;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class TextClassificationTest extends AbstractWatsonxTest {
 
     @RegisterExtension
@@ -620,7 +622,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         ClassificationResult result = classificationService.classifyAndFetch("test.pdf", parameters);
         assertNotNull(result);
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
@@ -633,7 +635,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         result = classificationService.uploadClassifyAndFetch(file, parameters);
         assertNotNull(result);
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
@@ -750,8 +752,10 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         assertEquals("The execution of the classification test.pdf file took longer than the timeout set by 100 milliseconds",
             ex.getMessage());
 
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
     @Test
@@ -819,7 +823,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         assertEquals(ex.code(), "file_download_error");
         assertEquals(ex.getMessage(), "error message");
 
-        Thread.sleep(200); // Wait for the async calls.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 2);
         watsonxServer.verify(2, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
         watsonxServer.verify(4, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
         cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));

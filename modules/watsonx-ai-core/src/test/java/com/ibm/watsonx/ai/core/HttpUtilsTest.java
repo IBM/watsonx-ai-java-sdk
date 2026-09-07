@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,6 +32,7 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class HttpUtilsTest {
 
     @Test

@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import java.net.http.HttpClient;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import com.ibm.watsonx.ai.batch.BatchService;
@@ -36,6 +37,7 @@ import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
 
 @Isolated()
+@DisabledInNativeImage
 public class CustomHttpClientTest {
 
     @Test

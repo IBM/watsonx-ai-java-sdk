@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,6 +52,7 @@ import com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemas;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@DisabledInNativeImage
 public class ClusterSchemaTest extends AbstractWatsonxTest {
 
     @RegisterExtension
@@ -76,10 +78,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
             .projectId("project-id")
             .build();
     }
-
-    // -------------------------------------------------------------------------
-    // startClusterSchema
-    // -------------------------------------------------------------------------
 
     @Test
     void should_start_cluster_schema_with_varargs() throws Exception {
@@ -207,10 +205,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         assertNotNull(result);
     }
 
-    // -------------------------------------------------------------------------
-    // clusterSchemaAndFetch (polling)
-    // -------------------------------------------------------------------------
-
     @Test
     void should_cluster_schema_and_fetch_completed_immediately() throws Exception {
 
@@ -316,10 +310,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         assertEquals("The cluster schema failed without error details", ex.getMessage());
     }
 
-    // -------------------------------------------------------------------------
-    // fetchRequest
-    // -------------------------------------------------------------------------
-
     @Test
     void should_fetch_cluster_schema_request() throws Exception {
 
@@ -359,10 +349,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         response = clusterSchemaService.fetchRequest("id", p);
         assertNotNull(response);
     }
-
-    // -------------------------------------------------------------------------
-    // deleteRequest
-    // -------------------------------------------------------------------------
 
     @Test
     void should_delete_cluster_schema_request() {
@@ -412,10 +398,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         p = ClusterSchemaDeleteParameters.builder().spaceId("new-space-id").build();
         assertTrue(clusterSchemaService.deleteRequest("id", p));
     }
-
-    // -------------------------------------------------------------------------
-    // JSON serialisation
-    // -------------------------------------------------------------------------
 
     @Test
     void should_serialise_cluster_schema_response() throws Exception {
@@ -492,10 +474,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         assertEquals(cause, ex2.getCause());
     }
 
-    // -------------------------------------------------------------------------
-    // List overloads
-    // -------------------------------------------------------------------------
-
     @Test
     void should_start_cluster_schema_with_list() throws Exception {
 
@@ -536,10 +514,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         assertFalse(groups.isEmpty());
     }
 
-    // -------------------------------------------------------------------------
-    // Immediate FAILED from POST response (before any polling)
-    // -------------------------------------------------------------------------
-
     @Test
     void should_throw_exception_when_post_response_is_immediately_failed() throws Exception {
 
@@ -576,10 +550,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
 
         watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/cluster/id")));
     }
-
-    // -------------------------------------------------------------------------
-    // Timeout during polling
-    // -------------------------------------------------------------------------
 
     @Test
     void should_throw_exception_on_timeout_and_delete_job() throws Exception {
@@ -618,10 +588,6 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/cluster")));
         watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/cluster/id")));
     }
-
-    // -------------------------------------------------------------------------
-    // toString / builder coverage
-    // -------------------------------------------------------------------------
 
     @Test
     void should_cover_to_string_methods() {

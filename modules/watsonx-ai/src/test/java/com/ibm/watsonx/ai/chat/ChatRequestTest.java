@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ResponseFormat;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
@@ -17,6 +18,7 @@ import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.tool.builtin.GoogleSearchTool;
 
+@DisabledInNativeImage
 public class ChatRequestTest {
 
     @Test

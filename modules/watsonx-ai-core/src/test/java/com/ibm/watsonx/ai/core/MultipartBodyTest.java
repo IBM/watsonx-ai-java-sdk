@@ -18,11 +18,13 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.watsonx.ai.core.http.MultipartBody;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class MultipartBodyTest {
 
     @Test

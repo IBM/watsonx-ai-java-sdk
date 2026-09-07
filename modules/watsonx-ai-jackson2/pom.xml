@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <name>watsonx-ai-jackson2</name>
+  <artifactId>watsonx-ai-jackson2</artifactId>
+  <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
+
+  <description>
+  Jackson 2 JSON binding for the watsonx.ai SDK. Provides a JsonProvider implementation
+  backed by Jackson 2.
+  </description>
+
+  <scm>
+    <connection>scm:git:git://github.com/IBM/watsonx-ai-java-sdk.git</connection>
+    <developerConnection>scm:git:ssh://github.com/IBM/watsonx-ai-java-sdk.git</developerConnection>
+    <url>https://github.com/IBM/watsonx-ai-java-sdk</url>
+  </scm>
+
+  <parent>
+    <groupId>com.ibm.watsonx</groupId>
+    <artifactId>watsonx-ai-parent</artifactId>
+    <version>999-SNAPSHOT</version>
+    <relativePath>../..</relativePath>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.ibm.watsonx</groupId>
+      <artifactId>watsonx-ai-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.watsonx</groupId>
+      <artifactId>watsonx-ai</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.watsonx</groupId>
+      <artifactId>watsonx-ai</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven-dependency-plugin-version}</version>
+        <executions>
+          <execution>
+            <id>unpack-shared-tests</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>watsonx-ai</includeArtifactIds>
+              <includeTypes>test-jar</includeTypes>
+              <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>native-agent</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <configuration>
+              <agent>
+                <enabled>true</enabled>
+                <options>
+                  <callerFilterFiles>
+                    <filterFile>${project.basedir}/native-agent-filter.json</filterFile>
+                  </callerFilterFiles>
+                  <accessFilterFiles>
+                    <filterFile>${project.basedir}/native-agent-filter.json</filterFile>
+                  </accessFilterFiles>
+                </options>
+                <metadataCopy>
+                  <merge>false</merge>
+                  <outputDirectory>${project.basedir}/src/main/resources/META-INF/native-image/com.ibm.watsonx/${project.artifactId}</outputDirectory>
+                  <disabledStages>
+                    <stage>main</stage>
+                  </disabledStages>
+                </metadataCopy>
+              </agent>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

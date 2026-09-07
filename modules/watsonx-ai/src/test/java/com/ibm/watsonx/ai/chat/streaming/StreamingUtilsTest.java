@@ -7,12 +7,14 @@ package com.ibm.watsonx.ai.chat.streaming;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class StreamingUtilsTest {
 
     @Test

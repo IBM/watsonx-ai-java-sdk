@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.utils.Base64;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
@@ -48,6 +49,7 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
     @Nested

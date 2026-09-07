@@ -1,0 +1,6906 @@
+{
+  "reflection": [
+    {
+      "type": "byte[]",
+      "jniAccessible": true
+    },
+    {
+      "type": "byte[][]"
+    },
+    {
+      "type": "char[]"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JacksonAnnotation"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonAnyGetter"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonAnySetter"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonAutoDetect"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonAutoDetect$Visibility",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonCreator"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonCreator$Mode",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonIgnore"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonProperty"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonProperty$Access",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.OptBoolean",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.core.JsonParser"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.JsonNode"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.ObjectMapper"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.ext.Java7SupportImpl",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.dataformat.yaml.YAMLFactory"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.Crypto"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ArraySchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$AssistantMessageMixIn"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$BaseDetectionRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$BatchCreateRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$BatchCreateRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatModerationMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatResponseBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ConstantSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DefaultValueMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionTextRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionTextRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionTextResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$EnumSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsThinkMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintFieldDataMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintsBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$InputSchemaBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$InputSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$IntegerSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$JsonSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$KvpFieldsBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayCacheMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayChatResponseBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayChatResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingUsageMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageDataMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageInputTokensDetailsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageUsageMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayListModelsResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayModelMetadataMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayModelMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayPredictionMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayRouterMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayStreamOptionsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayTextChatRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayTextChatRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModerationBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModerationMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$NumberSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ObjectSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$RequiredSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$SchemaBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$SchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$StringSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseDetectionEntryMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseDetectionResultMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextDetectionContentDetectorsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextGenerationParametersBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextGenerationParametersMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TimeSeriesParametersBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TimeSeriesParametersMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ToolArgumentsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxParameters",
+      "methods": [
+        {
+          "name": "projectId",
+          "parameterTypes": []
+        },
+        {
+          "name": "spaceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "transactionId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxParameters$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxParameters$WatsonxModelParameters",
+      "methods": [
+        {
+          "name": "modelId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxParameters$WatsonxModelParameters$Builder",
+      "methods": [
+        {
+          "name": "modelId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.batch.BatchCreateRequest",
+      "methods": [
+        {
+          "name": "completionWindow",
+          "parameterTypes": []
+        },
+        {
+          "name": "endpoint",
+          "parameterTypes": []
+        },
+        {
+          "name": "inputFileId",
+          "parameterTypes": []
+        },
+        {
+          "name": "metadata",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.batch.BatchCreateRequest$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "completionWindow",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "endpoint",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "inputFileId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "metadata",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.ChatModeration",
+      "methods": [
+        {
+          "name": "graniteGuardian",
+          "parameterTypes": []
+        },
+        {
+          "name": "hap",
+          "parameterTypes": []
+        },
+        {
+          "name": "inputRanges",
+          "parameterTypes": []
+        },
+        {
+          "name": "pii",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.ChatModeration$InputRanges",
+      "methods": [
+        {
+          "name": "end",
+          "parameterTypes": []
+        },
+        {
+          "name": "start",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.ChatResponse",
+      "methods": [
+        {
+          "name": "choices",
+          "parameterTypes": []
+        },
+        {
+          "name": "created",
+          "parameterTypes": []
+        },
+        {
+          "name": "extractionTags",
+          "parameterTypes": []
+        },
+        {
+          "name": "id",
+          "parameterTypes": []
+        },
+        {
+          "name": "model",
+          "parameterTypes": []
+        },
+        {
+          "name": "object",
+          "parameterTypes": []
+        },
+        {
+          "name": "usage",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.ChatResponse$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "choices",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "created",
+          "parameterTypes": [
+            "java.lang.Long"
+          ]
+        },
+        {
+          "name": "extractionTags",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.model.ExtractionTags"
+          ]
+        },
+        {
+          "name": "id",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "model",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "object",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "usage",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.model.ChatUsage"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.ChatResponse$ResultChoice",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Integer",
+            "com.ibm.watsonx.ai.chat.model.ResultMessage",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "finishReason",
+          "parameterTypes": []
+        },
+        {
+          "name": "index",
+          "parameterTypes": []
+        },
+        {
+          "name": "message",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.TextChatResponse",
+      "methods": [
+        {
+          "name": "createdAt",
+          "parameterTypes": []
+        },
+        {
+          "name": "detections",
+          "parameterTypes": []
+        },
+        {
+          "name": "modelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "modelVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "moderations",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.TextChatResponse$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "createdAt",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "detections",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        },
+        {
+          "name": "modelId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "modelVersion",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "moderations",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.TextChatResponse$DetectionEntry",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "choiceIndex",
+          "parameterTypes": []
+        },
+        {
+          "name": "results",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.TextChatResponse$DetectionResult",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "double",
+            "java.lang.String",
+            "int",
+            "int"
+          ]
+        },
+        {
+          "name": "detection",
+          "parameterTypes": []
+        },
+        {
+          "name": "detectionType",
+          "parameterTypes": []
+        },
+        {
+          "name": "detectorId",
+          "parameterTypes": []
+        },
+        {
+          "name": "end",
+          "parameterTypes": []
+        },
+        {
+          "name": "score",
+          "parameterTypes": []
+        },
+        {
+          "name": "start",
+          "parameterTypes": []
+        },
+        {
+          "name": "text",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.TextChatResponse$ModerationResult",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "float",
+            "boolean",
+            "com.ibm.watsonx.ai.chat.TextChatResponse$ModerationResult$Position",
+            "java.lang.String",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "entity",
+          "parameterTypes": []
+        },
+        {
+          "name": "input",
+          "parameterTypes": []
+        },
+        {
+          "name": "position",
+          "parameterTypes": []
+        },
+        {
+          "name": "score",
+          "parameterTypes": []
+        },
+        {
+          "name": "word",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.TextChatResponse$ModerationResult$Position",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "int"
+          ]
+        },
+        {
+          "name": "end",
+          "parameterTypes": []
+        },
+        {
+          "name": "start",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.AssistantMessage",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "content",
+          "parameterTypes": []
+        },
+        {
+          "name": "name",
+          "parameterTypes": []
+        },
+        {
+          "name": "refusal",
+          "parameterTypes": []
+        },
+        {
+          "name": "role",
+          "parameterTypes": []
+        },
+        {
+          "name": "toolCalls",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.BaseChatParameters$JsonSchemaObject"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.ChatMessage"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.ChatUsage",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Integer",
+            "java.lang.Integer",
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "completionTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "promptTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "totalTokens",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.ExtractionTags",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.model.ExtractionTags$Think",
+            "com.ibm.watsonx.ai.chat.model.ExtractionTags$Response"
+          ]
+        },
+        {
+          "name": "response",
+          "parameterTypes": []
+        },
+        {
+          "name": "think",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.ExtractionTags$Response",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "closing",
+          "parameterTypes": []
+        },
+        {
+          "name": "opening",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.ExtractionTags$Think",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "closing",
+          "parameterTypes": []
+        },
+        {
+          "name": "opening",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.FinishReason"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.FunctionCall",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "arguments",
+          "parameterTypes": []
+        },
+        {
+          "name": "name",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.PartialChatResponse",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.util.List",
+            "java.lang.Long",
+            "java.lang.String",
+            "java.lang.String",
+            "com.ibm.watsonx.ai.chat.model.ChatUsage",
+            "java.util.Map",
+            "java.util.Map",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.Boolean"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.PartialChatResponse$ResultChoice",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Integer",
+            "com.ibm.watsonx.ai.chat.model.ResultMessage",
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.ResultMessage",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "content",
+          "parameterTypes": []
+        },
+        {
+          "name": "reasoningContent",
+          "parameterTypes": []
+        },
+        {
+          "name": "refusal",
+          "parameterTypes": []
+        },
+        {
+          "name": "role",
+          "parameterTypes": []
+        },
+        {
+          "name": "toolCalls",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.SystemMessage",
+      "methods": [
+        {
+          "name": "content",
+          "parameterTypes": []
+        },
+        {
+          "name": "name",
+          "parameterTypes": []
+        },
+        {
+          "name": "role",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.TextChatRequest",
+      "methods": [
+        {
+          "name": "chatTemplateKwargs",
+          "parameterTypes": []
+        },
+        {
+          "name": "context",
+          "parameterTypes": []
+        },
+        {
+          "name": "crypto",
+          "parameterTypes": []
+        },
+        {
+          "name": "frequencyPenalty",
+          "parameterTypes": []
+        },
+        {
+          "name": "guidedChoice",
+          "parameterTypes": []
+        },
+        {
+          "name": "guidedGrammar",
+          "parameterTypes": []
+        },
+        {
+          "name": "guidedRegex",
+          "parameterTypes": []
+        },
+        {
+          "name": "includeReasoning",
+          "parameterTypes": []
+        },
+        {
+          "name": "lengthPenalty",
+          "parameterTypes": []
+        },
+        {
+          "name": "logitBias",
+          "parameterTypes": []
+        },
+        {
+          "name": "logprobs",
+          "parameterTypes": []
+        },
+        {
+          "name": "maxCompletionTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "messages",
+          "parameterTypes": []
+        },
+        {
+          "name": "model",
+          "parameterTypes": []
+        },
+        {
+          "name": "modelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "moderations",
+          "parameterTypes": []
+        },
+        {
+          "name": "n",
+          "parameterTypes": []
+        },
+        {
+          "name": "presencePenalty",
+          "parameterTypes": []
+        },
+        {
+          "name": "projectId",
+          "parameterTypes": []
+        },
+        {
+          "name": "reasoningEffort",
+          "parameterTypes": []
+        },
+        {
+          "name": "repetitionPenalty",
+          "parameterTypes": []
+        },
+        {
+          "name": "responseFormat",
+          "parameterTypes": []
+        },
+        {
+          "name": "seed",
+          "parameterTypes": []
+        },
+        {
+          "name": "spaceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "stop",
+          "parameterTypes": []
+        },
+        {
+          "name": "temperature",
+          "parameterTypes": []
+        },
+        {
+          "name": "timeLimit",
+          "parameterTypes": []
+        },
+        {
+          "name": "toolChoice",
+          "parameterTypes": []
+        },
+        {
+          "name": "toolChoiceOption",
+          "parameterTypes": []
+        },
+        {
+          "name": "tools",
+          "parameterTypes": []
+        },
+        {
+          "name": "topLogprobs",
+          "parameterTypes": []
+        },
+        {
+          "name": "topP",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.TextChatRequest$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "chatTemplateKwargs",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        },
+        {
+          "name": "context",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "frequencyPenalty",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "guidedChoice",
+          "parameterTypes": [
+            "java.util.Set"
+          ]
+        },
+        {
+          "name": "includeReasoning",
+          "parameterTypes": [
+            "java.lang.Boolean"
+          ]
+        },
+        {
+          "name": "lengthPenalty",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "logitBias",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        },
+        {
+          "name": "logprobs",
+          "parameterTypes": [
+            "java.lang.Boolean"
+          ]
+        },
+        {
+          "name": "maxCompletionTokens",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "modelId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "n",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "presencePenalty",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "projectId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "reasoningEffort",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "repetitionPenalty",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "seed",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "spaceId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "stop",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "temperature",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "timeLimit",
+          "parameterTypes": [
+            "java.lang.Long"
+          ]
+        },
+        {
+          "name": "toolChoice",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        },
+        {
+          "name": "toolChoiceOption",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "tools",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "topLogprobs",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "topP",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.TextContent",
+      "methods": [
+        {
+          "name": "text",
+          "parameterTypes": []
+        },
+        {
+          "name": "type",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.Tool",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "com.ibm.watsonx.ai.chat.model.Tool$Function"
+          ]
+        },
+        {
+          "name": "function",
+          "parameterTypes": []
+        },
+        {
+          "name": "type",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.Tool$Function",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "description",
+          "parameterTypes": []
+        },
+        {
+          "name": "name",
+          "parameterTypes": []
+        },
+        {
+          "name": "parameters",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.ToolArguments",
+      "methods": [
+        {
+          "name": "getRaw",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.ToolCall",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Integer",
+            "java.lang.String",
+            "java.lang.String",
+            "com.ibm.watsonx.ai.chat.model.FunctionCall"
+          ]
+        },
+        {
+          "name": "function",
+          "parameterTypes": []
+        },
+        {
+          "name": "id",
+          "parameterTypes": []
+        },
+        {
+          "name": "index",
+          "parameterTypes": []
+        },
+        {
+          "name": "type",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.UserContent"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.UserMessage",
+      "methods": [
+        {
+          "name": "content",
+          "parameterTypes": []
+        },
+        {
+          "name": "name",
+          "parameterTypes": []
+        },
+        {
+          "name": "role",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.ArraySchema",
+      "methods": [
+        {
+          "name": "contains",
+          "parameterTypes": []
+        },
+        {
+          "name": "items",
+          "parameterTypes": []
+        },
+        {
+          "name": "maxItems",
+          "parameterTypes": []
+        },
+        {
+          "name": "minItems",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.ArraySchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.BooleanSchema"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.BooleanSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.ConstantSchema",
+      "methods": [
+        {
+          "name": "constant",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.ConstantSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.EnumSchema",
+      "methods": [
+        {
+          "name": "enumValues",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.EnumSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.IntegerSchema",
+      "methods": [
+        {
+          "name": "exclusiveMaximum",
+          "parameterTypes": []
+        },
+        {
+          "name": "exclusiveMinimum",
+          "parameterTypes": []
+        },
+        {
+          "name": "maximum",
+          "parameterTypes": []
+        },
+        {
+          "name": "minimum",
+          "parameterTypes": []
+        },
+        {
+          "name": "multipleOf",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.IntegerSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.JsonSchema",
+      "methods": [
+        {
+          "name": "description",
+          "parameterTypes": []
+        },
+        {
+          "name": "oneOf",
+          "parameterTypes": []
+        },
+        {
+          "name": "type",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.JsonSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.JsonSchema[]"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.NumberSchema",
+      "methods": [
+        {
+          "name": "exclusiveMaximum",
+          "parameterTypes": []
+        },
+        {
+          "name": "exclusiveMinimum",
+          "parameterTypes": []
+        },
+        {
+          "name": "maximum",
+          "parameterTypes": []
+        },
+        {
+          "name": "minimum",
+          "parameterTypes": []
+        },
+        {
+          "name": "multipleOf",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.NumberSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.ObjectSchema",
+      "methods": [
+        {
+          "name": "additionalProperties",
+          "parameterTypes": []
+        },
+        {
+          "name": "anyOf",
+          "parameterTypes": []
+        },
+        {
+          "name": "maxProperties",
+          "parameterTypes": []
+        },
+        {
+          "name": "minProperties",
+          "parameterTypes": []
+        },
+        {
+          "name": "patternProperties",
+          "parameterTypes": []
+        },
+        {
+          "name": "properties",
+          "parameterTypes": []
+        },
+        {
+          "name": "required",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.ObjectSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.RequiredSchema",
+      "methods": [
+        {
+          "name": "required",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.RequiredSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.StringSchema",
+      "methods": [
+        {
+          "name": "getFormat",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMaxLength",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMinLength",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPattern",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.chat.model.schema.StringSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.core.spi.json.TypeToken"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.BaseDetectionRequest",
+      "methods": [
+        {
+          "name": "detectors",
+          "parameterTypes": []
+        },
+        {
+          "name": "projectId",
+          "parameterTypes": []
+        },
+        {
+          "name": "spaceId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.BaseDetectionResponse"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionTextRequest",
+      "methods": [
+        {
+          "name": "detectors",
+          "parameterTypes": []
+        },
+        {
+          "name": "input",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionTextRequest$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionTextResponse",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "double",
+            "int",
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.TextDetectionContentDetectors",
+      "methods": [
+        {
+          "name": "input",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.detector.BaseDetector"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$DefaultValue",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$DeploymentParameter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.Object",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "displayName",
+          "parameterTypes": []
+        },
+        {
+          "name": "name",
+          "parameterTypes": []
+        },
+        {
+          "name": "type",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$DoubleRange",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Double",
+            "java.lang.Double",
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "max",
+          "parameterTypes": []
+        },
+        {
+          "name": "min",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$GradientCheckpointing",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$InitMethod",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "supported",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$IntRange",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Integer",
+            "java.lang.Integer",
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "max",
+          "parameterTypes": []
+        },
+        {
+          "name": "min",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$NumGpus",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$NumVirtualTokens",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List",
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "supported",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$TargetModules",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.catalog.ModelGatewayListModelsResponse",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "data",
+          "parameterTypes": []
+        },
+        {
+          "name": "object",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.catalog.ModelGatewayModel",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.Long",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "com.ibm.watsonx.ai.gateway.catalog.ModelGatewayModel$Metadata"
+          ]
+        },
+        {
+          "name": "alias",
+          "parameterTypes": []
+        },
+        {
+          "name": "created",
+          "parameterTypes": []
+        },
+        {
+          "name": "description",
+          "parameterTypes": []
+        },
+        {
+          "name": "id",
+          "parameterTypes": []
+        },
+        {
+          "name": "metadata",
+          "parameterTypes": []
+        },
+        {
+          "name": "object",
+          "parameterTypes": []
+        },
+        {
+          "name": "ownedBy",
+          "parameterTypes": []
+        },
+        {
+          "name": "uuid",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.catalog.ModelGatewayModel$Metadata",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Double",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.Boolean",
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "batch",
+          "parameterTypes": []
+        },
+        {
+          "name": "contextWindow",
+          "parameterTypes": []
+        },
+        {
+          "name": "cost",
+          "parameterTypes": []
+        },
+        {
+          "name": "modelFamily",
+          "parameterTypes": []
+        },
+        {
+          "name": "recommenderLabel",
+          "parameterTypes": []
+        },
+        {
+          "name": "region",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters$Cache",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "boolean",
+            "java.lang.Object",
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "enabled",
+          "parameterTypes": []
+        },
+        {
+          "name": "filter",
+          "parameterTypes": []
+        },
+        {
+          "name": "threshold",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters$Prediction",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "content",
+          "parameterTypes": []
+        },
+        {
+          "name": "type",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters$Router",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters$Cache"
+          ]
+        },
+        {
+          "name": "cache",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters$StreamOptions",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean"
+          ]
+        },
+        {
+          "name": "includeUsage",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse",
+      "methods": [
+        {
+          "name": "cached",
+          "parameterTypes": []
+        },
+        {
+          "name": "serviceTier",
+          "parameterTypes": []
+        },
+        {
+          "name": "systemFingerprint",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "cached",
+          "parameterTypes": [
+            "java.lang.Boolean"
+          ]
+        },
+        {
+          "name": "serviceTier",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "systemFingerprint",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest",
+      "methods": [
+        {
+          "name": "audio",
+          "parameterTypes": []
+        },
+        {
+          "name": "frequencyPenalty",
+          "parameterTypes": []
+        },
+        {
+          "name": "logitBias",
+          "parameterTypes": []
+        },
+        {
+          "name": "logprobs",
+          "parameterTypes": []
+        },
+        {
+          "name": "maxCompletionTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "maxTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "messages",
+          "parameterTypes": []
+        },
+        {
+          "name": "metadata",
+          "parameterTypes": []
+        },
+        {
+          "name": "modalities",
+          "parameterTypes": []
+        },
+        {
+          "name": "model",
+          "parameterTypes": []
+        },
+        {
+          "name": "n",
+          "parameterTypes": []
+        },
+        {
+          "name": "parallelToolCalls",
+          "parameterTypes": []
+        },
+        {
+          "name": "prediction",
+          "parameterTypes": []
+        },
+        {
+          "name": "presencePenalty",
+          "parameterTypes": []
+        },
+        {
+          "name": "reasoningEffort",
+          "parameterTypes": []
+        },
+        {
+          "name": "responseFormat",
+          "parameterTypes": []
+        },
+        {
+          "name": "router",
+          "parameterTypes": []
+        },
+        {
+          "name": "seed",
+          "parameterTypes": []
+        },
+        {
+          "name": "serviceTier",
+          "parameterTypes": []
+        },
+        {
+          "name": "stop",
+          "parameterTypes": []
+        },
+        {
+          "name": "store",
+          "parameterTypes": []
+        },
+        {
+          "name": "stream",
+          "parameterTypes": []
+        },
+        {
+          "name": "streamOptions",
+          "parameterTypes": []
+        },
+        {
+          "name": "temperature",
+          "parameterTypes": []
+        },
+        {
+          "name": "toolChoice",
+          "parameterTypes": []
+        },
+        {
+          "name": "tools",
+          "parameterTypes": []
+        },
+        {
+          "name": "topLogprobs",
+          "parameterTypes": []
+        },
+        {
+          "name": "topP",
+          "parameterTypes": []
+        },
+        {
+          "name": "user",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayTextChatRequest$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "maxCompletionTokens",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "model",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "prediction",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters$Prediction"
+          ]
+        },
+        {
+          "name": "reasoningEffort",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "router",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters$Router"
+          ]
+        },
+        {
+          "name": "serviceTier",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "store",
+          "parameterTypes": [
+            "java.lang.Boolean"
+          ]
+        },
+        {
+          "name": "stream",
+          "parameterTypes": [
+            "java.lang.Boolean"
+          ]
+        },
+        {
+          "name": "streamOptions",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters$StreamOptions"
+          ]
+        },
+        {
+          "name": "temperature",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "user",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.util.List",
+            "com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse$Usage"
+          ]
+        },
+        {
+          "name": "data",
+          "parameterTypes": []
+        },
+        {
+          "name": "model",
+          "parameterTypes": []
+        },
+        {
+          "name": "object",
+          "parameterTypes": []
+        },
+        {
+          "name": "usage",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse$Embedding",
+      "methods": [
+        {
+          "name": "index",
+          "parameterTypes": []
+        },
+        {
+          "name": "object",
+          "parameterTypes": []
+        },
+        {
+          "name": "of",
+          "parameterTypes": [
+            "java.lang.String",
+            "int",
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "rawEmbedding",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse$Usage",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "int"
+          ]
+        },
+        {
+          "name": "promptTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "totalTokens",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "long",
+            "java.util.List",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse$Usage"
+          ]
+        },
+        {
+          "name": "background",
+          "parameterTypes": []
+        },
+        {
+          "name": "created",
+          "parameterTypes": []
+        },
+        {
+          "name": "data",
+          "parameterTypes": []
+        },
+        {
+          "name": "outputFormat",
+          "parameterTypes": []
+        },
+        {
+          "name": "quality",
+          "parameterTypes": []
+        },
+        {
+          "name": "size",
+          "parameterTypes": []
+        },
+        {
+          "name": "usage",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse$ImageData",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "b64Json",
+          "parameterTypes": []
+        },
+        {
+          "name": "revisedPrompt",
+          "parameterTypes": []
+        },
+        {
+          "name": "url",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse$InputTokensDetails",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "long",
+            "long"
+          ]
+        },
+        {
+          "name": "imageTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "textTokens",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse$Usage",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "long",
+            "long",
+            "long",
+            "com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse$InputTokensDetails"
+          ]
+        },
+        {
+          "name": "inputTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "inputTokensDetails",
+          "parameterTypes": []
+        },
+        {
+          "name": "outputTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "totalTokens",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.provider.JacksonProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation",
+      "methods": [
+        {
+          "name": "graniteGuardian",
+          "parameterTypes": []
+        },
+        {
+          "name": "hap",
+          "parameterTypes": []
+        },
+        {
+          "name": "inputRanges",
+          "parameterTypes": []
+        },
+        {
+          "name": "pii",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "inputRanges",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation$GraniteGuardian",
+      "methods": [
+        {
+          "name": "input",
+          "parameterTypes": []
+        },
+        {
+          "name": "mask",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation$Hap",
+      "methods": [
+        {
+          "name": "input",
+          "parameterTypes": []
+        },
+        {
+          "name": "mask",
+          "parameterTypes": []
+        },
+        {
+          "name": "output",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation$InputRanges",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Integer",
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "end",
+          "parameterTypes": []
+        },
+        {
+          "name": "start",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation$MaskProperties",
+      "methods": [
+        {
+          "name": "removeEntityValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation$Pii",
+      "methods": [
+        {
+          "name": "input",
+          "parameterTypes": []
+        },
+        {
+          "name": "mask",
+          "parameterTypes": []
+        },
+        {
+          "name": "output",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation$TextModeration",
+      "methods": [
+        {
+          "name": "enabled",
+          "parameterTypes": []
+        },
+        {
+          "name": "threshold",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.Moderation$TextModerationWithoutThreshold",
+      "methods": [
+        {
+          "name": "enabled",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.TextGenerationParameters",
+      "methods": [
+        {
+          "name": "decodingMethod",
+          "parameterTypes": []
+        },
+        {
+          "name": "includeStopSequence",
+          "parameterTypes": []
+        },
+        {
+          "name": "lengthPenalty",
+          "parameterTypes": []
+        },
+        {
+          "name": "maxNewTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "minNewTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "promptVariables",
+          "parameterTypes": []
+        },
+        {
+          "name": "randomSeed",
+          "parameterTypes": []
+        },
+        {
+          "name": "repetitionPenalty",
+          "parameterTypes": []
+        },
+        {
+          "name": "returnOptions",
+          "parameterTypes": []
+        },
+        {
+          "name": "stopSequences",
+          "parameterTypes": []
+        },
+        {
+          "name": "temperature",
+          "parameterTypes": []
+        },
+        {
+          "name": "timeLimit",
+          "parameterTypes": []
+        },
+        {
+          "name": "topK",
+          "parameterTypes": []
+        },
+        {
+          "name": "topP",
+          "parameterTypes": []
+        },
+        {
+          "name": "truncateInputTokens",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.TextGenerationParameters$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "decodingMethod",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "includeStopSequence",
+          "parameterTypes": [
+            "java.lang.Boolean"
+          ]
+        },
+        {
+          "name": "maxNewTokens",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "minNewTokens",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "promptVariables",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        },
+        {
+          "name": "randomSeed",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "repetitionPenalty",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "stopSequences",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "temperature",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "topK",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "topP",
+          "parameterTypes": [
+            "java.lang.Double"
+          ]
+        },
+        {
+          "name": "truncateInputTokens",
+          "parameterTypes": [
+            "java.lang.Integer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.TextGenerationParameters$LengthPenalty",
+      "methods": [
+        {
+          "name": "decayFactor",
+          "parameterTypes": []
+        },
+        {
+          "name": "startIndex",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textgeneration.TextGenerationParameters$ReturnOptions",
+      "methods": [
+        {
+          "name": "getGeneratedText",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInputText",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInputTokens",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTokenLogprobs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTokenRanks",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTopN_Tokens",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.GroundingHints",
+      "methods": [
+        {
+          "name": "fields",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.GroundingHints$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "fields",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.GroundingHints$FieldData",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List",
+            "java.lang.Integer"
+          ]
+        },
+        {
+          "name": "normalizedBbox",
+          "parameterTypes": []
+        },
+        {
+          "name": "pageNumber",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.KvpFields$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "add",
+          "parameterTypes": [
+            "java.lang.String",
+            "com.ibm.watsonx.ai.textprocessing.KvpFields$KvpField"
+          ]
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.KvpFields$KvpField",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "availableOptions",
+          "parameterTypes": []
+        },
+        {
+          "name": "description",
+          "parameterTypes": []
+        },
+        {
+          "name": "example",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.KvpPage"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.KvpSlice"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.Schema",
+      "methods": [
+        {
+          "name": "additionalPromptInstructions",
+          "parameterTypes": []
+        },
+        {
+          "name": "documentDescription",
+          "parameterTypes": []
+        },
+        {
+          "name": "documentType",
+          "parameterTypes": []
+        },
+        {
+          "name": "fields",
+          "parameterTypes": []
+        },
+        {
+          "name": "pages",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.Schema$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "additionalPromptInstructions",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "documentDescription",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "documentType",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "fields",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.textprocessing.KvpFields"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.timeseries.ForecastData"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.timeseries.InputSchema",
+      "methods": [
+        {
+          "name": "freq",
+          "parameterTypes": []
+        },
+        {
+          "name": "idColumns",
+          "parameterTypes": []
+        },
+        {
+          "name": "targetColumns",
+          "parameterTypes": []
+        },
+        {
+          "name": "timestampColumn",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.timeseries.InputSchema$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "freq",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "idColumns",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "targetColumns",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "timestampColumn",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.timeseries.TimeSeriesParameters",
+      "methods": [
+        {
+          "name": "futureData",
+          "parameterTypes": []
+        },
+        {
+          "name": "predictionLength",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.timeseries.TimeSeriesParameters$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "predictionLength",
+          "parameterTypes": [
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.io.File"
+    },
+    {
+      "type": "java.io.FileDescriptor",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "fd"
+        }
+      ]
+    },
+    {
+      "type": "java.io.PrintWriter"
+    },
+    {
+      "type": "java.io.Serializable"
+    },
+    {
+      "type": "java.lang.AutoCloseable"
+    },
+    {
+      "type": "java.lang.Boolean",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "getBoolean",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "boolean"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "boolean"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Byte",
+      "methods": [
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "byte"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "byte"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Character",
+      "methods": [
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "char"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "char"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Class",
+      "methods": [
+        {
+          "name": "cast",
+          "parameterTypes": [
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "isInstance",
+          "parameterTypes": [
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.ClassLoader"
+    },
+    {
+      "type": "java.lang.Class[]"
+    },
+    {
+      "type": "java.lang.Cloneable"
+    },
+    {
+      "type": "java.lang.Comparable"
+    },
+    {
+      "type": "java.lang.Deprecated"
+    },
+    {
+      "type": "java.lang.Double",
+      "methods": [
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "double"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "double"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Double[]"
+    },
+    {
+      "type": "java.lang.Enum"
+    },
+    {
+      "type": "java.lang.Exception"
+    },
+    {
+      "type": "java.lang.Float",
+      "methods": [
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "float"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "float"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.IllegalArgumentException"
+    },
+    {
+      "type": "java.lang.Integer",
+      "methods": [
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Integer[]"
+    },
+    {
+      "type": "java.lang.Iterable"
+    },
+    {
+      "type": "java.lang.Long",
+      "methods": [
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "long"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Math",
+      "methods": [
+        {
+          "name": "addExact",
+          "parameterTypes": [
+            "long",
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Number"
+    },
+    {
+      "type": "java.lang.Object"
+    },
+    {
+      "type": "java.lang.Object[]"
+    },
+    {
+      "type": "java.lang.ProcessHandle",
+      "methods": [
+        {
+          "name": "info",
+          "parameterTypes": []
+        },
+        {
+          "name": "of",
+          "parameterTypes": [
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.ProcessHandle$Info",
+      "methods": [
+        {
+          "name": "startInstant",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.ProcessHandleImpl$Info",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "arguments"
+        },
+        {
+          "name": "command"
+        },
+        {
+          "name": "commandLine"
+        },
+        {
+          "name": "startTime"
+        },
+        {
+          "name": "totalTime"
+        },
+        {
+          "name": "user"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Record"
+    },
+    {
+      "type": "java.lang.Runnable"
+    },
+    {
+      "type": "java.lang.RuntimeException"
+    },
+    {
+      "type": "java.lang.Short",
+      "methods": [
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "short"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "short"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.StackFrameInfo",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.StackWalker"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.StackFrameInfo[]"
+    },
+    {
+      "type": "java.lang.StackTraceElement"
+    },
+    {
+      "type": "java.lang.StackWalker",
+      "methods": [
+        {
+          "name": "getInstance",
+          "parameterTypes": [
+            "java.util.Set",
+            "int"
+          ]
+        },
+        {
+          "name": "walk",
+          "parameterTypes": [
+            "java.util.function.Function"
+          ]
+        },
+        {
+          "name": "walk",
+          "parameterTypes": [
+            "java.util.function.Function",
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.StackWalker$Option",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.StackWalker$StackFrame",
+      "methods": [
+        {
+          "name": "getClassName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMethodName",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.String"
+    },
+    {
+      "type": "java.lang.StringBuilder"
+    },
+    {
+      "type": "java.lang.StringConcatHelper",
+      "methods": [
+        {
+          "name": "simpleConcat",
+          "parameterTypes": [
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.StringConcatHelper$Concat1",
+      "methods": [
+        {
+          "name": "concat",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "concat",
+          "parameterTypes": [
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.String[]"
+    },
+    {
+      "type": "java.lang.System",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "err"
+        },
+        {
+          "name": "out"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.System$Logger$Level",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Thread",
+      "fields": [
+        {
+          "name": "contextClassLoader"
+        },
+        {
+          "name": "inheritableThreadLocals"
+        },
+        {
+          "name": "parkBlocker"
+        },
+        {
+          "name": "threadLocalRandomProbe"
+        },
+        {
+          "name": "threadLocalRandomSecondarySeed"
+        },
+        {
+          "name": "threadLocalRandomSeed"
+        },
+        {
+          "name": "threadLocals"
+        }
+      ],
+      "methods": [
+        {
+          "name": "ofVirtual",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Thread$Builder",
+      "methods": [
+        {
+          "name": "factory",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Thread$Builder$OfVirtual",
+      "methods": [
+        {
+          "name": "name",
+          "parameterTypes": [
+            "java.lang.String",
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Thread$ThreadNumbering"
+    },
+    {
+      "type": "java.lang.ThreadBuilders$BaseThreadFactory",
+      "fields": [
+        {
+          "name": "count"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.ThreadGroup",
+      "fields": [
+        {
+          "name": "parent"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Throwable"
+    },
+    {
+      "type": "java.lang.VirtualThread",
+      "fields": [
+        {
+          "name": "carrierThread"
+        },
+        {
+          "name": "onWaitingList"
+        },
+        {
+          "name": "parkPermit"
+        },
+        {
+          "name": "state"
+        },
+        {
+          "name": "termination"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Void"
+    },
+    {
+      "type": "java.lang.annotation.Annotation"
+    },
+    {
+      "type": "java.lang.annotation.Annotation[]"
+    },
+    {
+      "type": "java.lang.annotation.Documented"
+    },
+    {
+      "type": "java.lang.annotation.ElementType",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.annotation.ElementType[]"
+    },
+    {
+      "type": "java.lang.annotation.Inherited"
+    },
+    {
+      "type": "java.lang.annotation.Repeatable"
+    },
+    {
+      "type": "java.lang.annotation.Retention"
+    },
+    {
+      "type": "java.lang.annotation.RetentionPolicy",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.annotation.Target"
+    },
+    {
+      "type": "java.lang.classfile.Attribute[]"
+    },
+    {
+      "type": "java.lang.constant.Constable"
+    },
+    {
+      "type": "java.lang.constant.ConstantDesc"
+    },
+    {
+      "type": "java.lang.foreign.MemorySegment",
+      "methods": [
+        {
+          "name": "asSlice",
+          "parameterTypes": [
+            "long",
+            "long"
+          ]
+        },
+        {
+          "name": "asSlice",
+          "parameterTypes": [
+            "long",
+            "java.lang.foreign.MemoryLayout"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle"
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle$Species_I",
+      "fields": [
+        {
+          "name": "argI0"
+        }
+      ],
+      "methods": [
+        {
+          "name": "make",
+          "parameterTypes": [
+            "java.lang.invoke.MethodType",
+            "java.lang.invoke.LambdaForm",
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle$Species_LI",
+      "fields": [
+        {
+          "name": "argI1"
+        },
+        {
+          "name": "argL0"
+        }
+      ],
+      "methods": [
+        {
+          "name": "make",
+          "parameterTypes": [
+            "java.lang.invoke.MethodType",
+            "java.lang.invoke.LambdaForm",
+            "java.lang.Object",
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle$Species_LL",
+      "fields": [
+        {
+          "name": "argL0"
+        },
+        {
+          "name": "argL1"
+        }
+      ],
+      "methods": [
+        {
+          "name": "make",
+          "parameterTypes": [
+            "java.lang.invoke.MethodType",
+            "java.lang.invoke.LambdaForm",
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle$Species_LLL",
+      "fields": [
+        {
+          "name": "argL0"
+        },
+        {
+          "name": "argL1"
+        },
+        {
+          "name": "argL2"
+        }
+      ],
+      "methods": [
+        {
+          "name": "make",
+          "parameterTypes": [
+            "java.lang.invoke.MethodType",
+            "java.lang.invoke.LambdaForm",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle$Species_LLLL",
+      "fields": [
+        {
+          "name": "argL0"
+        },
+        {
+          "name": "argL1"
+        },
+        {
+          "name": "argL2"
+        },
+        {
+          "name": "argL3"
+        }
+      ],
+      "methods": [
+        {
+          "name": "make",
+          "parameterTypes": [
+            "java.lang.invoke.MethodType",
+            "java.lang.invoke.LambdaForm",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle$Species_LLLLL",
+      "fields": [
+        {
+          "name": "argL0"
+        },
+        {
+          "name": "argL1"
+        },
+        {
+          "name": "argL2"
+        },
+        {
+          "name": "argL3"
+        },
+        {
+          "name": "argL4"
+        }
+      ],
+      "methods": [
+        {
+          "name": "make",
+          "parameterTypes": [
+            "java.lang.invoke.MethodType",
+            "java.lang.invoke.LambdaForm",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle$Species_LLLLLL",
+      "fields": [
+        {
+          "name": "argL0"
+        },
+        {
+          "name": "argL1"
+        },
+        {
+          "name": "argL2"
+        },
+        {
+          "name": "argL3"
+        },
+        {
+          "name": "argL4"
+        },
+        {
+          "name": "argL5"
+        }
+      ],
+      "methods": [
+        {
+          "name": "make",
+          "parameterTypes": [
+            "java.lang.invoke.MethodType",
+            "java.lang.invoke.LambdaForm",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.BoundMethodHandle$Species_LLLLLLL",
+      "fields": [
+        {
+          "name": "argL0"
+        },
+        {
+          "name": "argL1"
+        },
+        {
+          "name": "argL2"
+        },
+        {
+          "name": "argL3"
+        },
+        {
+          "name": "argL4"
+        },
+        {
+          "name": "argL5"
+        },
+        {
+          "name": "argL6"
+        }
+      ],
+      "methods": [
+        {
+          "name": "make",
+          "parameterTypes": [
+            "java.lang.invoke.MethodType",
+            "java.lang.invoke.LambdaForm",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.LambdaForm$Name[]"
+    },
+    {
+      "type": "java.lang.invoke.MethodHandle"
+    },
+    {
+      "type": "java.lang.invoke.MethodHandleImpl",
+      "methods": [
+        {
+          "name": "selectAlternative",
+          "parameterTypes": [
+            "boolean",
+            "java.lang.invoke.MethodHandle",
+            "java.lang.invoke.MethodHandle"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.MethodHandleImpl$ArrayAccessor",
+      "methods": [
+        {
+          "name": "getElementL",
+          "parameterTypes": [
+            "java.lang.Object[]",
+            "int"
+          ]
+        },
+        {
+          "name": "lengthL",
+          "parameterTypes": [
+            "java.lang.Object[]"
+          ]
+        },
+        {
+          "name": "setElementL",
+          "parameterTypes": [
+            "java.lang.Object[]",
+            "int",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.MethodHandleImpl$BindCaller",
+      "methods": [
+        {
+          "name": "checkCallerClass",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.MethodHandleImpl$CountingWrapper"
+    },
+    {
+      "type": "java.lang.invoke.MethodHandle[]"
+    },
+    {
+      "type": "java.lang.invoke.VarHandle",
+      "fields": [
+        {
+          "name": "vform"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.ref.WeakReference"
+    },
+    {
+      "type": "java.lang.reflect.AnnotatedElement"
+    },
+    {
+      "type": "java.lang.reflect.Constructor"
+    },
+    {
+      "type": "java.lang.reflect.Field"
+    },
+    {
+      "type": "java.lang.reflect.Member"
+    },
+    {
+      "type": "java.lang.reflect.Method"
+    },
+    {
+      "type": "java.lang.reflect.Parameter"
+    },
+    {
+      "type": "java.lang.runtime.ObjectMethods",
+      "methods": [
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "byte",
+            "byte"
+          ]
+        },
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "char",
+            "char"
+          ]
+        },
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "double",
+            "double"
+          ]
+        },
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "float",
+            "float"
+          ]
+        },
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "int",
+            "int"
+          ]
+        },
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "long",
+            "long"
+          ]
+        },
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "short",
+            "short"
+          ]
+        },
+        {
+          "name": "eq",
+          "parameterTypes": [
+            "boolean",
+            "boolean"
+          ]
+        },
+        {
+          "name": "hashCombiner",
+          "parameterTypes": [
+            "int",
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.math.BigDecimal"
+    },
+    {
+      "type": "java.math.BigInteger"
+    },
+    {
+      "type": "java.net.Inet4Address",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.net.Inet6Address",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "holder6"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.net.Inet6Address$Inet6AddressHolder",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "ipaddress"
+        },
+        {
+          "name": "scope_id"
+        },
+        {
+          "name": "scope_id_set"
+        },
+        {
+          "name": "scope_ifname"
+        }
+      ]
+    },
+    {
+      "type": "java.net.InetAddress",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "holder"
+        }
+      ]
+    },
+    {
+      "type": "java.net.InetAddress$InetAddressHolder",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "address"
+        },
+        {
+          "name": "family"
+        },
+        {
+          "name": "hostName"
+        },
+        {
+          "name": "originalHostName"
+        }
+      ]
+    },
+    {
+      "type": "java.net.InetAddress[]"
+    },
+    {
+      "type": "java.net.URI"
+    },
+    {
+      "type": "java.net.URL"
+    },
+    {
+      "type": "java.nio.ByteBuffer",
+      "fields": [
+        {
+          "name": "hb"
+        },
+        {
+          "name": "offset"
+        }
+      ]
+    },
+    {
+      "type": "java.nio.channels.spi.AbstractInterruptibleChannel",
+      "fields": [
+        {
+          "name": "interruptedTarget"
+        }
+      ]
+    },
+    {
+      "type": "java.nio.charset.Charset"
+    },
+    {
+      "type": "java.nio.file.Path"
+    },
+    {
+      "type": "java.security.Provider"
+    },
+    {
+      "type": "java.sql.Date"
+    },
+    {
+      "type": "java.sql.Time"
+    },
+    {
+      "type": "java.time.Duration"
+    },
+    {
+      "type": "java.time.Instant"
+    },
+    {
+      "type": "java.time.OffsetDateTime"
+    },
+    {
+      "type": "java.time.ZoneId"
+    },
+    {
+      "type": "java.time.ZonedDateTime"
+    },
+    {
+      "type": "java.time.temporal.ChronoUnit"
+    },
+    {
+      "type": "java.time.temporal.Temporal"
+    },
+    {
+      "type": "java.time.temporal.TemporalAmount"
+    },
+    {
+      "type": "java.util.AbstractCollection"
+    },
+    {
+      "type": "java.util.AbstractList"
+    },
+    {
+      "type": "java.util.AbstractMap"
+    },
+    {
+      "type": "java.util.AbstractSet"
+    },
+    {
+      "type": "java.util.ArrayList"
+    },
+    {
+      "type": "java.util.Collection"
+    },
+    {
+      "type": "java.util.Collections$UnmodifiableCollection"
+    },
+    {
+      "type": "java.util.Collections$UnmodifiableList"
+    },
+    {
+      "type": "java.util.Collections$UnmodifiableMap"
+    },
+    {
+      "type": "java.util.Collections$UnmodifiableRandomAccessList"
+    },
+    {
+      "type": "java.util.Collections$UnmodifiableSet"
+    },
+    {
+      "type": "java.util.Comparator"
+    },
+    {
+      "type": "java.util.Deque"
+    },
+    {
+      "type": "java.util.HashMap"
+    },
+    {
+      "type": "java.util.ImmutableCollections$AbstractImmutableCollection"
+    },
+    {
+      "type": "java.util.ImmutableCollections$AbstractImmutableList"
+    },
+    {
+      "type": "java.util.ImmutableCollections$AbstractImmutableMap"
+    },
+    {
+      "type": "java.util.ImmutableCollections$List12"
+    },
+    {
+      "type": "java.util.ImmutableCollections$ListN"
+    },
+    {
+      "type": "java.util.ImmutableCollections$Map1"
+    },
+    {
+      "type": "java.util.ImmutableCollections$MapN"
+    },
+    {
+      "type": "java.util.Iterator"
+    },
+    {
+      "type": "java.util.LinkedHashMap"
+    },
+    {
+      "type": "java.util.List"
+    },
+    {
+      "type": "java.util.ListIterator"
+    },
+    {
+      "type": "java.util.Locale"
+    },
+    {
+      "type": "java.util.Map"
+    },
+    {
+      "type": "java.util.Map$Entry"
+    },
+    {
+      "type": "java.util.Map$Entry[]"
+    },
+    {
+      "type": "java.util.Objects",
+      "methods": [
+        {
+          "name": "equals",
+          "parameterTypes": [
+            "java.lang.Object",
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "hashCode",
+          "parameterTypes": [
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "toString",
+          "parameterTypes": [
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.util.Optional"
+    },
+    {
+      "type": "java.util.OptionalInt"
+    },
+    {
+      "type": "java.util.Random"
+    },
+    {
+      "type": "java.util.RandomAccess"
+    },
+    {
+      "type": "java.util.SequencedCollection"
+    },
+    {
+      "type": "java.util.SequencedMap"
+    },
+    {
+      "type": "java.util.ServiceLoader$Provider"
+    },
+    {
+      "type": "java.util.Set"
+    },
+    {
+      "type": "java.util.Spliterator"
+    },
+    {
+      "type": "java.util.StringJoiner"
+    },
+    {
+      "type": "java.util.TimeZone"
+    },
+    {
+      "type": "java.util.UUID"
+    },
+    {
+      "type": "java.util.concurrent.Callable"
+    },
+    {
+      "type": "java.util.concurrent.CompletableFuture",
+      "fields": [
+        {
+          "name": "result"
+        },
+        {
+          "name": "stack"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.CompletableFuture$Completion",
+      "fields": [
+        {
+          "name": "next"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentLinkedDeque",
+      "fields": [
+        {
+          "name": "head"
+        },
+        {
+          "name": "tail"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentLinkedDeque$Node",
+      "fields": [
+        {
+          "name": "item"
+        },
+        {
+          "name": "next"
+        },
+        {
+          "name": "prev"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentLinkedQueue",
+      "fields": [
+        {
+          "name": "head"
+        },
+        {
+          "name": "tail"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentLinkedQueue$Node",
+      "fields": [
+        {
+          "name": "item"
+        },
+        {
+          "name": "next"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentMap"
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentSkipListMap",
+      "fields": [
+        {
+          "name": "adder"
+        },
+        {
+          "name": "head"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentSkipListMap$Index",
+      "fields": [
+        {
+          "name": "right"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentSkipListMap$Node",
+      "fields": [
+        {
+          "name": "next"
+        },
+        {
+          "name": "val"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.DelayScheduler",
+      "fields": [
+        {
+          "name": "active"
+        },
+        {
+          "name": "pending"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.Executors",
+      "methods": [
+        {
+          "name": "newThreadPerTaskExecutor",
+          "parameterTypes": [
+            "java.util.concurrent.ThreadFactory"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ForkJoinPool",
+      "fields": [
+        {
+          "name": "ctl"
+        },
+        {
+          "name": "parallelism"
+        },
+        {
+          "name": "runState"
+        },
+        {
+          "name": "termination"
+        },
+        {
+          "name": "threadIds"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ForkJoinPool$WorkQueue",
+      "fields": [
+        {
+          "name": "array"
+        },
+        {
+          "name": "base"
+        },
+        {
+          "name": "phase"
+        },
+        {
+          "name": "top"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ForkJoinTask",
+      "fields": [
+        {
+          "name": "aux"
+        },
+        {
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ForkJoinTask$Aux",
+      "fields": [
+        {
+          "name": "next"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.FutureTask",
+      "fields": [
+        {
+          "name": "runner"
+        },
+        {
+          "name": "state"
+        },
+        {
+          "name": "waiters"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.LinkedTransferQueue",
+      "fields": [
+        {
+          "name": "head"
+        },
+        {
+          "name": "sweepVotes"
+        },
+        {
+          "name": "tail"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ThreadLocalRandom$Access"
+    },
+    {
+      "type": "java.util.concurrent.ThreadPerTaskExecutor",
+      "fields": [
+        {
+          "name": "state"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.atomic.AtomicBoolean",
+      "fields": [
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.atomic.AtomicInteger"
+    },
+    {
+      "type": "java.util.concurrent.atomic.AtomicReference",
+      "fields": [
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.atomic.Striped64",
+      "fields": [
+        {
+          "name": "base"
+        },
+        {
+          "name": "cellsBusy"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.locks.AbstractQueuedLongSynchronizer",
+      "fields": [
+        {
+          "name": "head"
+        },
+        {
+          "name": "state"
+        },
+        {
+          "name": "tail"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.locks.AbstractQueuedSynchronizer$Node",
+      "fields": [
+        {
+          "name": "next"
+        },
+        {
+          "name": "prev"
+        },
+        {
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.locks.ReadWriteLock"
+    },
+    {
+      "type": "java.util.function.BiFunction"
+    },
+    {
+      "type": "java.util.function.Consumer"
+    },
+    {
+      "type": "java.util.function.Function"
+    },
+    {
+      "type": "java.util.function.Predicate"
+    },
+    {
+      "type": "java.util.function.Supplier"
+    },
+    {
+      "type": "java.util.logging.ConsoleHandler",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.util.logging.Handler[]"
+    },
+    {
+      "type": "java.util.logging.LogManager"
+    },
+    {
+      "type": "java.util.logging.LogRecord"
+    },
+    {
+      "type": "java.util.logging.SimpleFormatter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.util.regex.Pattern"
+    },
+    {
+      "type": "java.util.stream.BaseStream"
+    },
+    {
+      "type": "java.util.stream.IntStream"
+    },
+    {
+      "type": "java.util.stream.Stream"
+    },
+    {
+      "type": "org.mockito.Answers",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.Captor"
+    },
+    {
+      "type": "org.mockito.Mock"
+    },
+    {
+      "type": "org.mockito.Mock$Strictness",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.junit.jupiter.MockitoExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.junit.jupiter.MockitoSettings"
+    },
+    {
+      "type": "org.mockito.quality.Strictness",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.management.VMManagementImpl",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.NativePRNG",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.security.SecureRandomParameters"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData_en",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData_en_US"
+    },
+    {
+      "type": "sun.util.cldr.CLDRLocaleProviderAdapter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.util.logging.internal.LoggingProviderImpl",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.util.logging.resources.logging",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.util.logging.resources.logging_en"
+    },
+    {
+      "type": "sun.util.logging.resources.logging_en_US"
+    },
+    {
+      "type": "sun.util.logging.resources.spi.loggingProvider"
+    },
+    {
+      "type": "sun.util.resources.cldr.CalendarData",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.util.resources.cldr.provider.CLDRLocaleDataMetaInfo",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "tools.jackson.databind.DeserializationFeature",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "tools.jackson.databind.JacksonModule[]"
+    },
+    {
+      "type": "tools.jackson.databind.KeyDeserializer$None"
+    },
+    {
+      "type": "tools.jackson.databind.SerializationFeature",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "tools.jackson.databind.ValueDeserializer$None"
+    },
+    {
+      "type": "tools.jackson.databind.annotation.JacksonStdImpl"
+    },
+    {
+      "type": "tools.jackson.databind.annotation.JsonDeserialize"
+    },
+    {
+      "type": "tools.jackson.databind.annotation.JsonPOJOBuilder"
+    },
+    {
+      "type": "tools.jackson.databind.deser.Deserializers[]"
+    },
+    {
+      "type": "tools.jackson.databind.deser.KeyDeserializers[]"
+    },
+    {
+      "type": "tools.jackson.databind.deser.SettableBeanProperty[]"
+    },
+    {
+      "type": "tools.jackson.databind.deser.ValueInstantiators[]"
+    },
+    {
+      "type": "tools.jackson.databind.introspect.POJOPropertyBuilder[]"
+    },
+    {
+      "type": "tools.jackson.databind.ser.Serializers[]"
+    },
+    {
+      "type": "tools.jackson.databind.util.Converter$None"
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JacksonAnnotation"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonAnyGetter"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonAnySetter"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonAutoDetect"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonCreator"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonIgnore"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonProperty"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "java.lang.Deprecated"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "java.lang.annotation.Documented"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "java.lang.annotation.Inherited"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "java.lang.annotation.Repeatable"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "java.lang.annotation.Retention"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "java.lang.annotation.Target"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "org.mockito.Captor"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "org.mockito.Mock"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "org.mockito.junit.jupiter.MockitoSettings"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "tools.jackson.databind.annotation.JacksonStdImpl"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "tools.jackson.databind.annotation.JsonDeserialize"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "tools.jackson.databind.annotation.JsonPOJOBuilder"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.batch.Status",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.batch.Status",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.ChatResponse",
+          "interfaces": [
+            "java.util.function.IntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.ChatResponse"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.ChatUtility",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.Masker",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.Masker",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.Masker",
+          "interfaces": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.SseEventProcessor",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.ArrayList"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.LinkedHashMap"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.SseEventProcessor",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.SseEventProcessor",
+            "java.util.ArrayList"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.LinkedHashMap"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.SseEventProcessor",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.SseEventProcessor"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.SseEventProcessor",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.TextChatResponse",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.TextChatResponse",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator",
+            "com.ibm.watsonx.ai.chat.ChatResponse"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator",
+            "com.ibm.watsonx.ai.chat.model.CompletedToolCall"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator",
+            "com.ibm.watsonx.ai.chat.model.PartialToolCall"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator",
+            "java.lang.Runnable",
+            "java.util.concurrent.CompletableFuture"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator",
+            "java.lang.String",
+            "com.ibm.watsonx.ai.chat.model.PartialChatResponse"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor",
+            "com.ibm.watsonx.ai.chat.interceptor.InterceptorContext"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.model.AssistantMessage",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.ToolExecutor"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.JsonSchema",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.JsonSchema$Builder",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.ObjectSchema$Builder",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.Json",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.Json",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.detection.DetectionTextRequest",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.foundationmodel.filter.Filter",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.StringJoiner"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.foundationmodel.filter.Filter",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.foundationmodel.filter.Filter$Expression",
+          "interfaces": [
+            "com.ibm.watsonx.ai.foundationmodel.filter.FilterExpression"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.foundationmodel.filter.FilterExpression"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatUtility",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.jackson3.provider.JacksonProvider",
+          "interfaces": [
+            "java.util.function.UnaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.ProcessHandleImpl",
+          "interfaces": [
+            "java.util.concurrent.ThreadFactory"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.VirtualThread",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.VirtualThread"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.VirtualThread",
+          "interfaces": [
+            "java.lang.Thread$UncaughtExceptionHandler"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.VirtualThread",
+          "interfaces": [
+            "java.util.concurrent.ForkJoinPool$ForkJoinWorkerThreadFactory"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.VirtualThread",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.invoke.MethodHandleImpl$BindCaller",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.management.ManagementFactory$PlatformMBeanFinder",
+          "interfaces": [
+            "java.util.function.BinaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.management.ManagementFactory$PlatformMBeanFinder",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.reflect.Executable",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.lang.runtime.ObjectMethods",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.InetAddress",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.InetAddress",
+          "interfaces": [
+            "java.util.function.IntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.security.Provider",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.time.format.DateTimeFormatter",
+          "interfaces": [
+            "java.time.temporal.TemporalQuery"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.time.format.DateTimeFormatterBuilder",
+          "interfaces": [
+            "java.time.temporal.TemporalQuery"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.ArrayDeque",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.ArrayDeque"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.Collections$UnmodifiableMap$UnmodifiableEntrySet",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Consumer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.Comparator",
+          "interfaces": [
+            "java.io.Serializable",
+            "java.util.Comparator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.Comparator",
+            "java.util.Comparator"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.Comparator",
+            "java.util.function.Function"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Function"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.ResourceBundle$Control",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.ResourceBundle$Control",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.function.BinaryOperator",
+          "interfaces": [
+            "java.util.function.BinaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.Comparator"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.function.Function",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Function",
+            "java.util.function.Function"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.function.Predicate",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Object"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Predicate"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Predicate",
+            "java.util.function.Predicate"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.logging.Level",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.logging.Level$KnownLevel",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.logging.SimpleFormatter",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.regex.CharPredicates",
+          "interfaces": [
+            "java.util.regex.Pattern$BmpCharPredicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.regex.CharPredicates",
+          "interfaces": [
+            "java.util.regex.Pattern$CharPredicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Character$UnicodeBlock"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.regex.Pattern",
+          "interfaces": [
+            "java.util.regex.Pattern$BmpCharPredicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "int"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.regex.Pattern$CharPredicate",
+            "java.util.regex.Pattern$CharPredicate"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.regex.Pattern",
+          "interfaces": [
+            "java.util.regex.Pattern$CharPredicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "int"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.regex.Pattern$CharPredicate"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.regex.Pattern$CharPredicate",
+            "java.util.regex.Pattern$CharPredicate"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.AbstractPipeline",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.stream.AbstractPipeline"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.Collectors",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.BiConsumer",
+            "java.util.function.Predicate"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Function",
+            "java.util.function.Function"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.Collectors",
+          "interfaces": [
+            "java.util.function.BinaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.BinaryOperator"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.Collectors",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.stream.Collector"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.Collectors",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.CharSequence",
+            "java.lang.CharSequence",
+            "java.lang.CharSequence"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.stream.Collector"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.MatchOps",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.stream.MatchOps$MatchKind",
+            "java.util.function.Predicate"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.ReferencePipeline",
+          "interfaces": [
+            "java.util.function.IntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.SortedOps$RefSortingSink",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.stream.Sink"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.StreamSpliterators$WrappingSpliterator",
+          "interfaces": [
+            "java.util.stream.Sink"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Consumer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.zip.ZipFile$Source",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "javax.xml.catalog.CatalogFeatures",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "javax.xml.catalog.CatalogFeatures"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "javax.xml.parsers.FactoryFinder",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class",
+            "java.lang.ClassLoader"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "jdk.xml.internal.XMLSecurityManager$StringMapper",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.util.cldr.CLDRLocaleProviderAdapter",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.util.locale.provider.LocaleProviderAdapter",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.util.locale.provider.LocaleProviderAdapter",
+          "interfaces": [
+            "java.util.function.IntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.core.util.BufferRecycler",
+          "interfaces": [
+            "java.util.function.BinaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ObjectMapper",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.atomic.AtomicReference"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.cfg.MapperBuilder",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "tools.jackson.databind.cfg.ModuleContextBase"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.deser.InstantDeserializer",
+          "interfaces": [
+            "java.util.function.BiFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.deser.InstantDeserializer",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.deser.MonthDeserializer",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.ser.InstantSerializer",
+          "interfaces": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.ser.InstantSerializer",
+          "interfaces": [
+            "java.util.function.ToLongFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.ser.OffsetDateTimeSerializer",
+          "interfaces": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.ser.OffsetDateTimeSerializer",
+          "interfaces": [
+            "java.util.function.ToLongFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.ser.ZonedDateTimeSerializer",
+          "interfaces": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ext.javatime.ser.ZonedDateTimeSerializer",
+          "interfaces": [
+            "java.util.function.ToLongFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.introspect.AnnotatedCreatorCollector",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "tools.jackson.databind.introspect.AnnotatedCreatorCollector"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.introspect.POJOPropertyBuilder",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "tools.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap",
+            "tools.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap$Bucket[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.util.RecordUtil",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.util.RecordUtil",
+          "interfaces": [
+            "java.util.function.IntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider"
+    },
+    {
+      "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.executor.CpuExecutorProvider"
+    },
+    {
+      "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.executor.IOExecutorProvider"
+    },
+    {
+      "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.json.JsonProvider"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"
+    },
+    {
+      "glob": "META-INF/services/javax.xml.parsers.DocumentBuilderFactory"
+    },
+    {
+      "glob": "META-INF/services/org.slf4j.spi.SLF4JServiceProvider"
+    }
+  ]
+}

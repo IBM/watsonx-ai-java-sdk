@@ -23,6 +23,7 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
@@ -36,6 +37,7 @@ import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageParameters.Size;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageParameters.Style;
 
 @SuppressWarnings("unchecked")
+@DisabledInNativeImage
 public class ModelGatewayImageServiceTest extends AbstractWatsonxTest {
 
     private static final String MODEL_ID = "gpt-image-1";

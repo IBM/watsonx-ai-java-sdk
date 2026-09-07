@@ -53,7 +53,7 @@ public class ClusterSchemaService extends ProjectService {
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
-            .timeout(timeout)
+            .timeout(TIME_OUT)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
             .verifySsl(verifySsl)

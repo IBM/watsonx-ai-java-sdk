@@ -17,7 +17,9 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 
+@DisabledInNativeImage
 public class CustomHttpClientTest {
 
     @Test

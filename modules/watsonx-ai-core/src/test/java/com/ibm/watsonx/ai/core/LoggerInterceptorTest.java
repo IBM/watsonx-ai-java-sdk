@@ -47,6 +47,7 @@ import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -60,6 +61,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 @ExtendWith(MockitoExtension.class)
+@DisabledInNativeImage
 public class LoggerInterceptorTest {
 
     @Mock

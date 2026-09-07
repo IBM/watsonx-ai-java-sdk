@@ -14,7 +14,9 @@ import java.util.Map;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 
+@DisabledInNativeImage
 public class SseEventLoggerTest {
 
     @Test

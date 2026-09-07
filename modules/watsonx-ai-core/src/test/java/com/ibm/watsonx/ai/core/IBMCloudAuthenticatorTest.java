@@ -33,6 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
@@ -47,6 +48,7 @@ import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@DisabledInNativeImage
 public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
     @Nested

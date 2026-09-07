@@ -18,6 +18,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,7 @@ import com.ibm.watsonx.ai.utils.HttpUtils;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @Isolated("Verifies executor/thread behavior with tight timeouts; must run without concurrent CPU contention.")
+@DisabledInNativeImage
 public class TokenizationServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach

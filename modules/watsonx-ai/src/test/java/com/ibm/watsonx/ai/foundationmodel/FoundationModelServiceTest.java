@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
@@ -27,6 +28,7 @@ import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.foundationmodel.FoundationModelResponse.Pagination;
 import com.ibm.watsonx.ai.foundationmodel.filter.Filter;
 
+@DisabledInNativeImage
 public class FoundationModelServiceTest extends AbstractWatsonxTest {
 
     @Test

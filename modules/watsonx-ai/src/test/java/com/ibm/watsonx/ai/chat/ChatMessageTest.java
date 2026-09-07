@@ -16,12 +16,14 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.ImageContent;
 import com.ibm.watsonx.ai.chat.model.TextContent;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.VideoContent;
 
+@DisabledInNativeImage
 public class ChatMessageTest {
 
     @Test
