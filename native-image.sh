@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
 IMAGE="ghcr.io/graalvm/native-image-community:25"
-MODULES=(watsonx-ai-core watsonx-ai watsonx-ai-jackson2 watsonx-ai-jackson3)
+MODULES=(watsonx-ai-core watsonx-ai-jackson2 watsonx-ai-jackson3)
 REFLECTION_DENY_PREFIXES_JSON='[
   "com.github.jknack.handlebars",
   "com.google.common",
@@ -78,6 +78,12 @@ echo "==> Installing parent POM"
 echo "==> Installing watsonx-ai-core"
 ./mvnw install \
   -pl modules/watsonx-ai-core \
+  -B -ntp -q \
+  -DskipTests
+
+echo "==> Installing watsonx-ai"
+./mvnw install \
+  -pl modules/watsonx-ai \
   -B -ntp -q \
   -DskipTests
 

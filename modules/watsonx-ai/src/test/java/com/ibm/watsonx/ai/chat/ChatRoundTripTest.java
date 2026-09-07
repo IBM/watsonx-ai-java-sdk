@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.chat.model.AssistantMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
@@ -26,7 +25,6 @@ import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.core.Json;
 
-@DisabledInNativeImage
 public class ChatRoundTripTest {
 
     @Test

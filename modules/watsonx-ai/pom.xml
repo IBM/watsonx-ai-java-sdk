@@ -26,6 +26,10 @@
     <relativePath>../..</relativePath>
   </parent>
 
+  <properties>
+    <skipTests>true</skipTests>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
@@ -47,51 +51,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${build-helper-maven-plugin-version}</version>
-        <executions>
-          <execution>
-            <id>add-sharedtest-source</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/sharedtest/java</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <executions>
-          <!--
-            src/sharedtest/java is registered as an extra test source root above, so the
-            default testCompile execution already compiles it into target/test-classes
-            (needed for watsonx-ai's own Surefire run). This second execution recompiles the
-            same classes on their own into target/sharedtest-classes, so maven-jar-plugin's
-            test-jar execution below can package only them, without an excludes list.
-          -->
-          <execution>
-            <id>sharedtest-testCompile</id>
-            <phase>process-test-classes</phase>
-            <goals>
-              <goal>testCompile</goal>
-            </goals>
-            <configuration>
-              <compileSourceRoots>
-                <compileSourceRoot>${project.basedir}/src/sharedtest/java</compileSourceRoot>
-              </compileSourceRoots>
-              <outputDirectory>${project.build.directory}/sharedtest-classes</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>${maven-jar-plugin-version}</version>
@@ -101,56 +60,16 @@
               <goal>test-jar</goal>
             </goals>
             <configuration>
-              <testClassesDirectory>${project.build.directory}/sharedtest-classes</testClassesDirectory>
+              <!-- Weld-based, needs weld-junit5 which watsonx-ai-jackson2/watsonx-ai-jackson3 don't have. -->
+              <excludes>
+                <exclude>**/ContextDepedencyInjectionTest.class</exclude>
+                <exclude>**/ContextDepedencyInjectionTest$*.class</exclude>
+              </excludes>
             </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>native-agent</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <testExcludes>
-                <testExclude>**/ContextDepedencyInjectionTest.java</testExclude>
-                <testExclude>**/CustomRestClientTest.java</testExclude>
-              </testExcludes>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>native-maven-plugin</artifactId>
-            <configuration>
-              <agent>
-                <enabled>true</enabled>
-                <options>
-                  <callerFilterFiles>
-                    <filterFile>${project.basedir}/native-agent-filter.json</filterFile>
-                  </callerFilterFiles>
-                  <accessFilterFiles>
-                    <filterFile>${project.basedir}/native-agent-filter.json</filterFile>
-                  </accessFilterFiles>
-                </options>
-                <metadataCopy>
-                  <merge>false</merge>
-                  <outputDirectory>${project.basedir}/src/main/resources/META-INF/native-image/com.ibm.watsonx/${project.artifactId}</outputDirectory>
-                  <disabledStages>
-                    <stage>main</stage>
-                  </disabledStages>
-                </metadataCopy>
-              </agent>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
 </project>

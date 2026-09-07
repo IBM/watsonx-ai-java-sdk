@@ -12,13 +12,11 @@ import java.nio.ByteOrder;
 import java.util.Base64;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse.Embedding;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingResponse.Usage;
 
-@DisabledInNativeImage
 public class ModelGatewayEmbeddingRoundTripTest {
 
     @Test

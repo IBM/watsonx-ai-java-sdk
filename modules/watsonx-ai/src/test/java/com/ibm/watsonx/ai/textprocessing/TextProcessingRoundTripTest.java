@@ -7,13 +7,11 @@ package com.ibm.watsonx.ai.textprocessing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.textprocessing.GroundingHints.FieldData;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
 
-@DisabledInNativeImage
 public class TextProcessingRoundTripTest {
 
     @Test

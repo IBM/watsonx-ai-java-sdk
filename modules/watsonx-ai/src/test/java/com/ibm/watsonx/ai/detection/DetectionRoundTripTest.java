@@ -9,13 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.detection.detector.Hap;
 import com.ibm.watsonx.ai.detection.detector.Pii;
 
-@DisabledInNativeImage
 public class DetectionRoundTripTest {
 
     @Test

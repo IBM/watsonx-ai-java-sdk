@@ -9,14 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse.ImageData;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse.InputTokensDetails;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageResponse.Usage;
 
-@DisabledInNativeImage
 public class ModelGatewayImageRoundTripTest {
 
     @Test

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionEntry;
@@ -29,43 +28,43 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Prediction;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Router;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
-@DisabledInNativeImage
 public class ModelGatewayChatRoundTripTest {
 
     @Test
     void should_serialize_and_deserialize_the_gateway_chat_response() {
 
-        var EXPECTED = """
-            {
-                "id": "chat-1",
-                "object": "chat.completion",
-                "model_id": "gpt-4o",
-                "model": "gpt-4o",
-                "choices": [
-                    { "index": 0, "message": { "role": "assistant", "content": "Hello there!" }, "finish_reason": "stop" }
-                ],
-                "created": 1735689600,
-                "model_version": "1.0.0",
-                "created_at": "2026-08-04T10:00:00.000Z",
-                "usage": { "completion_tokens": 10, "prompt_tokens": 20, "total_tokens": 30 },
-                "extraction_tags": {
-                    "think": { "opening": "<think>", "closing": "</think>" },
-                    "response": { "opening": "<response>", "closing": "</response>" }
-                },
-                "moderations": {
-                    "output": [ { "score": 0.9, "input": false, "position": { "start": 0, "end": 4 }, "entity": "EmailAddress", "word": "test" } ]
-                },
-                "detections": {
-                    "output": [
-                        { "choice_index": 0, "results": [
-                            { "detector_id": "en_syntax_rbr_pii", "detection_type": "pii", "detection": "PhoneNumber", "score": 0.8, "text": "123", "start": 0, "end": 3 }
-                        ] }
-                    ]
-                },
-                "service_tier": "default",
-                "system_fingerprint": "fp_abc123",
-                "cached": false
-            }""";
+        var EXPECTED =
+            """
+                {
+                    "id": "chat-1",
+                    "object": "chat.completion",
+                    "model_id": "gpt-4o",
+                    "model": "gpt-4o",
+                    "choices": [
+                        { "index": 0, "message": { "role": "assistant", "content": "Hello there!" }, "finish_reason": "stop" }
+                    ],
+                    "created": 1735689600,
+                    "model_version": "1.0.0",
+                    "created_at": "2026-08-04T10:00:00.000Z",
+                    "usage": { "completion_tokens": 10, "prompt_tokens": 20, "total_tokens": 30 },
+                    "extraction_tags": {
+                        "think": { "opening": "<think>", "closing": "</think>" },
+                        "response": { "opening": "<response>", "closing": "</response>" }
+                    },
+                    "moderations": {
+                        "output": [ { "score": 0.9, "input": false, "position": { "start": 0, "end": 4 }, "entity": "EmailAddress", "word": "test" } ]
+                    },
+                    "detections": {
+                        "output": [
+                            { "choice_index": 0, "results": [
+                                { "detector_id": "en_syntax_rbr_pii", "detection_type": "pii", "detection": "PhoneNumber", "score": 0.8, "text": "123", "start": 0, "end": 3 }
+                            ] }
+                        ]
+                    },
+                    "service_tier": "default",
+                    "system_fingerprint": "fp_abc123",
+                    "cached": false
+                }""";
 
         var response = ModelGatewayChatResponse.builder()
             .id("chat-1")

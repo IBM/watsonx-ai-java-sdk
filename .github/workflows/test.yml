@@ -82,28 +82,6 @@ jobs:
       - name: Run native image tests (watsonx-ai-core)
         run: ./mvnw -Pnative clean test -pl modules/watsonx-ai-core -B -ntp
 
-  native-tests-ai:
-    needs: verify-license-and-format
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Setup GraalVM
-        uses: actions/setup-java@v6
-        with:
-          distribution: graalvm
-          java-version: ${{ env.JAVA_MAX }}
-          cache: maven
-
-      - name: Install parent POM
-        run: ./mvnw install -N -B -ntp
-
-      - name: Install watsonx-ai-core
-        run: ./mvnw install -pl modules/watsonx-ai-core -B -ntp -DskipTests -Dmaven.test.skip=true
-
-      - name: Run native image tests (watsonx-ai)
-        run: ./mvnw -Pnative clean test -pl modules/watsonx-ai -B -ntp
-
   native-tests-jackson2:
     needs: verify-license-and-format
     runs-on: ubuntu-latest

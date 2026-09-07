@@ -10,14 +10,12 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.textgeneration.Moderation.InputRanges;
 import com.ibm.watsonx.ai.textgeneration.Moderation.TextModeration;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationParameters.ReturnOptions;
 
-@DisabledInNativeImage
 public class TextGenerationRoundTripTest {
 
     @Test

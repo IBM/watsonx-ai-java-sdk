@@ -9,12 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.gateway.catalog.ModelGatewayModel.Metadata;
 
-@DisabledInNativeImage
 public class ModelGatewayCatalogRoundTripTest {
 
     private static final Metadata METADATA = new Metadata(0.5, "granite", "recommended", "us-south", true, 8192);

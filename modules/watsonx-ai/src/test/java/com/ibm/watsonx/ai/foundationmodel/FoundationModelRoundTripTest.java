@@ -7,11 +7,9 @@ package com.ibm.watsonx.ai.foundationmodel;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 
-@DisabledInNativeImage
 public class FoundationModelRoundTripTest {
 
     @Test

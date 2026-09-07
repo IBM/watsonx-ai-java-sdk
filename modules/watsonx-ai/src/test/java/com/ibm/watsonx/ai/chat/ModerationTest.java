@@ -8,12 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.chat.ChatModeration.InputRanges;
 import com.ibm.watsonx.ai.core.Json;
 
-@DisabledInNativeImage
 public class ModerationTest {
 
     @Test

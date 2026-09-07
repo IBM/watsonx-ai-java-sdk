@@ -6,11 +6,9 @@ package com.ibm.watsonx.ai.timeseries;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 
-@DisabledInNativeImage
 public class TimeSeriesRoundTripTest {
 
     @Test

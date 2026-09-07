@@ -22,9 +22,7 @@ import com.ibm.watsonx.ai.chat.exception.EmptyChatResponseException;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 
-@DisabledInNativeImage
 public class SseEventProcessorTest {
 
     @Test
