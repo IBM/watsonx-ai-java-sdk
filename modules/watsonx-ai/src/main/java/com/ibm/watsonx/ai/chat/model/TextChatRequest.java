@@ -49,8 +49,6 @@ public final class TextChatRequest {
     private final Set<String> guidedChoice;
     private final String guidedRegex;
     private final String guidedGrammar;
-    private final Double repetitionPenalty;
-    private final Double lengthPenalty;
     private final String context;
     private final ChatModeration moderations;
     private final Crypto crypto;
@@ -92,8 +90,6 @@ public final class TextChatRequest {
         guidedChoice = isNull(builder.guidedChoice) ? null : Collections.unmodifiableSet(new LinkedHashSet<>(builder.guidedChoice));
         guidedRegex = builder.guidedRegex;
         guidedGrammar = builder.guidedGrammar;
-        repetitionPenalty = builder.repetitionPenalty;
-        lengthPenalty = builder.lengthPenalty;
         moderations = builder.moderations;
         crypto = nonNull(builder.crypto) ? new Crypto(builder.crypto) : null;
     }
@@ -210,14 +206,6 @@ public final class TextChatRequest {
         return guidedGrammar;
     }
 
-    public Double repetitionPenalty() {
-        return repetitionPenalty;
-    }
-
-    public Double lengthPenalty() {
-        return lengthPenalty;
-    }
-
     public ChatModeration moderations() {
         return moderations;
     }
@@ -258,8 +246,6 @@ public final class TextChatRequest {
         private Set<String> guidedChoice;
         private String guidedRegex;
         private String guidedGrammar;
-        private Double repetitionPenalty;
-        private Double lengthPenalty;
         private String context;
         private ChatModeration moderations;
         private String crypto;
@@ -396,16 +382,6 @@ public final class TextChatRequest {
             return this;
         }
 
-        public Builder repetitionPenalty(Double repetitionPenalty) {
-            this.repetitionPenalty = repetitionPenalty;
-            return this;
-        }
-
-        public Builder lengthPenalty(Double lengthPenalty) {
-            this.lengthPenalty = lengthPenalty;
-            return this;
-        }
-
         public Builder context(String context) {
             this.context = context;
             return this;
@@ -462,8 +438,6 @@ public final class TextChatRequest {
         result = prime * result + ((guidedChoice == null) ? 0 : guidedChoice.hashCode());
         result = prime * result + ((guidedRegex == null) ? 0 : guidedRegex.hashCode());
         result = prime * result + ((guidedGrammar == null) ? 0 : guidedGrammar.hashCode());
-        result = prime * result + ((repetitionPenalty == null) ? 0 : repetitionPenalty.hashCode());
-        result = prime * result + ((lengthPenalty == null) ? 0 : lengthPenalty.hashCode());
         result = prime * result + ((context == null) ? 0 : context.hashCode());
         result = prime * result + ((moderations == null) ? 0 : moderations.hashCode());
         result = prime * result + ((crypto == null) ? 0 : crypto.hashCode());
@@ -614,16 +588,6 @@ public final class TextChatRequest {
                 return false;
         } else if (!guidedGrammar.equals(other.guidedGrammar))
             return false;
-        if (repetitionPenalty == null) {
-            if (other.repetitionPenalty != null)
-                return false;
-        } else if (!repetitionPenalty.equals(other.repetitionPenalty))
-            return false;
-        if (lengthPenalty == null) {
-            if (other.lengthPenalty != null)
-                return false;
-        } else if (!lengthPenalty.equals(other.lengthPenalty))
-            return false;
         if (context == null) {
             if (other.context != null)
                 return false;
@@ -651,7 +615,6 @@ public final class TextChatRequest {
             + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP + ", timeLimit=" + timeLimit + ", responseFormat=" + responseFormat
             + ", chatTemplateKwargs=" + chatTemplateKwargs + ", includeReasoning=" + includeReasoning + ", reasoningEffort=" + reasoningEffort
             + ", guidedChoice=" + guidedChoice + ", guidedRegex=" + guidedRegex + ", guidedGrammar=" + guidedGrammar
-            + ", repetitionPenalty=" + repetitionPenalty + ", lengthPenalty=" + lengthPenalty + ", context=" + context
-            + ", moderations=" + moderations + ", crypto=" + crypto + "]";
+            + ", context=" + context + ", moderations=" + moderations + ", crypto=" + crypto + "]";
     }
 }

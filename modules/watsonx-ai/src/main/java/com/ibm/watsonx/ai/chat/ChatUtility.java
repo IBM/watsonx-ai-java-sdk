@@ -94,8 +94,6 @@ public class ChatUtility {
             .guidedChoice(getOrDefault(parameters.guidedChoice(), defaultParameters.guidedChoice()))
             .guidedRegex(getOrDefault(parameters.guidedRegex(), defaultParameters.guidedRegex()))
             .guidedGrammar(getOrDefault(parameters.guidedGrammar(), defaultParameters.guidedGrammar()))
-            .repetitionPenalty(getOrDefault(parameters.repetitionPenalty(), defaultParameters.repetitionPenalty()))
-            .lengthPenalty(getOrDefault(parameters.lengthPenalty(), defaultParameters.lengthPenalty()))
             .includeReasoning(includeReasoning)
             .reasoningEffort(thinkingEffort)
             .chatTemplateKwargs(chatTemplateKwargs)

@@ -123,8 +123,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .guidedChoice("guidedChoice")
                 .guidedGrammar("guidedGrammar")
                 .guidedRegex("guidedRegex")
-                .repetitionPenalty(2.0)
-                .lengthPenalty(2.0)
                 .responseAsJsonSchema("test", Map.of(), false)
                 .build();
 
@@ -257,9 +255,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                       "guidedChoice"
                    ],
                    "guided_regex":"guidedRegex",
-                   "guided_grammar":"guidedGrammar",
-                   "repetition_penalty":2.0,
-                   "length_penalty":2.0
+                   "guided_grammar":"guidedGrammar"
                 }""";
 
             JSONAssert.assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest), true);
@@ -286,13 +282,11 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         .guidedChoice(Set.of("1"))
                         .guidedGrammar("guidedGrammar")
                         .guidedRegex("guidedRegex")
-                        .lengthPenalty(1.0)
                         .logitBias(Map.of("test", 1))
                         .logprobs(true)
                         .maxCompletionTokens(0)
                         .n(2)
                         .presencePenalty(3.0)
-                        .repetitionPenalty(4.0)
                         .responseAsJson()
                         .seed(2)
                         .stop(List.of("stop"))
@@ -357,13 +351,11 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .guidedChoice(Set.of("1"))
                     .guidedGrammar("guidedGrammar")
                     .guidedRegex("guidedRegex")
-                    .lengthPenalty(1.0)
                     .logitBias(Map.of("test", 1))
                     .logprobs(true)
                     .maxCompletionTokens(0)
                     .n(2)
                     .presencePenalty(3.0)
-                    .repetitionPenalty(4.0)
                     .responseFormat("json_object")
                     .seed(2)
                     .stop(List.of("stop"))
@@ -403,13 +395,11 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         .guidedChoice(Set.of("1"))
                         .guidedGrammar("guidedGrammar")
                         .guidedRegex("guidedRegex")
-                        .lengthPenalty(1.0)
                         .logitBias(Map.of("test", 1))
                         .logprobs(true)
                         .maxCompletionTokens(0)
                         .n(2)
                         .presencePenalty(3.0)
-                        .repetitionPenalty(4.0)
                         .responseAsJson()
                         .seed(2)
                         .stop(List.of("stop"))
@@ -462,13 +452,11 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .guidedChoice(Set.of("1_override"))
                     .guidedGrammar("guidedGrammar_override")
                     .guidedRegex("guidedRegex_override")
-                    .lengthPenalty(0.0)
                     .logitBias(Map.of("test", 0))
                     .logprobs(false)
                     .maxCompletionTokens(100)
                     .n(0)
                     .presencePenalty(0.0)
-                    .repetitionPenalty(0.0)
                     .responseAsText()
                     .seed(0)
                     .stop(List.of("stop_override"))
@@ -502,13 +490,11 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .guidedChoice(Set.of("1_override"))
                     .guidedGrammar("guidedGrammar_override")
                     .guidedRegex("guidedRegex_override")
-                    .lengthPenalty(0.0)
                     .logitBias(Map.of("test", 0))
                     .logprobs(false)
                     .maxCompletionTokens(100)
                     .n(0)
                     .presencePenalty(0.0)
-                    .repetitionPenalty(0.0)
                     .responseFormat("text")
                     .seed(0)
                     .stop(List.of("stop_override"))
