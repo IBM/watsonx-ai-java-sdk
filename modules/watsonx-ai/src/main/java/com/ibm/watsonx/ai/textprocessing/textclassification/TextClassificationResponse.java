@@ -42,11 +42,10 @@ public record TextClassificationResponse(Metadata metadata, Entity entity) {
      * @param status The status of the extraction request.
      * @param runningAt The time when processing started.
      * @param completedAt The time when the classification completed or failed.
-     * @param numberPagesProcessed The number of pages to process.
      * @param documentClassified A flag to indicate if the classification was found.
      * @param documentType The classification of the document if found.
      * @param error Optional error details in case of failure.
      */
-    public record ClassificationResult(String status, String runningAt, String completedAt, Integer numberPagesProcessed, Boolean documentClassified,
+    public record ClassificationResult(String status, String runningAt, String completedAt, Boolean documentClassified,
         String documentType, Error error) {}
 }
