@@ -218,7 +218,6 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     "kvp_mode": "generic_with_semantic",
                     "semantic_config": {
                         "enable_text_hints": true,
-                        "enable_generic_kvp": true,
                         "enable_schema_kvp": true,
                         "grounding_mode": "fast",
                         "schemas_merge_strategy": "merge",
@@ -349,7 +348,6 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .build();
 
         TextExtractionSemanticConfig semanticConfig = TextExtractionSemanticConfig.builder()
-            .enableGenericKvp(true)
             .enableTextHints(true)
             .enableSchemaKvp(true)
             .groundingMode(GroundingMode.FAST)
