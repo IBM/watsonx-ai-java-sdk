@@ -48,7 +48,6 @@ public record Parameters(
 
     public record SemanticConfig(
         Boolean enableTextHints,
-        Boolean enableGenericKvp,
         Boolean enableSchemaKvp,
         String groundingMode,
         String forceSchemaName,

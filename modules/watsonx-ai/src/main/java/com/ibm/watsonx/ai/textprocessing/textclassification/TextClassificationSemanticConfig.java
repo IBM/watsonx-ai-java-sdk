@@ -81,7 +81,7 @@ public final class TextClassificationSemanticConfig extends ExtendedSemanticConf
     @Override
     public String toString() {
         return "TextClassificationSemanticConfig [defaultModelName=" + defaultModelName() + ", enableTextHints=" + enableTextHints()
-            + ", enableGenericKvp=" + enableGenericKvp() + ", enableSchemaKvp=" + enableSchemaKvp() + ", groundingMode=" + groundingMode()
+            + ", enableSchemaKvp=" + enableSchemaKvp() + ", groundingMode=" + groundingMode()
             + ", schemasMergeStrategy=" + schemasMergeStrategy() + ", forceSchemaName=" + forceSchemaName() + ", schemas=" + schemas()
             + ", taskModelNameOverride=" + taskModelNameOverride() + "]";
     }

@@ -56,8 +56,6 @@ public class ChatRoundTripTest {
             .includeReasoning(true)
             .reasoningEffort("medium")
             .guidedChoice(Set.of("yes"))
-            .repetitionPenalty(1.1)
-            .lengthPenalty(0.8)
             .context("some context")
             .build();
 
@@ -91,8 +89,6 @@ public class ChatRoundTripTest {
               "include_reasoning": true,
               "reasoning_effort": "medium",
               "guided_choice": ["yes"],
-              "repetition_penalty": 1.1,
-              "length_penalty": 0.8,
               "context": "some context"
             }
             """;
@@ -129,8 +125,6 @@ public class ChatRoundTripTest {
             .includeReasoning(true)
             .reasoningEffort("medium")
             .guidedChoice(Set.of("yes"))
-            .repetitionPenalty(1.1)
-            .lengthPenalty(0.8)
             .context("some context")
             .build();
 

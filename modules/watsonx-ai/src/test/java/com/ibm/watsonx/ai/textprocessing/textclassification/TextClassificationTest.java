@@ -117,7 +117,6 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                     ],
                     "semantic_config": {
                         "enable_text_hints": true,
-                        "enable_generic_kvp": true,
                         "enable_schema_kvp": true,
                         "grounding_mode": "fast",
                         "schemas_merge_strategy": "replace",
@@ -200,7 +199,6 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                         "completed_at": "2025-10-23T07:32:42.981Z",
                         "document_classified": true,
                         "document_type": "Invoice",
-                        "number_pages_processed": 10,
                         "running_at": "2025-10-23T07:32:24.272Z",
                         "status": "completed"
                     },
@@ -219,7 +217,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             "completed",
             "2025-10-23T07:32:24.272Z",
             "2025-10-23T07:32:42.981Z",
-            10, true, "Invoice", null);
+            true, "Invoice", null);
 
         KvpFields fields = KvpFields.builder()
             .add("invoice_date", KvpField.of("The date when the invoice was issued.", "2024-07-10"))
@@ -230,7 +228,6 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         KvpPage pages = KvpPage.of("Invoice page", KvpSlice.of(fields, List.of(0.0, 0.0, 1.0, 1.0)));
 
         TextClassificationSemanticConfig semanticConfig = TextClassificationSemanticConfig.builder()
-            .enableGenericKvp(true)
             .enableTextHints(true)
             .enableSchemaKvp(true)
             .groundingMode(GroundingMode.FAST)
@@ -481,7 +478,6 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         assertEquals("completed", result.status());
         assertEquals("2025-10-23T07:32:24.272Z", result.runningAt());
         assertEquals("2025-10-23T07:32:42.981Z", result.completedAt());
-        assertEquals(10, result.numberPagesProcessed());
         assertEquals(true, result.documentClassified());
         assertEquals("Invoice", result.documentType());
 
@@ -500,7 +496,6 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         assertEquals("completed", result.status());
         assertEquals("2025-10-23T07:32:24.272Z", result.runningAt());
         assertEquals("2025-10-23T07:32:42.981Z", result.completedAt());
-        assertEquals(10, result.numberPagesProcessed());
         assertEquals(true, result.documentClassified());
         assertEquals("Invoice", result.documentType());
 
@@ -520,7 +515,6 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         assertEquals("completed", result.status());
         assertEquals("2025-10-23T07:32:24.272Z", result.runningAt());
         assertEquals("2025-10-23T07:32:42.981Z", result.completedAt());
-        assertEquals(10, result.numberPagesProcessed());
         assertEquals(true, result.documentClassified());
         assertEquals("Invoice", result.documentType());
 

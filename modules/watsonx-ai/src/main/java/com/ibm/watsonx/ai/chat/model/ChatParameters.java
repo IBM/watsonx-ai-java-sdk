@@ -38,8 +38,6 @@ public final class ChatParameters extends BaseChatParameters {
     private final Set<String> guidedChoice;
     private final String guidedRegex;
     private final String guidedGrammar;
-    private final Double repetitionPenalty;
-    private final Double lengthPenalty;
     private final String context;
 
     private ChatParameters(Builder builder) {
@@ -50,8 +48,6 @@ public final class ChatParameters extends BaseChatParameters {
         guidedChoice = isNull(builder.guidedChoice) ? null : Set.copyOf(builder.guidedChoice);
         guidedRegex = builder.guidedRegex;
         guidedGrammar = builder.guidedGrammar;
-        repetitionPenalty = builder.repetitionPenalty;
-        lengthPenalty = builder.lengthPenalty;
         context = builder.context;
     }
 
@@ -110,24 +106,6 @@ public final class ChatParameters extends BaseChatParameters {
     }
 
     /**
-     * Returns the repetition penalty applied during text generation.
-     *
-     * @return the repetition penalty
-     */
-    public Double repetitionPenalty() {
-        return repetitionPenalty;
-    }
-
-    /**
-     * Returns the length penalty applied during text generation.
-     *
-     * @return the length penalty
-     */
-    public Double lengthPenalty() {
-        return lengthPenalty;
-    }
-
-    /**
      * Returns the context string inserted into the messages during chat generation.
      *
      * @return the context string
@@ -149,7 +127,6 @@ public final class ChatParameters extends BaseChatParameters {
             .guidedChoice(guidedChoice)
             .guidedGrammar(guidedGrammar)
             .guidedRegex(guidedRegex)
-            .lengthPenalty(lengthPenalty)
             .logitBias(logitBias)
             .logprobs(logprobs)
             .maxCompletionTokens(maxCompletionTokens)
@@ -157,7 +134,6 @@ public final class ChatParameters extends BaseChatParameters {
             .n(n)
             .presencePenalty(presencePenalty)
             .projectId(projectId)
-            .repetitionPenalty(repetitionPenalty)
             .seed(seed)
             .spaceId(spaceId)
             .stop(stop)
@@ -209,8 +185,6 @@ public final class ChatParameters extends BaseChatParameters {
         private Set<String> guidedChoice;
         private String guidedRegex;
         private String guidedGrammar;
-        private Double repetitionPenalty;
-        private Double lengthPenalty;
         private String context;
 
         private Builder() {}
@@ -320,26 +294,6 @@ public final class ChatParameters extends BaseChatParameters {
         }
 
         /**
-         * Sets the repetition penalty to discourage the model from repeating tokens.
-         *
-         * @param repetitionPenalty the repetition penalty value
-         */
-        public Builder repetitionPenalty(Double repetitionPenalty) {
-            this.repetitionPenalty = repetitionPenalty;
-            return this;
-        }
-
-        /**
-         * Sets the length penalty applied during text generation.
-         *
-         * @param lengthPenalty the length penalty value
-         */
-        public Builder lengthPenalty(Double lengthPenalty) {
-            this.lengthPenalty = lengthPenalty;
-            return this;
-        }
-
-        /**
          * Sets the context string to be inserted into the messages during chat generation.
          * <p>
          * <b>Note:</b> This parameter is only supported when using {@link DeploymentService}.
@@ -371,8 +325,6 @@ public final class ChatParameters extends BaseChatParameters {
         result = prime * result + ((guidedChoice == null) ? 0 : guidedChoice.hashCode());
         result = prime * result + ((guidedRegex == null) ? 0 : guidedRegex.hashCode());
         result = prime * result + ((guidedGrammar == null) ? 0 : guidedGrammar.hashCode());
-        result = prime * result + ((repetitionPenalty == null) ? 0 : repetitionPenalty.hashCode());
-        result = prime * result + ((lengthPenalty == null) ? 0 : lengthPenalty.hashCode());
         result = prime * result + ((context == null) ? 0 : context.hashCode());
         return result;
     }
@@ -414,16 +366,6 @@ public final class ChatParameters extends BaseChatParameters {
                 return false;
         } else if (!guidedGrammar.equals(other.guidedGrammar))
             return false;
-        if (repetitionPenalty == null) {
-            if (other.repetitionPenalty != null)
-                return false;
-        } else if (!repetitionPenalty.equals(other.repetitionPenalty))
-            return false;
-        if (lengthPenalty == null) {
-            if (other.lengthPenalty != null)
-                return false;
-        } else if (!lengthPenalty.equals(other.lengthPenalty))
-            return false;
         if (context == null) {
             if (other.context != null)
                 return false;
@@ -440,7 +382,6 @@ public final class ChatParameters extends BaseChatParameters {
             + logitBias
             + ", logprobs=" + logprobs + ", topLogprobs=" + topLogprobs + ", maxCompletionTokens=" + maxCompletionTokens + ", n=" + n
             + ", presencePenalty=" + presencePenalty + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP
-            + ", timeLimit=" + timeLimit + ", responseFormat=" + responseFormat + ", jsonSchema=" + jsonSchema + ", repetitionPenalty="
-            + repetitionPenalty + ", lengthPenalty=" + lengthPenalty + ", context=" + context + "]";
+            + ", timeLimit=" + timeLimit + ", responseFormat=" + responseFormat + ", jsonSchema=" + jsonSchema + ", context=" + context + "]";
     }
 }

@@ -571,12 +571,6 @@ public class WatsonxJacksonModule extends SimpleModule {
         @JsonProperty("guided_grammar")
         abstract String guidedGrammar();
 
-        @JsonProperty("repetition_penalty")
-        abstract Double repetitionPenalty();
-
-        @JsonProperty("length_penalty")
-        abstract Double lengthPenalty();
-
         @JsonProperty("context")
         abstract String context();
 

@@ -150,7 +150,6 @@ public final class TextClassificationParameters extends WatsonxParameters {
             ? null
             : new Parameters.SemanticConfig(
                 this.semanticConfig.enableTextHints(),
-                this.semanticConfig.enableGenericKvp(),
                 this.semanticConfig.enableSchemaKvp(),
                 this.semanticConfig.groundingMode(),
                 this.semanticConfig.forceSchemaName(),

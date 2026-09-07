@@ -24,7 +24,6 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticCo
  */
 public abstract class ExtendedSemanticConfig extends SemanticConfig {
     private final Boolean enableTextHints;
-    private final Boolean enableGenericKvp;
     private final Boolean enableSchemaKvp;
     private final String groundingMode;
     private final String schemasMergeStrategy;
@@ -35,7 +34,6 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
     protected ExtendedSemanticConfig(Builder<?> builder) {
         super(builder);
         enableTextHints = builder.enableTextHints;
-        enableGenericKvp = builder.enableGenericKvp;
         enableSchemaKvp = builder.enableSchemaKvp;
         groundingMode = builder.groundingMode;
         schemasMergeStrategy = nonNull(builder.schemasMergeStrategy) ? builder.schemasMergeStrategy.value() : null;
@@ -52,15 +50,6 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
      */
     public Boolean enableTextHints() {
         return enableTextHints;
-    }
-
-    /**
-     * Gets whether generic key-value pair extraction is enabled.
-     *
-     * @return true if generic KVP extraction is enabled
-     */
-    public Boolean enableGenericKvp() {
-        return enableGenericKvp;
     }
 
     /**
@@ -119,10 +108,9 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
 
     @Override
     public String toString() {
-        return "ExtendedSemanticConfig [defaultModelName=" + defaultModelName() + ", enableTextHints=" + enableTextHints + ", enableGenericKvp="
-            + enableGenericKvp + ", enableSchemaKvp=" + enableSchemaKvp + ", groundingMode=" + groundingMode + ", schemasMergeStrategy="
-            + schemasMergeStrategy + ", forceSchemaName=" + forceSchemaName + ", schemas=" + schemas + ", taskModelNameOverride="
-            + taskModelNameOverride + "]";
+        return "ExtendedSemanticConfig [defaultModelName=" + defaultModelName() + ", enableTextHints=" + enableTextHints + ", enableSchemaKvp="
+            + enableSchemaKvp + ", groundingMode=" + groundingMode + ", schemasMergeStrategy=" + schemasMergeStrategy + ", forceSchemaName="
+            + forceSchemaName + ", schemas=" + schemas + ", taskModelNameOverride=" + taskModelNameOverride + "]";
     }
 
     /**
@@ -133,7 +121,6 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
     @SuppressWarnings("unchecked")
     public static abstract class Builder<T extends Builder<T>> extends SemanticConfig.Builder<T> {
         private Boolean enableTextHints;
-        private Boolean enableGenericKvp;
         private Boolean enableSchemaKvp;
         private String groundingMode;
         private SchemaMergeStrategy schemasMergeStrategy;
@@ -149,17 +136,6 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
          */
         public T enableTextHints(Boolean enableTextHints) {
             this.enableTextHints = enableTextHints;
-            return (T) this;
-        }
-
-        /**
-         * Sets whether to enable generic key-value pair extraction.
-         *
-         * @param enableGenericKvp true to enable generic KVP extraction, false otherwise
-         * @return this builder instance
-         */
-        public T enableGenericKvp(Boolean enableGenericKvp) {
-            this.enableGenericKvp = enableGenericKvp;
             return (T) this;
         }
 
@@ -339,7 +315,6 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + ((enableTextHints == null) ? 0 : enableTextHints.hashCode());
-        result = prime * result + ((enableGenericKvp == null) ? 0 : enableGenericKvp.hashCode());
         result = prime * result + ((enableSchemaKvp == null) ? 0 : enableSchemaKvp.hashCode());
         result = prime * result + ((groundingMode == null) ? 0 : groundingMode.hashCode());
         result = prime * result + ((schemasMergeStrategy == null) ? 0 : schemasMergeStrategy.hashCode());
@@ -360,11 +335,6 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
             if (other.enableTextHints != null)
                 return false;
         } else if (!enableTextHints.equals(other.enableTextHints))
-            return false;
-        if (enableGenericKvp == null) {
-            if (other.enableGenericKvp != null)
-                return false;
-        } else if (!enableGenericKvp.equals(other.enableGenericKvp))
             return false;
         if (enableSchemaKvp == null) {
             if (other.enableSchemaKvp != null)

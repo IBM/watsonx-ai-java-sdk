@@ -16,8 +16,7 @@
             "type": "connection_asset"
         },
         "results": {
-            "status": "%s",
-            "number_pages_processed": 0
+            "status": "%s"
         }
     }
 }
