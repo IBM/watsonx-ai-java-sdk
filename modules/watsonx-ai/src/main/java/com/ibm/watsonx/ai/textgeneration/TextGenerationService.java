@@ -46,6 +46,8 @@ public class TextGenerationService extends ModelService implements TextGeneratio
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
+            .requestLogger(requestLogger, requestLogLevel)
+            .responseLogger(responseLogger, responseLogLevel)
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)

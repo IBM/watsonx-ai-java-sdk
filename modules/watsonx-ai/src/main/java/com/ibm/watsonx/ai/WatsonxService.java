@@ -11,10 +11,13 @@ import static java.util.Objects.requireNonNullElse;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
+import com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger;
+import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 import com.ibm.watsonx.ai.detection.DetectionService;
 import com.ibm.watsonx.ai.embedding.EmbeddingService;
@@ -73,6 +76,10 @@ public abstract class WatsonxService {
     protected final String version;
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
+    protected final HttpRequestLogger requestLogger;
+    protected final Level requestLogLevel;
+    protected final HttpResponseLogger responseLogger;
+    protected final Level responseLogLevel;
     protected final HttpClient httpClient;
     protected final boolean verifySsl;
 
@@ -83,6 +90,10 @@ public abstract class WatsonxService {
         timeout = null;
         logRequests = false;
         logResponses = false;
+        requestLogger = null;
+        requestLogLevel = Level.INFO;
+        responseLogger = null;
+        responseLogLevel = Level.INFO;
         httpClient = null;
         verifySsl = true;
     }
@@ -93,6 +104,10 @@ public abstract class WatsonxService {
         timeout = requireNonNullElse(builder.timeout, TIME_OUT);
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
+        requestLogger = builder.requestLogger;
+        requestLogLevel = requireNonNullElse(builder.requestLogLevel, Level.INFO);
+        responseLogger = builder.responseLogger;
+        responseLogLevel = requireNonNullElse(builder.responseLogLevel, Level.INFO);
         httpClient = builder.httpClient;
         verifySsl = builder.verifySsl;
     }
@@ -109,6 +124,10 @@ public abstract class WatsonxService {
         private Duration timeout;
         private Boolean logRequests;
         private Boolean logResponses;
+        private HttpRequestLogger requestLogger;
+        private Level requestLogLevel = Level.INFO;
+        private HttpResponseLogger responseLogger;
+        private Level responseLogLevel = Level.INFO;
         private Authenticator authenticator;
         private HttpClient httpClient;
         private boolean verifySsl = true;
@@ -162,12 +181,56 @@ public abstract class WatsonxService {
         }
 
         /**
+         * Enables logging of the request payload through a custom logger, fired at {@link Level#INFO}.
+         *
+         * @param requestLogger the custom request logger
+         */
+        public T logRequests(HttpRequestLogger requestLogger) {
+            return logRequests(requestLogger, Level.INFO);
+        }
+
+        /**
+         * Enables logging of the request payload through a custom logger, fired at the given level.
+         *
+         * @param requestLogger the custom request logger
+         * @param requestLogLevel the level that enables {@code requestLogger}
+         */
+        public T logRequests(HttpRequestLogger requestLogger, Level requestLogLevel) {
+            this.logRequests = true;
+            this.requestLogger = requestLogger;
+            this.requestLogLevel = requestLogLevel;
+            return (T) this;
+        }
+
+        /**
          * Enables or disables logging of the response payload.
          *
          * @param logResponses {@code true} to log the response, {@code false} otherwise
          */
         public T logResponses(Boolean logResponses) {
             this.logResponses = logResponses;
+            return (T) this;
+        }
+
+        /**
+         * Enables logging of the response payload through a custom logger, fired at {@link Level#INFO}.
+         *
+         * @param responseLogger the custom response logger
+         */
+        public T logResponses(HttpResponseLogger responseLogger) {
+            return logResponses(responseLogger, Level.INFO);
+        }
+
+        /**
+         * Enables logging of the response payload through a custom logger, fired at the given level.
+         *
+         * @param responseLogger the custom response logger
+         * @param responseLogLevel the level that enables {@code responseLogger}
+         */
+        public T logResponses(HttpResponseLogger responseLogger, Level responseLogLevel) {
+            this.logResponses = true;
+            this.responseLogger = responseLogger;
+            this.responseLogLevel = responseLogLevel;
             return (T) this;
         }
 
@@ -257,6 +320,10 @@ public abstract class WatsonxService {
             timeout = other.timeout;
             logRequests = other.logRequests;
             logResponses = other.logResponses;
+            requestLogger = other.requestLogger;
+            requestLogLevel = other.requestLogLevel;
+            responseLogger = other.responseLogger;
+            responseLogLevel = other.responseLogLevel;
             authenticator = other.authenticator;
             httpClient = other.httpClient;
             verifySsl = other.verifySsl;

@@ -12,6 +12,7 @@ This section covers lower-level aspects of the SDK for developers who need to cu
 | Topic | What it covers |
 |-------|---------------|
 | **[HTTP Client](http-client)** | Replace or configure the underlying `java.net.http.HttpClient` - TLS, proxies, timeouts, HTTP/2, and request logging |
+| **[Interceptors](interceptors)** | The internal HTTP interceptor chain (retries, authentication, logging), and how it differs from the chat-level `MessageInterceptor` family |
 | **[Error Handling](error-handling)** | Exception hierarchy, specific error codes, and retry patterns |
 | **[Environment Variables](environment-variables)** | Runtime tuning of retry behavior and I/O thread pool without code changes |
 | **[SPI](spi)** | Replace the HTTP transport, thread executor, or JSON provider via `ServiceLoader` - the extension points used by Quarkus and other frameworks |

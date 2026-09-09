@@ -70,6 +70,8 @@ public class ToolService extends WatsonxService {
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
+            .requestLogger(requestLogger, requestLogLevel)
+            .responseLogger(responseLogger, responseLogLevel)
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)

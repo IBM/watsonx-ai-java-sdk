@@ -72,6 +72,8 @@ public class TextClassificationService extends ProjectService {
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
+            .requestLogger(requestLogger, requestLogLevel)
+            .responseLogger(responseLogger, responseLogLevel)
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .cosAuthenticator(builder.cosAuthenticator)

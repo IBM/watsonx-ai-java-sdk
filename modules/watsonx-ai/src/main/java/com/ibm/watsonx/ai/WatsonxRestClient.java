@@ -8,7 +8,10 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger;
+import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 
 /**
@@ -23,6 +26,10 @@ public abstract class WatsonxRestClient {
     protected final String version;
     protected final Duration timeout;
     protected final boolean logRequests, logResponses;
+    protected final HttpRequestLogger requestLogger;
+    protected final Level requestLogLevel;
+    protected final HttpResponseLogger responseLogger;
+    protected final Level responseLogLevel;
     protected final Authenticator authenticator;
     protected final HttpClient httpClient;
 
@@ -33,6 +40,10 @@ public abstract class WatsonxRestClient {
         authenticator = builder.authenticator;
         logRequests = requireNonNullElse(builder.logRequests, false);
         logResponses = requireNonNullElse(builder.logResponses, false);
+        requestLogger = builder.requestLogger;
+        requestLogLevel = requireNonNullElse(builder.requestLogLevel, Level.INFO);
+        responseLogger = builder.responseLogger;
+        responseLogLevel = requireNonNullElse(builder.responseLogLevel, Level.INFO);
         httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient(builder.verifySsl));
     }
 
@@ -49,6 +60,10 @@ public abstract class WatsonxRestClient {
         private Duration timeout;
         private Boolean logRequests;
         private Boolean logResponses;
+        private HttpRequestLogger requestLogger;
+        private Level requestLogLevel = Level.INFO;
+        private HttpResponseLogger responseLogger;
+        private Level responseLogLevel = Level.INFO;
         private Authenticator authenticator;
         private HttpClient httpClient;
         private boolean verifySsl = true;
@@ -97,6 +112,30 @@ public abstract class WatsonxRestClient {
          */
         public B logResponses(Boolean logResponses) {
             this.logResponses = logResponses;
+            return (B) this;
+        }
+
+        /**
+         * Sets the custom request logger and the level that enables it.
+         *
+         * @param requestLogger the custom request logger, or {@code null} to use the default SLF4J behavior
+         * @param requestLogLevel the level that enables {@code requestLogger}
+         */
+        public B requestLogger(HttpRequestLogger requestLogger, Level requestLogLevel) {
+            this.requestLogger = requestLogger;
+            this.requestLogLevel = requestLogLevel;
+            return (B) this;
+        }
+
+        /**
+         * Sets the custom response logger and the level that enables it.
+         *
+         * @param responseLogger the custom response logger, or {@code null} to use the default SLF4J behavior
+         * @param responseLogLevel the level that enables {@code responseLogger}
+         */
+        public B responseLogger(HttpResponseLogger responseLogger, Level responseLogLevel) {
+            this.responseLogger = responseLogger;
+            this.responseLogLevel = responseLogLevel;
             return (B) this;
         }
 

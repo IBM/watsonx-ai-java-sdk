@@ -24,7 +24,8 @@ final class DefaultRestClient extends ModelGatewayCatalogRestClient {
 
     DefaultRestClient(Builder builder) {
         super(builder);
-        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
+        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel);
     }
 
     @Override

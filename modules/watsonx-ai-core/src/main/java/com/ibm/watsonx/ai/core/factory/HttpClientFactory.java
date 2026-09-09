@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core.factory;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.net.http.HttpClient;
+import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
@@ -14,6 +15,8 @@ import com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
+import com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger;
+import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
 
 /**
  * Factory class for creating configured {@link SyncHttpClient} and {@link AsyncHttpClient} instances.
@@ -39,6 +42,23 @@ public final class HttpClientFactory {
      * @return {@link SyncHttpClient} instance
      */
     public static SyncHttpClient createSync(Authenticator authenticator, HttpClient httpClient, LogMode logMode) {
+        return createSync(authenticator, httpClient, logMode, null, Level.INFO, null, Level.INFO);
+    }
+
+    /**
+     * Creates and configures a new {@link SyncHttpClient} with standard interceptors and custom loggers.
+     *
+     * @param authenticator {@link Authenticator} used to attach a bearer token
+     * @param httpClient the underlying {@link HttpClient} to use
+     * @param logMode Indicate whether logging should be enabled
+     * @param requestLogger the custom request logger, or {@code null} to use the default SLF4J behavior
+     * @param requestLogLevel the level that enables {@code requestLogger}
+     * @param responseLogger the custom response logger, or {@code null} to use the default SLF4J behavior
+     * @param responseLogLevel the level that enables {@code responseLogger}
+     * @return {@link SyncHttpClient} instance
+     */
+    public static SyncHttpClient createSync(Authenticator authenticator, HttpClient httpClient, LogMode logMode,
+        HttpRequestLogger requestLogger, Level requestLogLevel, HttpResponseLogger responseLogger, Level responseLogLevel) {
 
         requireNonNull(httpClient);
         var builder = SyncHttpClient.builder().httpClient(httpClient);
@@ -51,13 +71,8 @@ public final class HttpClientFactory {
 
         builder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
 
-        if (nonNull(logMode)) {
-            switch(logMode) {
-                case BOTH -> builder.interceptor(new LoggerInterceptor(true, true));
-                case REQUEST -> builder.interceptor(new LoggerInterceptor(true, false));
-                case RESPONSE -> builder.interceptor(new LoggerInterceptor(false, true));
-                case DISABLED -> {}
-            }
+        if (nonNull(logMode) && logMode != LogMode.DISABLED) {
+            builder.interceptor(new LoggerInterceptor(logMode, requestLogger, requestLogLevel, responseLogger, responseLogLevel));
         }
 
         return builder.build();
@@ -72,6 +87,23 @@ public final class HttpClientFactory {
      * @return {@link AsyncHttpClient} instance
      */
     public static AsyncHttpClient createAsync(Authenticator authenticator, HttpClient httpClient, LogMode logMode) {
+        return createAsync(authenticator, httpClient, logMode, null, Level.INFO, null, Level.INFO);
+    }
+
+    /**
+     * Creates and configures a new {@link AsyncHttpClient} with standard interceptors and custom loggers.
+     *
+     * @param authenticator {@link Authenticator} used to attach a bearer token
+     * @param httpClient the underlying {@link HttpClient} to use
+     * @param logMode Indicate whether logging should be enabled
+     * @param requestLogger the custom request logger, or {@code null} to use the default SLF4J behavior
+     * @param requestLogLevel the level that enables {@code requestLogger}
+     * @param responseLogger the custom response logger, or {@code null} to use the default SLF4J behavior
+     * @param responseLogLevel the level that enables {@code responseLogger}
+     * @return {@link AsyncHttpClient} instance
+     */
+    public static AsyncHttpClient createAsync(Authenticator authenticator, HttpClient httpClient, LogMode logMode,
+        HttpRequestLogger requestLogger, Level requestLogLevel, HttpResponseLogger responseLogger, Level responseLogLevel) {
 
         requireNonNull(httpClient);
         var builder = AsyncHttpClient.builder().httpClient(httpClient);
@@ -84,13 +116,8 @@ public final class HttpClientFactory {
 
         builder.interceptor(RetryInterceptor.ON_RETRYABLE_STATUS_CODES);
 
-        if (nonNull(logMode)) {
-            switch(logMode) {
-                case BOTH -> builder.interceptor(new LoggerInterceptor(true, true));
-                case REQUEST -> builder.interceptor(new LoggerInterceptor(true, false));
-                case RESPONSE -> builder.interceptor(new LoggerInterceptor(false, true));
-                case DISABLED -> {}
-            }
+        if (nonNull(logMode) && logMode != LogMode.DISABLED) {
+            builder.interceptor(new LoggerInterceptor(logMode, requestLogger, requestLogLevel, responseLogger, responseLogLevel));
         }
 
         return builder.build();

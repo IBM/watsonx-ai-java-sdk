@@ -15,6 +15,7 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
+import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
 
 @DisabledInNativeImage
 public class SseEventLoggerTest {
@@ -75,6 +76,38 @@ public class SseEventLoggerTest {
     void should_not_log_when_blank_line_arrives_with_empty_buffer() {
         SseEventLogger logger = new SseEventLogger(noopSubscriber(), 200, null);
         assertDoesNotThrow(() -> logger.onNext(""));
+    }
+
+    @Test
+    void should_not_propagate_exception_thrown_by_custom_response_logger() {
+        List<String> received = new ArrayList<>();
+        Flow.Subscriber<String> downstream = new Flow.Subscriber<>() {
+            @Override
+            public void onSubscribe(Subscription s) {}
+
+            @Override
+            public void onNext(String item) {
+                received.add(item);
+            }
+
+            @Override
+            public void onError(Throwable t) {}
+
+            @Override
+            public void onComplete() {}
+        };
+
+        HttpResponseLogger throwingLogger = entry -> {
+            throw new RuntimeException("boom");
+        };
+
+        SseEventLogger logger = new SseEventLogger(downstream, 200, null, throwingLogger, org.slf4j.event.Level.INFO);
+
+        assertDoesNotThrow(() -> {
+            logger.onNext("data: hello");
+            logger.onNext("");
+        });
+        assertEquals(List.of("data: hello", ""), received);
     }
 
     private static Flow.Subscriber<String> noopSubscriber() {

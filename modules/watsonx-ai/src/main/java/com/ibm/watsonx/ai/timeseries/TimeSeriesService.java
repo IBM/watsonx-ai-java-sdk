@@ -62,6 +62,8 @@ public class TimeSeriesService extends ModelService implements TimeSeriesProvide
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
+            .requestLogger(requestLogger, requestLogLevel)
+            .responseLogger(responseLogger, responseLogLevel)
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)

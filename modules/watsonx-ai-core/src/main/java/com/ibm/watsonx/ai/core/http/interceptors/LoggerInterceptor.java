@@ -24,11 +24,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
+import com.ibm.watsonx.ai.core.http.logging.HttpRequestLog;
+import com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger;
+import com.ibm.watsonx.ai.core.http.logging.HttpResponseLog;
+import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
@@ -51,13 +56,16 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
     private final boolean logRequest;
     private final boolean logResponse;
+    private final HttpRequestLogger requestLogger;
+    private final Level requestLogLevel;
+    private final HttpResponseLogger responseLogger;
+    private final Level responseLogLevel;
 
     /**
      * Constructs a LoggerInterceptor with default log mode (BOTH).
      */
     public LoggerInterceptor() {
-        this.logRequest = true;
-        this.logResponse = true;
+        this(LogMode.BOTH, null, Level.INFO, null, Level.INFO);
     }
 
     /**
@@ -67,8 +75,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
      * @param logResponse {@code true} to enable logging of incoming responses, {@code false} to disable
      */
     public LoggerInterceptor(boolean logRequest, boolean logResponse) {
-        this.logRequest = logRequest;
-        this.logResponse = logResponse;
+        this(LogMode.of(logRequest, logResponse), null, Level.INFO, null, Level.INFO);
     }
 
     /**
@@ -77,26 +84,33 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
      * @param mode The log mode.
      */
     public LoggerInterceptor(LogMode mode) {
+        this(mode, null, Level.INFO, null, Level.INFO);
+    }
+
+    /**
+     * Constructs a LoggerInterceptor with the specified log mode and custom loggers.
+     *
+     * @param mode the log mode
+     * @param requestLogger the custom request logger, or {@code null} to use the default SLF4J behavior
+     * @param requestLogLevel the level that enables {@code requestLogger}
+     * @param responseLogger the custom response logger, or {@code null} to use the default SLF4J behavior
+     * @param responseLogLevel the level that enables {@code responseLogger}
+     */
+    public LoggerInterceptor(LogMode mode, HttpRequestLogger requestLogger, Level requestLogLevel, HttpResponseLogger responseLogger,
+        Level responseLogLevel) {
         mode = requireNonNullElse(mode, LogMode.BOTH);
-        switch(mode) {
-            case BOTH -> {
-                this.logRequest = true;
-                this.logResponse = true;
-            }
-            case REQUEST -> {
-                this.logRequest = true;
-                this.logResponse = false;
-            }
-            case RESPONSE -> {
-                this.logRequest = false;
-                this.logResponse = true;
-            }
-            case DISABLED -> {
-                this.logRequest = false;
-                this.logResponse = false;
-            }
-            default -> throw new IllegalStateException("Unknown log mode: " + mode);
-        }
+        this.logRequest = switch(mode) {
+            case BOTH, REQUEST -> true;
+            case RESPONSE, DISABLED -> false;
+        };
+        this.logResponse = switch(mode) {
+            case BOTH, RESPONSE -> true;
+            case REQUEST, DISABLED -> false;
+        };
+        this.requestLogger = requestLogger;
+        this.requestLogLevel = requireNonNullElse(requestLogLevel, Level.INFO);
+        this.responseLogger = responseLogger;
+        this.responseLogLevel = requireNonNullElse(responseLogLevel, Level.INFO);
     }
 
     @Override
@@ -129,8 +143,9 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
     private void logRequest(HttpRequest request) {
-        if (!logRequest || !logger.isInfoEnabled())
-            return; // skip body read entirely when INFO is disabled
+        boolean enabled = nonNull(requestLogger) ? logger.isEnabledForLevel(requestLogLevel) : logger.isInfoEnabled();
+        if (!logRequest || !enabled)
+            return; // skip body read entirely when logging is disabled
 
         Optional<BodyPublisher> maybePublisher = request.bodyPublisher();
         if (maybePublisher.isEmpty()) {
@@ -176,6 +191,16 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         if (!logResponse)
             return;
 
+        if (nonNull(responseLogger)) {
+            if (!logger.isEnabledForLevel(responseLogLevel))
+                return;
+
+            int statusCode = exception instanceof WatsonxException e ? e.statusCode() : -1;
+            String body = maskSecrets(exception.getMessage());
+            responseLogger.log(HttpResponseLog.of(watsonxAISDKRequestId, statusCode, null, null, body, exception));
+            return;
+        }
+
         logger.atInfo().log(() -> {
             StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
             joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
@@ -194,6 +219,21 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     private <T> void logResponse(String watsonxAISDKRequestId, HttpResponse<T> response) {
         if (!logResponse)
             return;
+
+        if (nonNull(responseLogger)) {
+            if (!logger.isEnabledForLevel(responseLogLevel))
+                return;
+
+            try {
+                T responseBody = response.body();
+                boolean isStream = responseBody instanceof InputStream;
+                String body = isStream ? null : HttpUtils.extractBodyAsString(response).map(this::maskSecrets).orElse(null);
+                responseLogger.log(HttpResponseLog.of(watsonxAISDKRequestId, response.statusCode(), response.headers(), response.uri(), body, null));
+            } catch (Exception e) {
+                logger.warn("Failed to log response", e);
+            }
+            return;
+        }
 
         logger.atInfo().log(() -> {
             try {
@@ -236,6 +276,13 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     }
 
     private void logRequest(HttpRequest request, String body) {
+        if (nonNull(requestLogger)) {
+            String formatted = formatBase64Image(body);
+            formatted = maskSecrets(formatted);
+            requestLogger.log(HttpRequestLog.of(request, formatted));
+            return;
+        }
+
         logger.atInfo().log(() -> {
             StringJoiner joiner = new StringJoiner("\n", "Request:\n", "");
             joiner.add("- method: " + request.method());

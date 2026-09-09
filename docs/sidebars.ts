@@ -93,6 +93,7 @@ const sidebars: SidebarsConfig = {
         { type: 'doc', id: 'advanced/error-handling',        label: 'Error Handling' },
         { type: 'doc', id: 'advanced/environment-variables', label: 'Environment Variables' },
         { type: 'doc', id: 'advanced/http-client',           label: 'HTTP Client' },
+        { type: 'doc', id: 'advanced/interceptors',          label: 'Interceptors' },
         { type: 'doc', id: 'advanced/spi',                   label: 'Service Provider Interface' },
       ],
     },

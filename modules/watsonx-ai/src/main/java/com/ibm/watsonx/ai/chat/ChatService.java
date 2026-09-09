@@ -82,6 +82,8 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
+            .requestLogger(requestLogger, requestLogLevel)
+            .responseLogger(responseLogger, responseLogLevel)
             .timeout(timeout)
             .httpClient(httpClient)
             .verifySsl(verifySsl)
