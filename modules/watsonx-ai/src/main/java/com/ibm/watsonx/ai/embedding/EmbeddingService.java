@@ -51,6 +51,8 @@ public class EmbeddingService extends ModelService {
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
+            .requestLogger(requestLogger, requestLogLevel)
+            .responseLogger(responseLogger, responseLogLevel)
             .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)

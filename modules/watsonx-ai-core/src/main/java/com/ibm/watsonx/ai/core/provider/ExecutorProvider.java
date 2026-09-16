@@ -33,10 +33,11 @@ import com.ibm.watsonx.ai.core.spi.executor.IOExecutorProvider;
  * <li><b>{@link #cpuExecutor()}</b> - CPU-bound work such as JSON (de)serialization. Defaults to the {@link ForkJoinPool#commonPool() common
  * pool}.</li>
  * <li><b>{@link #ioExecutor()}</b> - the executor of the SDK's singleton HTTP client (response delivery, SSE chunk parsing) and of the SDK's other
- * internal asynchronous tasks (token refresh, retry scheduling, request/response logging). Defaults to virtual threads on Java 21+ and to a cached
- * thread pool on Java 17-20; the size can be capped with the {@code WATSONX_IO_EXECUTOR_THREADS} environment variable.</li>
- * <li><b>{@link #callbackExecutor()}</b> - runs user-supplied streaming callbacks ({@code ChatHandler} / {@code TextGenerationHandler}) so they never
- * block the I/O threads. Defaults to virtual threads on Java 21+ and to a cached thread pool on Java 17-20.</li>
+ * internal asynchronous tasks (token refresh, retry scheduling, default SLF4J-based request/response logging). Defaults to virtual threads on Java
+ * 21+ and to a cached thread pool on Java 17-20; the size can be capped with the {@code WATSONX_IO_EXECUTOR_THREADS} environment variable.</li>
+ * <li><b>{@link #callbackExecutor()}</b> - runs user-supplied callbacks ({@code ChatHandler}, {@code TextGenerationHandler}, custom
+ * {@code HttpRequestLogger}/{@code HttpResponseLogger}) so they never block the I/O threads. Defaults to virtual threads on Java 21+ and to a cached
+ * thread pool on Java 17-20.</li>
  * </ul>
  *
  * <p>
@@ -80,8 +81,9 @@ public final class ExecutorProvider {
 
     /**
      * Shared executor backing the SDK's singleton {@link java.net.http.HttpClient} and the SDK's other internal asynchronous tasks (authentication
-     * token refresh, retry scheduling, request/response logging and the {@code thenApplyAsync} continuations of the non-streaming services). For
-     * streaming requests it is therefore also where each SSE chunk is parsed, before user callbacks are dispatched on {@link #callbackExecutor()}.
+     * token refresh, retry scheduling, default SLF4J-based request/response logging and the {@code thenApplyAsync} continuations of the non-streaming
+     * services). For streaming requests it is therefore also where each SSE chunk is parsed, before user callbacks and custom loggers are dispatched
+     * on {@link #callbackExecutor()}.
      * <p>
      * <b>Default behavior:</b>
      * <ul>
@@ -127,7 +129,8 @@ public final class ExecutorProvider {
     /**
      * Executor for user-defined callbacks in streaming operations.
      * <p>
-     * This executor is used to run {@code ChatHandler} and {@code TextGenerationHandler} callbacks, ensuring they don't block the SSE parsing thread.
+     * This executor is used to run {@code ChatHandler} and {@code TextGenerationHandler} callbacks, as well as custom
+     * {@code HttpRequestLogger}/{@code HttpResponseLogger} invocations, ensuring they don't block the SSE parsing thread or the shared I/O executor.
      * <p>
      * <b>Default Behavior:</b>
      * <ul>

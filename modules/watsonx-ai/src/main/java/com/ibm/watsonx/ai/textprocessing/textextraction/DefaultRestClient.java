@@ -40,9 +40,12 @@ final class DefaultRestClient extends TextExtractionRestClient {
     DefaultRestClient(Builder builder) {
         super(builder);
         requireNonNull(authenticator, "authenticator is mandatory");
-        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
-        syncCosHttpClient = HttpClientFactory.createSync(cosAuthenticator, httpClient, LogMode.of(logRequests, logResponses));
-        asyncCosHttpClient = HttpClientFactory.createAsync(cosAuthenticator, httpClient, LogMode.of(logRequests, logResponses));
+        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel);
+        syncCosHttpClient = HttpClientFactory.createSync(cosAuthenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel);
+        asyncCosHttpClient = HttpClientFactory.createAsync(cosAuthenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel);
     }
 
     @Override

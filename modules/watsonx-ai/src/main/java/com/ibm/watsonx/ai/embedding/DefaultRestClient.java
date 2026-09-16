@@ -32,8 +32,10 @@ final class DefaultRestClient extends EmbeddingRestClient {
     DefaultRestClient(Builder builder) {
         super(builder);
         requireNonNull(authenticator, "authenticator is mandatory");
-        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
-        asyncHttpClient = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
+        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel);
+        asyncHttpClient = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel);
     }
 
     @Override

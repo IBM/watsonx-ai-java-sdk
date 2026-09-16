@@ -40,8 +40,10 @@ final class DefaultRestClient extends ModelGatewayChatRestClient {
     DefaultRestClient(Builder builder) {
         super(builder);
         requireNonNull(authenticator, "authenticator is mandatory");
-        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
-        asyncHttpClient = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.of(logRequests, logResponses));
+        syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel);
+        asyncHttpClient = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel);
     }
 
     @Override
@@ -97,7 +99,8 @@ final class DefaultRestClient extends ModelGatewayChatRestClient {
 
         var subscriber = chatSubscriber.asFlowSubscriber(response, !handler.failOnFirstError());
         var httpFuture = asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
-            ? BodySubscribers.fromLineSubscriber(new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers()))
+            ? BodySubscribers.fromLineSubscriber(
+                new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers(), responseLogger, responseLogLevel))
             : BodySubscribers.fromLineSubscriber(subscriber));
 
         httpFuture

@@ -68,6 +68,8 @@ public class BatchService extends ProjectService {
             .version(version)
             .logRequests(logRequests)
             .logResponses(logResponses)
+            .requestLogger(requestLogger, requestLogLevel)
+            .responseLogger(responseLogger, responseLogLevel)
             .timeout(TIME_OUT)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
