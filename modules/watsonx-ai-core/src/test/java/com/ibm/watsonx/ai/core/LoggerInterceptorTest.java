@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -734,7 +736,7 @@ public class LoggerInterceptorTest {
             intercept(interceptor, request);
 
             ArgumentCaptor<HttpRequestLog> captor = ArgumentCaptor.forClass(HttpRequestLog.class);
-            verify(requestLogger, times(1)).log(captor.capture());
+            verify(requestLogger, timeout(2000)).log(captor.capture());
 
             HttpRequestLog entry = captor.getValue();
             assertEquals(request, entry.request());
@@ -765,7 +767,7 @@ public class LoggerInterceptorTest {
             intercept(interceptor, request, response);
 
             ArgumentCaptor<HttpResponseLog> captor = ArgumentCaptor.forClass(HttpResponseLog.class);
-            verify(responseLogger, times(1)).log(captor.capture());
+            verify(responseLogger, timeout(2000)).log(captor.capture());
 
             HttpResponseLog entry = captor.getValue();
             assertEquals("req-123", entry.requestId());
@@ -796,7 +798,7 @@ public class LoggerInterceptorTest {
             assertThrows(WatsonxException.class, () -> interceptor.intercept(request, bodyHandler, 0, chain));
 
             ArgumentCaptor<HttpResponseLog> captor = ArgumentCaptor.forClass(HttpResponseLog.class);
-            verify(responseLogger, times(1)).log(captor.capture());
+            verify(responseLogger, timeout(2000)).log(captor.capture());
 
             HttpResponseLog entry = captor.getValue();
             assertEquals(401, entry.statusCode());
@@ -823,7 +825,7 @@ public class LoggerInterceptorTest {
                     new LoggerInterceptor(LogMode.REQUEST, requestLogger, org.slf4j.event.Level.WARN, null, org.slf4j.event.Level.INFO);
                 intercept(interceptor, request);
 
-                verify(requestLogger, times(1)).log(any());
+                verify(requestLogger, timeout(2000)).log(any());
             } finally {
                 Configurator.setLevel(loggerName, Level.INFO);
             }
@@ -867,7 +869,7 @@ public class LoggerInterceptorTest {
 
             List<String> logs = captureLogs(() -> intercept(interceptor, request, response));
 
-            verify(requestLogger, times(1)).log(any());
+            verify(requestLogger, timeout(2000)).log(any());
             assertFalse(logs.stream().anyMatch(msg -> msg.startsWith("Request:")), "Request must not use the default SLF4J logging");
             assertTrue(logs.stream().anyMatch(msg -> msg.startsWith("Response:")),
                 () -> "Response must still use the default SLF4J logging, but was: " + logs);
@@ -894,10 +896,226 @@ public class LoggerInterceptorTest {
 
             List<String> logs = captureLogs(() -> intercept(interceptor, request, response));
 
-            verify(responseLogger, times(1)).log(any());
+            verify(responseLogger, timeout(2000)).log(any());
             assertTrue(logs.stream().anyMatch(msg -> msg.startsWith("Request:")),
                 () -> "Request must still use the default SLF4J logging, but was: " + logs);
             assertFalse(logs.stream().anyMatch(msg -> msg.startsWith("Response:")), "Response must not use the default SLF4J logging");
+        }
+
+        @Test
+        void should_return_from_sync_intercept_before_custom_request_logger_completes() {
+
+            CountDownLatch loggerEntered = new CountDownLatch(1);
+            CountDownLatch loggerBlock = new CountDownLatch(1);
+            HttpRequestLogger blockingLogger = entry -> {
+                loggerEntered.countDown();
+                awaitQuietly(loggerBlock);
+            };
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost")).GET().build();
+            var interceptor =
+                new LoggerInterceptor(LogMode.REQUEST, blockingLogger, org.slf4j.event.Level.INFO, null, org.slf4j.event.Level.INFO);
+
+            assertDoesNotThrow(() -> intercept(interceptor, request));
+            assertDoesNotThrow(() -> assertTrue(loggerEntered.await(2, TimeUnit.SECONDS), "custom logger was never invoked"));
+            loggerBlock.countDown();
+        }
+
+        @Test
+        void should_return_from_sync_intercept_before_custom_response_logger_completes() {
+
+            CountDownLatch loggerEntered = new CountDownLatch(1);
+            CountDownLatch loggerBlock = new CountDownLatch(1);
+            HttpResponseLogger blockingLogger = entry -> {
+                loggerEntered.countDown();
+                awaitQuietly(loggerBlock);
+            };
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost")).GET().build();
+            var interceptor =
+                new LoggerInterceptor(LogMode.RESPONSE, null, org.slf4j.event.Level.INFO, blockingLogger, org.slf4j.event.Level.INFO);
+
+            assertDoesNotThrow(() -> intercept(interceptor, request));
+            assertDoesNotThrow(() -> assertTrue(loggerEntered.await(2, TimeUnit.SECONDS), "custom logger was never invoked"));
+            loggerBlock.countDown();
+        }
+
+        @Test
+        void should_complete_async_intercept_before_custom_response_logger_completes() throws Exception {
+
+            CountDownLatch loggerEntered = new CountDownLatch(1);
+            CountDownLatch loggerBlock = new CountDownLatch(1);
+            HttpResponseLogger blockingLogger = entry -> {
+                loggerEntered.countDown();
+                awaitQuietly(loggerBlock);
+            };
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost")).GET().build();
+            HttpResponse<String> response = mock(HttpResponse.class);
+            when(response.body()).thenReturn("body");
+            when(response.statusCode()).thenReturn(200);
+            when(response.headers()).thenReturn(HttpHeaders.of(Map.of(), (k, v) -> true));
+            when(response.uri()).thenReturn(URI.create("http://localhost"));
+
+            LoggerInterceptor.AsyncChain chain = mock(LoggerInterceptor.AsyncChain.class);
+            when(chain.proceed(eq(request), eq(BodyHandlers.ofString()))).thenReturn(completedFuture(response));
+
+            var interceptor =
+                new LoggerInterceptor(LogMode.RESPONSE, null, org.slf4j.event.Level.INFO, blockingLogger, org.slf4j.event.Level.INFO);
+
+            interceptor.intercept(request, BodyHandlers.ofString(), 0, chain).get(3, TimeUnit.SECONDS);
+
+            assertTrue(loggerEntered.await(2, TimeUnit.SECONDS), "custom logger was never invoked");
+            loggerBlock.countDown();
+        }
+
+        @Test
+        void should_run_custom_loggers_on_callback_executor_not_io_executor() throws Exception {
+
+            CountDownLatch done = new CountDownLatch(2);
+            List<String> threadNames = new CopyOnWriteArrayList<>();
+
+            HttpRequestLogger requestLogger = entry -> {
+                threadNames.add(Thread.currentThread().getName());
+                done.countDown();
+            };
+            HttpResponseLogger responseLogger = entry -> {
+                threadNames.add(Thread.currentThread().getName());
+                done.countDown();
+            };
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost")).GET().build();
+            var interceptor =
+                new LoggerInterceptor(LogMode.BOTH, requestLogger, org.slf4j.event.Level.INFO, responseLogger, org.slf4j.event.Level.INFO);
+
+            intercept(interceptor, request);
+
+            assertTrue(done.await(2, TimeUnit.SECONDS), "custom loggers were never invoked");
+            threadNames.forEach(name -> assertFalse(name.startsWith("http-io-"), () -> "expected the callback executor, but was: " + name));
+        }
+
+        @Test
+        void should_not_fail_or_delay_intercept_when_custom_request_logger_throws() throws Exception {
+
+            HttpRequestLogger throwingLogger = entry -> {
+                throw new RuntimeException("boom");
+            };
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost")).GET().build();
+            var interceptor =
+                new LoggerInterceptor(LogMode.REQUEST, throwingLogger, org.slf4j.event.Level.INFO, null, org.slf4j.event.Level.INFO);
+
+            CountDownLatch warned = new CountDownLatch(1);
+            var log4jLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(LoggerInterceptor.class);
+            var appender = new AbstractAppender("test-capture-warn", null, null, true, null) {
+                @Override
+                public void append(LogEvent event) {
+                    if ("Failed to log request".equals(event.getMessage().getFormattedMessage()))
+                        warned.countDown();
+                }
+            };
+            appender.start();
+            log4jLogger.addAppender(appender);
+            try {
+                assertDoesNotThrow(() -> intercept(interceptor, request));
+                assertTrue(warned.await(2, TimeUnit.SECONDS), "expected a warning to be logged for the failing custom logger");
+            } finally {
+                log4jLogger.removeAppender(appender);
+                appender.stop();
+            }
+        }
+
+        @Test
+        void should_not_fail_or_delay_intercept_when_custom_response_logger_throws() throws Exception {
+
+            HttpResponseLogger throwingLogger = entry -> {
+                throw new RuntimeException("boom");
+            };
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost")).GET().build();
+            var interceptor =
+                new LoggerInterceptor(LogMode.RESPONSE, null, org.slf4j.event.Level.INFO, throwingLogger, org.slf4j.event.Level.INFO);
+
+            CountDownLatch warned = new CountDownLatch(1);
+            var log4jLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(LoggerInterceptor.class);
+            var appender = new AbstractAppender("test-capture-warn", null, null, true, null) {
+                @Override
+                public void append(LogEvent event) {
+                    if ("Failed to log response".equals(event.getMessage().getFormattedMessage()))
+                        warned.countDown();
+                }
+            };
+            appender.start();
+            log4jLogger.addAppender(appender);
+            try {
+                assertDoesNotThrow(() -> intercept(interceptor, request));
+                assertTrue(warned.await(2, TimeUnit.SECONDS), "expected a warning to be logged for the failing custom logger");
+            } finally {
+                log4jLogger.removeAppender(appender);
+                appender.stop();
+            }
+        }
+
+        @Test
+        void should_warn_without_failing_intercept_when_custom_response_logger_throws_on_error_path() throws Exception {
+
+            HttpResponseLogger throwingLogger = entry -> {
+                throw new RuntimeException("boom");
+            };
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost")).GET().build();
+            LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+            BodyHandler<String> bodyHandler = BodyHandlers.ofString();
+            WatsonxException exception = new WatsonxException("error", 500, null);
+            when(chain.proceed(request, bodyHandler)).thenThrow(exception);
+
+            var interceptor =
+                new LoggerInterceptor(LogMode.RESPONSE, null, org.slf4j.event.Level.INFO, throwingLogger, org.slf4j.event.Level.INFO);
+
+            CountDownLatch warned = new CountDownLatch(1);
+            var log4jLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(LoggerInterceptor.class);
+            var appender = new AbstractAppender("test-capture-warn", null, null, true, null) {
+                @Override
+                public void append(LogEvent event) {
+                    if ("Failed to log response".equals(event.getMessage().getFormattedMessage()))
+                        warned.countDown();
+                }
+            };
+            appender.start();
+            log4jLogger.addAppender(appender);
+            try {
+                assertThrows(WatsonxException.class, () -> interceptor.intercept(request, bodyHandler, 0, chain));
+                assertTrue(warned.await(2, TimeUnit.SECONDS), "expected a warning to be logged for the failing custom logger");
+            } finally {
+                log4jLogger.removeAppender(appender);
+                appender.stop();
+            }
+        }
+
+        @Test
+        void should_not_invoke_custom_response_logger_when_reading_the_response_body_throws() {
+
+            HttpResponseLogger responseLogger = mock(HttpResponseLogger.class);
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost")).GET().build();
+
+            HttpResponse<String> response = mock(HttpResponse.class);
+            when(response.body()).thenThrow(new RuntimeException("boom"));
+
+            var interceptor =
+                new LoggerInterceptor(LogMode.RESPONSE, null, org.slf4j.event.Level.INFO, responseLogger, org.slf4j.event.Level.INFO);
+
+            List<String> logs = captureLogs(() -> intercept(interceptor, request, response));
+
+            findLog(logs, "Failed to log response");
+            verify(responseLogger, times(0)).log(any());
+        }
+
+        private static void awaitQuietly(CountDownLatch latch) {
+            try {
+                latch.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         private HttpResponse<String> intercept(LoggerInterceptor interceptor, HttpRequest request) {
@@ -917,10 +1135,6 @@ public class LoggerInterceptorTest {
         }
     }
 
-    //
-    // Attaches an in-memory Log4j2 appender to the LoggerInterceptor logger, runs the given action,
-    // and returns every message logged during its execution.
-    //
     private static List<String> captureLogs(Runnable action) {
         var logger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(LoggerInterceptor.class);
         List<String> messages = new CopyOnWriteArrayList<>();
@@ -948,10 +1162,6 @@ public class LoggerInterceptorTest {
             .orElseThrow(() -> new AssertionError("No log found starting with '" + prefix + "' in: " + logs));
     }
 
-    //
-    // Wraps a string body publisher and flips the given flag the first time it is subscribed,
-    // so a test can assert whether the interceptor actually read the request body.
-    //
     private static BodyPublisher trackingPublisher(String body, AtomicBoolean subscribed) {
         BodyPublisher delegate = BodyPublishers.ofString(body);
         return new BodyPublisher() {

@@ -197,7 +197,14 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
 
             int statusCode = exception instanceof WatsonxException e ? e.statusCode() : -1;
             String body = maskSecrets(exception.getMessage());
-            responseLogger.log(HttpResponseLog.of(watsonxAISDKRequestId, statusCode, null, null, body, exception));
+            var entry = HttpResponseLog.of(watsonxAISDKRequestId, statusCode, null, null, body, exception);
+            ExecutorProvider.callbackExecutor().execute(() -> {
+                try {
+                    responseLogger.log(entry);
+                } catch (Exception e) {
+                    logger.warn("Failed to log response", e);
+                }
+            });
             return;
         }
 
@@ -224,14 +231,24 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
             if (!logger.isEnabledForLevel(responseLogLevel))
                 return;
 
+            HttpResponseLog entry;
             try {
                 T responseBody = response.body();
                 boolean isStream = responseBody instanceof InputStream;
                 String body = isStream ? null : HttpUtils.extractBodyAsString(response).map(this::maskSecrets).orElse(null);
-                responseLogger.log(HttpResponseLog.of(watsonxAISDKRequestId, response.statusCode(), response.headers(), response.uri(), body, null));
+                entry = HttpResponseLog.of(watsonxAISDKRequestId, response.statusCode(), response.headers(), response.uri(), body, null);
             } catch (Exception e) {
                 logger.warn("Failed to log response", e);
+                return;
             }
+
+            ExecutorProvider.callbackExecutor().execute(() -> {
+                try {
+                    responseLogger.log(entry);
+                } catch (Exception e) {
+                    logger.warn("Failed to log response", e);
+                }
+            });
             return;
         }
 
@@ -279,7 +296,14 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         if (nonNull(requestLogger)) {
             String formatted = formatBase64Image(body);
             formatted = maskSecrets(formatted);
-            requestLogger.log(HttpRequestLog.of(request, formatted));
+            var entry = HttpRequestLog.of(request, formatted);
+            ExecutorProvider.callbackExecutor().execute(() -> {
+                try {
+                    requestLogger.log(entry);
+                } catch (Exception e) {
+                    logger.warn("Failed to log request", e);
+                }
+            });
             return;
         }
 

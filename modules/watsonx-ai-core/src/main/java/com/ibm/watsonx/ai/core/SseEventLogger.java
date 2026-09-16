@@ -9,14 +9,17 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.net.http.HttpHeaders;
 import java.util.StringJoiner;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLog;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
  * {@code SseEventLogger} is a {@link Flow.Subscriber} wrapper designed to intercept and log Server-Sent Events (SSE) line-by-line from an HTTP
@@ -40,6 +43,7 @@ public final class SseEventLogger implements Subscriber<String> {
     private final HttpHeaders headers;
     private final HttpResponseLogger responseLogger;
     private final Level responseLogLevel;
+    private final AtomicReference<CompletableFuture<Void>> pendingLog = new AtomicReference<>(CompletableFuture.completedFuture(null));
     private StringJoiner dataJoiner;
 
     /**
@@ -84,11 +88,14 @@ public final class SseEventLogger implements Subscriber<String> {
             if (dataJoiner.length() > 0) {
                 if (nonNull(responseLogger)) {
                     if (logger.isEnabledForLevel(responseLogLevel)) {
-                        try {
-                            responseLogger.log(HttpResponseLog.of(null, statusCode, headers, null, dataJoiner.toString(), null));
-                        } catch (Exception e) {
-                            logger.warn("Failed to log response", e);
-                        }
+                        var entry = HttpResponseLog.of(null, statusCode, headers, null, dataJoiner.toString(), null);
+                        scheduleLog(() -> {
+                            try {
+                                responseLogger.log(entry);
+                            } catch (Exception e) {
+                                logger.warn("Failed to log response", e);
+                            }
+                        });
                     }
                 } else {
                     logger.info(
@@ -109,11 +116,29 @@ public final class SseEventLogger implements Subscriber<String> {
     @Override
     public void onError(Throwable throwable) {
         logger.error(throwable.getMessage(), throwable);
-        subscriber.onError(throwable);
+        pendingLog.get().whenComplete((v, e) -> subscriber.onError(throwable));
     }
 
     @Override
     public void onComplete() {
-        subscriber.onComplete();
+        pendingLog.get().whenComplete((v, e) -> subscriber.onComplete());
+    }
+
+    /**
+     * Schedules {@code task} on {@link ExecutorProvider#callbackExecutor()} as a continuation of this instance's previous dispatch, so consecutive
+     * log calls never overlap and complete in emission order.
+     *
+     * @param task the logging work to run
+     */
+    private void scheduleLog(Runnable task) {
+        var delivered = new CompletableFuture<Void>();
+        var previous = pendingLog.getAndSet(delivered);
+        previous.thenRunAsync(() -> {
+            try {
+                task.run();
+            } finally {
+                delivered.complete(null);
+            }
+        }, ExecutorProvider.callbackExecutor());
     }
 }
