@@ -233,6 +233,9 @@
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ObjectSchemaMixin"
     },
     {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ProjectMixin"
+    },
+    {
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$RequiredSchemaMixin"
     },
     {
@@ -988,10 +991,6 @@
           "parameterTypes": []
         },
         {
-          "name": "lengthPenalty",
-          "parameterTypes": []
-        },
-        {
           "name": "logitBias",
           "parameterTypes": []
         },
@@ -1033,10 +1032,6 @@
         },
         {
           "name": "reasoningEffort",
-          "parameterTypes": []
-        },
-        {
-          "name": "repetitionPenalty",
           "parameterTypes": []
         },
         {
@@ -1127,12 +1122,6 @@
           ]
         },
         {
-          "name": "lengthPenalty",
-          "parameterTypes": [
-            "java.lang.Double"
-          ]
-        },
-        {
           "name": "logitBias",
           "parameterTypes": [
             "java.util.Map"
@@ -1178,12 +1167,6 @@
           "name": "reasoningEffort",
           "parameterTypes": [
             "java.lang.String"
-          ]
-        },
-        {
-          "name": "repetitionPenalty",
-          "parameterTypes": [
-            "java.lang.Double"
           ]
         },
         {
@@ -2453,6 +2436,21 @@
           "parameterTypes": []
         }
       ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.Project",
+      "methods": [
+        {
+          "name": "from",
+          "parameterTypes": [
+            "java.util.Map",
+            "java.util.Map"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.ProjectComputeInstance"
     },
     {
       "type": "com.ibm.watsonx.ai.textgeneration.Moderation",
@@ -5681,6 +5679,22 @@
           "declaringClass": "com.ibm.watsonx.ai.jackson3.provider.JacksonProvider",
           "interfaces": [
             "java.util.function.UnaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.project.Project",
+          "interfaces": [
+            "java.util.function.Function"
           ]
         }
       },

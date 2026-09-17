@@ -80,6 +80,7 @@ const sidebars: SidebarsConfig = {
             { type: 'doc', id: 'services/detection-service',    label: 'Detection' },
             { type: 'doc', id: 'services/file-service',         label: 'File' },
             { type: 'doc', id: 'services/batch-service',        label: 'Batch' },
+            { type: 'doc', id: 'services/project-service',      label: 'Project' },
           ],
         },
       ],

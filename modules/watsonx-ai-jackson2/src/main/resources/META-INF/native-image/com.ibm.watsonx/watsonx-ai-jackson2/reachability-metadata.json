@@ -272,6 +272,9 @@
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ObjectSchemaMixin"
     },
     {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ProjectMixin"
+    },
+    {
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$RequiredSchemaMixin"
     },
     {
@@ -1051,10 +1054,6 @@
           "parameterTypes": []
         },
         {
-          "name": "lengthPenalty",
-          "parameterTypes": []
-        },
-        {
           "name": "logitBias",
           "parameterTypes": []
         },
@@ -1096,10 +1095,6 @@
         },
         {
           "name": "reasoningEffort",
-          "parameterTypes": []
-        },
-        {
-          "name": "repetitionPenalty",
           "parameterTypes": []
         },
         {
@@ -1190,12 +1185,6 @@
           ]
         },
         {
-          "name": "lengthPenalty",
-          "parameterTypes": [
-            "java.lang.Double"
-          ]
-        },
-        {
           "name": "logitBias",
           "parameterTypes": [
             "java.util.Map"
@@ -1241,12 +1230,6 @@
           "name": "reasoningEffort",
           "parameterTypes": [
             "java.lang.String"
-          ]
-        },
-        {
-          "name": "repetitionPenalty",
-          "parameterTypes": [
-            "java.lang.Double"
           ]
         },
         {
@@ -2516,6 +2499,36 @@
           "parameterTypes": []
         }
       ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.Project",
+      "methods": [
+        {
+          "name": "from",
+          "parameterTypes": [
+            "java.util.Map",
+            "java.util.Map"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.ProjectCatalog"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.ProjectComputeInstance"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.ProjectScope"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.ProjectStorage"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.ProjectStorageCredential"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.project.ProjectStorageProperties"
     },
     {
       "type": "com.ibm.watsonx.ai.textgeneration.Moderation",
@@ -5694,6 +5707,22 @@
           "parameterTypes": [
             "java.lang.Class"
           ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.project.Project",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
         }
       ]
     },

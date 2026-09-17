@@ -5,7 +5,7 @@
 package com.ibm.watsonx.ai.detection;
 
 import static java.util.Objects.requireNonNull;
-import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
@@ -32,7 +32,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *
  * @see Authenticator
  */
-public class DetectionService extends ProjectService {
+public class DetectionService extends ScopedService {
     private final DetectionRestClient client;
 
     private DetectionService(Builder builder) {
@@ -96,7 +96,7 @@ public class DetectionService extends ProjectService {
     /**
      * Builder class for constructing {@link DetectionService} instances with configurable parameters.
      */
-    public final static class Builder extends ProjectService.Builder<Builder> {
+    public final static class Builder extends ScopedService.Builder<Builder> {
 
         private Builder() {}
 

@@ -31,6 +31,7 @@ Every service delegates HTTP communication to an abstract `WatsonxRestClient`, w
 | `ClusterSchemaService` | `ClusterSchemaRestClient` |
 | `TimeSeriesService` | `TimeSeriesRestClient` |
 | `FoundationModelService` | `FoundationModelRestClient` |
+| `ProjectService` | `ProjectRestClient` |
 | `ToolService` | `ToolRestClient` |
 | `DeploymentService` | `DeploymentRestClient` |
 | `ModelGatewayChatService` | `ModelGatewayChatRestClient` |

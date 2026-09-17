@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ibm.watsonx.ai.batch.BatchCreateRequest;
+import com.ibm.watsonx.ai.project.Project;
 import com.ibm.watsonx.ai.chat.ChatModeration;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
@@ -180,6 +181,9 @@ public class WatsonxJacksonModule extends SimpleModule {
         // --- Batch Mixin --- //
         setMixInAnnotation(BatchCreateRequest.class, BatchCreateRequestMixin.class);
         setMixInAnnotation(BatchCreateRequest.Builder.class, BatchCreateRequestBuilderMixin.class);
+
+        // --- Project Mixin --- //
+        setMixInAnnotation(Project.class, ProjectMixin.class);
     }
 
     @JsonDeserialize(builder = Moderation.Builder.class)
@@ -1079,6 +1083,16 @@ public class WatsonxJacksonModule extends SimpleModule {
         public ModelGatewayImageInputTokensDetailsMixin(
             @JsonProperty("image_tokens") long imageTokens,
             @JsonProperty("text_tokens") long textTokens) {}
+    }
+
+    @JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE)
+    public abstract static class ProjectMixin {
+        @JsonCreator
+        static Project from(
+            @JsonProperty("metadata") Map<String, Object> metadata,
+            @JsonProperty("entity") Map<String, Object> entity) {
+            return null;
+        }
     }
 
     private static final class HapSerializer extends JsonSerializer<ChatModeration.Hap> {

@@ -41,3 +41,4 @@ These services read from and write to **IBM Cloud Object Storage (COS)**. A `CON
 | **[Detection](detection-service)** | Detect harmful content (HAP), PII, and safety violations |
 | **[File](file-service)** | Upload, list, retrieve, and delete files used as batch job inputs |
 | **[Batch](batch-service)** | Submit high-volume asynchronous inference jobs from JSONL files |
+| **[Project](project-service)** | Retrieve project metadata |

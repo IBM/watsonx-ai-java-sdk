@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.Status;
 
@@ -36,7 +36,7 @@ import com.ibm.watsonx.ai.textprocessing.Status;
  *
  * @see Authenticator
  */
-public class ClusterSchemaService extends ProjectService {
+public class ClusterSchemaService extends ScopedService {
     private static final Logger logger = LoggerFactory.getLogger(ClusterSchemaService.class);
     private final ClusterSchemaRestClient client;
 
@@ -358,7 +358,7 @@ public class ClusterSchemaService extends ProjectService {
     /**
      * Builder class for constructing {@link ClusterSchemaService} instances with configurable parameters.
      */
-    public static final class Builder extends ProjectService.Builder<Builder> {
+    public static final class Builder extends ScopedService.Builder<Builder> {
 
         private Builder() {}
 

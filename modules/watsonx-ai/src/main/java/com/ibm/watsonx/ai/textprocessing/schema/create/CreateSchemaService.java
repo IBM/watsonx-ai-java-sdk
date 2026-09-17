@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.CosUrl;
@@ -49,7 +49,7 @@ import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse.Crea
  *
  * @see Authenticator
  */
-public class CreateSchemaService extends ProjectService {
+public class CreateSchemaService extends ScopedService {
     private static final Logger logger = LoggerFactory.getLogger(CreateSchemaService.class);
     private final String cosUrl;
     private final CosReference documentReference;
@@ -617,7 +617,7 @@ public class CreateSchemaService extends ProjectService {
     /**
      * Builder class for constructing {@link CreateSchemaService} instances with configurable parameters.
      */
-    public final static class Builder extends ProjectService.Builder<Builder> {
+    public final static class Builder extends ScopedService.Builder<Builder> {
         private String cosUrl;
         private Authenticator cosAuthenticator;
         private CosReference documentReference;

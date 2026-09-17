@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.CosUrl;
@@ -54,7 +54,7 @@ import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRe
  *
  * @see Authenticator
  */
-public class TextClassificationService extends ProjectService {
+public class TextClassificationService extends ScopedService {
     private static final Logger logger = LoggerFactory.getLogger(TextClassificationService.class);
     private final String cosUrl;
     private final CosReference documentReference;
@@ -640,7 +640,7 @@ public class TextClassificationService extends ProjectService {
     /**
      * Builder class for constructing {@link TextClassificationService} instances with configurable parameters.
      */
-    public final static class Builder extends ProjectService.Builder<Builder> {
+    public final static class Builder extends ScopedService.Builder<Builder> {
         private String cosUrl;
         private Authenticator cosAuthenticator;
         private CosReference documentReference;

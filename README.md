@@ -99,6 +99,7 @@ Proxy layer that routes requests to third-party foundation models (OpenAI, Anthr
 | **[Detection](https://ibm.github.io/watsonx-ai-java-sdk/services/detection-service/)** | Identification of harmful content (HAP), PII, and safety violations |
 | **[File](https://ibm.github.io/watsonx-ai-java-sdk/services/file-service/)** | Upload, list, and retrieve files for use in batch processing jobs |
 | **[Batch](https://ibm.github.io/watsonx-ai-java-sdk/services/batch-service/)** | High-volume asynchronous inference from JSONL input files |
+| **[Project](https://ibm.github.io/watsonx-ai-java-sdk/services/project-service/)** | Retrieve project metadata |
 
 ## Samples
 
