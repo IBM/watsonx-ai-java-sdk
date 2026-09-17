@@ -14,6 +14,7 @@ import java.time.Duration;
 import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
+import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger;
@@ -65,6 +66,7 @@ import com.ibm.watsonx.ai.tool.ToolService;
  * @see ModelGatewayEmbeddingService
  * @see ModelGatewayImageService
  * @see ModelGatewayChatService
+ * @see ProjectService
  */
 public abstract class WatsonxService {
 
@@ -334,20 +336,20 @@ public abstract class WatsonxService {
     /**
      * Abstract base class for watsonx services that require a project or space context.
      */
-    public static abstract class ProjectService extends WatsonxService {
+    public static abstract class ScopedService extends WatsonxService {
         protected record ProjectSpace(String projectId, String spaceId) {}
 
         protected final String projectId;
         protected final String spaceId;
 
         // Required by CDI for proxy / bean instantiation
-        protected ProjectService() {
+        protected ScopedService() {
             super();
             projectId = null;
             spaceId = null;
         }
 
-        protected ProjectService(Builder<?> builder) {
+        protected ScopedService(Builder<?> builder) {
             super(builder);
             projectId = builder.projectId;
             spaceId = builder.spaceId;
@@ -411,7 +413,7 @@ public abstract class WatsonxService {
     /**
      * Abstract base class for watsonx services that operate on a specific model.
      */
-    public static abstract class ModelService extends ProjectService {
+    public static abstract class ModelService extends ScopedService {
         protected final String modelId;
 
         // Required by CDI for proxy / bean instantiation.
@@ -426,7 +428,7 @@ public abstract class WatsonxService {
         }
 
         @SuppressWarnings("unchecked")
-        protected static abstract class Builder<T extends Builder<T>> extends ProjectService.Builder<T> {
+        protected static abstract class Builder<T extends Builder<T>> extends ScopedService.Builder<T> {
             private String modelId;
 
             /**

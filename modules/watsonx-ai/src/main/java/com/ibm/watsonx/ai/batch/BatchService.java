@@ -17,7 +17,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
-import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatUtility;
@@ -49,7 +49,7 @@ import com.ibm.watsonx.ai.file.FileService;
  * @see Authenticator
  * @see FileService
  */
-public class BatchService extends ProjectService {
+public class BatchService extends ScopedService {
     private final BatchRestClient client;
     private final FileService fileService;
     private final boolean removeUploadedFile;
@@ -593,7 +593,7 @@ public class BatchService extends ProjectService {
     /**
      * Builder class for constructing {@link BatchService} instances with configurable parameters.
      */
-    public final static class Builder extends ProjectService.Builder<Builder> {
+    public final static class Builder extends ScopedService.Builder<Builder> {
         private FileService fileService;
         private String endpoint;
         private Boolean removeUploadedFile;

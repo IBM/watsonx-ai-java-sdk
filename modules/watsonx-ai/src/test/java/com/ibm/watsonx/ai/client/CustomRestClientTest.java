@@ -37,6 +37,7 @@ import com.ibm.watsonx.ai.client.impl.CustomTextGenerationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTimeSeriesRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTokenizationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomToolRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomProjectRestClient;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
@@ -57,6 +58,7 @@ import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
+import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
@@ -660,6 +662,27 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 clientField.setAccessible(true);
                 var client = clientField.get(imageService);
                 assertTrue(client instanceof CustomModelGatewayImageRestClient);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Test
+    // ServiceLoaderUtils: com.ibm.watsonx.ai.project.ProjectRestClient$ProjectRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_watsonx_project_service() throws Exception {
+
+        withWatsonxServiceMock(() -> {
+            ProjectService projectService = ProjectService.builder()
+                .baseUrl("https://api.dataplatform.cloud.ibm.com")
+                .build();
+
+            try {
+                Class<ProjectService> clazz = ProjectService.class;
+                var clientField = clazz.getDeclaredField("client");
+                clientField.setAccessible(true);
+                var client = clientField.get(projectService);
+                assertTrue(client instanceof CustomProjectRestClient);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.textprocessing.Status;
@@ -39,7 +39,7 @@ import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaResponse.MergeS
  *
  * @see Authenticator
  */
-public class MergeSchemaService extends ProjectService {
+public class MergeSchemaService extends ScopedService {
     private static final Logger logger = LoggerFactory.getLogger(MergeSchemaService.class);
     private final MergeSchemaRestClient client;
 
@@ -342,7 +342,7 @@ public class MergeSchemaService extends ProjectService {
     /**
      * Builder class for constructing {@link MergeSchemaService} instances with configurable parameters.
      */
-    public final static class Builder extends ProjectService.Builder<Builder> {
+    public final static class Builder extends ScopedService.Builder<Builder> {
 
         private Builder() {}
 

@@ -12,7 +12,7 @@ import java.time.Duration;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.textprocessing.Status;
@@ -38,7 +38,7 @@ import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaResponse.Im
  *
  * @see Authenticator
  */
-public class ImproveSchemaService extends ProjectService {
+public class ImproveSchemaService extends ScopedService {
     private static final Logger logger = LoggerFactory.getLogger(ImproveSchemaService.class);
     private final ImproveSchemaRestClient client;
 
@@ -341,7 +341,7 @@ public class ImproveSchemaService extends ProjectService {
     /**
      * Builder class for constructing {@link ImproveSchemaService} instances with configurable parameters.
      */
-    public final static class Builder extends ProjectService.Builder<Builder> {
+    public final static class Builder extends ScopedService.Builder<Builder> {
 
         private Builder() {}
 

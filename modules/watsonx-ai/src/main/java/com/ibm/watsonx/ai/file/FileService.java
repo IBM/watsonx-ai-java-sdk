@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
-import com.ibm.watsonx.ai.WatsonxService.ProjectService;
+import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 
 /**
@@ -35,7 +35,7 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
  *
  * @see Authenticator
  */
-public class FileService extends ProjectService {
+public class FileService extends ScopedService {
     private final FileRestClient client;
 
     private FileService(Builder builder) {
@@ -273,7 +273,7 @@ public class FileService extends ProjectService {
     /**
      * Builder class for constructing {@link FileService} instances with configurable parameters.
      */
-    public final static class Builder extends ProjectService.Builder<Builder> {
+    public final static class Builder extends ScopedService.Builder<Builder> {
 
         private Builder() {}
 

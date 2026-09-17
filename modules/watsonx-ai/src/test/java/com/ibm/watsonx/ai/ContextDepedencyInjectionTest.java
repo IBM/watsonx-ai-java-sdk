@@ -28,6 +28,7 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
+import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
@@ -128,6 +129,9 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     ModelGatewayImageService modelGatewayImageService;
+
+    @Inject
+    ProjectService projectService;
 
     @Inject
     GoogleSearchTool googleSearchTool;
@@ -278,6 +282,11 @@ public class ContextDepedencyInjectionTest {
     @Test
     void should_inject_rag_query_tool() {
         assertNotNull(ragQueryTool);
+    }
+
+    @Test
+    void should_inject_watsonx_project_service() {
+        assertNotNull(projectService);
     }
 
     @ApplicationScoped
@@ -500,6 +509,14 @@ public class ContextDepedencyInjectionTest {
                 .toolService(produceToolService())
                 .projectId("project-id")
                 .vectorIndexIds("vector-index-1")
+                .build();
+        }
+
+        @Produces
+        public ProjectService produceProjectService() {
+            return ProjectService.builder()
+                .baseUrl("https://api.dataplatform.cloud.ibm.com")
+                .apiKey("api-key")
                 .build();
         }
     }

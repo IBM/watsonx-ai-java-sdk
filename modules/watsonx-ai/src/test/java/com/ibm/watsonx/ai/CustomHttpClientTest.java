@@ -32,6 +32,7 @@ import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
+import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
 import com.ibm.watsonx.ai.tool.ToolService;
@@ -1191,6 +1192,55 @@ public class CustomHttpClientTest {
                     .build();
 
                 Object restclient = getFieldValue(imageService, "client");
+                assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
+
+                Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+                assertNotEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+                assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(syncHttpClient, "delegate"));
+
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void should_use_custom_http_client_for_watsonx_project_service() throws Exception {
+
+        HttpClient customClient = HttpClient.newHttpClient();
+        ProjectService projectService = ProjectService.builder()
+            .baseUrl("https://api.dataplatform.cloud.ibm.com")
+            .apiKey("apiKey")
+            .httpClient(customClient)
+            .build();
+
+        Object restclient = getFieldValue(projectService, "client");
+        assertEquals(customClient, getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(restclient, "httpClient"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(restclient, "httpClient"));
+
+        Object syncHttpClient = getFieldValue(restclient, "syncHttpClient");
+        assertEquals(customClient, getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(true), getFieldValue(syncHttpClient, "delegate"));
+        assertNotEquals(HttpClientProvider.httpClient(false), getFieldValue(syncHttpClient, "delegate"));
+    }
+
+    @Test
+    void should_use_default_http_client_for_watsonx_project_service() throws Exception {
+
+        Stream.of(true, false).forEach(verifySsl -> {
+
+            try {
+
+                HttpClient customClient = HttpClient.newHttpClient();
+                ProjectService projectService = ProjectService.builder()
+                    .baseUrl("https://api.dataplatform.cloud.ibm.com")
+                    .apiKey("apiKey")
+                    .verifySsl(verifySsl)
+                    .build();
+
+                Object restclient = getFieldValue(projectService, "client");
                 assertNotEquals(customClient, getFieldValue(restclient, "httpClient"));
                 assertEquals(HttpClientProvider.httpClient(verifySsl), getFieldValue(restclient, "httpClient"));
 
