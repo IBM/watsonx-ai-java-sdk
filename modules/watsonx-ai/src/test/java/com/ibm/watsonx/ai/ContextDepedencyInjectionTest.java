@@ -10,8 +10,8 @@ import org.jboss.weld.junit5.EnableWeld;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldSetup;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
 import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
@@ -23,12 +23,14 @@ import com.ibm.watsonx.ai.foundationmodel.FoundationModelService;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
 import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
+import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
-import com.ibm.watsonx.ai.project.ProjectService;
+import com.ibm.watsonx.ai.textprocessing.storage.cos.CosStorageService;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
@@ -70,7 +72,8 @@ public class ContextDepedencyInjectionTest {
             CreateSchemaService.class, ImproveSchemaService.class, MergeSchemaService.class, TextClassificationService.class,
             TextExtractionService.class, TimeSeriesService.class, FileService.class,
             BatchService.class, ToolService.class, ModelGatewayChatService.class,
-            ModelGatewayEmbeddingService.class, ModelGatewayImageService.class)
+            ModelGatewayEmbeddingService.class, ModelGatewayImageService.class,
+            CosStorageService.class)
         .build();
 
     @Inject
@@ -153,6 +156,9 @@ public class ContextDepedencyInjectionTest {
 
     @Inject
     RAGQueryTool ragQueryTool;
+
+    @Inject
+    CosStorageService cosStorageService;
 
     @Test
     void should_inject_chat_service() {
@@ -289,6 +295,11 @@ public class ContextDepedencyInjectionTest {
         assertNotNull(projectService);
     }
 
+    @Test
+    void should_inject_cos_storage_service() {
+        assertNotNull(cosStorageService);
+    }
+
     @ApplicationScoped
     public static class Producer {
 
@@ -363,7 +374,7 @@ public class ContextDepedencyInjectionTest {
                 .apiKey("api-key")
                 .projectId("project-id")
                 .cosUrl("https://example.com")
-                .documentReference("connection-id", "bucket")
+                .documentReference(CosReference.of("connection-id", "bucket"))
                 .build();
         }
 
@@ -392,7 +403,7 @@ public class ContextDepedencyInjectionTest {
                 .apiKey("api-key")
                 .projectId("project-id")
                 .cosUrl("https://example.com")
-                .documentReference("connection-id", "bucket")
+                .documentReference(CosReference.of("connection-id", "bucket"))
                 .build();
         }
 
@@ -403,8 +414,8 @@ public class ContextDepedencyInjectionTest {
                 .apiKey("api-key")
                 .projectId("project-id")
                 .cosUrl("https://example.com")
-                .documentReference("connection-id", "bucket")
-                .resultReference("connection-id", "bucket")
+                .documentReference(CosReference.of("connection-id", "bucket"))
+                .resultReference(CosReference.of("connection-id", "bucket"))
                 .build();
         }
 
@@ -516,6 +527,15 @@ public class ContextDepedencyInjectionTest {
         public ProjectService produceProjectService() {
             return ProjectService.builder()
                 .baseUrl("https://api.dataplatform.cloud.ibm.com")
+                .apiKey("api-key")
+                .build();
+        }
+
+        @Produces
+        public CosStorageService produceCosStorageService() {
+            return CosStorageService.builder()
+                .cosUrl("https://example.com")
+                .bucket("my-bucket")
                 .apiKey("api-key")
                 .build();
         }

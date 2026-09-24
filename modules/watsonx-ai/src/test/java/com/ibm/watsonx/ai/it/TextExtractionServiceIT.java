@@ -13,11 +13,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.time.Duration;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.parallel.ResourceLock;
+import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.project.ProjectService;
+import com.ibm.watsonx.ai.textprocessing.ContainerReference;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.Mode;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionDeleteParameters;
@@ -25,16 +30,9 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 
-
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_CONNECTION_ID", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_BUCKET", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_CONNECTION_ID", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_BUCKET", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "CLOUD_OBJECT_STORAGE_URL", matches = ".+")
-@ResourceLock("watsonx-cos-document-bucket")
 public class TextExtractionServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
@@ -47,214 +45,502 @@ public class TextExtractionServiceIT {
     static final String RESULTS_REFERENCE_BUCKET = System.getenv("WATSONX_RESULTS_REFERENCE_BUCKET");
     static final String CLOUD_OBJECT_STORAGE_URL = System.getenv("CLOUD_OBJECT_STORAGE_URL");
 
-    static final TextExtractionService textExtractionService = TextExtractionService.builder()
-        .baseUrl(URL)
-        .apiKey(API_KEY)
-        .projectId(PROJECT_ID)
-        .cosUrl(CLOUD_OBJECT_STORAGE_URL)
-        .cosAuthenticator(nonNull(COS_API_KEY) ? IBMCloudAuthenticator.withKey(COS_API_KEY) : IBMCloudAuthenticator.withKey(API_KEY))
-        .documentReference(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET)
-        .resultReference(RESULTS_REFERENCE_CONNECTION_ID, RESULTS_REFERENCE_BUCKET)
-        .logRequests(true)
-        .logResponses(true)
-        .timeout(Duration.ofMinutes(5))
-        .build();
+    @Nested
+    @EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_CONNECTION_ID", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_DOCUMENT_REFERENCE_BUCKET", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_CONNECTION_ID", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_RESULTS_REFERENCE_BUCKET", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "CLOUD_OBJECT_STORAGE_URL", matches = ".+")
+    @ResourceLock("watsonx-cos-document-bucket")
+    class WithCosReference {
 
-    @Test
-    void should_upload_file_and_complete_extraction_successfully() throws Exception {
-
-        var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
-
-        var parameters = TextExtractionParameters.builder()
-            .languages(Language.ENGLISH)
+        final TextExtractionService textExtractionService = TextExtractionService.builder()
+            .baseUrl(URL)
+            .apiKey(API_KEY)
+            .projectId(PROJECT_ID)
+            .cosUrl(CLOUD_OBJECT_STORAGE_URL)
+            .cosAuthenticator(nonNull(COS_API_KEY) ? IBMCloudAuthenticator.withKey(COS_API_KEY) : IBMCloudAuthenticator.withKey(API_KEY))
+            .documentReference(CosReference.of(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET))
+            .resultReference(CosReference.of(RESULTS_REFERENCE_CONNECTION_ID, RESULTS_REFERENCE_BUCKET))
+            .logRequests(true)
+            .logResponses(true)
+            .timeout(Duration.ofMinutes(5))
             .build();
 
-        var response = textExtractionService.uploadAndStartExtraction(file, parameters);
-        assertNotNull(response.entity());
-        assertNull(response.entity().custom());
-        assertNotNull(response.entity().documentReference().connection());
-        assertNotNull(response.entity().documentReference().connection().id());
-        assertNotNull(response.entity().resultsReference().connection());
-        assertNotNull(response.entity().resultsReference().connection().id());
-        assertNotNull(response.entity().parameters());
-        assertNotNull(response.entity().parameters().languages());
-        assertTrue(response.entity().parameters().languages().size() == 1);
-        assertNotNull(response.entity().results());
-        assertNotNull(response.entity().results().status());
-        assertNotNull(response.entity().results().numberPagesProcessed());
-        assertNotNull(response.metadata().id());
-        assertNotNull(response.metadata().createdAt());
-        assertNotNull(response.metadata().projectId());
+        @Test
+        void should_upload_file_and_complete_extraction_successfully() throws Exception {
 
-        var status = response.entity().results().status();
-        while (!status.equals("failed") && !status.equals("completed")) {
-            Thread.sleep(2000);
-            response = textExtractionService.fetchExtractionRequest(response.metadata().id());
-            status = response.entity().results().status();
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .build();
+
+            var response = textExtractionService.uploadAndStartExtraction(file, parameters);
+            assertNotNull(response.entity());
+            assertNull(response.entity().custom());
+            assertNotNull(response.entity().documentReference().connection());
+            assertNotNull(response.entity().documentReference().connection().id());
+            assertNotNull(response.entity().resultsReference().connection());
+            assertNotNull(response.entity().resultsReference().connection().id());
+            assertNotNull(response.entity().parameters());
+            assertNotNull(response.entity().parameters().languages());
+            assertTrue(response.entity().parameters().languages().size() == 1);
+            assertNotNull(response.entity().results());
+            assertNotNull(response.entity().results().status());
+            assertNotNull(response.entity().results().numberPagesProcessed());
+            assertNotNull(response.metadata().id());
+            assertNotNull(response.metadata().createdAt());
+            assertNotNull(response.metadata().projectId());
+
+            var status = response.entity().results().status();
+            while (!status.equals("failed") && !status.equals("completed")) {
+                Thread.sleep(2000);
+                response = textExtractionService.fetchExtractionRequest(response.metadata().id());
+                status = response.entity().results().status();
+            }
+
+            assertEquals("completed", status);
+            assertNotNull(response.entity());
+            assertNull(response.entity().custom());
+            assertNotNull(response.entity().documentReference().connection());
+            assertNotNull(response.entity().documentReference().connection().id());
+            assertNotNull(response.entity().resultsReference().connection());
+            assertNotNull(response.entity().resultsReference().connection().id());
+            assertNotNull(response.entity().parameters());
+            assertNotNull(response.entity().parameters().languages());
+            assertTrue(response.entity().parameters().languages().size() == 1);
+            assertNotNull(response.entity().results());
+            assertNotNull(response.entity().results().completedAt());
+            assertNotNull(response.entity().results().location());
+            assertNotNull(response.entity().results().runningAt());
+            assertNotNull(response.entity().results().status());
+            assertNotNull(response.entity().results().numberPagesProcessed());
+            assertNotNull(response.metadata().id());
+            assertNotNull(response.metadata().createdAt());
+            assertNotNull(response.metadata().modifiedAt());
+            assertNotNull(response.metadata().projectId());
+
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
         }
 
-        assertEquals("completed", status);
-        assertNotNull(response.entity());
-        assertNull(response.entity().custom());
-        assertNotNull(response.entity().documentReference().connection());
-        assertNotNull(response.entity().documentReference().connection().id());
-        assertNotNull(response.entity().resultsReference().connection());
-        assertNotNull(response.entity().resultsReference().connection().id());
-        assertNotNull(response.entity().parameters());
-        assertNotNull(response.entity().parameters().languages());
-        assertTrue(response.entity().parameters().languages().size() == 1);
-        assertNotNull(response.entity().results());
-        assertNotNull(response.entity().results().completedAt());
-        assertNotNull(response.entity().results().location());
-        assertNotNull(response.entity().results().runningAt());
-        assertNotNull(response.entity().results().status());
-        assertNotNull(response.entity().results().numberPagesProcessed());
-        assertNotNull(response.metadata().id());
-        assertNotNull(response.metadata().createdAt());
-        assertNotNull(response.metadata().modifiedAt());
-        assertNotNull(response.metadata().projectId());
+        @Test
+        void should_upload_extract_and_fetch_text_from_file_correctly() throws Exception {
 
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-    }
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
 
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .build();
 
-    @Test
-    void should_upload_extract_and_fetch_text_from_file_correctly() throws Exception {
+            var text = textExtractionService.uploadExtractAndFetch(file, parameters);
+            assertTrue(text.contains("PDF TEST"));
+            assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md").contains("PDF TEST"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
 
-        var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+            parameters = TextExtractionParameters.builder()
+                .mode(Mode.HIGH_QUALITY)
+                .removeUploadedFile(true)
+                .removeOutputFile(true)
+                .build();
 
-        var parameters = TextExtractionParameters.builder()
-            .languages(Language.ENGLISH)
-            .build();
+            text = textExtractionService.uploadExtractAndFetch(file, parameters);
+            assertTrue(text.contains("PDF TEST"));
 
-        var text = textExtractionService.uploadExtractAndFetch(file, parameters);
-        assertTrue(text.contains("PDF TEST"));
-        assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md").contains("PDF TEST"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-
-        parameters = TextExtractionParameters.builder()
-            .mode(Mode.HIGH_QUALITY)
-            .removeUploadedFile(true)
-            .removeOutputFile(true)
-            .build();
-
-        text = textExtractionService.uploadExtractAndFetch(file, parameters);
-        assertTrue(text.contains("PDF TEST"));
-
-        // Wait for async deletion
-        Thread.sleep(1000);
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-    }
-
-    @Test
-    void should_delete_extraction_request_successfully() throws Exception {
-
-        var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
-
-        var parameters = TextExtractionParameters.builder()
-            .languages(Language.ENGLISH)
-            .build();
-
-        var response = textExtractionService.uploadAndStartExtraction(file, parameters);
-        assertTrue(
-            textExtractionService.deleteRequest(
-                response.metadata().id(),
-                TextExtractionDeleteParameters.builder()
-                    .hardDelete(true)
-                    .build()
-            )
-        );
-
-        var ex = assertThrows(WatsonxException.class, () -> textExtractionService.fetchExtractionRequest(response.metadata().id()));
-        assertEquals(404, ex.statusCode());
-    }
-
-    @Test
-    void should_upload_extract_and_fetch_text_from_inputstream_correctly() throws Exception {
-
-        var filename = "test.pdf";
-        var inputstream = ClassLoader.getSystemResourceAsStream(filename);
-
-        var parameters = TextExtractionParameters.builder()
-            .languages(Language.ENGLISH)
-            .build();
-
-        var text = textExtractionService.uploadExtractAndFetch(inputstream, filename);
-        assertTrue(text.contains("PDF TEST"));
-        assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md").contains("PDF TEST"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-
-        parameters = TextExtractionParameters.builder()
-            .mode(Mode.HIGH_QUALITY)
-            .removeUploadedFile(true)
-            .removeOutputFile(true)
-            .build();
-
-        inputstream = ClassLoader.getSystemResourceAsStream(filename);
-        text = textExtractionService.uploadExtractAndFetch(inputstream, filename, parameters);
-        assertTrue(text.contains("PDF TEST"));
-
-        // Wait for async deletion
-        Thread.sleep(1000);
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
-    }
-
-    @Test
-    void should_generate_multiple_output_formats_for_extraction_request() throws Exception {
-
-        var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
-
-        var parameters = TextExtractionParameters.builder()
-            .requestedOutputs(Type.PLAIN_TEXT, Type.JSON, Type.HTML)
-            .outputFileName("test/")
-            .build();
-
-        assertTrue(textExtractionService.uploadFile(file));
-        var response = textExtractionService.startExtraction("test.pdf", parameters);
-        var status = response.entity().results().status();
-        while (!status.equals("failed") && !status.equals("completed")) {
-            Thread.sleep(2000);
-            response = textExtractionService.fetchExtractionRequest(response.metadata().id());
-            status = response.entity().results().status();
+            // Wait for async deletion
+            Thread.sleep(1000);
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
         }
 
-        assertEquals("completed", status);
-        assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test/assembly.html").contains("PDF TEST"));
-        assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test/assembly.json").contains("PDF TEST"));
-        assertEquals("PDF TEST", textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test/plain.txt"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test/assembly.html"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test/assembly.json"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test/plain.txt"));
-        assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        @Test
+        void should_delete_extraction_request_successfully() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .build();
+
+            var response = textExtractionService.uploadAndStartExtraction(file, parameters);
+            assertTrue(
+                textExtractionService.deleteRequest(
+                    response.metadata().id(),
+                    TextExtractionDeleteParameters.builder()
+                        .hardDelete(true)
+                        .build()
+                )
+            );
+
+            var ex = assertThrows(WatsonxException.class, () -> textExtractionService.fetchExtractionRequest(response.metadata().id()));
+            assertEquals(404, ex.statusCode());
+        }
+
+        @Test
+        void should_upload_extract_and_fetch_text_from_inputstream_correctly() throws Exception {
+
+            var filename = "test.pdf";
+            var inputstream = ClassLoader.getSystemResourceAsStream(filename);
+
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .build();
+
+            var text = textExtractionService.uploadExtractAndFetch(inputstream, filename);
+            assertTrue(text.contains("PDF TEST"));
+            assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md").contains("PDF TEST"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+
+            parameters = TextExtractionParameters.builder()
+                .mode(Mode.HIGH_QUALITY)
+                .removeUploadedFile(true)
+                .removeOutputFile(true)
+                .build();
+
+            inputstream = ClassLoader.getSystemResourceAsStream(filename);
+            text = textExtractionService.uploadExtractAndFetch(inputstream, filename, parameters);
+            assertTrue(text.contains("PDF TEST"));
+
+            // Wait for async deletion
+            Thread.sleep(1000);
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        }
+
+        @Test
+        void should_upload_inputstream_and_start_extraction_successfully() throws Exception {
+
+            var filename = "test.pdf";
+            var inputstream = ClassLoader.getSystemResourceAsStream(filename);
+
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .build();
+
+            var response = textExtractionService.uploadAndStartExtraction(inputstream, filename, parameters);
+            assertNotNull(response.metadata().id());
+            assertNotNull(response.entity().results().status());
+
+            var status = response.entity().results().status();
+            while (!status.equals("failed") && !status.equals("completed")) {
+                Thread.sleep(2000);
+                response = textExtractionService.fetchExtractionRequest(response.metadata().id());
+                status = response.entity().results().status();
+            }
+
+            assertEquals("completed", status);
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.md"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        }
+
+        @Test
+        void should_upload_file_via_inputstream_successfully() throws Exception {
+
+            var filename = "test.pdf";
+            var inputstream = ClassLoader.getSystemResourceAsStream(filename);
+            assertTrue(textExtractionService.uploadFile(inputstream, filename));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        }
+
+        @Test
+        void should_generate_multiple_output_formats_for_extraction_request() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+
+            var parameters = TextExtractionParameters.builder()
+                .requestedOutputs(Type.PLAIN_TEXT, Type.JSON, Type.HTML)
+                .outputFileName("test/")
+                .build();
+
+            assertTrue(textExtractionService.uploadFile(file));
+            var response = textExtractionService.startExtraction("test.pdf", parameters);
+            var status = response.entity().results().status();
+            while (!status.equals("failed") && !status.equals("completed")) {
+                Thread.sleep(2000);
+                response = textExtractionService.fetchExtractionRequest(response.metadata().id());
+                status = response.entity().results().status();
+            }
+
+            assertEquals("completed", status);
+            assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test/assembly.html").contains("PDF TEST"));
+            assertTrue(textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test/assembly.json").contains("PDF TEST"));
+            assertEquals("PDF TEST", textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test/plain.txt"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test/assembly.html"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test/assembly.json"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test/plain.txt"));
+            assertTrue(textExtractionService.deleteFile(RESULTS_REFERENCE_BUCKET, "test.pdf"));
+        }
+
+        @Test
+        void should_perform_ocr_and_return_text() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("ocr.jpg").toURI()).toFile();
+            var parameters = TextExtractionParameters.builder()
+                .mode(Mode.HIGH_QUALITY)
+                .requestedOutputs(Type.PLAIN_TEXT)
+                .outputFileName("test_ocr.txt")
+                .removeUploadedFile(true)
+                .removeOutputFile(true)
+                .build();
+
+            var text = textExtractionService.uploadExtractAndFetch(file, parameters);
+            assertEquals("OCR TEST", text);
+
+            // Wait for async deletion
+            Thread.sleep(1000);
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "ocr.jpg"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test_ocr.txt"));
+        }
     }
 
-    @Test
-    void should_perform_ocr_and_return_text() throws Exception {
+    @Nested
+    class WithContainerReference {
 
-        var file = Path.of(ClassLoader.getSystemResource("ocr.jpg").toURI()).toFile();
-        var parameters = TextExtractionParameters.builder()
-            .mode(Mode.HIGH_QUALITY)
-            .requestedOutputs(Type.PLAIN_TEXT)
-            .outputFileName("test_ocr.txt")
-            .removeUploadedFile(true)
-            .removeOutputFile(true)
+        final TextExtractionService textExtractionService = TextExtractionService.builder()
+            .baseUrl(URL)
+            .apiKey(API_KEY)
+            .projectId(PROJECT_ID)
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .logRequests(true)
+            .logResponses(true)
+            .timeout(Duration.ofMinutes(5))
             .build();
 
-        var text = textExtractionService.uploadExtractAndFetch(file, parameters);
-        assertEquals("OCR TEST", text);
+        @Test
+        void should_upload_file_and_complete_extraction_successfully() throws Exception {
 
-        // Wait for async deletion
-        Thread.sleep(1000);
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "ocr.jpg"));
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(RESULTS_REFERENCE_BUCKET, "test_ocr.txt"));
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .build();
+
+            var response = textExtractionService.uploadAndStartExtraction(file, parameters);
+            assertNotNull(response.entity());
+            assertNotNull(response.entity().results());
+            assertNotNull(response.entity().results().status());
+            assertNotNull(response.metadata().id());
+            assertNotNull(response.metadata().createdAt());
+            assertNotNull(response.metadata().projectId());
+
+            var status = response.entity().results().status();
+            while (!status.equals("failed") && !status.equals("completed")) {
+                Thread.sleep(2000);
+                response = textExtractionService.fetchExtractionRequest(response.metadata().id());
+                status = response.entity().results().status();
+            }
+
+            assertEquals("completed", status);
+            assertNotNull(response.entity().results().completedAt());
+            assertNotNull(response.entity().results().runningAt());
+            assertNotNull(response.entity().results().numberPagesProcessed());
+            assertNotNull(response.metadata().modifiedAt());
+
+            assertTrue(textExtractionService.deleteFile(null, "test.md"));
+            assertTrue(textExtractionService.deleteFile(null, "test.pdf"));
+        }
+
+        @Test
+        void should_upload_extract_and_fetch_text_from_file_correctly() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .removeUploadedFile(true)
+                .removeOutputFile(true)
+                .build();
+
+            var text = textExtractionService.uploadExtractAndFetch(file, parameters);
+            assertTrue(text.contains("PDF TEST"));
+
+            // Wait for async deletion
+            Thread.sleep(1000);
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(null, "test.md"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(null, "test.pdf"));
+        }
+
+        @Test
+        void should_upload_extract_and_fetch_text_from_inputstream_correctly() throws Exception {
+
+            var filename = "test.pdf";
+            var inputstream = ClassLoader.getSystemResourceAsStream(filename);
+
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .removeUploadedFile(true)
+                .removeOutputFile(true)
+                .build();
+
+            var text = textExtractionService.uploadExtractAndFetch(inputstream, filename, parameters);
+            assertTrue(text.contains("PDF TEST"));
+
+            // Wait for async deletion
+            Thread.sleep(1000);
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(null, "test.md"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(null, "test.pdf"));
+        }
+
+        @Test
+        void should_upload_inputstream_and_start_extraction_successfully() throws Exception {
+
+            var filename = "test.pdf";
+            var inputstream = ClassLoader.getSystemResourceAsStream(filename);
+
+            var parameters = TextExtractionParameters.builder()
+                .languages(Language.ENGLISH)
+                .build();
+
+            var response = textExtractionService.uploadAndStartExtraction(inputstream, filename, parameters);
+            assertNotNull(response.metadata().id());
+            assertNotNull(response.entity().results().status());
+
+            var status = response.entity().results().status();
+            while (!status.equals("failed") && !status.equals("completed")) {
+                Thread.sleep(2000);
+                response = textExtractionService.fetchExtractionRequest(response.metadata().id());
+                status = response.entity().results().status();
+            }
+
+            assertEquals("completed", status);
+
+            assertTrue(textExtractionService.deleteFile(null, "test.md"));
+            assertTrue(textExtractionService.deleteFile(null, "test.pdf"));
+        }
+
+        @Test
+        void should_start_extraction_for_already_present_file() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+            assertTrue(textExtractionService.uploadFile(file));
+
+            var response = textExtractionService.startExtraction("test.pdf");
+            assertNotNull(response.metadata().id());
+            assertNotNull(response.entity().results().status());
+
+            var status = response.entity().results().status();
+            while (!status.equals("failed") && !status.equals("completed")) {
+                Thread.sleep(2000);
+                response = textExtractionService.fetchExtractionRequest(response.metadata().id());
+                status = response.entity().results().status();
+            }
+
+            assertEquals("completed", status);
+
+            assertTrue(textExtractionService.deleteFile(null, "test.md"));
+            assertTrue(textExtractionService.deleteFile(null, "test.pdf"));
+        }
+
+        @Test
+        void should_upload_file_via_inputstream_successfully() throws Exception {
+
+            var filename = "test.pdf";
+            var inputstream = ClassLoader.getSystemResourceAsStream(filename);
+            assertTrue(textExtractionService.uploadFile(inputstream, filename));
+            assertTrue(textExtractionService.deleteFile(null, filename));
+        }
+
+        @Test
+        void should_delete_extraction_request_successfully() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+
+            var response = textExtractionService.uploadAndStartExtraction(file);
+            assertTrue(
+                textExtractionService.deleteRequest(
+                    response.metadata().id(),
+                    TextExtractionDeleteParameters.builder()
+                        .hardDelete(true)
+                        .build()
+                )
+            );
+
+            var ex = assertThrows(WatsonxException.class, () -> textExtractionService.fetchExtractionRequest(response.metadata().id()));
+            assertEquals(404, ex.statusCode());
+        }
+
+        @Test
+        void should_perform_ocr_and_return_text() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("ocr.jpg").toURI()).toFile();
+            var parameters = TextExtractionParameters.builder()
+                .mode(Mode.HIGH_QUALITY)
+                .requestedOutputs(Type.PLAIN_TEXT)
+                .outputFileName("test_ocr.txt")
+                .removeUploadedFile(true)
+                .removeOutputFile(true)
+                .build();
+
+            var text = textExtractionService.uploadExtractAndFetch(file, parameters);
+            assertEquals("OCR TEST", text);
+
+            // Wait for async deletion
+            Thread.sleep(1000);
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(null, "ocr.jpg"));
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(null, "test_ocr.txt"));
+        }
+
+        @Test
+        void should_extract_and_fetch_using_already_present_file() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+
+            assertTrue(textExtractionService.uploadFile(file));
+
+            var parameters = TextExtractionParameters.builder()
+                .removeOutputFile(true)
+                .build();
+
+            var text = textExtractionService.extractAndFetch("test.pdf", parameters);
+            assertTrue(text.contains("PDF TEST"));
+
+            // Wait for async deletion
+            Thread.sleep(1000);
+            assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(null, "test.md"));
+        }
+
+        @Test
+        void should_generate_multiple_output_formats_for_extraction_request() throws Exception {
+
+            var file = Path.of(ClassLoader.getSystemResource("test.pdf").toURI()).toFile();
+            var bucket = ProjectService.builder()
+                .apiKey(API_KEY)
+                .baseUrl(CloudRegion.DALLAS)
+                .build()
+                .findProject(PROJECT_ID)
+                .map(f -> f.storage().properties().bucketName())
+                .orElseThrow();
+
+            var parameters = TextExtractionParameters.builder()
+                .requestedOutputs(Type.PLAIN_TEXT, Type.JSON, Type.HTML)
+                .outputFileName("test/")
+                .build();
+
+            assertTrue(textExtractionService.uploadFile(file));
+            var response = textExtractionService.startExtraction("test.pdf", parameters);
+            var status = response.entity().results().status();
+            while (!status.equals("failed") && !status.equals("completed")) {
+                Thread.sleep(2000);
+                response = textExtractionService.fetchExtractionRequest(response.metadata().id());
+                status = response.entity().results().status();
+            }
+
+            assertEquals("completed", status);
+            assertTrue(textExtractionService.readFile(bucket, "test/assembly.html").contains("PDF TEST"));
+            assertTrue(textExtractionService.readFile(bucket, "test/assembly.json").contains("PDF TEST"));
+            assertEquals("PDF TEST", textExtractionService.readFile(bucket, "test/plain.txt"));
+            assertTrue(textExtractionService.deleteFile(bucket, "test/assembly.html"));
+            assertTrue(textExtractionService.deleteFile(bucket, "test/assembly.json"));
+            assertTrue(textExtractionService.deleteFile(bucket, "test/plain.txt"));
+            assertTrue(textExtractionService.deleteFile(bucket, "test.pdf"));
+        }
     }
 }

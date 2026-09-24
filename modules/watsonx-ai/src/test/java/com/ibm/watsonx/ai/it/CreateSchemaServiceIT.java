@@ -18,6 +18,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.Mode;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaDeleteParameters;
@@ -52,7 +53,7 @@ public class CreateSchemaServiceIT {
         .projectId(PROJECT_ID)
         .cosUrl(CLOUD_OBJECT_STORAGE_URL)
         .cosAuthenticator(nonNull(COS_API_KEY) ? IBMCloudAuthenticator.withKey(COS_API_KEY) : IBMCloudAuthenticator.withKey(API_KEY))
-        .documentReference(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET)
+        .documentReference(CosReference.of(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET))
         .timeout(Duration.ofMinutes(5))
         .logRequests(true)
         .logResponses(true)
@@ -66,8 +67,8 @@ public class CreateSchemaServiceIT {
             .projectId(PROJECT_ID)
             .baseUrl(URL)
             .cosUrl(CLOUD_OBJECT_STORAGE_URL)
-            .documentReference(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET)
-            .resultReference(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET)
+            .documentReference(CosReference.of(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET))
+            .resultReference(CosReference.of(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -77,7 +78,7 @@ public class CreateSchemaServiceIT {
             .projectId(PROJECT_ID)
             .baseUrl(URL)
             .cosUrl(CLOUD_OBJECT_STORAGE_URL)
-            .documentReference(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET)
+            .documentReference(CosReference.of(DOCUMENT_REFERENCE_CONNECTION_ID, DOCUMENT_REFERENCE_BUCKET))
             .logRequests(true)
             .logResponses(true)
             .build();

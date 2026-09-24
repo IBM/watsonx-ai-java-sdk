@@ -28,6 +28,7 @@
 
   <properties>
     <skipTests>true</skipTests>
+    <skipITs>true</skipITs>
   </properties>
 
   <dependencies>
@@ -61,10 +62,11 @@
               <goal>test-jar</goal>
             </goals>
             <configuration>
-              <!-- Weld-based, needs weld-junit5 which watsonx-ai-jackson2/watsonx-ai-jackson3 don't have. -->
+              <!-- Excluded from the test-jar because these tests cannot run in watsonx-ai-jackson2/watsonx-ai-jackson3 -->
               <excludes>
                 <exclude>**/ContextDepedencyInjectionTest.class</exclude>
                 <exclude>**/ContextDepedencyInjectionTest$*.class</exclude>
+                <exclude>**/storage/cos/CosStorageServiceTest.class</exclude>
               </excludes>
             </configuration>
           </execution>

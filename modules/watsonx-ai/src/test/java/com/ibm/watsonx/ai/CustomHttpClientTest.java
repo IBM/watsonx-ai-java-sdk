@@ -27,6 +27,7 @@ import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
@@ -508,7 +509,7 @@ public class CustomHttpClientTest {
             .apiKey("apiKey")
             .projectId("projectId")
             .cosUrl("http://localhost")
-            .documentReference("connection_id", "bucket")
+            .documentReference(CosReference.of("connection_id", "bucket"))
             .httpClient(customClient)
             .build();
 
@@ -547,7 +548,7 @@ public class CustomHttpClientTest {
                     .projectId("projectId")
                     .cosUrl("http://localhost")
                     .verifySsl(verifySsl)
-                    .documentReference("connection_id", "bucket")
+                    .documentReference(CosReference.of("connection_id", "bucket"))
                     .build();
 
                 Object restclient = getFieldValue(createSchemaService, "client");
@@ -683,7 +684,7 @@ public class CustomHttpClientTest {
             .apiKey("apiKey")
             .projectId("projectId")
             .cosUrl("http://localhost")
-            .documentReference("connection_id", "bucket")
+            .documentReference(CosReference.of("connection_id", "bucket"))
             .httpClient(customClient)
             .build();
 
@@ -722,7 +723,7 @@ public class CustomHttpClientTest {
                     .projectId("projectId")
                     .cosUrl("http://localhost")
                     .verifySsl(verifySsl)
-                    .documentReference("connection_id", "bucket")
+                    .documentReference(CosReference.of("connection_id", "bucket"))
                     .build();
 
                 Object restclient = getFieldValue(textClassificationService, "client");
@@ -756,8 +757,8 @@ public class CustomHttpClientTest {
             .apiKey("apiKey")
             .projectId("projectId")
             .cosUrl("http://localhost")
-            .documentReference("connection_id", "bucket")
-            .resultReference("connection_id", "bucket")
+            .documentReference(CosReference.of("connection_id", "bucket"))
+            .resultReference(CosReference.of("connection_id", "bucket"))
             .httpClient(customClient)
             .build();
 
@@ -796,8 +797,8 @@ public class CustomHttpClientTest {
                     .projectId("projectId")
                     .cosUrl("http://localhost")
                     .verifySsl(verifySsl)
-                    .documentReference("connection_id", "bucket")
-                    .resultReference("connection_id", "bucket")
+                    .documentReference(CosReference.of("connection_id", "bucket"))
+                    .resultReference(CosReference.of("connection_id", "bucket"))
                     .build();
 
                 Object restclient = getFieldValue(textExtractionService, "client");

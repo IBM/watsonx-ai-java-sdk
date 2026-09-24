@@ -110,4 +110,18 @@ public abstract class AbstractWatsonxTest {
             Thread.sleep(50);
         }
     }
+
+    /**
+     * Waits up to {@code timeoutMs} milliseconds for {@code thread} to enter {@link Thread.State#TIMED_WAITING}. Use this to ensure an interrupt
+     * lands inside {@code Thread.sleep} in the poll loop, not inside {@code HttpClient.send}, which would produce a different exception.
+     *
+     * @param thread the thread to wait for
+     * @param timeoutMs maximum wait time in milliseconds
+     */
+    protected static void waitForTimedWaiting(Thread thread, long timeoutMs) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        while (thread.getState() != Thread.State.TIMED_WAITING && System.currentTimeMillis() < deadline) {
+            Thread.sleep(5);
+        }
+    }
 }

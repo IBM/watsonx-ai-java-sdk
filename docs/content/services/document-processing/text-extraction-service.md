@@ -5,7 +5,9 @@ title: Text Extraction Service
 
 # Text Extraction Service
 
-The `TextExtractionService` provides functionality to extract text from documents stored in IBM **Cloud Object Storage (COS)** using **IBM watsonx.ai**. It converts business documents into simpler formats (`Markdown`, `JSON`, `HTML`, `plain text`) suitable for AI pipelines, and can optionally extract structured key-value pair data from documents.
+The `TextExtractionService` provides functionality to extract text from documents using **IBM watsonx.ai**. It converts business documents into simpler formats (`Markdown`, `JSON`, `HTML`, `plain text`) suitable for AI pipelines, and can optionally extract structured key-value pair data from documents.
+
+Documents can be provided via **IBM Cloud Object Storage** (using a `CosReference`) or from the **default container** managed by your watsonx.ai deployment (using a `ContainerReference`).
 
 ## Quick Start
 
@@ -15,8 +17,8 @@ TextExtractionService service = TextExtractionService.builder()
     .projectId(WATSONX_PROJECT_ID)
     .baseUrl(CloudRegion.DALLAS)
     .cosUrl(CLOUD_OBJECT_STORAGE_URL)
-    .documentReference(INPUT_CONNECTION_ID, INPUT_BUCKET_NAME)
-    .resultReference(OUTPUT_CONNECTION_ID, OUTPUT_BUCKET_NAME)
+    .documentReference(CosReference.of(INPUT_CONNECTION_ID, INPUT_BUCKET_NAME))
+    .resultReference(CosReference.of(OUTPUT_CONNECTION_ID, OUTPUT_BUCKET_NAME))
     .build();
 
 TextExtractionParameters parameters = TextExtractionParameters.builder()
@@ -57,10 +59,61 @@ TextExtractionService service = TextExtractionService.builder()
     .projectId(WATSONX_PROJECT_ID)
     .baseUrl("https://us-south.ml.cloud.ibm.com") // or use CloudRegion
     .cosUrl("https://s3.us-south.cloud-object-storage.appdomain.cloud") // or use CosUrl
-    .documentReference(INPUT_CONNECTION_ID, INPUT_BUCKET_NAME)
-    .resultReference(OUTPUT_CONNECTION_ID, OUTPUT_BUCKET_NAME)
+    .documentReference(CosReference.of(INPUT_CONNECTION_ID, INPUT_BUCKET_NAME))
+    .resultReference(CosReference.of(OUTPUT_CONNECTION_ID, OUTPUT_BUCKET_NAME))
     .build();
 ```
+
+### Using Container References
+
+When documents are already stored in the default container created by your watsonx.ai deployment, use `ContainerReference` instead of `CosReference`. No COS URL or credentials are required.
+
+`ContainerReference.container()` is a path-free marker. The file path is supplied at call time as the first argument of `startExtraction` or `extractAndFetch`. This is the recommended approach when the service is configured once and used across multiple files.
+
+```java
+TextExtractionService service = TextExtractionService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl(CloudRegion.DALLAS)
+    .documentReference(ContainerReference.container())
+    .resultReference(ContainerReference.container())
+    .build();
+
+// The path passed here becomes the container path for both document and output
+TextExtractionResponse response = service.startExtraction("invoices/q1-invoice.pdf");
+
+// Fetch result and retrieve the extracted text
+String text = service.extractAndFetch("invoices/q1-invoice.pdf");
+```
+
+When using `ContainerReference`, upload methods (`uploadFile`, `uploadAndStartExtraction`, `uploadExtractAndFetch`) upload the file directly to the **project's default COS bucket** (resolved automatically from the project metadata). The platform then reads the file from that bucket during extraction.
+
+Per-call overrides work across types. A service built with `CosReference` defaults can use a `ContainerReference` for an individual call by setting it in `TextExtractionParameters`, and vice versa.
+
+#### COS access when using ContainerReference
+
+When a `ContainerReference` is configured as the default, direct COS operations (upload, read, delete, and per-call `CosReference` overrides via parameters) require the service to know the project's default COS bucket and endpoint URL. These are resolved automatically from the project metadata:
+
+- **Standard cloud regions** - if `baseUrl(CloudRegion)` was used, the service calls the Projects API automatically on first use. No extra configuration is required.
+- **Custom or on-premise deployments** - if a plain URL string was passed to `baseUrl(...)`, the service cannot derive the Projects API endpoint automatically. Pass an explicit `ProjectService` instance:
+
+```java
+ProjectService projectService = ProjectService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .baseUrl("https://api.your-deployment.example.com")
+    .build();
+
+TextExtractionService service = TextExtractionService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl("https://ml.your-deployment.example.com")
+    .documentReference(ContainerReference.container())
+    .resultReference(ContainerReference.container())
+    .projectService(projectService)
+    .build();
+```
+
+The resolved endpoint URL and bucket are cached after the first lookup. When only `spaceId` is configured (no `projectId`), lazy COS resolution is not supported; set `cosUrl` explicitly in that case.
 
 ### Using a Separate COS Authenticator
 
@@ -73,8 +126,8 @@ TextExtractionService service = TextExtractionService.builder()
     .projectId(WATSONX_PROJECT_ID)
     .baseUrl(WATSONX_URL)
     .cosUrl(CLOUD_OBJECT_STORAGE_URL)
-    .documentReference(INPUT_CONNECTION_ID, INPUT_BUCKET_NAME)
-    .resultReference(OUTPUT_CONNECTION_ID, OUTPUT_BUCKET_NAME)
+    .documentReference(CosReference.of(INPUT_CONNECTION_ID, INPUT_BUCKET_NAME))
+    .resultReference(CosReference.of(OUTPUT_CONNECTION_ID, OUTPUT_BUCKET_NAME))
     .build();
 ```
 
@@ -88,9 +141,10 @@ TextExtractionService service = TextExtractionService.builder()
 | `projectId` | String | Conditional | Project ID where extraction will be performed |
 | `spaceId` | String | Conditional | Space ID (alternative to `projectId`) |
 | `baseUrl` | String/CloudRegion | Yes | watsonx.ai service base URL |
-| `cosUrl` | String/CosUrl | Yes | Cloud Object Storage base URL |
-| `documentReference` | CosReference | Yes | Connection ID and bucket containing input documents |
-| `resultReference` | CosReference | Yes | Connection ID and bucket where extracted results are stored |
+| `cosUrl` | String/CosUrl | Conditional | Cloud Object Storage base URL. Required when `documentReference` is a `CosReference`. Not required for `ContainerReference`, unless only `spaceId` is set (no `projectId`) |
+| `projectService` | ProjectService | No | Explicit `ProjectService` for resolving the default COS bucket when using `ContainerReference` with a non-standard base URL. Auto-resolved from `CloudRegion` otherwise |
+| `documentReference` | DocumentReference | Yes | Input document location - a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
+| `resultReference` | DocumentReference | Yes | Output location - a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
 | `timeout` | Duration | No | Request timeout (default: 60 seconds) |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
@@ -143,7 +197,22 @@ String text = service.uploadExtractAndFetch(inputStream, "fileName.pdf", paramet
 String text = service.extractAndFetch("path/to/cosFile.pdf");
 ```
 
-**Automatic file cleanup:** use `removeUploadedFile` and `removeOutputFile` to delete COS files asynchronously after extraction:
+**From a file already in the container** - use `extractAndFetch` with a container-configured service. The extracted content is retrieved automatically from the project's default COS bucket:
+
+```java
+TextExtractionService service = TextExtractionService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl(CloudRegion.DALLAS)
+    .documentReference(ContainerReference.container())
+    .resultReference(ContainerReference.container())
+    .build();
+
+// Runs extraction and retrieves the result from the project's default COS bucket
+String text = service.extractAndFetch("invoices/q1-invoice.pdf");
+```
+
+**Automatic file cleanup:** use `removeUploadedFile` and `removeOutputFile` to delete the input and output files asynchronously after extraction:
 
 ```java
 var parameters = TextExtractionParameters.builder()
@@ -155,7 +224,9 @@ var parameters = TextExtractionParameters.builder()
 String text = service.uploadExtractAndFetch(new File("path/to/file.pdf"), parameters);
 ```
 
-> **Note:** `removeUploadedFile` and `removeOutputFile` are only supported with the synchronous variants (`uploadExtractAndFetch` / `extractAndFetch`). They cannot be used with `uploadAndStartExtraction`.
+> **Note:** `removeUploadedFile` and `removeOutputFile` are only supported with the synchronous variants (`uploadExtractAndFetch` / `extractAndFetch`). Passing either with `uploadAndStartExtraction` throws `IllegalArgumentException`.
+>
+> **Caution:** when calling `extractAndFetch(String, ...)` with `removeUploadedFile(true)` on a pre-existing document (no upload was performed), the service will delete the document at the path you passed. Use this option with care.
 
 ### Asynchronous Extraction
 
@@ -191,7 +262,9 @@ if (status.equals(Status.COMPLETED.value())) {
 
 ### Multiple Output Formats
 
-Request multiple output formats in a single extraction using `uploadAndStartExtraction`. Set `outputFileName` to a directory path ending with `/` to group all outputs together:
+Multiple output formats are supported with both `CosReference` and `ContainerReference`. Set `outputFileName` to a directory path ending with `/` to group all outputs together.
+
+**COS-backed service:**
 
 ```java
 var parameters = TextExtractionParameters.builder()
@@ -204,9 +277,35 @@ TextExtractionResponse response = service.uploadAndStartExtraction(new File("pat
 
 // Wait for completion, then read each output file
 // Files will be: output/plain.txt, output/assembly.json, output/assembly.html
-String plainText = service.readFile(RESULTS_BUCKET, "output/plain.txt");
-String json      = service.readFile(RESULTS_BUCKET, "output/assembly.json");
-String html      = service.readFile(RESULTS_BUCKET, "output/assembly.html");
+String plainText = service.readFile(OUTPUT_BUCKET_NAME, "output/plain.txt");
+String json      = service.readFile(OUTPUT_BUCKET_NAME, "output/assembly.json");
+String html      = service.readFile(OUTPUT_BUCKET_NAME, "output/assembly.html");
+```
+
+**Container-backed service** (reads results from the project's default COS bucket):
+
+```java
+TextExtractionService service = TextExtractionService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl(CloudRegion.DALLAS)
+    .documentReference(ContainerReference.container())
+    .resultReference(ContainerReference.container())
+    .build();
+
+var parameters = TextExtractionParameters.builder()
+    .requestedOutputs(Type.PLAIN_TEXT, Type.JSON, Type.HTML)
+    .outputFileName("output/")
+    .build();
+
+service.uploadFile(new File("path/to/file.pdf"));
+TextExtractionResponse response = service.startExtraction("file.pdf", parameters);
+
+// Wait for completion, then read each output file
+// bucketName is ignored when resultReference is a ContainerReference - the project bucket is used
+String plainText = service.readFile(null, "output/plain.txt");
+String json      = service.readFile(null, "output/assembly.json");
+String html      = service.readFile(null, "output/assembly.html");
 ```
 
 ### OCR from Images
@@ -265,7 +364,7 @@ results/embedded_images_assembly/*.png   (if embedded images are enabled)
 results/page_images/*.png                (if PAGE_IMAGES is requested)
 ```
 
-If `outputFileName` is not set, output files are written to the root of the `resultReference` bucket.
+If `outputFileName` is not set for a single-output extraction, the output file is written to the root of the `resultReference` location.
 
 ### Output Types
 
@@ -401,8 +500,8 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | `outputFileName` | String | Name or directory prefix for the output file in COS |
 | `removeUploadedFile` | Boolean | Delete the input file from COS after extraction (synchronous only) |
 | `removeOutputFile` | Boolean | Delete the output file from COS after reading (synchronous only) |
-| `documentReference` | CosReference | Override the default input COS location for this request |
-| `resultReference` | CosReference | Override the default output COS location for this request |
+| `documentReference` | DocumentReference | Override the default input location for this request - accepts `CosReference` or `ContainerReference` |
+| `resultReference` | DocumentReference | Override the default output location for this request - accepts `CosReference` or `ContainerReference` |
 | `timeout` | Duration | Override the service-level timeout for this request |
 | `addCustomProperty` | String, Object | Add arbitrary key-value metadata to the request |
 | `projectId` | String | Override the default Project ID |
@@ -454,15 +553,19 @@ Returned by `startExtraction`, `uploadAndStartExtraction`, and `fetchExtractionR
 
 ### ExtractionResult
 
+`ExtractionResult` is returned by `entity().results()` and carries status and progress information about the extraction job.
+
 | Field | Type | Description |
 |-------|------|-------------|
-| `status()` | String | Current status: `submitted`, `queued`, `running`, `completed`, or `failed` |
+| `status()` | String | Current status: `submitted`, `uploading`, `running`, `downloading`, `downloaded`, `completed`, `failed`, or `ai_processing` |
 | `runningAt()` | String | Timestamp when processing started |
 | `completedAt()` | String | Timestamp when processing completed or failed |
 | `numberPagesProcessed()` | Integer | Number of pages processed so far |
 | `totalPages()` | Integer | Total number of pages to process |
-| `location()` | List\<String\> | Paths of the output files produced in COS |
+| `location()` | List\<String\> | Paths of the output files produced in COS (populated when status is `completed`) |
 | `error()` | Error | Error details if status is `failed` |
+
+> **Note:** `entity().results().location()` (a `List<String>` of output file paths on `ExtractionResult`) is distinct from `entity().resultsReference().location()` (a `CosDataLocation` object with `fileName()`, `bucket()`, and `path()` fields on the `DataReference`). The async example above uses `resultsReference().location().fileName()` to find the output file path when a single output format is requested.
 
 ---
 
