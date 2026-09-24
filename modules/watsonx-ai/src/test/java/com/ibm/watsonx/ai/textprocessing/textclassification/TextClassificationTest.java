@@ -17,6 +17,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,15 +37,19 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -53,6 +61,11 @@ import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
+import com.ibm.watsonx.ai.project.Project;
+import com.ibm.watsonx.ai.project.ProjectService;
+import com.ibm.watsonx.ai.project.ProjectStorage;
+import com.ibm.watsonx.ai.project.ProjectStorageProperties;
+import com.ibm.watsonx.ai.textprocessing.ContainerReference;
 import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
 import com.ibm.watsonx.ai.textprocessing.CosDataLocation;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
@@ -98,7 +111,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
             .authenticator(mockAuthenticator)
             .projectId("project-id")
-            .documentReference("connection_id", "my-bucket")
+            .documentReference(CosReference.of("connection_id", "my-bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -212,7 +225,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         Metadata metadata = new Metadata("id", "2025-10-23T07:32:11.013Z", "2025-10-23T07:32:43.003Z", "space-id", "project-id");
         DataReference documentReference =
-            new DataReference("connection_asset", new CosDataConnection("connection-id"), new CosDataLocation("test.pdf", "my-bucket"));
+            new DataReference("connection_asset", new CosDataConnection("connection-id"), new CosDataLocation("test.pdf", "my-bucket", null));
         ClassificationResult classificationResult = new ClassificationResult(
             "completed",
             "2025-10-23T07:32:24.272Z",
@@ -533,12 +546,12 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         TextClassificationException ex = assertThrows(TextClassificationException.class,
             () -> classificationService.uploadClassifyAndFetch(file));
-        assertEquals(ex.code(), "file_not_found");
+        assertEquals("file_not_found", ex.code());
         assertTrue(ex.getCause() instanceof FileNotFoundException);
-        assertEquals("TextClassificationException [code=file_not_found, message=doesnotexist.pdf (No such file or directory)]", ex.toString());
+        assertTrue(ex.toString().startsWith("TextClassificationException [code=file_not_found, message=doesnotexist.pdf"));
 
-        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
-        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/id")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
@@ -614,25 +627,31 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
 
+        ClassificationResult result = classificationService.uploadClassifyAndFetch(file, parameters);
+        assertNotNull(result);
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
+    }
+
+    @Test
+    void should_delete_preexisting_document_when_classify_and_fetch_with_remove_uploaded_file() throws Exception {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+        mockServers(true);
+
+        TextClassificationParameters parameters = TextClassificationParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
         ClassificationResult result = classificationService.classifyAndFetch("test.pdf", parameters);
         assertNotNull(result);
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
-        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
-
-        watsonxServer.resetAll();
-        cosServer.resetAll();
-
-        mockServers(true);
-
-        result = classificationService.uploadClassifyAndFetch(file, parameters);
-        assertNotNull(result);
-        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
-        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
@@ -746,6 +765,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         assertEquals("The execution of the classification test.pdf file took longer than the timeout set by 100 milliseconds",
             ex.getMessage());
 
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
@@ -851,15 +871,13 @@ public class TextClassificationTest extends AbstractWatsonxTest {
 
         var ex = assertThrows(
             WatsonxException.class,
-            () -> classificationService.uploadAndStartClassification(file),
-            "The specified bucket does not exist.");
+            () -> classificationService.uploadAndStartClassification(file));
 
         assertEquals(error, ex.details().orElseThrow());
 
         ex = assertThrows(
             WatsonxException.class,
-            () -> classificationService.uploadClassifyAndFetch(file),
-            "The specified bucket does not exist.");
+            () -> classificationService.uploadClassifyAndFetch(file));
 
         assertEquals(error, ex.details().orElseThrow());
 
@@ -918,7 +936,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                     <Error>
                         <Code>AccessDenied</Code>
                         <Message>Access Denied</Message>
-                        <Resource>/andreaproject-donotdelete-pr-xnran4g4ptd1wo/ciao.pdf</Resource>
+                        <Resource>/example-project-bucket/ciao.pdf</Resource>
                         <RequestId>df887c2b-43c3-4933-a3a1-b0e19e7c2231</RequestId>
                         <httpStatusCode>403</httpStatusCode>
                     </Error>""")));
@@ -931,7 +949,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .willReturn(aResponse().withStatus(204)));
 
         assertTrue(classificationService.deleteFile("my-bucket", "test.pdf"));
-        Thread.sleep(500);
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 2);
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
@@ -951,7 +969,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .cosAuthenticator(cosAuthenticator)
             .projectId("projectid")
-            .documentReference("connection_id", "my-bucket")
+            .documentReference(CosReference.of("connection_id", "my-bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -969,7 +987,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                     <Error>
                         <Code>AccessDenied</Code>
                         <Message>Access Denied</Message>
-                        <Resource>/andreaproject-donotdelete-pr-xnran4g4ptd1wo/ciao.pdf</Resource>
+                        <Resource>/example-project-bucket/ciao.pdf</Resource>
                         <RequestId>df887c2b-43c3-4933-a3a1-b0e19e7c2231</RequestId>
                         <httpStatusCode>403</httpStatusCode>
                     </Error>""")));
@@ -982,7 +1000,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .willReturn(aResponse().withStatus(204)));
 
         assertTrue(classificationService.deleteFile("my-bucket", "test.pdf"));
-        Thread.sleep(500);
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 2);
         cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
@@ -1011,7 +1029,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .cosAuthenticator(cosAuthenticator)
             .projectId("projectid")
-            .documentReference("connection_id", "my-bucket")
+            .documentReference(CosReference.of("connection_id", "my-bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -1058,6 +1076,856 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         assertEquals(f1, f2);
 
     }
+
+    @Test
+    void should_start_classification_with_container_reference() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var CONTAINER_CLASSIFICATION_RESPONSE = """
+            {
+              "metadata": {
+                "id": "id",
+                "created_at": "2025-10-23T07:32:11.013Z",
+                "project_id": "project-id"
+              },
+              "entity": {
+                "document_reference": {
+                  "type": "container",
+                  "location": { "path": "invoices/q1.pdf" }
+                },
+                "results": {
+                  "status": "completed",
+                  "document_classified": true,
+                  "document_type": "Invoice",
+                  "running_at": "2025-10-23T07:32:24.272Z",
+                  "completed_at": "2025-10-23T07:32:42.981Z"
+                }
+              }
+            }""";
+
+        // ContainerReference.container() is a path-free marker; path is passed at call time.
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .withRequestBody(equalToJson("""
+                {
+                  "project_id": "project-id",
+                  "document_reference": {
+                    "type": "container",
+                    "location": { "path": "invoices/q1.pdf" }
+                  }
+                }""", true, false))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_CLASSIFICATION_RESPONSE)));
+
+        var response = service.startClassification("invoices/q1.pdf");
+
+        assertNotNull(response);
+        assertEquals("id", response.metadata().id());
+        watsonxServer.verify(postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+    }
+
+    @Test
+    void should_upload_file_via_cos_when_document_reference_is_container() throws Exception {
+
+        var CLASSIFICATION_RESPONSE = """
+            {
+              "metadata": { "id": "id", "created_at": "2025-10-23T07:32:11.013Z", "project_id": "project-id" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "test.pdf" } },
+                "results": { "status": "submitted" }
+              }
+            }""";
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("project-id")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("my-bucket");
+
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        cosServer.stubFor(put(urlPathMatching("/my-bucket/.*"))
+            .willReturn(aResponse().withStatus(200)));
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CLASSIFICATION_RESPONSE)));
+
+        var response = service.uploadAndStartClassification(new File(
+            ClassLoader.getSystemResource("test.pdf").toURI()));
+
+        assertNotNull(response);
+        assertEquals("id", response.metadata().id());
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/my-bucket/.*")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/files")));
+
+        service.uploadFile(new File(ClassLoader.getSystemResource("test.pdf").toURI()));
+        cosServer.verify(2, putRequestedFor(urlPathMatching("/my-bucket/.*")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/files")));
+    }
+
+    @Test
+    void should_start_classification_with_container_reference_per_call_override() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var CONTAINER_CLASSIFICATION_RESPONSE = """
+            {
+              "metadata": {
+                "id": "id",
+                "created_at": "2025-10-23T07:32:11.013Z",
+                "project_id": "project-id"
+              },
+              "entity": {
+                "document_reference": {
+                  "type": "container",
+                  "location": { "path": "invoices/override.pdf" }
+                },
+                "results": {
+                  "status": "completed",
+                  "document_classified": true,
+                  "document_type": "Invoice",
+                  "running_at": "2025-10-23T07:32:24.272Z",
+                  "completed_at": "2025-10-23T07:32:42.981Z"
+                }
+              }
+            }""";
+
+        var parameters = TextClassificationParameters.builder()
+            .documentReference(ContainerReference.container())
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .withRequestBody(equalToJson("""
+                {
+                  "project_id": "project-id",
+                  "document_reference": {
+                    "type": "container",
+                    "location": { "path": "invoices/override.pdf" }
+                  },
+                  "parameters": {}
+                }""", true, false))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_CLASSIFICATION_RESPONSE)));
+
+        var response = classificationService.startClassification("invoices/override.pdf", parameters);
+
+        assertNotNull(response);
+        watsonxServer.verify(postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+    }
+
+    @Test
+    void should_start_classification_with_container_reference_and_ocr_mode() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var RESPONSE = """
+            {
+              "metadata": { "id": "id", "created_at": "2025-10-23T07:32:11.013Z", "project_id": "project-id" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                "results": { "status": "completed", "document_classified": true, "document_type": "Invoice" }
+              }
+            }""";
+
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .build();
+
+        var parameters = TextClassificationParameters.builder()
+            .ocrMode(OcrMode.FORCED)
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .withRequestBody(equalToJson("""
+                {
+                  "project_id": "project-id",
+                  "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                  "parameters": { "ocr_mode": "forced" }
+                }""", true, false))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE)));
+
+        var response = service.startClassification("invoices/q1.pdf", parameters);
+
+        assertNotNull(response);
+        assertEquals("id", response.metadata().id());
+        watsonxServer.verify(postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+    }
+
+    @Test
+    void should_throw_when_upload_called_with_container_reference_and_no_region_nor_project_service_on_input_stream() {
+        TextClassificationService[] holder = new TextClassificationService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .build());
+
+        var ex = assertThrows(IllegalStateException.class,
+            () -> holder[0].uploadFile(new ByteArrayInputStream(new byte[0]), "f.pdf"));
+        assertTrue(ex.getMessage().contains("ProjectService"));
+    }
+
+    @Test
+    void should_resolve_cos_service_lazily_via_project_service_when_container_reference_used() throws Exception {
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("project-id")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("my-bucket");
+
+        cosServer.stubFor(put("/my-bucket/f.pdf").willReturn(aResponse().withStatus(200)));
+
+        TextClassificationService[] holder = new TextClassificationService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build());
+        var service = holder[0];
+
+        // uploadFile triggers lazy COS resolution on first call
+        assertTrue(service.uploadFile(new ByteArrayInputStream(new byte[0]), "f.pdf"));
+
+        // A second call should reuse the cached COS instance - only one findProject call
+        assertTrue(service.uploadFile(new ByteArrayInputStream(new byte[0]), "f.pdf"));
+        verify(mockProjectService, times(1)).findProject("project-id");
+    }
+
+    @Test
+    void should_cleanup_via_cos_ref_override_on_timeout() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+
+        // Service configured with "cos-bucket" as the default documentReference.
+        // The per-call parameter overrides documentReference to "override-bucket".
+        // Cleanup must delete from "override-bucket" (the per-call ref), not "cos-bucket".
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(CosReference.of("conn-id", "cos-bucket"))
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(JOB.formatted("submitted"))));
+
+        watsonxServer.stubFor(get(urlPathEqualTo("/ml/v1/text/classifications/id"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(JOB.formatted("running"))));
+
+        watsonxServer.stubFor(delete(urlPathEqualTo("/ml/v1/text/classifications/id"))
+            .willReturn(aResponse().withStatus(204)));
+
+        cosServer.stubFor(delete("/override-bucket/test.pdf")
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        TextClassificationParameters parameters = TextClassificationParameters.builder()
+            .documentReference(CosReference.of("conn-id", "override-bucket"))
+            .timeout(Duration.ofMillis(100))
+            .removeUploadedFile(true)
+            .build();
+
+        assertThrows(TextClassificationException.class,
+            () -> service.classifyAndFetch("test.pdf", parameters));
+
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/override-bucket/test.pdf")), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/override-bucket/test.pdf")));
+        cosServer.verify(0, deleteRequestedFor(urlEqualTo("/cos-bucket/test.pdf")));
+    }
+
+    @Test
+    void should_throw_early_when_upload_classify_fetch_file_and_container_not_resolvable() throws Exception {
+
+        TextClassificationService[] holder = new TextClassificationService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .build());
+
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+
+        var ex = assertThrows(IllegalStateException.class,
+            () -> holder[0].uploadClassifyAndFetch(file));
+        assertTrue(ex.getMessage().contains("ProjectService"));
+
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+        cosServer.verify(0, putRequestedFor(urlPathMatching("/.*")));
+    }
+
+    @Test
+    void should_throw_early_when_upload_and_start_classification_stream_and_container_not_resolvable() throws Exception {
+
+        TextClassificationService[] holder = new TextClassificationService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .build());
+
+        var ex = assertThrows(IllegalStateException.class,
+            () -> holder[0].uploadAndStartClassification(new ByteArrayInputStream(new byte[0]), "f.pdf"));
+        assertTrue(ex.getMessage().contains("ProjectService"));
+
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+        cosServer.verify(0, putRequestedFor(urlPathMatching("/.*")));
+    }
+
+    @Test
+    void should_delete_uploaded_file_when_post_classification_returns_error() throws Exception {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+
+        cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        cosServer.stubFor(delete("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(500).withBody("{}")));
+
+        TextClassificationParameters parameters = TextClassificationParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        var ex = assertThrows(WatsonxException.class, () -> classificationService.uploadClassifyAndFetch(file, parameters));
+        assertEquals(500, ex.statusCode());
+
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
+    }
+
+    @Test
+    void should_cancel_job_and_delete_uploaded_file_when_polling_returns_error() throws Exception {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+
+        cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        cosServer.stubFor(delete("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200).withBody(JOB.formatted("submitted"))));
+
+        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(500).withBody("{}")));
+
+        watsonxServer.stubFor(delete("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        TextClassificationParameters parameters = TextClassificationParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        var ex = assertThrows(WatsonxException.class, () -> classificationService.uploadClassifyAndFetch(file, parameters));
+        assertEquals(500, ex.statusCode());
+
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_throw_exception_when_file_is_null() {
+        assertThrows(NullPointerException.class, () -> classificationService.uploadClassifyAndFetch((File) null));
+        assertThrows(NullPointerException.class,
+            () -> classificationService.uploadClassifyAndFetch(null, TextClassificationParameters.builder().build()));
+        assertThrows(NullPointerException.class, () -> classificationService.uploadAndStartClassification((File) null));
+        assertThrows(NullPointerException.class,
+            () -> classificationService.uploadAndStartClassification(null, TextClassificationParameters.builder().build()));
+        assertThrows(NullPointerException.class, () -> classificationService.uploadFile((File) null));
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_throw_exception_when_file_is_directory(@TempDir java.nio.file.Path tempDir) {
+        var dir = tempDir.toFile();
+
+        TextClassificationException ex1 = assertThrows(TextClassificationException.class,
+            () -> classificationService.uploadClassifyAndFetch(dir));
+        assertEquals("directory_not_allowed", ex1.code());
+
+        TextClassificationException ex1p = assertThrows(TextClassificationException.class,
+            () -> classificationService.uploadClassifyAndFetch(dir, TextClassificationParameters.builder().build()));
+        assertEquals("directory_not_allowed", ex1p.code());
+
+        TextClassificationException ex2 = assertThrows(TextClassificationException.class,
+            () -> classificationService.uploadAndStartClassification(dir));
+        assertEquals("directory_not_allowed", ex2.code());
+
+        TextClassificationException ex2p = assertThrows(TextClassificationException.class,
+            () -> classificationService.uploadAndStartClassification(dir, TextClassificationParameters.builder().build()));
+        assertEquals("directory_not_allowed", ex2p.code());
+
+        TextClassificationException ex3 = assertThrows(TextClassificationException.class,
+            () -> classificationService.uploadFile(dir));
+        assertEquals("directory_not_allowed", ex3.code());
+
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+        cosServer.verify(0, putRequestedFor(urlPathMatching("/.*")));
+    }
+
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_check_null_and_directory_before_resolving_storage_on_container_reference(@TempDir java.nio.file.Path tempDir) {
+        // Verifies that the null/directory guard fires before requireUploadCapability, so
+        // ProjectService is never consulted when the argument itself is invalid.
+        var mockProjectService = mock(ProjectService.class);
+
+        TextClassificationService[] holder = new TextClassificationService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build());
+
+        var dir = tempDir.toFile();
+        var params = TextClassificationParameters.builder().build();
+
+        assertThrows(NullPointerException.class, () -> holder[0].uploadFile((File) null));
+        assertThrows(TextClassificationException.class, () -> holder[0].uploadFile(dir));
+
+        assertThrows(NullPointerException.class, () -> holder[0].uploadClassifyAndFetch((File) null, params));
+        assertThrows(TextClassificationException.class, () -> holder[0].uploadClassifyAndFetch(dir, params));
+
+        assertThrows(NullPointerException.class, () -> holder[0].uploadAndStartClassification((File) null, params));
+        assertThrows(TextClassificationException.class, () -> holder[0].uploadAndStartClassification(dir, params));
+
+        verify(mockProjectService, times(0)).findProject(any());
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_check_null_stream_and_filename_before_resolving_storage_on_container_reference() {
+        var mockProjectService = mock(ProjectService.class);
+
+        TextClassificationService[] holder = new TextClassificationService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build());
+
+        var params = TextClassificationParameters.builder().build();
+        var is = InputStream.nullInputStream();
+
+        assertThrows(NullPointerException.class, () -> holder[0].uploadFile((InputStream) null, "test.pdf"));
+        assertThrows(NullPointerException.class, () -> holder[0].uploadFile(is, null));
+
+        assertThrows(NullPointerException.class,
+            () -> holder[0].uploadClassifyAndFetch((InputStream) null, "test.pdf", params));
+        assertThrows(NullPointerException.class, () -> holder[0].uploadClassifyAndFetch(is, null, params));
+
+        assertThrows(NullPointerException.class,
+            () -> holder[0].uploadAndStartClassification((InputStream) null, "test.pdf", params));
+        assertThrows(NullPointerException.class, () -> holder[0].uploadAndStartClassification(is, null, params));
+
+        verify(mockProjectService, times(0)).findProject(any());
+    }
+
+    @Test
+    void should_upload_to_project_bucket_when_per_call_container_reference_overrides_service_cos_reference() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("project-id")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("project-bucket");
+
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+        var RESPONSE = Files.readString(Path.of(ClassLoader.getSystemResource("classification_response.json").toURI()));
+
+        // Service has CosReference("cos-bucket") as default documentReference.
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(CosReference.of("conn-id", "cos-bucket"))
+            .projectService(mockProjectService)
+            .build();
+
+        // Stub PUT on project-bucket - this is where the upload MUST land.
+        cosServer.stubFor(put(urlPathMatching("/project-bucket/.*"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(JOB.formatted("submitted"))));
+
+        watsonxServer.stubFor(get(urlPathEqualTo("/ml/v1/text/classifications/id"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE)));
+
+        TextClassificationParameters parameters = TextClassificationParameters.builder()
+            .documentReference(ContainerReference.container())
+            .build();
+
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+        var response = service.uploadAndStartClassification(file, parameters);
+        assertNotNull(response);
+
+        // Upload went to project-bucket, not to cos-bucket.
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/project-bucket/.*")));
+        cosServer.verify(0, putRequestedFor(urlPathMatching("/cos-bucket/.*")));
+    }
+
+    @Test
+    void should_return_result_when_delete_of_uploaded_file_responds_403() throws Exception {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+        mockServers(false);
+
+        cosServer.stubFor(delete("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(403)
+                .withHeader("Content-Type", "application/xml")
+                .withBody("""
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Error>
+                        <Code>AccessDenied</Code>
+                        <Message>Access Denied</Message>
+                        <Resource>/my-bucket/test.pdf</Resource>
+                        <RequestId>df887c2b-43c3-4933-a3a1-b0e19e7c2231</RequestId>
+                        <httpStatusCode>403</httpStatusCode>
+                    </Error>""")));
+
+        TextClassificationParameters parameters = TextClassificationParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+
+        // Must succeed: 403 on delete is logged and swallowed.
+        ClassificationResult result = classificationService.uploadClassifyAndFetch(file, parameters);
+        assertNotNull(result);
+        assertEquals("completed", result.status());
+
+        // AccessDenied triggers a token-expiry retry, so two DELETE attempts are expected.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 2);
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
+        cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+    }
+
+
+    @Test
+    void should_interrupt_classification_restore_flag_and_delete_job() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+
+        // POST returns "running" so the poll loop never exits by itself.
+        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200).withBody(JOB.formatted("running"))));
+
+        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200).withBody(JOB.formatted("running"))));
+
+        watsonxServer.stubFor(delete("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        TextClassificationException[] result = new TextClassificationException[1];
+        boolean[] interruptFlag = new boolean[1];
+
+        var thread = new Thread(() -> {
+            try {
+                classificationService.classifyAndFetch("test.pdf");
+            } catch (TextClassificationException e) {
+                result[0] = e;
+            } finally {
+                interruptFlag[0] = Thread.currentThread().isInterrupted();
+            }
+        });
+        thread.start();
+
+        // Wait until the poll loop has fired at least one GET, then wait for the thread to
+        // enter TIMED_WAITING (inside Thread.sleep in the poll loop) before interrupting.
+        // This avoids a race where interrupt() fires while HttpClient is still reading the
+        // HTTP response, which would throw a different exception from the sleep interruption.
+        waitForRequests(watsonxServer, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")), 1);
+        waitForTimedWaiting(thread, 5_000);
+        thread.interrupt();
+        thread.join(5_000);
+        assertFalse(thread.isAlive());
+
+        assertNotNull(result[0]);
+        assertEquals("interrupted", result[0].code());
+        assertTrue(interruptFlag[0], "interrupt flag must be restored on the calling thread");
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+    }
+
+    @Test
+    void should_delete_from_project_bucket_when_container_reference_used_with_remove_uploaded_file() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+        var RESPONSE = Files.readString(Path.of(ClassLoader.getSystemResource("classification_response.json").toURI()));
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("project-id")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("project-bucket");
+
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        // PUT and DELETE must both target the exact same project-bucket/test.pdf path.
+        cosServer.stubFor(put("/project-bucket/test.pdf")
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        cosServer.stubFor(delete("/project-bucket/test.pdf")
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(JOB.formatted("submitted"))));
+
+        watsonxServer.stubFor(get(urlPathEqualTo("/ml/v1/text/classifications/id"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE)));
+
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+        TextClassificationParameters parameters = TextClassificationParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        var classResult = service.uploadClassifyAndFetch(file, parameters);
+        assertNotNull(classResult);
+
+        // Upload and cleanup must both hit the same exact key.
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/project-bucket/test.pdf")));
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/project-bucket/test.pdf")), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/project-bucket/test.pdf")));
+    }
+
+    @Test
+    void should_clear_interrupt_flag_before_resolving_project_storage_during_cleanup() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+
+        AtomicBoolean interruptedDuringFindProject = new AtomicBoolean(false);
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("project-id")).thenAnswer(inv -> {
+            interruptedDuringFindProject.set(Thread.currentThread().isInterrupted());
+            return Optional.of(mockProject);
+        });
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("project-bucket");
+
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        // POST returns "running" so the poll loop never exits on its own.
+        watsonxServer.stubFor(post("/ml/v1/text/classifications?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200).withBody(JOB.formatted("running"))));
+
+        watsonxServer.stubFor(get("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(200).withBody(JOB.formatted("running"))));
+
+        watsonxServer.stubFor(delete("/ml/v1/text/classifications/id?version=%s&project_id=%s".formatted(API_VERSION, "project-id"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        cosServer.stubFor(delete("/project-bucket/test.pdf")
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        TextClassificationException[] result = new TextClassificationException[1];
+        boolean[] interruptFlag = new boolean[1];
+
+        var thread = new Thread(() -> {
+            try {
+                service.classifyAndFetch("test.pdf", TextClassificationParameters.builder()
+                    .removeUploadedFile(true)
+                    .build());
+            } catch (TextClassificationException e) {
+                result[0] = e;
+            } finally {
+                interruptFlag[0] = Thread.currentThread().isInterrupted();
+            }
+        });
+        thread.start();
+
+        // Wait until the poll loop has fired at least one GET, then wait for TIMED_WAITING
+        // so the interrupt lands inside Thread.sleep (not inside HttpClient.send).
+        waitForRequests(watsonxServer, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")), 1);
+        waitForTimedWaiting(thread, 5_000);
+        thread.interrupt();
+        thread.join(5_000);
+        assertFalse(thread.isAlive());
+
+        assertNotNull(result[0]);
+        assertEquals("interrupted", result[0].code());
+        assertTrue(interruptFlag[0], "interrupt flag must be restored on the calling thread");
+
+        // The interrupt flag must have been cleared before findProject was invoked.
+        assertFalse(interruptedDuringFindProject.get(), "findProject must not see the interrupt flag set");
+
+        // The uploaded file must have been deleted from the project bucket.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/project-bucket/test.pdf")), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/project-bucket/test.pdf")));
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+    }
+
+
+    @Test
+    void should_return_result_even_when_cleanup_throws_during_container_reference_cleanup() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+        var RESPONSE = Files.readString(Path.of(ClassLoader.getSystemResource("classification_response.json").toURI()));
+
+        var mockProjectService = mock(ProjectService.class);
+        when(mockProjectService.findProject("project-id")).thenThrow(new RuntimeException("storage unavailable"));
+
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(JOB.formatted("submitted"))));
+
+        watsonxServer.stubFor(get(urlPathEqualTo("/ml/v1/text/classifications/id"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE)));
+
+        TextClassificationParameters parameters = TextClassificationParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        // POST and GET complete. Cleanup fails. Result must still be returned.
+        ClassificationResult result = service.classifyAndFetch("test.pdf", parameters);
+        assertNotNull(result);
+        assertEquals("completed", result.status());
+
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+    }
+
 
     private void mockServers(boolean deleteUploadedFile) throws Exception {
 

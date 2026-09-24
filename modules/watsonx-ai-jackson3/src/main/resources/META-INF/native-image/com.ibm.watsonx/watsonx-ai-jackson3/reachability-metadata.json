@@ -2783,6 +2783,71 @@
       ]
     },
     {
+      "type": "com.ibm.watsonx.ai.textprocessing.CosDataConnection",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "id",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.CosDataLocation",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "bucket",
+          "parameterTypes": []
+        },
+        {
+          "name": "fileName",
+          "parameterTypes": []
+        },
+        {
+          "name": "path",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.DataReference",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "com.ibm.watsonx.ai.textprocessing.CosDataConnection",
+            "com.ibm.watsonx.ai.textprocessing.CosDataLocation"
+          ]
+        },
+        {
+          "name": "connection",
+          "parameterTypes": []
+        },
+        {
+          "name": "location",
+          "parameterTypes": []
+        },
+        {
+          "name": "type",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "com.ibm.watsonx.ai.textprocessing.GroundingHints",
       "methods": [
         {

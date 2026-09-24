@@ -5,10 +5,12 @@
 package com.ibm.watsonx.ai.client;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.chat.ChatService;
@@ -37,6 +39,7 @@ import com.ibm.watsonx.ai.client.impl.CustomTextGenerationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTimeSeriesRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomTokenizationRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomToolRestClient;
+import com.ibm.watsonx.ai.client.impl.CustomCosStorageRestClient;
 import com.ibm.watsonx.ai.client.impl.CustomProjectRestClient;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
@@ -53,6 +56,7 @@ import com.ibm.watsonx.ai.gateway.embedding.ModelGatewayEmbeddingService;
 import com.ibm.watsonx.ai.gateway.image.ModelGatewayImageService;
 import com.ibm.watsonx.ai.rerank.RerankService;
 import com.ibm.watsonx.ai.textgeneration.TextGenerationService;
+import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService;
 import com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService;
@@ -61,6 +65,8 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesService;
 import com.ibm.watsonx.ai.tokenization.TokenizationService;
+import com.ibm.watsonx.ai.textprocessing.storage.StorageFactory;
+import com.ibm.watsonx.ai.textprocessing.storage.cos.CosStorageService;
 import com.ibm.watsonx.ai.tool.ToolService;
 import com.ibm.watsonx.ai.utils.ServiceLoaderUtils;
 
@@ -339,7 +345,7 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 .cosUrl("http://localhost")
                 .baseUrl("http://localhost")
                 .projectId("project-id")
-                .documentReference("test", "test")
+                .documentReference(CosReference.of("test", "test"))
                 .build();
 
             try {
@@ -409,8 +415,8 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 .apiKey("test")
                 .cosUrl("http://localhost")
                 .baseUrl("http://localhost")
-                .documentReference("test", "test")
-                .resultReference("test", "test")
+                .documentReference(CosReference.of("test", "test"))
+                .resultReference(CosReference.of("test", "test"))
                 .projectId("project-id")
                 .build();
 
@@ -435,7 +441,7 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 .apiKey("test")
                 .cosUrl("http://localhost")
                 .baseUrl("http://localhost")
-                .documentReference("test", "test")
+                .documentReference(CosReference.of("test", "test"))
                 .projectId("project-id")
                 .build();
 
@@ -683,6 +689,36 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 clientField.setAccessible(true);
                 var client = clientField.get(projectService);
                 assertTrue(client instanceof CustomProjectRestClient);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Test
+    // ServiceLoaderUtils: com.ibm.watsonx.ai.textprocessing.storage.cos.CosStorageRestClient$CosStorageRestClientBuilderFactory
+    public void should_use_custom_rest_client_when_building_cos_storage_service() throws Exception {
+
+        withWatsonxServiceMock(() -> {
+            var storageService = StorageFactory.cos(
+                "http://localhost",
+                "my-bucket",
+                mockAuthenticator,
+                null,
+                null,
+                Duration.ofSeconds(10),
+                false, false, null,
+                Level.INFO,
+                null,
+                Level.INFO,
+                true);
+
+            try {
+                Class<CosStorageService> clazz = CosStorageService.class;
+                var clientField = clazz.getDeclaredField("client");
+                clientField.setAccessible(true);
+                var client = clientField.get(storageService);
+                assertTrue(client instanceof CustomCosStorageRestClient);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

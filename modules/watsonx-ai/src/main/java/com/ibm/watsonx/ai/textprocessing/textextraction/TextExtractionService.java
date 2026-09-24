@@ -21,17 +21,22 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.project.ProjectService;
+import com.ibm.watsonx.ai.textprocessing.ContainerReference;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.CosUrl;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
-import com.ibm.watsonx.ai.textprocessing.Error;
+import com.ibm.watsonx.ai.textprocessing.DocumentReference;
 import com.ibm.watsonx.ai.textprocessing.ReadFileRequest;
 import com.ibm.watsonx.ai.textprocessing.Status;
-import com.ibm.watsonx.ai.textprocessing.UploadRequest;
+import com.ibm.watsonx.ai.textprocessing.storage.StorageFactory;
+import com.ibm.watsonx.ai.textprocessing.storage.StorageOperations;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.DeleteExtractionRequest;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient.FetchExtractionDetailsRequest;
@@ -44,15 +49,15 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient
  *
  * <pre>{@code
  * TextExtractionService textExtractionService = TextExtractionService.builder()
- *   .baseUrl("https://...")    // or use CloudRegion
- *   .cosUrl("https://...")     // or use CosUrl
- *   .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
- *   .projectId("project-id")
- *   .documentReference("<connection_id>", "<bucket-name>")
- *   .resultReference("<connection_id>", "<bucket-name>")
- *   .build();
+ *     .baseUrl("https://...")    // or use CloudRegion
+ *     .cosUrl("https://...")     // or use CosUrl
+ *     .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
+ *     .projectId("project-id")
+ *     .documentReference(CosReference.of("<connection_id>", "<bucket-name>"))
+ *     .resultReference(CosReference.of("<connection_id>", "<bucket-name>"))
+ *     .build();
  *
- * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
+ * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf");
  * }</pre>
  *
  * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
@@ -62,17 +67,29 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient
 public class TextExtractionService extends ScopedService {
     private static final Logger logger = LoggerFactory.getLogger(TextExtractionService.class);
     private final String cosUrl;
-    private final CosReference documentReference;
-    private final CosReference resultReference;
+    private final DocumentReference documentReference;
+    private final DocumentReference resultReference;
     private final TextExtractionRestClient client;
+    private volatile StorageOperations cosService;
+    private final ReentrantLock cosServiceLock = new ReentrantLock();
+    private final ProjectService lazyProjectService;
+    private final Authenticator authenticator;
+    private final Authenticator cosAuthenticator;
 
     private TextExtractionService(Builder builder) {
         super(builder);
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
-        var tmpUrl = requireNonNull(builder.cosUrl, "cosUrl value cannot be null");
+        boolean needsCos = builder.documentReference instanceof CosReference
+            || builder.resultReference instanceof CosReference;
+        var tmpUrl = needsCos
+            ? requireNonNull(builder.cosUrl, "cosUrl value cannot be null")
+            : requireNonNullElse(builder.cosUrl, "");
         cosUrl = tmpUrl.endsWith("/") ? tmpUrl.substring(0, tmpUrl.length() - 1) : tmpUrl;
         documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");
         resultReference = requireNonNull(builder.resultReference, "resultReference value cannot be null");
+        authenticator = builder.authenticator();
+        cosAuthenticator = builder.cosAuthenticator;
+        lazyProjectService = builder.projectService;
         client = TextExtractionRestClient.builder()
             .cosUrl(cosUrl)
             .baseUrl(baseUrl)
@@ -121,8 +138,8 @@ public class TextExtractionService extends ScopedService {
      * <p>
      * If you want to process a <b>local file</b>, use {@link #uploadAndStartExtraction(File, TextExtractionParameters)} instead.
      * <p>
-     * <b>Note:</b> This method does not return the extracted text content. Use {@link #extractAndFetch(String, String, TextExtractionParameters)} to
-     * run the extraction and fetch the result immediately.
+     * <b>Note:</b> This method does not return the extracted text content. Use {@link #extractAndFetch(String, TextExtractionParameters)} to run the
+     * extraction and fetch the result immediately.
      *
      * @param absolutePath The location of the document to be processed.
      * @param parameters The configuration parameters for text extraction.
@@ -166,7 +183,6 @@ public class TextExtractionService extends ScopedService {
      */
     public TextExtractionResponse uploadAndStartExtraction(File file, TextExtractionParameters parameters) throws TextExtractionException {
         requireNonNull(file);
-
         if (file.isDirectory())
             throw new TextExtractionException("directory_not_allowed", "The file can not be a directory");
 
@@ -192,7 +208,7 @@ public class TextExtractionService extends ScopedService {
      *
      * @param is The input stream of the file to be uploaded and processed.
      * @param fileName The name of the file to be uploaded and processed.
-     * @return The unique identifier of the text extraction process.
+     * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
      * @see #uploadAndStartExtraction(InputStream, String, TextExtractionParameters)
      * @see #uploadExtractAndFetch(InputStream, String)
      */
@@ -211,11 +227,13 @@ public class TextExtractionService extends ScopedService {
      * @param is The input stream of the file to be uploaded and processed.
      * @param fileName The name of the file to be uploaded and processed.
      * @param parameters The configuration parameters for text extraction.
-     * @return The unique identifier of the text extraction process.
+     * @return A {@link TextExtractionResponse} representing the submitted request and its current status.
      * @see #uploadExtractAndFetch(InputStream, String, TextExtractionParameters)
      */
     public TextExtractionResponse uploadAndStartExtraction(InputStream is, String fileName, TextExtractionParameters parameters)
         throws TextExtractionException {
+        requireNonNull(is, "is value cannot be null");
+        requireNonNull(fileName, "fileName value cannot be null");
         var requestId = UUID.randomUUID().toString();
         upload(requestId, is, fileName, parameters, false);
         return startExtraction(requestId, fileName, parameters, false);
@@ -228,7 +246,7 @@ public class TextExtractionService extends ScopedService {
      *
      * @param absolutePath The absolute path of the file.
      * @return The text extracted.
-     * @see #extractAndFetch(String, String, TextExtractionParameters)
+     * @see #extractAndFetch(String, TextExtractionParameters)
      */
     public String extractAndFetch(String absolutePath) throws TextExtractionException, FileNotFoundException {
         return extractAndFetch(absolutePath, null);
@@ -238,13 +256,17 @@ public class TextExtractionService extends ScopedService {
      * Starts the text extraction process for a file that is already present in the configured {@link #documentReference document reference} and
      * returns the extracted text value. The extracted text is saved as a new <b>Markdown</b> file, preserving the original filename but using the
      * {@code .md} extension by default.
+     * <p>
+     * <b>Note on {@code removeUploadedFile}:</b> if {@code parameters.removeUploadedFile()} is {@code true}, this method deletes the document at
+     * {@code absolutePath} from storage after processing, even though no file was uploaded by this call. Use this option with caution when calling
+     * this method on a pre-existing document.
      *
      * @param absolutePath The path of the document to extract text from.
      * @param parameters The configuration parameters for text extraction.
      * @return The text extracted.
      */
     public String extractAndFetch(String absolutePath, TextExtractionParameters parameters) throws TextExtractionException, FileNotFoundException {
-        return extractAndFetch(UUID.randomUUID().toString(), absolutePath, parameters);
+        return extractAndFetch(UUID.randomUUID().toString(), absolutePath, parameters, absolutePath);
     }
 
     /**
@@ -254,6 +276,7 @@ public class TextExtractionService extends ScopedService {
      *
      * @param file The local file to be uploaded and processed.
      * @return The text extracted.
+     * @throws FileNotFoundException if the local file does not exist.
      * @see #uploadExtractAndFetch(File, TextExtractionParameters)
      */
     public String uploadExtractAndFetch(File file) throws TextExtractionException, FileNotFoundException {
@@ -268,30 +291,26 @@ public class TextExtractionService extends ScopedService {
      * @param file The local file to be uploaded and processed.
      * @param parameters The configuration parameters for text extraction.
      * @return The text extracted.
+     * @throws FileNotFoundException if the local file does not exist.
      */
     public String uploadExtractAndFetch(File file, TextExtractionParameters parameters) throws TextExtractionException, FileNotFoundException {
+        requireNonNull(file);
+        if (file.isDirectory())
+            throw new TextExtractionException("directory_not_allowed", "The file can not be a directory");
 
-        if (nonNull(parameters)) {
-            if (parameters.requestedOutputs().size() > 1) {
-                throw new TextExtractionException("fetch_operation_not_allowed",
-                    "The fetch operation cannot be executed if more than one file is to be generated");
-            }
-            if (parameters.requestedOutputs().size() == 1 && parameters.requestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
-                throw new TextExtractionException("fetch_operation_not_allowed",
-                    "The fetch operation cannot be executed for the type \"page_images\"");
-            }
-        }
+        validateFetchOutputs(parameters);
 
         var requestId = UUID.randomUUID().toString();
 
         try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
             upload(requestId, inputStream, file.getName(), parameters, true);
-            return extractAndFetch(requestId, file.getName(), parameters);
         } catch (FileNotFoundException e) {
             throw e;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        return extractAndFetch(requestId, file.getName(), parameters, file.getName());
     }
 
     /**
@@ -319,34 +338,23 @@ public class TextExtractionService extends ScopedService {
      * @return The text extracted.
      */
     public String uploadExtractAndFetch(InputStream is, String fileName, TextExtractionParameters parameters) throws TextExtractionException {
-
-        if (nonNull(parameters)) {
-            if (parameters.requestedOutputs().size() > 1) {
-                throw new TextExtractionException("fetch_operation_not_allowed",
-                    "The fetch operation cannot be executed if more than one file is to be generated");
-            }
-            if (parameters.requestedOutputs().size() == 1 && parameters.requestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
-                throw new TextExtractionException("fetch_operation_not_allowed",
-                    "The fetch operation cannot be executed for the type \"page_images\"");
-            }
-        }
+        validateFetchOutputs(parameters);
 
         var requestId = UUID.randomUUID().toString();
         upload(requestId, is, fileName, parameters, true);
 
         try {
-            return extractAndFetch(requestId, fileName, parameters);
+            return extractAndFetch(requestId, fileName, parameters, fileName);
         } catch (FileNotFoundException e) {
-            // This should never happen.
-            throw new RuntimeException(e);
+            throw new TextExtractionException("output_file_not_found",
+                "The extracted output file could not be read from storage: " + e.getMessage(), e);
         }
     }
 
     /**
      * Retrieves the results of a text extraction request by its unique identifier.
      * <p>
-     * This operation fetches the details and results of a previously submitted text extraction request. Note that the retention period for extraction
-     * results is 2 days. If the request is older than 2 days, the results will no longer be available and this method will return {@code false}.
+     * This operation fetches the details and results of a previously submitted text extraction request.
      *
      * @param id The unique identifier of the text extraction request.
      * @return A {@link TextExtractionResponse} containing the results of the request.
@@ -358,8 +366,7 @@ public class TextExtractionService extends ScopedService {
     /**
      * Retrieves the results of a text extraction request by its unique identifier.
      * <p>
-     * This operation fetches the details and results of a previously submitted text extraction request. Note that the retention period for extraction
-     * results is 2 days. If the request is older than 2 days, the results will no longer be available and this method will return {@code false}.
+     * This operation fetches the details and results of a previously submitted text extraction request.
      *
      * @param id The unique identifier of the text extraction request.
      * @param parameters Parameters to specify the project or space context in which the request was made.
@@ -378,6 +385,9 @@ public class TextExtractionService extends ScopedService {
      * @throws TextExtractionException if the file cannot be found or an error occurs during upload
      */
     public boolean uploadFile(File file) throws TextExtractionException {
+        requireNonNull(file);
+        if (file.isDirectory())
+            throw new TextExtractionException("directory_not_allowed", "The file can not be a directory");
         try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
             return uploadFile(inputStream, file.getName());
         } catch (FileNotFoundException e) {
@@ -395,29 +405,48 @@ public class TextExtractionService extends ScopedService {
      * @return {@code true} if the upload request was successfully sent
      */
     public boolean uploadFile(InputStream inputStream, String fileName) {
+        requireNonNull(inputStream, "inputStream value cannot be null");
+        requireNonNull(fileName, "fileName value cannot be null");
         var requestId = UUID.randomUUID().toString();
-        return upload(requestId, inputStream, fileName, null, false);
+        upload(requestId, inputStream, fileName, null, false);
+        return true;
     }
 
     /**
-     * Deletes a file from the specified bucket.
+     * Deletes a file from the configured result reference storage.
+     * <p>
+     * When the service is configured with a {@link CosReference} result reference, {@code bucketName} identifies the COS bucket and {@code fileName}
+     * the object key. When configured with a {@link ContainerReference}, the bucket is resolved automatically from the project storage and
+     * {@code bucketName} is ignored.
      *
-     * @param bucketName The name of the bucket.
+     * @param bucketName The name of the COS bucket. Ignored when using a {@link ContainerReference}.
      * @param fileName The name of the file to delete.
-     * @return true if the file was successfully deleted, false otherwise.
+     * @return {@code true} if the file was successfully deleted, {@code false} otherwise.
      */
     public boolean deleteFile(String bucketName, String fileName) throws FileNotFoundException {
-        return client.deleteFile(DeleteFileRequest.of(bucketName, fileName));
+        var requestId = UUID.randomUUID().toString();
+        if (resultReference instanceof ContainerReference)
+            return getOrResolveCosService().deleteFile(requestId, fileName);
+        return client.deleteFile(DeleteFileRequest.of(requestId, bucketName, fileName));
     }
 
-    /*
-    * Reads a file from the specified bucket.
-    *
-    * @param bucketName The name of the bucket.
-    * @param fileName The name of the file to read.
-    */
+    /**
+     * Reads the content of a file from the configured result reference storage.
+     * <p>
+     * When the service is configured with a {@link CosReference} result reference, {@code bucketName} identifies the COS bucket and {@code fileName}
+     * the object key. When configured with a {@link ContainerReference}, the bucket is resolved automatically from the project storage and
+     * {@code bucketName} is ignored.
+     *
+     * @param bucketName The name of the COS bucket. Ignored when using a {@link ContainerReference}.
+     * @param fileName The path of the file to read.
+     * @return The file content as a string.
+     * @throws FileNotFoundException if the file does not exist.
+     */
     public String readFile(String bucketName, String fileName) throws FileNotFoundException {
-        return client.readFile(ReadFileRequest.of(bucketName, fileName));
+        var requestId = UUID.randomUUID().toString();
+        if (resultReference instanceof ContainerReference)
+            return getOrResolveCosService().readFile(requestId, fileName);
+        return client.readFile(ReadFileRequest.of(requestId, bucketName, fileName));
     }
 
     /**
@@ -457,13 +486,83 @@ public class TextExtractionService extends ScopedService {
             .hardDelete(parameters.hardDelete().orElse(null))
             .build();
 
-        var request = DeleteExtractionRequest.of(parameters.transactionId(), id, p);
+        var requestTrackingId = UUID.randomUUID().toString();
+        var request = DeleteExtractionRequest.of(requestTrackingId, id, p);
         return client.deleteExtraction(request);
     }
 
-    //
+    // Returns the CosStorageService lazily on first use.
+    private StorageOperations getOrResolveCosService() {
+        return getOrResolveCosService(null);
+    }
+
+    private StorageOperations getOrResolveCosService(CosReference cosRef) {
+
+        if (cosRef != null) {
+            // Per-call CosReference override.
+            return StorageFactory.cos(cosUrl, cosRef.bucket(), authenticator, cosAuthenticator, httpClient,
+                timeout, logRequests, logResponses, requestLogger, requestLogLevel, responseLogger, responseLogLevel, verifySsl);
+        }
+
+        if (cosService != null)
+            return cosService;
+
+        cosServiceLock.lock();
+
+        try {
+
+            if (cosService != null)
+                return cosService;
+
+            if (projectId == null)
+                throw new IllegalStateException(
+                    "ContainerReference storage requires a projectId - spaceId alone is not supported for container uploads.");
+
+            ProjectService ps = lazyProjectService;
+
+            if (ps == null) {
+                var region = CloudRegion.fromMlEndpoint(baseUrl).orElseThrow(() -> new IllegalStateException(
+                    "ContainerReference storage requires a ProjectService or a known CloudRegion. "
+                        + "Either pass projectService(ProjectService) on the builder, "
+                        + "or use baseUrl(CloudRegion) so the project storage can be resolved automatically."));
+                var psBuilder = ProjectService.builder()
+                    .baseUrl(region.wxEndpoint().replace("/wx", ""))
+                    .authenticator(authenticator)
+                    .httpClient(httpClient)
+                    .timeout(timeout)
+                    .logRequests(logRequests)
+                    .logResponses(logResponses)
+                    .verifySsl(verifySsl);
+
+                if (requestLogger != null)
+                    psBuilder.logRequests(requestLogger, requestLogLevel);
+
+                if (responseLogger != null)
+                    psBuilder.logResponses(responseLogger, responseLogLevel);
+
+                ps = psBuilder.build();
+            }
+
+            var props = ps.findProject(projectId)
+                .orElseThrow(() -> new IllegalStateException("Project not found: " + projectId))
+                .storage().properties();
+
+            var resolvedUrl = props.endpointUrl().endsWith("/")
+                ? props.endpointUrl().substring(0, props.endpointUrl().length() - 1)
+                : props.endpointUrl();
+
+            var resolvedBucket = props.bucketName();
+
+            cosService = StorageFactory.cos(resolvedUrl, resolvedBucket, authenticator, cosAuthenticator, httpClient,
+                timeout, logRequests, logResponses, requestLogger, requestLogLevel, responseLogger, responseLogLevel, verifySsl);
+
+            return cosService;
+        } finally {
+            cosServiceLock.unlock();
+        }
+    }
+
     // Retrieves the results of a text extraction request by its unique identifier.
-    //
     private TextExtractionResponse fetchExtractionRequest(String requestId, String id, TextExtractionFetchParameters parameters) {
         requireNonNull(requestId, "The requestId can not be null");
         requireNonNull(id, "The id can not be null");
@@ -483,56 +582,79 @@ public class TextExtractionService extends ScopedService {
         return client.fetchExtractionDetails(request);
     }
 
-    //
-    // Start the text extraction and wait until the result is ready.
-    //
-    private String extractAndFetch(String requestId, String absolutePath, TextExtractionParameters parameters)
+    // Starts the text extraction and waits until the result is ready.
+    private String extractAndFetch(String requestId, String absolutePath, TextExtractionParameters parameters, String uploadedPath)
         throws TextExtractionException, FileNotFoundException {
         requireNonNull(requestId, "requestId cannot be null");
+        requireNonNull(absolutePath, "absolutePath cannot be null");
 
-        if (nonNull(parameters)) {
-            if (parameters.requestedOutputs().size() > 1) {
-                throw new TextExtractionException("fetch_operation_not_allowed",
-                    "The fetch operation cannot be executed if more than one file is to be generated");
-            }
-            if (parameters.requestedOutputs().size() == 1 && parameters.requestedOutputs().get(0).equals(PAGE_IMAGES.value())) {
-                throw new TextExtractionException("fetch_operation_not_allowed",
-                    "The fetch operation cannot be executed for the type \"page_images\"");
+        validateFetchOutputs(parameters);
+
+        try {
+            var textExtractionResponse = startExtraction(requestId, absolutePath, parameters, true);
+            return getExtractedText(requestId, textExtractionResponse, parameters);
+        } finally {
+            if (nonNull(parameters) && parameters.isRemoveUploadedFile()) {
+                DocumentReference effectiveDoc = parameters.documentReference() != null
+                    ? parameters.documentReference()
+                    : this.documentReference;
+                cleanUpUploadedFile(requestId, uploadedPath, effectiveDoc);
             }
         }
-
-        var textExtractionResponse = startExtraction(requestId, absolutePath, parameters, true);
-        return getExtractedText(requestId, textExtractionResponse, parameters);
     }
 
-    //
-    // Uploads an inputstream to the Cloud Object Storage.
-    //
-    private boolean upload(String requestId, InputStream is, String fileName, TextExtractionParameters parameters, boolean waitForExtraction) {
+    // Validates that the requested outputs are compatible with a single-file fetch operation.
+    private void validateFetchOutputs(TextExtractionParameters parameters) throws TextExtractionException {
+
+        if (parameters == null)
+            return;
+        var outputs = parameters.requestedOutputs();
+
+        if (outputs == null || outputs.isEmpty())
+            return;
+
+        if (outputs.size() > 1)
+            throw new TextExtractionException("fetch_operation_not_allowed",
+                "The fetch operation cannot be executed if more than one file is to be generated");
+        if (outputs.get(0).equals(PAGE_IMAGES.value()))
+            throw new TextExtractionException("fetch_operation_not_allowed",
+                "The fetch operation cannot be executed for the type \"page_images\"");
+    }
+
+    // Uploads an input stream to COS or the container.
+    private void upload(String requestId, InputStream is, String fileName, TextExtractionParameters parameters,
+        boolean waitForExtraction) {
         requireNonNull(requestId, "requestId value cannot be null");
         requireNonNull(is, "is value cannot be null");
         requireNonNull(fileName, "fileName value cannot be null");
 
-        boolean removeOutputFile = false;
-        boolean removeUploadedFile = false;
-        CosReference documentReference = this.documentReference;
-
-        if (nonNull(parameters)) {
-            removeOutputFile = parameters.isRemoveOutputFile();
-            removeUploadedFile = parameters.isRemoveUploadedFile();
-            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
-        }
-
+        boolean removeOutputFile = nonNull(parameters) && parameters.isRemoveOutputFile();
+        boolean removeUploadedFile = nonNull(parameters) && parameters.isRemoveUploadedFile();
         if (!waitForExtraction && (removeOutputFile || removeUploadedFile))
             throw new IllegalArgumentException(
                 "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
-        var request = UploadRequest.of(requestId, documentReference.bucket(), is, fileName);
-        return client.upload(request);
+
+        DocumentReference effectiveDoc = requireNonNullElse(
+            parameters != null ? parameters.documentReference() : null,
+            this.documentReference
+        );
+
+        if (effectiveDoc instanceof ContainerReference) {
+            getOrResolveCosService().upload(requestId, is, fileName);
+            return;
+        }
+
+        if (!(effectiveDoc instanceof CosReference cosRef))
+            throw new UnsupportedOperationException(
+                "Unsupported documentReference type: " + effectiveDoc.getClass().getSimpleName());
+        if (cosUrl.isBlank())
+            throw new IllegalStateException(
+                "cosUrl must be set on the service builder to perform COS upload operations.");
+
+        getOrResolveCosService(cosRef).upload(requestId, is, fileName);
     }
 
-    //
     // Starts the text extraction process.
-    //
     private TextExtractionResponse startExtraction(String requestId, String path, TextExtractionParameters parameters, boolean waitUntilJobIsDone)
         throws TextExtractionException {
         requireNonNull(path);
@@ -544,8 +666,8 @@ public class TextExtractionService extends ScopedService {
         boolean removeOutputFile = false;
         boolean removeUploadedFile = false;
         List<String> requestedOutputs = List.of(MD.value());
-        CosReference documentReference = this.documentReference;
-        CosReference resultReference = this.resultReference;
+        DocumentReference documentReference = this.documentReference;
+        DocumentReference resultReference = this.resultReference;
         Parameters params = null;
         Map<String, Object> custom = null;
         Duration timeout = this.timeout;
@@ -557,7 +679,9 @@ public class TextExtractionService extends ScopedService {
             outputFileName = parameters.outputFileName();
             projectId = parameters.projectId();
             spaceId = parameters.spaceId();
-            requestedOutputs = requireNonNullElse(parameters.requestedOutputs(), requestedOutputs);
+            var paramOutputs = parameters.requestedOutputs();
+            if (paramOutputs != null && !paramOutputs.isEmpty())
+                requestedOutputs = paramOutputs;
             documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
             resultReference = requireNonNullElse(parameters.resultReference(), this.resultReference);
             params = parameters.toParameters();
@@ -577,23 +701,20 @@ public class TextExtractionService extends ScopedService {
             throw new IllegalArgumentException(
                 "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" parameters");
 
-        var isMultiOutput =
-            requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value()) ? true : false;
+        if ((documentReference instanceof CosReference || resultReference instanceof CosReference) && cosUrl.isBlank())
+            throw new IllegalStateException(
+                "cosUrl must be set on the service builder when using a CosReference document or result reference.");
+
+        boolean isMultiOutput = requestedOutputs.size() > 1 || requestedOutputs.get(0).equals(PAGE_IMAGES.value());
 
         if (isNull(outputFileName)) {
-
             if (isMultiOutput) {
-
                 outputFileName = "/";
-
             } else {
-
                 var type = Type.fromValue(requestedOutputs.get(0));
                 outputFileName = TextExtractionUtils.addExtension(path, type);
             }
-
         } else {
-
             var isDirectory = outputFileName.endsWith("/");
             if (isDirectory && !isMultiOutput) {
                 var type = Type.fromValue(requestedOutputs.get(0));
@@ -622,115 +743,137 @@ public class TextExtractionService extends ScopedService {
         String processId = response.metadata().id();
 
         do {
-
             if (System.nanoTime() - deadlineNanos >= 0) {
-                cleanUpAfterAbortedExtraction(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
+                cleanUpAfterAbortedExtraction(processId, projectId, spaceId, transactionId);
                 throw new TextExtractionException("timeout",
                     "Execution to extract %s file took longer than the timeout set by %s milliseconds"
                         .formatted(path, timeout.toMillis()));
             }
 
             try {
-
-                Thread.sleep(sleepTime);
-                sleepTime *= 2;
-                sleepTime = Math.min(sleepTime, 3000);
-
+                long remaining = deadlineNanos - System.nanoTime();
+                Thread.sleep(Math.min(sleepTime, Math.max(remaining / 1_000_000L, 0L)));
+                sleepTime = Math.min(sleepTime * 2, 3000);
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                cleanUpAfterAbortedExtraction(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
-                throw new TextExtractionException("interrupted", e.getMessage());
+                try {
+                    cleanUpAfterAbortedExtraction(processId, projectId, spaceId, transactionId);
+                } finally {
+                    Thread.currentThread().interrupt();
+                }
+                throw new TextExtractionException("interrupted", e.getMessage(), e);
             }
 
-            processId = response.metadata().id();
-            response = fetchExtractionRequest(requestId, processId, TextExtractionFetchParameters.builder()
-                .projectId(projectId)
-                .spaceId(spaceId)
-                .build());
-
-            status = Status.fromValue(response.entity().results().status());
-            var pagesProcessed = response.entity().results().numberPagesProcessed();
-            logger.debug("Extraction status: {} for the file {} (pages processed {})", status, path, pagesProcessed);
+            try {
+                response = fetchExtractionRequest(requestId, processId, TextExtractionFetchParameters.builder()
+                    .projectId(projectId)
+                    .spaceId(spaceId)
+                    .build());
+                status = Status.fromValue(response.entity().results().status());
+                var pagesProcessed = response.entity().results().numberPagesProcessed();
+                logger.debug("Extraction status: {} for the file {} (pages processed {})", status, path, pagesProcessed);
+            } catch (Exception e) {
+                cleanUpAfterAbortedExtraction(processId, projectId, spaceId, transactionId);
+                throw e;
+            }
 
         } while (status != Status.FAILED && status != Status.COMPLETED);
 
         return response;
     }
 
-    //
-    // Cancels the started extraction job and removes the uploaded input file, so that a timed-out or
-    // interrupted synchronous extraction does not leave orphaned resources behind.
-    //
-    private void cleanUpAfterAbortedExtraction(String processId, String requestId, String path, String projectId, String spaceId,
-        String transactionId, boolean removeUploadedFile) {
+    // Cancels the extraction job on timeout, interrupt, or fetch error. Logs but never throws.
+    private void cleanUpAfterAbortedExtraction(String processId, String projectId, String spaceId,
+        String transactionId) {
 
         if (nonNull(processId)) {
-            deleteRequest(
-                processId,
-                TextExtractionDeleteParameters.builder()
-                    .projectId(projectId)
-                    .spaceId(spaceId)
-                    .transactionId(transactionId)
-                    .build());
+            try {
+                deleteRequest(
+                    processId,
+                    TextExtractionDeleteParameters.builder()
+                        .projectId(projectId)
+                        .spaceId(spaceId)
+                        .transactionId(transactionId)
+                        .build());
+            } catch (Exception e) {
+                logger.warn("Failed to cancel extraction job {}: {}", processId, e.getMessage(), e);
+            }
         }
-
-        if (removeUploadedFile)
-            client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), path));
     }
 
-    //
-    // Retrieves the extracted text from a specified Cloud Object Storage file.
-    //
+    // Deletes the uploaded file from COS or the container. All errors are logged and swallowed.
+    private void cleanUpUploadedFile(String requestId, String path, DocumentReference effectiveDoc) {
+        try {
+            if (effectiveDoc instanceof CosReference cosRef)
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, cosRef.bucket(), path))
+                    .exceptionally(ex -> {
+                        logger.warn("Async COS delete failed for {}: {}", path, ex.getMessage());
+                        return false;
+                    });
+            else if (effectiveDoc instanceof ContainerReference) {
+                boolean wasInterrupted = Thread.interrupted();
+                try {
+                    getOrResolveCosService().deleteFileAsync(requestId, path);
+                } finally {
+                    if (wasInterrupted)
+                        Thread.currentThread().interrupt();
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to delete uploaded file {}: {}", path, e.getMessage(), e);
+        }
+    }
+
+    // Retrieves the extracted text from COS or the container.
     private String getExtractedText(String requestId, TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
         throws TextExtractionException, FileNotFoundException {
 
         requireNonNull(requestId);
 
-        String uploadedPath = textExtractionResponse.entity().documentReference().location().fileName();
-        String outputPath = textExtractionResponse.entity().resultsReference().location().fileName();
         Status status = Status.fromValue(textExtractionResponse.entity().results().status());
-        boolean removeUploadedFile = false;
-        boolean removeOutputFile = false;
-        CosReference documentReference = this.documentReference;
-        CosReference resultsReference = this.resultReference;
+        boolean removeOutputFile = nonNull(parameters) && parameters.isRemoveOutputFile();
 
-        if (nonNull(parameters)) {
-            removeUploadedFile = parameters.isRemoveUploadedFile();
-            removeOutputFile = parameters.isRemoveOutputFile();
-            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
-            resultsReference = requireNonNullElse(parameters.resultReference(), this.resultReference);
-        }
+        DocumentReference effectiveResult = parameters != null && parameters.resultReference() != null
+            ? parameters.resultReference()
+            : this.resultReference;
 
-        String documentBucketName = documentReference.bucket();
-        String resultsBucketName = resultsReference.bucket();
+        boolean isContainerResult = effectiveResult instanceof ContainerReference;
+        String resultsBucketName = effectiveResult instanceof CosReference cosRes ? cosRes.bucket() : null;
 
-        try {
-
-            String extractedFile = switch(status) {
-                case COMPLETED -> {
-                    var request = ReadFileRequest.of(requestId, resultsBucketName, outputPath);
-                    yield client.readFile(request);
+        return switch(status) {
+            case COMPLETED -> {
+                var resultsLocation = textExtractionResponse.entity().resultsReference().location();
+                String outputPath = resultsLocation.path() != null ? resultsLocation.path() : resultsLocation.fileName();
+                String extractedFile;
+                if (isContainerResult)
+                    extractedFile = getOrResolveCosService().readFile(requestId, outputPath);
+                else
+                    extractedFile = client.readFile(ReadFileRequest.of(requestId, resultsBucketName, outputPath));
+                if (removeOutputFile) {
+                    try {
+                        if (isContainerResult) {
+                            getOrResolveCosService().deleteFileAsync(requestId, outputPath);
+                        } else {
+                            client.deleteFileAsync(DeleteFileRequest.of(requestId, resultsBucketName, outputPath))
+                                .exceptionally(ex -> {
+                                    logger.warn("Async COS delete failed for {}: {}", outputPath, ex.getMessage());
+                                    return false;
+                                });
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Failed to delete output file {}: {}", outputPath, e.getMessage(), e);
+                    }
                 }
-                case FAILED -> {
-                    Error error = textExtractionResponse.entity().results().error();
-                    if (isNull(error))
-                        throw new TextExtractionException("generic_error", "The extraction failed without error details");
-                    throw new TextExtractionException(error.code(), error.message());
-                }
-                default -> throw new TextExtractionException("generic_error",
-                    "Status %s not managed".formatted(status));
-            };
-
-            if (removeOutputFile)
-                client.deleteFileAsync(DeleteFileRequest.of(requestId, resultsBucketName, outputPath));
-
-            return extractedFile;
-
-        } finally {
-            if (removeUploadedFile) {
-                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentBucketName, uploadedPath));
+                yield extractedFile;
             }
-        }
+            case FAILED -> {
+                var error = textExtractionResponse.entity().results().error();
+                if (isNull(error))
+                    throw new TextExtractionException("generic_error", "The extraction failed without error details");
+                throw new TextExtractionException(error.code(), error.message());
+            }
+            default -> throw new TextExtractionException("generic_error",
+                "Status %s not managed".formatted(status));
+        };
     }
 
     /**
@@ -740,15 +883,15 @@ public class TextExtractionService extends ScopedService {
      *
      * <pre>{@code
      * TextExtractionService textExtractionService = TextExtractionService.builder()
-     *   .baseUrl("https://...")    // or use CloudRegion
-     *   .cosUrl("https://...")     // or use CosUrl
-     *   .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
-     *   .projectId("project-id")
-     *   .documentReference("<connection_id>", "<bucket-name>")
-     *   .resultReference("<connection_id>", "<bucket-name>")
-     *   .build();
+     *     .baseUrl("https://...")    // or use CloudRegion
+     *     .cosUrl("https://...")     // or use CosUrl
+     *     .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
+     *     .projectId("project-id")
+     *     .documentReference(CosReference.of("<connection_id>", "<bucket-name>"))
+     *     .resultReference(CosReference.of("<connection_id>", "<bucket-name>"))
+     *     .build();
      *
-     * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf")
+     * TextExtractionResponse response = textExtractionService.startExtraction("myfile.pdf");
      * }</pre>
      *
      * @return {@link Builder} instance.
@@ -763,8 +906,9 @@ public class TextExtractionService extends ScopedService {
     public final static class Builder extends ScopedService.Builder<Builder> {
         private String cosUrl;
         private Authenticator cosAuthenticator;
-        private CosReference documentReference;
-        private CosReference resultReference;
+        private DocumentReference documentReference;
+        private DocumentReference resultReference;
+        private ProjectService projectService;
 
         private Builder() {}
 
@@ -812,11 +956,25 @@ public class TextExtractionService extends ScopedService {
         }
 
         /**
+         * Specifies the container path of the input document.
+         * <p>
+         * When using a container reference, {@code cosUrl} is not required on the builder.
+         *
+         * @param documentReference the {@link ContainerReference} for the input file.
+         */
+        public Builder documentReference(ContainerReference documentReference) {
+            this.documentReference = documentReference;
+            return this;
+        }
+
+        /**
          * Specifies the Cloud Object Storage connection and bucket where the input files are stored.
          *
          * @param connectionId The id of the COS connection asset.
          * @param bucket The name of the bucket containing the input documents.
+         * @deprecated Use {@link #documentReference(CosReference)} with {@link CosReference#of(String, String)} instead.
          */
+        @Deprecated
         public Builder documentReference(String connectionId, String bucket) {
             return documentReference(CosReference.of(connectionId, bucket));
         }
@@ -832,13 +990,41 @@ public class TextExtractionService extends ScopedService {
         }
 
         /**
+         * Specifies the container path where the extracted results should be stored.
+         * <p>
+         * When using a container reference, {@code cosUrl} is not required on the builder.
+         *
+         * @param resultReference the {@link ContainerReference} for the output location.
+         */
+        public Builder resultReference(ContainerReference resultReference) {
+            this.resultReference = resultReference;
+            return this;
+        }
+
+        /**
          * Specifies the Cloud Object Storage connection and bucket where the extracted results should be stored.
          *
          * @param connectionId The id of the COS connection asset.
          * @param bucket The name of the bucket where results will be written.
+         * @deprecated Use {@link #resultReference(CosReference)} with {@link CosReference#of(String, String)} instead.
          */
+        @Deprecated
         public Builder resultReference(String connectionId, String bucket) {
             return resultReference(CosReference.of(connectionId, bucket));
+        }
+
+        /**
+         * Specifies a {@link ProjectService} to use for resolving the COS bucket and endpoint URL when a {@link ContainerReference} is configured.
+         * <p>
+         * When not set, the service attempts to resolve the project storage automatically from the {@code baseUrl} if it matches a known
+         * {@link com.ibm.watsonx.ai.CloudRegion}. For custom or on-premise deployments where the base URL is not a standard cloud region, provide an
+         * explicit {@link ProjectService} instance here.
+         *
+         * @param projectService the {@link ProjectService} to use for project storage resolution
+         */
+        public Builder projectService(ProjectService projectService) {
+            this.projectService = projectService;
+            return this;
         }
 
         /**

@@ -27,7 +27,7 @@ import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
  * @param fields a mapping of short-form field names to their {@link KvpFields.KvpField} definitions, each entry represents a key-value field to
  *            extract within this slice
  * @param normalizedBbox the normalized bounding box representing the slice location on the page, expressed as a list of four doubles in the format
- *            {@code [left, top, right, bottom]}, where values are percentages from 0.0 to 100.0
+ *            {@code [left, top, right, bottom]}, where values are in the range 0.0 to 1.0
  */
 public record KvpSlice(Map<String, KvpField> fields, List<Double> normalizedBbox) {
 

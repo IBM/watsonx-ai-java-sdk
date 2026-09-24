@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.textprocessing.ContainerReference;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
+import com.ibm.watsonx.ai.textprocessing.DocumentReference;
 import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
 
@@ -44,7 +46,7 @@ public final class TextClassificationParameters extends WatsonxParameters {
     private final List<String> languages;
     private final TextClassificationSemanticConfig semanticConfig;
     private final boolean removeUploadedFile;
-    private final CosReference documentReference;
+    private final DocumentReference documentReference;
     private final Map<String, Object> custom;
     private final Duration timeout;
 
@@ -116,11 +118,11 @@ public final class TextClassificationParameters extends WatsonxParameters {
     }
 
     /**
-     * Gets the document reference for COS.
+     * Gets the document reference.
      *
-     * @return the document COS reference
+     * @return the document reference
      */
-    public CosReference documentReference() {
+    public DocumentReference documentReference() {
         return documentReference;
     }
 
@@ -195,7 +197,7 @@ public final class TextClassificationParameters extends WatsonxParameters {
         private List<String> languages;
         private TextClassificationSemanticConfig semanticConfig;
         private boolean removeUploadedFile = false;
-        private CosReference documentReference;
+        private DocumentReference documentReference;
         private Map<String, Object> custom;
         private Duration timeout;
 
@@ -217,7 +219,7 @@ public final class TextClassificationParameters extends WatsonxParameters {
         /**
          * Sets the classification mode.
          * <p>
-         * The value {@code exact} gives the exact schema name the the document is classified to.
+         * The value {@code exact} gives the exact schema name the document is classified to.
          * <p>
          * The option {@code binary} only gives whether the document is classified to a known schema or not.
          *
@@ -268,9 +270,15 @@ public final class TextClassificationParameters extends WatsonxParameters {
         }
 
         /**
-         * Specifies whether the uploaded source file should be removed after processing.
+         * Specifies whether the source file should be removed from storage after processing completes.
+         * <p>
+         * When set to {@code true}, the service deletes the file identified by the path passed to the classification method:
+         * <ul>
+         * <li>For upload methods ({@code uploadClassifyAndFetch}), the file that was just uploaded.</li>
+         * <li>For path-only methods ({@code classifyAndFetch}), the existing document at {@code absolutePath}.</li>
+         * </ul>
          *
-         * @param removeUploadedFile {@code true} to delete the uploaded file after processing, {@code false} to retain it.
+         * @param removeUploadedFile {@code true} to delete the source file after processing, {@code false} to retain it.
          */
         public Builder removeUploadedFile(boolean removeUploadedFile) {
             this.removeUploadedFile = removeUploadedFile;
@@ -278,11 +286,21 @@ public final class TextClassificationParameters extends WatsonxParameters {
         }
 
         /**
-         * Sets the reference to the Cloud Object Storage (COS) location of the input document.
+         * Sets the reference to the Cloud Object Storage location of the input document.
          *
          * @param documentReference the {@link CosReference} pointing to the input file location.
          */
         public Builder documentReference(CosReference documentReference) {
+            this.documentReference = documentReference;
+            return this;
+        }
+
+        /**
+         * Sets the container reference for the input document.
+         *
+         * @param documentReference the {@link ContainerReference} pointing to the input file path.
+         */
+        public Builder documentReference(ContainerReference documentReference) {
             this.documentReference = documentReference;
             return this;
         }

@@ -4,6 +4,9 @@
  */
 package com.ibm.watsonx.ai;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * Supported IBM Cloud regions.
  */
@@ -37,5 +40,29 @@ public enum CloudRegion {
      */
     public String wxEndpoint() {
         return wxEndpoint;
+    }
+
+    /**
+     * Returns the {@link CloudRegion} whose ML endpoint matches the given URL, or {@link Optional#empty()} if none matches.
+     *
+     * @param url the ML endpoint URL to look up
+     * @return an {@link Optional} containing the matching region, or empty if not found
+     */
+    public static Optional<CloudRegion> fromMlEndpoint(String url) {
+        return url == null
+            ? Optional.empty()
+            : Arrays.stream(values()).filter(r -> r.mlEndpoint.equals(url)).findFirst();
+    }
+
+    /**
+     * Returns the {@link CloudRegion} whose WX endpoint matches the given URL, or {@link Optional#empty()} if none matches.
+     *
+     * @param url the WX endpoint URL to look up
+     * @return an {@link Optional} containing the matching region, or empty if not found
+     */
+    public static Optional<CloudRegion> fromWxEndpoint(String url) {
+        return url == null
+            ? Optional.empty()
+            : Arrays.stream(values()).filter(r -> r.wxEndpoint.equals(url)).findFirst();
     }
 }

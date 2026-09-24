@@ -17,6 +17,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type.HTML;
@@ -36,6 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -49,12 +51,15 @@ import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -66,6 +71,11 @@ import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
+import com.ibm.watsonx.ai.project.Project;
+import com.ibm.watsonx.ai.project.ProjectService;
+import com.ibm.watsonx.ai.project.ProjectStorage;
+import com.ibm.watsonx.ai.project.ProjectStorageProperties;
+import com.ibm.watsonx.ai.textprocessing.ContainerReference;
 import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
 import com.ibm.watsonx.ai.textprocessing.CosDataLocation;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
@@ -192,8 +202,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
             .authenticator(mockAuthenticator)
             .projectId("projectid")
-            .documentReference("<connection_id>", BUCKET_NAME)
-            .resultReference("<connection_id>", BUCKET_NAME)
+            .documentReference(CosReference.of("<connection_id>", BUCKET_NAME))
+            .resultReference(CosReference.of("<connection_id>", BUCKET_NAME))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -323,10 +333,10 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             new Metadata("abc123", "2025-06-25T10:15:30Z", null, "3fc54cf1-252f-424b-b52d-5cdd9814987f", "3fc54cf1-252f-424b-b52d-5cdd9814987f");
 
         DataReference documentReference =
-            new DataReference("connection_asset", new CosDataConnection("conn-456"), new CosDataLocation("document.pdf", "my-bucket"));
+            new DataReference("connection_asset", new CosDataConnection("conn-456"), new CosDataLocation("document.pdf", "my-bucket", null));
 
         DataReference resultReference =
-            new DataReference("connection_asset", new CosDataConnection("conn-456"), new CosDataLocation("/results/", "my-results-bucket"));
+            new DataReference("connection_asset", new CosDataConnection("conn-456"), new CosDataLocation("/results/", "my-results-bucket", null));
 
         ExtractionResult extractionResult = new ExtractionResult("completed", 5, "2025-06-25T10:16:00Z", "2025-06-25T10:18:00Z", 5,
             List.of("cos://my-results-bucket/results/output1.txt", "cos://my-results-bucket/results/output2.txt"),
@@ -547,8 +557,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .projectId("<project-id>")
             .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.AU_SYD)
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
+            .documentReference(CosReference.of("<connection_id>", "bucket"))
+            .resultReference(CosReference.of("<connection_id>", "bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -608,8 +618,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .projectId("<project-id>")
             .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.BR_SAO)
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
+            .documentReference(CosReference.of("<connection_id>", "bucket"))
+            .resultReference(CosReference.of("<connection_id>", "bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -673,8 +683,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .projectId("<project-id>")
             .cosUrl(CosUrl.CA_MON)
             .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
+            .documentReference(CosReference.of("<connection_id>", "bucket"))
+            .resultReference(CosReference.of("<connection_id>", "bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -732,8 +742,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .projectId("<project-id>")
             .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.CA_TOR)
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
+            .documentReference(CosReference.of("<connection_id>", "bucket"))
+            .resultReference(CosReference.of("<connection_id>", "bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -821,8 +831,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .projectId("<project_id>")
             .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.EU_DE)
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
+            .documentReference(CosReference.of("<connection_id>", "bucket"))
+            .resultReference(CosReference.of("<connection_id>", "bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -856,8 +866,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .spaceId("<space_id>")
             .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.JP_OSA)
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
+            .documentReference(CosReference.of("<connection_id>", "bucket"))
+            .resultReference(CosReference.of("<connection_id>", "bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -897,8 +907,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .projectId("<project_id>")
             .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.EU_ES)
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
+            .documentReference(CosReference.of("<connection_id>", "bucket"))
+            .resultReference(CosReference.of("<connection_id>", "bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -951,8 +961,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .spaceId("<space_id>")
             .baseUrl(URI.create("http://localhost:%s".formatted(watsonxServer.getPort())))
             .cosUrl(CosUrl.JP_TOK)
-            .documentReference("<connection_id>", "bucket")
-            .resultReference("<connection_id>", "bucket")
+            .documentReference(CosReference.of("<connection_id>", "bucket"))
+            .resultReference(CosReference.of("<connection_id>", "bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -986,8 +996,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                 .cosUrl(CosUrl.EU_GB)
                 .logRequests(true)
                 .logResponses(true)
-                .documentReference("<connection_id>", "bucket")
-                .resultReference("<connection_id>", "bucket")
+                .documentReference(CosReference.of("<connection_id>", "bucket"))
+                .resultReference(CosReference.of("<connection_id>", "bucket"))
                 .logRequests(true)
                 .logResponses(true)
                 .build();
@@ -1107,7 +1117,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         FileNotFoundException ex = assertThrows(FileNotFoundException.class,
             () -> textExtractionService.uploadExtractAndFetch(file));
-        assertEquals("doesnotexist.pdf (No such file or directory)", ex.getMessage());
+        assertNotNull(ex.getMessage());
+        assertTrue(ex.getMessage().startsWith("doesnotexist.pdf"));
 
         watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
@@ -1215,15 +1226,15 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .removeUploadedFile(true)
             .build();
 
-        assertThrows(
+        var asyncEx1 = assertThrows(
             IllegalArgumentException.class,
-            () -> textExtractionService.startExtraction(FILE_NAME, parameters),
-            "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" options");
+            () -> textExtractionService.startExtraction(FILE_NAME, parameters));
+        assertTrue(asyncEx1.getMessage().contains("parameters"));
 
-        assertThrows(
+        var asyncEx2 = assertThrows(
             IllegalArgumentException.class,
-            () -> textExtractionService.uploadAndStartExtraction(file, parameters),
-            "The asynchronous version of startExtraction doesn't allow the use of the \"removeOutputFile\" and \"removeUploadedFile\" options");
+            () -> textExtractionService.uploadAndStartExtraction(file, parameters));
+        assertTrue(asyncEx2.getMessage().contains("parameters"));
 
         watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
@@ -1232,6 +1243,34 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
         cosServer.verify(0, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
 
+        String extractedText = textExtractionService.uploadExtractAndFetch(file, parameters);
+        assertEquals("Hello", extractedText);
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))), 1);
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(1, getRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
+    }
+
+    @Test
+    void should_delete_preexisting_document_when_extract_and_fetch_with_remove_uploaded_file() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+
+        var outputFileName = "myNewOutput.json";
+        mockServers(outputFileName, true, true);
+
+        // extractAndFetch(String,...) with removeUploadedFile=true deletes the pre-existing
+        // document at absolutePath even though no file was uploaded by this call.
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .removeOutputFile(true)
+            .removeUploadedFile(true)
+            .build();
+
         String extractedText = textExtractionService.extractAndFetch(FILE_NAME, parameters);
         assertEquals("Hello", extractedText);
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
@@ -1239,22 +1278,6 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         cosServer.verify(0, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
-        cosServer.verify(1, getRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
-        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
-        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
-
-        watsonxServer.resetAll();
-        cosServer.resetAll();
-
-        mockServers(outputFileName, true, true);
-
-        extractedText = textExtractionService.uploadExtractAndFetch(file, parameters);
-        assertEquals("Hello", extractedText);
-        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
-        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))), 1);
-        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
-        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
         cosServer.verify(1, getRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
@@ -1565,7 +1588,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "submitted"))
             ));
 
@@ -1577,7 +1600,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "running"))
             ));
 
@@ -1589,7 +1612,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "completed"))
             ));
 
@@ -1619,7 +1642,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "submitted"))
             ));
 
@@ -1631,7 +1654,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "running"))
             ));
 
@@ -1643,7 +1666,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "completed"))
             ));
 
@@ -1674,6 +1697,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         assertEquals("Execution to extract test.pdf file took longer than the timeout set by 100 milliseconds",
             ex.getMessage());
 
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
@@ -1708,7 +1732,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "submitted"))
             ));
 
@@ -1720,7 +1744,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "running"))
             ));
 
@@ -1788,15 +1812,13 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         var ex = assertThrows(
             WatsonxException.class,
-            () -> textExtractionService.uploadAndStartExtraction(file),
-            "The specified bucket does not exist.");
+            () -> textExtractionService.uploadAndStartExtraction(file));
 
         assertEquals(error, ex.details().orElseThrow());
 
         ex = assertThrows(
             WatsonxException.class,
-            () -> textExtractionService.uploadExtractAndFetch(file),
-            "The specified bucket does not exist.");
+            () -> textExtractionService.uploadExtractAndFetch(file));
 
         assertEquals(error, ex.details().orElseThrow());
 
@@ -1841,7 +1863,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "submitted"))
             ));
 
@@ -1850,20 +1872,21 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .withHeader("Accept", equalTo("application/json"))
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME,
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "completed"))
             ));
 
-        assertThrows(
+        var fileEx1 = assertThrows(
             FileNotFoundException.class,
-            () -> textExtractionService.extractAndFetch(FILE_NAME),
-            "The specified key does not exist.");
+            () -> textExtractionService.extractAndFetch(FILE_NAME));
+        assertNotNull(fileEx1.getMessage());
+        assertTrue(fileEx1.getMessage().contains("The specified key does not exist."));
 
-
-        assertThrows(
+        var fileEx2 = assertThrows(
             FileNotFoundException.class,
-            () -> textExtractionService.uploadExtractAndFetch(file),
-            "The specified key does not exist.");
+            () -> textExtractionService.uploadExtractAndFetch(file));
+        assertNotNull(fileEx2.getMessage());
+        assertTrue(fileEx2.getMessage().contains("The specified key does not exist."));
 
         watsonxServer.verify(2, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(2, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
@@ -1909,7 +1932,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
         when(mockAuthenticator.token()).thenReturn("my-super-token");
         var outputFileName = FILE_NAME.replace(".pdf", ".md");
-        var EXPECTED = TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, FILE_NAME, "completed");
+        var EXPECTED = TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME, "completed");
 
         watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
             .withHeader("Authorization", equalTo("Bearer my-super-token"))
@@ -2062,7 +2085,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                     <Error>
                         <Code>AccessDenied</Code>
                         <Message>Access Denied</Message>
-                        <Resource>/andreaproject-donotdelete-pr-xnran4g4ptd1wo/ciao.pdf</Resource>
+                        <Resource>/example-project-bucket/ciao.pdf</Resource>
                         <RequestId>df887c2b-43c3-4933-a3a1-b0e19e7c2231</RequestId>
                         <httpStatusCode>403</httpStatusCode>
                     </Error>""")));
@@ -2094,8 +2117,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .cosAuthenticator(cosAuthenticator)
             .projectId("projectid")
-            .documentReference("<connection_id>", BUCKET_NAME)
-            .resultReference("<connection_id>", BUCKET_NAME)
+            .documentReference(CosReference.of("<connection_id>", BUCKET_NAME))
+            .resultReference(CosReference.of("<connection_id>", BUCKET_NAME))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -2133,6 +2156,43 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_delete_file_from_project_bucket_when_result_reference_is_container() throws Exception {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("projectid")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("project-bucket");
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        cosServer.stubFor(delete("/project-bucket/" + FILE_NAME)
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        // bucketName is ignored when resultReference is a ContainerReference.
+        assertTrue(service.deleteFile(null, FILE_NAME));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/project-bucket/" + FILE_NAME)));
+
+        // The project storage must have been resolved exactly once (cached after first call).
+        verify(mockProjectService, times(1)).findProject("projectid");
+    }
+
+
+    @Test
     void should_upload_file_successfully() throws Exception {
 
         when(mockAuthenticator.token()).thenReturn("my-super-token");
@@ -2157,8 +2217,8 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .cosAuthenticator(cosAuthenticator)
             .projectId("projectid")
-            .documentReference("<connection_id>", BUCKET_NAME)
-            .resultReference("<connection_id>", BUCKET_NAME)
+            .documentReference(CosReference.of("<connection_id>", BUCKET_NAME))
+            .resultReference(CosReference.of("<connection_id>", BUCKET_NAME))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -2185,6 +2245,382 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             () -> textExtractionService.uploadFile(file));
         assertEquals(ex.code(), "file_not_found");
         assertTrue(ex.getCause() instanceof FileNotFoundException);
+    }
+
+
+    @Test
+    void should_delete_uploaded_file_when_post_extraction_returns_error() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
+
+        cosServer.stubFor(put("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(500).withBody("{}")));
+
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        var ex = assertThrows(WatsonxException.class, () -> textExtractionService.uploadExtractAndFetch(file, parameters));
+        assertEquals(500, ex.statusCode());
+
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+    }
+
+    @Test
+    void should_cancel_job_and_delete_uploaded_file_when_polling_returns_error() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
+        var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
+
+        cosServer.stubFor(put("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
+                    "submitted"))));
+
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(500).withBody("{}")));
+
+        watsonxServer.stubFor(delete("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        var ex = assertThrows(WatsonxException.class, () -> textExtractionService.uploadExtractAndFetch(file, parameters));
+        assertEquals(500, ex.statusCode());
+
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+    }
+
+    @Test
+    void should_throw_exception_when_extraction_response_is_failed_without_results_reference() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
+
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
+                    "submitted"))));
+
+        // FAILED response without any results_reference field.
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody("""
+                    {
+                      "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+                      "entity": {
+                        "document_reference": {
+                          "type": "connection_asset",
+                          "connection": { "id": "<connection-id>" },
+                          "location": { "file_name": "%s", "bucket": "%s" }
+                        },
+                        "results": {
+                          "error": { "code": "file_download_error", "message": "download failed" },
+                          "number_pages_processed": 0,
+                          "status": "failed"
+                        }
+                      }
+                    }""".formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME))));
+
+        var ex = assertThrows(TextExtractionException.class,
+            () -> textExtractionService.extractAndFetch(FILE_NAME));
+        assertEquals("file_download_error", ex.code());
+        assertEquals("download failed", ex.getMessage());
+    }
+
+    @Test
+    void should_throw_exception_when_file_is_null() {
+        assertThrows(NullPointerException.class, () -> textExtractionService.uploadExtractAndFetch((File) null));
+        assertThrows(NullPointerException.class,
+            () -> textExtractionService.uploadExtractAndFetch(null, TextExtractionParameters.builder().build()));
+        assertThrows(NullPointerException.class, () -> textExtractionService.uploadAndStartExtraction((File) null));
+        assertThrows(NullPointerException.class,
+            () -> textExtractionService.uploadAndStartExtraction(null, TextExtractionParameters.builder().build()));
+        assertThrows(NullPointerException.class, () -> textExtractionService.uploadFile((File) null));
+    }
+
+    @Test
+    void should_throw_exception_when_file_is_directory(@TempDir java.nio.file.Path tempDir) {
+        var dir = tempDir.toFile();
+
+        TextExtractionException ex1 = assertThrows(TextExtractionException.class,
+            () -> textExtractionService.uploadExtractAndFetch(dir));
+        assertEquals("directory_not_allowed", ex1.code());
+
+        TextExtractionException ex1p = assertThrows(TextExtractionException.class,
+            () -> textExtractionService.uploadExtractAndFetch(dir, TextExtractionParameters.builder().build()));
+        assertEquals("directory_not_allowed", ex1p.code());
+
+        TextExtractionException ex2 = assertThrows(TextExtractionException.class,
+            () -> textExtractionService.uploadAndStartExtraction(dir));
+        assertEquals("directory_not_allowed", ex2.code());
+
+        TextExtractionException ex2p = assertThrows(TextExtractionException.class,
+            () -> textExtractionService.uploadAndStartExtraction(dir, TextExtractionParameters.builder().build()));
+        assertEquals("directory_not_allowed", ex2p.code());
+
+        TextExtractionException ex3 = assertThrows(TextExtractionException.class,
+            () -> textExtractionService.uploadFile(dir));
+        assertEquals("directory_not_allowed", ex3.code());
+
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        cosServer.verify(0, putRequestedFor(urlPathMatching("/.*")));
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_check_null_and_directory_before_resolving_storage_on_container_reference(@TempDir java.nio.file.Path tempDir) {
+        var mockProjectService = mock(ProjectService.class);
+
+        TextExtractionService[] holder = new TextExtractionService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build());
+
+        var dir = tempDir.toFile();
+        var params = TextExtractionParameters.builder().build();
+
+        assertThrows(NullPointerException.class, () -> holder[0].uploadFile((File) null));
+        assertThrows(TextExtractionException.class, () -> holder[0].uploadFile(dir));
+
+        assertThrows(NullPointerException.class, () -> holder[0].uploadExtractAndFetch((File) null, params));
+        assertThrows(TextExtractionException.class, () -> holder[0].uploadExtractAndFetch(dir, params));
+
+        assertThrows(NullPointerException.class, () -> holder[0].uploadAndStartExtraction((File) null, params));
+        assertThrows(TextExtractionException.class, () -> holder[0].uploadAndStartExtraction(dir, params));
+
+        verify(mockProjectService, times(0)).findProject(any());
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void should_check_null_stream_and_filename_before_resolving_storage_on_container_reference() {
+        var mockProjectService = mock(ProjectService.class);
+
+        TextExtractionService[] holder = new TextExtractionService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build());
+
+        var params = TextExtractionParameters.builder().build();
+        var is = InputStream.nullInputStream();
+
+        assertThrows(NullPointerException.class, () -> holder[0].uploadFile((InputStream) null, "test.pdf"));
+        assertThrows(NullPointerException.class, () -> holder[0].uploadFile(is, null));
+
+        assertThrows(NullPointerException.class,
+            () -> holder[0].uploadExtractAndFetch((InputStream) null, "test.pdf", params));
+        assertThrows(NullPointerException.class, () -> holder[0].uploadExtractAndFetch(is, null, params));
+
+        assertThrows(NullPointerException.class,
+            () -> holder[0].uploadAndStartExtraction((InputStream) null, "test.pdf", params));
+        assertThrows(NullPointerException.class, () -> holder[0].uploadAndStartExtraction(is, null, params));
+
+        verify(mockProjectService, times(0)).findProject(any());
+    }
+
+    @Test
+    void should_upload_to_project_bucket_when_per_call_container_reference_overrides_service_cos_reference() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("projectid")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("project-bucket");
+
+        var RESPONSE = """
+            {
+              "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "test.pdf" } },
+                "results_reference": { "type": "container", "location": { "path": "test.md" } },
+                "results": { "status": "submitted", "number_pages_processed": 0 }
+              }
+            }""".formatted(PROCESS_EXTRACTION_ID);
+
+        // Service has CosReference("cos-bucket") as default documentReference.
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(CosReference.of("conn-id", "cos-bucket"))
+            .resultReference(CosReference.of("conn-id", "cos-bucket"))
+            .projectService(mockProjectService)
+            .build();
+
+        // Stub PUT on project-bucket - this is where the upload MUST land.
+        cosServer.stubFor(put(urlPathMatching("/project-bucket/.*"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE)));
+
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build();
+
+        var file = new File(ClassLoader.getSystemResource(FILE_NAME).toURI());
+        var response = service.uploadAndStartExtraction(file, parameters);
+        assertNotNull(response);
+
+        // Upload went to project-bucket, not to cos-bucket.
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/project-bucket/.*")));
+        cosServer.verify(0, putRequestedFor(urlPathMatching("/cos-bucket/.*")));
+    }
+
+    @Test
+    void should_still_delete_uploaded_file_when_output_file_not_found() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
+        var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
+
+        cosServer.stubFor(put("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        // Output file is missing.
+        cosServer.stubFor(get("/%s/%s".formatted(BUCKET_NAME, outputFileName))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse()
+                .withStatus(404)
+                .withHeader("Content-Type", "application/xml")
+                .withBody("""
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Error>
+                        <Code>NoSuchKey</Code>
+                        <Message>The specified key does not exist.</Message>
+                        <Resource>/%s/%s</Resource>
+                        <RequestId>my-request-id</RequestId>
+                        <httpStatusCode>404</httpStatusCode>
+                    </Error>""".formatted(BUCKET_NAME, outputFileName))));
+
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
+                    "submitted"))));
+
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
+                    "completed"))));
+
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        // The call throws because the output file is missing ...
+        assertThrows(FileNotFoundException.class,
+            () -> textExtractionService.uploadExtractAndFetch(file, parameters));
+
+        // ... but the uploaded file must still have been deleted.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(1, getRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+    }
+
+    @Test
+    void should_return_result_when_delete_of_uploaded_file_responds_403() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
+        mockServers(outputFileName, false, false);
+
+        cosServer.stubFor(delete("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse()
+                .withStatus(403)
+                .withHeader("Content-Type", "application/xml")
+                .withBody("""
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Error>
+                        <Code>AccessDenied</Code>
+                        <Message>Access Denied</Message>
+                        <Resource>/%s/%s</Resource>
+                        <RequestId>df887c2b-43c3-4933-a3a1-b0e19e7c2231</RequestId>
+                        <httpStatusCode>403</httpStatusCode>
+                    </Error>""".formatted(BUCKET_NAME, FILE_NAME))));
+
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        var file = new File(TextExtractionTest.class.getClassLoader().getResource(FILE_NAME).toURI());
+
+        // Must succeed: 403 on delete is logged and swallowed.
+        String result = textExtractionService.uploadExtractAndFetch(file, parameters);
+        assertNotNull(result);
+        assertEquals("Hello", result);
+
+        // AccessDenied triggers a token-expiry retry, so two DELETE attempts are expected.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 2);
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        cosServer.verify(1, getRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, outputFileName))));
+        cosServer.verify(2, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
     }
 
     private void mockServers(String outputFileName, boolean deleteUploadedFile, boolean deleteOutputFile) {
@@ -2234,5 +2670,804 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                 .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
                     "completed"))
             ));
+    }
+
+    @Test
+    void should_start_extraction_with_container_reference() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var CONTAINER_EXTRACTION_RESPONSE = """
+            {
+              "metadata": {
+                "id": "%s",
+                "created_at": "2023-05-02T16:27:51Z",
+                "project_id": "projectid"
+              },
+              "entity": {
+                "document_reference": {
+                  "type": "container",
+                  "location": { "path": "invoices/q1.pdf" }
+                },
+                "results_reference": {
+                  "type": "container",
+                  "location": { "path": "invoices/q1.md" }
+                },
+                "results": {
+                  "status": "completed",
+                  "number_pages_processed": 1,
+                  "running_at": "2023-05-02T16:28:03Z",
+                  "completed_at": "2023-05-02T16:28:03Z"
+                }
+              }
+            }""";
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .withRequestBody(equalToJson("""
+                {
+                  "project_id": "projectid",
+                  "document_reference": {
+                    "type": "container",
+                    "location": { "path": "invoices/q1.pdf" }
+                  },
+                  "results_reference": {
+                    "type": "container",
+                    "location": { "path": "invoices/q1.md" }
+                  },
+                  "parameters": { "requested_outputs": ["md"] }
+                }""", true, false))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID))));
+
+        var response = service.startExtraction("invoices/q1.pdf");
+
+        assertNotNull(response);
+        assertEquals(PROCESS_EXTRACTION_ID, response.metadata().id());
+        watsonxServer.verify(postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+    }
+
+    @Test
+    void should_upload_file_via_cos_when_document_reference_is_container() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var CONTAINER_RESPONSE = """
+            {
+              "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "q1.pdf" } },
+                "results_reference": { "type": "container", "location": { "path": "q1.md" } },
+                "results": { "status": "submitted", "number_pages_processed": 0 }
+              }
+            }""".formatted(PROCESS_EXTRACTION_ID);
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("projectid")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn(BUCKET_NAME);
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        cosServer.stubFor(put(urlPathMatching("/" + BUCKET_NAME + "/.*"))
+            .willReturn(aResponse().withStatus(200)));
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_RESPONSE)));
+
+        var response = service.uploadAndStartExtraction(new File(
+            ClassLoader.getSystemResource(FILE_NAME).toURI()));
+
+        assertNotNull(response);
+        assertEquals(PROCESS_EXTRACTION_ID, response.metadata().id());
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/" + BUCKET_NAME + "/.*")));
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/files")));
+
+        service.uploadFile(new File(ClassLoader.getSystemResource(FILE_NAME).toURI()));
+        cosServer.verify(2, putRequestedFor(urlPathMatching("/" + BUCKET_NAME + "/.*")));
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/files")));
+    }
+
+    @Test
+    void should_start_extraction_with_container_reference_per_call_override() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var CONTAINER_EXTRACTION_RESPONSE = """
+            {
+              "metadata": {
+                "id": "%s",
+                "created_at": "2023-05-02T16:27:51Z",
+                "project_id": "projectid"
+              },
+              "entity": {
+                "document_reference": {
+                  "type": "container",
+                  "location": { "path": "invoices/override.pdf" }
+                },
+                "results_reference": {
+                  "type": "container",
+                  "location": { "path": "invoices/override.md" }
+                },
+                "results": {
+                  "status": "completed",
+                  "number_pages_processed": 1,
+                  "running_at": "2023-05-02T16:28:03Z",
+                  "completed_at": "2023-05-02T16:28:03Z"
+                }
+              }
+            }""";
+
+        var parameters = TextExtractionParameters.builder()
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .withRequestBody(equalToJson("""
+                {
+                  "project_id": "projectid",
+                  "document_reference": {
+                    "type": "container",
+                    "location": { "path": "invoices/override.pdf" }
+                  },
+                  "results_reference": {
+                    "type": "container",
+                    "location": { "path": "invoices/override.md" }
+                  },
+                  "parameters": { "requested_outputs": ["md"] }
+                }""", true, false))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID))));
+
+        var response = textExtractionService.startExtraction("invoices/override.pdf", parameters);
+
+        assertNotNull(response);
+        watsonxServer.verify(postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+    }
+
+    @Test
+    void should_start_extraction_with_container_reference_and_explicit_output_path() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var RESPONSE = """
+            {
+              "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                "results_reference": { "type": "container", "location": { "path": "results/output.txt" } },
+                "results": { "status": "completed", "number_pages_processed": 1 }
+              }
+            }""".formatted(PROCESS_EXTRACTION_ID);
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build();
+
+        var parameters = TextExtractionParameters.builder()
+            .requestedOutputs(Type.PLAIN_TEXT)
+            .outputFileName("results/output.txt")
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .withRequestBody(equalToJson("""
+                {
+                  "project_id": "projectid",
+                  "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                  "results_reference": { "type": "container", "location": { "path": "results/output.txt" } },
+                  "parameters": { "requested_outputs": ["plain_text"] }
+                }""", true, false))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE)));
+
+        var response = service.startExtraction("invoices/q1.pdf", parameters);
+
+        assertNotNull(response);
+        assertEquals(PROCESS_EXTRACTION_ID, response.metadata().id());
+        watsonxServer.verify(postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+    }
+
+    @Test
+    void should_start_extraction_with_container_reference_and_directory_output_path() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var RESPONSE = """
+            {
+              "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                "results_reference": { "type": "container", "location": { "path": "results/" } },
+                "results": { "status": "completed", "number_pages_processed": 1 }
+              }
+            }""".formatted(PROCESS_EXTRACTION_ID);
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build();
+
+        var parameters = TextExtractionParameters.builder()
+            .requestedOutputs(Type.PLAIN_TEXT)
+            .outputFileName("results/")
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .withRequestBody(equalToJson("""
+                {
+                  "project_id": "projectid",
+                  "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                  "results_reference": { "type": "container", "location": { "path": "results/invoices/q1.txt" } },
+                  "parameters": { "requested_outputs": ["plain_text"] }
+                }""", true, false))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE)));
+
+        var response = service.startExtraction("invoices/q1.pdf", parameters);
+
+        assertNotNull(response);
+        assertEquals(PROCESS_EXTRACTION_ID, response.metadata().id());
+        watsonxServer.verify(postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+    }
+
+    @Test
+    void should_start_extraction_with_container_reference_and_multi_output() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var RESPONSE = """
+            {
+              "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                "results_reference": { "type": "container", "location": { "path": "test/" } },
+                "results": { "status": "completed", "number_pages_processed": 1 }
+              }
+            }""".formatted(PROCESS_EXTRACTION_ID);
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build();
+
+        var parameters = TextExtractionParameters.builder()
+            .requestedOutputs(Type.PLAIN_TEXT, Type.JSON, Type.HTML)
+            .outputFileName("test/")
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .withRequestBody(equalToJson("""
+                {
+                  "project_id": "projectid",
+                  "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                  "results_reference": { "type": "container", "location": { "path": "test/" } },
+                  "parameters": { "requested_outputs": ["plain_text", "assembly", "html"] }
+                }""", true, false))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(RESPONSE)));
+
+        var response = service.startExtraction("invoices/q1.pdf", parameters);
+
+        assertNotNull(response);
+        assertEquals(PROCESS_EXTRACTION_ID, response.metadata().id());
+        watsonxServer.verify(postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+    }
+
+    @Test
+    void should_extract_and_fetch_with_container_references() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var CONTAINER_COMPLETED_RESPONSE = """
+            {
+              "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "invoices/q1.pdf" } },
+                "results_reference": { "type": "container", "location": { "path": "invoices/q1.md" } },
+                "results": {
+                  "status": "%s",
+                  "number_pages_processed": 1,
+                  "running_at": "2023-05-02T16:28:03Z",
+                  "completed_at": "2023-05-02T16:28:03Z"
+                }
+              }
+            }""";
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("projectid")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn(BUCKET_NAME);
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_COMPLETED_RESPONSE.formatted(PROCESS_EXTRACTION_ID, "submitted"))));
+
+        watsonxServer.stubFor(get(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_COMPLETED_RESPONSE.formatted(PROCESS_EXTRACTION_ID, "completed"))));
+
+        cosServer.stubFor(get(urlPathEqualTo("/" + BUCKET_NAME + "/invoices/q1.md"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody("Extracted content")));
+
+        var result = service.extractAndFetch("invoices/q1.pdf");
+
+        assertNotNull(result);
+        assertEquals("Extracted content", result);
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        watsonxServer.verify(getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+        cosServer.verify(1, getRequestedFor(urlPathEqualTo("/" + BUCKET_NAME + "/invoices/q1.md")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/files")));
+    }
+
+    @Test
+    void should_resolve_cos_service_lazily_via_project_service_when_container_reference_used() throws Exception {
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("projectid")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn(BUCKET_NAME);
+
+        cosServer.stubFor(put("/" + BUCKET_NAME + "/f.pdf").willReturn(aResponse().withStatus(200)));
+
+        TextExtractionService[] holder = new TextExtractionService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build());
+        var service = holder[0];
+
+        // uploadFile triggers lazy COS resolution on first call
+        assertTrue(service.uploadFile(new ByteArrayInputStream(new byte[0]), "f.pdf"));
+
+        // A second call should reuse the cached COS instance - only one findProject call
+        assertTrue(service.uploadFile(new ByteArrayInputStream(new byte[0]), "f.pdf"));
+        verify(mockProjectService, times(1)).findProject("projectid");
+    }
+
+    @Test
+    void should_throw_when_upload_called_with_container_reference_and_no_region_nor_project_service() {
+        TextExtractionService[] holder = new TextExtractionService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build());
+
+        var ex = assertThrows(IllegalStateException.class,
+            () -> holder[0].uploadFile(new ByteArrayInputStream(new byte[0]), "f.pdf"));
+        assertTrue(ex.getMessage().contains("ProjectService"));
+    }
+
+    @Test
+    void should_cleanup_via_cos_ref_override_on_timeout() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(CosReference.of("conn-id", "cos-bucket"))
+            .resultReference(CosReference.of("conn-id", "cos-bucket"))
+            .build();
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID,
+                    FILE_NAME, "override-bucket", FILE_NAME.replace(".pdf", ".md"), "override-bucket", "submitted"))));
+
+        watsonxServer.stubFor(get(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID,
+                    FILE_NAME, "override-bucket", FILE_NAME.replace(".pdf", ".md"), "override-bucket", "running"))));
+
+        watsonxServer.stubFor(delete(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID))
+            .willReturn(aResponse().withStatus(204)));
+
+        cosServer.stubFor(delete("/override-bucket/" + FILE_NAME)
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .documentReference(CosReference.of("conn-id", "override-bucket"))
+            .resultReference(CosReference.of("conn-id", "override-bucket"))
+            .timeout(Duration.ofMillis(100))
+            .removeUploadedFile(true)
+            .build();
+
+        assertThrows(TextExtractionException.class,
+            () -> service.extractAndFetch(FILE_NAME, parameters));
+
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/override-bucket/" + FILE_NAME)), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/override-bucket/" + FILE_NAME)));
+        cosServer.verify(0, deleteRequestedFor(urlEqualTo("/cos-bucket/" + FILE_NAME)));
+    }
+
+    @Test
+    void should_throw_early_when_upload_extract_fetch_file_and_container_not_resolvable() throws Exception {
+
+        TextExtractionService[] holder = new TextExtractionService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build());
+
+        var file = new File(ClassLoader.getSystemResource(FILE_NAME).toURI());
+
+        var ex = assertThrows(IllegalStateException.class,
+            () -> holder[0].uploadExtractAndFetch(file));
+        assertTrue(ex.getMessage().contains("ProjectService"));
+
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        cosServer.verify(0, putRequestedFor(urlPathMatching("/.*")));
+    }
+
+    @Test
+    void should_throw_early_when_upload_and_start_extraction_stream_and_container_not_resolvable() throws Exception {
+
+        TextExtractionService[] holder = new TextExtractionService[1];
+        withWatsonxServiceMock(() -> holder[0] = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .build());
+
+        var ex = assertThrows(IllegalStateException.class,
+            () -> holder[0].uploadAndStartExtraction(new ByteArrayInputStream(new byte[0]), "f.pdf"));
+        assertTrue(ex.getMessage().contains("ProjectService"));
+
+        watsonxServer.verify(0, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        cosServer.verify(0, putRequestedFor(urlPathMatching("/.*")));
+    }
+
+    @Test
+    void should_interrupt_extraction_restore_flag_and_delete_job() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
+
+        // POST returns "running" so the poll loop never exits by itself.
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
+                    "running"))));
+
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
+                    "running"))));
+
+        watsonxServer.stubFor(delete("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        TextExtractionException[] result = new TextExtractionException[1];
+        boolean[] interruptFlag = new boolean[1];
+
+        var thread = new Thread(() -> {
+            try {
+                textExtractionService.extractAndFetch(FILE_NAME);
+            } catch (TextExtractionException e) {
+                result[0] = e;
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            } finally {
+                interruptFlag[0] = Thread.currentThread().isInterrupted();
+            }
+        });
+        thread.start();
+
+        // Wait until the poll loop has fired at least one GET, then wait for the thread to
+        // enter TIMED_WAITING (inside Thread.sleep in the poll loop) before interrupting.
+        // This avoids a race where interrupt() fires while HttpClient is still reading the
+        // HTTP response, which would throw a different exception from the sleep interruption.
+        waitForRequests(watsonxServer, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)), 1);
+        waitForTimedWaiting(thread, 5_000);
+        thread.interrupt();
+        thread.join(5_000);
+        assertFalse(thread.isAlive());
+
+        assertNotNull(result[0]);
+        assertEquals("interrupted", result[0].code());
+        assertTrue(interruptFlag[0], "interrupt flag must be restored on the calling thread");
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+    }
+
+    @Test
+    void should_delete_from_project_bucket_when_container_reference_used_with_remove_uploaded_file() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("projectid")).thenReturn(Optional.of(mockProject));
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("project-bucket");
+
+        var CONTAINER_RESPONSE = """
+            {
+              "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "%s" } },
+                "results_reference": { "type": "container", "location": { "path": "%s" } },
+                "results": { "status": "%%s", "number_pages_processed": 1 }
+              }
+            }""".formatted(PROCESS_EXTRACTION_ID, FILE_NAME, outputFileName);
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        // PUT and DELETE must both target the exact same project-bucket/test.pdf path.
+        // GET goes to project-bucket/test.md (the output file).
+        cosServer.stubFor(put("/project-bucket/" + FILE_NAME)
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)));
+
+        cosServer.stubFor(delete("/project-bucket/" + FILE_NAME)
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        cosServer.stubFor(get("/project-bucket/" + outputFileName)
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200).withBody("Extracted text")));
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_RESPONSE.formatted("submitted"))));
+
+        watsonxServer.stubFor(get(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(CONTAINER_RESPONSE.formatted("completed"))));
+
+        var file = new File(ClassLoader.getSystemResource(FILE_NAME).toURI());
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        var text = service.uploadExtractAndFetch(file, parameters);
+        assertEquals("Extracted text", text);
+
+        // Upload and cleanup must both hit the same exact key; GET must fetch the output file.
+        cosServer.verify(1, putRequestedFor(urlEqualTo("/project-bucket/" + FILE_NAME)));
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/project-bucket/" + FILE_NAME)), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/project-bucket/" + FILE_NAME)));
+        cosServer.verify(1, getRequestedFor(urlEqualTo("/project-bucket/" + outputFileName)));
+    }
+
+    @Test
+    void should_clear_interrupt_flag_before_resolving_project_storage_during_cleanup() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
+
+        AtomicBoolean interruptedDuringFindProject = new AtomicBoolean(false);
+
+        var mockProjectService = mock(ProjectService.class);
+        var mockProject = mock(Project.class);
+        var mockStorage = mock(ProjectStorage.class);
+        var mockProps = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("projectid")).thenAnswer(inv -> {
+            interruptedDuringFindProject.set(Thread.currentThread().isInterrupted());
+            return Optional.of(mockProject);
+        });
+        when(mockProject.storage()).thenReturn(mockStorage);
+        when(mockStorage.properties()).thenReturn(mockProps);
+        when(mockProps.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockProps.bucketName()).thenReturn("project-bucket");
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        // POST returns "running" so the poll loop never exits on its own.
+        watsonxServer.stubFor(post("/ml/v1/text/extractions?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
+                    "running"))));
+
+        watsonxServer.stubFor(get("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200)
+                .withBody(TEXT_EXTRACTION_RESPONSE.formatted(PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME,
+                    "running"))));
+
+        watsonxServer.stubFor(delete("/ml/v1/text/extractions/%s?version=%s&project_id=%s".formatted(PROCESS_EXTRACTION_ID, API_VERSION, "projectid"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        cosServer.stubFor(delete("/project-bucket/" + FILE_NAME)
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(204)));
+
+        TextExtractionException[] result = new TextExtractionException[1];
+        boolean[] interruptFlag = new boolean[1];
+
+        var thread = new Thread(() -> {
+            try {
+                service.extractAndFetch(FILE_NAME, TextExtractionParameters.builder()
+                    .removeUploadedFile(true)
+                    .build());
+            } catch (TextExtractionException e) {
+                result[0] = e;
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            } finally {
+                interruptFlag[0] = Thread.currentThread().isInterrupted();
+            }
+        });
+        thread.start();
+
+        // Wait until the poll loop has fired at least one GET, then wait for TIMED_WAITING
+        // so the interrupt lands inside Thread.sleep (not inside HttpClient.send).
+        waitForRequests(watsonxServer, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)), 1);
+        waitForTimedWaiting(thread, 5_000);
+        thread.interrupt();
+        thread.join(5_000);
+        assertFalse(thread.isAlive());
+
+        assertNotNull(result[0]);
+        assertEquals("interrupted", result[0].code());
+        assertTrue(interruptFlag[0], "interrupt flag must be restored on the calling thread");
+
+        // The interrupt flag must have been cleared before findProject was invoked.
+        assertFalse(interruptedDuringFindProject.get(), "findProject must not see the interrupt flag set");
+
+        // The uploaded file must have been deleted from the project bucket.
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/project-bucket/" + FILE_NAME)), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/project-bucket/" + FILE_NAME)));
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+    }
+
+
+    @Test
+    void should_return_result_even_when_cleanup_throws_during_container_reference_cleanup() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("my-super-token"));
+
+        var outputFileName = FILE_NAME.replace(".pdf", ".md");
+
+        var mockProjectService = mock(ProjectService.class);
+        when(mockProjectService.findProject("projectid")).thenThrow(new RuntimeException("storage unavailable"));
+
+        var COS_RESPONSE = TEXT_EXTRACTION_RESPONSE.formatted(
+            PROCESS_EXTRACTION_ID, FILE_NAME, BUCKET_NAME, outputFileName, BUCKET_NAME, "%s");
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(CosReference.of("<connection_id>", BUCKET_NAME))
+            .projectService(mockProjectService)
+            .build();
+
+        cosServer.stubFor(get("/%s/%s".formatted(BUCKET_NAME, outputFileName))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(200).withBody("Extracted text")));
+
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(COS_RESPONSE.formatted("submitted"))));
+
+        watsonxServer.stubFor(get(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID))
+            .willReturn(aResponse().withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(COS_RESPONSE.formatted("completed"))));
+
+        TextExtractionParameters parameters = TextExtractionParameters.builder()
+            .removeUploadedFile(true)
+            .build();
+
+        // POST and GET complete. Cleanup (getOrResolveCosService) throws. Result must still be returned.
+        String text = service.extractAndFetch(FILE_NAME, parameters);
+        assertEquals("Extracted text", text);
+
+        watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
+        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
     }
 }

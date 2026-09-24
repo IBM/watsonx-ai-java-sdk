@@ -126,6 +126,10 @@ public class ServiceLoaderUtils {
             "com.ibm.watsonx.ai.project.ProjectRestClient$ProjectRestClientBuilderFactory",
             "com.ibm.watsonx.ai.client.impl.CustomProjectRestClient$CustomProjectRestClientBuilderFactory");
 
+        createServiceFile(metaInfServices,
+            "com.ibm.watsonx.ai.textprocessing.storage.cos.CosStorageRestClient$CosStorageRestClientBuilderFactory",
+            "com.ibm.watsonx.ai.client.impl.CustomCosStorageRestClient$CustomCosStorageRestClientBuilderFactory");
+
         URLClassLoader tempClassLoader = new URLClassLoader(
             new URL[] { tempDir.toUri().toURL() },
             originalClassLoader

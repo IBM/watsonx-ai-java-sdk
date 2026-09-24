@@ -5,7 +5,9 @@ title: Text Classification Service
 
 # Text Classification Service
 
-The `TextClassificationService` provides functionality to classify documents stored in **IBM Cloud Object Storage (COS)** using **IBM watsonx.ai**. It identifies whether a document matches pre-defined or custom schema definitions, enabling automated document routing and pre-processing before resource-intensive key-value pair extraction.
+The `TextClassificationService` provides functionality to classify documents using **IBM watsonx.ai**. It identifies whether a document matches pre-defined or custom schema definitions, enabling automated document routing and pre-processing before resource-intensive key-value pair extraction.
+
+Documents can be provided via **IBM Cloud Object Storage** (using a `CosReference`) or from the **default container** managed by your watsonx.ai deployment (using a `ContainerReference`).
 
 ## Quick Start
 
@@ -15,7 +17,7 @@ TextClassificationService service = TextClassificationService.builder()
     .projectId(WATSONX_PROJECT_ID)
     .baseUrl(CloudRegion.DALLAS)
     .cosUrl(CLOUD_OBJECT_STORAGE_URL)
-    .documentReference(CONNECTION_ID, BUCKET_NAME)
+    .documentReference(CosReference.of(CONNECTION_ID, BUCKET_NAME))
     .build();
 
 ClassificationResult result = service.uploadClassifyAndFetch(new File("path/to/invoice.pdf"));
@@ -51,9 +53,55 @@ TextClassificationService service = TextClassificationService.builder()
     .projectId(WATSONX_PROJECT_ID)
     .baseUrl("https://us-south.ml.cloud.ibm.com") // or use CloudRegion
     .cosUrl("https://s3.us-south.cloud-object-storage.appdomain.cloud") // or use CosUrl
-    .documentReference(CONNECTION_ID, BUCKET_NAME)
+    .documentReference(CosReference.of(CONNECTION_ID, BUCKET_NAME))
     .build();
 ```
+
+### Using Container References
+
+When documents are already stored in the default container created by your watsonx.ai deployment, use `ContainerReference` instead of `CosReference`. No COS URL or credentials are required.
+
+`ContainerReference.container()` is a path-free marker. The file path is supplied at call time as the first argument of `startClassification` or `classifyAndFetch`. This is the recommended approach when the service is configured once and used across multiple files.
+
+```java
+TextClassificationService service = TextClassificationService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl(CloudRegion.DALLAS)
+    .documentReference(ContainerReference.container())
+    .build();
+
+// The path passed here becomes the container path for the document
+ClassificationResult result = service.classifyAndFetch("invoices/q1-invoice.pdf");
+```
+
+When using `ContainerReference`, upload methods (`uploadFile`, `uploadAndStartClassification`, `uploadClassifyAndFetch`) upload the file directly to the **project's default COS bucket** (resolved automatically from the project metadata). The platform then reads the file from that bucket during classification.
+
+Per-call overrides work across types. A service built with `CosReference` defaults can use a `ContainerReference` for an individual call by setting it in `TextClassificationParameters`, and vice versa.
+
+#### COS access when using ContainerReference
+
+When a `ContainerReference` is configured as the default, direct COS operations (upload, delete, and per-call `CosReference` overrides via parameters) require the service to know the project's default COS bucket and endpoint URL. These are resolved automatically from the project metadata:
+
+- **Standard cloud regions** - if `baseUrl(CloudRegion)` was used, the service calls the Projects API automatically on first use. No extra configuration is required.
+- **Custom or on-premise deployments** - if a plain URL string was passed to `baseUrl(...)`, the service cannot derive the Projects API endpoint automatically. Pass an explicit `ProjectService` instance:
+
+```java
+ProjectService projectService = ProjectService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .baseUrl("https://api.your-deployment.example.com")
+    .build();
+
+TextClassificationService service = TextClassificationService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl("https://ml.your-deployment.example.com")
+    .documentReference(ContainerReference.container())
+    .projectService(projectService)
+    .build();
+```
+
+The resolved endpoint URL and bucket are cached after the first lookup. When only `spaceId` is configured (no `projectId`), lazy COS resolution is not supported, set `cosUrl` explicitly in that case.
 
 ### Using a Separate COS Authenticator
 
@@ -66,7 +114,7 @@ TextClassificationService service = TextClassificationService.builder()
     .projectId(WATSONX_PROJECT_ID)
     .baseUrl("https://us-south.ml.cloud.ibm.com") // or use CloudRegion
     .cosUrl("https://s3.us-south.cloud-object-storage.appdomain.cloud") // or use CosUrl
-    .documentReference(CONNECTION_ID, BUCKET_NAME)
+    .documentReference(CosReference.of(CONNECTION_ID, BUCKET_NAME))
     .build();
 ```
 
@@ -80,8 +128,9 @@ TextClassificationService service = TextClassificationService.builder()
 | `projectId` | String | Conditional | Project ID where classification will be performed |
 | `spaceId` | String | Conditional | Space ID (alternative to `projectId`) |
 | `baseUrl` | String/CloudRegion | Yes | watsonx.ai service base URL |
-| `cosUrl` | String/CosUrl | Yes | Cloud Object Storage base URL |
-| `documentReference` | CosReference | Yes | Connection ID and bucket name for input documents |
+| `cosUrl` | String/CosUrl | Conditional | Cloud Object Storage base URL. Required when `documentReference` is a `CosReference`. Not required for `ContainerReference`, unless only `spaceId` is set (no `projectId`) |
+| `projectService` | ProjectService | No | Explicit `ProjectService` for resolving the default COS bucket when using `ContainerReference` with a non-standard base URL. Auto-resolved from `CloudRegion` otherwise |
+| `documentReference` | DocumentReference | Yes | Input document location - a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
 | `timeout` | Duration | No | Request timeout (default: 60 seconds) |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
@@ -103,14 +152,12 @@ The simplest way to classify a document is to use the `uploadClassifyAndFetch` m
 
 ```java
 ClassificationResult result = service.uploadClassifyAndFetch(new File("invoice.pdf"));
-System.out.println("Status:          " + result.status());
-System.out.println("Document Type:   " + result.documentType());
-System.out.println("Classified:      " + result.documentClassified());
-System.out.println("Pages Processed: " + result.numberPagesProcessed());
-// → Status:          completed
-// → Document Type:   Invoice
-// → Classified:      true
-// → Pages Processed: 1
+System.out.println("Status:        " + result.status());
+System.out.println("Document Type: " + result.documentType());
+System.out.println("Classified:    " + result.documentClassified());
+// → Status:        completed
+// → Document Type: Invoice
+// → Classified:    true
 ```
 
 **From an InputStream** - useful for documents from web uploads or streaming sources:
@@ -130,6 +177,21 @@ System.out.println("Document Type: " + result.documentType());
 // → Document Type: Invoice
 ```
 
+**From a file already in the container** - use `classifyAndFetch` with a container-configured service:
+
+```java
+TextClassificationService service = TextClassificationService.builder()
+    .apiKey(WATSONX_API_KEY)
+    .projectId(WATSONX_PROJECT_ID)
+    .baseUrl(CloudRegion.DALLAS)
+    .documentReference(ContainerReference.container())
+    .build();
+
+ClassificationResult result = service.classifyAndFetch("invoices/q1-invoice.pdf");
+System.out.println("Document Type: " + result.documentType());
+// → Document Type: Invoice
+```
+
 **Automatic file cleanup** - set `removeUploadedFile(true)` to delete the uploaded file from COS asynchronously after classification completes:
 
 ```java
@@ -141,7 +203,9 @@ var parameters = TextClassificationParameters.builder()
 service.uploadClassifyAndFetch(new File("path/to/invoice.pdf"), parameters);
 ```
 
-> **Note:** `removeUploadedFile` is only supported with the synchronous variants. For other cases, call `service.deleteFile(BUCKET_NAME, fileName)` manually after processing.
+> **Note:** `removeUploadedFile` is only supported with the synchronous variants (`uploadClassifyAndFetch` / `classifyAndFetch`). Passing it with `uploadAndStartClassification` throws `IllegalArgumentException`. For async flows, call `service.deleteFile(bucketName, fileName)` manually after processing. When using a `ContainerReference`, the `bucketName` argument is ignored - pass `null`.
+>
+> **Caution:** when calling `classifyAndFetch(String, ...)` with `removeUploadedFile(true)` on a pre-existing document (no upload was performed), the service will delete the document at the path you passed. Use this option with care.
 
 ### Asynchronous Classification
 
@@ -262,7 +326,7 @@ Both are active by default. If you only want schema-based results, set `enableGe
 |--|---------|---------|
 | **Use for** | Variable-layout documents where fields can appear anywhere | Fixed-layout documents with consistent field positions |
 | **How it works** | Model scans the entire document for matching fields | Model targets only the specified bounding box regions |
-| **Defined with** | `KvpFields` | `KvpPage` + `KvpSlice` with normalized bbox (0.0–100.0) |
+| **Defined with** | `KvpFields` | `KvpPage` + `KvpSlice` with normalized bbox (0.0–1.0) |
 
 ### Using a Custom Foundation Model
 
@@ -320,7 +384,7 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | `languages` | Language... | Expected languages in the document (ISO 639) |
 | `semanticConfig` | TextClassificationSemanticConfig | Custom schema and semantic classification settings |
 | `removeUploadedFile` | Boolean | Delete the uploaded file from COS after classification (synchronous only) |
-| `documentReference` | CosReference | Override the default COS connection and bucket for this request |
+| `documentReference` | DocumentReference | Override the default input location for this request - accepts `CosReference` or `ContainerReference` |
 | `timeout` | Duration | Override the service-level timeout for this request |
 | `addCustomProperty` | String, Object | Add arbitrary key-value metadata to the request |
 | `projectId` | String | Override the default Project ID |
@@ -364,10 +428,9 @@ Returned by `startClassification`, `uploadAndStartClassification`, and `fetchCla
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `status()` | String | Current status: `queued`, `running`, `completed`, or `failed` |
+| `status()` | String | Current status: `submitted`, `uploading`, `running`, `downloading`, `downloaded`, `completed`, `failed`, or `ai_processing` |
 | `runningAt()` | String | Timestamp when processing started |
 | `completedAt()` | String | Timestamp when processing completed or failed |
-| `numberPagesProcessed()` | Integer | Number of pages processed |
 | `documentClassified()` | Boolean | Whether the document matched a schema |
 | `documentType()` | String | The identified schema/document type (empty if not classified) |
 | `error()` | Error | Error details if status is `failed` |

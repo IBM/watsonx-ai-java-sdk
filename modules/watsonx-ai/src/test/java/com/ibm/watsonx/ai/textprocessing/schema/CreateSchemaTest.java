@@ -103,7 +103,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
             .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
             .authenticator(mockAuthenticator)
             .projectId("project-id")
-            .documentReference("connection_id", "my-bucket")
+            .documentReference(CosReference.of("connection_id", "my-bucket"))
             .build();
     }
 
@@ -202,7 +202,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
 
         Metadata metadata = new Metadata("id", "2026-06-15T08:23:58.819Z", "2026-06-15T08:24:45.043Z", "space-id", "project-id");
         DataReference documentReference =
-            new DataReference("connection_asset", new CosDataConnection("connection-id"), new CosDataLocation("test.pdf", "my-bucket"));
+            new DataReference("connection_asset", new CosDataConnection("connection-id"), new CosDataLocation("test.pdf", "my-bucket", null));
         CreateSchemaResult createSchemaResult =
             new CreateSchemaResult("completed", "2026-06-15T08:24:01.677Z", "2026-06-15T08:24:44.987Z", 2, 2, schema, groundingHints, null);
 
@@ -959,7 +959,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .cosAuthenticator(cosAuthenticator)
             .projectId("projectid")
-            .documentReference("connection_id", "my-bucket")
+            .documentReference(CosReference.of("connection_id", "my-bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -1019,7 +1019,7 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
             .authenticator(mockAuthenticator)
             .cosAuthenticator(cosAuthenticator)
             .projectId("projectid")
-            .documentReference("connection_id", "my-bucket")
+            .documentReference(CosReference.of("connection_id", "my-bucket"))
             .logRequests(true)
             .logResponses(true)
             .build();

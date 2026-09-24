@@ -12,7 +12,7 @@ import static java.util.Objects.requireNonNull;
  * @param connection the identifier of the COS connection
  * @param bucket the name of the COS bucket
  */
-public record CosReference(String connection, String bucket) {
+public record CosReference(String connection, String bucket) implements DocumentReference {
     public CosReference {
         requireNonNull(connection, "connection can't be null");
         requireNonNull(bucket, "bucket can't be null");
@@ -23,7 +23,7 @@ public record CosReference(String connection, String bucket) {
         return new DataReference(
             DataReference.TYPE_CONNECTION_ASSET,
             new CosDataConnection(connection),
-            new CosDataLocation(fileName, bucket)
+            new CosDataLocation(fileName, bucket, null)
         );
     }
 

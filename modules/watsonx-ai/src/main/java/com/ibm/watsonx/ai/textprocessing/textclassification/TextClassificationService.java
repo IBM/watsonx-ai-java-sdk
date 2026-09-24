@@ -18,16 +18,21 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.project.ProjectService;
+import com.ibm.watsonx.ai.textprocessing.ContainerReference;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.CosUrl;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
-import com.ibm.watsonx.ai.textprocessing.Error;
+import com.ibm.watsonx.ai.textprocessing.DocumentReference;
 import com.ibm.watsonx.ai.textprocessing.Status;
-import com.ibm.watsonx.ai.textprocessing.UploadRequest;
+import com.ibm.watsonx.ai.textprocessing.storage.StorageFactory;
+import com.ibm.watsonx.ai.textprocessing.storage.StorageOperations;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse.ClassificationResult;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRestClient.DeleteClassificationRequest;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRestClient.FetchClassificationDetailsRequest;
@@ -40,14 +45,14 @@ import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRe
  *
  * <pre>{@code
  * TextClassificationService textClassificationService = TextClassificationService.builder()
- *   .baseUrl("https://...")    // or use CloudRegion
- *   .cosUrl("https://...")     // or use CosUrl
- *   .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
- *   .projectId("project-id")
- *   .documentReference("<connection_id>", "<bucket-name>")
- *   .build();
+ *     .baseUrl("https://...")    // or use CloudRegion
+ *     .cosUrl("https://...")     // or use CosUrl
+ *     .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
+ *     .projectId("project-id")
+ *     .documentReference(CosReference.of("<connection_id>", "<bucket-name>"))
+ *     .build();
  *
- * TextClassificationResponse response = textClassificationService.startClassification("myfile.pdf")
+ * TextClassificationResponse response = textClassificationService.startClassification("myfile.pdf");
  * }</pre>
  *
  * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
@@ -57,15 +62,26 @@ import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRe
 public class TextClassificationService extends ScopedService {
     private static final Logger logger = LoggerFactory.getLogger(TextClassificationService.class);
     private final String cosUrl;
-    private final CosReference documentReference;
+    private final DocumentReference documentReference;
     private final TextClassificationRestClient client;
+    private volatile StorageOperations cosService;
+    private final ReentrantLock cosServiceLock = new ReentrantLock();
+    private final ProjectService lazyProjectService;
+    private final Authenticator authenticator;
+    private final Authenticator cosAuthenticator;
 
     private TextClassificationService(Builder builder) {
         super(builder);
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
-        var tmpUrl = requireNonNull(builder.cosUrl, "cosUrl value cannot be null");
+        boolean needsCos = builder.documentReference instanceof CosReference;
+        var tmpUrl = needsCos
+            ? requireNonNull(builder.cosUrl, "cosUrl value cannot be null")
+            : requireNonNullElse(builder.cosUrl, "");
         cosUrl = tmpUrl.endsWith("/") ? tmpUrl.substring(0, tmpUrl.length() - 1) : tmpUrl;
         documentReference = requireNonNull(builder.documentReference, "documentReference value cannot be null");
+        authenticator = builder.authenticator();
+        cosAuthenticator = builder.cosAuthenticator;
+        lazyProjectService = builder.projectService;
         client = TextClassificationRestClient.builder()
             .cosUrl(cosUrl)
             .baseUrl(baseUrl)
@@ -110,8 +126,8 @@ public class TextClassificationService extends ScopedService {
      * <p>
      * If you want to process a <b>local file</b>, use {@link #uploadAndStartClassification(File, TextClassificationParameters)} instead.
      * <p>
-     * <b>Note:</b> This method does not return the classification result. Use {@link #classifyAndFetch(String, String, TextClassificationParameters)}
-     * to run the classification and fetch the result immediately.
+     * <b>Note:</b> This method does not return the classification result. Use {@link #classifyAndFetch(String, TextClassificationParameters)} to run
+     * the classification and fetch the result immediately.
      *
      * @param absolutePath The location of the document to be processed.
      * @param parameters The configuration parameters for text classification.
@@ -145,8 +161,8 @@ public class TextClassificationService extends ScopedService {
     /**
      * Uploads a local file in the configured {@link #documentReference document reference} and starts the text classification process.
      * <p>
-     * <b>Note:</b> This method does not return the classification result. Use {@link #uploadClassifyAndFetch(File, TextClassifyParameters)} to get
-     * the classification immediately.
+     * <b>Note:</b> This method does not return the classification result. Use {@link #uploadClassifyAndFetch(File, TextClassificationParameters)} to
+     * get the classification immediately.
      *
      * @param file The local file to be uploaded and processed.
      * @param parameters The configuration parameters for text classification.
@@ -156,7 +172,6 @@ public class TextClassificationService extends ScopedService {
     public TextClassificationResponse uploadAndStartClassification(File file, TextClassificationParameters parameters)
         throws TextClassificationException {
         requireNonNull(file);
-
         if (file.isDirectory())
             throw new TextClassificationException("directory_not_allowed", "The file can not be a directory");
 
@@ -181,7 +196,7 @@ public class TextClassificationService extends ScopedService {
      *
      * @param is The input stream of the file to be uploaded and processed.
      * @param fileName The name of the file to be uploaded and processed.
-     * @return The unique identifier of the text classification process.
+     * @return A {@link TextClassificationResponse} representing the submitted request and its current status.
      * @see #uploadAndStartClassification(InputStream, String, TextClassificationParameters)
      * @see #uploadClassifyAndFetch(InputStream, String)
      */
@@ -199,11 +214,13 @@ public class TextClassificationService extends ScopedService {
      * @param is The input stream of the file to be uploaded and processed.
      * @param fileName The name of the file to be uploaded and processed.
      * @param parameters The configuration parameters for text classification.
-     * @return The unique identifier of the text classification process.
+     * @return A {@link TextClassificationResponse} representing the submitted request and its current status.
      * @see #uploadClassifyAndFetch(InputStream, String, TextClassificationParameters)
      */
     public TextClassificationResponse uploadAndStartClassification(InputStream is, String fileName, TextClassificationParameters parameters)
         throws TextClassificationException {
+        requireNonNull(is, "is value cannot be null");
+        requireNonNull(fileName, "fileName value cannot be null");
         var requestId = UUID.randomUUID().toString();
         upload(requestId, is, fileName, parameters, false);
         return startClassification(requestId, fileName, parameters, false);
@@ -215,7 +232,7 @@ public class TextClassificationService extends ScopedService {
      *
      * @param absolutePath The absolute path of the file.
      * @return The classification result.
-     * @see #classifyAndFetch(String, String, TextClassificationParameters)
+     * @see #classifyAndFetch(String, TextClassificationParameters)
      */
     public ClassificationResult classifyAndFetch(String absolutePath) throws TextClassificationException {
         return classifyAndFetch(absolutePath, null);
@@ -224,13 +241,17 @@ public class TextClassificationService extends ScopedService {
     /**
      * Starts the text classification process for a file that is already present in the configured {@link #documentReference document reference} and
      * returns the classification result.
+     * <p>
+     * <b>Note on {@code removeUploadedFile}:</b> if {@code parameters.removeUploadedFile()} is {@code true}, this method deletes the document at
+     * {@code absolutePath} from storage after processing, even though no file was uploaded by this call. Use this option with caution when calling
+     * this method on a pre-existing document.
      *
      * @param absolutePath The path of the document to be classified.
      * @param parameters The configuration parameters for text classification.
      * @return The classification result.
      */
     public ClassificationResult classifyAndFetch(String absolutePath, TextClassificationParameters parameters) throws TextClassificationException {
-        return classifyAndFetch(UUID.randomUUID().toString(), absolutePath, parameters);
+        return classifyAndFetch(UUID.randomUUID().toString(), absolutePath, parameters, absolutePath);
     }
 
     /**
@@ -254,6 +275,9 @@ public class TextClassificationService extends ScopedService {
      * @return The classification result.
      */
     public ClassificationResult uploadClassifyAndFetch(File file, TextClassificationParameters parameters) throws TextClassificationException {
+        requireNonNull(file);
+        if (file.isDirectory())
+            throw new TextClassificationException("directory_not_allowed", "The file can not be a directory");
 
         var requestId = UUID.randomUUID().toString();
 
@@ -264,7 +288,7 @@ public class TextClassificationService extends ScopedService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return classifyAndFetch(requestId, file.getName(), parameters);
+        return classifyAndFetch(requestId, file.getName(), parameters, file.getName());
     }
 
     /**
@@ -293,7 +317,7 @@ public class TextClassificationService extends ScopedService {
         throws TextClassificationException {
         var requestId = UUID.randomUUID().toString();
         upload(requestId, is, fileName, parameters, true);
-        return classifyAndFetch(requestId, fileName, parameters);
+        return classifyAndFetch(requestId, fileName, parameters, fileName);
     }
 
     /**
@@ -330,6 +354,11 @@ public class TextClassificationService extends ScopedService {
      * @throws TextClassificationException if the file cannot be found or an error occurs during upload
      */
     public boolean uploadFile(File file) throws TextClassificationException {
+        requireNonNull(file);
+
+        if (file.isDirectory())
+            throw new TextClassificationException("directory_not_allowed", "The file can not be a directory");
+
         try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
             return uploadFile(inputStream, file.getName());
         } catch (FileNotFoundException e) {
@@ -347,19 +376,29 @@ public class TextClassificationService extends ScopedService {
      * @return {@code true} if the upload request was successfully sent
      */
     public boolean uploadFile(InputStream inputStream, String fileName) {
+        requireNonNull(inputStream, "inputStream value cannot be null");
+        requireNonNull(fileName, "fileName value cannot be null");
         var requestId = UUID.randomUUID().toString();
-        return upload(requestId, inputStream, fileName, null, false);
+        upload(requestId, inputStream, fileName, null, false);
+        return true;
     }
 
     /**
-     * Deletes a file from the specified bucket.
+     * Deletes a file from the configured document reference storage.
+     * <p>
+     * When the service is configured with a {@link CosReference} document reference, {@code bucketName} identifies the COS bucket and
+     * {@code fileName} the object key. When configured with a {@link ContainerReference}, the bucket is resolved automatically from the project
+     * storage and {@code bucketName} is ignored.
      *
-     * @param bucketName The name of the bucket.
+     * @param bucketName The name of the COS bucket. Ignored when using a {@link ContainerReference}.
      * @param fileName The name of the file to delete.
-     * @return true if the file was successfully deleted, false otherwise.
+     * @return {@code true} if the file was successfully deleted, {@code false} otherwise.
      */
-    public boolean deleteFile(String bucketName, String fileName) {
-        return client.deleteFile(DeleteFileRequest.of(bucketName, fileName));
+    public boolean deleteFile(String bucketName, String fileName) throws FileNotFoundException {
+        var requestId = UUID.randomUUID().toString();
+        if (documentReference instanceof ContainerReference)
+            return getOrResolveCosService().deleteFile(requestId, fileName);
+        return client.deleteFile(DeleteFileRequest.of(requestId, bucketName, fileName));
     }
 
     /**
@@ -398,13 +437,86 @@ public class TextClassificationService extends ScopedService {
             .hardDelete(parameters.hardDelete().orElse(null))
             .build();
 
-        var request = DeleteClassificationRequest.of(parameters.transactionId(), id, p);
+        var requestTrackingId = UUID.randomUUID().toString();
+        var request = DeleteClassificationRequest.of(requestTrackingId, id, p);
         return client.deleteClassification(request);
     }
 
-    //
-    // Retrieves the results of a text classification request by its unique identifier.
-    //
+    // Returns the CosStorageService lazily on first use.
+    private StorageOperations getOrResolveCosService() {
+        return getOrResolveCosService(null);
+    }
+
+    private StorageOperations getOrResolveCosService(CosReference cosRef) {
+
+        if (cosRef != null) {
+            // Per-call CosReference override.
+            return StorageFactory.cos(cosUrl, cosRef.bucket(), authenticator, cosAuthenticator, httpClient,
+                timeout, logRequests, logResponses, requestLogger, requestLogLevel, responseLogger, responseLogLevel, verifySsl);
+        }
+
+        if (cosService != null)
+            return cosService;
+
+        cosServiceLock.lock();
+
+        try {
+
+            if (cosService != null)
+                return cosService;
+
+            if (projectId == null)
+                throw new IllegalStateException(
+                    "ContainerReference storage requires a projectId - spaceId alone is not supported for container uploads.");
+
+            ProjectService ps = lazyProjectService;
+
+            if (ps == null) {
+
+                var region = CloudRegion.fromMlEndpoint(baseUrl).orElseThrow(() -> new IllegalStateException(
+                    "ContainerReference storage requires a ProjectService or a known CloudRegion. "
+                        + "Either pass projectService(ProjectService) on the builder, "
+                        + "or use baseUrl(CloudRegion) so the project storage can be resolved automatically."));
+
+                var psBuilder = ProjectService.builder()
+                    .baseUrl(region.wxEndpoint().replace("/wx", ""))
+                    .authenticator(authenticator)
+                    .httpClient(httpClient)
+                    .timeout(timeout)
+                    .logRequests(logRequests)
+                    .logResponses(logResponses)
+                    .verifySsl(verifySsl);
+
+                if (requestLogger != null)
+                    psBuilder.logRequests(requestLogger, requestLogLevel);
+
+                if (responseLogger != null)
+                    psBuilder.logResponses(responseLogger, responseLogLevel);
+
+                ps = psBuilder.build();
+            }
+
+            var props = ps.findProject(projectId)
+                .orElseThrow(() -> new IllegalStateException("Project not found: " + projectId))
+                .storage()
+                .properties();
+
+            var resolvedUrl = props.endpointUrl().endsWith("/")
+                ? props.endpointUrl().substring(0, props.endpointUrl().length() - 1)
+                : props.endpointUrl();
+
+            var resolvedBucket = props.bucketName();
+            cosService = StorageFactory.cos(resolvedUrl, resolvedBucket, authenticator, cosAuthenticator, httpClient,
+                timeout, logRequests, logResponses, requestLogger, requestLogLevel, responseLogger, responseLogLevel, verifySsl);
+
+            return cosService;
+
+        } finally {
+            cosServiceLock.unlock();
+        }
+    }
+
+    // Retrieves the classification result for the given request id.
     private TextClassificationResponse fetchClassificationRequest(String requestId, String id, TextClassificationFetchParameters parameters) {
         requireNonNull(requestId, "The requestId can not be null");
         requireNonNull(id, "The id can not be null");
@@ -424,45 +536,60 @@ public class TextClassificationService extends ScopedService {
         return client.fetchClassificationDetails(request);
     }
 
-    //
-    // Start the text classification and wait until the result is ready.
-    //
-    private ClassificationResult classifyAndFetch(String requestId, String absolutePath, TextClassificationParameters parameters)
+    // Starts the text classification and waits until the result is ready.
+    private ClassificationResult classifyAndFetch(String requestId, String absolutePath, TextClassificationParameters parameters, String uploadedPath)
         throws TextClassificationException {
         requireNonNull(requestId, "requestId cannot be null");
+        requireNonNull(absolutePath, "absolutePath cannot be null");
 
-        var textClassificationResponse = startClassification(requestId, absolutePath, parameters, true);
-        return getClassificationResult(requestId, textClassificationResponse, parameters);
+        try {
+            var textClassificationResponse = startClassification(requestId, absolutePath, parameters, true);
+            return getClassificationResult(textClassificationResponse);
+        } finally {
+            if (nonNull(parameters) && parameters.isRemoveUploadedFile()) {
+                DocumentReference effectiveDoc = parameters.documentReference() != null
+                    ? parameters.documentReference()
+                    : this.documentReference;
+                cleanUpUploadedFile(requestId, uploadedPath, effectiveDoc);
+            }
+        }
     }
 
-    //
-    // Uploads an inputstream to the Cloud Object Storage.
-    //
-    private boolean upload(String requestId, InputStream is, String fileName, TextClassificationParameters parameters,
+    // Uploads an input stream to COS or the container.
+    private void upload(String requestId, InputStream is, String fileName, TextClassificationParameters parameters,
         boolean waitForClassification) {
         requireNonNull(requestId, "requestId value cannot be null");
         requireNonNull(is, "is value cannot be null");
         requireNonNull(fileName, "fileName value cannot be null");
 
-        boolean removeUploadFile = false;
-        CosReference documentReference = this.documentReference;
+        boolean removeUploadedFile = nonNull(parameters) && parameters.isRemoveUploadedFile();
 
-        if (nonNull(parameters)) {
-            removeUploadFile = parameters.isRemoveUploadedFile();
-            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
-        }
-
-        if (!waitForClassification && removeUploadFile)
+        if (!waitForClassification && removeUploadedFile)
             throw new IllegalArgumentException(
                 "The asynchronous version of startClassification doesn't allow the use of the \"removeUploadedFile\" parameter");
 
-        var request = UploadRequest.of(requestId, documentReference.bucket(), is, fileName);
-        return client.upload(request);
+        DocumentReference effectiveDoc = requireNonNullElse(
+            parameters != null ? parameters.documentReference() : null,
+            this.documentReference
+        );
+
+        if (effectiveDoc instanceof ContainerReference) {
+            getOrResolveCosService().upload(requestId, is, fileName);
+            return;
+        }
+
+        if (!(effectiveDoc instanceof CosReference cosRef))
+            throw new UnsupportedOperationException(
+                "Unsupported documentReference type: " + effectiveDoc.getClass().getSimpleName());
+
+        if (cosUrl.isBlank())
+            throw new IllegalStateException(
+                "cosUrl must be set on the service builder to perform COS upload operations.");
+
+        getOrResolveCosService(cosRef).upload(requestId, is, fileName);
     }
 
-    //
     // Starts the text classification process.
-    //
     private TextClassificationResponse startClassification(String requestId, String path, TextClassificationParameters parameters,
         boolean waitUntilJobIsDone)
         throws TextClassificationException {
@@ -472,7 +599,7 @@ public class TextClassificationService extends ScopedService {
         String projectId = null;
         String spaceId = null;
         boolean removeUploadedFile = false;
-        CosReference documentReference = this.documentReference;
+        DocumentReference documentReference = this.documentReference;
         Parameters params = null;
         Map<String, Object> custom = null;
         Duration timeout = this.timeout;
@@ -498,6 +625,10 @@ public class TextClassificationService extends ScopedService {
             throw new IllegalArgumentException(
                 "The asynchronous version of startClassification doesn't allow the use of the \"removeUploadedFile\" parameter");
 
+        if (documentReference instanceof CosReference && cosUrl.isBlank())
+            throw new IllegalStateException(
+                "cosUrl must be set on the service builder when using a CosReference document reference.");
+
         var textClassificationRequest = new TextClassificationRequest(
             projectId,
             spaceId,
@@ -518,100 +649,100 @@ public class TextClassificationService extends ScopedService {
         String processId = response.metadata().id();
 
         do {
-
             if (System.nanoTime() - deadlineNanos >= 0) {
-                cleanUpAfterAbortedClassification(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
+                cleanUpAfterAbortedClassification(processId, projectId, spaceId, transactionId);
                 throw new TextClassificationException("timeout",
                     "The execution of the classification %s file took longer than the timeout set by %s milliseconds"
                         .formatted(path, timeout.toMillis()));
             }
 
             try {
-
-                Thread.sleep(sleepTime);
-                sleepTime *= 2;
-                sleepTime = Math.min(sleepTime, 3000);
-
+                long remaining = deadlineNanos - System.nanoTime();
+                Thread.sleep(Math.min(sleepTime, Math.max(remaining / 1_000_000L, 0L)));
+                sleepTime = Math.min(sleepTime * 2, 3000);
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                cleanUpAfterAbortedClassification(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
-                throw new TextClassificationException("interrupted", e.getMessage());
+                try {
+                    cleanUpAfterAbortedClassification(processId, projectId, spaceId, transactionId);
+                } finally {
+                    Thread.currentThread().interrupt();
+                }
+                throw new TextClassificationException("interrupted", e.getMessage(), e);
             }
 
-            processId = response.metadata().id();
-            response = fetchClassificationRequest(requestId, processId, TextClassificationFetchParameters.builder()
-                .projectId(projectId)
-                .spaceId(spaceId)
-                .build());
-
-            status = Status.fromValue(response.entity().results().status());
-            logger.debug("Classification status: {} for the file {}", status, path);
+            try {
+                response = fetchClassificationRequest(requestId, processId, TextClassificationFetchParameters.builder()
+                    .projectId(projectId)
+                    .spaceId(spaceId)
+                    .build());
+                status = Status.fromValue(response.entity().results().status());
+                logger.debug("Classification status: {} for the file {}", status, path);
+            } catch (Exception e) {
+                cleanUpAfterAbortedClassification(processId, projectId, spaceId, transactionId);
+                throw e;
+            }
 
         } while (status != Status.FAILED && status != Status.COMPLETED);
 
         return response;
     }
 
-    //
-    // Cancels the started classification job and removes the uploaded input file, so that a timed-out or
-    // interrupted synchronous classification does not leave orphaned resources behind.
-    //
-    private void cleanUpAfterAbortedClassification(String processId, String requestId, String path, String projectId, String spaceId,
-        String transactionId, boolean removeUploadedFile) {
+    // Cancels the classification job on timeout, interrupt, or fetch error. Logs but never throws.
+    private void cleanUpAfterAbortedClassification(String processId, String projectId, String spaceId,
+        String transactionId) {
 
         if (nonNull(processId)) {
-            deleteRequest(
-                processId,
-                TextClassificationDeleteParameters.builder()
-                    .projectId(projectId)
-                    .spaceId(spaceId)
-                    .transactionId(transactionId)
-                    .build());
+            try {
+                deleteRequest(
+                    processId,
+                    TextClassificationDeleteParameters.builder()
+                        .projectId(projectId)
+                        .spaceId(spaceId)
+                        .transactionId(transactionId)
+                        .build());
+            } catch (Exception e) {
+                logger.warn("Failed to cancel classification job {}: {}", processId, e.getMessage(), e);
+            }
         }
-
-        if (removeUploadedFile)
-            client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), path));
     }
 
-    //
-    // Retrieves the classification result.
-    //
-    private ClassificationResult getClassificationResult(String requestId, TextClassificationResponse textClassificationResponse,
-        TextClassificationParameters parameters)
+    // Deletes the uploaded file from COS or the container. All errors are logged and swallowed.
+    private void cleanUpUploadedFile(String requestId, String path, DocumentReference effectiveDoc) {
+        try {
+            if (effectiveDoc instanceof CosReference cosRef)
+                client.deleteFileAsync(DeleteFileRequest.of(requestId, cosRef.bucket(), path))
+                    .exceptionally(ex -> {
+                        logger.warn("Async COS delete failed for {}: {}", path, ex.getMessage());
+                        return false;
+                    });
+            else if (effectiveDoc instanceof ContainerReference) {
+                boolean wasInterrupted = Thread.interrupted();
+                try {
+                    getOrResolveCosService().deleteFileAsync(requestId, path);
+                } finally {
+                    if (wasInterrupted)
+                        Thread.currentThread().interrupt();
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to delete uploaded file {}: {}", path, e.getMessage(), e);
+        }
+    }
+
+    // Extracts the ClassificationResult from a completed-or-failed response.
+    private ClassificationResult getClassificationResult(TextClassificationResponse textClassificationResponse)
         throws TextClassificationException {
 
-        requireNonNull(requestId);
-
-        String uploadedPath = textClassificationResponse.entity().documentReference().location().fileName();
         Status status = Status.fromValue(textClassificationResponse.entity().results().status());
-        boolean removeUploadedFile = false;
-        CosReference documentReference = this.documentReference;
 
-        if (nonNull(parameters)) {
-            removeUploadedFile = parameters.isRemoveUploadedFile();
-            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
+        if (status != Status.COMPLETED) {
+            var error = textClassificationResponse.entity().results().error();
+            if (isNull(error))
+                throw new TextClassificationException("generic_error", "The classification failed without error details");
+
+            throw new TextClassificationException(error.code(), error.message());
         }
 
-        String documentBucketName = documentReference.bucket();
-
-        try {
-
-            return switch(status) {
-                case COMPLETED -> {
-                    yield textClassificationResponse.entity().results();
-                }
-                default -> {
-                    Error error = textClassificationResponse.entity().results().error();
-                    if (isNull(error))
-                        throw new TextClassificationException("generic_error", "The classification failed without error details");
-                    throw new TextClassificationException(error.code(), error.message());
-                }
-            };
-
-        } finally {
-            if (removeUploadedFile)
-                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentBucketName, uploadedPath));
-        }
+        return textClassificationResponse.entity().results();
     }
 
     /**
@@ -621,14 +752,14 @@ public class TextClassificationService extends ScopedService {
      *
      * <pre>{@code
      * TextClassificationService textClassificationService = TextClassificationService.builder()
-     *   .baseUrl("https://...")    // or use CloudRegion
-     *   .cosUrl("https://...")     // or use CosUrl
-     *   .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
-     *   .projectId("project-id")
-     *   .documentReference("<connection_id>", "<bucket-name>")
-     *   .build();
+     *     .baseUrl("https://...")    // or use CloudRegion
+     *     .cosUrl("https://...")     // or use CosUrl
+     *     .apiKey("my-api-key")      // creates an IBM Cloud Authenticator
+     *     .projectId("project-id")
+     *     .documentReference(CosReference.of("<connection_id>", "<bucket-name>"))
+     *     .build();
      *
-     * TextClassificationResponse response = textClassificationService.startClassification("myfile.pdf")
+     * TextClassificationResponse response = textClassificationService.startClassification("myfile.pdf");
      * }</pre>
      *
      * @return {@link Builder} instance.
@@ -643,7 +774,8 @@ public class TextClassificationService extends ScopedService {
     public final static class Builder extends ScopedService.Builder<Builder> {
         private String cosUrl;
         private Authenticator cosAuthenticator;
-        private CosReference documentReference;
+        private DocumentReference documentReference;
+        private ProjectService projectService;
 
         private Builder() {}
 
@@ -691,13 +823,41 @@ public class TextClassificationService extends ScopedService {
         }
 
         /**
+         * Specifies the container path of the input document.
+         * <p>
+         * When using a container reference, {@code cosUrl} is not required on the builder.
+         *
+         * @param documentReference the {@link ContainerReference} for the input file.
+         */
+        public Builder documentReference(ContainerReference documentReference) {
+            this.documentReference = documentReference;
+            return this;
+        }
+
+        /**
          * Specifies the Cloud Object Storage connection and bucket where the input files are stored.
          *
          * @param connectionId The id of the COS connection asset.
          * @param bucket The name of the bucket containing the input documents.
+         * @deprecated Use {@link #documentReference(CosReference)} with {@link CosReference#of(String, String)} instead.
          */
+        @Deprecated
         public Builder documentReference(String connectionId, String bucket) {
             return documentReference(CosReference.of(connectionId, bucket));
+        }
+
+        /**
+         * Specifies a {@link ProjectService} to use for resolving the COS bucket and endpoint URL when a {@link ContainerReference} is configured.
+         * <p>
+         * When not set, the service attempts to resolve the project storage automatically from the {@code baseUrl} if it matches a known
+         * {@link CloudRegion}. For custom or on-premise deployments where the base URL is not a standard cloud region, provide an explicit
+         * {@link ProjectService} instance here.
+         *
+         * @param projectService the {@link ProjectService} to use for project storage resolution
+         */
+        public Builder projectService(ProjectService projectService) {
+            this.projectService = projectService;
+            return this;
         }
 
         /**

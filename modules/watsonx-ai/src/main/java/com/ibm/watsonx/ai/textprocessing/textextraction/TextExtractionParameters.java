@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import com.ibm.watsonx.ai.WatsonxParameters;
+import com.ibm.watsonx.ai.textprocessing.ContainerReference;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
+import com.ibm.watsonx.ai.textprocessing.DocumentReference;
 import com.ibm.watsonx.ai.textprocessing.Language;
 import com.ibm.watsonx.ai.textprocessing.Mode;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
@@ -54,8 +56,8 @@ public final class TextExtractionParameters extends WatsonxParameters {
     private final boolean removeUploadedFile;
     private final boolean removeOutputFile;
     private final String outputFileName;
-    private final CosReference documentReference;
-    private final CosReference resultReference;
+    private final DocumentReference documentReference;
+    private final DocumentReference resultReference;
     private final Map<String, Object> custom;
     private final Duration timeout;
 
@@ -200,20 +202,20 @@ public final class TextExtractionParameters extends WatsonxParameters {
     }
 
     /**
-     * Gets the document reference for COS.
+     * Gets the document reference.
      *
-     * @return the document COS reference
+     * @return the document reference
      */
-    public CosReference documentReference() {
+    public DocumentReference documentReference() {
         return documentReference;
     }
 
     /**
-     * Gets the result reference for COS.
+     * Gets the result reference.
      *
-     * @return the result COS reference
+     * @return the result reference
      */
-    public CosReference resultReference() {
+    public DocumentReference resultReference() {
         return resultReference;
     }
 
@@ -288,7 +290,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
     /**
      * Builder class for constructing {@link TextExtractionParameters} instances with configurable parameters.
      */
-    public static class Builder extends WatsonxParameters.Builder<Builder> {
+    public static final class Builder extends WatsonxParameters.Builder<Builder> {
         private List<String> requestedOutputs;
         private String mode;
         private String ocrMode;
@@ -302,8 +304,8 @@ public final class TextExtractionParameters extends WatsonxParameters {
         private boolean removeUploadedFile = false;
         private boolean removeOutputFile = false;
         private String outputFileName;
-        private CosReference documentReference;
-        private CosReference resultReference;
+        private DocumentReference documentReference;
+        private DocumentReference resultReference;
         private Map<String, Object> custom;
         private Duration timeout;
 
@@ -433,9 +435,15 @@ public final class TextExtractionParameters extends WatsonxParameters {
         }
 
         /**
-         * Specifies whether the uploaded source file should be removed after processing.
+         * Specifies whether the source file should be removed from storage after processing completes.
+         * <p>
+         * When set to {@code true}, the service deletes the file identified by the path passed to the extraction method:
+         * <ul>
+         * <li>For upload methods ({@code uploadExtractAndFetch}), the file that was just uploaded.</li>
+         * <li>For path-only methods ({@code extractAndFetch}), the existing document at {@code absolutePath}.</li>
+         * </ul>
          *
-         * @param removeUploadedFile {@code true} to delete the uploaded file after processing, {@code false} to retain it.
+         * @param removeUploadedFile {@code true} to delete the source file after processing, {@code false} to retain it.
          */
         public Builder removeUploadedFile(boolean removeUploadedFile) {
             this.removeUploadedFile = removeUploadedFile;
@@ -473,11 +481,31 @@ public final class TextExtractionParameters extends WatsonxParameters {
         }
 
         /**
-         * Sets the reference to the Cloud Object Storage (COS) location where the output should be stored.
+         * Sets the container reference for the input document.
+         *
+         * @param documentReference the {@link ContainerReference} pointing to the input file path.
+         */
+        public Builder documentReference(ContainerReference documentReference) {
+            this.documentReference = documentReference;
+            return this;
+        }
+
+        /**
+         * Sets the reference to the Cloud Object Storage location where the output should be stored.
          *
          * @param resultReference the {@link CosReference} pointing to the output file location.
          */
         public Builder resultReference(CosReference resultReference) {
+            this.resultReference = resultReference;
+            return this;
+        }
+
+        /**
+         * Sets the container reference for the output location.
+         *
+         * @param resultReference the {@link ContainerReference} pointing to the output path.
+         */
+        public Builder resultReference(ContainerReference resultReference) {
             this.resultReference = resultReference;
             return this;
         }
@@ -529,7 +557,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
         PLAIN_TEXT("plain_text"),
         PAGE_IMAGES("page_images");
 
-        private String value;
+        private final String value;
 
         Type(String value) {
             this.value = value;
