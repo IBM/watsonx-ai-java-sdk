@@ -1048,4 +1048,72 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
         assertEquals("Ciao mondo!", completeResponse.toAssistantMessage().content());
         assertEquals("Ciao mondo!", returnedResponse.toAssistantMessage().content());
     }
+
+    @Test
+    void should_stream_with_single_consumer_via_request() throws Exception {
+
+        wireMock.stubFor(post("/ml/gateway/v1/chat/completions?version=%s".formatted(API_VERSION))
+            .withHeader("Accept", equalTo("text/event-stream"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(2, 100)
+                .withBody(
+                    """
+                        data: {"id":"chatcmpl-r1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"role":"assistant","content":"Cia"},"finish_reason":"","logprobs":null}],"created":1,"model":"gpt-4o","usage":null,"cached":false}
+
+                        data: {"id":"chatcmpl-r1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"o"},"finish_reason":"stop","logprobs":null}],"created":1,"model":"gpt-4o","usage":null,"cached":false}
+
+                        data: [DONE]
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var service = ModelGatewayChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("gpt-4o")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .version(API_VERSION)
+            .build();
+
+        var request = ModelGatewayChatRequest.builder()
+            .messages(UserMessage.text("Translate \"Hello\" in Italian"))
+            .build();
+
+        var response = new StringBuilder();
+        service.chatStreaming(request, response::append).join();
+        assertEquals("Ciao", response.toString());
+    }
+
+    @Test
+    void should_stream_thinking_and_response_via_consumers_from_request() throws Exception {
+
+        String BODY = new String(ClassLoader.getSystemResourceAsStream("gpt_oss_thinking_streaming_response.txt").readAllBytes());
+
+        wireMock.stubFor(post("/ml/gateway/v1/chat/completions?version=%s".formatted(API_VERSION))
+            .withHeader("Accept", equalTo("text/event-stream"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(29, 100)
+                .withBody(BODY)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var service = ModelGatewayChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("openai/gpt-oss-120b-curated")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .version(API_VERSION)
+            .build();
+
+        var request = ModelGatewayChatRequest.builder()
+            .messages(UserMessage.text("Translate \"Hello\" in Italian"))
+            .build();
+
+        var thinking = new StringBuilder();
+        var response = new StringBuilder();
+        service.chatStreaming(request, response::append, thinking::append).join();
+
+        assertEquals("User wants translation.", thinking.toString());
+        assertTrue(response.toString().contains("\"ciao\""));
+    }
 }

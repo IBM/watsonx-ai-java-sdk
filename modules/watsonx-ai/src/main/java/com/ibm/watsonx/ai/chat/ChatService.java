@@ -168,6 +168,44 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
     }
 
     /**
+     * Sends a streaming chat request.
+     *
+     * @param chatRequest the {@link ChatRequest}
+     * @param onResponse a consumer that receives partial response tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, Consumer<String> onResponse) {
+        return chatStreaming(chatRequest, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+        });
+    }
+
+    /**
+     * Sends a streaming chat request, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param chatRequest the {@link ChatRequest}
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(ChatRequest chatRequest, Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(chatRequest, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                onThinking.accept(partialThinking);
+            }
+        });
+    }
+
+    /**
      * Sends a chat request to the model using the provided message.
      *
      * @param message Message to send.
@@ -265,7 +303,7 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
      * @param handler a {@link ChatHandler} implementation
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatHandler handler) {
-        return chatStreaming(messages, ChatParameters.builder().build(), handler);
+        return chatStreaming(messages, (ChatParameters) null, handler);
     }
 
     /**
@@ -276,7 +314,7 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
      * @param handler a {@link ChatHandler} implementation
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
-        return chatStreaming(messages, null, tools, handler);
+        return chatStreaming(messages, (ChatParameters) null, tools, handler);
     }
 
     /**
@@ -287,27 +325,59 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
      * @param handler a {@link ChatHandler} implementation
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, ChatHandler handler) {
-        return chatStreaming(messages, parameters, null, handler);
+        return chatStreaming(messages, parameters, (List<Tool>) null, handler);
     }
 
     /**
-     * Sends a chat request to the model using the provided message.
+     * Sends a streaming chat request using the provided message.
      *
-     * @param message Message to send.
-     * @param handler a consumer that receives partial text responses
+     * @param message the message to send
+     * @param onResponse a consumer that receives partial response tokens
      */
-    public CompletableFuture<ChatResponse> chatStreaming(String message, Consumer<String> handler) {
-        return chatStreaming(List.of(UserMessage.text(message)), handler);
+    public CompletableFuture<ChatResponse> chatStreaming(String message, Consumer<String> onResponse) {
+        return chatStreaming(List.of(UserMessage.text(message)), onResponse);
     }
 
     /**
      * Sends a streaming chat request using the provided messages.
      *
      * @param messages the list of chat messages forming the prompt history
-     * @param handler a consumer that receives partial text responses
+     * @param onResponse a consumer that receives partial response tokens
      */
-    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, Consumer<String> handler) {
-        return chatStreaming(messages, ChatParameters.builder().build(), handler);
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, Consumer<String> onResponse) {
+        return chatStreaming(messages, (ChatParameters) null, onResponse);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided message, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param message the message to send
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String message, Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(List.of(UserMessage.text(message)), onResponse, onThinking);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(messages, (ChatParameters) null, (List<Tool>) null, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                onThinking.accept(partialThinking);
+            }
+        });
     }
 
     /**
@@ -318,7 +388,7 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
      * @param handler a consumer that receives partial text responses
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ChatParameters parameters, Consumer<String> handler) {
-        return chatStreaming(messages, parameters, null, handler);
+        return chatStreaming(messages, parameters, (List<Tool>) null, handler);
     }
 
     /**
@@ -329,7 +399,7 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
      * @param handler a consumer that receives partial text responses
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, List<Tool> tools, Consumer<String> handler) {
-        return chatStreaming(messages, null, tools, handler);
+        return chatStreaming(messages, (ChatParameters) null, tools, handler);
     }
 
     /**

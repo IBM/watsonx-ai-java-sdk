@@ -54,6 +54,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.ibm.watsonx</groupId>
+      <artifactId>watsonx-ai-jackson2</artifactId>
+      <version>0.40.0</version>
+    </dependency>
+
+    <dependency>
       <groupId>io.smallrye.config</groupId>
       <artifactId>smallrye-config-core</artifactId>
       <version>3.13.2</version>

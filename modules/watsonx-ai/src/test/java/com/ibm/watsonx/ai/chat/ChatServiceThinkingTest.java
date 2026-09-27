@@ -1057,5 +1057,87 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
             assertEquals(chatResponse.toAssistantMessage().thinking(), thinkingResponse.toString());
             assertEquals(chatResponse.toAssistantMessage().content(), response.toString());
         }
+
+        @Test
+        void should_stream_thinking_and_response_via_string_consumers() throws Exception {
+
+            var httpPort = wireMock.getPort();
+            String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_streaming_response.txt").readAllBytes());
+
+            wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+                .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withChunkedDribbleDelay(159, 200)
+                    .withBody(BODY)));
+
+            when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("ibm/granite-3-3-8b-instruct")
+                .projectId("project-id")
+                .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
+                .build();
+
+            var thinking = new StringBuilder();
+            var response = new StringBuilder();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(UserMessage.text("Translate \"Hello\" in Italian"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
+                .build();
+
+            chatService.chatStreaming(chatRequest, response::append, thinking::append).join();
+
+            var EXPECTED_THINKING =
+                "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.";
+            var EXPECTED_RESPONSE =
+                "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response.";
+
+            assertTrue(thinking.toString().contains(EXPECTED_THINKING));
+            assertTrue(response.toString().contains(EXPECTED_RESPONSE));
+        }
+
+        @Test
+        void should_stream_thinking_and_response_via_list_consumers() throws Exception {
+
+            var httpPort = wireMock.getPort();
+            String BODY = new String(ClassLoader.getSystemResourceAsStream("granite_thinking_streaming_response.txt").readAllBytes());
+
+            wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+                .withHeader("Authorization", equalTo("Bearer my-super-token"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withChunkedDribbleDelay(159, 200)
+                    .withBody(BODY)));
+
+            when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+            var chatService = ChatService.builder()
+                .authenticator(mockAuthenticator)
+                .modelId("ibm/granite-3-3-8b-instruct")
+                .projectId("project-id")
+                .baseUrl(URI.create("http://localhost:%s".formatted(httpPort)))
+                .build();
+
+            var thinking = new StringBuilder();
+            var response = new StringBuilder();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(UserMessage.text("Translate \"Hello\" in Italian"))
+                .thinking(ExtractionTags.of(new Think("<think>", "</think>"), new Response("<response>", "</response>")))
+                .build();
+
+            chatService.chatStreaming(chatRequest, response::append, thinking::append).join();
+
+            var EXPECTED_THINKING =
+                "The translation of \"Hello\" in Italian is straightforward. \"Hello\" in English directly translates to \"Ciao\" in Italian, which is a common informal greeting. For a more formal context, \"Buongiorno\" can be used, meaning \"Good day.\" However, since the request is for a direct translation of \"Hello,\" \"Ciao\" is the most appropriate response.";
+            var EXPECTED_RESPONSE =
+                "This is the informal equivalent, widely used in everyday conversation. For a formal greeting, one would say \"Buongiorno,\" but given the direct translation request, \"Ciao\" is the most fitting response.";
+
+            assertTrue(thinking.toString().contains(EXPECTED_THINKING));
+            assertTrue(response.toString().contains(EXPECTED_RESPONSE));
+        }
     }
 }

@@ -30,7 +30,7 @@ jobs:
       - name: Revert pom.xml to ${{env.NEXT_VERSION}}
         run: |
           ./mvnw versions:set -DnewVersion=${{env.NEXT_VERSION}}
-          ./mvnw -f samples/pom.xml versions:use-dep-version -Dincludes=com.ibm.watsonx:watsonx-ai -DdepVersion=${{env.CURRENT_VERSION}} -DforceVersion=true
+          ./mvnw -f samples/pom.xml versions:use-dep-version -Dincludes=com.ibm.watsonx:* -DdepVersion=${{env.CURRENT_VERSION}} -DforceVersion=true
 
       - name: Commit revert
         uses: ./.github/actions/commit-push
