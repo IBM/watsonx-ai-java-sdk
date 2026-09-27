@@ -209,17 +209,39 @@ public class DeploymentService extends WatsonxService
 
     /**
      * Sends a streaming chat request.
-     * <p>
-     * This method initiates an asynchronous chat operation where partial responses are delivered incrementally through the provided {@link Consumer}.
      *
-     * @param chatRequest the chat request
-     * @param handler a consumer that receives partial text responses
+     * @param chatRequest the {@link DeploymentChatRequest}
+     * @param onResponse a consumer that receives partial response tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
-    public CompletableFuture<ChatResponse> chatStreaming(DeploymentChatRequest chatRequest, Consumer<String> handler) {
+    public CompletableFuture<ChatResponse> chatStreaming(DeploymentChatRequest chatRequest, Consumer<String> onResponse) {
         return chatStreaming(chatRequest, new ChatHandler() {
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                handler.accept(partialResponse);
+                onResponse.accept(partialResponse);
+            }
+        });
+    }
+
+    /**
+     * Sends a streaming chat request, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param chatRequest the {@link DeploymentChatRequest}
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(DeploymentChatRequest chatRequest, Consumer<String> onResponse,
+        Consumer<String> onThinking) {
+        return chatStreaming(chatRequest, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                onThinking.accept(partialThinking);
             }
         });
     }
@@ -365,7 +387,7 @@ public class DeploymentService extends WatsonxService
      * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
     public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatHandler handler) {
-        return chatStreaming(deploymentId, messages, ChatParameters.builder().build(), handler);
+        return chatStreaming(deploymentId, messages, (ChatParameters) null, handler);
     }
 
     /**
@@ -378,7 +400,7 @@ public class DeploymentService extends WatsonxService
      * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
     public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
-        return chatStreaming(deploymentId, messages, null, tools, handler);
+        return chatStreaming(deploymentId, messages, (ChatParameters) null, tools, handler);
     }
 
     /**
@@ -392,19 +414,19 @@ public class DeploymentService extends WatsonxService
      */
     public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatParameters parameters,
         ChatHandler handler) {
-        return chatStreaming(deploymentId, messages, parameters, null, handler);
+        return chatStreaming(deploymentId, messages, parameters, (List<Tool>) null, handler);
     }
 
     /**
      * Sends a streaming chat request to a deployment using the provided message.
      *
      * @param deploymentId the unique identifier of the deployment
-     * @param message Message to send.
-     * @param handler a consumer that receives partial text responses
+     * @param message the message to send
+     * @param onResponse a consumer that receives partial response tokens
      * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
-    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, String message, Consumer<String> handler) {
-        return chatStreaming(deploymentId, List.of(UserMessage.text(message)), handler);
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, String message, Consumer<String> onResponse) {
+        return chatStreaming(deploymentId, List.of(UserMessage.text(message)), onResponse);
     }
 
     /**
@@ -412,11 +434,11 @@ public class DeploymentService extends WatsonxService
      *
      * @param deploymentId the unique identifier of the deployment
      * @param messages the list of chat messages forming the prompt history
-     * @param handler a consumer that receives partial text responses
+     * @param onResponse a consumer that receives partial response tokens
      * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
      */
-    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, Consumer<String> handler) {
-        return chatStreaming(deploymentId, messages, ChatParameters.builder().build(), handler);
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, Consumer<String> onResponse) {
+        return chatStreaming(deploymentId, messages, (ChatParameters) null, onResponse);
     }
 
     /**
@@ -444,7 +466,7 @@ public class DeploymentService extends WatsonxService
      */
     public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatParameters parameters,
         Consumer<String> handler) {
-        return chatStreaming(deploymentId, messages, parameters, null, handler);
+        return chatStreaming(deploymentId, messages, parameters, (List<Tool>) null, handler);
     }
 
     /**
@@ -463,6 +485,103 @@ public class DeploymentService extends WatsonxService
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
                 handler.accept(partialResponse);
+            }
+        });
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided message, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param message the message to send
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, String message, Consumer<String> onResponse,
+        Consumer<String> onThinking) {
+        return chatStreaming(deploymentId, List.of(UserMessage.text(message)), onResponse, onThinking);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, Consumer<String> onResponse,
+        Consumer<String> onThinking) {
+        return chatStreaming(deploymentId, messages, (ChatParameters) null, (List<Tool>) null, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                onThinking.accept(partialThinking);
+            }
+        });
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages and parameters, delivering response and reasoning tokens to separate
+     * consumers.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatParameters parameters,
+        Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(deploymentId, messages, parameters, (List<Tool>) null, onResponse, onThinking);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages and tools, delivering response and reasoning tokens to separate
+     * consumers.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param tools the list of tools that the model may use
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, List<Tool> tools,
+        Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(deploymentId, messages, (ChatParameters) null, tools, onResponse, onThinking);
+    }
+
+    /**
+     * Sends a streaming chat request to a deployment using the provided messages, parameters and tools, delivering response and reasoning tokens to
+     * separate consumers.
+     *
+     * @param deploymentId the unique identifier of the deployment
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters additional optional parameters for the chat invocation
+     * @param tools the list of tools that the model may use
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String deploymentId, List<ChatMessage> messages, ChatParameters parameters,
+        List<Tool> tools, Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(deploymentId, messages, parameters, tools, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                onThinking.accept(partialThinking);
             }
         });
     }

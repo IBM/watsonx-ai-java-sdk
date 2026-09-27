@@ -151,6 +151,45 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
     }
 
     /**
+     * Sends a streaming chat request to the Model Gateway.
+     *
+     * @param chatRequest the {@link ModelGatewayChatRequest}
+     * @param onResponse a consumer that receives partial response tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(ModelGatewayChatRequest chatRequest, Consumer<String> onResponse) {
+        return chatStreaming(chatRequest, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+        });
+    }
+
+    /**
+     * Sends a streaming chat request to the Model Gateway, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param chatRequest the {@link ModelGatewayChatRequest}
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes with the final {@link ChatResponse}
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(ModelGatewayChatRequest chatRequest, Consumer<String> onResponse,
+        Consumer<String> onThinking) {
+        return chatStreaming(chatRequest, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                onThinking.accept(partialThinking);
+            }
+        });
+    }
+
+    /**
      * Sends a chat request to the model using the provided message.
      *
      * @param message the message to send
@@ -262,7 +301,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, List<Tool> tools, ChatHandler handler) {
-        return chatStreaming(messages, null, tools, handler);
+        return chatStreaming(messages, (ModelGatewayChatParameters) null, tools, handler);
     }
 
     /**
@@ -274,29 +313,29 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayChatParameters parameters, ChatHandler handler) {
-        return chatStreaming(messages, parameters, null, handler);
+        return chatStreaming(messages, parameters, (List<Tool>) null, handler);
     }
 
     /**
-     * Sends a streaming chat request using the provided message, delegating to a simple text consumer.
+     * Sends a streaming chat request using the provided message.
      *
      * @param message the message to send
-     * @param handler a consumer that receives partial text responses
+     * @param onResponse a consumer that receives partial response tokens
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
-    public CompletableFuture<ChatResponse> chatStreaming(String message, Consumer<String> handler) {
-        return chatStreaming(List.of(UserMessage.text(message)), handler);
+    public CompletableFuture<ChatResponse> chatStreaming(String message, Consumer<String> onResponse) {
+        return chatStreaming(List.of(UserMessage.text(message)), onResponse);
     }
 
     /**
-     * Sends a streaming chat request using the provided messages, delegating to a simple text consumer.
+     * Sends a streaming chat request using the provided messages.
      *
      * @param messages the list of chat messages forming the prompt history
-     * @param handler a consumer that receives partial text responses
+     * @param onResponse a consumer that receives partial response tokens
      * @return a {@link CompletableFuture} that completes when the stream finishes or fails
      */
-    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, Consumer<String> handler) {
-        return chatStreaming(messages, (ModelGatewayChatParameters) null, handler);
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, Consumer<String> onResponse) {
+        return chatStreaming(messages, (ModelGatewayChatParameters) null, onResponse);
     }
 
     /**
@@ -309,7 +348,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
      */
     public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, ModelGatewayChatParameters parameters,
         Consumer<String> handler) {
-        return chatStreaming(messages, parameters, null, handler);
+        return chatStreaming(messages, parameters, (List<Tool>) null, handler);
     }
 
     /**
@@ -339,6 +378,96 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
             @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
                 handler.accept(partialResponse);
+            }
+        });
+    }
+
+    /**
+     * Sends a streaming chat request using the provided message, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param message the message to send
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes when the stream finishes or fails
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(String message, Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(List.of(UserMessage.text(message)), onResponse, onThinking);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes when the stream finishes or fails
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(List<ChatMessage> messages, Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(messages, (ModelGatewayChatParameters) null, (List<Tool>) null, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                onThinking.accept(partialThinking);
+            }
+        });
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages and gateway parameters, delivering response and reasoning tokens to separate
+     * consumers.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters gateway parameters for the chat invocation
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes when the stream finishes or fails
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(
+        List<ChatMessage> messages, ModelGatewayChatParameters parameters, Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(messages, parameters, (List<Tool>) null, onResponse, onThinking);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages and tools, delivering response and reasoning tokens to separate consumers.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param tools the list of tools that the model may use
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes when the stream finishes or fails
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(
+        List<ChatMessage> messages, List<Tool> tools, Consumer<String> onResponse, Consumer<String> onThinking) {
+        return chatStreaming(messages, (ModelGatewayChatParameters) null, tools, onResponse, onThinking);
+    }
+
+    /**
+     * Sends a streaming chat request using the provided messages, parameters, and tools, delivering response and reasoning tokens to separate
+     * consumers.
+     *
+     * @param messages the list of chat messages forming the prompt history
+     * @param parameters gateway parameters for the chat invocation
+     * @param tools the list of tools that the model may use
+     * @param onResponse a consumer that receives partial response tokens
+     * @param onThinking a consumer that receives partial reasoning tokens
+     * @return a {@link CompletableFuture} that completes when the stream finishes or fails
+     */
+    public CompletableFuture<ChatResponse> chatStreaming(
+        List<ChatMessage> messages, ModelGatewayChatParameters parameters, List<Tool> tools, Consumer<String> onResponse,
+        Consumer<String> onThinking) {
+        return chatStreaming(messages, parameters, tools, new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                onResponse.accept(partialResponse);
+            }
+
+            @Override
+            public void onPartialThinking(String partialThinking, PartialChatResponse partialChatResponse) {
+                onThinking.accept(partialThinking);
             }
         });
     }

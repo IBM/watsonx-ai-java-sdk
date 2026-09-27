@@ -2540,4 +2540,69 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertEquals("Ciao", partial.toString());
         partial.setLength(0);
     }
+
+    @Test
+    void should_stream_chat_with_single_consumer_via_request() throws Exception {
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(
+                    """
+                        id: 1
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","content":"Cia"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.541Z"}
+
+                        id: 2
+                        event: message
+                        data: {"id":"chatcmpl-1","object":"chat.completion.chunk","model_id":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","model":"meta-llama/llama-4-maverick-17b-128e-instruct-fp8","choices":[{"index":0,"finish_reason":"stop","delta":{"content":"o"}}],"created":1749736055,"model_version":"4.0.0","created_at":"2025-06-12T13:47:35.552Z"}
+                        """)));
+
+        var deploymentService = DeploymentService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticator(mockAuthenticator)
+            .build();
+
+        var request = DeploymentChatRequest.builder()
+            .deploymentId("my-deployment-id")
+            .messages(UserMessage.text("Translate \"Hello\" in Italian"))
+            .build();
+
+        var response = new StringBuilder();
+        deploymentService.chatStreaming(request, response::append).join();
+        assertEquals("Ciao", response.toString());
+    }
+
+    @Test
+    void should_stream_thinking_and_response_via_consumers_from_request() throws Exception {
+
+        String BODY = new String(ClassLoader.getSystemResourceAsStream("gpt_oss_thinking_streaming_response.txt").readAllBytes());
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(29, 100)
+                .withBody(BODY)));
+
+        var deploymentService = DeploymentService.builder()
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .authenticator(mockAuthenticator)
+            .build();
+
+        var request = DeploymentChatRequest.builder()
+            .deploymentId("my-deployment-id")
+            .messages(UserMessage.text("Translate \"Hello\" in Italian"))
+            .build();
+
+        var thinking = new StringBuilder();
+        var response = new StringBuilder();
+        deploymentService.chatStreaming(request, response::append, thinking::append).join();
+
+        assertEquals("User wants translation.", thinking.toString());
+        assertTrue(response.toString().contains("\"ciao\""));
+    }
 }

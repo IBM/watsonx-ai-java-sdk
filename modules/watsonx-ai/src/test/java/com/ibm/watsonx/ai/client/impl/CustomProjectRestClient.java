@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.client.impl;
 import java.util.Optional;
 import com.ibm.watsonx.ai.project.Project;
 import com.ibm.watsonx.ai.project.ProjectRestClient;
-import com.ibm.watsonx.ai.project.ProjectRestClient.ProjectRestClientBuilderFactory;
 
 public class CustomProjectRestClient extends ProjectRestClient {
 
@@ -20,8 +19,7 @@ public class CustomProjectRestClient extends ProjectRestClient {
         throw new UnsupportedOperationException("Unimplemented method 'findProject'");
     }
 
-    public static final class CustomProjectRestClientBuilderFactory
-        implements ProjectRestClientBuilderFactory {
+    public static final class CustomProjectRestClientBuilderFactory implements ProjectRestClientBuilderFactory {
         @Override
         public ProjectRestClient.Builder get() {
             return new CustomProjectRestClient.Builder();
