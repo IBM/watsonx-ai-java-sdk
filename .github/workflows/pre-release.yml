@@ -40,6 +40,7 @@ jobs:
         run: |
           ./mvnw versions:set -DnewVersion=${{env.CURRENT_VERSION}}
           ./mvnw versions:set -f samples/pom.xml -DnewVersion=${{env.CURRENT_VERSION}}
+          ./mvnw -f samples/pom.xml versions:use-dep-version -Dincludes=com.ibm.watsonx:* -DdepVersion=${{env.CURRENT_VERSION}} -DforceVersion=true
 
       - name: Update SDK version in docusaurus.config.ts
         run: |
