@@ -71,7 +71,10 @@ final class DefaultRestClient extends CosStorageRestClient {
 
             var response = syncCosHttpClient.send(builder.build(), BodyHandlers.ofString());
             return response.statusCode() == 200;
-        } catch (IOException | InterruptedException | URISyntaxException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
@@ -102,7 +105,10 @@ final class DefaultRestClient extends CosStorageRestClient {
                 builder.header(REQUEST_ID_HEADER, requestTrackingId);
 
             return syncCosHttpClient.send(builder.build(), BodyHandlers.ofString()).body();
-        } catch (IOException | InterruptedException | URISyntaxException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }

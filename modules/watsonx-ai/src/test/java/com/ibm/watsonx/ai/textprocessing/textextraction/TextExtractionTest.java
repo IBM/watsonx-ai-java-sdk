@@ -2232,6 +2232,18 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_return_false_when_cos_upload_does_not_respond_200() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+        cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse().withStatus(201)));
+
+        assertFalse(textExtractionService.uploadFile(file));
+    }
+
+    @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
     void should_throw_exception_when_uploading_non_existent_file_to_cos() throws Exception {
 
@@ -2519,6 +2531,75 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         // Upload went to project-bucket, not to cos-bucket.
         cosServer.verify(1, putRequestedFor(urlPathMatching("/project-bucket/.*")));
         cosServer.verify(0, putRequestedFor(urlPathMatching("/cos-bucket/.*")));
+    }
+
+    @Test
+    void should_resolve_separate_cos_service_per_project_when_parameters_override_project_id() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+
+        var mockProjectService = mock(ProjectService.class);
+
+        var mockProjectA = mock(Project.class);
+        var mockStorageA = mock(ProjectStorage.class);
+        var mockPropsA = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("projectid")).thenReturn(Optional.of(mockProjectA));
+        when(mockProjectA.storage()).thenReturn(mockStorageA);
+        when(mockStorageA.properties()).thenReturn(mockPropsA);
+        when(mockPropsA.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockPropsA.bucketName()).thenReturn("bucket-a");
+
+        var mockProjectB = mock(Project.class);
+        var mockStorageB = mock(ProjectStorage.class);
+        var mockPropsB = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("project-b")).thenReturn(Optional.of(mockProjectB));
+        when(mockProjectB.storage()).thenReturn(mockStorageB);
+        when(mockStorageB.properties()).thenReturn(mockPropsB);
+        when(mockPropsB.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockPropsB.bucketName()).thenReturn("bucket-b");
+
+        var RESPONSE = """
+            {
+              "metadata": { "id": "%s", "created_at": "2023-05-02T16:27:51Z", "project_id": "projectid" },
+              "entity": {
+                "document_reference": { "type": "container", "location": { "path": "test.pdf" } },
+                "results_reference": { "type": "container", "location": { "path": "test.md" } },
+                "results": { "status": "submitted", "number_pages_processed": 0 }
+              }
+            }""".formatted(PROCESS_EXTRACTION_ID);
+
+        var service = TextExtractionService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("projectid")
+            .documentReference(ContainerReference.container())
+            .resultReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        cosServer.stubFor(put(urlPathMatching("/bucket-a/.*")).willReturn(aResponse().withStatus(200)));
+        cosServer.stubFor(put(urlPathMatching("/bucket-b/.*")).willReturn(aResponse().withStatus(200)));
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/extractions"))
+            .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(RESPONSE)));
+
+        var file = new File(ClassLoader.getSystemResource(FILE_NAME).toURI());
+
+        // Default project ("projectid") resolves and caches bucket-a.
+        service.uploadAndStartExtraction(file);
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/bucket-a/.*")));
+
+        // A per-call override to "project-b" must resolve bucket-b, not reuse the cached bucket-a.
+        var overrideParams = TextExtractionParameters.builder().projectId("project-b").build();
+        service.uploadAndStartExtraction(file, overrideParams);
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/bucket-b/.*")));
+
+        // Back on the default project, the cache must still resolve bucket-a, not the bucket cached for "project-b".
+        service.uploadAndStartExtraction(file);
+        cosServer.verify(2, putRequestedFor(urlPathMatching("/bucket-a/.*")));
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/bucket-b/.*")));
+
+        verify(mockProjectService, times(1)).findProject("projectid");
+        verify(mockProjectService, times(1)).findProject("project-b");
     }
 
     @Test
