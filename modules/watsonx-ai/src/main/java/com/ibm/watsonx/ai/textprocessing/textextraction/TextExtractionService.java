@@ -21,7 +21,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.CloudRegion;
@@ -70,8 +70,7 @@ public class TextExtractionService extends ScopedService {
     private final DocumentReference documentReference;
     private final DocumentReference resultReference;
     private final TextExtractionRestClient client;
-    private volatile StorageOperations cosService;
-    private final ReentrantLock cosServiceLock = new ReentrantLock();
+    private final ConcurrentHashMap<String, StorageOperations> cosServiceCache = new ConcurrentHashMap<>();
     private final ProjectService lazyProjectService;
     private final Authenticator authenticator;
     private final Authenticator cosAuthenticator;
@@ -408,8 +407,7 @@ public class TextExtractionService extends ScopedService {
         requireNonNull(inputStream, "inputStream value cannot be null");
         requireNonNull(fileName, "fileName value cannot be null");
         var requestId = UUID.randomUUID().toString();
-        upload(requestId, inputStream, fileName, null, false);
-        return true;
+        return upload(requestId, inputStream, fileName, null, false);
     }
 
     /**
@@ -491,75 +489,77 @@ public class TextExtractionService extends ScopedService {
         return client.deleteExtraction(request);
     }
 
-    // Returns the CosStorageService lazily on first use.
     private StorageOperations getOrResolveCosService() {
-        return getOrResolveCosService(null);
+        return getOrResolveCosService(this.projectId);
     }
 
     private StorageOperations getOrResolveCosService(CosReference cosRef) {
+        return StorageFactory.cos(cosUrl, cosRef.bucket(), authenticator, cosAuthenticator, httpClient,
+            timeout, logRequests, logResponses, requestLogger, requestLogLevel, responseLogger, responseLogLevel, verifySsl);
+    }
 
-        if (cosRef != null) {
-            // Per-call CosReference override.
-            return StorageFactory.cos(cosUrl, cosRef.bucket(), authenticator, cosAuthenticator, httpClient,
-                timeout, logRequests, logResponses, requestLogger, requestLogLevel, responseLogger, responseLogLevel, verifySsl);
-        }
+    private StorageOperations getOrResolveCosService(String effectiveProjectId) {
+        if (effectiveProjectId == null)
+            throw new IllegalStateException(
+                "ContainerReference storage requires a projectId - spaceId alone is not supported for container uploads.");
 
-        if (cosService != null)
-            return cosService;
+        var cached = cosServiceCache.get(effectiveProjectId);
+        if (cached != null)
+            return cached;
 
-        cosServiceLock.lock();
-
+        boolean wasInterrupted = Thread.interrupted();
         try {
-
-            if (cosService != null)
-                return cosService;
-
-            if (projectId == null)
-                throw new IllegalStateException(
-                    "ContainerReference storage requires a projectId - spaceId alone is not supported for container uploads.");
-
-            ProjectService ps = lazyProjectService;
-
-            if (ps == null) {
-                var region = CloudRegion.fromMlEndpoint(baseUrl).orElseThrow(() -> new IllegalStateException(
-                    "ContainerReference storage requires a ProjectService or a known CloudRegion. "
-                        + "Either pass projectService(ProjectService) on the builder, "
-                        + "or use baseUrl(CloudRegion) so the project storage can be resolved automatically."));
-                var psBuilder = ProjectService.builder()
-                    .baseUrl(region.wxEndpoint().replace("/wx", ""))
-                    .authenticator(authenticator)
-                    .httpClient(httpClient)
-                    .timeout(timeout)
-                    .logRequests(logRequests)
-                    .logResponses(logResponses)
-                    .verifySsl(verifySsl);
-
-                if (requestLogger != null)
-                    psBuilder.logRequests(requestLogger, requestLogLevel);
-
-                if (responseLogger != null)
-                    psBuilder.logResponses(responseLogger, responseLogLevel);
-
-                ps = psBuilder.build();
-            }
-
-            var props = ps.findProject(projectId)
-                .orElseThrow(() -> new IllegalStateException("Project not found: " + projectId))
-                .storage().properties();
-
-            var resolvedUrl = props.endpointUrl().endsWith("/")
-                ? props.endpointUrl().substring(0, props.endpointUrl().length() - 1)
-                : props.endpointUrl();
-
-            var resolvedBucket = props.bucketName();
-
-            cosService = StorageFactory.cos(resolvedUrl, resolvedBucket, authenticator, cosAuthenticator, httpClient,
-                timeout, logRequests, logResponses, requestLogger, requestLogLevel, responseLogger, responseLogLevel, verifySsl);
-
-            return cosService;
+            return cosServiceCache.computeIfAbsent(effectiveProjectId, this::resolveCosServiceForProject);
         } finally {
-            cosServiceLock.unlock();
+            if (wasInterrupted)
+                Thread.currentThread().interrupt();
         }
+    }
+
+    private String resolveEffectiveProjectId(TextExtractionParameters parameters) {
+        if (parameters != null && (parameters.projectId() != null || parameters.spaceId() != null))
+            return parameters.projectId();
+        return this.projectId;
+    }
+
+    private StorageOperations resolveCosServiceForProject(String projectId) {
+        ProjectService ps = lazyProjectService;
+
+        if (ps == null) {
+            var region = CloudRegion.fromMlEndpoint(baseUrl).orElseThrow(() -> new IllegalStateException(
+                "ContainerReference storage requires a ProjectService or a known CloudRegion. "
+                    + "Either pass projectService(ProjectService) on the builder, "
+                    + "or use baseUrl(CloudRegion) so the project storage can be resolved automatically."));
+            var psBuilder = ProjectService.builder()
+                .baseUrl(region.wxEndpoint().replace("/wx", ""))
+                .authenticator(authenticator)
+                .httpClient(httpClient)
+                .timeout(timeout)
+                .logRequests(logRequests)
+                .logResponses(logResponses)
+                .verifySsl(verifySsl);
+
+            if (requestLogger != null)
+                psBuilder.logRequests(requestLogger, requestLogLevel);
+
+            if (responseLogger != null)
+                psBuilder.logResponses(responseLogger, responseLogLevel);
+
+            ps = psBuilder.build();
+        }
+
+        var props = ps.findProject(projectId)
+            .orElseThrow(() -> new IllegalStateException("Project not found: " + projectId))
+            .storage().properties();
+
+        var resolvedUrl = props.endpointUrl().endsWith("/")
+            ? props.endpointUrl().substring(0, props.endpointUrl().length() - 1)
+            : props.endpointUrl();
+
+        var resolvedBucket = props.bucketName();
+
+        return StorageFactory.cos(resolvedUrl, resolvedBucket, authenticator, cosAuthenticator, httpClient,
+            timeout, logRequests, logResponses, requestLogger, requestLogLevel, responseLogger, responseLogLevel, verifySsl);
     }
 
     // Retrieves the results of a text extraction request by its unique identifier.
@@ -598,12 +598,11 @@ public class TextExtractionService extends ScopedService {
                 DocumentReference effectiveDoc = parameters.documentReference() != null
                     ? parameters.documentReference()
                     : this.documentReference;
-                cleanUpUploadedFile(requestId, uploadedPath, effectiveDoc);
+                cleanUpUploadedFile(requestId, uploadedPath, effectiveDoc, resolveEffectiveProjectId(parameters));
             }
         }
     }
 
-    // Validates that the requested outputs are compatible with a single-file fetch operation.
     private void validateFetchOutputs(TextExtractionParameters parameters) throws TextExtractionException {
 
         if (parameters == null)
@@ -621,8 +620,7 @@ public class TextExtractionService extends ScopedService {
                 "The fetch operation cannot be executed for the type \"page_images\"");
     }
 
-    // Uploads an input stream to COS or the container.
-    private void upload(String requestId, InputStream is, String fileName, TextExtractionParameters parameters,
+    private boolean upload(String requestId, InputStream is, String fileName, TextExtractionParameters parameters,
         boolean waitForExtraction) {
         requireNonNull(requestId, "requestId value cannot be null");
         requireNonNull(is, "is value cannot be null");
@@ -639,10 +637,8 @@ public class TextExtractionService extends ScopedService {
             this.documentReference
         );
 
-        if (effectiveDoc instanceof ContainerReference) {
-            getOrResolveCosService().upload(requestId, is, fileName);
-            return;
-        }
+        if (effectiveDoc instanceof ContainerReference)
+            return getOrResolveCosService(resolveEffectiveProjectId(parameters)).upload(requestId, is, fileName);
 
         if (!(effectiveDoc instanceof CosReference cosRef))
             throw new UnsupportedOperationException(
@@ -651,7 +647,7 @@ public class TextExtractionService extends ScopedService {
             throw new IllegalStateException(
                 "cosUrl must be set on the service builder to perform COS upload operations.");
 
-        getOrResolveCosService(cosRef).upload(requestId, is, fileName);
+        return getOrResolveCosService(cosRef).upload(requestId, is, fileName);
     }
 
     // Starts the text extraction process.
@@ -800,8 +796,7 @@ public class TextExtractionService extends ScopedService {
         }
     }
 
-    // Deletes the uploaded file from COS or the container. All errors are logged and swallowed.
-    private void cleanUpUploadedFile(String requestId, String path, DocumentReference effectiveDoc) {
+    private void cleanUpUploadedFile(String requestId, String path, DocumentReference effectiveDoc, String effectiveProjectId) {
         try {
             if (effectiveDoc instanceof CosReference cosRef)
                 client.deleteFileAsync(DeleteFileRequest.of(requestId, cosRef.bucket(), path))
@@ -809,21 +804,13 @@ public class TextExtractionService extends ScopedService {
                         logger.warn("Async COS delete failed for {}: {}", path, ex.getMessage());
                         return false;
                     });
-            else if (effectiveDoc instanceof ContainerReference) {
-                boolean wasInterrupted = Thread.interrupted();
-                try {
-                    getOrResolveCosService().deleteFileAsync(requestId, path);
-                } finally {
-                    if (wasInterrupted)
-                        Thread.currentThread().interrupt();
-                }
-            }
+            else if (effectiveDoc instanceof ContainerReference)
+                getOrResolveCosService(effectiveProjectId).deleteFileAsync(requestId, path);
         } catch (Exception e) {
             logger.warn("Failed to delete uploaded file {}: {}", path, e.getMessage(), e);
         }
     }
 
-    // Retrieves the extracted text from COS or the container.
     private String getExtractedText(String requestId, TextExtractionResponse textExtractionResponse, TextExtractionParameters parameters)
         throws TextExtractionException, FileNotFoundException {
 
@@ -845,13 +832,13 @@ public class TextExtractionService extends ScopedService {
                 String outputPath = resultsLocation.path() != null ? resultsLocation.path() : resultsLocation.fileName();
                 String extractedFile;
                 if (isContainerResult)
-                    extractedFile = getOrResolveCosService().readFile(requestId, outputPath);
+                    extractedFile = getOrResolveCosService(resolveEffectiveProjectId(parameters)).readFile(requestId, outputPath);
                 else
                     extractedFile = client.readFile(ReadFileRequest.of(requestId, resultsBucketName, outputPath));
                 if (removeOutputFile) {
                     try {
                         if (isContainerResult) {
-                            getOrResolveCosService().deleteFileAsync(requestId, outputPath);
+                            getOrResolveCosService(resolveEffectiveProjectId(parameters)).deleteFileAsync(requestId, outputPath);
                         } else {
                             client.deleteFileAsync(DeleteFileRequest.of(requestId, resultsBucketName, outputPath))
                                 .exceptionally(ex -> {
@@ -968,6 +955,16 @@ public class TextExtractionService extends ScopedService {
         }
 
         /**
+         * Specifies the reference to the input document, whether a {@link CosReference} or a {@link ContainerReference}.
+         *
+         * @param documentReference the {@link DocumentReference} for the input file.
+         */
+        public Builder documentReference(DocumentReference documentReference) {
+            this.documentReference = documentReference;
+            return this;
+        }
+
+        /**
          * Specifies the Cloud Object Storage connection and bucket where the input files are stored.
          *
          * @param connectionId The id of the COS connection asset.
@@ -997,6 +994,16 @@ public class TextExtractionService extends ScopedService {
          * @param resultReference the {@link ContainerReference} for the output location.
          */
         public Builder resultReference(ContainerReference resultReference) {
+            this.resultReference = resultReference;
+            return this;
+        }
+
+        /**
+         * Specifies the reference to the output location, whether a {@link CosReference} or a {@link ContainerReference}.
+         *
+         * @param resultReference the {@link DocumentReference} for the output location.
+         */
+        public Builder resultReference(DocumentReference resultReference) {
             this.resultReference = resultReference;
             return this;
         }

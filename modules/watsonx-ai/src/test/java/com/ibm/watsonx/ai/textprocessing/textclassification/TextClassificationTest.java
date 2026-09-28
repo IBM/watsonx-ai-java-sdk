@@ -1016,6 +1016,17 @@ public class TextClassificationTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_return_false_when_cos_upload_does_not_respond_200() throws Exception {
+
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+        cosServer.stubFor(put("/%s/%s".formatted("my-bucket", "test.pdf"))
+            .withHeader("Authorization", equalTo("Bearer token"))
+            .willReturn(aResponse().withStatus(201)));
+
+        assertFalse(classificationService.uploadFile(file));
+    }
+
+    @Test
     @MockitoSettings(strictness = Strictness.LENIENT)
     void should_upload_file_with_different_api_key() throws Exception {
 
@@ -1643,6 +1654,66 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         // Upload went to project-bucket, not to cos-bucket.
         cosServer.verify(1, putRequestedFor(urlPathMatching("/project-bucket/.*")));
         cosServer.verify(0, putRequestedFor(urlPathMatching("/cos-bucket/.*")));
+    }
+
+    @Test
+    void should_resolve_separate_cos_service_per_project_when_parameters_override_project_id() throws Exception {
+
+        when(mockAuthenticator.token()).thenReturn("token");
+
+        var mockProjectService = mock(ProjectService.class);
+
+        var mockProjectA = mock(Project.class);
+        var mockStorageA = mock(ProjectStorage.class);
+        var mockPropsA = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("project-id")).thenReturn(Optional.of(mockProjectA));
+        when(mockProjectA.storage()).thenReturn(mockStorageA);
+        when(mockStorageA.properties()).thenReturn(mockPropsA);
+        when(mockPropsA.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockPropsA.bucketName()).thenReturn("bucket-a");
+
+        var mockProjectB = mock(Project.class);
+        var mockStorageB = mock(ProjectStorage.class);
+        var mockPropsB = mock(ProjectStorageProperties.class);
+        when(mockProjectService.findProject("project-b")).thenReturn(Optional.of(mockProjectB));
+        when(mockProjectB.storage()).thenReturn(mockStorageB);
+        when(mockStorageB.properties()).thenReturn(mockPropsB);
+        when(mockPropsB.endpointUrl()).thenReturn("http://localhost:%s".formatted(cosServer.getPort()));
+        when(mockPropsB.bucketName()).thenReturn("bucket-b");
+
+        var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("classification_job.json").toURI()));
+
+        var service = TextClassificationService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .documentReference(ContainerReference.container())
+            .projectService(mockProjectService)
+            .build();
+
+        cosServer.stubFor(put(urlPathMatching("/bucket-a/.*")).willReturn(aResponse().withStatus(200)));
+        cosServer.stubFor(put(urlPathMatching("/bucket-b/.*")).willReturn(aResponse().withStatus(200)));
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/classifications"))
+            .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(JOB.formatted("submitted"))));
+
+        var file = new File(ClassLoader.getSystemResource("test.pdf").toURI());
+
+        // Default project ("project-id") resolves and caches bucket-a.
+        service.uploadAndStartClassification(file);
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/bucket-a/.*")));
+
+        // A per-call override to "project-b" must resolve bucket-b, not reuse the cached bucket-a.
+        var overrideParams = TextClassificationParameters.builder().projectId("project-b").build();
+        service.uploadAndStartClassification(file, overrideParams);
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/bucket-b/.*")));
+
+        // Back on the default project, the cache must still resolve bucket-a, not the bucket cached for "project-b".
+        service.uploadAndStartClassification(file);
+        cosServer.verify(2, putRequestedFor(urlPathMatching("/bucket-a/.*")));
+        cosServer.verify(1, putRequestedFor(urlPathMatching("/bucket-b/.*")));
+
+        verify(mockProjectService, times(1)).findProject("project-id");
+        verify(mockProjectService, times(1)).findProject("project-b");
     }
 
     @Test

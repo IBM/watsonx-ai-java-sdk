@@ -15,4 +15,15 @@ package com.ibm.watsonx.ai.textprocessing;
  * @param bucket Optional override for the bucket name defined in the connection asset. Used only for {@code connection_asset} type.
  * @param path The file path within the container. Used only for {@code container} type.
  */
-public record CosDataLocation(String fileName, String bucket, String path) {}
+public record CosDataLocation(String fileName, String bucket, String path) {
+
+    public CosDataLocation {
+        boolean hasConnectionAssetFields = fileName != null || bucket != null;
+        boolean hasPath = path != null;
+        if (hasConnectionAssetFields == hasPath)
+            throw new IllegalArgumentException(
+                hasPath
+                    ? "fileName/bucket and path are mutually exclusive"
+                    : "Either fileName/bucket or path must be set");
+    }
+}

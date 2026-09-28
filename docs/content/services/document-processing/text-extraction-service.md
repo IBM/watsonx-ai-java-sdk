@@ -113,7 +113,7 @@ TextExtractionService service = TextExtractionService.builder()
     .build();
 ```
 
-The resolved endpoint URL and bucket are cached after the first lookup. When only `spaceId` is configured (no `projectId`), lazy COS resolution is not supported; set `cosUrl` explicitly in that case.
+The resolved endpoint URL and bucket are cached per Project ID after the first lookup for that project. When only `spaceId` is configured (no `projectId`), lazy COS resolution is not supported. Set `cosUrl` explicitly in that case.
 
 ### Using a Separate COS Authenticator
 

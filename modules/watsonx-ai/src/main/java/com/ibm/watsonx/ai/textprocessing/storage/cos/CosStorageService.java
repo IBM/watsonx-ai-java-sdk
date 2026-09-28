@@ -18,7 +18,6 @@ import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Code;
-import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 import com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
@@ -108,6 +107,7 @@ public final class CosStorageService implements StorageOperations {
         try {
             return client.deleteFileAsync(DeleteFileRequest.of(requestId, null, fileName)).get();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof WatsonxException ex) {
@@ -352,12 +352,11 @@ public final class CosStorageService implements StorageOperations {
     private Exception mapIfCosFileNotFound(WatsonxException e) {
         if (e.statusCode() == 404 && e.details().isPresent()) {
             var details = e.details().get();
-            var fileNotFound = details.errors().stream()
+            return details.errors().stream()
                 .filter(error -> error.is(Code.COS_FILE_NOT_FOUND))
                 .findFirst()
-                .map(Error::message)
-                .orElse(e.getMessage());
-            return new FileNotFoundException(fileNotFound);
+                .<Exception>map(error -> new FileNotFoundException(error.message()))
+                .orElse(e);
         }
         return e;
     }
