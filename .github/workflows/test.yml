@@ -11,6 +11,9 @@ on:
       - "*.txt"
       - ".all-contributorsrc"
 
+permissions:
+  contents: read
+
 env:
   JAVA_MIN: "17"
   JAVA_MAX: "25"
