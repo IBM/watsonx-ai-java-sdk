@@ -1978,13 +1978,6 @@
           "parameterTypes": [
             "int"
           ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "int",
-            "int"
-          ]
         }
       ]
     },
