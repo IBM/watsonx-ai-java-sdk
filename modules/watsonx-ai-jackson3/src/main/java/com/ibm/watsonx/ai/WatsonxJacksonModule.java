@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -25,9 +26,11 @@ import com.ibm.watsonx.ai.chat.model.BaseChatParameters.JsonSchemaObject;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatUsage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolArguments;
+import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.schema.ArraySchema;
 import com.ibm.watsonx.ai.chat.model.schema.ConstantSchema;
 import com.ibm.watsonx.ai.chat.model.schema.EnumSchema;
@@ -87,6 +90,7 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(TextChatResponse.Builder.class, TextChatResponseBuilderMixin.class);
         setMixInAnnotation(ChatResponse.class, ChatResponseMixin.class);
         setMixInAnnotation(ChatResponse.Builder.class, ChatResponseBuilderMixin.class);
+        setMixInAnnotation(ResultMessage.class, ResultMessageMixin.class);
         setMixInAnnotation(AssistantMessage.class, AssistantMessageMixIn.class);
         setMixInAnnotation(TextChatRequest.class, TextChatRequestMixin.class);
         setMixInAnnotation(TextChatRequest.Builder.class, TextChatRequestBuilderMixin.class);
@@ -719,6 +723,16 @@ public class WatsonxJacksonModule extends SimpleModule {
     public abstract static class AssistantMessageMixIn {
         @JsonIgnore
         abstract String thinking();
+    }
+
+    public abstract static class ResultMessageMixin {
+        @JsonCreator
+        public ResultMessageMixin(
+            @JsonProperty("role") String role,
+            @JsonProperty("content") String content,
+            @JsonProperty("reasoning_content") @JsonAlias("reasoning") String reasoningContent,
+            @JsonProperty("refusal") String refusal,
+            @JsonProperty("tool_calls") List<ToolCall> toolCalls) {}
     }
 
     @JsonDeserialize(builder = Schema.Builder.class)

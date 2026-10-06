@@ -58,6 +58,7 @@ import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextContent;
+import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
@@ -550,6 +551,35 @@ public class ChatServiceIT {
                 assertNull(assistantMessage.content());
                 assertTrue(assistantMessage.hasToolCalls());
             });
+        }
+
+        @Test
+        void should_return_reasoning_content_when_thinking_is_enabled_on_gpt_oss_model() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("openai/gpt-oss-120b")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Why is the sky blue?"))
+                .thinking(ThinkingEffort.LOW)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
+            var assistantMessage = chatResponse.toAssistantMessage();
+
+            assertNotNull(assistantMessage.content());
+            assertFalse(assistantMessage.content().isBlank());
+
+            assertNotNull(chatResponse.choices().get(0).message().reasoningContent());
+            assertFalse(chatResponse.choices().get(0).message().reasoningContent().isBlank());
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().isBlank());
         }
 
         @ParameterizedTest
@@ -1595,6 +1625,39 @@ public class ChatServiceIT {
                 assertEquals(1, assistantMessage.toolCalls().size());
                 assertEquals("get_current_time", assistantMessage.toolCalls().get(0).function().name());
             });
+        }
+
+        @Test
+        void should_return_reasoning_content_when_thinking_is_enabled_on_gpt_oss_model() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("openai/gpt-oss-120b")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Why is the sky blue?"))
+                .thinking(ThinkingEffort.LOW)
+                .build();
+
+            var receivedThinkingToken = new AtomicBoolean(false);
+            var chatResponse = assertDoesNotThrow(
+                () -> chatService.chatStreaming(request, onResponse -> {}, onThinking -> receivedThinkingToken.set(true))
+                    .get(60, TimeUnit.SECONDS));
+
+            var assistantMessage = chatResponse.toAssistantMessage();
+            assertNotNull(assistantMessage.content());
+            assertFalse(assistantMessage.content().isBlank());
+
+            assertTrue(receivedThinkingToken.get(), "expected at least one onPartialThinking token");
+            assertNotNull(chatResponse.choices().get(0).message().reasoningContent());
+            assertFalse(chatResponse.choices().get(0).message().reasoningContent().isBlank());
+            assertNotNull(assistantMessage.thinking());
+            assertFalse(assistantMessage.thinking().isBlank());
         }
 
         @ParameterizedTest

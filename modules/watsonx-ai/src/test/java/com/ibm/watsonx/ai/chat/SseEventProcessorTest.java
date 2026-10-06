@@ -345,6 +345,29 @@ public class SseEventProcessorTest {
     }
 
     @Test
+    void should_accept_reasoning_as_alias_for_reasoning_content_on_delta() {
+
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+
+        var thinkingChunk = "data: " + """
+            {"id":"chatcmpl-8","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b",\
+            "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","reasoning":"The user is asking for"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.000Z"}""";
+
+        var stopChunk = "data: " + """
+            {"id":"chatcmpl-8","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b",\
+            "choices":[{"index":0,"finish_reason":"stop","delta":{"role":"assistant","content":"Hi!"}}],\
+            "created":1,"created_at":"2026-07-26T00:00:00.001Z"}""";
+
+        processor.processChunk(thinkingChunk);
+        processor.processChunk(stopChunk);
+
+        var response = processor.buildResponse();
+        assertEquals("The user is asking for", response.choices().get(0).message().reasoningContent());
+        assertEquals("The user is asking for", response.toAssistantMessage().thinking());
+    }
+
+    @Test
     void should_emit_a_single_partial_tool_call_for_a_parameterless_tool() {
 
         var processor = new SseEventProcessor(List.of(Tool.of("get_current_time")), null, TextChatResponse::builder);
