@@ -234,6 +234,28 @@ public class ChatRoundTripTest {
     }
 
     @Test
+    void should_deserialize_reasoning_content_field_on_result_message() {
+        var JSON = """
+            {"role": "assistant", "content": "Hello there", "reasoning_content": "The user said hi"}
+            """;
+
+        var message = Json.fromJson(JSON, ResultMessage.class);
+
+        assertEquals("The user said hi", message.reasoningContent());
+    }
+
+    @Test
+    void should_accept_reasoning_as_alias_for_reasoning_content_on_result_message() {
+        var JSON = """
+            {"role": "assistant", "content": "Hello there", "reasoning": "The user said hi"}
+            """;
+
+        var message = Json.fromJson(JSON, ResultMessage.class);
+
+        assertEquals("The user said hi", message.reasoningContent());
+    }
+
+    @Test
     void should_flatten_tool_arguments_raw_map_via_any_getter() {
         AtomicReference<ToolArguments> captured = new AtomicReference<>();
         ToolExecutor executor = (name, args) -> {
