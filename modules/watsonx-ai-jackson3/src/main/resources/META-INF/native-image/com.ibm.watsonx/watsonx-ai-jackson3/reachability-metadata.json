@@ -1360,11 +1360,31 @@
           "parameterTypes": []
         },
         {
+          "name": "maxContains",
+          "parameterTypes": []
+        },
+        {
           "name": "maxItems",
           "parameterTypes": []
         },
         {
+          "name": "minContains",
+          "parameterTypes": []
+        },
+        {
           "name": "minItems",
+          "parameterTypes": []
+        },
+        {
+          "name": "prefixItems",
+          "parameterTypes": []
+        },
+        {
+          "name": "unevaluatedItems",
+          "parameterTypes": []
+        },
+        {
+          "name": "uniqueItems",
           "parameterTypes": []
         }
       ]
@@ -1434,7 +1454,39 @@
       "type": "com.ibm.watsonx.ai.chat.model.schema.JsonSchema",
       "methods": [
         {
+          "name": "allOf",
+          "parameterTypes": []
+        },
+        {
+          "name": "anyOf",
+          "parameterTypes": []
+        },
+        {
+          "name": "defaultValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "deprecated",
+          "parameterTypes": []
+        },
+        {
           "name": "description",
+          "parameterTypes": []
+        },
+        {
+          "name": "elseSchema",
+          "parameterTypes": []
+        },
+        {
+          "name": "examples",
+          "parameterTypes": []
+        },
+        {
+          "name": "ifSchema",
+          "parameterTypes": []
+        },
+        {
+          "name": "not",
           "parameterTypes": []
         },
         {
@@ -1442,7 +1494,23 @@
           "parameterTypes": []
         },
         {
+          "name": "readOnly",
+          "parameterTypes": []
+        },
+        {
+          "name": "thenSchema",
+          "parameterTypes": []
+        },
+        {
+          "name": "title",
+          "parameterTypes": []
+        },
+        {
           "name": "type",
+          "parameterTypes": []
+        },
+        {
+          "name": "writeOnly",
           "parameterTypes": []
         }
       ]
@@ -1489,7 +1557,11 @@
           "parameterTypes": []
         },
         {
-          "name": "anyOf",
+          "name": "dependentRequired",
+          "parameterTypes": []
+        },
+        {
+          "name": "dependentSchemas",
           "parameterTypes": []
         },
         {
@@ -1509,7 +1581,15 @@
           "parameterTypes": []
         },
         {
+          "name": "propertyNames",
+          "parameterTypes": []
+        },
+        {
           "name": "required",
+          "parameterTypes": []
+        },
+        {
+          "name": "unevaluatedProperties",
           "parameterTypes": []
         }
       ]
@@ -1533,19 +1613,19 @@
       "type": "com.ibm.watsonx.ai.chat.model.schema.StringSchema",
       "methods": [
         {
-          "name": "getFormat",
+          "name": "format",
           "parameterTypes": []
         },
         {
-          "name": "getMaxLength",
+          "name": "maxLength",
           "parameterTypes": []
         },
         {
-          "name": "getMinLength",
+          "name": "minLength",
           "parameterTypes": []
         },
         {
-          "name": "getPattern",
+          "name": "pattern",
           "parameterTypes": []
         }
       ]
@@ -5569,6 +5649,22 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.ArraySchema$Builder",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.JsonSchema",
           "interfaces": [
             "java.util.function.Function"
@@ -5601,9 +5697,41 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.ObjectSchema$Builder",
+          "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.ObjectSchema",
+          "interfaces": [
+            "java.util.function.BinaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.ObjectSchema",
           "interfaces": [
             "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.model.schema.ObjectSchema",
+          "interfaces": [
+            "java.util.function.Supplier"
           ]
         }
       },
@@ -6405,6 +6533,14 @@
           "parameterTypes": [
             "java.util.function.Function",
             "java.util.function.Function"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Function",
+            "java.util.function.Function",
+            "java.util.function.BinaryOperator"
           ]
         }
       ]

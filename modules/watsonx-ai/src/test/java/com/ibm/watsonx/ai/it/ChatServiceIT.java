@@ -241,6 +241,53 @@ public class ChatServiceIT {
         }
 
         @Test
+        void should_return_valid_poem_with_a_raw_json_schema() {
+
+            record Poem(String content, String topic) {}
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .projectId(PROJECT_ID)
+                .modelId("ibm/granite-4-h-small")
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var parameters = ChatParameters.builder()
+                .temperature(0.0)
+                .responseAsJsonSchema("""
+                        {
+                          "type": "object",
+                          "properties": {
+                            "content": {
+                              "type": "string"
+                            },
+                            "topic": {
+                              "enum": ["dog", "cat"]
+                            }
+                          },
+                          "required": [ "content", "topic"]
+                        }
+                    """)
+                .build();
+
+            ChatRequest request = ChatRequest.builder()
+                .messages(UserMessage.text("Create a poem about dog, max 3 lines"))
+                .parameters(parameters)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> chatService.chat(request));
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
+
+            assertNotNull(chatResponse);
+            assertNotNull(poem);
+            assertFalse(poem.content().isBlank());
+            assertTrue(poem.topic.equalsIgnoreCase("dog"));
+        }
+
+
+        @Test
         void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");

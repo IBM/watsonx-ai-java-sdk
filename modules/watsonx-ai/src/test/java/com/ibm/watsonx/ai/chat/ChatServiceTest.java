@@ -32,8 +32,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -134,7 +134,6 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 .modelId("my-default-model")
                 .projectId("default-project-id")
                 .spaceId("default-space-id")
-                // ------------------------------------------------------
                 .timeout(Duration.ofSeconds(60))
                 .baseUrl(URI.create("http://my-cloud-instance.com"))
                 .version(("1988-03-23"))

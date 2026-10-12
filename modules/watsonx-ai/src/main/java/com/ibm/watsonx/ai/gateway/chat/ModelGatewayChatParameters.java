@@ -10,7 +10,11 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
+import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
  * Parameters specific to the Model Gateway chat endpoint.
@@ -275,6 +279,7 @@ public final class ModelGatewayChatParameters extends BaseChatParameters {
      *
      * @return a new {@link Builder}
      */
+    @SuppressWarnings("unchecked")
     public Builder toBuilder() {
         var b = new Builder()
             .modelId(modelId)
@@ -316,8 +321,15 @@ public final class ModelGatewayChatParameters extends BaseChatParameters {
                 case TEXT -> b.responseAsText();
                 case JSON -> b.responseAsJson();
                 case JSON_SCHEMA -> {
-                    if (nonNull(jsonSchema))
-                        b.responseAsJsonSchema(jsonSchema.name(), jsonSchema.schema(), jsonSchema.strict());
+                    if (nonNull(jsonSchema)) {
+                        var schema = jsonSchema.schema();
+                        if (schema instanceof JsonSchema js)
+                            b.responseAsJsonSchema(jsonSchema.name(), js, jsonSchema.strict());
+                        else if (schema instanceof Map<?, ?> map)
+                            b.responseAsJsonSchema(jsonSchema.name(), (Map<String, Object>) map, jsonSchema.strict());
+                        else
+                            throw new IllegalStateException("Unsupported JSON schema type: " + schema.getClass());
+                    }
                 }
             }
         }
@@ -512,6 +524,61 @@ public final class ModelGatewayChatParameters extends BaseChatParameters {
         public Builder user(String user) {
             this.user = user;
             return this;
+        }
+
+        /**
+         * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+         *
+         * @param schema the JSON Schema describing the expected output structure
+         */
+        public Builder responseAsJsonSchema(JsonSchema schema) {
+            return responseAsJsonSchema(UUID.randomUUID().toString(), schema, true);
+        }
+
+        /**
+         * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+         *
+         * @param schema the schema as a JSON string.
+         */
+        public Builder responseAsJsonSchema(String schema) {
+            return responseAsJsonSchema(UUID.randomUUID().toString(), schema, true);
+        }
+
+        /**
+         * Sets the response format to {@code JSON_SCHEMA} with a custom schema name and strictness.
+         *
+         * @param name the identifier name for the schema
+         * @param schema the JSON Schema describing the expected output structure
+         * @param strict whether to enforce strict schema validation
+         */
+        public Builder responseAsJsonSchema(String name, JsonSchema schema, boolean strict) {
+            return (Builder) super.responseAsJsonSchema(name, schema, strict);
+        }
+
+        /**
+         * Sets the response format to {@code JSON_SCHEMA} with a raw map schema.
+         *
+         * @param name the identifier name for the schema
+         * @param schema the schema as a raw map
+         * @param strict whether to enforce strict schema validation
+         */
+        public Builder responseAsJsonSchema(String name, Map<String, Object> schema, boolean strict) {
+            return (Builder) super.responseAsJsonSchema(name, schema, strict);
+        }
+
+        /**
+         * Sets the response format to {@code JSON_SCHEMA} with a raw JSON string schema.
+         *
+         * @param name the identifier name for the schema
+         * @param schema the schema as a JSON string
+         * @param strict whether to enforce strict schema validation
+         * @throws IllegalArgumentException if {@code schema} is not a valid JSON object
+         */
+        public Builder responseAsJsonSchema(String name, String schema, boolean strict) {
+            if (!Json.isValidObject(schema))
+                throw new IllegalArgumentException("schema must be a valid JSON object");
+            Map<String, Object> parsed = Json.fromJson(schema, TypeToken.parameterizedOf(Map.class, String.class, Object.class));
+            return responseAsJsonSchema(name, parsed, strict);
         }
 
         /**

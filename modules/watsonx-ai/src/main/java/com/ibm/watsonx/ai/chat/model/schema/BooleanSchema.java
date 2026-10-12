@@ -64,7 +64,24 @@ public final class BooleanSchema extends JsonSchema {
     }
 
     @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
-        return "BooleanSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + "]";
+        return "BooleanSchema [title=" + title + ", description=" + description + ", defaultValue=" + defaultValue + ", examples=" + examples
+            + ", readOnly=" + readOnly + ", writeOnly=" + writeOnly + ", deprecated=" + deprecated + ", type=" + type + ", nullable=" + nullable
+            + ", oneOf=" + oneOf + ", anyOf=" + anyOf + ", allOf=" + allOf + ", not=" + not + ", if=" + ifSchema + ", then=" + thenSchema
+            + ", else=" + elseSchema + "]";
     }
 }
