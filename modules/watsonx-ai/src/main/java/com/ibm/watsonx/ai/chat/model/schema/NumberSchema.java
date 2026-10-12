@@ -21,10 +21,10 @@ import java.util.List;
  *
  */
 public final class NumberSchema extends JsonSchema {
-    private final Integer minimum;
-    private final Integer maximum;
-    private final Integer exclusiveMinimum;
-    private final Integer exclusiveMaximum;
+    private final Double minimum;
+    private final Double maximum;
+    private final Double exclusiveMinimum;
+    private final Double exclusiveMaximum;
     private final Double multipleOf;
 
     private NumberSchema(Builder builder) {
@@ -36,19 +36,19 @@ public final class NumberSchema extends JsonSchema {
         this.multipleOf = builder.multipleOf;
     }
 
-    public Integer minimum() {
+    public Double minimum() {
         return minimum;
     }
 
-    public Integer maximum() {
+    public Double maximum() {
         return maximum;
     }
 
-    public Integer exclusiveMinimum() {
+    public Double exclusiveMinimum() {
         return exclusiveMinimum;
     }
 
-    public Integer exclusiveMaximum() {
+    public Double exclusiveMaximum() {
         return exclusiveMaximum;
     }
 
@@ -79,10 +79,10 @@ public final class NumberSchema extends JsonSchema {
      * Builder class for constructing {@link NumberSchema} instances with configurable parameters.
      */
     public static final class Builder extends JsonSchema.Builder<Builder, NumberSchema, NumberSchema.Builder> {
-        private Integer minimum;
-        private Integer maximum;
-        private Integer exclusiveMinimum;
-        private Integer exclusiveMaximum;
+        private Double minimum;
+        private Double maximum;
+        private Double exclusiveMinimum;
+        private Double exclusiveMaximum;
         private Double multipleOf;
 
         private Builder() {}
@@ -92,7 +92,7 @@ public final class NumberSchema extends JsonSchema {
          *
          * @param minimum the minimum allowed numeric value
          */
-        public Builder minimum(int minimum) {
+        public Builder minimum(double minimum) {
             this.minimum = minimum;
             return this;
         }
@@ -102,7 +102,7 @@ public final class NumberSchema extends JsonSchema {
          *
          * @param maximum the maximum allowed numeric value
          */
-        public Builder maximum(int maximum) {
+        public Builder maximum(double maximum) {
             this.maximum = maximum;
             return this;
         }
@@ -112,7 +112,7 @@ public final class NumberSchema extends JsonSchema {
          *
          * @param exclusiveMinimum the exclusive lower bound for the number
          */
-        public Builder exclusiveMinimum(int exclusiveMinimum) {
+        public Builder exclusiveMinimum(double exclusiveMinimum) {
             this.exclusiveMinimum = exclusiveMinimum;
             return this;
         }
@@ -122,7 +122,7 @@ public final class NumberSchema extends JsonSchema {
          *
          * @param exclusiveMaximum the exclusive upper bound for the number
          */
-        public Builder exclusiveMaximum(int exclusiveMaximum) {
+        public Builder exclusiveMaximum(double exclusiveMaximum) {
             this.exclusiveMaximum = exclusiveMaximum;
             return this;
         }
@@ -197,8 +197,10 @@ public final class NumberSchema extends JsonSchema {
 
     @Override
     public String toString() {
-        return "NumberSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", minimum=" + minimum
-            + ", maximum=" + maximum + ", exclusiveMinimum=" + exclusiveMinimum + ", exclusiveMaximum=" + exclusiveMaximum + ", multipleOf="
-            + multipleOf + "]";
+        return "NumberSchema [title=" + title + ", description=" + description + ", defaultValue=" + defaultValue + ", examples=" + examples
+            + ", readOnly=" + readOnly + ", writeOnly=" + writeOnly + ", deprecated=" + deprecated + ", type=" + type + ", nullable=" + nullable
+            + ", oneOf=" + oneOf + ", anyOf=" + anyOf + ", allOf=" + allOf + ", not=" + not + ", if=" + ifSchema + ", then=" + thenSchema
+            + ", else=" + elseSchema + ", minimum=" + minimum + ", maximum=" + maximum + ", exclusiveMinimum=" + exclusiveMinimum
+            + ", exclusiveMaximum=" + exclusiveMaximum + ", multipleOf=" + multipleOf + "]";
     }
 }

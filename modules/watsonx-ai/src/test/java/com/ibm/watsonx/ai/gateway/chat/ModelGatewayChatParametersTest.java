@@ -5,6 +5,9 @@
 package com.ibm.watsonx.ai.gateway.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,6 +15,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Cache;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Prediction;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.ReasoningEffort;
@@ -150,5 +154,86 @@ public class ModelGatewayChatParametersTest {
         assertEquals("default", ServiceTier.DEFAULT.value());
         assertEquals("flex", ServiceTier.FLEX.value());
         assertEquals("priority", ServiceTier.PRIORITY.value());
+    }
+
+    @Test
+    void should_set_response_as_json_schema_from_JsonSchema_convenience_overload() {
+        var schema = JsonSchema.object()
+            .property("name", JsonSchema.string())
+            .build();
+
+        var params = ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema(schema)
+            .build();
+
+        assertEquals("json_schema", params.responseFormat());
+        assertNotNull(params.jsonSchema());
+        assertEquals(schema, params.jsonSchema().schema());
+        assertTrue(params.jsonSchema().strict());
+    }
+
+    @Test
+    void should_set_response_as_json_schema_with_name_and_strict_flag() {
+        var schema = JsonSchema.object()
+            .property("age", JsonSchema.integer())
+            .build();
+
+        var params = ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema("my-schema", schema, false)
+            .build();
+
+        assertEquals("json_schema", params.responseFormat());
+        assertEquals("my-schema", params.jsonSchema().name());
+        assertEquals(schema, params.jsonSchema().schema());
+        assertFalse(params.jsonSchema().strict());
+    }
+
+    @Test
+    void should_set_response_as_json_schema_from_map() {
+        Map<String, Object> schemaMap = Map.of("type", "object");
+
+        var params = ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema("map-schema", schemaMap, true)
+            .build();
+
+        assertEquals("json_schema", params.responseFormat());
+        assertEquals("map-schema", params.jsonSchema().name());
+        assertTrue(params.jsonSchema().strict());
+    }
+
+    @Test
+    void should_set_response_as_json_schema_from_json_string() {
+        var params = ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema("str-schema", "{\"type\":\"object\"}", true)
+            .build();
+
+        assertEquals("json_schema", params.responseFormat());
+        assertEquals("str-schema", params.jsonSchema().name());
+        assertTrue(params.jsonSchema().strict());
+        assertInstanceOf(Map.class, params.jsonSchema().schema());
+    }
+
+    @Test
+    void should_throw_when_json_string_schema_is_not_a_valid_object() {
+        assertThrows(IllegalArgumentException.class, () -> ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema("bad", "not-json", true)
+            .build());
+    }
+
+    @Test
+    void should_preserve_json_schema_through_to_builder() {
+        var schema = JsonSchema.object()
+            .property("val", JsonSchema.integer())
+            .build();
+
+        var original = ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema("copy-schema", schema, false)
+            .build();
+
+        var copy = original.toBuilder().build();
+
+        assertEquals(original.responseFormat(), copy.responseFormat());
+        assertEquals(original.jsonSchema().name(), copy.jsonSchema().name());
+        assertEquals(original.jsonSchema().strict(), copy.jsonSchema().strict());
     }
 }

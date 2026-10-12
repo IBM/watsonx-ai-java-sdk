@@ -197,8 +197,10 @@ public final class IntegerSchema extends JsonSchema {
 
     @Override
     public String toString() {
-        return "IntegerSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", minimum=" + minimum
-            + ", maximum=" + maximum + ", exclusiveMinimum=" + exclusiveMinimum + ", exclusiveMaximum=" + exclusiveMaximum + ", multipleOf="
-            + multipleOf + "]";
+        return "IntegerSchema [title=" + title + ", description=" + description + ", defaultValue=" + defaultValue + ", examples=" + examples
+            + ", readOnly=" + readOnly + ", writeOnly=" + writeOnly + ", deprecated=" + deprecated + ", type=" + type + ", nullable=" + nullable
+            + ", oneOf=" + oneOf + ", anyOf=" + anyOf + ", allOf=" + allOf + ", not=" + not + ", if=" + ifSchema + ", then=" + thenSchema
+            + ", else=" + elseSchema + ", minimum=" + minimum + ", maximum=" + maximum + ", exclusiveMinimum=" + exclusiveMinimum
+            + ", exclusiveMaximum=" + exclusiveMaximum + ", multipleOf=" + multipleOf + "]";
     }
 }

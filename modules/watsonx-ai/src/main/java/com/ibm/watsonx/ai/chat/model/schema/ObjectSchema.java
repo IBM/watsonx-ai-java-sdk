@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represents a JSON Schema of type {@code object}.
@@ -31,20 +32,36 @@ public final class ObjectSchema extends JsonSchema {
     private final Map<String, JsonSchema> properties;
     private final Map<String, JsonSchema> patternProperties;
     private final List<String> required;
-    private final List<RequiredSchema> anyOf;
     private final Integer minProperties;
     private final Integer maxProperties;
     private final Object additionalProperties;
+    private final JsonSchema propertyNames;
+    private final Map<String, List<String>> dependentRequired;
+    private final Map<String, JsonSchema> dependentSchemas;
+    private final Object unevaluatedProperties;
 
     private ObjectSchema(Builder builder) {
         super(builder.nullable ? List.of("object", "null") : "object", builder);
         properties = builder.properties.isEmpty() ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.properties));
         required = isNull(builder.required) ? null : List.copyOf(builder.required);
-        anyOf = isNull(builder.anyOf) ? null : List.copyOf(builder.anyOf);
         minProperties = builder.minProperties;
         maxProperties = builder.maxProperties;
         patternProperties = isNull(builder.patternProperties) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.patternProperties));
         additionalProperties = builder.additionalProperties;
+        propertyNames = isNull(builder.propertyNames) ? null : builder.propertyNames.build();
+        unevaluatedProperties = builder.unevaluatedProperties;
+
+        dependentRequired = isNull(builder.dependentRequired)
+            ? null
+            : Collections
+                .unmodifiableMap(builder.dependentRequired.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> List.copyOf(e.getValue()), (a, b) -> a, LinkedHashMap::new)));
+
+        dependentSchemas = isNull(builder.dependentSchemas)
+            ? null
+            : Collections
+                .unmodifiableMap(builder.dependentSchemas.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().build(), (a, b) -> a, LinkedHashMap::new)));
     }
 
     public Map<String, JsonSchema> properties() {
@@ -53,10 +70,6 @@ public final class ObjectSchema extends JsonSchema {
 
     public List<String> required() {
         return required;
-    }
-
-    public List<RequiredSchema> anyOf() {
-        return anyOf;
     }
 
     public Integer minProperties() {
@@ -73,6 +86,43 @@ public final class ObjectSchema extends JsonSchema {
 
     public Map<String, JsonSchema> patternProperties() {
         return patternProperties;
+    }
+
+    /**
+     * Returns the schema used to validate property names of this object.
+     *
+     * @return the property names schema
+     */
+    public JsonSchema propertyNames() {
+        return propertyNames;
+    }
+
+    /**
+     * Returns a map of property dependencies, where each property name maps to a list of other property names that are required when the key property
+     * is present.
+     *
+     * @return the dependent required map
+     */
+    public Map<String, List<String>> dependentRequired() {
+        return dependentRequired;
+    }
+
+    /**
+     * Returns a map of schema dependencies, where each property name maps to a schema that must validate when the key property is present.
+     *
+     * @return the dependent schemas map
+     */
+    public Map<String, JsonSchema> dependentSchemas() {
+        return dependentSchemas;
+    }
+
+    /**
+     * Returns the schema or boolean controlling handling of properties not evaluated by other keywords.
+     *
+     * @return the unevaluated properties value
+     */
+    public Object unevaluatedProperties() {
+        return unevaluatedProperties;
     }
 
     /**
@@ -106,7 +156,10 @@ public final class ObjectSchema extends JsonSchema {
         private Integer maxProperties;
         private Object additionalProperties;
         private List<String> required;
-        private List<RequiredSchema> anyOf;
+        private JsonSchema.Builder<?, ?, ?> propertyNames;
+        private Map<String, List<String>> dependentRequired;
+        private Map<String, JsonSchema.Builder<?, ?, ?>> dependentSchemas;
+        private Object unevaluatedProperties;
 
         private Builder() {
             properties = new LinkedHashMap<>();
@@ -283,28 +336,58 @@ public final class ObjectSchema extends JsonSchema {
         }
 
         /**
-         * Defines alternative required field constraints using the {@code anyOf} keyword.
-         * <p>
-         * The {@code anyOf} keyword validates that <b>at least one</b> of the provided required constraints is satisfied. This is useful for defining
-         * scenarios where different combinations of fields can be required.
-         * <p>
-         * <b>Example usage:</b>
+         * Sets a schema to validate the names of all properties in the object.
          *
-         * <pre>{@code
-         * // At least one of salary OR hourlyRate must be present
-         * JsonSchema.object()
-         *     .property("salary", JsonSchema.number())
-         *     .property("hourlyRate", JsonSchema.number())
-         *     .anyOf(
-         *         JsonSchema.required("salary"),
-         *         JsonSchema.required("hourlyRate")
-         *     );
-         * }</pre>
-         *
-         * @param anyOf the alternative required constraints
+         * @param propertyNames the schema that each property name must satisfy
          */
-        public Builder anyOf(List<RequiredSchema.Builder> anyOf) {
-            this.anyOf = anyOf.stream().map(RequiredSchema.Builder::build).toList();
+        public Builder propertyNames(JsonSchema.Builder<?, ?, ?> propertyNames) {
+            this.propertyNames = propertyNames;
+            return this;
+        }
+
+        /**
+         * Declares that if a property with the given key is present, all listed dependent properties must also be present.
+         *
+         * @param propertyName the property that triggers the dependency
+         * @param dependents the property names that are required when {@code propertyName} is present
+         */
+        public Builder dependentRequired(String propertyName, String... dependents) {
+            if (dependentRequired == null)
+                dependentRequired = new LinkedHashMap<>();
+            dependentRequired.put(propertyName, List.of(dependents));
+            return this;
+        }
+
+        /**
+         * Declares that if a property with the given key is present, the instance must also validate against the given schema.
+         *
+         * @param propertyName the property that triggers the dependency
+         * @param schema the schema to validate against when {@code propertyName} is present
+         */
+        public Builder dependentSchema(String propertyName, JsonSchema.Builder<?, ?, ?> schema) {
+            if (dependentSchemas == null)
+                dependentSchemas = new LinkedHashMap<>();
+            dependentSchemas.put(propertyName, schema);
+            return this;
+        }
+
+        /**
+         * Enables or disables validation of properties not covered by other object applicators.
+         *
+         * @param enable {@code false} to disallow unevaluated properties, {@code true} to allow them
+         */
+        public Builder unevaluatedProperties(boolean enable) {
+            unevaluatedProperties = enable;
+            return this;
+        }
+
+        /**
+         * Sets a schema for properties not covered by other object applicators.
+         *
+         * @param schema the schema to apply to unevaluated properties
+         */
+        public Builder unevaluatedProperties(JsonSchema.Builder<?, ?, ?> schema) {
+            unevaluatedProperties = schema.build();
             return this;
         }
 
@@ -326,10 +409,13 @@ public final class ObjectSchema extends JsonSchema {
         result = prime * result + ((properties == null) ? 0 : properties.hashCode());
         result = prime * result + ((patternProperties == null) ? 0 : patternProperties.hashCode());
         result = prime * result + ((required == null) ? 0 : required.hashCode());
-        result = prime * result + ((anyOf == null) ? 0 : anyOf.hashCode());
         result = prime * result + ((minProperties == null) ? 0 : minProperties.hashCode());
         result = prime * result + ((maxProperties == null) ? 0 : maxProperties.hashCode());
         result = prime * result + ((additionalProperties == null) ? 0 : additionalProperties.hashCode());
+        result = prime * result + ((propertyNames == null) ? 0 : propertyNames.hashCode());
+        result = prime * result + ((dependentRequired == null) ? 0 : dependentRequired.hashCode());
+        result = prime * result + ((dependentSchemas == null) ? 0 : dependentSchemas.hashCode());
+        result = prime * result + ((unevaluatedProperties == null) ? 0 : unevaluatedProperties.hashCode());
         return result;
     }
 
@@ -355,11 +441,6 @@ public final class ObjectSchema extends JsonSchema {
                 return false;
         } else if (!required.equals(other.required))
             return false;
-        if (anyOf == null) {
-            if (other.anyOf != null)
-                return false;
-        } else if (!anyOf.equals(other.anyOf))
-            return false;
         if (minProperties == null) {
             if (other.minProperties != null)
                 return false;
@@ -375,13 +456,37 @@ public final class ObjectSchema extends JsonSchema {
                 return false;
         } else if (!additionalProperties.equals(other.additionalProperties))
             return false;
+        if (propertyNames == null) {
+            if (other.propertyNames != null)
+                return false;
+        } else if (!propertyNames.equals(other.propertyNames))
+            return false;
+        if (dependentRequired == null) {
+            if (other.dependentRequired != null)
+                return false;
+        } else if (!dependentRequired.equals(other.dependentRequired))
+            return false;
+        if (dependentSchemas == null) {
+            if (other.dependentSchemas != null)
+                return false;
+        } else if (!dependentSchemas.equals(other.dependentSchemas))
+            return false;
+        if (unevaluatedProperties == null) {
+            if (other.unevaluatedProperties != null)
+                return false;
+        } else if (!unevaluatedProperties.equals(other.unevaluatedProperties))
+            return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "ObjectSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", properties="
-            + properties + ", patternProperties=" + patternProperties + ", required=" + required + ", anyOf=" + anyOf + ", minProperties="
-            + minProperties + ", maxProperties=" + maxProperties + ", additionalProperties=" + additionalProperties + "]";
+        return "ObjectSchema [title=" + title + ", description=" + description + ", defaultValue=" + defaultValue + ", examples=" + examples
+            + ", readOnly=" + readOnly + ", writeOnly=" + writeOnly + ", deprecated=" + deprecated + ", type=" + type + ", nullable=" + nullable
+            + ", oneOf=" + oneOf + ", anyOf=" + anyOf + ", allOf=" + allOf + ", not=" + not + ", if=" + ifSchema + ", then=" + thenSchema
+            + ", else=" + elseSchema + ", properties=" + properties + ", patternProperties=" + patternProperties + ", required=" + required
+            + ", minProperties=" + minProperties + ", maxProperties=" + maxProperties + ", additionalProperties=" + additionalProperties
+            + ", propertyNames=" + propertyNames + ", dependentRequired=" + dependentRequired + ", dependentSchemas=" + dependentSchemas
+            + ", unevaluatedProperties=" + unevaluatedProperties + "]";
     }
 }

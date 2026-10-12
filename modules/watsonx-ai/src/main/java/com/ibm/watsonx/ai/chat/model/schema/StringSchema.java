@@ -35,19 +35,19 @@ public final class StringSchema extends JsonSchema {
         format = builder.format;
     }
 
-    public String getPattern() {
+    public String pattern() {
         return pattern;
     }
 
-    public Integer getMaxLength() {
+    public Integer maxLength() {
         return maxLength;
     }
 
-    public Integer getMinLength() {
+    public Integer minLength() {
         return minLength;
     }
 
-    public String getFormat() {
+    public String format() {
         return format;
     }
 
@@ -123,6 +123,17 @@ public final class StringSchema extends JsonSchema {
         }
 
         /**
+         * Sets a custom semantic format for the string value as a raw string.
+         *
+         * @param format the format string value
+         */
+        public Builder format(String format) {
+            requireNonNull(format, "The format cannot be null");
+            this.format = format;
+            return this;
+        }
+
+        /**
          * Builds a {@link StringSchema} instance using the configured parameters.
          *
          * @return a new instance of {@link StringSchema}
@@ -175,7 +186,9 @@ public final class StringSchema extends JsonSchema {
 
     @Override
     public String toString() {
-        return "StringSchema [description=" + description + ", type=" + type + ", nullable=" + nullable + ", oneOf=" + oneOf + ", pattern=" + pattern
-            + ", maxLength=" + maxLength + ", minLength=" + minLength + ", format=" + format + "]";
+        return "StringSchema [title=" + title + ", description=" + description + ", defaultValue=" + defaultValue + ", examples=" + examples
+            + ", readOnly=" + readOnly + ", writeOnly=" + writeOnly + ", deprecated=" + deprecated + ", type=" + type + ", nullable=" + nullable
+            + ", oneOf=" + oneOf + ", anyOf=" + anyOf + ", allOf=" + allOf + ", not=" + not + ", if=" + ifSchema + ", then=" + thenSchema
+            + ", else=" + elseSchema + ", pattern=" + pattern + ", maxLength=" + maxLength + ", minLength=" + minLength + ", format=" + format + "]";
     }
 }

@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
+import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.deployment.DeploymentService;
 
 /**
@@ -268,6 +270,15 @@ public final class ChatParameters extends BaseChatParameters {
         }
 
         /**
+         * Sets the response format to {@code JSON_SCHEMA} and defines the JSON Schema used to validate the model's output.
+         *
+         * @param schema the schema as a JSON string.
+         */
+        public Builder responseAsJsonSchema(String schema) {
+            return responseAsJsonSchema(UUID.randomUUID().toString(), schema, true);
+        }
+
+        /**
          * Sets the response format to {@code JSON_SCHEMA} with a custom schema name and strictness.
          *
          * @param name the identifier name for the schema
@@ -291,6 +302,21 @@ public final class ChatParameters extends BaseChatParameters {
             this.responseFormat = BaseChatParameters.ResponseFormat.JSON_SCHEMA;
             this.jsonSchema = new JsonSchemaObject(name, schema, strict);
             return this;
+        }
+
+        /**
+         * Sets the response format to {@code JSON_SCHEMA} with a raw JSON string schema.
+         *
+         * @param name the identifier name for the schema
+         * @param schema the schema as a JSON string
+         * @param strict whether to enforce strict schema validation
+         * @throws IllegalArgumentException if {@code schema} is not a valid JSON object
+         */
+        public Builder responseAsJsonSchema(String name, String schema, boolean strict) {
+            if (!Json.isValidObject(schema))
+                throw new IllegalArgumentException("schema must be a valid JSON object");
+            Map<String, Object> parsed = Json.fromJson(schema, TypeToken.parameterizedOf(Map.class, String.class, Object.class));
+            return responseAsJsonSchema(name, parsed, strict);
         }
 
         /**

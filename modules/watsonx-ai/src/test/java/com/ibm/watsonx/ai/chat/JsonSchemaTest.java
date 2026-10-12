@@ -4,7 +4,11 @@
  */
 package com.ibm.watsonx.ai.chat;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -848,5 +852,547 @@ public class JsonSchemaTest {
                     )
                     .build()
             ), true);
+    }
+
+    @Test
+    void should_serialize_title_and_default_and_examples() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "string",
+              "title": "Full name",
+              "default": "Alice",
+              "examples": ["Alice", "Bob"]
+            }""",
+            Json.toJson(
+                JsonSchema.string()
+                    .title("Full name")
+                    .defaultValue("Alice")
+                    .examples("Alice", "Bob")
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_readOnly_writeOnly_deprecated() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "id":       { "type": "string", "readOnly": true },
+                "password": { "type": "string", "writeOnly": true },
+                "legacy":   { "type": "string", "deprecated": true }
+              }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("id", JsonSchema.string().readOnly())
+                    .property("password", JsonSchema.string().writeOnly())
+                    .property("legacy", JsonSchema.string().deprecated())
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_anyOf_on_string_schema() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "string",
+              "anyOf": [
+                { "type": "string", "minLength": 5 },
+                { "type": "string", "pattern": "^[A-Z]" }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.string()
+                    .anyOf(
+                        JsonSchema.string().minLength(5),
+                        JsonSchema.string().pattern("^[A-Z]"))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_allOf_on_string_schema() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "string",
+              "allOf": [
+                { "type": "string", "minLength": 2 },
+                { "type": "string", "maxLength": 10 }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.string()
+                    .allOf(
+                        JsonSchema.string().minLength(2),
+                        JsonSchema.string().maxLength(10))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_not_on_string_schema() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "string",
+              "not": { "type": "string", "pattern": "^admin" }
+            }""",
+            Json.toJson(
+                JsonSchema.string()
+                    .not(JsonSchema.string().pattern("^admin"))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_if_then_else_on_object_schema() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "country": { "type": "string" }
+              },
+              "if":   { "type": "object", "properties": { "country": { "const": "US" } } },
+              "then": { "type": "object", "required": ["zipCode"] },
+              "else": { "type": "object", "required": ["postalCode"] }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("country", JsonSchema.string())
+                    .ifCondition(
+                        JsonSchema.object()
+                            .property("country", JsonSchema.constant("US")))
+                    .then(JsonSchema.object().required("zipCode"))
+                    .otherwise(JsonSchema.object().required("postalCode"))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_free_form_string_format() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "string",
+              "format": "idn-email"
+            }""",
+            Json.toJson(
+                JsonSchema.string().format("idn-email").build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_array_prefix_items() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "array",
+              "prefixItems": [
+                { "type": "number" },
+                { "type": "string" },
+                { "enum": ["Street", "Avenue"] }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.array()
+                    .prefixItems(
+                        JsonSchema.number(),
+                        JsonSchema.string(),
+                        JsonSchema.enumeration("Street", "Avenue"))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_array_prefix_items_list_overload() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "array",
+              "prefixItems": [
+                { "type": "integer" },
+                { "type": "string" }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.array()
+                    .prefixItems(List.of(JsonSchema.integer(), JsonSchema.string()))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_array_unique_items() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "array",
+              "items": { "type": "string" },
+              "uniqueItems": true
+            }""",
+            Json.toJson(
+                JsonSchema.array()
+                    .items(JsonSchema.string())
+                    .uniqueItems()
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_array_min_max_contains() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "array",
+              "contains": { "type": "string" },
+              "minContains": 1,
+              "maxContains": 3
+            }""",
+            Json.toJson(
+                JsonSchema.array()
+                    .contains(JsonSchema.string())
+                    .minContains(1)
+                    .maxContains(3)
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_array_unevaluated_items_false() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "array",
+              "prefixItems": [{ "type": "string" }],
+              "unevaluatedItems": false
+            }""",
+            Json.toJson(
+                JsonSchema.array()
+                    .prefixItems(JsonSchema.string())
+                    .unevaluatedItems(false)
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_array_unevaluated_items_schema() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "array",
+              "prefixItems": [{ "type": "string" }],
+              "unevaluatedItems": { "type": "integer" }
+            }""",
+            Json.toJson(
+                JsonSchema.array()
+                    .prefixItems(JsonSchema.string())
+                    .unevaluatedItems(JsonSchema.integer())
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_object_property_names() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "propertyNames": { "type": "string", "pattern": "^[a-z_]+$" }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .propertyNames(JsonSchema.string().pattern("^[a-z_]+$"))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_object_dependent_required() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "creditCard": { "type": "string" },
+                "billingAddress": { "type": "string" }
+              },
+              "dependentRequired": {
+                "creditCard": ["billingAddress"]
+              }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("creditCard", JsonSchema.string())
+                    .property("billingAddress", JsonSchema.string())
+                    .dependentRequired("creditCard", "billingAddress")
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_object_dependent_schemas() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "creditCard": { "type": "string" }
+              },
+              "dependentSchemas": {
+                "creditCard": {
+                  "type": "object",
+                  "properties": {
+                    "billingAddress": { "type": "string" }
+                  },
+                  "required": ["billingAddress"]
+                }
+              }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("creditCard", JsonSchema.string())
+                    .dependentSchema("creditCard",
+                        JsonSchema.object()
+                            .property("billingAddress", JsonSchema.string())
+                            .required("billingAddress"))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_object_unevaluated_properties_false() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "unevaluatedProperties": false
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("name", JsonSchema.string())
+                    .unevaluatedProperties(false)
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_serialize_object_unevaluated_properties_schema() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "unevaluatedProperties": { "type": "integer" }
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("name", JsonSchema.string())
+                    .unevaluatedProperties(JsonSchema.integer())
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_implement_equals_for_new_base_fields() {
+        var a = JsonSchema.string()
+            .title("T").defaultValue("d").examples("e1", "e2")
+            .readOnly().writeOnly().deprecated()
+            .build();
+        var b = JsonSchema.string()
+            .title("T").defaultValue("d").examples("e1", "e2")
+            .readOnly().writeOnly().deprecated()
+            .build();
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    void should_implement_equals_for_anyOf_allOf_not_base() {
+        var a = JsonSchema.string()
+            .anyOf(JsonSchema.string().minLength(1))
+            .allOf(JsonSchema.string().maxLength(10))
+            .not(JsonSchema.string().pattern("^x"))
+            .build();
+        var b = JsonSchema.string()
+            .anyOf(JsonSchema.string().minLength(1))
+            .allOf(JsonSchema.string().maxLength(10))
+            .not(JsonSchema.string().pattern("^x"))
+            .build();
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    void should_implement_equals_for_if_then_else_base() {
+        var a = JsonSchema.string()
+            .ifCondition(JsonSchema.string().minLength(1))
+            .then(JsonSchema.string().maxLength(5))
+            .otherwise(JsonSchema.string().maxLength(10))
+            .build();
+        var b = JsonSchema.string()
+            .ifCondition(JsonSchema.string().minLength(1))
+            .then(JsonSchema.string().maxLength(5))
+            .otherwise(JsonSchema.string().maxLength(10))
+            .build();
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    void should_implement_equals_for_new_array_fields() {
+        var a = JsonSchema.array()
+            .prefixItems(JsonSchema.string(), JsonSchema.integer())
+            .uniqueItems()
+            .contains(JsonSchema.string())
+            .minContains(1).maxContains(3)
+            .unevaluatedItems(false)
+            .build();
+        var b = JsonSchema.array()
+            .prefixItems(JsonSchema.string(), JsonSchema.integer())
+            .uniqueItems()
+            .contains(JsonSchema.string())
+            .minContains(1).maxContains(3)
+            .unevaluatedItems(false)
+            .build();
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    void should_implement_equals_for_new_object_fields() {
+        var a = JsonSchema.object()
+            .property("n", JsonSchema.string())
+            .propertyNames(JsonSchema.string().pattern("^[a-z]+$"))
+            .dependentRequired("n", "m")
+            .dependentSchema("n", JsonSchema.object().required("m"))
+            .unevaluatedProperties(false)
+            .build();
+        var b = JsonSchema.object()
+            .property("n", JsonSchema.string())
+            .propertyNames(JsonSchema.string().pattern("^[a-z]+$"))
+            .dependentRequired("n", "m")
+            .dependentSchema("n", JsonSchema.object().required("m"))
+            .unevaluatedProperties(false)
+            .build();
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    void should_implement_equals_for_boolean_schema() {
+        var a = JsonSchema.bool().description("agreed").build();
+        var b = JsonSchema.bool().description("agreed").build();
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+        assertNotEquals(a, JsonSchema.bool().build());
+    }
+
+    @Test
+    void should_invoke_toString_on_concrete_schemas() {
+        assertNotEquals(null, JsonSchema.string().description("D").build().toString());
+        assertNotEquals(null, JsonSchema.integer().build().toString());
+        assertNotEquals(null, JsonSchema.number().build().toString());
+        assertNotEquals(null, JsonSchema.bool().build().toString());
+        assertNotEquals(null, JsonSchema.constant("v").build().toString());
+        assertNotEquals(null, JsonSchema.enumeration("a").build().toString());
+        assertNotEquals(null, JsonSchema.array().items(JsonSchema.string()).build().toString());
+        assertNotEquals(null, JsonSchema.object().property("x", JsonSchema.string()).build().toString());
+    }
+
+    @Test
+    void should_include_new_base_fields_in_toString_of_every_concrete_schema() {
+        List<JsonSchema.Builder<?, ?, ?>> builders = List.of(
+            JsonSchema.string(),
+            JsonSchema.integer(),
+            JsonSchema.number(),
+            JsonSchema.bool(),
+            JsonSchema.array().items(JsonSchema.string()),
+            JsonSchema.object(),
+            JsonSchema.enumeration("a"),
+            JsonSchema.constant("v"),
+            JsonSchema.required("x"));
+
+        for (var builder : builders) {
+            builder.title("T");
+            builder.anyOf(JsonSchema.string().minLength(1));
+            var str = builder.build().toString();
+            assertTrue(str.contains("title=T"), () -> "missing title in: " + str);
+            assertTrue(str.contains("anyOf="), () -> "missing anyOf in: " + str);
+        }
+    }
+
+    @Test
+    void should_not_be_equal_when_new_fields_differ() {
+        var withTitle = JsonSchema.string().title("A").build();
+        var withoutTitle = JsonSchema.string().build();
+        assertNotEquals(withTitle, withoutTitle);
+
+        var withReadOnly = JsonSchema.string().readOnly().build();
+        var withoutReadOnly = JsonSchema.string().build();
+        assertNotEquals(withReadOnly, withoutReadOnly);
+
+        var withUniqueItems = JsonSchema.array().items(JsonSchema.string()).uniqueItems().build();
+        var withoutUniqueItems = JsonSchema.array().items(JsonSchema.string()).build();
+        assertNotEquals(withUniqueItems, withoutUniqueItems);
+
+        var withUnevalObj = JsonSchema.object().unevaluatedProperties(false).build();
+        var withoutUnevalObj = JsonSchema.object().build();
+        assertNotEquals(withUnevalObj, withoutUnevalObj);
+    }
+
+    @Test
+    void should_support_generic_anyOf_on_object_schema_with_mixed_schema_types() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "properties": {
+                "value": { "type": "string" }
+              },
+              "anyOf": [
+                { "type": "string", "minLength": 5 },
+                { "type": "integer", "minimum": 0 }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .property("value", JsonSchema.string())
+                    .anyOf(JsonSchema.string().minLength(5), JsonSchema.integer().minimum(0))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_support_required_schema_anyOf_overload_on_object_via_list() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "object",
+              "anyOf": [
+                { "required": ["salary"] },
+                { "required": ["hourlyRate"] }
+              ]
+            }""",
+            Json.toJson(
+                JsonSchema.object()
+                    .anyOf(List.of(JsonSchema.required("salary"), JsonSchema.required("hourlyRate")))
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_allow_null_example_value() {
+        JSONAssert.assertEquals("""
+            {
+              "type": "string",
+              "examples": ["Alice", null]
+            }""",
+            Json.toJson(
+                JsonSchema.string()
+                    .examples("Alice", null)
+                    .build()
+            ), true);
+    }
+
+    @Test
+    void should_allow_array_schema_without_items_when_anyOf_or_allOf_defined() {
+        assertDoesNotThrow(() -> JsonSchema.array()
+            .allOf(JsonSchema.array().items(JsonSchema.string()))
+            .build());
+
+        assertDoesNotThrow(() -> JsonSchema.array()
+            .anyOf(JsonSchema.array().items(JsonSchema.string()), JsonSchema.array().items(JsonSchema.integer()))
+            .build());
     }
 }

@@ -599,6 +599,9 @@ public class WatsonxJacksonModule extends SimpleModule {
         @JsonProperty("items")
         abstract JsonSchema items();
 
+        @JsonProperty("prefixItems")
+        abstract List<JsonSchema> prefixItems();
+
         @JsonProperty("contains")
         abstract JsonSchema contains();
 
@@ -607,6 +610,18 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("maxItems")
         abstract Integer maxItems();
+
+        @JsonProperty("minContains")
+        abstract Integer minContains();
+
+        @JsonProperty("maxContains")
+        abstract Integer maxContains();
+
+        @JsonProperty("uniqueItems")
+        abstract Boolean uniqueItems();
+
+        @JsonProperty("unevaluatedItems")
+        abstract Object unevaluatedItems();
     }
 
     public abstract static class ConstantSchemaMixin {
@@ -644,14 +659,50 @@ public class WatsonxJacksonModule extends SimpleModule {
 
     public abstract static class JsonSchemaMixin {
 
+        @JsonProperty("title")
+        abstract String title();
+
         @JsonProperty("description")
         abstract String description();
+
+        @JsonProperty("default")
+        abstract Object defaultValue();
+
+        @JsonProperty("examples")
+        abstract List<Object> examples();
+
+        @JsonProperty("readOnly")
+        abstract Boolean readOnly();
+
+        @JsonProperty("writeOnly")
+        abstract Boolean writeOnly();
+
+        @JsonProperty("deprecated")
+        abstract Boolean deprecated();
 
         @JsonProperty("type")
         abstract Object type();
 
         @JsonProperty("oneOf")
-        abstract List<String> oneOf();
+        abstract List<? extends JsonSchema> oneOf();
+
+        @JsonProperty("anyOf")
+        abstract List<? extends JsonSchema> anyOf();
+
+        @JsonProperty("allOf")
+        abstract List<? extends JsonSchema> allOf();
+
+        @JsonProperty("not")
+        abstract JsonSchema not();
+
+        @JsonProperty("if")
+        abstract JsonSchema ifSchema();
+
+        @JsonProperty("then")
+        abstract JsonSchema thenSchema();
+
+        @JsonProperty("else")
+        abstract JsonSchema elseSchema();
     }
 
     public abstract static class ObjectSchemaMixin {
@@ -676,21 +727,33 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("additionalProperties")
         abstract Object additionalProperties();
+
+        @JsonProperty("propertyNames")
+        abstract JsonSchema propertyNames();
+
+        @JsonProperty("dependentRequired")
+        abstract Map<String, List<String>> dependentRequired();
+
+        @JsonProperty("dependentSchemas")
+        abstract Map<String, JsonSchema> dependentSchemas();
+
+        @JsonProperty("unevaluatedProperties")
+        abstract Object unevaluatedProperties();
     }
 
     public abstract static class NumberSchemaMixin {
 
         @JsonProperty("minimum")
-        abstract Integer minimum();
+        abstract Double minimum();
 
         @JsonProperty("maximum")
-        abstract Integer maximum();
+        abstract Double maximum();
 
         @JsonProperty("exclusiveMinimum")
-        abstract Integer exclusiveMinimum();
+        abstract Double exclusiveMinimum();
 
         @JsonProperty("exclusiveMaximum")
-        abstract Integer exclusiveMaximum();
+        abstract Double exclusiveMaximum();
 
         @JsonProperty("multipleOf")
         abstract Double multipleOf();
@@ -699,16 +762,16 @@ public class WatsonxJacksonModule extends SimpleModule {
     public abstract static class StringSchemaMixin {
 
         @JsonProperty("pattern")
-        abstract String getPattern();
+        abstract String pattern();
 
         @JsonProperty("maxLength")
-        abstract Integer getMaxLength();
+        abstract Integer maxLength();
 
         @JsonProperty("minLength")
-        abstract Integer getMinLength();
+        abstract Integer minLength();
 
         @JsonProperty("format")
-        abstract String getFormat();
+        abstract String format();
     }
 
     public abstract static class DefaultValueMixin {

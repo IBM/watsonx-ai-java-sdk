@@ -276,8 +276,6 @@ public abstract class BaseChatParameters {
 
     /**
      * Returns the JSON schema used to validate and constrain the model's structured output.
-     * <p>
-     * Only present when {@link #responseFormat()} is {@code "json_schema"}. Set via {@link Builder#responseAsJsonSchema(String, Object, boolean)}.
      *
      * @return the JSON schema object, or {@code null} if not set
      */
@@ -505,10 +503,10 @@ public abstract class BaseChatParameters {
          * Sets the response format to {@code JSON_SCHEMA} with the provided schema.
          *
          * @param name the schema name
-         * @param schema the JSON schema object
+         * @param schema the JSON schema object, either a {@code JsonSchema} or a {@code Map<String, Object>}
          * @param strict whether to enforce strict schema validation
          */
-        public T responseAsJsonSchema(String name, Object schema, boolean strict) {
+        protected T responseAsJsonSchema(String name, Object schema, boolean strict) {
             this.responseFormat = ResponseFormat.JSON_SCHEMA;
             this.jsonSchema = new JsonSchemaObject(name, schema, strict);
             return (T) this;

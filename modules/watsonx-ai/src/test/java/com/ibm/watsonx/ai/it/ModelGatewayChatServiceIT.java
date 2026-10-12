@@ -259,6 +259,50 @@ public class ModelGatewayChatServiceIT {
         }
 
         @Test
+        void should_return_valid_poem_with_raw_json_schema() {
+
+            record Poem(String content, String topic) {}
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .modelId(CHAT_MODEL_CLAUDE)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var parameters = ModelGatewayChatParameters.builder()
+                .responseAsJsonSchema("""
+                        {
+                          "type": "object",
+                          "properties": {
+                            "content": {
+                              "type": "string"
+                            },
+                            "topic": {
+                              "enum": ["dog", "cat"]
+                            }
+                          },
+                          "required": [ "content", "topic"]
+                        }
+                    """)
+                .build();
+
+            ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
+                .messages(UserMessage.text("Create a poem about dog, max 3 lines"))
+                .parameters(parameters)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
+            var poem = chatResponse.toAssistantMessage().toObject(Poem.class);
+
+            assertNotNull(chatResponse);
+            assertNotNull(poem);
+            assertFalse(poem.content().isBlank());
+            assertTrue(poem.topic.equalsIgnoreCase("dog"));
+        }
+
+        @Test
         void should_return_description_when_image_is_sent_in_chat() throws Exception {
 
             var image = getClass().getClassLoader().getResource("alien.jpg");
