@@ -161,6 +161,27 @@
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DefaultValueMixin"
     },
     {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionContextRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionContextRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionContextResponseEvidenceMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionContextResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionGeneratedRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionGeneratedRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionGeneratedResponseMixin"
+    },
+    {
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionTextRequestBuilderMixin"
     },
     {
@@ -308,6 +329,12 @@
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextDetectionContentDetectorsMixin"
     },
     {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextDetectionContextDetectorsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextDetectionGeneratedDetectorsMixin"
+    },
+    {
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextGenerationParametersBuilderMixin"
     },
     {
@@ -340,7 +367,27 @@
       ]
     },
     {
-      "type": "com.ibm.watsonx.ai.WatsonxParameters$Builder"
+      "type": "com.ibm.watsonx.ai.WatsonxParameters$Builder",
+      "methods": [
+        {
+          "name": "projectId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "spaceId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "transactionId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
     },
     {
       "type": "com.ibm.watsonx.ai.WatsonxParameters$WatsonxModelParameters",
@@ -1720,6 +1767,165 @@
       "type": "com.ibm.watsonx.ai.detection.BaseDetectionResponse"
     },
     {
+      "type": "com.ibm.watsonx.ai.detection.DetectionContextRequest",
+      "methods": [
+        {
+          "name": "context",
+          "parameterTypes": []
+        },
+        {
+          "name": "detectors",
+          "parameterTypes": []
+        },
+        {
+          "name": "input",
+          "parameterTypes": []
+        },
+        {
+          "name": "serviceInstanceId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionContextRequest$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "context",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "detectors",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        },
+        {
+          "name": "input",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "serviceInstanceId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionContextResponse",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "double",
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionContextResponse$Evidence",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "double",
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionGeneratedRequest",
+      "methods": [
+        {
+          "name": "detectors",
+          "parameterTypes": []
+        },
+        {
+          "name": "generatedText",
+          "parameterTypes": []
+        },
+        {
+          "name": "prompt",
+          "parameterTypes": []
+        },
+        {
+          "name": "serviceInstanceId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionGeneratedRequest$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "detectors",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        },
+        {
+          "name": "generatedText",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "prompt",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "serviceInstanceId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.DetectionGeneratedResponse",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "double"
+          ]
+        }
+      ]
+    },
+    {
       "type": "com.ibm.watsonx.ai.detection.DetectionTextRequest",
       "methods": [
         {
@@ -1729,11 +1935,43 @@
         {
           "name": "input",
           "parameterTypes": []
+        },
+        {
+          "name": "serviceInstanceId",
+          "parameterTypes": []
         }
       ]
     },
     {
-      "type": "com.ibm.watsonx.ai.detection.DetectionTextRequest$Builder"
+      "type": "com.ibm.watsonx.ai.detection.DetectionTextRequest$Builder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "detectors",
+          "parameterTypes": [
+            "java.util.Map"
+          ]
+        },
+        {
+          "name": "input",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "serviceInstanceId",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
     },
     {
       "type": "com.ibm.watsonx.ai.detection.DetectionTextResponse",
@@ -1761,7 +1999,34 @@
       ]
     },
     {
-      "type": "com.ibm.watsonx.ai.detection.detector.BaseDetector"
+      "type": "com.ibm.watsonx.ai.detection.TextDetectionContextDetectors",
+      "methods": [
+        {
+          "name": "context",
+          "parameterTypes": []
+        },
+        {
+          "name": "contextType",
+          "parameterTypes": []
+        },
+        {
+          "name": "input",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.detection.TextDetectionGeneratedDetectors",
+      "methods": [
+        {
+          "name": "generatedText",
+          "parameterTypes": []
+        },
+        {
+          "name": "prompt",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "com.ibm.watsonx.ai.foundationmodel.FoundationModel$DefaultValue",
@@ -5306,22 +5571,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.fasterxml.jackson.databind.introspect.POJOPropertyBuilder",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "com.fasterxml.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap",
           "interfaces": [
             "java.util.function.BiConsumer"
@@ -5814,7 +6063,39 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.detection.DetectionTextRequest",
+          "declaringClass": "com.ibm.watsonx.ai.detection.DetectionContextRequest$Builder",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.detection.DetectionGeneratedRequest$Builder",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.detection.DetectionTextRequest$Builder",
           "interfaces": [
             "java.util.function.Function"
           ]

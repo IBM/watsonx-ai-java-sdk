@@ -26,10 +26,12 @@ public class App {
             var url = URI.create(config.getValue("WATSONX_URL", String.class));
             var apiKey = config.getValue("WATSONX_API_KEY", String.class);
             var projectId = config.getValue("WATSONX_PROJECT_ID", String.class);
+            var governanceInstanceId = config.getOptionalValue("WATSONX_GOVERNANCE_INSTANCE_ID", String.class).orElse(null);
 
             DetectionService detectionService = DetectionService.builder()
                 .apiKey(apiKey)
                 .projectId(projectId)
+                .governanceInstanceId(governanceInstanceId)
                 .timeout(Duration.ofSeconds(60))
                 .baseUrl(url)
                 .build();

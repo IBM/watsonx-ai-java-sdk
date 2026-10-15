@@ -16,7 +16,10 @@ import java.util.Map;
  * <ul>
  * <li>{@link Pii} - detects personally identifiable information (PII)</li>
  * <li>{@link Hap} - detects hate or profanity content</li>
- * <li>{@link GraniteGuardian} - performs general content moderation</li>
+ * <li>{@link GraniteGuardian} - performs general content moderation (deprecated for context/generated endpoints)</li>
+ * <li>{@link ContextRelevance} - evaluates context relevance for RAG pipelines</li>
+ * <li>{@link Faithfulness} - evaluates faithfulness (groundedness) of a response</li>
+ * <li>{@link AnswerRelevance} - evaluates relevance of a generated answer</li>
  * </ul>
  * <p>
  * Each detector exposes a builder for fluent configuration of parameters.

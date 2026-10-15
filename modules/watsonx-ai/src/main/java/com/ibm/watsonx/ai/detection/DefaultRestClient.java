@@ -32,10 +32,30 @@ final class DefaultRestClient extends DetectionRestClient {
     }
 
     @Override
-    public DetectionResponse<DetectionTextResponse> detect(String transactionId, TextDetectionContentDetectors request) {
+    public DetectionResponse<DetectionTextResponse> detect(String transactionId, String serviceInstanceId, TextDetectionContentDetectors request) {
+        return doPost("/ml/v1/text/detection?version=%s".formatted(version), transactionId, serviceInstanceId, request,
+            new TypeToken<DetectionResponse<DetectionTextResponse>>() {});
+    }
+
+    @Override
+    public DetectionResponse<DetectionContextResponse> detectContext(String transactionId, String serviceInstanceId,
+        TextDetectionContextDetectors request) {
+        return doPost("/ml/v1/text/detection/context?version=%s".formatted(version), transactionId, serviceInstanceId, request,
+            new TypeToken<DetectionResponse<DetectionContextResponse>>() {});
+    }
+
+    @Override
+    public DetectionResponse<DetectionGeneratedResponse> detectGenerated(String transactionId, String serviceInstanceId,
+        TextDetectionGeneratedDetectors request) {
+        return doPost("/ml/v1/text/detection/generated?version=%s".formatted(version), transactionId, serviceInstanceId, request,
+            new TypeToken<DetectionResponse<DetectionGeneratedResponse>>() {});
+    }
+
+    private <T extends BaseDetectionResponse> DetectionResponse<T> doPost(String path, String transactionId, String serviceInstanceId,
+        Object request, TypeToken<DetectionResponse<T>> typeToken) {
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(baseUrl + "/ml/v1/text/detection?version=%s".formatted(version)))
+            .newBuilder(URI.create(baseUrl + path))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(request)))
@@ -44,10 +64,13 @@ final class DefaultRestClient extends DetectionRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
+        if (nonNull(serviceInstanceId))
+            httpRequest.header(GOVERNANCE_INSTANCE_ID_HEADER, serviceInstanceId);
+
         try {
 
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return fromJson(httpResponse.body(), new TypeToken<DetectionResponse<DetectionTextResponse>>() {});
+            return fromJson(httpResponse.body(), typeToken);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
