@@ -38,9 +38,17 @@ import com.ibm.watsonx.ai.chat.model.schema.ObjectSchema;
 import com.ibm.watsonx.ai.chat.model.schema.RequiredSchema;
 import com.ibm.watsonx.ai.chat.model.schema.StringSchema;
 import com.ibm.watsonx.ai.detection.BaseDetectionRequest;
+import com.ibm.watsonx.ai.detection.DetectionContextRequest;
+import com.ibm.watsonx.ai.detection.DetectionContextResponse;
+import com.ibm.watsonx.ai.detection.DetectionContextResponse.Evidence;
+import com.ibm.watsonx.ai.detection.DetectionGeneratedRequest;
+import com.ibm.watsonx.ai.detection.DetectionGeneratedResponse;
 import com.ibm.watsonx.ai.detection.DetectionTextRequest;
 import com.ibm.watsonx.ai.detection.DetectionTextResponse;
 import com.ibm.watsonx.ai.detection.TextDetectionContentDetectors;
+import com.ibm.watsonx.ai.detection.TextDetectionContextDetectors;
+import com.ibm.watsonx.ai.detection.TextDetectionGeneratedDetectors;
+import com.ibm.watsonx.ai.detection.detector.BaseDetector;
 import com.ibm.watsonx.ai.detection.detector.GraniteGuardian;
 import com.ibm.watsonx.ai.detection.detector.Hap;
 import com.ibm.watsonx.ai.detection.detector.Pii;
@@ -146,6 +154,15 @@ public class WatsonxJacksonModule extends SimpleModule {
         setMixInAnnotation(DetectionTextRequest.Builder.class, DetectionTextRequestBuilderMixin.class);
         setMixInAnnotation(TextDetectionContentDetectors.class, TextDetectionContentDetectorsMixin.class);
         setMixInAnnotation(BaseDetectionRequest.class, BaseDetectionRequestMixin.class);
+        setMixInAnnotation(DetectionContextResponse.class, DetectionContextResponseMixin.class);
+        setMixInAnnotation(Evidence.class, DetectionContextResponseEvidenceMixin.class);
+        setMixInAnnotation(DetectionGeneratedResponse.class, DetectionGeneratedResponseMixin.class);
+        setMixInAnnotation(TextDetectionContextDetectors.class, TextDetectionContextDetectorsMixin.class);
+        setMixInAnnotation(TextDetectionGeneratedDetectors.class, TextDetectionGeneratedDetectorsMixin.class);
+        setMixInAnnotation(DetectionContextRequest.class, DetectionContextRequestMixin.class);
+        setMixInAnnotation(DetectionContextRequest.Builder.class, DetectionContextRequestBuilderMixin.class);
+        setMixInAnnotation(DetectionGeneratedRequest.class, DetectionGeneratedRequestMixin.class);
+        setMixInAnnotation(DetectionGeneratedRequest.Builder.class, DetectionGeneratedRequestBuilderMixin.class);
 
         // --- Foundation Mixin --- //
         setMixInAnnotation(FoundationModel.DefaultValue.class, DefaultValueMixin.class);
@@ -363,10 +380,148 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("transaction_id")
         abstract String transactionId();
+
+        @JsonProperty("service_instance_id")
+        abstract String serviceInstanceId();
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public abstract static class DetectionTextRequestBuilderMixin {}
+    public abstract static class DetectionTextRequestBuilderMixin {
+
+        @JsonIgnore
+        abstract DetectionTextRequest.Builder detectors(List<BaseDetector> detectors);
+
+        @JsonIgnore
+        abstract DetectionTextRequest.Builder detectors(BaseDetector... detectors);
+
+        @JsonProperty("detectors")
+        abstract DetectionTextRequest.Builder detectors(Map<String, Map<String, Object>> detectors);
+    }
+
+    public abstract static class TextDetectionContextDetectorsMixin {
+
+        @JsonProperty("input")
+        abstract String input();
+
+        @JsonProperty("context_type")
+        abstract String contextType();
+
+        @JsonProperty("context")
+        abstract List<String> context();
+    }
+
+    public abstract static class TextDetectionGeneratedDetectorsMixin {
+
+        @JsonProperty("prompt")
+        abstract String prompt();
+
+        @JsonProperty("generated_text")
+        abstract String generatedText();
+    }
+
+    public abstract static class DetectionContextResponseMixin {
+        @JsonCreator
+        public DetectionContextResponseMixin(
+            @JsonProperty("detector_id") String detectorId,
+            @JsonProperty("detection_type") String detectionType,
+            @JsonProperty("detection") String detection,
+            @JsonProperty("score") double score,
+            @JsonProperty("evidence") List<Evidence> evidence) {}
+    }
+
+    public abstract static class DetectionContextResponseEvidenceMixin {
+        @JsonCreator
+        public DetectionContextResponseEvidenceMixin(
+            @JsonProperty("name") String name,
+            @JsonProperty("value") String value,
+            @JsonProperty("score") double score,
+            @JsonProperty("evidence") List<Evidence> evidence) {}
+    }
+
+    public abstract static class DetectionGeneratedResponseMixin {
+        @JsonCreator
+        public DetectionGeneratedResponseMixin(
+            @JsonProperty("detector_id") String detectorId,
+            @JsonProperty("detection_type") String detectionType,
+            @JsonProperty("detection") String detection,
+            @JsonProperty("score") double score) {}
+    }
+
+    @JsonDeserialize(builder = DetectionContextRequest.Builder.class)
+    public abstract static class DetectionContextRequestMixin {
+
+        @JsonProperty("input")
+        abstract String input();
+
+        @JsonProperty("context")
+        abstract List<String> context();
+
+        @JsonProperty("detectors")
+        abstract Map<String, Map<String, Object>> detectors();
+
+        @JsonProperty("project_id")
+        abstract String projectId();
+
+        @JsonProperty("space_id")
+        abstract String spaceId();
+
+        @JsonProperty("transaction_id")
+        abstract String transactionId();
+
+        @JsonProperty("service_instance_id")
+        abstract String serviceInstanceId();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class DetectionContextRequestBuilderMixin {
+
+        @JsonIgnore
+        abstract DetectionContextRequest.Builder detectors(List<BaseDetector> detectors);
+
+        @JsonIgnore
+        abstract DetectionContextRequest.Builder detectors(BaseDetector... detectors);
+
+        @JsonProperty("detectors")
+        abstract DetectionContextRequest.Builder detectors(Map<String, Map<String, Object>> detectors);
+    }
+
+    @JsonDeserialize(builder = DetectionGeneratedRequest.Builder.class)
+    public abstract static class DetectionGeneratedRequestMixin {
+
+        @JsonProperty("prompt")
+        abstract String prompt();
+
+        @JsonProperty("generated_text")
+        abstract String generatedText();
+
+        @JsonProperty("detectors")
+        abstract Map<String, Map<String, Object>> detectors();
+
+        @JsonProperty("project_id")
+        abstract String projectId();
+
+        @JsonProperty("space_id")
+        abstract String spaceId();
+
+        @JsonProperty("transaction_id")
+        abstract String transactionId();
+
+        @JsonProperty("service_instance_id")
+        abstract String serviceInstanceId();
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public abstract static class DetectionGeneratedRequestBuilderMixin {
+
+        @JsonIgnore
+        abstract DetectionGeneratedRequest.Builder detectors(List<BaseDetector> detectors);
+
+        @JsonIgnore
+        abstract DetectionGeneratedRequest.Builder detectors(BaseDetector... detectors);
+
+        @JsonProperty("detectors")
+        abstract DetectionGeneratedRequest.Builder detectors(Map<String, Map<String, Object>> detectors);
+    }
 
     @JsonDeserialize(builder = ChatResponse.Builder.class)
     public abstract static class ChatResponseMixin {

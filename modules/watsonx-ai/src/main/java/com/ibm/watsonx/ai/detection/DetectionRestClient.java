@@ -13,6 +13,8 @@ import com.ibm.watsonx.ai.WatsonxRestClient;
  */
 public abstract class DetectionRestClient extends WatsonxRestClient {
 
+    public static final String GOVERNANCE_INSTANCE_ID_HEADER = "x-governance-instance-id";
+
     protected DetectionRestClient(Builder builder) {
         super(builder);
     }
@@ -21,10 +23,34 @@ public abstract class DetectionRestClient extends WatsonxRestClient {
      * Executes a text content detection request.
      *
      * @param transactionId an optional transaction identifier for tracing
+     * @param serviceInstanceId the watsonx.governance service instance id
      * @param request the detection request containing input text and detector configurations
      * @return a {@link DetectionResponse} containing the detection results
      */
-    public abstract DetectionResponse<DetectionTextResponse> detect(String transactionId, TextDetectionContentDetectors request);
+    public abstract DetectionResponse<DetectionTextResponse> detect(String transactionId, String serviceInstanceId,
+        TextDetectionContentDetectors request);
+
+    /**
+     * Executes a context-based detection request (context relevance and faithfulness).
+     *
+     * @param transactionId an optional transaction identifier for tracing
+     * @param serviceInstanceId the watsonx.governance service instance id
+     * @param request the detection request containing input text, context documents, and detector configurations
+     * @return a {@link DetectionResponse} containing the detection results
+     */
+    public abstract DetectionResponse<DetectionContextResponse> detectContext(String transactionId, String serviceInstanceId,
+        TextDetectionContextDetectors request);
+
+    /**
+     * Executes a generated text detection request (answer relevance).
+     *
+     * @param transactionId an optional transaction identifier for tracing
+     * @param serviceInstanceId the watsonx.governance service instance id
+     * @param request the detection request containing a prompt, generated text, and detector configurations
+     * @return a {@link DetectionResponse} containing the detection results
+     */
+    public abstract DetectionResponse<DetectionGeneratedResponse> detectGenerated(String transactionId, String serviceInstanceId,
+        TextDetectionGeneratedDetectors request);
 
     /**
      * Creates a new {@link Builder} using the first available {@link DetectionRestClientBuilderFactory} discovered via {@link ServiceLoader}.

@@ -13,6 +13,7 @@ package com.ibm.watsonx.ai.detection.detector;
  * GraniteGuardian detector = GraniteGuardian.builder()
  *     .threshold(0.5)
  *     .build();
+ *
  * }</pre>
  */
 public final class GraniteGuardian extends BaseDetector {

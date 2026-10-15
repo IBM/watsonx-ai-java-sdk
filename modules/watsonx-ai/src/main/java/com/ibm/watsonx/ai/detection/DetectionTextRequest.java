@@ -28,12 +28,13 @@ import com.ibm.watsonx.ai.detection.detector.BaseDetector;
 public final class DetectionTextRequest extends WatsonxParameters {
     private final String input;
     private final Map<String, Map<String, Object>> detectors;
+    private final String serviceInstanceId;
 
     private DetectionTextRequest(Builder builder) {
         super(builder);
         input = requireNonNull(builder.input, "input cannot be null");
-        detectors = Collections.unmodifiableMap(requireNonNull(builder.detectors, "detectors cannot be null").stream()
-            .collect(toMap(BaseDetector::name, BaseDetector::properties)));
+        detectors = Collections.unmodifiableMap(requireNonNull(builder.detectors, "detectors cannot be null"));
+        serviceInstanceId = builder.serviceInstanceId;
     }
 
     /**
@@ -52,6 +53,17 @@ public final class DetectionTextRequest extends WatsonxParameters {
      */
     public Map<String, Map<String, Object>> detectors() {
         return detectors;
+    }
+
+    /**
+     * Returns the watsonx.governance service instance id.
+     * <p>
+     * When set, it is used in place of {@link #projectId()}/{@link #spaceId()} to scope the request.
+     *
+     * @return the service instance id
+     */
+    public String serviceInstanceId() {
+        return serviceInstanceId;
     }
 
     /**
@@ -78,7 +90,8 @@ public final class DetectionTextRequest extends WatsonxParameters {
      */
     public final static class Builder extends WatsonxParameters.Builder<Builder> {
         private String input;
-        private List<BaseDetector> detectors;
+        private Map<String, Map<String, Object>> detectors;
+        private String serviceInstanceId;
 
         private Builder() {}
 
@@ -98,7 +111,7 @@ public final class DetectionTextRequest extends WatsonxParameters {
          * @param detectors the list of detectors
          */
         public Builder detectors(List<BaseDetector> detectors) {
-            this.detectors = detectors;
+            this.detectors = detectors.stream().collect(toMap(BaseDetector::name, BaseDetector::properties));
             return this;
         }
 
@@ -109,6 +122,28 @@ public final class DetectionTextRequest extends WatsonxParameters {
          */
         public Builder detectors(BaseDetector... detectors) {
             return detectors(List.of(detectors));
+        }
+
+        /**
+         * Sets the detector configurations directly as a map of detector names to their configuration parameters.
+         *
+         * @param detectors a map of detector names to their configuration parameters
+         */
+        Builder detectors(Map<String, Map<String, Object>> detectors) {
+            this.detectors = detectors;
+            return this;
+        }
+
+        /**
+         * Sets the watsonx.governance service instance id.
+         * <p>
+         * When set, it is used in place of {@code projectId}/{@code spaceId} to scope the request.
+         *
+         * @param serviceInstanceId the service instance id
+         */
+        public Builder serviceInstanceId(String serviceInstanceId) {
+            this.serviceInstanceId = serviceInstanceId;
+            return this;
         }
 
         /**
@@ -127,6 +162,7 @@ public final class DetectionTextRequest extends WatsonxParameters {
         int result = super.hashCode();
         result = prime * result + ((input == null) ? 0 : input.hashCode());
         result = prime * result + ((detectors == null) ? 0 : detectors.hashCode());
+        result = prime * result + ((serviceInstanceId == null) ? 0 : serviceInstanceId.hashCode());
         return result;
     }
 
@@ -147,12 +183,17 @@ public final class DetectionTextRequest extends WatsonxParameters {
                 return false;
         } else if (!detectors.equals(other.detectors))
             return false;
+        if (serviceInstanceId == null) {
+            if (other.serviceInstanceId != null)
+                return false;
+        } else if (!serviceInstanceId.equals(other.serviceInstanceId))
+            return false;
         return true;
     }
 
     @Override
     public String toString() {
         return "DetectionTextRequest [projectId=" + projectId + ", spaceId=" + spaceId + ", transactionId=" + transactionId + ", input=" + input
-            + ", detectors=" + detectors + "]";
+            + ", detectors=" + detectors + ", serviceInstanceId=" + serviceInstanceId + "]";
     }
 }
