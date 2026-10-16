@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.client.impl;
 
+import static java.util.Objects.requireNonNull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -19,6 +20,9 @@ public class CustomCosStorageRestClient extends CosStorageRestClient {
 
     @Override
     public boolean upload(String requestTrackingId, InputStream is, String fileName) {
+        requireNonNull(authenticator);
+        requireNonNull(cosAuthenticator);
+        requireNonNull(httpClient);
         throw new UnsupportedOperationException("Unimplemented method 'upload'");
     }
 
