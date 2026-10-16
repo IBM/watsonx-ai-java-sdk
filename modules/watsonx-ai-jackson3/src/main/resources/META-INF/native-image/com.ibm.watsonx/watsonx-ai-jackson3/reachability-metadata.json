@@ -14,6 +14,9 @@
       "type": "com.fasterxml.jackson.annotation.JacksonAnnotation"
     },
     {
+      "type": "com.fasterxml.jackson.annotation.JsonAlias"
+    },
+    {
       "type": "com.fasterxml.jackson.annotation.JsonAnyGetter"
     },
     {
@@ -258,6 +261,9 @@
     },
     {
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$RequiredSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ResultMessageMixin"
     },
     {
       "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$SchemaBuilderMixin"
@@ -5285,6 +5291,21 @@
       "type": {
         "proxy": [
           "com.fasterxml.jackson.annotation.JacksonAnnotation"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonAlias"
         ]
       },
       "methods": [
