@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.textprocessing.storage.cos;
 
+import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -16,6 +18,7 @@ import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
+import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 
 /**
@@ -26,11 +29,28 @@ public abstract class CosStorageRestClient {
     protected final String cosUrl;
     protected final String bucket;
     protected final Duration timeout;
+    protected final Authenticator authenticator;
+    protected final Authenticator cosAuthenticator;
+    protected final HttpClient httpClient;
+    protected final boolean logRequests, logResponses;
+    protected final HttpRequestLogger requestLogger;
+    protected final Level requestLogLevel;
+    protected final HttpResponseLogger responseLogger;
+    protected final Level responseLogLevel;
 
     protected CosStorageRestClient(Builder<?> builder) {
-        this.cosUrl = builder.cosUrl;
-        this.bucket = builder.bucket;
-        this.timeout = builder.timeout;
+        cosUrl = requireNonNull(builder.cosUrl, "cosUrl cannot be null");
+        bucket = requireNonNull(builder.bucket, "bucket cannot be null");
+        timeout = requireNonNull(builder.timeout, "timeout cannot be null");
+        authenticator = requireNonNull(builder.authenticator, "authenticator cannot be null");
+        cosAuthenticator = requireNonNullElse(builder.cosAuthenticator, this.authenticator);
+        httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient(builder.verifySsl));
+        logRequests = builder.logRequests;
+        logResponses = builder.logResponses;
+        requestLogger = builder.requestLogger;
+        requestLogLevel = builder.requestLogLevel;
+        responseLogger = builder.responseLogger;
+        responseLogLevel = builder.responseLogLevel;
     }
 
     /**
@@ -98,19 +118,19 @@ public abstract class CosStorageRestClient {
      */
     @SuppressWarnings("unchecked")
     public abstract static class Builder<B extends Builder<B>> {
-        String cosUrl;
-        String bucket;
-        Authenticator authenticator;
-        Authenticator cosAuthenticator;
-        HttpClient httpClient;
-        Duration timeout;
-        boolean logRequests;
-        boolean logResponses;
-        HttpRequestLogger requestLogger;
-        Level requestLogLevel = Level.INFO;
-        HttpResponseLogger responseLogger;
-        Level responseLogLevel = Level.INFO;
-        boolean verifySsl = true;
+        private String cosUrl;
+        private String bucket;
+        private Authenticator authenticator;
+        private Authenticator cosAuthenticator;
+        private HttpClient httpClient;
+        private Duration timeout;
+        private boolean logRequests;
+        private boolean logResponses;
+        private HttpRequestLogger requestLogger;
+        private Level requestLogLevel = Level.INFO;
+        private HttpResponseLogger responseLogger;
+        private Level responseLogLevel = Level.INFO;
+        private boolean verifySsl = true;
 
         public abstract CosStorageRestClient build();
 

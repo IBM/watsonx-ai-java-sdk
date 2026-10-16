@@ -6,8 +6,6 @@ package com.ibm.watsonx.ai.textprocessing.storage.cos;
 
 import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
 import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNullElse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,7 +21,6 @@ import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
-import com.ibm.watsonx.ai.core.provider.HttpClientProvider;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 
 /**
@@ -37,22 +34,16 @@ final class DefaultRestClient extends CosStorageRestClient {
     DefaultRestClient(Builder builder) {
         super(builder);
 
-        requireNonNull(cosUrl, "cosUrl cannot be null");
-        requireNonNull(bucket, "bucket cannot be null");
-        requireNonNull(timeout, "timeout cannot be null");
-
-        var cosAuth = requireNonNullElse(builder.cosAuthenticator, requireNonNull(builder.authenticator, "authenticator cannot be null"));
-        var logMode = LogMode.of(builder.logRequests, builder.logResponses);
-        var httpClient = requireNonNullElse(builder.httpClient, HttpClientProvider.httpClient(builder.verifySsl));
+        var logMode = LogMode.of(logRequests, logResponses);
 
         syncCosHttpClient = HttpClientFactory.createSync(
-            cosAuth, httpClient, logMode, builder.requestLogger,
-            builder.requestLogLevel, builder.responseLogger, builder.responseLogLevel
+            cosAuthenticator, httpClient, logMode, requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel
         );
 
         asyncCosHttpClient = HttpClientFactory.createAsync(
-            cosAuth, httpClient, logMode, builder.requestLogger,
-            builder.requestLogLevel, builder.responseLogger, builder.responseLogLevel
+            cosAuthenticator, httpClient, logMode, requestLogger,
+            requestLogLevel, responseLogger, responseLogLevel
         );
     }
 
