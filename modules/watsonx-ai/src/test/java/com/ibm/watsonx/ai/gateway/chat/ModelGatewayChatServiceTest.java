@@ -33,8 +33,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
@@ -1115,5 +1115,106 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
 
         assertEquals("User wants translation.", thinking.toString());
         assertTrue(response.toString().contains("\"ciao\""));
+    }
+
+    @Test
+    void should_stream_reasoning_content() throws Exception {
+
+        wireMock.stubFor(post("/ml/gateway/v1/chat/completions?version=%s".formatted(API_VERSION))
+            .withHeader("Accept", equalTo("text/event-stream"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withChunkedDribbleDelay(8, 100)
+                .withBody(
+                    """
+                        data: {"id":"SHXYaqqtENTQz7IPh4DACA","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"role":"assistant","content":"","reasoning_content":"The user said \\"Hello!\\"."},"finish_reason":"","logprobs":null}],"created":1792570696,"model":"gemma-4-26b-a4b-it","system_fingerprint":null,"service_tier":null,"usage":null,"cached":false}
+
+                        data: {"id":"SHXYaqqtENTQz7IPh4DACA","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"","reasoning_content":"\\nThe user is initiating a conversation."},"finish_reason":"","logprobs":null}],"created":1792570696,"model":"gemma-4-26b-a4b-it","system_fingerprint":null,"service_tier":null,"usage":null,"cached":false}
+
+                        data: {"id":"SHXYaqqtENTQz7IPh4DACA","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"Hello! How can I help you today?"},"finish_reason":"","logprobs":null}],"created":1792570696,"model":"gemma-4-26b-a4b-it","system_fingerprint":null,"service_tier":null,"usage":null,"cached":false}
+
+                        data: {"id":"SHXYaqqtENTQz7IPh4DACA","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":""},"finish_reason":"stop","logprobs":null}],"created":1792570696,"model":"gemma-4-26b-a4b-it","system_fingerprint":null,"service_tier":null,"usage":null,"cached":false}
+
+                        data: {"id":"SHXYaqqtENTQz7IPh4DACA","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":""},"finish_reason":"","logprobs":null}],"created":1792570696,"model":"gemma-4-26b-a4b-it","system_fingerprint":null,"service_tier":null,"usage":{"prompt_tokens":3,"completion_tokens":83,"total_tokens":86},"cached":false}
+
+                        data: [DONE]
+                        """)));
+
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+
+        var service = ModelGatewayChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("gemma-4-26b-a4b-it")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .version(API_VERSION)
+            .build();
+
+        var request = ModelGatewayChatRequest.builder()
+            .messages(UserMessage.text("Hello!"))
+            .build();
+
+        var thinking = new StringBuilder();
+        var response = new StringBuilder();
+        var chatResponse = assertInstanceOf(ModelGatewayChatResponse.class,
+            assertDoesNotThrow(() -> service.chatStreaming(request, response::append, thinking::append).get(5, TimeUnit.SECONDS)));
+
+        assertEquals("The user said \"Hello!\".\nThe user is initiating a conversation.", thinking.toString());
+        assertEquals("Hello! How can I help you today?", response.toString());
+        assertEquals("Hello! How can I help you today?", chatResponse.choices().get(0).message().content());
+        assertEquals("The user said \"Hello!\".\nThe user is initiating a conversation.", chatResponse.choices().get(0).message().reasoningContent());
+        assertEquals("stop", chatResponse.choices().get(0).finishReason());
+    }
+
+    @Test
+    void should_parse_reasoning_content_from_response() {
+
+        wireMock.stubFor(post("/ml/gateway/v1/chat/completions?version=%s".formatted(API_VERSION))
+            .withHeader("Authorization", equalTo("Bearer my-super-token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(
+                    """
+                        {
+                            "id": "JnTYatMgvYTPsg-kr7Np",
+                            "object": "chat.completion",
+                            "created": 1792570405,
+                            "model": "gemma-4-26b-a4b-it",
+                            "choices": [ {
+                                "index": 0,
+                                "message": {
+                                    "role": "assistant",
+                                    "content": "Hello! How can I help you today?",
+                                    "reasoning_content": "The user said \\"Hello!\\"\\nThe user is initiating a conversation."
+                                },
+                                "finish_reason": "stop",
+                                "logprobs": null
+                            } ],
+                            "usage": { "prompt_tokens": 3, "completion_tokens": 73, "total_tokens": 76 },
+                            "service_tier": "default",
+                            "system_fingerprint": null,
+                            "cached": false
+                        }""")));
+
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+
+        var modelGatewayChatService = ModelGatewayChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("gemma-4-26b-a4b-it")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .version(API_VERSION)
+            .build();
+
+        var chatResponse = modelGatewayChatService.chat(
+            ModelGatewayChatRequest.builder().messages(UserMessage.text("Hello!")).build());
+
+        assertEquals("JnTYatMgvYTPsg-kr7Np", chatResponse.id());
+        assertEquals("gemma-4-26b-a4b-it", chatResponse.model());
+
+        var message = chatResponse.choices().get(0).message();
+        assertEquals("Hello! How can I help you today?", message.content());
+        assertEquals("The user said \"Hello!\"\nThe user is initiating a conversation.", message.reasoningContent());
+        assertEquals("stop", chatResponse.choices().get(0).finishReason());
+        assertNull(message.refusal());
     }
 }

@@ -637,6 +637,27 @@ public class ModelGatewayChatServiceIT {
             assertNotNull(assistantMessage.content());
             assertEquals(3, assistantMessage.toolCalls().size());
         }
+
+        @Test
+        void should_return_reasoning_content_when_model_supports_it() {
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .modelId(CHAT_MODEL_GEMMA)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat("What is 17 * 13? Show your reasoning step by step."));
+            var message = chatResponse.choices().get(0).message();
+
+            assertNotNull(message.content());
+            assertFalse(message.content().isBlank());
+            assertNotNull(message.reasoningContent());
+            assertFalse(message.reasoningContent().isBlank());
+            assertEquals("stop", chatResponse.choices().get(0).finishReason());
+        }
     }
 
     @Nested
@@ -1615,6 +1636,33 @@ public class ModelGatewayChatServiceIT {
             assertEquals(0, terminalCallbacks.get());
             assertTrue(future.isCancelled());
             assertThrows(CancellationException.class, future::join);
+        }
+
+        @Test
+        void should_stream_reasoning_content() throws Exception {
+
+            var modelGatewayChatService = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .modelId(CHAT_MODEL_GEMMA)
+                .authenticator(authentication)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var request = ModelGatewayChatRequest.builder()
+                .messages(UserMessage.text("Hello! Reasoning!"))
+                .build();
+
+            var thinking = new StringBuilder();
+            var response = new StringBuilder();
+            var chatResponse = assertInstanceOf(ModelGatewayChatResponse.class,
+                modelGatewayChatService.chatStreaming(request, response::append, thinking::append).get(60, TimeUnit.SECONDS));
+
+            assertFalse(response.toString().isBlank());
+            assertFalse(thinking.toString().isBlank());
+            assertEquals(response.toString(), chatResponse.choices().get(0).message().content());
+            assertEquals(thinking.toString(), chatResponse.choices().get(0).message().reasoningContent());
+            assertEquals("stop", chatResponse.choices().get(0).finishReason());
         }
     }
 }
