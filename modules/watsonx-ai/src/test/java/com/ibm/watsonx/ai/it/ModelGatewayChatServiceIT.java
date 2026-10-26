@@ -639,7 +639,7 @@ public class ModelGatewayChatServiceIT {
         }
 
         @Test
-        void should_return_reasoning_content_when_model_supports_it() {
+        void should_return_reasoning_content() {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
@@ -1599,7 +1599,7 @@ public class ModelGatewayChatServiceIT {
 
             var chatRequest = ModelGatewayChatRequest.builder()
                 .messages(UserMessage.text("Count from 1 to 300, one number per line, without any other text."))
-                .parameters(ModelGatewayChatParameters.builder().maxTokens(1000).build())
+                .parameters(ModelGatewayChatParameters.builder().maxCompletionTokens(1000).build())
                 .build();
 
             var partialResponses = new AtomicInteger();
