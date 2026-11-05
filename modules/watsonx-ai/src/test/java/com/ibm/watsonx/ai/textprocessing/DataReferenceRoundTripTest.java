@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.textprocessing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
@@ -74,6 +75,20 @@ public class DataReferenceRoundTripTest {
         assertFalse(json.contains("connection"), "connection must be absent for container type");
         assertFalse(json.contains("file_name"), "file_name must be absent for container type");
         assertFalse(json.contains("bucket"), "bucket must be absent for container type");
+    }
+
+    @Test
+    void should_reject_path_free_container_reference_without_object_name() {
+        assertThrows(NullPointerException.class, () -> ContainerReference.container().toDataReference(null));
+    }
+
+    @Test
+    void should_deserialize_location_without_fields() throws Exception {
+
+        var deserialized = Json.fromJson("""
+            { "type": "container", "location": {} }""", DataReference.class);
+
+        assertEquals(new DataReference(DataReference.TYPE_CONTAINER, null, new CosDataLocation(null, null, null)), deserialized);
     }
 
 }

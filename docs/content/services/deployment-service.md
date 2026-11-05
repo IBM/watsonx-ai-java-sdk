@@ -122,6 +122,15 @@ CompletableFuture<ChatResponse> future = deploymentService.chatStreaming(chatReq
 future.join(); // wait for completion
 ```
 
+To receive the answer and the reasoning tokens separately, pass two consumers:
+
+```java
+CompletableFuture<ChatResponse> future = deploymentService.chatStreaming(chatRequest,
+    System.out::print,
+    thinking -> System.err.print(thinking)
+);
+```
+
 ### Cancelling a Stream
 
 Both `chatStreaming` and `generateStreaming` return a future that can be cancelled to stop the stream early:

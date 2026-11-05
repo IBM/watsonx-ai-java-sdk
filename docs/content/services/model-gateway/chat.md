@@ -187,6 +187,17 @@ CompletableFuture<ChatResponse> future = service.chatStreaming(
 future.join();
 ```
 
+Pass a second consumer to receive reasoning tokens separately from the answer:
+
+```java
+CompletableFuture<ChatResponse> future = service.chatStreaming(
+    "Why is the sky blue?",
+    System.out::print,
+    thinking -> System.err.print(thinking)
+);
+future.join();
+```
+
 ### Streaming with ChatHandler
 
 ```java

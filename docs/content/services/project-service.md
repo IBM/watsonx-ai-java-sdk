@@ -65,7 +65,7 @@ ProjectService service = ProjectService.builder()
 
 ### Retrieving a Project
 
-`findProject` returns an `Optional` — present when the project exists, empty when the API returns 404.
+`findProject` returns an `Optional`. It is present when the project exists and empty when the API returns 404.
 
 ```java
 // Throw if not found

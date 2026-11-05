@@ -20,17 +20,25 @@ The samples in this documentation reference values such as an **API key**, a **P
 
 ## Installation
 
-Add the SDK to your Maven project:
+Add the SDK and one JSON binding module to your Maven project:
 
 <CodeBlock language="xml">{`<dependency>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>watsonx-ai</artifactId>
     <version>${SdkVersion()}</version>
+</dependency>
+<dependency>
+    <groupId>com.ibm.watsonx</groupId>
+    <artifactId>watsonx-ai-jackson2</artifactId>
+    <version>${SdkVersion()}</version>
 </dependency>`}</CodeBlock>
 
 Or for Gradle:
 
-<CodeBlock language="groovy">{`implementation 'com.ibm.watsonx:watsonx-ai:${SdkVersion()}'`}</CodeBlock>
+<CodeBlock language="groovy">{`implementation 'com.ibm.watsonx:watsonx-ai:${SdkVersion()}'
+implementation 'com.ibm.watsonx:watsonx-ai-jackson2:${SdkVersion()}'`}</CodeBlock>
+
+`watsonx-ai-jackson2` binds Jackson 2 and `watsonx-ai-jackson3` binds Jackson 3. Add exactly one of them. Without a binding the SDK fails on the first JSON operation, see [JSON SPI](advanced/spi#json-spi).
 
 ## Quick Start
 

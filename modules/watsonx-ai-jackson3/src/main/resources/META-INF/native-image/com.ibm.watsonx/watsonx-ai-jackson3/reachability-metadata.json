@@ -3689,30 +3689,6 @@
       ]
     },
     {
-      "type": "java.lang.ProcessHandleImpl$Info",
-      "jniAccessible": true,
-      "fields": [
-        {
-          "name": "arguments"
-        },
-        {
-          "name": "command"
-        },
-        {
-          "name": "commandLine"
-        },
-        {
-          "name": "startTime"
-        },
-        {
-          "name": "totalTime"
-        },
-        {
-          "name": "user"
-        }
-      ]
-    },
-    {
       "type": "java.lang.Record"
     },
     {
@@ -3839,18 +3815,6 @@
     },
     {
       "type": "java.lang.String[]"
-    },
-    {
-      "type": "java.lang.System",
-      "jniAccessible": true,
-      "fields": [
-        {
-          "name": "err"
-        },
-        {
-          "name": "out"
-        }
-      ]
     },
     {
       "type": "java.lang.System$Logger$Level",
@@ -5096,36 +5060,6 @@
         {
           "name": "values",
           "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.management.VMManagementImpl",
-      "jniAccessible": true,
-      "fields": [
-        {
-          "name": "compTimeMonitoringSupport"
-        },
-        {
-          "name": "currentThreadCpuTimeSupport"
-        },
-        {
-          "name": "objectMonitorUsageSupport"
-        },
-        {
-          "name": "otherThreadCpuTimeSupport"
-        },
-        {
-          "name": "remoteDiagnosticCommandsSupport"
-        },
-        {
-          "name": "synchronizerUsageSupport"
-        },
-        {
-          "name": "threadAllocatedMemorySupport"
-        },
-        {
-          "name": "threadContentionMonitoringSupport"
         }
       ]
     },

@@ -66,6 +66,9 @@ jobs:
       - name: Run tests
         run: ./mvnw verify -B -ntp
 
+      - name: Run CDI tests
+        run: ./mvnw test -pl modules/watsonx-ai -am -B -ntp -DskipTests=false -Dtest=ContextDepedencyInjectionTest -Dsurefire.failIfNoSpecifiedTests=false
+
   native-tests-core:
     needs: verify-license-and-format
     runs-on: ubuntu-latest
@@ -173,7 +176,7 @@ jobs:
           echo "NEXT_VERSION=$next" >> $GITHUB_ENV
 
       - name: Update samples pom.xml to ${{env.NEXT_VERSION}}
-        run: ./mvnw -f samples/pom.xml versions:use-dep-version -Dincludes=com.ibm.watsonx:watsonx-ai -DdepVersion=${{env.NEXT_VERSION}} -DforceVersion=true
+        run: ./mvnw -f samples/pom.xml versions:use-dep-version -Dincludes=com.ibm.watsonx:* -DdepVersion=${{env.NEXT_VERSION}} -DforceVersion=true
 
       - name: Build and Install ${{env.NEXT_VERSION}} version
         run: ./mvnw clean install -B -ntp -DskipTests -Dmaven.test.skip=true

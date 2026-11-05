@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.textprocessing;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Represents a reference to the default container managed by the watsonx.ai.
  *
@@ -23,7 +25,7 @@ public record ContainerReference(String path) implements DocumentReference {
         return new DataReference(
             DataReference.TYPE_CONTAINER,
             null,
-            new CosDataLocation(null, null, path != null ? path : objectName)
+            new CosDataLocation(null, null, requireNonNull(path != null ? path : objectName, "objectName can't be null"))
         );
     }
 
