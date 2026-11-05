@@ -179,7 +179,7 @@ jobs:
         run: ./mvnw -f samples/pom.xml versions:use-dep-version -Dincludes=com.ibm.watsonx:* -DdepVersion=${{env.NEXT_VERSION}} -DforceVersion=true
 
       - name: Build and Install ${{env.NEXT_VERSION}} version
-        run: ./mvnw clean install -B -ntp -DskipTests -Dmaven.test.skip=true
+        run: ./mvnw clean install -B -ntp -DskipTests
 
       - name: Build samples
         run: ./mvnw -f samples/pom.xml clean package -B -ntp
