@@ -33,7 +33,7 @@ jobs:
           gpg-passphrase: GPG_PASSPHRASE
       
       - name: Deploy with Maven
-        run: ./mvnw clean deploy -Psign
+        run: ./mvnw clean deploy -Psign -Dwatsonx.release=true
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}

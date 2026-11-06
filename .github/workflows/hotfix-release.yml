@@ -77,7 +77,7 @@ jobs:
       - name: Update README.md
         run: |
           sed -E -i "s|(<version>)[^<]*(</version>)|\1${{ inputs.version }}\2|" README.md
-          sed -E -i "s|(com\.ibm\.watsonx:watsonx-ai:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ inputs.version }}|" README.md
+          sed -E -i "s|(com\.ibm\.watsonx:watsonx-ai[^:]*:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ inputs.version }}|g" README.md
 
       - name: Update SDK version in docusaurus.config.ts
         run: |
@@ -118,7 +118,7 @@ jobs:
           git checkout main
           git pull origin main
           sed -E -i "s|(<version>)[^<]*(</version>)|\1${{ inputs.version }}\2|" README.md
-          sed -E -i "s|(com\.ibm\.watsonx:watsonx-ai:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ inputs.version }}|" README.md
+          sed -E -i "s|(com\.ibm\.watsonx:watsonx-ai[^:]*:)[0-9]+\.[0-9]+\.[0-9]+|\1${{ inputs.version }}|g" README.md
           sed -E -i "s|(sdkVersion:[[:space:]]*')[^']*(')|\1${{ inputs.version }}\2|" docs/docusaurus.config.ts
           sed -E -i "s|(current-version:[[:space:]]*\").*(\")|\1${{ inputs.version }}\2|" .github/project.yml
 

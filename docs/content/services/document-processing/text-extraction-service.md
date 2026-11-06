@@ -430,16 +430,9 @@ TextExtractionParameters parameters = TextExtractionParameters.builder()
 String json = service.uploadExtractAndFetch(new File("invoice.pdf"), parameters);
 ```
 
-### Extraction Methods
+### Schema-based Extraction
 
-Two methods can be enabled independently or together when using `GENERIC_WITH_SEMANTIC`:
-
-| Method | Parameter | Behaviour |
-|--------|-----------|-----------|
-| Schema-based | `enableSchemaKvp(true)` | Classifies each page into a schema type and extracts only the defined fields. Higher accuracy for known document types |
-| Generic | `enableGenericKvp(true)` | Broad sweep: extracts any labelled data regardless of schema. Useful for unknown document formats |
-
-Both are active by default. If you only want schema-based results, set `enableGenericKvp(false)` to avoid duplicate extractions.
+When using `GENERIC_WITH_SEMANTIC`, `enableSchemaKvp(true)` classifies each page into a schema type and extracts only the defined fields. This gives higher accuracy for known document types.
 
 ### Schema Merge Strategy
 

@@ -19,12 +19,17 @@ The [Setup & Prerequisites](https://ibm.github.io/watsonx-ai-java-sdk/setup) gui
 
 ## Installation
 
-Add the SDK to your **Maven** project:
+Add the SDK and one JSON binding module to your **Maven** project:
 
 ```xml
 <dependency>
     <groupId>com.ibm.watsonx</groupId>
     <artifactId>watsonx-ai</artifactId>
+    <version>0.40.0</version>
+</dependency>
+<dependency>
+    <groupId>com.ibm.watsonx</groupId>
+    <artifactId>watsonx-ai-jackson2</artifactId>
     <version>0.40.0</version>
 </dependency>
 ```
@@ -33,7 +38,10 @@ Or for **Gradle**:
 
 ```gradle
 implementation 'com.ibm.watsonx:watsonx-ai:0.40.0'
+implementation 'com.ibm.watsonx:watsonx-ai-jackson2:0.40.0'
 ```
+
+`watsonx-ai-jackson2` binds Jackson 2 and `watsonx-ai-jackson3` binds Jackson 3. Add exactly one of them. Without a binding the SDK fails on the first JSON operation, see [JSON SPI](https://ibm.github.io/watsonx-ai-java-sdk/advanced/spi#json-spi).
 
 ## Quick Start
 

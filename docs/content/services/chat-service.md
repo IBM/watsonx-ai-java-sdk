@@ -254,6 +254,22 @@ CompletableFuture<ChatResponse> future = chatService.chatStreaming(
 ChatResponse finalResponse = future.get();
 ```
 
+### Streaming Reasoning Tokens
+
+Pass a second `Consumer<String>` to receive reasoning tokens separately from the answer:
+
+```java
+CompletableFuture<ChatResponse> future = chatService.chatStreaming(
+    List.of(UserMessage.text("Why is the sky blue?")),
+    System.out::print,
+    thinking -> System.err.print(thinking)
+);
+
+ChatResponse finalResponse = future.get();
+```
+
+The second consumer receives tokens only for models that return reasoning, configured as described in [Reasoning / Thinking Mode](#reasoning--thinking-mode). `DeploymentService` and `ModelGatewayChatService` have the same overloads.
+
 ### Streaming with ChatHandler
 
 Implement `ChatHandler` for full control over the streaming process (metadata, finish reasons, tool call fragments, error handling):
@@ -555,6 +571,30 @@ System.out.println(languages);
 
 > **Note:** By default, Jackson uses `snake_case` for JSON property names. Make sure the field names in your prompt and schema follow the same convention (e.g., `use_cases` instead of `useCases`) to ensure correct deserialization.
 
+#### Schema Keywords
+
+Every schema builder supports the common JSON Schema keywords:
+
+| Applies to | Builder methods |
+|------------|-----------------|
+| All schemas | `title`, `description`, `defaultValue`, `examples`, `readOnly`, `writeOnly`, `deprecated`, `nullable`, `oneOf`, `anyOf`, `allOf`, `not`, `ifCondition`, `then`, `otherwise` |
+| `ObjectSchema` | `property`, `patternProperty`, `required`, `minProperties`, `maxProperties`, `additionalProperties`, `propertyNames`, `dependentRequired`, `dependentSchema`, `unevaluatedProperties` |
+| `ArraySchema` | `items`, `prefixItems`, `contains`, `minContains`, `maxContains`, `minItems`, `maxItems`, `uniqueItems`, `unevaluatedItems` |
+| `StringSchema` | `pattern`, `minLength`, `maxLength`, `format` |
+| `NumberSchema`, `IntegerSchema` | `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf` |
+
+```java
+JsonSchema contact = JsonSchema.object()
+    .property("id", JsonSchema.string().title("Identifier").pattern("^[A-Z]{3}-[0-9]+$"))
+    .property("email", JsonSchema.string().format("email"))
+    .property("phone", JsonSchema.string())
+    .required("id")
+    .anyOf(JsonSchema.required("email"), JsonSchema.required("phone"))
+    .build();
+```
+
+To use a schema you already have as JSON, pass it as a string with `responseAsJsonSchema(String)`. A string that is not a valid JSON object throws `IllegalArgumentException`. `ModelGatewayChatParameters` accepts the same schemas.
+
 ---
 
 ## Image
@@ -840,8 +880,6 @@ ChatService limitedService = ChatService.builder()
 | `topP` | Double | 0.0 – 1.0 | Nucleus sampling threshold |
 | `frequencyPenalty` | Double | -2.0 – 2.0 | Discourage frequent tokens |
 | `presencePenalty` | Double | -2.0 – 2.0 | Encourage new topics |
-| `repetitionPenalty` | Double | > 1.0 | Discourage repeated words/phrases |
-| `lengthPenalty` | Double | Any | > 1.0 shorter, < 1.0 longer, 1.0 neutral |
 | `stop` | List\<String\> | Max 4 | Stop sequences to end generation |
 | `seed` | Integer | Any | Random seed for reproducibility |
 | `n` | Integer | ≥ 1 | Number of completions to generate |
