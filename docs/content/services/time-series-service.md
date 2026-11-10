@@ -219,8 +219,8 @@ If `freq` is not specified, the service attempts to infer it from the timestamp 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `timestampColumn` | String | Yes | Name of the column containing timestamps. ISO 8601 format recommended (e.g., `2024-10-18T01:09:21.454746+00:00`) |
-| `idColumns` | String... | No | Columns that form a compound key identifying each unique time series (max 10, each 0–100 chars) |
-| `targetColumns` | String... | No | Columns containing the values to forecast (max 500, each 0–100 chars). If not set, all non-timestamp, non-ID columns are used |
+| `idColumns` | String... | No | Columns that form a compound key identifying each unique time series (max 10, each 0 to 100 chars) |
+| `targetColumns` | String... | No | Columns containing the values to forecast (max 500, each 0 to 100 chars). If not set, all non-timestamp, non-ID columns are used |
 | `freq` | String | No | Frequency string (e.g., `"D"`, `"h"`, `"min"`, `"W"`, `"M"`). Inferred from data if not provided |
 
 ## Forecast Parameters

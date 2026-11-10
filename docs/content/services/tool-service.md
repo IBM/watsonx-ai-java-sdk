@@ -46,7 +46,7 @@ The `ToolService` enables you to:
 ```java
 ToolService toolService = ToolService.builder()
     .apiKey(WATSONX_API_KEY)
-    .baseUrl("https://us-south.wx.ml.cloud.ibm.com") // or use CloudRegion
+    .baseUrl("https://api.dataplatform.cloud.ibm.com/wx") // or use CloudRegion
     .build();
 ```
 
@@ -62,6 +62,7 @@ ToolService toolService = ToolService.builder()
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
 | `httpClient` | HttpClient | No | Custom HTTP client |
 | `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
+| `version` | String | No | API version override |
 
 > Either `apiKey` or `authenticator` must be provided. No `projectId`, `spaceId`, or `modelId` is required.
 

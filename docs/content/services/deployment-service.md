@@ -67,6 +67,7 @@ All routing is done through the `deploymentId` in each request, so no `projectId
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
 | `httpClient` | HttpClient | No | Custom HTTP client |
 | `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
+| `version` | String | No | API version override |
 | `parameters` | ChatParameters | No | Default chat parameters applied to every chat request |
 | `tools` | List\<Tool\> | No | Default tools available to the model |
 | `messageInterceptor` | MessageInterceptor\<DeploymentChatRequest\> | No | Post-processing hook for the complete assistant message |

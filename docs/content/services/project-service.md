@@ -56,6 +56,7 @@ ProjectService service = ProjectService.builder()
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
 | `httpClient` | HttpClient | No | Custom HTTP client |
 | `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
+| `version` | String | No | API version override |
 
 > Either `apiKey` or `authenticator` must be provided.
 

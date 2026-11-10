@@ -32,6 +32,7 @@
     <module>model-gateway-embedding</module>
     <module>model-gateway-image</module>
     <module>detection</module>
+    <module>chat-inline-moderation</module>
     <module>cp4d-authentication</module>
   </modules>
 

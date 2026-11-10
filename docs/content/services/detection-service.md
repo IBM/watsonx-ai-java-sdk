@@ -52,7 +52,7 @@ The `DetectionService` enables you to:
 
 ### Basic Setup
 
-To start using the Detection Service, create a `DetectionService` instance with the minimum required configuration.
+The minimum configuration authenticates, selects the project and sets the endpoint. `governanceInstanceId` is needed only by the context and generated-text detectors:
 
 ```java
 DetectionService detectionService = DetectionService.builder()
@@ -403,8 +403,8 @@ ibmcloud resource service-instance <your-instance-name>
 
 ## Related Resources
 
-- [Detection API Reference - Content](https://cloud.ibm.com/apidocs/watsonx-ai#text-detection-content)
-- [Detection API Reference - Context](https://cloud.ibm.com/apidocs/watsonx-ai#text-detection-context)
-- [Detection API Reference - Generated](https://cloud.ibm.com/apidocs/watsonx-ai#text-detection-generated)
+- [Detection API Reference: Content](https://cloud.ibm.com/apidocs/watsonx-ai#text-detection-content)
+- [Detection API Reference: Context](https://cloud.ibm.com/apidocs/watsonx-ai#text-detection-context)
+- [Detection API Reference: Generated](https://cloud.ibm.com/apidocs/watsonx-ai#text-detection-generated)
 - [Setting up watsonx.governance on IBM Cloud](https://www.ibm.com/docs/en/watsonx/saas?topic=cloud-setting-up-watsonxgovernance)
 - [Sample](https://github.com/IBM/watsonx-ai-java-sdk/tree/main/samples/detection)

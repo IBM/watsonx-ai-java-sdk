@@ -94,8 +94,8 @@ Per-call overrides work across types. A service built with `CosReference` defaul
 
 When a `ContainerReference` is configured as the default, direct COS operations (upload, read, delete, and per-call `CosReference` overrides via parameters) require the service to know the project's default COS bucket and endpoint URL. These are resolved automatically from the project metadata:
 
-- **Standard cloud regions** - if `baseUrl(CloudRegion)` was used, the service calls the Projects API automatically on first use. No extra configuration is required.
-- **Custom or on-premise deployments** - if a plain URL string was passed to `baseUrl(...)`, the service cannot derive the Projects API endpoint automatically. Pass an explicit `ProjectService` instance:
+- **Standard cloud regions**: if `baseUrl(CloudRegion)` was used, the service calls the Projects API automatically on first use. No extra configuration is required.
+- **Custom or on-premises deployments**: if a plain URL string was passed to `baseUrl(...)`, the service cannot derive the Projects API endpoint automatically. Pass an explicit `ProjectService` instance:
 
 ```java
 ProjectService projectService = ProjectService.builder()
@@ -143,8 +143,8 @@ TextExtractionService service = TextExtractionService.builder()
 | `baseUrl` | String/CloudRegion | Yes | watsonx.ai service base URL |
 | `cosUrl` | String/CosUrl | Conditional | Cloud Object Storage base URL. Required when `documentReference` is a `CosReference`. Not required for `ContainerReference`, unless only `spaceId` is set (no `projectId`) |
 | `projectService` | ProjectService | No | Explicit `ProjectService` for resolving the default COS bucket when using `ContainerReference` with a non-standard base URL. Auto-resolved from `CloudRegion` otherwise |
-| `documentReference` | DocumentReference | Yes | Input document location - a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
-| `resultReference` | DocumentReference | Yes | Output location - a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
+| `documentReference` | DocumentReference | Yes | Input document location: a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
+| `resultReference` | DocumentReference | Yes | Output location: a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
 | `timeout` | Duration | No | Request timeout (default: 60 seconds) |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
@@ -197,7 +197,7 @@ String text = service.uploadExtractAndFetch(inputStream, "fileName.pdf", paramet
 String text = service.extractAndFetch("path/to/cosFile.pdf");
 ```
 
-**From a file already in the container** - use `extractAndFetch` with a container-configured service. The extracted content is retrieved automatically from the project's default COS bucket:
+**From a file already in the container**: use `extractAndFetch` with a container-configured service. The extracted content is retrieved automatically from the project's default COS bucket:
 
 ```java
 TextExtractionService service = TextExtractionService.builder()
@@ -438,7 +438,7 @@ When using `GENERIC_WITH_SEMANTIC`, `enableSchemaKvp(true)` classifies each page
 
 Controls how custom schemas interact with the built-in pre-defined ones:
 
-| Strategy | Behaviour | When to use |
+| Strategy | Behavior | When to use |
 |----------|-----------|-------------|
 | `SchemaMergeStrategy.REPLACE` | Only your custom schemas are used. All pre-defined schemas are ignored | You have a known document format with unique fields, or your custom schema conflicts with a pre-defined one |
 | `SchemaMergeStrategy.MERGE` | Your custom schemas are combined with the pre-defined ones | You want to supplement pre-defined document types with additional custom schemas |
@@ -493,8 +493,8 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | `outputFileName` | String | Name or directory prefix for the output file in COS |
 | `removeUploadedFile` | Boolean | Delete the input file from COS after extraction (synchronous only) |
 | `removeOutputFile` | Boolean | Delete the output file from COS after reading (synchronous only) |
-| `documentReference` | DocumentReference | Override the default input location for this request - accepts `CosReference` or `ContainerReference` |
-| `resultReference` | DocumentReference | Override the default output location for this request - accepts `CosReference` or `ContainerReference` |
+| `documentReference` | DocumentReference | Override the default input location for this request. Accepts `CosReference` or `ContainerReference` |
+| `resultReference` | DocumentReference | Override the default output location for this request. Accepts `CosReference` or `ContainerReference` |
 | `timeout` | Duration | Override the service-level timeout for this request |
 | `addCustomProperty` | String, Object | Add arbitrary key-value metadata to the request |
 | `projectId` | String | Override the default Project ID |

@@ -64,7 +64,7 @@ List<ModelGatewayModel> models = catalog.listModels();
 for (ModelGatewayModel model : models) {
     System.out.println("UUID:     " + model.uuid());
     System.out.println("ID:       " + model.id());
-    System.out.println("Alias:    " + model.optionalAlias().orElse("(none)"));
+    System.out.println("Alias:    " + (model.alias() != null ? model.alias() : "(none)"));
     System.out.println("Provider: " + model.ownedBy());
     System.out.println();
 }
@@ -84,11 +84,12 @@ ModelGatewayModel model = catalog.getModel("123e4567-e89b-12d3-a456-426614174000
 System.out.println("ID:       " + model.id());
 System.out.println("Provider: " + model.ownedBy());
 System.out.println("Created:  " + model.created());
-model.optionalMetadata().ifPresent(meta -> {
+ModelGatewayModel.Metadata meta = model.metadata();
+if (meta != null) {
     System.out.println("Family:   " + meta.modelFamily());
     System.out.println("Region:   " + meta.region());
     System.out.println("Cost/1k:  " + meta.cost());
-});
+}
 ```
 
 ---

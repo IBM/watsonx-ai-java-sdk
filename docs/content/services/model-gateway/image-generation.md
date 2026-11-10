@@ -62,7 +62,7 @@ ModelGatewayImageService service = ModelGatewayImageService.builder()
     .baseUrl("https://cpd.example.com")
     .authenticator(
         CP4DAuthenticator.builder()
-            .url("https://cpd.example.com")
+            .baseUrl("https://cpd.example.com")
             .username(CP4D_USERNAME)
             .apiKey(CP4D_API_KEY)
             .build()

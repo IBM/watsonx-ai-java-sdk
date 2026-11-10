@@ -15,7 +15,7 @@ API errors are reported through `WatsonxException`, which extends `RuntimeExcept
 
 ```text
 RuntimeException
-├── WatsonxException              (base - always has statusCode, errorCode, message, traceId)
+├── WatsonxException              (base: statusCode, message, and the optional error details)
 │   ├── AuthenticationTokenExpiredException   ← handled automatically by the SDK
 │   ├── AuthorizationRejectedException
 │   ├── InvalidInputArgumentException
@@ -37,9 +37,8 @@ Both chat exceptions live in `com.ibm.watsonx.ai.chat.exception`.
 | Method | Type | Description |
 |--------|------|-------------|
 | `statusCode()` | int | HTTP status code (e.g. `400`, `429`, `500`) |
-| `errorCode()` | String | Machine-readable error code from the API (e.g. `"token_quota_reached"`) |
 | `getMessage()` | String | Human-readable error description |
-| `traceId()` | String | IBM trace ID - include this when reporting issues |
+| `details()` | Optional\<WatsonxError\> | Error body returned by the API, empty when there is none. `trace()` is the IBM trace ID (include it when reporting issues) and `errors()` lists each error with `code()` (e.g. `"token_quota_reached"`), `message()` and `moreInfo()` |
 
 If the API returns an error code that does not map to a specific subclass, the base `WatsonxException` is thrown.
 
@@ -116,11 +115,11 @@ try {
     useAlternativeModel();
 } catch (InvalidInputArgumentException e) {
     // A parameter value is wrong - log for debugging
-    logger.error("Bad request: {} (traceId={})", e.getMessage(), e.traceId());
+    logger.error("Bad request: {} (trace={})", e.getMessage(), e.details().map(WatsonxError::trace).orElse("n/a"));
 } catch (WatsonxException e) {
     // Any other API error
-    logger.error("Watsonx error [{}] {}: {} (traceId={})",
-        e.statusCode(), e.errorCode(), e.getMessage(), e.traceId());
+    logger.error("Watsonx error [{}]: {} (trace={})",
+        e.statusCode(), e.getMessage(), e.details().map(WatsonxError::trace).orElse("n/a"));
 }
 ```
 
