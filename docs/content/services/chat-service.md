@@ -44,7 +44,7 @@ The `ChatService` enables you to:
 
 ### Basic Setup
 
-To start using the Chat Service, create a `ChatService` instance with the minimum required configuration. The following example shows the essential parameters needed to authenticate and select a model. Additional configuration options are described below.
+The minimum configuration authenticates, selects the project and the model, and sets the endpoint:
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -876,10 +876,10 @@ ChatService limitedService = ChatService.builder()
 | Parameter | Type | Range | Description |
 |-----------|------|-------|-------------|
 | `maxCompletionTokens` | Integer | ≥ 0 | Maximum tokens in the response. Set to `0` to use the model's full context window. |
-| `temperature` | Double | 0.0 – 2.0 | Randomness (0.0 = deterministic) |
-| `topP` | Double | 0.0 – 1.0 | Nucleus sampling threshold |
-| `frequencyPenalty` | Double | -2.0 – 2.0 | Discourage frequent tokens |
-| `presencePenalty` | Double | -2.0 – 2.0 | Encourage new topics |
+| `temperature` | Double | 0.0 to 2.0 | Randomness (0.0 = deterministic) |
+| `topP` | Double | 0.0 to 1.0 | Nucleus sampling threshold |
+| `frequencyPenalty` | Double | -2.0 to 2.0 | Discourage frequent tokens |
+| `presencePenalty` | Double | -2.0 to 2.0 | Encourage new topics |
 | `stop` | List\<String\> | Max 4 | Stop sequences to end generation |
 | `seed` | Integer | Any | Random seed for reproducibility |
 | `n` | Integer | ≥ 1 | Number of completions to generate |
@@ -967,7 +967,7 @@ Fields on `ModerationResult`:
 
 | Field | Type | Description |
 |---|---|---|
-| `score` | `float` | Confidence of the match (0.0 – 1.0) |
+| `score` | `float` | Confidence of the match (0.0 to 1.0) |
 | `input` | `boolean` | `true` if the match was found in the input, `false` for output |
 | `position` | `Position` | Start (inclusive) / end (exclusive) offsets in the text |
 | `entity` | `String` | Detected entity type (e.g. `"PhoneNumber"`) |

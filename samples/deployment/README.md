@@ -6,7 +6,7 @@ This sample demonstrates how interact with a LLM deployment via the `DeploymentS
 
 With this sample, you can:
 
-- Connect to a deployed model on Watsonx.ai
+- Connect to a deployed model on watsonx.ai
 - Retrieve deployment metadata (name, type, status)
 - Send a user message to the deployed model and get the response
 
@@ -16,17 +16,17 @@ This is useful when you've already deployed a foundation model or prompt-tuned m
 
 Before running the application, set the following environment variables or create a `.env` file in the project root:
 
-- `WATSONX_API_KEY` - Your Watsonx.ai API key
-- `WATSONX_URL` - The base URL for the Watsonx.ai service
-- `WATSONX_DEPLOYMENT` - The ID of the deployment you want to invoke
-- `WATSONX_SPACE_ID` - The space ID that contains the deployment
+- `WATSONX_API_KEY` - Your watsonx.ai API key
+- `WATSONX_URL` - The base URL for the watsonx.ai service
+- `WATSONX_DEPLOYMENT_ID` - The ID of the deployment you want to invoke
+- `WATSONX_SPACE_ID` - The Space ID that contains the deployment
 
 ### Example (Linux/macOS):
 
 ```bash
 export WATSONX_API_KEY=api-key
 export WATSONX_URL=https://watsonx-url
-export WATSONX_DEPLOYMENT=deployment-id
+export WATSONX_DEPLOYMENT_ID=deployment-id
 export WATSONX_SPACE_ID=space-id
 ```
 
@@ -35,7 +35,7 @@ export WATSONX_SPACE_ID=space-id
 ```cmd
 set WATSONX_API_KEY=api-key
 set WATSONX_URL=https://watsonx-url
-set WATSONX_DEPLOYMENT=deployment-id
+set WATSONX_DEPLOYMENT_ID=deployment-id
 set WATSONX_SPACE_ID=space-id
 ```
 

@@ -30,7 +30,7 @@ This page maps every value used in the samples to the resource behind it and lin
 Not every service needs every value:
 
 - **`WATSONX_API_KEY` + `WATSONX_PROJECT_ID` (or `WATSONX_SPACE_ID`) + `baseUrl` + `modelId`** - required by most services: [Chat](services/chat-service/), [Embedding](services/embedding-service/), [Rerank](services/rerank-service/), [Tokenization](services/tokenization-service/), [Detection](services/detection-service/).
-- **`CONNECTION_ID` + `BUCKET_NAME`** - required only by [Text Extraction](services/document-processing/text-extraction-service/), [Text Classification](services/document-processing/text-classification-service/), and [Batch](services/batch-service/).
+- **`CONNECTION_ID` + `BUCKET_NAME`**: required only by [Text Extraction](services/document-processing/text-extraction-service/), [Text Classification](services/document-processing/text-classification-service/), and [Batch](services/batch-service/). Text Extraction and Text Classification do not need them when documents live in the default container of the project (`ContainerReference`).
 - **`WATSONX_DEPLOYMENT_ID`** - required only by the [Deployment Service](services/deployment-service/).
 - **Model Gateway** - requires a one-time admin setup. No extra values are needed in your code beyond the standard `WATSONX_API_KEY`.
 
@@ -50,7 +50,7 @@ The SDK authenticates to IBM Cloud by exchanging an API key for an IAM bearer to
 
 This is the value passed to `apiKey(...)` and referenced as `WATSONX_API_KEY` in the samples.
 
-- [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey)
+- [Managing user API keys](https://cloud.ibm.com/docs/iam?topic=iam-userapikey)
 
 ---
 
@@ -145,7 +145,7 @@ The catalog groups models into two categories, and each is consumed through a di
 If you run **IBM watsonx.ai software** on Cloud Pak for Data (CP4D) instead of IBM Cloud, the core concepts (projects, spaces, deployments, connections) are the same. What changes is how you connect:
 
 - **Authentication** - use `CP4DAuthenticator` (username plus password, API key, or Zen API key) instead of an IBM Cloud API key with `IBMCloudAuthenticator`. See the [Authentication](authentication#cp4d-authentication) page for the available modes.
-- **Base URL** - pass your CP4D instance URL (e.g. `https://cpd.example.com`) as the `baseUrl`. The `CloudRegion` enum and the regional endpoints from step 7 do not apply.
+- **Base URL**: pass your CP4D instance URL (e.g. `https://cpd.example.com`) as the `baseUrl`. The `CloudRegion` enum and the regional endpoints from step 8 do not apply.
 - **Creating resources** - projects, deployment spaces, deployments, and Cloud Object Storage connections are created in your CP4D web console. The resulting identifiers (Project ID, Space ID, Deployment ID, Connection ID) are used exactly the same way as on IBM Cloud.
 
 Provisioning steps are specific to your installation, so refer to your CP4D administrator or the IBM Cloud Pak for Data documentation for details.

@@ -175,8 +175,8 @@ The SDK uses three distinct executors internally, each replaceable independently
 | SPI interface | Default behavior | Used for |
 |---------------|-----------------|---------|
 | `CpuExecutorProvider` | `ForkJoinPool.commonPool()` | CPU-bound tasks: JSON parsing, data transformation |
-| `IOExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20). A fixed pool can be forced via `WATSONX_IO_EXECUTOR_THREADS` | HTTP response processing, SSE stream parsing |
-| `CallbackExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17–20) | User callbacks in `ChatHandler` and `TextGenerationHandler` |
+| `IOExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17 to 20). A fixed pool can be forced via `WATSONX_IO_EXECUTOR_THREADS` | HTTP response processing, SSE stream parsing |
+| `CallbackExecutorProvider` | Virtual threads (Java 21+), cached thread pool (Java 17 to 20) | User callbacks in `ChatHandler` and `TextGenerationHandler` |
 
 The three executors are intentionally separate to prevent user callback code from blocking the SSE parsing thread, and to keep CPU-bound work off the I/O thread.
 
@@ -335,7 +335,7 @@ static JsonProvider resolveProvider(List<JsonProvider> providers) {
 }
 ```
 
-`isDefault()` distinguishes a bundled binding (both `watsonx-ai-jackson2` and `watsonx-ai-jackson3` return `true`) from an explicit choice (any other implementation, `false` by default). An explicit provider always wins over bundled ones. This lets an integrator depend on a binding module purely to reuse its mix-ins (see below) while registering their own `JsonProvider` tied to their own JSON setup, without needing to exclude the bundled provider. Resolution fails only on real ambiguity: zero providers, two or more bundled bindings with no explicit override, or two or more explicit providers.
+`isDefault()` distinguishes a bundled binding (both `watsonx-ai-jackson2` and `watsonx-ai-jackson3` return `true`) from an explicit choice (any other implementation, `false` by default). An explicit provider always wins over bundled ones. This lets an integrator depend on a binding module purely to reuse its mix-ins (see below) while registering their own `JsonProvider` tied to their own JSON setup, without needing to exclude the bundled provider. Resolution fails when no provider is found or when two or more explicit providers are registered. Never put both bindings on the classpath: they ship a class with the same name (`com.ibm.watsonx.ai.WatsonxJacksonModule`), so the first jar wins and the other binding fails to load with a `VerifyError` or a `ServiceConfigurationError`.
 
 ### Jackson configuration & mix-in annotations
 

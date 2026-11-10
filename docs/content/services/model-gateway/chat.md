@@ -253,10 +253,10 @@ The future ends in the cancelled state, so a later `get()` or `join()` throws a 
 |-----------|------|-------|-------------|
 | `modelId` | String | - | Override the model for this request |
 | `maxCompletionTokens` | Integer | ≥ 0 | Maximum tokens in the response. `0` is treated as a literal zero - it does not mean "model max" as it does for `ChatService` and `DeploymentService`. |
-| `temperature` | Double | 0.0 – 2.0 | Sampling randomness (0.0 = deterministic) |
-| `topP` | Double | 0.0 – 1.0 | Nucleus sampling threshold |
-| `frequencyPenalty` | Double | -2.0 – 2.0 | Discourage frequent tokens |
-| `presencePenalty` | Double | -2.0 – 2.0 | Encourage new topics |
+| `temperature` | Double | 0.0 to 2.0 | Sampling randomness (0.0 = deterministic) |
+| `topP` | Double | 0.0 to 1.0 | Nucleus sampling threshold |
+| `frequencyPenalty` | Double | -2.0 to 2.0 | Discourage frequent tokens |
+| `presencePenalty` | Double | -2.0 to 2.0 | Encourage new topics |
 | `stop` | List\<String\> | Max 4 | Stop sequences to end generation |
 | `seed` | Integer | Any | Random seed for reproducibility |
 | `n` | Integer | ≥ 1 | Number of completions to generate |

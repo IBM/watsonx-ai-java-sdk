@@ -74,6 +74,7 @@ IBMCloudAuthenticator authenticator = IBMCloudAuthenticator.withKey(WATSONX_API_
 | `grantType` | String | No | OAuth grant type (default: `urn:ibm:params:oauth:grant-type:apikey`) |
 | `timeout` | Duration | No | Timeout for token requests (default: 60 seconds) |
 | `httpClient` | HttpClient | No | Custom HTTP client for token requests |
+| `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
 
 ---
 
@@ -155,6 +156,7 @@ ChatService chatService = ChatService.builder()
 | `authMode` | AuthMode | No | Authentication mode: `LEGACY` (default), `IAM`, or `ZEN_API_KEY` |
 | `timeout` | Duration | No | Timeout for token requests (default: 60 seconds) |
 | `httpClient` | HttpClient | No | Custom HTTP client (useful for SSL configuration) |
+| `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
 
 ---
 

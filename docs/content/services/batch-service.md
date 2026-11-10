@@ -83,6 +83,8 @@ BatchService batchService = BatchService.builder()
 | `baseUrl` | String/CloudRegion | Yes | watsonx.ai service base URL |
 | `endpoint` | String | Yes | Default API endpoint for batch inference (e.g., `/v1/chat/completions`) |
 | `fileService` | FileService | Conditional | Required when submitting via file upload or using `submitAndFetch()` |
+| `removeUploadedFile` | Boolean | No | Delete the uploaded input file when `submitAndFetch()` finishes (default: true). Can be overridden per `BatchCreateRequest` |
+| `removeOutputFile` | Boolean | No | Delete the output file when `submitAndFetch()` finishes (default: true). Can be overridden per `BatchCreateRequest` |
 | `timeout` | Duration | No | Request and polling timeout (default: 60 seconds) |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
 | `logResponses` | Boolean | No | Enable response logging (default: false) |

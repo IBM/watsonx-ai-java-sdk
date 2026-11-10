@@ -200,7 +200,7 @@ var filter = Filter.of(function("function_time_series_forecast"));
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `start` | Integer | Pagination start token (from `response.next().start()`) |
-| `limit` | Integer | Number of results to return (1–200, default: 100) |
+| `limit` | Integer | Number of results to return (1 to 200, default: 100) |
 | `filter` | Filter | Filter expression to apply |
 | `techPreview` | Boolean | Include Tech Preview models for this request |
 | `transactionId` | String | Request tracking ID |

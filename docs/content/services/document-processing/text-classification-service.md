@@ -83,8 +83,8 @@ Per-call overrides work across types. A service built with `CosReference` defaul
 
 When a `ContainerReference` is configured as the default, direct COS operations (upload, delete, and per-call `CosReference` overrides via parameters) require the service to know the project's default COS bucket and endpoint URL. These are resolved automatically from the project metadata:
 
-- **Standard cloud regions** - if `baseUrl(CloudRegion)` was used, the service calls the Projects API automatically on first use. No extra configuration is required.
-- **Custom or on-premise deployments** - if a plain URL string was passed to `baseUrl(...)`, the service cannot derive the Projects API endpoint automatically. Pass an explicit `ProjectService` instance:
+- **Standard cloud regions**: if `baseUrl(CloudRegion)` was used, the service calls the Projects API automatically on first use. No extra configuration is required.
+- **Custom or on-premises deployments**: if a plain URL string was passed to `baseUrl(...)`, the service cannot derive the Projects API endpoint automatically. Pass an explicit `ProjectService` instance:
 
 ```java
 ProjectService projectService = ProjectService.builder()
@@ -130,7 +130,7 @@ TextClassificationService service = TextClassificationService.builder()
 | `baseUrl` | String/CloudRegion | Yes | watsonx.ai service base URL |
 | `cosUrl` | String/CosUrl | Conditional | Cloud Object Storage base URL. Required when `documentReference` is a `CosReference`. Not required for `ContainerReference`, unless only `spaceId` is set (no `projectId`) |
 | `projectService` | ProjectService | No | Explicit `ProjectService` for resolving the default COS bucket when using `ContainerReference` with a non-standard base URL. Auto-resolved from `CloudRegion` otherwise |
-| `documentReference` | DocumentReference | Yes | Input document location - a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
+| `documentReference` | DocumentReference | Yes | Input document location: a `CosReference` (connection ID + bucket) or `ContainerReference` (container path) |
 | `timeout` | Duration | No | Request timeout (default: 60 seconds) |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
@@ -177,7 +177,7 @@ System.out.println("Document Type: " + result.documentType());
 // → Document Type: Invoice
 ```
 
-**From a file already in the container** - use `classifyAndFetch` with a container-configured service:
+**From a file already in the container**: use `classifyAndFetch` with a container-configured service:
 
 ```java
 TextClassificationService service = TextClassificationService.builder()
@@ -203,7 +203,7 @@ var parameters = TextClassificationParameters.builder()
 service.uploadClassifyAndFetch(new File("path/to/invoice.pdf"), parameters);
 ```
 
-> **Note:** `removeUploadedFile` is only supported with the synchronous variants (`uploadClassifyAndFetch` / `classifyAndFetch`). Passing it with `uploadAndStartClassification` throws `IllegalArgumentException`. For async flows, call `service.deleteFile(bucketName, fileName)` manually after processing. When using a `ContainerReference`, the `bucketName` argument is ignored - pass `null`.
+> **Note:** `removeUploadedFile` is only supported with the synchronous variants (`uploadClassifyAndFetch` / `classifyAndFetch`). Passing it with `uploadAndStartClassification` throws `IllegalArgumentException`. For async flows, call `service.deleteFile(bucketName, fileName)` manually after processing. When using a `ContainerReference`, the `bucketName` argument is ignored, so pass `null`.
 >
 > **Caution:** when calling `classifyAndFetch(String, ...)` with `removeUploadedFile(true)` on a pre-existing document (no upload was performed), the service will delete the document at the path you passed. Use this option with care.
 
@@ -320,7 +320,7 @@ During classification, `enableSchemaKvp(true)` classifies each page into a known
 |--|---------|---------|
 | **Use for** | Variable-layout documents where fields can appear anywhere | Fixed-layout documents with consistent field positions |
 | **How it works** | Model scans the entire document for matching fields | Model targets only the specified bounding box regions |
-| **Defined with** | `KvpFields` | `KvpPage` + `KvpSlice` with normalized bbox (0.0–1.0) |
+| **Defined with** | `KvpFields` | `KvpPage` + `KvpSlice` with normalized bbox (0.0 to 1.0) |
 
 ### Using a Custom Foundation Model
 
@@ -378,7 +378,7 @@ Supported keys for `taskModelNameOverride`: `classification_exact`, `extraction`
 | `languages` | Language... | Expected languages in the document (ISO 639) |
 | `semanticConfig` | TextClassificationSemanticConfig | Custom schema and semantic classification settings |
 | `removeUploadedFile` | Boolean | Delete the uploaded file from COS after classification (synchronous only) |
-| `documentReference` | DocumentReference | Override the default input location for this request - accepts `CosReference` or `ContainerReference` |
+| `documentReference` | DocumentReference | Override the default input location for this request. Accepts `CosReference` or `ContainerReference` |
 | `timeout` | Duration | Override the service-level timeout for this request |
 | `addCustomProperty` | String, Object | Add arbitrary key-value metadata to the request |
 | `projectId` | String | Override the default Project ID |

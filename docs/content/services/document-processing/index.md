@@ -14,6 +14,7 @@ The document processing services work together to extract and classify structure
 | **[Create Schema](schema/create-schema-service)** | Generate a key-value extraction schema from sample documents |
 | **[Improve Schema](schema/improve-schema-service)** | Refine an existing schema using additional examples |
 | **[Merge Schema](schema/merge-schema-service)** | Consolidate multiple schemas into one |
+| **[Cluster Schema](schema/cluster-schema-service)** | Group a set of schemas into semantically similar clusters |
 | **[Text Extraction](text-extraction-service)** | Extract structured key-value pairs from documents in COS |
 | **[Text Classification](text-classification-service)** | Classify documents stored in COS |
 

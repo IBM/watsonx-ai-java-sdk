@@ -64,7 +64,7 @@ ModelGatewayEmbeddingService service = ModelGatewayEmbeddingService.builder()
     .baseUrl("https://cpd.example.com")
     .authenticator(
         CP4DAuthenticator.builder()
-            .url("https://cpd.example.com")
+            .baseUrl("https://cpd.example.com")
             .username(CP4D_USERNAME)
             .apiKey(CP4D_API_KEY)
             .build()
@@ -138,11 +138,11 @@ ModelGatewayEmbeddingResponse response = service.embed(request);
 The `encodingFormat` parameter accepts either the `ModelGatewayEmbeddingParameters.EncodingFormat` enum (preferred) or a raw string:
 
 ```java
-// preferred — using the enum
+// preferred: using the enum
 .encodingFormat(EncodingFormat.FLOAT)   // → "float"
 .encodingFormat(EncodingFormat.BASE64)  // → "base64"
 
-// also accepted — raw string
+// also accepted: raw string
 .encodingFormat("float")
 .encodingFormat("base64")
 ```
