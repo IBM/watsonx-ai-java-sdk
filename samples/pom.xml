@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.watsonx</groupId>
   <artifactId>sample-parent</artifactId>
-  <version>0.40.0</version>
+  <version>0.50.0</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -51,13 +51,13 @@
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai</artifactId>
-      <version>0.40.0</version>
+      <version>0.50.0</version>
     </dependency>
 
     <dependency>
       <groupId>com.ibm.watsonx</groupId>
       <artifactId>watsonx-ai-jackson2</artifactId>
-      <version>0.40.0</version>
+      <version>0.50.0</version>
     </dependency>
 
     <dependency>
