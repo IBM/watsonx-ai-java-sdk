@@ -527,12 +527,6 @@
           "parameterTypes": [
             "java.lang.Object"
           ]
-        },
-        {
-          "name": "concat",
-          "parameterTypes": [
-            "boolean"
-          ]
         }
       ]
     },

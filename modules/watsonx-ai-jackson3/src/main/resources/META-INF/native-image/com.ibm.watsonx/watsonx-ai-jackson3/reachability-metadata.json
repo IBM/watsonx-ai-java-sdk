@@ -95,228 +95,6 @@
       "type": "com.ibm.watsonx.ai.Crypto"
     },
     {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ArraySchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$AssistantMessageMixIn"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$BaseDetectionRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$BatchCreateRequestBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$BatchCreateRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatModerationMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatResponseBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ChatResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ConstantSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DefaultValueMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionContextRequestBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionContextRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionContextResponseEvidenceMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionContextResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionGeneratedRequestBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionGeneratedRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionGeneratedResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionTextRequestBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionTextRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$DetectionTextResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$EnumSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ExtractionTagsThinkMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintFieldDataMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintsBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$GroundingHintsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$InputSchemaBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$InputSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$IntegerSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$JsonSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$KvpFieldsBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayCacheMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayChatResponseBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayChatResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayEmbeddingUsageMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageDataMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageInputTokensDetailsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayImageUsageMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayListModelsResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayModelMetadataMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayModelMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayPredictionMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayRouterMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayStreamOptionsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayTextChatRequestBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModelGatewayTextChatRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModerationBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ModerationMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$NumberSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ObjectSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ProjectMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$RequiredSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ResultMessageMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$SchemaBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$SchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$StringSchemaMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatRequestBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatRequestMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseDetectionEntryMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseDetectionResultMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextChatResponseMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextDetectionContentDetectorsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextDetectionContextDetectorsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextDetectionGeneratedDetectorsMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextGenerationParametersBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TextGenerationParametersMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TimeSeriesParametersBuilderMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$TimeSeriesParametersMixin"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.WatsonxJacksonModule$ToolArgumentsMixin"
-    },
-    {
       "type": "com.ibm.watsonx.ai.WatsonxParameters",
       "methods": [
         {
@@ -2778,6 +2556,228 @@
           "parameterTypes": []
         }
       ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ArraySchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$AssistantMessageMixIn"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$BaseDetectionRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$BatchCreateRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$BatchCreateRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ChatModerationMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ChatResponseBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ChatResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ConstantSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DefaultValueMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionContextRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionContextRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionContextResponseEvidenceMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionContextResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionGeneratedRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionGeneratedRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionGeneratedResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionTextRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionTextRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$DetectionTextResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$EnumSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ExtractionTagsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ExtractionTagsResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ExtractionTagsThinkMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$GroundingHintFieldDataMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$GroundingHintsBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$GroundingHintsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$InputSchemaBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$InputSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$IntegerSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$JsonSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$KvpFieldsBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayCacheMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayChatResponseBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayChatResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayEmbeddingMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayEmbeddingResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayEmbeddingUsageMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayImageDataMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayImageInputTokensDetailsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayImageResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayImageUsageMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayListModelsResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayModelMetadataMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayModelMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayPredictionMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayRouterMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayStreamOptionsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayTextChatRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModelGatewayTextChatRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModerationBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ModerationMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$NumberSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ObjectSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ProjectMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$RequiredSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ResultMessageMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$SchemaBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$SchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$StringSchemaMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextChatRequestBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextChatRequestMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextChatResponseBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextChatResponseDetectionEntryMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextChatResponseDetectionResultMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextChatResponseMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextDetectionContentDetectorsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextDetectionContextDetectorsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextDetectionGeneratedDetectorsMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextGenerationParametersBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TextGenerationParametersMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TimeSeriesParametersBuilderMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$TimeSeriesParametersMixin"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule$ToolArgumentsMixin"
     },
     {
       "type": "com.ibm.watsonx.ai.jackson3.provider.JacksonProvider",
@@ -7068,22 +7068,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "tools.jackson.core.util.BufferRecycler",
-          "interfaces": [
-            "java.util.function.BinaryOperator"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "tools.jackson.databind.ObjectMapper",
           "interfaces": [
             "java.util.function.Consumer"
@@ -7113,6 +7097,24 @@
           "name": "<init>",
           "parameterTypes": [
             "tools.jackson.databind.cfg.ModuleContextBase"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "tools.jackson.databind.deser.BeanDeserializerBuilder",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "tools.jackson.databind.deser.BeanDeserializerBuilder"
           ]
         }
       ]

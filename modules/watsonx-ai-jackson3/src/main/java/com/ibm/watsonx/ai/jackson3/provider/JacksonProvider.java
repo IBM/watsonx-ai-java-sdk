@@ -6,10 +6,10 @@ package com.ibm.watsonx.ai.jackson3.provider;
 
 import static java.util.Objects.isNull;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.ibm.watsonx.ai.WatsonxJacksonModule;
 import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
+import com.ibm.watsonx.ai.jackson3.WatsonxJacksonModule;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JavaType;

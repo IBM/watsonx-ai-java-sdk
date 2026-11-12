@@ -107,6 +107,7 @@ const sidebars: SidebarsConfig = {
         { type: 'doc', id: 'migration/0.22.0-to-0.30.0', label: '0.22.0 → 0.30.0' },
         { type: 'doc', id: 'migration/0.30.1-to-0.40.0', label: '0.30.1 → 0.40.0' },
         { type: 'doc', id: 'migration/0.40.0-to-0.50.0', label: '0.40.0 → 0.50.0' },
+        { type: 'doc', id: 'migration/0.50.0-to-0.60.0', label: '0.50.0 → 0.60.0' },
       ],
     },
   ],

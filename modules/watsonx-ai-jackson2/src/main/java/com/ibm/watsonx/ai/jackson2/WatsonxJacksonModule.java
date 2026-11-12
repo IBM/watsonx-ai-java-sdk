@@ -2,8 +2,9 @@
  * Copyright 2025 IBM Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.watsonx.ai;
+package com.ibm.watsonx.ai.jackson2;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +16,12 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.project.Project;
 import com.ibm.watsonx.ai.chat.ChatModeration;
@@ -80,18 +87,14 @@ import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.timeseries.ForecastData;
 import com.ibm.watsonx.ai.timeseries.InputSchema;
 import com.ibm.watsonx.ai.timeseries.TimeSeriesParameters;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.annotation.JsonPOJOBuilder;
-import tools.jackson.databind.module.SimpleModule;
 
 public class WatsonxJacksonModule extends SimpleModule {
 
+    /**
+     * Constructs a new WatsonxJacksonModule and registers all mix-in annotations.
+     */
     public WatsonxJacksonModule() {
-        super("watsonx-ai-jackson3-module");
+        super("watsonx-ai-jackson-module");
 
         // --- Chat Mixin --- //
         setMixInAnnotation(TextChatResponse.class, TextChatResponseMixin.class);
@@ -781,6 +784,7 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("unevaluatedItems")
         abstract Object unevaluatedItems();
+
     }
 
     public abstract static class ConstantSchemaMixin {
@@ -862,6 +866,7 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("else")
         abstract JsonSchema elseSchema();
+
     }
 
     public abstract static class ObjectSchemaMixin {
@@ -970,6 +975,7 @@ public class WatsonxJacksonModule extends SimpleModule {
 
         @JsonProperty("additional_prompt_instructions")
         abstract String additionalPromptInstructions();
+
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -1321,27 +1327,28 @@ public class WatsonxJacksonModule extends SimpleModule {
         }
     }
 
-    private static final class HapSerializer extends ValueSerializer<ChatModeration.Hap> {
+    private static final class HapSerializer extends JsonSerializer<ChatModeration.Hap> {
 
         @Override
-        public void serialize(ChatModeration.Hap value, JsonGenerator gen, SerializationContext provider) throws JacksonException {
-            gen.writePOJO(value.properties());
+        public void serialize(ChatModeration.Hap value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeObject(value.properties());
         }
     }
 
-    private static final class PiiSerializer extends ValueSerializer<ChatModeration.Pii> {
+    private static final class PiiSerializer extends JsonSerializer<ChatModeration.Pii> {
 
         @Override
-        public void serialize(ChatModeration.Pii value, JsonGenerator gen, SerializationContext provider) throws JacksonException {
-            gen.writePOJO(value.properties());
+        public void serialize(ChatModeration.Pii value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeObject(value.properties());
         }
     }
 
-    private static final class GraniteGuardianSerializer extends ValueSerializer<ChatModeration.GraniteGuardian> {
+    private static final class GraniteGuardianSerializer extends JsonSerializer<ChatModeration.GraniteGuardian> {
 
         @Override
-        public void serialize(ChatModeration.GraniteGuardian value, JsonGenerator gen, SerializationContext provider) throws JacksonException {
-            gen.writePOJO(value.properties());
+        public void serialize(ChatModeration.GraniteGuardian value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeObject(value.properties());
         }
     }
+
 }
