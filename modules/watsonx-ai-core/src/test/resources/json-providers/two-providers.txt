@@ -1,0 +1,2 @@
+com.ibm.watsonx.ai.core.StubJsonProvider
+com.ibm.watsonx.ai.core.JsonProviderLoadingTest$SecondStubJsonProvider

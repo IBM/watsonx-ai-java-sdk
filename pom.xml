@@ -320,6 +320,18 @@
   <profiles>
 
     <profile>
+      <id>compatibility-tests</id>
+      <activation>
+        <property>
+          <name>!watsonx.release</name>
+        </property>
+      </activation>
+      <modules>
+        <module>modules/watsonx-ai-compatibility-tests</module>
+      </modules>
+    </profile>
+
+    <profile>
       <id>native</id>
       <activation>
         <activeByDefault>false</activeByDefault>

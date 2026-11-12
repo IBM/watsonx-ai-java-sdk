@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.core;
 
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.StringJoiner;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
@@ -73,24 +74,41 @@ public final class Json {
     }
 
     private static JsonProvider loadProvider() {
-        var providers = ServiceLoader.load(JsonProvider.class)
+        return loadProvider(Thread.currentThread().getContextClassLoader(), Json.class.getClassLoader());
+    }
+
+    static JsonProvider loadProvider(ClassLoader primary, ClassLoader fallback) {
+        var providers = findProviders(primary);
+
+        if (providers.isEmpty() && fallback != primary)
+            providers = findProviders(fallback);
+
+        return resolveProvider(providers);
+    }
+
+    private static List<JsonProvider> findProviders(ClassLoader classLoader) {
+        return ServiceLoader.load(JsonProvider.class, classLoader)
             .stream()
             .map(ServiceLoader.Provider::get)
             .toList();
-
-        return resolveProvider(providers);
     }
 
     static JsonProvider resolveProvider(List<JsonProvider> providers) {
         if (providers.isEmpty())
             throw new IllegalStateException(
-                "No JsonProvider found. Add exactly one JSON binding, for example watsonx-ai-jackson2 or watsonx-ai-jackson3.");
+                "No JsonProvider found. Add exactly one JSON binding dependency to your classpath: watsonx-ai-jackson2 or watsonx-ai-jackson3. "
+                    + "If using a custom provider, register it via META-INF/services/com.ibm.watsonx.ai.core.spi.json.JsonProvider.");
 
         var explicit = providers.stream().filter(p -> !p.isDefault()).toList();
         var candidates = explicit.isEmpty() ? providers : explicit;
 
-        if (candidates.size() > 1)
-            throw new IllegalStateException("Multiple JsonProvider implementations found: " + candidates + ". Add exactly one JSON binding.");
+        if (candidates.size() > 1) {
+            var names = new StringJoiner(", ");
+            for (var candidate : candidates)
+                names.add(candidate.getClass().getName());
+            throw new IllegalStateException(
+                "Multiple JsonProvider implementations found: " + names + ". Keep exactly one and exclude the others from the classpath");
+        }
 
         return candidates.get(0);
     }

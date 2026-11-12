@@ -12,10 +12,10 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.ibm.watsonx.ai.WatsonxJacksonModule;
 import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
+import com.ibm.watsonx.ai.jackson2.WatsonxJacksonModule;
 
 /**
  * Jackson 2 implementation of {@link JsonProvider}.
