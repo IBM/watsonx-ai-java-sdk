@@ -12,6 +12,7 @@ import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -23,8 +24,8 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -329,9 +330,36 @@ public class TimeSeriesServiceTest extends AbstractWatsonxTest {
 
                 when(mockSecureHttpClient.send(any(), any(BodyHandler.class))).thenThrow(InterruptedException.class);
                 assertThrows(RuntimeException.class, () -> tsService.forecast(inputSchema, data));
+                assertTrue(Thread.currentThread().isInterrupted());
             } catch (Exception e) {
                 fail(e);
+            } finally {
+                Thread.interrupted();
             }
         });
+    }
+
+    @Test
+    void should_preserve_time_series_interruption() throws Exception {
+        var interruption = new InterruptedException("Request interrupted");
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interruption);
+
+        withWatsonxServiceMock(() -> {
+            var service = TimeSeriesService.builder().baseUrl(URI.create("http://localhost"))
+                .authenticator(mockAuthenticator).projectId("project").modelId("model").build();
+            assertPreservesInterrupt(interruption, () -> service.forecast(InputSchema.builder().timestampColumn("date").build(),
+                ForecastData.create().add("date", "2026-11-12")));
+        });
+    }
+
+    private void assertPreservesInterrupt(InterruptedException interruption, Runnable request) {
+        try {
+            var failure = assertThrows(RuntimeException.class, request::run);
+            assertSame(interruption, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

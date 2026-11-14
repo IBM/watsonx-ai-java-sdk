@@ -8,7 +8,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -48,10 +50,20 @@ import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-@DisabledInNativeImage
 public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
 
+    @Test
+    @DisabledInNativeImage
+    @MockitoSettings(strictness = Strictness.STRICT_STUBS)
+    void should_preserve_interruption_when_authenticating_with_ibm_cloud() throws Exception {
+        var interrupted = new InterruptedException("Token request interrupted");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interrupted);
+        withWatsonxServiceMock(() -> assertInterrupted(interrupted,
+            IBMCloudAuthenticator.builder().apiKey("key").build()));
+    }
+
     @Nested
+    @DisabledInNativeImage
     class Sync {
 
         @Test
@@ -275,6 +287,7 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
     }
 
     @Nested
+    @DisabledInNativeImage
     class Async {
 
         @Test
@@ -383,8 +396,19 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
     }
 
     @Test
+    @DisabledInNativeImage
     void should_return_the_correct_scheme() {
         var authenticator = IBMCloudAuthenticator.withKey("api-key");
         assertEquals("Bearer", authenticator.scheme());
+    }
+
+    private void assertInterrupted(InterruptedException expected, Authenticator authenticator) {
+        try {
+            var failure = assertThrows(RuntimeException.class, authenticator::token);
+            assertSame(expected, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

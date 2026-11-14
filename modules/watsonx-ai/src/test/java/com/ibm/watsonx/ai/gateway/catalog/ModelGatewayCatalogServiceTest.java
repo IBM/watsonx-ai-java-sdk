@@ -10,17 +10,60 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.net.URI;
+import java.net.http.HttpResponse.BodyHandler;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 
 @DisabledInNativeImage
 public class ModelGatewayCatalogServiceTest extends AbstractWatsonxTest {
+
+    @Test
+    void should_apply_configured_timeout_to_both_catalog_requests() {
+        withWatsonxServiceMock(() -> {
+            var timeout = Duration.ofSeconds(7);
+            var service = ModelGatewayCatalogService.builder()
+                .authenticator(mockAuthenticator).baseUrl(URI.create("http://localhost"))
+                .timeout(timeout).version(API_VERSION).build();
+            when(mockAuthenticator.token()).thenReturn("token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn("{\"object\":\"list\",\"data\":[]}");
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            service.listModels();
+            service.getModel("model");
+
+            assertEquals(2, mockHttpRequest.getAllValues().size());
+            mockHttpRequest.getAllValues().forEach(request -> assertEquals(timeout, request.timeout().orElseThrow()));
+        });
+    }
+
+    @Test
+    void should_encode_model_alias_as_one_path_segment() {
+        withWatsonxServiceMock(() -> {
+            var service = ModelGatewayCatalogService.builder()
+                .authenticator(mockAuthenticator).baseUrl(URI.create("http://localhost"))
+                .version(API_VERSION).build();
+            when(mockAuthenticator.token()).thenReturn("token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn("{\"id\":\"provider/model v1?preview#1+\"}");
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            service.getModel("provider/model v1?preview#1+");
+
+            var uri = mockHttpRequest.getValue().uri();
+            assertEquals("/ml/gateway/v1/models/provider%2Fmodel%20v1%3Fpreview%231%2B", uri.getRawPath());
+            assertEquals("version=" + API_VERSION, uri.getRawQuery());
+            assertNull(uri.getRawFragment());
+        });
+    }
 
     private ModelGatewayCatalogService buildService() {
         return ModelGatewayCatalogService.builder()
@@ -270,5 +313,41 @@ public class ModelGatewayCatalogServiceTest extends AbstractWatsonxTest {
             .baseUrl(URI.create("http://localhost"))
             .build());
         assertEquals("authenticator cannot be null", ex.getMessage());
+    }
+
+    @Test
+    void should_preserve_catalog_list_interruption() throws Exception {
+        var interruption = new InterruptedException("Request interrupted");
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interruption);
+
+        withWatsonxServiceMock(() -> {
+            var service = ModelGatewayCatalogService.builder().baseUrl(URI.create("http://localhost"))
+                .authenticator(mockAuthenticator).build();
+            assertPreservesInterrupt(interruption, service::listModels);
+        });
+    }
+
+    @Test
+    void should_preserve_catalog_get_interruption() throws Exception {
+        var interruption = new InterruptedException("Request interrupted");
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interruption);
+
+        withWatsonxServiceMock(() -> {
+            var service = ModelGatewayCatalogService.builder().baseUrl(URI.create("http://localhost"))
+                .authenticator(mockAuthenticator).build();
+            assertPreservesInterrupt(interruption, () -> service.getModel("model"));
+        });
+    }
+
+    private void assertPreservesInterrupt(InterruptedException interruption, Runnable request) {
+        try {
+            var failure = assertThrows(RuntimeException.class, request::run);
+            assertSame(interruption, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

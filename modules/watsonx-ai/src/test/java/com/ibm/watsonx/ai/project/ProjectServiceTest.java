@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -235,5 +236,26 @@ public class ProjectServiceTest extends AbstractWatsonxTest {
             .build();
 
         assertThrows(WatsonxException.class, () -> service.findProject(PROJECT_ID));
+    }
+
+    @Test
+    void should_preserve_interruption_when_retrieving_project_metadata() throws Exception {
+        var interrupted = new InterruptedException("Request interrupted");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interrupted);
+
+        withWatsonxServiceMock(() -> {
+            var service = ProjectService.builder().baseUrl(CloudRegion.DALLAS).build();
+            assertInterrupted(interrupted, () -> service.findProject("project"));
+        });
+    }
+
+    private void assertInterrupted(InterruptedException expected, Runnable action) {
+        try {
+            var failure = assertThrows(RuntimeException.class, action::run);
+            assertSame(expected, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

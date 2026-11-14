@@ -1586,6 +1586,12 @@
       "type": "com.ibm.watsonx.ai.chat.model.schema.StringSchema$Builder"
     },
     {
+      "type": "com.ibm.watsonx.ai.core.Polling"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.core.Polling$Sleeper"
+    },
+    {
       "type": "com.ibm.watsonx.ai.core.auth.Authenticator"
     },
     {
@@ -3927,6 +3933,19 @@
     },
     {
       "type": "com.ibm.watsonx.ai.textprocessing.schema.merge.Parameters$SemanticConfig"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.textprocessing.storage.cos.DefaultRestClientTest",
+      "methods": [
+        {
+          "name": "should_close_input_and_remove_temporary_file_when_copy_fails",
+          "parameterTypes": []
+        },
+        {
+          "name": "should_remove_temporary_file_when_closing_input_fails",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "com.ibm.watsonx.ai.textprocessing.textclassification.Parameters",
@@ -6462,6 +6481,20 @@
         },
         {
           "name": "tail"
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.locks.AbstractQueuedLongSynchronizer$Node",
+      "fields": [
+        {
+          "name": "next"
+        },
+        {
+          "name": "prev"
+        },
+        {
+          "name": "status"
         }
       ]
     },
@@ -10282,6 +10315,40 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.Polling",
+          "interfaces": [
+            "com.ibm.watsonx.ai.core.Polling$Sleeper"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.TimeUnit"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.Polling",
+          "interfaces": [
+            "java.util.function.LongSupplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.core.RetryConfig",
           "interfaces": [
             "java.util.function.Function"
@@ -10343,6 +10410,24 @@
           "name": "<init>",
           "parameterTypes": [
             "java.net.http.HttpRequest"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.SyncHttpClient",
+          "interfaces": [
+            "com.ibm.watsonx.ai.core.http.SyncHttpClient$Sleeper"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.TimeUnit"
           ]
         }
       ]
@@ -11135,6 +11220,34 @@
           "parameterTypes": [
             "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService",
             "java.time.Duration"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.textprocessing.storage.cos.internal.CosUploadClients",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "com.ibm.watsonx.ai.core.auth.Authenticator",
+            "com.ibm.watsonx.ai.core.auth.Authenticator",
+            "java.net.http.HttpClient",
+            "java.time.Duration",
+            "boolean",
+            "boolean",
+            "com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger",
+            "org.slf4j.event.Level",
+            "com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger",
+            "org.slf4j.event.Level"
           ]
         }
       ]

@@ -9,6 +9,8 @@ import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -21,8 +23,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -157,6 +159,25 @@ public class ToolServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_encode_tool_name_as_one_path_segment() throws Exception {
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn("{\"name\":\"custom\"}");
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+
+        withWatsonxServiceMock(() -> {
+            var service = ToolService.builder().baseUrl("https://localhost").authenticator(mockAuthenticator).build();
+
+            var tool = service.getByName("custom/tool v1?preview#1+%");
+
+            assertEquals("custom", tool.name());
+            var uri = mockHttpRequest.getValue().uri();
+            assertEquals("/v1-beta/utility_agent_tools/custom%2Ftool%20v1%3Fpreview%231%2B%25", uri.getRawPath());
+            assertNull(uri.getRawQuery());
+            assertNull(uri.getRawFragment());
+        });
+    }
+
+    @Test
     void should_run_tool_with_various_input_types() throws Exception {
 
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -217,12 +238,19 @@ public class ToolServiceTest extends AbstractWatsonxTest {
 
                 assertThrows(RuntimeException.class, () -> toolService.getAll());
                 assertThrows(RuntimeException.class, () -> toolService.getAll());
+                assertTrue(Thread.interrupted());
                 assertThrows(RuntimeException.class, () -> toolService.getByName("test"));
+                assertTrue(Thread.interrupted());
                 assertThrows(RuntimeException.class, () -> toolService.getByName("test"));
+                assertTrue(Thread.interrupted());
                 assertThrows(RuntimeException.class, () -> toolService.run(ToolRequest.unstructuredInput("test", "test")));
+                assertTrue(Thread.interrupted());
                 assertThrows(RuntimeException.class, () -> toolService.run(ToolRequest.unstructuredInput("test", "test")));
+                assertTrue(Thread.interrupted());
             } catch (Exception e) {
                 fail(e);
+            } finally {
+                Thread.interrupted();
             }
         });
     }
@@ -631,5 +659,28 @@ public class ToolServiceTest extends AbstractWatsonxTest {
                 true
             );
         });
+    }
+
+    @Test
+    void should_preserve_interruption_when_calling_utility_tools() throws Exception {
+        var interrupted = new InterruptedException("Request interrupted");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interrupted);
+
+        withWatsonxServiceMock(() -> {
+            var service = ToolService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator).build();
+            assertInterrupted(interrupted, service::getAll);
+            assertInterrupted(interrupted, () -> service.getByName("Weather"));
+            assertInterrupted(interrupted, () -> service.run(ToolRequest.unstructuredInput("Weather", "Rome")));
+        });
+    }
+
+    private void assertInterrupted(InterruptedException expected, Runnable action) {
+        try {
+            var failure = assertThrows(RuntimeException.class, action::run);
+            assertSame(expected, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

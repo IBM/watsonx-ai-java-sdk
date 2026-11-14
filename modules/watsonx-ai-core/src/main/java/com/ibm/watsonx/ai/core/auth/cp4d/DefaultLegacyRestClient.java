@@ -39,7 +39,10 @@ class DefaultLegacyRestClient extends CP4DRestClient {
             var response = syncHttpClient.send(createTokenRequest(request), BodyHandlers.ofString());
             return parseTokenResponse(response);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.tool;
 
+import static com.ibm.watsonx.ai.core.HttpUtils.encodePathSegment;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
@@ -51,7 +52,10 @@ final class DefaultRestClient extends ToolRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), Resources.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -60,7 +64,7 @@ final class DefaultRestClient extends ToolRestClient {
     public UtilityTool getByName(String transactionId, String name) {
 
         var httpRequest =
-            HttpRequest.newBuilder(URI.create(baseUrl + "%s/%s".formatted(API_PATH, name)))
+            HttpRequest.newBuilder(URI.create(baseUrl + "%s/%s".formatted(API_PATH, encodePathSegment(name))))
                 .header("Accept", "application/json")
                 .timeout(timeout)
                 .GET();
@@ -73,7 +77,10 @@ final class DefaultRestClient extends ToolRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), UtilityTool.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -97,7 +104,10 @@ final class DefaultRestClient extends ToolRestClient {
             var result = fromJson(httpResponse.body(), Map.class);
             return (String) result.get("output");
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

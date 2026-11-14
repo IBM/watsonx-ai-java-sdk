@@ -51,7 +51,7 @@ final class DefaultRestClient extends FoundationModelRestClient {
             if (nonNull(limit))
                 queryParameters.add("limit=" + limit);
 
-            if (techPreview)
+            if (Boolean.TRUE.equals(techPreview))
                 queryParameters.add("tech_preview=" + techPreview);
 
             if (nonNull(filters))
@@ -71,7 +71,10 @@ final class DefaultRestClient extends FoundationModelRestClient {
             var response = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(response.body(), new TypeToken<FoundationModelResponse<FoundationModel>>() {});
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -93,7 +96,10 @@ final class DefaultRestClient extends FoundationModelRestClient {
         var uri =
             URI.create(baseUrl + "/ml/v1/foundation_model_tasks?%s".formatted(queryParameters));
 
-        var httpRequest = HttpRequest.newBuilder(uri).GET();
+        var httpRequest = HttpRequest.newBuilder(uri)
+            .header("Accept", "application/json")
+            .timeout(timeout)
+            .GET();
 
         if (nonNull(parameters.transactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, parameters.transactionId());
@@ -103,7 +109,10 @@ final class DefaultRestClient extends FoundationModelRestClient {
             var response = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(response.body(), new TypeToken<FoundationModelResponse<FoundationModelTask>>() {});
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

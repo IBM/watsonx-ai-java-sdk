@@ -44,7 +44,10 @@ final class DefaultRestClient extends ModelGatewayImageRestClient {
         try {
             var httpResponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
             return fromJson(httpResponse.body(), ModelGatewayImageResponse.class);
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

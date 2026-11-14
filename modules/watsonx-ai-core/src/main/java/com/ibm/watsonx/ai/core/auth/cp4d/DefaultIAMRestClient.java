@@ -43,7 +43,10 @@ class DefaultIAMRestClient extends CP4DRestClient {
             var httpRequest = createValidationRequest(request.username(), tokenResponse.accessToken());
             return createTokenResponse(syncHttpClient.send(httpRequest, BodyHandlers.ofString()), tokenResponse);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
