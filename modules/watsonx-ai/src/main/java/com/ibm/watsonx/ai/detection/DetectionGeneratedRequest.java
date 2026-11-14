@@ -4,9 +4,9 @@
  */
 package com.ibm.watsonx.ai.detection;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toMap;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.WatsonxParameters;
@@ -38,7 +38,7 @@ public final class DetectionGeneratedRequest extends WatsonxParameters {
         super(builder);
         prompt = requireNonNull(builder.prompt, "prompt cannot be null");
         generatedText = requireNonNull(builder.generatedText, "generatedText cannot be null");
-        detectors = Collections.unmodifiableMap(requireNonNull(builder.detectors, "detectors cannot be null"));
+        detectors = copyMap(requireNonNull(builder.detectors, "detectors cannot be null"));
         serviceInstanceId = builder.serviceInstanceId;
     }
 
@@ -137,7 +137,13 @@ public final class DetectionGeneratedRequest extends WatsonxParameters {
          * @param detectors the list of detectors
          */
         public Builder detectors(List<BaseDetector> detectors) {
-            this.detectors = detectors.stream().collect(toMap(BaseDetector::name, BaseDetector::properties));
+            var byName = new LinkedHashMap<String, Map<String, Object>>();
+            for (var detector : detectors) {
+                if (byName.containsKey(detector.name()))
+                    throw new IllegalStateException("Duplicate detector: " + detector.name());
+                byName.put(detector.name(), detector.properties());
+            }
+            this.detectors = byName;
             return this;
         }
 

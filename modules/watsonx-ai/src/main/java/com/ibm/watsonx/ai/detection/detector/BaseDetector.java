@@ -4,9 +4,9 @@
  */
 package com.ibm.watsonx.ai.detection.detector;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.requireNonNull;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -41,7 +41,7 @@ public abstract class BaseDetector {
      */
     protected BaseDetector(Builder<?> builder) {
         name = requireNonNull(builder.name, "name cannot be null");
-        properties = Collections.unmodifiableMap(new HashMap<>(builder.properties));
+        properties = copyMap(builder.properties);
     }
 
     /**
@@ -62,11 +62,6 @@ public abstract class BaseDetector {
         return properties;
     }
 
-    @Override
-    public String toString() {
-        return "BaseDetector [name=" + name + ", properties=" + properties + "]";
-    }
-
     /**
      * Abstract builder class for constructing a {@link BaseDetector}.
      */
@@ -82,7 +77,7 @@ public abstract class BaseDetector {
          */
         protected Builder(String name) {
             this.name = name;
-            properties = new HashMap<>();
+            properties = new LinkedHashMap<>();
         }
 
         /**
@@ -137,5 +132,10 @@ public abstract class BaseDetector {
         } else if (!properties.equals(other.properties))
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "BaseDetector [name=" + name + ", properties=" + properties + "]";
     }
 }

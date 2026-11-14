@@ -4,9 +4,7 @@
  */
 package com.ibm.watsonx.ai.tool;
 
-import static java.util.Objects.isNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.core.Experimental;
 import com.ibm.watsonx.ai.tool.ToolRequest.StructuredInput;
@@ -99,8 +97,8 @@ public sealed interface ToolRequest permits StructuredInput, UnstructuredInput {
         implements
             ToolRequest {
         public StructuredInput {
-            input = isNull(input) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(input));
-            config = isNull(config) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(config));
+            input = copyMap(input);
+            config = copyMap(config);
         }
     }
 
@@ -115,7 +113,7 @@ public sealed interface ToolRequest permits StructuredInput, UnstructuredInput {
         implements
             ToolRequest {
         public UnstructuredInput {
-            config = isNull(config) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(config));
+            config = copyMap(config);
         }
     }
 }

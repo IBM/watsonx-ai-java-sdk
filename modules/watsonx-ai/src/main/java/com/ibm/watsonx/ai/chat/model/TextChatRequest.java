@@ -4,8 +4,10 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -61,7 +63,7 @@ public final class TextChatRequest {
         messages = isNull(builder.messages) ? null : List.copyOf(builder.messages);
         tools = isNull(builder.tools) ? null : List.copyOf(builder.tools);
         toolChoiceOption = builder.toolChoiceOption;
-        toolChoice = isNull(builder.toolChoice) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.toolChoice));
+        toolChoice = copyMap(builder.toolChoice);
         frequencyPenalty = builder.frequencyPenalty;
         logitBias = isNull(builder.logitBias) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.logitBias));
         logprobs = builder.logprobs;
@@ -75,14 +77,16 @@ public final class TextChatRequest {
         topP = builder.topP;
         timeLimit = builder.timeLimit;
         context = builder.context;
-        chatTemplateKwargs = isNull(builder.chatTemplateKwargs) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.chatTemplateKwargs));
+        chatTemplateKwargs = copyMap(builder.chatTemplateKwargs);
         includeReasoning = builder.includeReasoning;
         reasoningEffort = builder.reasoningEffort;
 
         if (nonNull(builder.responseFormat)) {
-            responseFormat = builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.value())
-                ? Map.of("type", builder.responseFormat, "json_schema", builder.jsonSchema)
-                : Map.of("type", builder.responseFormat);
+            var format = new LinkedHashMap<String, Object>();
+            format.put("type", builder.responseFormat);
+            if (builder.responseFormat.equals(ResponseFormat.JSON_SCHEMA.value()))
+                format.put("json_schema", requireNonNull(builder.jsonSchema));
+            responseFormat = Collections.unmodifiableMap(format);
         } else {
             responseFormat = null;
         }

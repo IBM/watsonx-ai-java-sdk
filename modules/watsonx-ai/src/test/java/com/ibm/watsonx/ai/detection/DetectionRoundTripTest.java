@@ -8,12 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.detection.detector.AnswerRelevance;
+import com.ibm.watsonx.ai.detection.detector.BaseDetector;
 import com.ibm.watsonx.ai.detection.detector.ContextRelevance;
 import com.ibm.watsonx.ai.detection.detector.Faithfulness;
 import com.ibm.watsonx.ai.detection.detector.Hap;
@@ -368,4 +371,57 @@ public class DetectionRoundTripTest {
         JSONAssert.assertEquals(EXPECTED, Json.toJson(request), true);
         assertEquals(request, Json.fromJson(Json.toJson(request), DetectionGeneratedRequest.class));
     }
+
+    @Test
+    void should_preserve_detector_list_order_and_reject_duplicate_names() {
+        var detectors = List.<BaseDetector>of(Hap.ofDefaults(), Pii.ofDefaults());
+        var text = DetectionTextRequest.builder().input("text").detectors(detectors).build();
+        var context = DetectionContextRequest.builder().input("text").context(List.of("context")).detectors(detectors).build();
+        var generated = DetectionGeneratedRequest.builder().prompt("prompt").generatedText("answer").detectors(detectors).build();
+
+        for (var snapshot : List.of(text.detectors(), context.detectors(), generated.detectors()))
+            assertEquals(List.of(detectors.get(0).name(), detectors.get(1).name()), new ArrayList<>(snapshot.keySet()));
+        assertThrows(IllegalStateException.class,
+            () -> DetectionTextRequest.builder().detectors(Pii.ofDefaults(), Pii.ofDefaults()));
+    }
+
+    @Test
+    void should_snapshot_detector_configuration_in_all_detection_requests() {
+        var values = new ArrayList<>(List.of("original"));
+        var configuration = new LinkedHashMap<String, Object>();
+        configuration.put("values", values);
+        var detectors = new LinkedHashMap<String, Map<String, Object>>();
+        detectors.put("pii", configuration);
+
+        var text = DetectionTextRequest.builder().input("text").detectors(detectors).build();
+        var context = DetectionContextRequest.builder().input("text").context(List.of("context")).detectors(detectors).build();
+        var generated = DetectionGeneratedRequest.builder().prompt("prompt").generatedText("answer").detectors(detectors).build();
+        var payload = new TextDetectionContentDetectors("text", detectors, "project", null);
+
+        values.clear();
+        configuration.clear();
+        detectors.clear();
+
+        for (var snapshot : List.of(text.detectors(), context.detectors(), generated.detectors(), payload.detectors())) {
+            assertEquals(Map.of("pii", Map.of("values", List.of("original"))), snapshot);
+            assertThrows(UnsupportedOperationException.class, () -> snapshot.clear());
+            assertThrows(UnsupportedOperationException.class, () -> snapshot.get("pii").clear());
+            assertThrows(UnsupportedOperationException.class, () -> ((List<?>) snapshot.get("pii").get("values")).clear());
+        }
+    }
+
+    @Test
+    void should_snapshot_nested_custom_detector_properties() {
+        var values = new ArrayList<>(List.of("original"));
+        var builder = Pii.builder().addProperty("values", values);
+        var detector = builder.build();
+        var request = DetectionTextRequest.builder().input("text").detectors(detector).build();
+        values.clear();
+        builder.addProperty("new", "value");
+
+        assertEquals(Map.of("values", List.of("original")), detector.properties());
+        assertEquals(detector.properties(), request.detectors().get(detector.name()));
+        assertThrows(UnsupportedOperationException.class, () -> ((List<?>) detector.properties().get("values")).clear());
+    }
+
 }

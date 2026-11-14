@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.project;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyList;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.isNull;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -53,10 +55,10 @@ public class Project {
         storage = builder.storage;
         catalog = builder.catalog;
         compute = isNull(builder.compute) ? null : List.copyOf(builder.compute);
-        settings = isNull(builder.settings) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.settings));
-        members = isNull(builder.members) ? null : List.copyOf(builder.members);
+        settings = copyMap(builder.settings);
+        members = copyList(builder.members);
         tools = isNull(builder.tools) ? null : List.copyOf(builder.tools);
-        github = isNull(builder.github) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.github));
+        github = copyMap(builder.github);
     }
 
     @SuppressWarnings("unchecked")

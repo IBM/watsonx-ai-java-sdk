@@ -4,9 +4,8 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.isNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.Schema;
@@ -57,8 +56,7 @@ public record Parameters(
         List<Schema> schemas) {
 
         public SemanticConfig {
-            taskModelNameOverride =
-                isNull(taskModelNameOverride) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(taskModelNameOverride));
+            taskModelNameOverride = copyMap(taskModelNameOverride);
             schemas = isNull(schemas) ? null : List.copyOf(schemas);
         }
     }

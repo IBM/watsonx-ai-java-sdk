@@ -9,7 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.chat.model.schema.Format;
@@ -1395,4 +1398,25 @@ public class JsonSchemaTest {
             .anyOf(JsonSchema.array().items(JsonSchema.string()), JsonSchema.array().items(JsonSchema.integer()))
             .build());
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_snapshot_nested_json_schema_values() {
+        var values = new ArrayList<>(List.of("original"));
+        var value = new LinkedHashMap<String, Object>();
+        value.put("items", values);
+        var schema = JsonSchema.object().defaultValue(value).examples(value).build();
+        var constant = JsonSchema.constant(value).build();
+        var enumeration = JsonSchema.enumeration(value).build();
+
+        values.add("changed");
+        value.put("extra", true);
+
+        for (var snapshot : List.of(schema.defaultValue(), schema.examples().get(0), constant.constant(), enumeration.enumValues().get(0))) {
+            assertEquals(Map.of("items", List.of("original")), snapshot);
+            var items = (List<String>) ((Map<?, ?>) snapshot).get("items");
+            assertThrows(UnsupportedOperationException.class, () -> items.add("changed"));
+        }
+    }
+
 }

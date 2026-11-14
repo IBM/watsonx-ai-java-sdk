@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.gateway.chat;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copy;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.isNull;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -56,9 +58,7 @@ public final class ModelGatewayTextChatRequest {
         model = builder.model;
         messages = isNull(builder.messages) ? null : List.copyOf(builder.messages);
         tools = isNull(builder.tools) ? null : List.copyOf(builder.tools);
-        toolChoice = builder.toolChoice instanceof Map<?, ?> map
-            ? Collections.unmodifiableMap(new LinkedHashMap<>(map))
-            : builder.toolChoice;
+        toolChoice = copy(builder.toolChoice);
         frequencyPenalty = builder.frequencyPenalty;
         logitBias = isNull(builder.logitBias) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.logitBias));
         logprobs = builder.logprobs;
@@ -72,7 +72,7 @@ public final class ModelGatewayTextChatRequest {
         temperature = builder.temperature;
         topP = builder.topP;
         timeLimit = builder.timeLimit;
-        responseFormat = isNull(builder.responseFormat) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.responseFormat));
+        responseFormat = copyMap(builder.responseFormat);
         audio = isNull(builder.audio) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.audio));
         metadata = isNull(builder.metadata) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.metadata));
         modalities = isNull(builder.modalities) ? null : List.copyOf(builder.modalities);

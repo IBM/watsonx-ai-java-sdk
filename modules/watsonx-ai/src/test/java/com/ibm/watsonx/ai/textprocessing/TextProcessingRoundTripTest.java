@@ -5,12 +5,26 @@
 package com.ibm.watsonx.ai.textprocessing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.textprocessing.GroundingHints.FieldData;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
+import com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaResponse.ClusterSchemaResult;
+import com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemas;
+import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationParameters;
+import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRequest;
+import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse;
+import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationSemanticConfig;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse;
+import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionSemanticConfig;
 
 public class TextProcessingRoundTripTest {
 
@@ -111,4 +125,66 @@ public class TextProcessingRoundTripTest {
         assertEquals(1, roundTrip.pageNumber("invoice_number"));
         assertEquals(List.of(0.1, 0.8, 0.3, 0.9), roundTrip.bbox("total_amount"));
     }
+
+    @Test
+    void should_snapshot_nested_classification_custom_and_semantic_collections() {
+        var values = new ArrayList<>(List.of("original"));
+        var properties = new LinkedHashMap<String, Object>();
+        properties.put("values", values);
+        var config = TextClassificationSemanticConfig.builder().taskModelNameOverride(properties).build();
+        var parameters = TextClassificationParameters.builder().addCustomProperty("values", values).semanticConfig(config).build();
+        var snapshots = List.of(
+            parameters.custom(),
+            config.taskModelNameOverride(),
+            new TextClassificationRequest(null, null, null, null, properties).custom(),
+            new TextClassificationResponse.Entity(null, null, null, properties).custom());
+
+        values.add("later");
+        properties.clear();
+
+        for (Map<String, Object> snapshot : snapshots) {
+            assertEquals(Map.of("values", List.of("original")), snapshot);
+            assertThrows(UnsupportedOperationException.class, () -> ((List<?>) snapshot.get("values")).clear());
+            assertThrows(UnsupportedOperationException.class, snapshot::clear);
+        }
+    }
+
+    @Test
+    void should_snapshot_nested_extraction_custom_and_semantic_collections() {
+        var values = new ArrayList<>(List.of("original"));
+        var properties = new LinkedHashMap<String, Object>();
+        properties.put("values", values);
+        var config = TextExtractionSemanticConfig.builder().taskModelNameOverride(properties).build();
+        var parameters = TextExtractionParameters.builder().addCustomProperty("values", values).semanticConfig(config).build();
+        var snapshots = List.of(
+            parameters.custom(),
+            config.taskModelNameOverride(),
+            new TextExtractionRequest(null, null, null, null, null, properties).custom(),
+            new TextExtractionResponse.Entity(null, null, null, null, properties).custom());
+
+        values.add("later");
+        properties.clear();
+
+        for (Map<String, Object> snapshot : snapshots) {
+            assertEquals(Map.of("values", List.of("original")), snapshot);
+            assertThrows(UnsupportedOperationException.class, () -> ((List<?>) snapshot.get("values")).clear());
+            assertThrows(UnsupportedOperationException.class, snapshot::clear);
+        }
+    }
+
+    @Test
+    void should_snapshot_each_cluster_in_results() {
+        var entry = new ClusterSchemas("document", Schema.builder().build());
+        var cluster = new ArrayList<>(List.of(entry));
+        var clusters = new ArrayList<>(List.of(cluster));
+        var result = new ClusterSchemaResult("completed", null, null, new ArrayList<>(clusters), null);
+
+        cluster.clear();
+        clusters.clear();
+
+        assertEquals(List.of(List.of(entry)), result.schemas());
+        assertThrows(UnsupportedOperationException.class, result.schemas()::clear);
+        assertThrows(UnsupportedOperationException.class, result.schemas().get(0)::clear);
+    }
+
 }

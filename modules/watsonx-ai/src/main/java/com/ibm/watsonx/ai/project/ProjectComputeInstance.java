@@ -4,8 +4,7 @@
  */
 package com.ibm.watsonx.ai.project;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.Map;
 
 /**
@@ -20,6 +19,6 @@ import java.util.Map;
 public record ProjectComputeInstance(String name, String guid, String type, String crn, Map<String, Object> credentials) {
 
     public ProjectComputeInstance {
-        credentials = credentials == null ? null : Collections.unmodifiableMap(new LinkedHashMap<>(credentials));
+        credentials = copyMap(credentials);
     }
 }

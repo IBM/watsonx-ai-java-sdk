@@ -4,10 +4,9 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copy;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.chat.model.schema.ObjectSchema;
@@ -34,8 +33,7 @@ public record Tool(String type, Function function) {
 
     public record Function(String name, String description, Object parameters) {
         public Function {
-            if (parameters instanceof Map<?, ?> map)
-                parameters = Collections.unmodifiableMap(new LinkedHashMap<>(map));
+            parameters = copy(parameters);
         }
     }
 

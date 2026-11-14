@@ -4,10 +4,10 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copy;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyList;
 import static java.util.Objects.nonNull;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -73,8 +73,8 @@ public abstract class JsonSchema {
     protected JsonSchema(Object type, Builder<?, ?, ?> builder) {
         title = builder.title;
         description = builder.description;
-        defaultValue = builder.defaultValue;
-        examples = nonNull(builder.examples) ? Collections.unmodifiableList(new ArrayList<>(builder.examples)) : null;
+        defaultValue = copy(builder.defaultValue);
+        examples = copyList(builder.examples);
         readOnly = builder.readOnly;
         writeOnly = builder.writeOnly;
         deprecated = builder.deprecated;

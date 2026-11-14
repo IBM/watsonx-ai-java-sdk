@@ -5,12 +5,17 @@
 package com.ibm.watsonx.ai.timeseries;
 
 import static java.util.Objects.isNull;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 /**
@@ -36,7 +41,9 @@ public final class ForecastData {
      * Constructs an ForecastData instance.
      */
     protected ForecastData(Map<String, List<Object>> data) {
-        this.data = isNull(data) ? new LinkedHashMap<>() : new LinkedHashMap<>(data);
+        this.data = new LinkedHashMap<>();
+        if (!isNull(data))
+            data.forEach((key, values) -> this.data.put(key, isNull(values) ? null : new ArrayList<>(values)));
     }
 
     /**
@@ -85,7 +92,7 @@ public final class ForecastData {
      * @return {@code ForecastData} instance for method chaining
      */
     public ForecastData addAll(String key, Object... values) {
-        return addAll(key, new ArrayList<>(List.of(values)));
+        return addAll(key, Arrays.asList(values));
     }
 
     /**
@@ -111,11 +118,42 @@ public final class ForecastData {
 
     /**
      * Returns a read-only view of the columnar data.
+     * <p>
+     * The map and its column lists reflect later additions to this instance through {@code add} and {@code addAll}.
      *
      * @return a read-only map from column names to lists of values
      */
     public Map<String, List<Object>> asMap() {
-        return Collections.unmodifiableMap(data);
+        return Collections.unmodifiableMap(new AbstractMap<>() {
+            @Override
+            public List<Object> get(Object key) {
+                var values = data.get(key);
+                return isNull(values) ? null : Collections.unmodifiableList(values);
+            }
+
+            @Override
+            public boolean containsKey(Object key) {
+                return data.containsKey(key);
+            }
+
+            @Override
+            public Set<Entry<String, List<Object>>> entrySet() {
+                return new AbstractSet<>() {
+                    @Override
+                    public Iterator<Entry<String, List<Object>>> iterator() {
+                        return data.entrySet().stream()
+                            .<Entry<String, List<Object>>>map(entry -> new SimpleImmutableEntry<>(entry.getKey(),
+                                isNull(entry.getValue()) ? null : Collections.unmodifiableList(entry.getValue())))
+                            .iterator();
+                    }
+
+                    @Override
+                    public int size() {
+                        return data.size();
+                    }
+                };
+            }
+        });
     }
 
     /**

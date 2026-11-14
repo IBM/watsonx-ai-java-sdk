@@ -4,9 +4,7 @@
  */
 package com.ibm.watsonx.ai.timeseries;
 
-import static java.util.Objects.isNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,8 +31,8 @@ public record ForecastRequest(
     Parameters parameters) {
 
     public ForecastRequest {
-        data = isNull(data) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(data));
-        futureData = isNull(futureData) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(futureData));
+        data = copyMap(data);
+        futureData = copyMap(futureData);
     }
 
     /**
