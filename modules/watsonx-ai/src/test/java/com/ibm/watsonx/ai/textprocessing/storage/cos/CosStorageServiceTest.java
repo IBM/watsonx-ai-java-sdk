@@ -5,6 +5,8 @@
 package com.ibm.watsonx.ai.textprocessing.storage.cos;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -15,8 +17,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,12 +32,14 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import org.slf4j.event.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
@@ -75,9 +82,13 @@ public class CosStorageServiceTest extends AbstractWatsonxTest {
 
     StorageOperations storage;
 
+    @TempDir
+    Path temporaryDirectory;
+
     @BeforeEach
     void setUpStorage() {
         when(mockAuthenticator.scheme()).thenReturn("Bearer");
+        when(mockAuthenticator.tokenAsync()).thenAnswer(invocation -> completedFuture(mockAuthenticator.token()));
         resetHttpClient();
         storage = buildCosService();
     }
@@ -101,6 +112,47 @@ public class CosStorageServiceTest extends AbstractWatsonxTest {
         assertTrue(result);
         cosServer.verify(1, putRequestedFor(urlEqualTo(FILE_PATH))
             .withHeader("Watsonx-AI-SDK-Request-Id", equalTo("req-upload")));
+    }
+
+    @Test
+    void should_replay_inputstream_after_transient_upload_failure() throws Exception {
+        when(mockAuthenticator.token()).thenReturn("tok");
+        stubUploadRetry(503, "text/plain", "Service unavailable");
+        var file = Files.writeString(temporaryDirectory.resolve(FILE_NAME), FILE_CONTENT);
+
+        try (var input = Files.newInputStream(file)) {
+            assertFalse(input.markSupported());
+            assertTrue(storage.upload("req-retry", input, FILE_NAME));
+        }
+
+        cosServer.verify(2, putRequestedFor(urlEqualTo(FILE_PATH))
+            .withHeader("Watsonx-AI-SDK-Request-Id", equalTo("req-retry"))
+            .withRequestBody(equalTo(FILE_CONTENT)));
+    }
+
+    @Test
+    void should_replay_file_after_transient_upload_failure() throws Exception {
+        when(mockAuthenticator.token()).thenReturn("tok");
+        stubUploadRetry(503, "text/plain", "Service unavailable");
+        var file = Files.writeString(temporaryDirectory.resolve(FILE_NAME), FILE_CONTENT);
+
+        assertTrue(storage.upload(file.toFile()));
+
+        cosServer.verify(2, putRequestedFor(urlEqualTo(FILE_PATH)).withRequestBody(equalTo(FILE_CONTENT)));
+        assertEquals(FILE_CONTENT, Files.readString(file));
+    }
+
+    @Test
+    void should_replay_upload_after_token_expiration() {
+        when(mockAuthenticator.token()).thenReturn("expired", "fresh");
+        stubUploadRetry(401, "application/json", """
+            {"errors":[{"code":"authentication_token_expired","message":"Token expired"}]}
+            """);
+
+        assertTrue(storage.upload(stream(FILE_CONTENT), FILE_NAME));
+
+        cosServer.verify(2, putRequestedFor(urlEqualTo(FILE_PATH)).withRequestBody(equalTo(FILE_CONTENT)));
+        cosServer.verify(1, putRequestedFor(urlEqualTo(FILE_PATH)).withHeader("Authorization", equalTo("Bearer fresh")));
     }
 
     @Test
@@ -150,10 +202,23 @@ public class CosStorageServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_wrap_ioexception_on_upload_file() throws Exception {
-        var dir = Files.createTempDirectory("cos-test-dir").toFile();
-        dir.deleteOnExit();
-        assertThrows(RuntimeException.class, () -> storage.upload(dir));
+    void should_reject_upload_directory_before_sending_request() {
+        var directory = temporaryDirectory.toFile();
+
+        assertThrows(IllegalArgumentException.class, () -> storage.upload(directory));
+        assertThrows(IllegalArgumentException.class, () -> storage.upload("req-directory", directory));
+
+        cosServer.verify(0, anyRequestedFor(anyUrl()));
+    }
+
+    @Test
+    void should_wrap_ioexception_on_upload_file() {
+        var missingFile = temporaryDirectory.resolve("missing.pdf").toFile();
+
+        var failure = assertThrows(RuntimeException.class, () -> storage.upload(missingFile));
+
+        assertInstanceOf(FileNotFoundException.class, failure.getCause());
+        cosServer.verify(0, anyRequestedFor(anyUrl()));
     }
 
     @Test
@@ -198,14 +263,16 @@ public class CosStorageServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_throw_file_not_found_on_read_generic_404_xml() {
+    void should_preserve_bucket_not_found_error_on_read() {
         when(mockAuthenticator.token()).thenReturn("tok");
         cosServer.stubFor(get(FILE_PATH).willReturn(aResponse()
             .withStatus(404)
             .withHeader("Content-Type", "application/xml")
             .withBody(COS_GENERIC_404_XML)));
 
-        assertThrows(FileNotFoundException.class, () -> storage.readFile(FILE_NAME));
+        var error = assertThrows(WatsonxException.class, () -> storage.readFile(FILE_NAME));
+        assertEquals(404, error.statusCode());
+        assertEquals("NoSuchBucket", error.details().orElseThrow().errors().get(0).code());
     }
 
     @Test
@@ -262,14 +329,16 @@ public class CosStorageServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_throw_file_not_found_on_delete_generic_404_xml() {
+    void should_preserve_bucket_not_found_error_on_delete() {
         when(mockAuthenticator.token()).thenReturn("tok");
         cosServer.stubFor(delete(FILE_PATH).willReturn(aResponse()
             .withStatus(404)
             .withHeader("Content-Type", "application/xml")
             .withBody(COS_GENERIC_404_XML)));
 
-        assertThrows(FileNotFoundException.class, () -> storage.deleteFile(FILE_NAME));
+        var error = assertThrows(WatsonxException.class, () -> storage.deleteFile(FILE_NAME));
+        assertEquals(404, error.statusCode());
+        assertEquals("NoSuchBucket", error.details().orElseThrow().errors().get(0).code());
     }
 
     @Test
@@ -373,5 +442,17 @@ public class CosStorageServiceTest extends AbstractWatsonxTest {
 
     private static InputStream stream(String content) {
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void stubUploadRetry(int status, String contentType, String body) {
+        cosServer.stubFor(put(FILE_PATH)
+            .inScenario("upload-retry")
+            .whenScenarioStateIs(STARTED)
+            .willReturn(aResponse().withStatus(status).withHeader("Content-Type", contentType).withBody(body))
+            .willSetStateTo("retry"));
+        cosServer.stubFor(put(FILE_PATH)
+            .inScenario("upload-retry")
+            .whenScenarioStateIs("retry")
+            .willReturn(aResponse().withStatus(200)));
     }
 }

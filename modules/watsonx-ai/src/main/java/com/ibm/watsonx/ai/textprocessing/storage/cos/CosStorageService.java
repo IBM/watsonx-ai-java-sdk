@@ -40,6 +40,11 @@ import com.ibm.watsonx.ai.textprocessing.storage.StorageOperations;
  * }</pre>
  *
  * To use a custom authentication mechanism, configure it explicitly with {@code authenticator(Authenticator)}.
+ * <p>
+ * The default client copies input stream uploads to a temporary file before sending them so retries can resend the complete content. The directory
+ * configured by {@code java.io.tmpdir} must be writable and have capacity for the complete upload. Its storage may be memory-backed, depending on the
+ * environment. The input stream is closed after copying, and temporary file cleanup is attempted afterwards. File uploads read the original file,
+ * which must remain available and unchanged until the upload finishes.
  *
  * @see Authenticator
  */
@@ -76,6 +81,8 @@ public final class CosStorageService implements StorageOperations {
     public boolean upload(String requestId, File file) {
         requireNonNull(requestId, "requestId cannot be null");
         requireNonNull(file, "file cannot be null");
+        if (file.isDirectory())
+            throw new IllegalArgumentException("The file can not be a directory");
         return client.upload(requestId, file);
     }
 
