@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.file;
 
+import static com.ibm.watsonx.ai.core.HttpUtils.encodePathSegment;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -69,7 +70,10 @@ final class DefaultRestClient extends FileRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), FileData.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -110,7 +114,10 @@ final class DefaultRestClient extends FileRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), FileListResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -118,10 +125,11 @@ final class DefaultRestClient extends FileRestClient {
     @Override
     public String retrieve(FileRetrieveRequest request) {
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/files/%s/content?version=%s".formatted(request.fileId(), version)))
-            .GET()
-            .timeout(timeout)
-            .header("Accept", "application/jsonl");
+        var httpRequest =
+            HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/files/%s/content?version=%s".formatted(encodePathSegment(request.fileId()), version)))
+                .GET()
+                .timeout(timeout)
+                .header("Accept", "application/jsonl");
 
         if (nonNull(request.projectId()))
             httpRequest.header("X-IBM-Project-ID", request.projectId());
@@ -137,7 +145,10 @@ final class DefaultRestClient extends FileRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return httpResponse.body();
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -145,10 +156,11 @@ final class DefaultRestClient extends FileRestClient {
     @Override
     public FileDeleteResponse delete(FileDeleteRequest request) {
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/files/%s?version=%s".formatted(request.fileId(), version)))
-            .DELETE()
-            .timeout(timeout)
-            .header("Accept", "application/json");
+        var httpRequest =
+            HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/files/%s?version=%s".formatted(encodePathSegment(request.fileId()), version)))
+                .DELETE()
+                .timeout(timeout)
+                .header("Accept", "application/json");
 
         if (nonNull(request.projectId()))
             httpRequest.header("X-IBM-Project-ID", request.projectId());
@@ -164,7 +176,10 @@ final class DefaultRestClient extends FileRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), FileDeleteResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -172,10 +187,11 @@ final class DefaultRestClient extends FileRestClient {
     @Override
     public CompletableFuture<FileDeleteResponse> deleteAsync(FileDeleteRequest request) {
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/files/%s?version=%s".formatted(request.fileId(), version)))
-            .DELETE()
-            .timeout(timeout)
-            .header("Accept", "application/json");
+        var httpRequest =
+            HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/files/%s?version=%s".formatted(encodePathSegment(request.fileId()), version)))
+                .DELETE()
+                .timeout(timeout)
+                .header("Accept", "application/json");
 
         if (nonNull(request.projectId()))
             httpRequest.header("X-IBM-Project-ID", request.projectId());

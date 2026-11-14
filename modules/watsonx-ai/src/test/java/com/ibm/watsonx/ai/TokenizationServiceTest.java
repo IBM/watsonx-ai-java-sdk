@@ -6,22 +6,25 @@ package com.ibm.watsonx.ai;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -333,6 +336,29 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
                     fail(e);
                 }
             });
+        }
+    }
+
+    @Test
+    void should_preserve_tokenization_interruption() throws Exception {
+        var interruption = new InterruptedException("Request interrupted");
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interruption);
+
+        withWatsonxServiceMock(() -> {
+            var service = TokenizationService.builder().baseUrl(URI.create("http://localhost"))
+                .authenticator(mockAuthenticator).projectId("project").modelId("model").build();
+            assertPreservesInterrupt(interruption, () -> service.tokenize("input"));
+        });
+    }
+
+    private void assertPreservesInterrupt(InterruptedException interruption, Runnable request) {
+        try {
+            var failure = assertThrows(RuntimeException.class, request::run);
+            assertSame(interruption, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
         }
     }
 }

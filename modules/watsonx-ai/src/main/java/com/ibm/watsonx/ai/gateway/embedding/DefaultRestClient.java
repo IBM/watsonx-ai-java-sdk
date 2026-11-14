@@ -44,7 +44,10 @@ final class DefaultRestClient extends ModelGatewayEmbeddingRestClient {
         try {
             var httpResponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
             return fromJson(httpResponse.body(), ModelGatewayEmbeddingResponse.class);
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

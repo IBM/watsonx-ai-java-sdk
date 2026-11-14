@@ -8,6 +8,7 @@ import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.IAM;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -49,10 +50,24 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
 @ExtendWith(MockitoExtension.class)
-@DisabledInNativeImage
 public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
+    @Test
+    @DisabledInNativeImage
+    void should_preserve_interruption_when_authenticating_with_cp4d() throws Exception {
+        var interrupted = new InterruptedException("Token request interrupted");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interrupted);
+        withWatsonxServiceMock(() -> {
+            for (var mode : new AuthMode[] { AuthMode.LEGACY, AuthMode.IAM }) {
+                var authenticator = CP4DAuthenticator.builder().baseUrl("http://localhost")
+                    .username("user").password("password").authMode(mode).build();
+                assertInterrupted(interrupted, authenticator);
+            }
+        });
+    }
+
     @Nested
+    @DisabledInNativeImage
     @SuppressWarnings("unchecked")
     class Sync {
 
@@ -535,6 +550,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
     }
 
     @Nested
+    @DisabledInNativeImage
     @MockitoSettings(strictness = Strictness.LENIENT)
     @SuppressWarnings("unchecked")
     class Async {
@@ -758,6 +774,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
     }
 
     @Test
+    @DisabledInNativeImage
     void should_return_the_correct_scheme() {
 
         CP4DAuthenticator authenticator = CP4DAuthenticator.builder()
@@ -787,5 +804,15 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
             .build();
 
         assertEquals("Bearer", authenticator.scheme());
+    }
+
+    private void assertInterrupted(InterruptedException expected, Authenticator authenticator) {
+        try {
+            var failure = assertThrows(RuntimeException.class, authenticator::token);
+            assertSame(expected, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

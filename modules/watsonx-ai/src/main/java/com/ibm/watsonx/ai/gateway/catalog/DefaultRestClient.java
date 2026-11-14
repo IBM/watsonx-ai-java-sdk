@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.gateway.catalog;
 
+import static com.ibm.watsonx.ai.core.HttpUtils.encodePathSegment;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static java.util.Objects.requireNonNull;
 import java.io.IOException;
@@ -33,12 +34,16 @@ final class DefaultRestClient extends ModelGatewayCatalogRestClient {
         var url = URI.create(baseUrl + "/ml/gateway/v1/models?version=%s".formatted(version));
         var httpRequest = HttpRequest.newBuilder(url)
             .header("Accept", "application/json")
+            .timeout(timeout)
             .GET()
             .build();
         try {
             var httpResponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
             return fromJson(httpResponse.body(), ModelGatewayListModelsResponse.class).data();
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -46,15 +51,20 @@ final class DefaultRestClient extends ModelGatewayCatalogRestClient {
     @Override
     public ModelGatewayModel getModel(String modelUuid) {
         requireNonNull(modelUuid, "modelUuid cannot be null");
-        var url = URI.create(baseUrl + "/ml/gateway/v1/models/%s?version=%s".formatted(modelUuid, version));
+        var modelPath = encodePathSegment(modelUuid);
+        var url = URI.create(baseUrl + "/ml/gateway/v1/models/%s?version=%s".formatted(modelPath, version));
         var httpRequest = HttpRequest.newBuilder(url)
             .header("Accept", "application/json")
+            .timeout(timeout)
             .GET()
             .build();
         try {
             var httpResponse = syncHttpClient.send(httpRequest, BodyHandlers.ofString());
             return fromJson(httpResponse.body(), ModelGatewayModel.class);
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

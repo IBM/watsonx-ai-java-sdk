@@ -5,15 +5,18 @@
 package com.ibm.watsonx.ai;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -354,5 +357,28 @@ public class RerankServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(REQUEST, HttpUtils.bodyPublisherToString(mockHttpRequest), true);
             JSONAssert.assertEquals(RESPONSE, Json.toJson(response), true);
         });
+    }
+
+    @Test
+    void should_preserve_rerank_interruption() throws Exception {
+        var interruption = new InterruptedException("Request interrupted");
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interruption);
+
+        withWatsonxServiceMock(() -> {
+            var service = RerankService.builder().baseUrl(URI.create("http://localhost"))
+                .authenticator(mockAuthenticator).projectId("project").modelId("model").build();
+            assertPreservesInterrupt(interruption, () -> service.rerank("query", List.of("input")));
+        });
+    }
+
+    private void assertPreservesInterrupt(InterruptedException interruption, Runnable request) {
+        try {
+            var failure = assertThrows(RuntimeException.class, request::run);
+            assertSame(interruption, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.project;
 
+import static com.ibm.watsonx.ai.core.HttpUtils.encodePathSegment;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import java.io.IOException;
 import java.net.URI;
@@ -31,7 +32,7 @@ final class DefaultRestClient extends ProjectRestClient {
     @Override
     public Optional<Project> findProject(String projectId) {
         try {
-            var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/v2/projects/" + projectId))
+            var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/v2/projects/" + encodePathSegment(projectId)))
                 .GET()
                 .header("Accept", "application/json")
                 .timeout(timeout)
@@ -44,7 +45,10 @@ final class DefaultRestClient extends ProjectRestClient {
             if (e.statusCode() == 404)
                 return Optional.empty();
             throw e;
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

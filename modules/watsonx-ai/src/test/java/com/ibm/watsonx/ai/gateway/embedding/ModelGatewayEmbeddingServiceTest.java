@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -26,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.Json;
@@ -40,7 +41,6 @@ public class ModelGatewayEmbeddingServiceTest extends AbstractWatsonxTest {
 
     private static final String MODEL_ID = "text-embedding-3-small";
     private static final List<Float> VECTOR = List.of(0.0023064255f, -0.009327292f, -0.0028842222f);
-    // Base64 encoding of VECTOR as little-endian float32 values, the layout used by the "base64" encoding format.
     private static final String BASE64_VECTOR = "ZicXO4DRGLw4BT27";
 
     private static final String SIMPLE_RESPONSE = """
@@ -630,5 +630,28 @@ public class ModelGatewayEmbeddingServiceTest extends AbstractWatsonxTest {
             .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
             .version(API_VERSION)
             .build();
+    }
+
+    @Test
+    void should_preserve_gateway_embedding_interruption() throws Exception {
+        var interruption = new InterruptedException("Request interrupted");
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interruption);
+
+        withWatsonxServiceMock(() -> {
+            var service = ModelGatewayEmbeddingService.builder().baseUrl(URI.create("http://localhost"))
+                .authenticator(mockAuthenticator).modelId("model").build();
+            assertPreservesInterrupt(interruption, () -> service.embed("input"));
+        });
+    }
+
+    private void assertPreservesInterrupt(InterruptedException interruption, Runnable request) {
+        try {
+            var failure = assertThrows(RuntimeException.class, request::run);
+            assertSame(interruption, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

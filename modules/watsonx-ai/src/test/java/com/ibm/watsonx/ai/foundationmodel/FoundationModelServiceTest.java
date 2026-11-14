@@ -11,6 +11,7 @@ import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.foundationmodel.filter.Filter.Expression.modelId;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -20,8 +21,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.CloudRegion;
@@ -288,5 +289,44 @@ public class FoundationModelServiceTest extends AbstractWatsonxTest {
                 fail(e);
             }
         });
+    }
+
+    @Test
+    void should_apply_configured_timeout_to_foundation_model_tasks() throws Exception {
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn("{\"resources\":[]}");
+        when(mockSecureHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(mockHttpResponse);
+
+        withWatsonxServiceMock(() -> {
+            var timeout = Duration.ofSeconds(7);
+            var service = FoundationModelService.builder().baseUrl(CloudRegion.DALLAS).timeout(timeout).build();
+
+            service.getTasks();
+
+            assertEquals(timeout, mockHttpRequest.getValue().timeout().orElseThrow());
+            assertEquals("application/json", mockHttpRequest.getValue().headers().firstValue("Accept").orElseThrow());
+        });
+    }
+
+    @Test
+    void should_preserve_interruption_when_listing_foundation_models_and_tasks() throws Exception {
+        var interrupted = new InterruptedException("Request interrupted");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interrupted);
+
+        withWatsonxServiceMock(() -> {
+            var service = FoundationModelService.builder().baseUrl(CloudRegion.DALLAS).build();
+            assertInterrupted(interrupted, service::getModels);
+            assertInterrupted(interrupted, service::getTasks);
+        });
+    }
+
+    private void assertInterrupted(InterruptedException expected, Runnable action) {
+        try {
+            var failure = assertThrows(RuntimeException.class, action::run);
+            assertSame(expected, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

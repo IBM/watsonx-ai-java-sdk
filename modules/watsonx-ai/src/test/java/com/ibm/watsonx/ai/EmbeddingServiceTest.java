@@ -9,18 +9,21 @@ import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse.BodyHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -388,5 +391,28 @@ public class EmbeddingServiceTest extends AbstractWatsonxTest {
         assertEquals(-0.007f, response.results().get(2).embedding().get(0));
         assertEquals(-0.008f, response.results().get(2).embedding().get(1));
         assertEquals(-0.009f, response.results().get(2).embedding().get(2));
+    }
+
+    @Test
+    void should_preserve_embedding_interruption() throws Exception {
+        var interruption = new InterruptedException("Request interrupted");
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interruption);
+
+        withWatsonxServiceMock(() -> {
+            var service = EmbeddingService.builder().baseUrl(URI.create("http://localhost"))
+                .authenticator(mockAuthenticator).projectId("project").modelId("model").build();
+            assertPreservesInterrupt(interruption, () -> service.embed("input"));
+        });
+    }
+
+    private void assertPreservesInterrupt(InterruptedException interruption, Runnable request) {
+        try {
+            var failure = assertThrows(RuntimeException.class, request::run);
+            assertSame(interruption, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }
