@@ -32,6 +32,7 @@ public class StubJsonProvider implements JsonProvider {
 
             Method configure = mapperClass.getMethod("configure", featureClass, boolean.class);
             configure.invoke(mapper, failOnUnknown, false);
+            configure.invoke(mapper, featureClass.getField("FAIL_ON_TRAILING_TOKENS").get(null), true);
 
             Method setInclusion = mapperClass.getMethod("setDefaultPropertyInclusion",
                 Class.forName("com.fasterxml.jackson.annotation.JsonInclude$Include"));

@@ -91,6 +91,9 @@ public class JsonProviderProbe {
         var original = AssistantMessage.tools(List.of(ToolCall.of("1", "getWeather", "{\"city\":\"Rome\"}")));
         var result = Json.fromJson(Json.toJson(original), AssistantMessage.class);
         check(original.equals(result), "AssistantMessage round trip differs: " + result);
+        check(Json.isValidObject(" \n{}\t "), "Whitespace around a JSON object should be accepted");
+        for (var invalid : List.of("{}{}", "{} []", "{} trailing", "[]", "null", "42"))
+            check(!Json.isValidObject(invalid), "Invalid JSON object accepted: " + invalid);
     }
 
     private static void check(boolean condition, String message) {
