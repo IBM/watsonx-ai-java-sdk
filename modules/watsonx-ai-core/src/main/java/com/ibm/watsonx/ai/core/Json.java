@@ -4,9 +4,12 @@
  */
 package com.ibm.watsonx.ai.core;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.StringJoiner;
+import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
@@ -71,6 +74,72 @@ public final class Json {
      */
     public static boolean isValidObject(String json) {
         return provider.isValidObject(json);
+    }
+
+    /**
+     * Validates an object or a JSON string encoding an object. Exactly one encoding layer is accepted, and the entire input must be consumed. Arrays,
+     * scalars, JSON null, malformed input and absent or blank input return {@code false}.
+     *
+     * @param json the JSON content to validate
+     * @return {@code true} if the content represents a JSON object directly or through one JSON string
+     */
+    public static boolean isValidObjectOrEncodedObject(String json) {
+        return nonNull(normalizeObjectOrNull(json));
+    }
+
+    /**
+     * Returns object JSON text from an object or a JSON string encoding an object. Exactly one encoding layer is accepted, and the entire input must
+     * be consumed. Direct object text is returned unchanged. Encoded input returns the decoded text, preserving its whitespace and property order.
+     * This method validates JSON syntax without validating an object schema.
+     *
+     * @param json the JSON object or JSON string encoding an object
+     * @return the validated object JSON text
+     * @throws JsonException if the input is absent, blank or does not represent exactly one JSON object
+     */
+    public static String normalizeObject(String json) {
+        var object = normalizeObjectOrNull(json);
+        if (isNull(object))
+            throw new JsonException("Expected exactly one JSON object or a JSON string encoding one");
+        return object;
+    }
+
+    private static String normalizeObjectOrNull(String json) {
+
+        if (isNull(json))
+            return null;
+
+        int start = 0;
+
+        while (start < json.length() && isJsonWhitespace(json.charAt(start)))
+            start++;
+
+        if (start == json.length())
+            return null;
+
+        if (json.charAt(start) != '"')
+            return isValidObject(json) ? json : null;
+
+        int end = start + 1;
+        for (; end < json.length(); end++) {
+            if (json.charAt(end) == '\\')
+                end++;
+            else if (json.charAt(end) == '"')
+                break;
+        }
+
+        if (end >= json.length() || !json.substring(end + 1).chars().allMatch(Json::isJsonWhitespace))
+            return null;
+
+        try {
+            var object = fromJson(json, String.class);
+            return isValidObject(object) ? object : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static boolean isJsonWhitespace(int character) {
+        return character == ' ' || character == '\t' || character == '\r' || character == '\n';
     }
 
     private static JsonProvider loadProvider() {

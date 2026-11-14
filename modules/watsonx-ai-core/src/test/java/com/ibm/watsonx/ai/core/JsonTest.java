@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ public class JsonTest {
 
     record Person(String name, String lastname) {};
     record User(String name) {};
+    record SnakeCasePerson(String firstName, String lastName, String nickname) {}
 
     record StubJsonProvider(boolean isDefault) implements JsonProvider {
 
@@ -255,5 +257,64 @@ public class JsonTest {
         JsonException ex = new JsonException("wrap", cause);
         assertEquals("wrap", ex.getMessage());
         assertEquals(cause, ex.getCause());
+    }
+
+    @Test
+    void should_serialize_with_snake_case_and_without_nulls() {
+        var json = Json.toJson(new SnakeCasePerson("Alan", "Wake", null));
+
+        assertEquals("{\"first_name\":\"Alan\",\"last_name\":\"Wake\"}", json);
+    }
+
+    @Test
+    void should_deserialize_generic_type() {
+        var people = Json.fromJson("[{\"first_name\":\"Alan\",\"last_name\":\"Wake\"}]", TypeToken.listOf(SnakeCasePerson.class));
+
+        assertEquals(List.of(new SnakeCasePerson("Alan", "Wake", null)), people);
+    }
+
+    @Test
+    void should_validate_json_objects() {
+        assertTrue(Json.isValidObject("{\"name\":\"Alan\"}"));
+        assertTrue(Json.isValidObject(" \n {\"name\":\"Alan\"} \t\n"));
+        assertFalse(Json.isValidObject("[\"Alan\"]"));
+        assertFalse(Json.isValidObject(Json.toJson("{\"name\":\"Alan\"}")));
+    }
+
+    @Test
+    void should_reject_trailing_content_after_json_object() {
+        for (var json : List.of("{}{}", "{} trailing", "{}[]", "{} null", "{\"type\":\"object\"}{\"type\":\"string\"}"))
+            assertFalse(Json.isValidObject(json), json);
+    }
+
+    @Test
+    void should_normalize_direct_and_string_encoded_objects() {
+        var content = "{\"text\":\"quoted \\\"value\\\" and \\\\ slash\",\"nested\":{\"ok\":true}}";
+        var whitespace = " \t\r\n";
+
+        for (var object : List.of(content, whitespace + content + whitespace)) {
+            var encoded = Json.toJson(object);
+            for (var json : List.of(object, encoded, whitespace + encoded + whitespace)) {
+                assertTrue(Json.isValidObjectOrEncodedObject(json), json);
+                assertEquals(object, Json.normalizeObject(json), json);
+            }
+        }
+    }
+
+    @Test
+    void should_reject_values_that_do_not_contain_exactly_one_object() {
+        var encoded = Json.toJson("{}");
+        var invalidValues = Arrays.asList(
+            null, "", " \t\r\n", "null", "true", "42", "[]", "\"text\"", "{", "\"{", "\"{}\\q\"",
+            "{}{}", "{} trailing", "{}[]", "{} null",
+            encoded + "{}", encoded + " trailing", encoded + " null", encoded + encoded,
+            Json.toJson("{}{}"), Json.toJson("{} trailing"), Json.toJson("[]"), Json.toJson("null"),
+            Json.toJson(encoded), Json.toJson(Json.toJson(encoded)),
+            "\f{}", "\u2003{}", "{}\f", "{}\u2003", "\f" + encoded, encoded + "\u2003", Json.toJson("\f{}"));
+
+        for (var json : invalidValues) {
+            assertFalse(Json.isValidObjectOrEncodedObject(json), String.valueOf(json));
+            assertThrows(JsonException.class, () -> Json.normalizeObject(json), String.valueOf(json));
+        }
     }
 }

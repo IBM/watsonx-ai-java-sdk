@@ -57,7 +57,8 @@ public interface JsonProvider {
     String prettyPrint(Object object);
 
     /**
-     * Validates whether the given string is a valid JSON object.
+     * Validates whether the entire string contains exactly one JSON object. Leading and trailing whitespace are allowed, but additional JSON values
+     * or other non-whitespace content must be rejected. Arrays, scalars, JSON null and malformed input return {@code false}.
      *
      * @param json the JSON string to validate
      * @return {@code true} if the string is a valid JSON object, {@code false} otherwise

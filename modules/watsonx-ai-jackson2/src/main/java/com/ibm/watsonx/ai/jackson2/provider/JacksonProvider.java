@@ -89,7 +89,7 @@ public class JacksonProvider implements JsonProvider {
             return false;
 
         try {
-            JsonNode node = objectMapper.readTree(json);
+            JsonNode node = objectMapper.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(json);
             return node.isObject();
         } catch (JsonProcessingException e) {
             return false;
