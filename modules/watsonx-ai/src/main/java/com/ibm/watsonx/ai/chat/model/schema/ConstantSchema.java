@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copy;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ public final class ConstantSchema extends JsonSchema {
 
     ConstantSchema(Builder builder) {
         super(null, builder);
-        this.constant = builder.value;
+        this.constant = copy(builder.value);
     }
 
     public Object constant() {

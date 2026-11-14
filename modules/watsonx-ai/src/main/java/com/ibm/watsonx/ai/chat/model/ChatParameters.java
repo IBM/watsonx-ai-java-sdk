@@ -5,9 +5,11 @@
 package com.ibm.watsonx.ai.chat.model;
 
 
-import static java.util.Objects.isNull;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copySet;
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import java.time.Duration;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -47,7 +49,7 @@ public final class ChatParameters extends BaseChatParameters {
         projectId = builder.projectId;
         spaceId = builder.spaceId;
         crypto = builder.crypto;
-        guidedChoice = isNull(builder.guidedChoice) ? null : Set.copyOf(builder.guidedChoice);
+        guidedChoice = copySet(builder.guidedChoice);
         guidedRegex = builder.guidedRegex;
         guidedGrammar = builder.guidedGrammar;
         context = builder.context;
@@ -227,7 +229,12 @@ public final class ChatParameters extends BaseChatParameters {
          * @param guidedChoice a variable number of allowed output strings
          */
         public Builder guidedChoice(String... guidedChoice) {
-            return guidedChoice(Set.of(guidedChoice));
+            var choices = new LinkedHashSet<String>();
+            for (var choice : guidedChoice) {
+                if (!choices.add(requireNonNull(choice)))
+                    throw new IllegalArgumentException("Duplicate guided choice: " + choice);
+            }
+            return guidedChoice(choices);
         }
 
         /**
@@ -236,7 +243,11 @@ public final class ChatParameters extends BaseChatParameters {
          * @param guidedChoices the set of allowed output strings
          */
         public Builder guidedChoice(Set<String> guidedChoices) {
-            this.guidedChoice = isNull(guidedChoices) ? null : Set.copyOf(guidedChoices);
+            if (nonNull(guidedChoices)) {
+                for (var choice : guidedChoices)
+                    requireNonNull(choice);
+            }
+            this.guidedChoice = copySet(guidedChoices);
             return this;
         }
 

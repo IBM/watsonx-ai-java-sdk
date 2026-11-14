@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.gateway.chat;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copy;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.util.Collections;
@@ -110,7 +111,11 @@ public final class ModelGatewayChatParameters extends BaseChatParameters {
      * @param type the prediction type - must be {@code "content"}
      * @param content the content to match during generation
      */
-    public record Prediction(String type, Object content) {}
+    public record Prediction(String type, Object content) {
+        public Prediction {
+            content = copy(content);
+        }
+    }
 
     /**
      * Options for streaming responses. Only set when {@code stream} is {@code true}.
@@ -126,7 +131,11 @@ public final class ModelGatewayChatParameters extends BaseChatParameters {
      * @param filter optional filter criteria for caching
      * @param threshold the similarity threshold for cache hit; required when caching is enabled
      */
-    public record Cache(boolean enabled, Object filter, Double threshold) {}
+    public record Cache(boolean enabled, Object filter, Double threshold) {
+        public Cache {
+            filter = copy(filter);
+        }
+    }
 
     /**
      * Model routing configuration for the request.

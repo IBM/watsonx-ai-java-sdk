@@ -4,9 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
-import static java.util.Objects.isNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.core.Json;
 
@@ -18,7 +16,7 @@ public final class ToolArguments {
     private final Map<String, Object> raw;
 
     ToolArguments(Map<String, Object> raw) {
-        this.raw = isNull(raw) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(raw));
+        this.raw = copyMap(raw);
     }
 
     /**

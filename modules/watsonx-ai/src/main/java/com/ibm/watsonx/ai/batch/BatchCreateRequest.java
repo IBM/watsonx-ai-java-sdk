@@ -4,12 +4,10 @@
  */
 package com.ibm.watsonx.ai.batch;
 
-import static java.util.Objects.isNull;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.WatsonxParameters;
 
@@ -42,7 +40,7 @@ public final class BatchCreateRequest extends WatsonxParameters {
         inputFileId = builder.inputFileId;
         endpoint = builder.endpoint;
         completionWindow = requireNonNullElse(builder.completionWindow, "24h");
-        metadata = isNull(builder.metadata) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.metadata));
+        metadata = copyMap(builder.metadata);
         removeUploadedFile = builder.removeUploadedFile;
         removeOutputFile = builder.removeOutputFile;
         timeout = builder.timeout;

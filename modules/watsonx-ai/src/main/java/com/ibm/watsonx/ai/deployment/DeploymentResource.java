@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.deployment;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.isNull;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -92,7 +93,7 @@ public record DeploymentResource(ResourceMeta metadata, DeploymentEntity entity)
         Map<String, String> tooling) {
 
         public DeploymentEntity {
-            custom = isNull(custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(custom));
+            custom = copyMap(custom);
             tooling = isNull(tooling) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(tooling));
         }
     }
@@ -104,7 +105,7 @@ public record DeploymentResource(ResourceMeta metadata, DeploymentEntity entity)
      */
     public record OnlineDeployment(Map<String, Object> parameters) {
         public OnlineDeployment {
-            parameters = isNull(parameters) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(parameters));
+            parameters = copyMap(parameters);
         }
     }
 

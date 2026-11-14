@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -285,4 +288,23 @@ public class ChatRoundTripTest {
         assertEquals(original.name(), roundTripped.name());
         assertNull(roundTripped.thinking());
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_snapshot_nested_tool_schema_and_template_parameters() {
+        var required = new ArrayList<>(List.of("query"));
+        var properties = new LinkedHashMap<String, Object>();
+        properties.put("required", required);
+        var tool = Tool.of("search", "Search", properties);
+        var request = TextChatRequest.builder().toolChoice(properties).chatTemplateKwargs(properties).build();
+
+        required.add("changed");
+        properties.put("extra", true);
+
+        for (var snapshot : List.of((Map<String, Object>) tool.function().parameters(), request.toolChoice(), request.chatTemplateKwargs())) {
+            assertEquals(Map.of("required", List.of("query")), snapshot);
+            assertThrows(UnsupportedOperationException.class, () -> ((List<String>) snapshot.get("required")).add("changed"));
+        }
+    }
+
 }

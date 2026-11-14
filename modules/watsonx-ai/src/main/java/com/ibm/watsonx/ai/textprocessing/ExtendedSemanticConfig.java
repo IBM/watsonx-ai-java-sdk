@@ -4,10 +4,9 @@
  */
 package com.ibm.watsonx.ai.textprocessing;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationSemanticConfig;
@@ -39,8 +38,7 @@ public abstract class ExtendedSemanticConfig extends SemanticConfig {
         schemasMergeStrategy = nonNull(builder.schemasMergeStrategy) ? builder.schemasMergeStrategy.value() : null;
         forceSchemaName = builder.forceSchemaName;
         schemas = isNull(builder.schemas) ? null : List.copyOf(builder.schemas);
-        taskModelNameOverride =
-            isNull(builder.taskModelNameOverride) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.taskModelNameOverride));
+        taskModelNameOverride = copyMap(builder.taskModelNameOverride);
     }
 
     /**

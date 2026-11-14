@@ -4,9 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textclassification;
 
-import static java.util.Objects.isNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.DataReference;
 import com.ibm.watsonx.ai.textprocessing.Error;
@@ -32,7 +30,7 @@ public record TextClassificationResponse(Metadata metadata, Entity entity) {
         Map<String, Object> custom) {
 
         public Entity {
-            custom = isNull(custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(custom));
+            custom = copyMap(custom);
         }
     }
 

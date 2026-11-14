@@ -4,9 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textclassification;
 
-import static java.util.Objects.isNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.textprocessing.DataReference;
 
@@ -23,6 +21,6 @@ public record TextClassificationRequest(String projectId, String spaceId, DataRe
     Map<String, Object> custom) {
 
     public TextClassificationRequest {
-        custom = isNull(custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(custom));
+        custom = copyMap(custom);
     }
 }

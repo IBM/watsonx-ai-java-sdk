@@ -4,9 +4,7 @@
  */
 package com.ibm.watsonx.ai.detection;
 
-import static java.util.Objects.isNull;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.Map;
 
 /**
@@ -25,7 +23,7 @@ public abstract class BaseDetectionRequest {
      * @param spaceId the id of the space containing the resource
      */
     protected BaseDetectionRequest(Map<String, Map<String, Object>> detectors, String projectId, String spaceId) {
-        this.detectors = isNull(detectors) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(detectors));
+        this.detectors = copyMap(detectors);
         this.projectId = projectId;
         this.spaceId = spaceId;
     }

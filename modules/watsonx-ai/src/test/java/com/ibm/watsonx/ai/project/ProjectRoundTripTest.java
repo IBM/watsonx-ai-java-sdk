@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -511,4 +513,27 @@ public class ProjectRoundTripTest {
             .name("n").description("d").type("t").creator("cr")
             .creatorIamId("ci").generator("DIFF").build());
     }
+
+    @Test
+    void should_snapshot_nested_project_metadata_and_member_maps() {
+        var roles = new ArrayList<>(List.of("editor"));
+        var member = new LinkedHashMap<String, Object>();
+        member.put("roles", roles);
+        var members = new ArrayList<>(List.of(member));
+
+        var project = Project.builder().members(new ArrayList<>(members)).settings(member).github(member).build();
+        var compute = new ProjectComputeInstance("compute", "guid", "type", "crn", member);
+        roles.clear();
+        member.clear();
+        members.clear();
+
+        assertEquals(List.of(Map.of("roles", List.of("editor"))), project.members());
+        assertThrows(UnsupportedOperationException.class, () -> project.members().clear());
+        for (var snapshot : List.of(project.members().get(0), project.settings(), project.github(), compute.credentials())) {
+            assertEquals(Map.of("roles", List.of("editor")), snapshot);
+            assertThrows(UnsupportedOperationException.class, snapshot::clear);
+            assertThrows(UnsupportedOperationException.class, () -> ((List<?>) snapshot.get("roles")).clear());
+        }
+    }
+
 }

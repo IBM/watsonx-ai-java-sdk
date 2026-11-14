@@ -4,9 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat.model.schema;
 
-import static java.util.Objects.isNull;
-import java.util.ArrayList;
-import java.util.Collections;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyList;
 import java.util.List;
 
 /**
@@ -26,7 +24,7 @@ public final class EnumSchema extends JsonSchema {
 
     private EnumSchema(Builder builder) {
         super(null, builder);
-        enumValues = isNull(builder.values) ? null : Collections.unmodifiableList(new ArrayList<>(builder.values));
+        enumValues = copyList(builder.values);
     }
 
     public List<?> enumValues() {

@@ -5,7 +5,11 @@
 package com.ibm.watsonx.ai.batch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -64,4 +68,20 @@ public class BatchRoundTripTest {
 
         JSONAssert.assertEquals(EXPECTED, Json.toJson(request), true);
     }
+
+    @Test
+    void should_snapshot_nested_metadata_collections() {
+        var values = new ArrayList<>(List.of("original"));
+        var properties = new LinkedHashMap<String, Object>();
+        properties.put("values", values);
+        var snapshot = BatchCreateRequest.builder().metadata(properties).build().metadata();
+
+        values.add("later");
+        properties.clear();
+
+        assertEquals(Map.of("values", List.of("original")), snapshot);
+        assertThrows(UnsupportedOperationException.class, () -> ((List<?>) snapshot.get("values")).clear());
+        assertThrows(UnsupportedOperationException.class, snapshot::clear);
+    }
+
 }

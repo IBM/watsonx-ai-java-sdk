@@ -6,6 +6,9 @@ package com.ibm.watsonx.ai.gateway.chat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -29,6 +32,68 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.Router;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 public class ModelGatewayChatRoundTripTest {
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_snapshot_nested_request_collections_and_round_trip_them() {
+        var property = new LinkedHashMap<String, Object>(Map.of("type", "string"));
+        var required = new ArrayList<>(List.of("name"));
+        var schema = new LinkedHashMap<String, Object>();
+        schema.put("type", "object");
+        schema.put("properties", Map.of("name", property));
+        schema.put("required", required);
+        var schemaObject = new LinkedHashMap<String, Object>();
+        schemaObject.put("name", "answer");
+        schemaObject.put("schema", schema);
+        schemaObject.put("strict", true);
+        var function = new LinkedHashMap<String, Object>(Map.of("name", "lookup"));
+        var predictionPart = new LinkedHashMap<String, Object>(Map.of("type", "text", "text", "known"));
+        var predictionParts = new ArrayList<>(List.of(predictionPart));
+        var tags = new ArrayList<>(List.of("cached"));
+        var request = ModelGatewayTextChatRequest.builder()
+            .model("model")
+            .responseFormat(Map.of("type", "json_schema", "json_schema", schemaObject))
+            .toolChoice(Map.of("type", "function", "function", function))
+            .prediction(new Prediction("content", predictionParts))
+            .router(new Router(new Cache(true, Map.of("tags", tags), 0.8)))
+            .build();
+
+        property.put("type", "integer");
+        required.add("changed");
+        schema.put("additionalProperties", true);
+        function.put("name", "changed");
+        predictionPart.put("text", "changed");
+        predictionParts.clear();
+        tags.add("changed");
+
+        var json = Json.toJson(request);
+        JSONAssert.assertEquals("""
+            {
+                "model": "model",
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "answer", "strict": true,
+                        "schema": {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}
+                    }
+                },
+                "tool_choice": {"type": "function", "function": {"name": "lookup"}},
+                "prediction": {"type": "content", "content": [{"type": "text", "text": "known"}]},
+                "router": {"cache": {"enabled": true, "filter": {"tags": ["cached"]}, "threshold": 0.8}}
+            }
+            """, json, true);
+        assertEquals(request, Json.fromJson(json, ModelGatewayTextChatRequest.class));
+
+        var frozenSchemaObject = (Map<String, Object>) request.responseFormat().get("json_schema");
+        var frozenSchema = (Map<String, Object>) frozenSchemaObject.get("schema");
+        assertThrows(UnsupportedOperationException.class, () -> frozenSchemaObject.put("name", "changed"));
+        assertThrows(UnsupportedOperationException.class, () -> ((List<String>) frozenSchema.get("required")).add("changed"));
+        assertThrows(UnsupportedOperationException.class,
+            () -> ((Map<String, Object>) ((Map<String, Object>) request.toolChoice()).get("function")).put("name", "changed"));
+        assertThrows(UnsupportedOperationException.class, () -> ((List<Object>) request.prediction().content()).clear());
+        assertThrows(UnsupportedOperationException.class,
+            () -> ((List<String>) ((Map<String, Object>) request.router().cache().filter()).get("tags")).add("changed"));
+    }
 
     @Test
     void should_serialize_and_deserialize_the_gateway_chat_response() {

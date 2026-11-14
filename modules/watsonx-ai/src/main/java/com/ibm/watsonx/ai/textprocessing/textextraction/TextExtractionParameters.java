@@ -4,14 +4,13 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -80,7 +79,7 @@ public final class TextExtractionParameters extends WatsonxParameters {
         this.outputFileName = builder.outputFileName;
         this.documentReference = builder.documentReference;
         this.resultReference = builder.resultReference;
-        this.custom = isNull(builder.custom) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.custom));
+        this.custom = copyMap(builder.custom);
         this.timeout = builder.timeout;
     }
 

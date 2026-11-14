@@ -4,7 +4,7 @@
  */
 package com.ibm.watsonx.ai.timeseries;
 
-import static java.util.Objects.isNull;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +27,6 @@ public record ForecastResponse(
     int outputDataPoints) {
 
     public ForecastResponse {
-        results = isNull(results) ? null : List.copyOf(results);
+        results = copyList(results);
     }
 }
