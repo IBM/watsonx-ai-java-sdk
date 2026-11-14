@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.time.Duration;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
 
@@ -61,5 +62,23 @@ public interface SyncHttpInterceptor {
          * @param index the interceptor index to reset to
          */
         void resetToIndex(int index);
+
+        /**
+         * Checks whether the deadline associated with this chain has expired.
+         *
+         * @throws IOException if the request deadline expires
+         */
+        default void checkDeadline() throws IOException {}
+
+        /**
+         * Waits before continuing the request, respecting any deadline associated with this chain.
+         *
+         * @param duration the delay before continuing
+         * @throws IOException if the request deadline expires
+         * @throws InterruptedException if the wait is interrupted
+         */
+        default void pause(Duration duration) throws IOException, InterruptedException {
+            Thread.sleep(duration.toMillis());
+        }
     }
 }

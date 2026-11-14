@@ -9,6 +9,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.joining;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -45,6 +46,21 @@ public final class HttpUtils {
      * Prevents direct instantiation of this utility class.
      */
     protected HttpUtils() {}
+
+    /**
+     * Encodes a raw resource identifier as one URI path segment using UTF-8.
+     * <p>
+     * Reserved characters such as slashes, question marks, and percent signs are encoded rather than interpreted as URI structure.
+     *
+     * @param value the unencoded resource identifier
+     * @return the encoded path segment
+     * @throws IllegalArgumentException if the identifier is {@code .} or {@code ..}
+     */
+    public static String encodePathSegment(String value) {
+        if (".".equals(value) || "..".equals(value))
+            throw new IllegalArgumentException("Resource identifier must not be \".\" or \"..\"");
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
+    }
 
     /**
      * Converts the body of an {@link HttpResponse} to a {@link String}, handling various response body types.
