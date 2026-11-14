@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -103,6 +105,28 @@ public class RetryInterceptorTest {
             SyncHttpInterceptor.Chain chain = invocation.getArgument(3);
             return chain.proceed(req, bh);
         };
+
+        @Test
+        void should_not_retry_interrupted_requests_even_when_retry_rules_match() throws Exception {
+            for (var retryType : List.of(Exception.class, InterruptedException.class)) {
+                var transport = mock(HttpClient.class);
+                var interrupted = new InterruptedException("interrupted request");
+                var retryDecisions = new AtomicInteger();
+                when(transport.send(any(), any())).thenThrow(interrupted);
+                var retry = RetryInterceptor.builder().maxRetries(3).retryOn(retryType, error -> {
+                    retryDecisions.incrementAndGet();
+                    return true;
+                }).build();
+                var client = SyncHttpClient.builder().httpClient(transport).interceptor(retry).build();
+                var request = HttpRequest.newBuilder(URI.create("https://example.com")).timeout(Duration.ofSeconds(1)).GET().build();
+
+                assertSame(interrupted, assertThrows(InterruptedException.class,
+                    () -> client.send(request, BodyHandlers.ofString())));
+
+                assertEquals(0, retryDecisions.get());
+                verify(transport, times(1)).send(any(), any());
+            }
+        }
 
         @Test
         void should_retry_when_null_pointer_exception_occurs() throws Exception {

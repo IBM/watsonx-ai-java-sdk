@@ -116,6 +116,7 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
         int attempt = 0;
         while (true) {
+            chain.checkDeadline();
 
             try {
 
@@ -126,11 +127,13 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
                 if (attempt > 0 && !timeout.isZero()) {
                     logger.debug("Retry request \"{}\" after {} ms", requestId, timeout.toMillis());
-                    Thread.sleep(timeout.toMillis());
+                    chain.pause(timeout);
                 }
 
                 return chain.proceed(request, bodyHandler);
 
+            } catch (InterruptedException e) {
+                throw e;
             } catch (Exception e) {
                 exception = e;
 

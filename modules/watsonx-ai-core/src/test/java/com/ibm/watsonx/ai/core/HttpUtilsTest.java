@@ -36,6 +36,27 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 public class HttpUtilsTest {
 
     @Test
+    void should_encode_resource_identifiers_as_single_path_segments() {
+        assertEquals("model-v1_2.~", HttpUtils.encodePathSegment("model-v1_2.~"));
+        assertEquals("a%2Fb%20c%3Fd%23e%25f%2Bg%2Ah", HttpUtils.encodePathSegment("a/b c?d#e%f+g*h"));
+        assertEquals("%C3%A0%E6%BC%A2", HttpUtils.encodePathSegment("à漢"));
+    }
+
+    @Test
+    void should_reject_identifiers_that_are_dot_segments() {
+        assertThrows(IllegalArgumentException.class, () -> HttpUtils.encodePathSegment("."));
+        assertThrows(IllegalArgumentException.class, () -> HttpUtils.encodePathSegment(".."));
+    }
+
+    @Test
+    void should_preserve_dots_in_resource_names() {
+        assertEquals(".hidden", HttpUtils.encodePathSegment(".hidden"));
+        assertEquals("file..json", HttpUtils.encodePathSegment("file..json"));
+        assertEquals("...", HttpUtils.encodePathSegment("..."));
+        assertEquals("..%2Ffile.json", HttpUtils.encodePathSegment("../file.json"));
+    }
+
+    @Test
     void should_extract_body_as_string_from_string() {
         HttpResponse<String> mockHttpResponse = mock(HttpResponse.class);
         when(mockHttpResponse.body()).thenReturn("test string body");
