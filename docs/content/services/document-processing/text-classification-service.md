@@ -169,6 +169,11 @@ System.out.println("Document Type: " + result.documentType());
 // → Document Type: Invoice
 ```
 
+With the default COS client, input stream uploads are copied to a temporary file before transmission so retries can resend the complete content.
+`java.io.tmpdir` must be writable and have capacity for the entire upload. The directory may use memory-backed storage in some environments.
+The input stream is closed after copying, and temporary file cleanup is attempted when the upload finishes or fails. Local file uploads read the
+original file directly, so keep it available and unchanged until the upload finishes.
+
 **From a file already in COS** - skip the upload step entirely:
 
 ```java

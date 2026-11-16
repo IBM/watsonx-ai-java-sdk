@@ -55,6 +55,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,6 +76,7 @@ import com.ibm.watsonx.ai.project.Project;
 import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.project.ProjectStorage;
 import com.ibm.watsonx.ai.project.ProjectStorageProperties;
+import com.ibm.watsonx.ai.textprocessing.AbstractDocumentUploadReplayTest;
 import com.ibm.watsonx.ai.textprocessing.ContainerReference;
 import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
 import com.ibm.watsonx.ai.textprocessing.CosDataLocation;
@@ -84,8 +86,8 @@ import com.ibm.watsonx.ai.textprocessing.DataReference;
 import com.ibm.watsonx.ai.textprocessing.Error;
 import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig.GroundingMode;
 import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig.SchemaMergeStrategy;
-import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
+import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpPage;
 import com.ibm.watsonx.ai.textprocessing.KvpSlice;
 import com.ibm.watsonx.ai.textprocessing.Language;
@@ -93,6 +95,7 @@ import com.ibm.watsonx.ai.textprocessing.Metadata;
 import com.ibm.watsonx.ai.textprocessing.Mode;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
 import com.ibm.watsonx.ai.textprocessing.Schema;
+import com.ibm.watsonx.ai.textprocessing.UploadRequest;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.EmbeddedImageMode;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.KvpMode;
 import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters.Type;
@@ -1026,6 +1029,9 @@ public class TextExtractionTest extends AbstractWatsonxTest {
 
     @Test
     void should_add_correct_extension_based_on_output_type() {
+        assertEquals("folder.v1/file.md", TextExtractionUtils.addExtension("folder.v1/file", Type.MD));
+        assertEquals("folder.v1/file.md", TextExtractionUtils.addExtension("folder.v1/file.pdf", Type.MD));
+        assertEquals("folder/.hidden.md", TextExtractionUtils.addExtension("folder/.hidden", Type.MD));
         assertEquals("file.json", TextExtractionUtils.addExtension("file.json", Type.JSON));
         assertEquals("file.html", TextExtractionUtils.addExtension("file.json", Type.HTML));
         assertEquals("/", TextExtractionUtils.addExtension("/", Type.PAGE_IMAGES));
@@ -1700,7 +1706,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
     }
 
@@ -3551,4 +3557,24 @@ public class TextExtractionTest extends AbstractWatsonxTest {
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/extractions")));
         watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/extractions/" + PROCESS_EXTRACTION_ID)));
     }
+
+    @Nested
+    class UploadReplay extends AbstractDocumentUploadReplayTest {
+
+        private TextExtractionRestClient client;
+
+        @BeforeEach
+        void createClient() {
+            client =
+                TextExtractionRestClient.builder().baseUrl(wireMock.getRuntimeInfo().getHttpBaseUrl())
+                    .cosUrl(wireMock.getRuntimeInfo().getHttpBaseUrl())
+                    .version(API_VERSION).timeout(Duration.ofSeconds(10)).authenticator(mockAuthenticator).build();
+        }
+
+        @Override
+        protected boolean upload(UploadRequest request) {
+            return client.upload(request);
+        }
+    }
+
 }

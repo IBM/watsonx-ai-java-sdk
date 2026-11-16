@@ -30,6 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -37,7 +38,6 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +66,7 @@ import com.ibm.watsonx.ai.project.Project;
 import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.project.ProjectStorage;
 import com.ibm.watsonx.ai.project.ProjectStorageProperties;
+import com.ibm.watsonx.ai.textprocessing.AbstractDocumentUploadReplayTest;
 import com.ibm.watsonx.ai.textprocessing.ContainerReference;
 import com.ibm.watsonx.ai.textprocessing.CosDataConnection;
 import com.ibm.watsonx.ai.textprocessing.CosDataLocation;
@@ -72,8 +74,8 @@ import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.DataReference;
 import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig.GroundingMode;
 import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig.SchemaMergeStrategy;
-import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpFields.KvpField;
+import com.ibm.watsonx.ai.textprocessing.KvpFields;
 import com.ibm.watsonx.ai.textprocessing.KvpPage;
 import com.ibm.watsonx.ai.textprocessing.KvpSlice;
 import com.ibm.watsonx.ai.textprocessing.Language;
@@ -81,6 +83,7 @@ import com.ibm.watsonx.ai.textprocessing.Metadata;
 import com.ibm.watsonx.ai.textprocessing.OcrMode;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.textprocessing.Status;
+import com.ibm.watsonx.ai.textprocessing.UploadRequest;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationParameters.ClassificationMode;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse.ClassificationResult;
 import com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse.Entity;
@@ -768,7 +771,7 @@ public class TextClassificationTest extends AbstractWatsonxTest {
         watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/classifications")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/classifications/id")));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
@@ -2037,4 +2040,23 @@ public class TextClassificationTest extends AbstractWatsonxTest {
                 .withBody(RESPONSE)
             ));
     }
+
+    @Nested
+    class UploadReplay extends AbstractDocumentUploadReplayTest {
+
+        private TextClassificationRestClient client;
+
+        @BeforeEach
+        void createClient() {
+            client = TextClassificationRestClient.builder().baseUrl(wireMock.getRuntimeInfo().getHttpBaseUrl())
+                .cosUrl(wireMock.getRuntimeInfo().getHttpBaseUrl())
+                .version(API_VERSION).timeout(Duration.ofSeconds(10)).authenticator(mockAuthenticator).build();
+        }
+
+        @Override
+        protected boolean upload(UploadRequest request) {
+            return client.upload(request);
+        }
+    }
+
 }

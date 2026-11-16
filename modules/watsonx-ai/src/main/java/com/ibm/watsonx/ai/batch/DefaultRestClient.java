@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.batch;
 
+import static com.ibm.watsonx.ai.core.HttpUtils.encodePathSegment;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -12,6 +13,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
@@ -54,7 +56,10 @@ final class DefaultRestClient extends BatchRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), BatchData.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -86,18 +91,27 @@ final class DefaultRestClient extends BatchRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), BatchListResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public BatchData retrieve(BatchRetrieveRequest request) {
+        return retrieve(request, timeout);
+    }
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/batches/%s?version=%s".formatted(request.batchId(), version)))
-            .GET()
-            .timeout(timeout)
-            .header("Accept", "application/json");
+    @Override
+    public BatchData retrieve(BatchRetrieveRequest request, Duration requestTimeout) {
+
+        var httpRequest =
+            HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/batches/%s?version=%s".formatted(encodePathSegment(request.batchId()), version)))
+                .GET()
+                .timeout(requestTimeout.compareTo(timeout) < 0 ? requestTimeout : timeout)
+                .header("Accept", "application/json");
 
         if (nonNull(request.projectId()))
             httpRequest.header("X-IBM-Project-ID", request.projectId());
@@ -110,10 +124,13 @@ final class DefaultRestClient extends BatchRestClient {
 
         try {
 
-            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString(), requestTimeout);
             return fromJson(httpResponse.body(), BatchData.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -121,7 +138,8 @@ final class DefaultRestClient extends BatchRestClient {
     @Override
     public BatchData cancel(BatchCancelRequest request) {
 
-        var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/batches/%s/cancel?version=%s".formatted(request.batchId(), version)))
+        var httpRequest = HttpRequest
+            .newBuilder(URI.create(baseUrl + "/ml/v1/batches/%s/cancel?version=%s".formatted(encodePathSegment(request.batchId()), version)))
             .POST(BodyPublishers.noBody())
             .timeout(timeout)
             .header("Accept", "application/json");
@@ -140,7 +158,10 @@ final class DefaultRestClient extends BatchRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), BatchData.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.textprocessing.textextraction;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.FileNotFoundException;
+import java.time.Duration;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -80,6 +81,19 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
      * @return A {@link TextExtractionResponse} containing the job status and results.
      */
     public abstract TextExtractionResponse fetchExtractionDetails(FetchExtractionDetailsRequest request);
+
+    /**
+     * Retrieves job details with a request timeout bounded by the remaining polling time.
+     * <p>
+     * The default implementation delegates to the existing fetch operation. Custom clients can override this method to apply the timeout.
+     *
+     * @param request the job details request
+     * @param requestTimeout the maximum duration for this HTTP request
+     * @return the current job details
+     */
+    public TextExtractionResponse fetchExtractionDetails(FetchExtractionDetailsRequest request, Duration requestTimeout) {
+        return fetchExtractionDetails(request);
+    }
 
     /**
      * Starts a new text extraction job.

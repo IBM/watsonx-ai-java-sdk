@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ScopedService;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.textprocessing.Status;
@@ -173,6 +174,11 @@ public class MergeSchemaService extends ScopedService {
     // Retrieves the results of a merge schema request by its unique identifier.
     //
     private MergeSchemaResponse fetchMergeSchemaRequest(String requestId, String id, MergeSchemaFetchParameters parameters) {
+        return fetchMergeSchemaRequest(requestId, id, parameters, timeout);
+    }
+
+    private MergeSchemaResponse fetchMergeSchemaRequest(String requestId, String id, MergeSchemaFetchParameters parameters,
+        Duration requestTimeout) {
         requireNonNull(requestId, "The requestId can not be null");
         requireNonNull(id, "The id can not be null");
 
@@ -188,7 +194,7 @@ public class MergeSchemaService extends ScopedService {
             .build();
 
         var request = new MergeFetchDetailsRequest(requestId, id, p);
-        return client.fetchRequestDetails(request);
+        return client.fetchRequestDetails(request, requestTimeout);
     }
 
     //
@@ -237,60 +243,72 @@ public class MergeSchemaService extends ScopedService {
         if (!waitUntilJobIsDone)
             return response;
 
-        Status status;
-        long sleepTime = 100;
-        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        Status status = Status.fromValue(response.entity().results().status());
+        if (status == Status.COMPLETED || status == Status.FAILED)
+            return response;
+
+        var pollingBudget = timeout;
+        var polling = Polling.start(pollingBudget, () -> pollingTimeout(pollingBudget));
         String processId = response.metadata().id();
 
-        do {
+        try {
+            do {
+                var requestTimeout = polling.awaitNext();
 
-            if (System.nanoTime() - deadlineNanos >= 0) {
-                cleanUpAfterAbortedMerge(processId, projectId, spaceId, transactionId);
-                throw new MergeSchemaException("timeout",
-                    "Execution to merge schema took longer than the timeout set by %s milliseconds"
-                        .formatted(timeout.toMillis()));
-            }
+                try {
+                    response = fetchMergeSchemaRequest(requestId, processId, MergeSchemaFetchParameters.builder()
+                        .projectId(projectId)
+                        .spaceId(spaceId)
+                        .transactionId(transactionId)
+                        .build(), requestTimeout);
+                } catch (RuntimeException e) {
+                    throw polling.translateFailure(e);
+                }
 
+                polling.checkDeadline();
+
+                status = Status.fromValue(response.entity().results().status());
+                logger.debug("Merge schema status: {} for request {}", status, processId);
+            } while (status != Status.FAILED && status != Status.COMPLETED);
+        } catch (InterruptedException e) {
+            var failure = new MergeSchemaException("interrupted", e.getMessage(), e);
             try {
-
-                Thread.sleep(sleepTime);
-                sleepTime *= 2;
-                sleepTime = Math.min(sleepTime, 3000);
-
-            } catch (InterruptedException e) {
+                cleanUpAbortedJob(processId, projectId, spaceId, transactionId, failure);
+            } finally {
                 Thread.currentThread().interrupt();
-                cleanUpAfterAbortedMerge(processId, projectId, spaceId, transactionId);
-                throw new MergeSchemaException("interrupted", e.getMessage());
             }
-
-            processId = response.metadata().id();
-            response = fetchMergeSchemaRequest(requestId, processId, MergeSchemaFetchParameters.builder()
-                .projectId(projectId)
-                .spaceId(spaceId)
-                .transactionId(transactionId)
-                .build());
-
-            status = Status.fromValue(response.entity().results().status());
-            logger.debug("Merge schema status: {} for request {}", status, processId);
-
-        } while (status != Status.FAILED && status != Status.COMPLETED);
+            throw failure;
+        } catch (RuntimeException e) {
+            cleanUpAbortedJob(processId, projectId, spaceId, transactionId, e);
+            throw e;
+        }
 
         return response;
     }
 
-    //
-    // Cancels the started merge-schema job so that a timed-out or interrupted synchronous merge does not
-    // leave an orphaned job behind.
-    //
-    private void cleanUpAfterAbortedMerge(String processId, String projectId, String spaceId, String transactionId) {
-        if (nonNull(processId)) {
-            deleteRequest(
-                processId,
-                MergeSchemaDeleteParameters.builder()
-                    .projectId(projectId)
-                    .spaceId(spaceId)
-                    .transactionId(transactionId)
-                    .build());
+    private MergeSchemaException pollingTimeout(Duration timeout) {
+        return new MergeSchemaException("timeout",
+            "Execution to merge schema took longer than the timeout set by %s milliseconds".formatted(timeout.toMillis()));
+    }
+
+    private void cleanUpAbortedJob(String processId, String projectId, String spaceId, String transactionId,
+        RuntimeException failure) {
+        if (isNull(processId))
+            return;
+
+        boolean wasInterrupted = Thread.interrupted();
+        try {
+            deleteRequest(processId, MergeSchemaDeleteParameters.builder()
+                .projectId(projectId)
+                .spaceId(spaceId)
+                .transactionId(transactionId)
+                .build());
+        } catch (Exception e) {
+            failure.addSuppressed(e);
+            logger.warn("Failed to cancel merge schema job {}", processId, e);
+        } finally {
+            if (wasInterrupted)
+                Thread.currentThread().interrupt();
         }
     }
 

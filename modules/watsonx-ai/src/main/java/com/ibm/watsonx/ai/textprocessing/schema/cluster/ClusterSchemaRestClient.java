@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.schema.cluster;
 
+import java.time.Duration;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
@@ -33,6 +34,20 @@ public abstract class ClusterSchemaRestClient extends WatsonxRestClient {
      * @return a {@link ClusterSchemaResponse} containing the job status and results
      */
     public abstract ClusterSchemaResponse fetchRequestDetails(FetchDetailsRequest request);
+
+    /**
+     * Retrieves job details with a request timeout supplied by the remaining polling budget.
+     * <p>
+     * The default implementation delegates to {@link #fetchRequestDetails(FetchDetailsRequest)} without applying the timeout. Custom clients can
+     * override this method to apply the timeout.
+     *
+     * @param request the request identifying the job
+     * @param requestTimeout the remaining polling budget
+     * @return the job status and results
+     */
+    public ClusterSchemaResponse fetchRequestDetails(FetchDetailsRequest request, Duration requestTimeout) {
+        return fetchRequestDetails(request);
+    }
 
     /**
      * Starts a new cluster schema request job.

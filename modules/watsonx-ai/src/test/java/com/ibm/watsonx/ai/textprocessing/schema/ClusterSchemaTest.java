@@ -25,6 +25,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -572,20 +573,20 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         watsonxServer.stubFor(delete("/ml/v1/text/schemas/cluster/id?version=%s&project_id=%s".formatted(API_VERSION, projectId))
             .willReturn(aResponse().withStatus(204)));
 
-        // 100ms is enough for HTTP calls but short enough that polling times out after first GET
-        var shortTimeoutService = ClusterSchemaService.builder()
+        var service = ClusterSchemaService.builder()
             .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
             .authenticator(mockAuthenticator)
             .projectId("project-id")
-            .timeout(java.time.Duration.ofMillis(100))
+            .timeout(Duration.ofSeconds(5))
             .build();
 
         var ex = assertThrows(ClusterSchemaException.class,
-            () -> shortTimeoutService.clusterSchemaAndFetch(PASSPORT));
+            () -> service.clusterSchemaAndFetch(PASSPORT));
         assertEquals("timeout", ex.code());
-        assertTrue(ex.getMessage().contains("milliseconds"));
+        assertTrue(ex.getMessage().contains("5000 milliseconds"));
 
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/cluster")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/cluster/id")));
         watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/cluster/id")));
     }
 
@@ -614,4 +615,5 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         assertEquals(2, p.schemas().size());
         assertEquals("Passport", p.schemas().get(0).documentName());
     }
+
 }

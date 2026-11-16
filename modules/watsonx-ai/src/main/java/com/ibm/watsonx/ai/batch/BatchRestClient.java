@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.batch;
 
+import java.time.Duration;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
 import com.ibm.watsonx.ai.WatsonxRestClient;
@@ -47,6 +48,19 @@ public abstract class BatchRestClient extends WatsonxRestClient {
      * @return a {@link BatchData} object with the batch job details.
      */
     public abstract BatchData retrieve(BatchRetrieveRequest batchRetrieveRequest);
+
+    /**
+     * Retrieves job details with a request timeout bounded by the remaining polling time.
+     * <p>
+     * The default implementation delegates to the existing fetch operation. Custom clients can override this method to apply the timeout.
+     *
+     * @param request the job details request
+     * @param requestTimeout the maximum duration for this HTTP request
+     * @return the current job details
+     */
+    public BatchData retrieve(BatchRetrieveRequest request, Duration requestTimeout) {
+        return retrieve(request);
+    }
 
     /**
      * Cancels an in-progress batch job.

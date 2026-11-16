@@ -102,6 +102,8 @@ CreateSchemaService service = CreateSchemaService.builder()
 
 ---
 
+With the default COS client, uploads are staged in a temporary file before transmission so retries can resend the complete content. This also applies to local file uploads through this service. `java.io.tmpdir` must be writable and have capacity for the entire upload, and may use memory-backed storage in some environments. Input streams are closed after copying. Temporary file cleanup is attempted when the upload finishes or fails.
+
 ## Examples
 
 The simplest way to create a schema is to use the `uploadCreateSchemaAndFetch` method. This uploads a file and generates the schema in one call.
