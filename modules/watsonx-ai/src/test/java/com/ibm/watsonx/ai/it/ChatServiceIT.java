@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -32,11 +31,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -71,7 +67,6 @@ import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
-import com.ibm.watsonx.ai.it.ToolCallCompletionSupportTest.CompletionHandler;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
@@ -98,15 +93,6 @@ public class ChatServiceIT {
 
     @Nested
     class Chat {
-
-        @Test
-        void should_intercept_and_process_chat_tools_once() {
-            var nonce = UUID.randomUUID().toString();
-            var intercepted = new ArrayList<FunctionCall>();
-            var response = ToolCallCompletionSupportTest.chatService(intercepted).chat(ToolCallCompletionSupportTest.chatRequest(nonce));
-
-            ToolCallCompletionSupportTest.verifyResponse(response, nonce, intercepted);
-        }
 
         @Test
         void should_return_valid_chat_response_when_chat_is_invoked() {
@@ -817,20 +803,56 @@ public class ChatServiceIT {
     @Nested
     class ChatStreaming {
 
-        @Test
-        void should_complete_chat_tools_before_the_next_tools_arguments() throws Exception {
-            var nonce = UUID.randomUUID().toString();
-            var intercepted = new ArrayList<FunctionCall>();
-            var handler = new CompletionHandler(nonce);
-            var response = ToolCallCompletionSupportTest.await(ToolCallCompletionSupportTest.chatService(intercepted)
-                .chatStreaming(ToolCallCompletionSupportTest.chatRequest(nonce), handler));
+        @ParameterizedTest
+        @ValueSource(strings = { "ibm/granite-4-h-small", "mistralai/mistral-small-3-1-24b-instruct-2503" })
+        void should_complete_chat_tools_in_streaming_order(String modelId) throws Exception {
+            var processedCountries = new ArrayList<String>();
+            var completed = new ArrayList<ToolCall>();
+            var service = ChatService.builder()
+                .baseUrl(URL)
+                .apiKey(API_KEY)
+                .projectId(PROJECT_ID)
+                .modelId(modelId)
+                .timeout(Duration.ofSeconds(180))
+                .tools(Tool.of("get_current_time", "Get the current time in a country", JsonSchema.object()
+                    .property("country", JsonSchema.string("Exactly one country: Germany, Italy, or Japan")).required("country")))
+                .parameters(ChatParameters.builder().toolChoiceOption(ToolChoiceOption.REQUIRED).maxCompletionTokens(2048).build())
+                .build();
 
-            ToolCallCompletionSupportTest.verifyStreaming(response, nonce, intercepted, handler);
-        }
+            var response = service.chatStreaming("""
+                Make three separate get_current_time calls in this response, with country values Germany, Italy, and Japan.
+                Each call accepts exactly one country. Do not wait for tool results between calls.
+                """, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
 
-        @TestFactory
-        Stream<DynamicTest> should_observe_chat_tool_index_order() {
-            return ToolCallStreamingOrderSupportTest.chatCases();
+                @Override
+                public void onPartialToolCall(PartialToolCall partialToolCall) {
+                    assertEquals(processedCountries.size(), partialToolCall.toolIndex(),
+                        "The previous tool must complete before the next tool's arguments");
+                }
+
+                @Override
+                public void onCompleteToolCall(CompletedToolCall tool) {
+                    assertEquals(processedCountries.size(), tool.toolCall().index(), "Tools must complete in index order");
+                    tool.toolCall().processTool((name, arguments) -> {
+                        assertEquals("get_current_time", name);
+                        processedCountries.add(arguments.get("country"));
+                        return "12:00";
+                    });
+                    completed.add(tool.toolCall());
+                }
+
+                @Override
+                public boolean failOnFirstError() {
+                    return true;
+                }
+            }).get(190, TimeUnit.SECONDS);
+
+            var tools = response.toAssistantMessage().toolCalls();
+            assertEquals(3, tools.size(), response.toString());
+            assertEquals(tools, completed, "Each tool must complete exactly once");
+            assertEquals(List.of("Germany", "Italy", "Japan"), processedCountries.stream().sorted().toList());
         }
 
         @Test

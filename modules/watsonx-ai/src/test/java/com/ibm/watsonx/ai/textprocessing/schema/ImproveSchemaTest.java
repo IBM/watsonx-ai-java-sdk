@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -30,6 +32,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
@@ -41,6 +45,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
@@ -502,13 +507,19 @@ public class ImproveSchemaTest extends AbstractWatsonxTest {
             .timeout(Duration.ofSeconds(5))
             .build();
 
-        var ex = assertThrows(
-            ImproveSchemaException.class,
-            () -> service.improveSchemaAndFetch(schema, parameters));
+        var nanos = new AtomicLong();
+        try (var pollingFactory = mockStatic(Polling.class)) {
+            pollingFactory.when(() -> Polling.start(any(), any())).thenAnswer(invocation -> new Polling<>(
+                invocation.getArgument(0), invocation.<Supplier<ImproveSchemaException>>getArgument(1), nanos::get,
+                delay -> nanos.addAndGet(delay + parameters.timeout().toNanos())));
+            var ex = assertThrows(
+                ImproveSchemaException.class,
+                () -> service.improveSchemaAndFetch(schema, parameters));
 
-        assertEquals("timeout", ex.code());
-        assertEquals("Execution to improve schema took longer than the timeout set by 5000 milliseconds",
-            ex.getMessage());
+            assertEquals("timeout", ex.code());
+            assertEquals("Execution to improve schema took longer than the timeout set by 5000 milliseconds",
+                ex.getMessage());
+        }
 
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/improve")));
         watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/improve/id")));

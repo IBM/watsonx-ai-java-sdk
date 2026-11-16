@@ -39,7 +39,7 @@ public class DetectionService extends ScopedService {
     private final String serviceInstanceId;
 
     private DetectionService(Builder builder) {
-        super(builder);
+        super(builder, isNull(builder.serviceInstanceId));
         requireNonNull(builder.authenticator(), "authenticator cannot be null");
         serviceInstanceId = builder.serviceInstanceId;
         client = DetectionRestClient.builder()

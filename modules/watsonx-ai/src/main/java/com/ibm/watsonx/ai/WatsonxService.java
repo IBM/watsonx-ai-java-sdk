@@ -350,11 +350,21 @@ public abstract class WatsonxService {
         }
 
         protected ScopedService(Builder<?> builder) {
+            this(builder, true);
+        }
+
+        /**
+         * Creates a scoped service, optionally allowing an alternative scope supplied by a subclass.
+         *
+         * @param builder the service configuration
+         * @param requireProjectSpace whether a project or space must be configured
+         */
+        protected ScopedService(Builder<?> builder, boolean requireProjectSpace) {
             super(builder);
             projectId = builder.projectId;
             spaceId = builder.spaceId;
 
-            if (isNull(projectId) && isNull(spaceId))
+            if (requireProjectSpace && isNull(projectId) && isNull(spaceId))
                 throw new NullPointerException("Either projectId or spaceId must be provided");
         }
 
