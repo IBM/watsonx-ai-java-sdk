@@ -52,16 +52,17 @@ The `DetectionService` enables you to:
 
 ### Basic Setup
 
-The minimum configuration authenticates, selects the project and sets the endpoint. `governanceInstanceId` is needed only by the context and generated-text detectors:
+Configure authentication, an endpoint and at least one scope: `governanceInstanceId`, `projectId` or `spaceId`. A governance instance can scope text, context and generated-text detection requests:
 
 ```java
 DetectionService detectionService = DetectionService.builder()
     .apiKey(WATSONX_API_KEY)
-    .projectId(WATSONX_PROJECT_ID)
     .governanceInstanceId(WATSONX_GOVERNANCE_INSTANCE_ID)
     .baseUrl("https://us-south.ml.cloud.ibm.com")
     .build();
 ```
+
+When a governance instance is configured on the request or service, the SDK sends it in the `x-governance-instance-id` header and omits project and space identifiers from the body. A request's governance instance overrides the service default. Without a governance instance, requests use their project or space override, falling back to the service scope.
 
 ### Using CloudRegion
 
@@ -82,8 +83,8 @@ DetectionService detectionService = DetectionService.builder()
 |-----------|------|----------|-------------|
 | `apiKey` | String | Conditional | API key for IBM Cloud authentication |
 | `authenticator` | Authenticator | Conditional | Custom authentication (alternative to `apiKey`) |
-| `projectId` | String | Conditional | Project ID where the service is deployed |
-| `spaceId` | String | Conditional | Space ID (alternative to `projectId`) |
+| `projectId` | String | Conditional | Project scope when no governance instance is supplied |
+| `spaceId` | String | Conditional | Space scope when no governance instance is supplied (alternative to `projectId`) |
 | `baseUrl` | String/CloudRegion | Yes | watsonx.ai service base URL |
 | `timeout` | Duration | No | Request timeout (default: 60 seconds) |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
@@ -91,9 +92,9 @@ DetectionService detectionService = DetectionService.builder()
 | `httpClient` | HttpClient | No | Custom HTTP client |
 | `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
 | `version` | String | No | API version override |
-| `governanceInstanceId` | String | No | The GUID of your watsonx.governance service instance |
+| `governanceInstanceId` | String | Conditional | The GUID of your watsonx.governance service instance (alternative to project or space scope) |
 
-> Either `apiKey` or `authenticator` must be provided. Either `projectId` or `spaceId` must be specified.
+> Either `apiKey` or `authenticator` must be provided. The service builder requires at least one of `governanceInstanceId`, `projectId` or `spaceId`.
 
 ---
 

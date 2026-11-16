@@ -11,7 +11,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.ibm.watsonx.ai.detection.DetectionRestClient.GOVERNANCE_INSTANCE_ID_HEADER;
 import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -788,5 +790,68 @@ public class DetectionServiceTest extends AbstractWatsonxTest {
                 bodyPublisherToString(mockHttpRequest),
                 true);
         });
+    }
+
+    @Test
+    void should_preserve_interruption_when_running_detection() throws Exception {
+        var interrupted = new InterruptedException("Request interrupted");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interrupted);
+
+        withWatsonxServiceMock(() -> {
+            var service = DetectionService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator)
+                .projectId("project").build();
+            assertInterrupted(interrupted,
+                () -> service.detect(DetectionTextRequest.builder().input("text").detectors(Pii.ofDefaults()).build()));
+            assertInterrupted(interrupted,
+                () -> service.detectContext(DetectionContextRequest.builder().input("text").context(List.of("context"))
+                    .detectors(Pii.ofDefaults()).build()));
+            assertInterrupted(interrupted,
+                () -> service.detectGenerated(DetectionGeneratedRequest.builder().prompt("text").generatedText("answer")
+                    .detectors(Pii.ofDefaults()).build()));
+        });
+    }
+
+    @Test
+    void should_allow_detection_with_only_a_governance_instance_scope() throws Exception {
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn("{\"detections\":[]}");
+        when(mockSecureHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(mockHttpResponse);
+
+        withWatsonxServiceMock(() -> {
+            var service = DetectionService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator)
+                .governanceInstanceId("governance").build();
+            service.detect(DetectionTextRequest.builder().input("text").detectors(Pii.ofDefaults()).build());
+            assertGovernanceScope();
+            service.detectContext(DetectionContextRequest.builder().input("text").context(List.of("context"))
+                .detectors(Pii.ofDefaults()).build());
+            assertGovernanceScope();
+            service.detectGenerated(DetectionGeneratedRequest.builder().prompt("text").generatedText("answer")
+                .detectors(Pii.ofDefaults()).build());
+
+            assertGovernanceScope();
+        });
+    }
+
+    @Test
+    void should_still_require_a_detection_scope() {
+        assertThrows(NullPointerException.class,
+            () -> DetectionService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator).build());
+    }
+
+    private void assertInterrupted(InterruptedException expected, Runnable action) {
+        try {
+            var failure = assertThrows(RuntimeException.class, action::run);
+            assertSame(expected, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    private void assertGovernanceScope() {
+        assertEquals("governance", mockHttpRequest.getValue().headers().firstValue(GOVERNANCE_INSTANCE_ID_HEADER).orElseThrow());
+        var body = bodyPublisherToString(mockHttpRequest);
+        assertFalse(body.contains("project_id"));
+        assertFalse(body.contains("space_id"));
     }
 }
