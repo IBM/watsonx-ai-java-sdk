@@ -11,11 +11,8 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
@@ -26,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.CloudRegion;
 import com.ibm.watsonx.ai.WatsonxService.ScopedService;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.project.ProjectService;
 import com.ibm.watsonx.ai.textprocessing.ContainerReference;
@@ -44,6 +42,10 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient
 
 /**
  * Service class to interact with IBM watsonx.ai Text Extraction APIs.
+ * <p>
+ * With the default COS client, input stream uploads are staged in {@code java.io.tmpdir} before transmission so retries can resend the content. The
+ * directory must be writable and have capacity for the full upload. Local file uploads read the original file directly, so it must remain available
+ * and unchanged until the upload finishes.
  * <p>
  * <b>Example usage:</b>
  *
@@ -187,13 +189,11 @@ public class TextExtractionService extends ScopedService {
 
         var requestId = UUID.randomUUID().toString();
 
-        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
-            upload(requestId, inputStream, file.getName(), parameters, false);
+        try {
+            upload(requestId, file, parameters, false);
             return startExtraction(requestId, file.getName(), parameters, false);
         } catch (FileNotFoundException e) {
             throw new TextExtractionException("file_not_found", e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -301,13 +301,7 @@ public class TextExtractionService extends ScopedService {
 
         var requestId = UUID.randomUUID().toString();
 
-        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
-            upload(requestId, inputStream, file.getName(), parameters, true);
-        } catch (FileNotFoundException e) {
-            throw e;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        upload(requestId, file, parameters, true);
 
         return extractAndFetch(requestId, file.getName(), parameters, file.getName());
     }
@@ -373,7 +367,7 @@ public class TextExtractionService extends ScopedService {
      */
     public TextExtractionResponse fetchExtractionRequest(String id, TextExtractionFetchParameters parameters) {
         requireNonNull(parameters, "parameters cannot be null");
-        return fetchExtractionRequest(UUID.randomUUID().toString(), id, parameters);
+        return fetchExtractionRequest(UUID.randomUUID().toString(), id, parameters, timeout);
     }
 
     /**
@@ -387,12 +381,10 @@ public class TextExtractionService extends ScopedService {
         requireNonNull(file);
         if (file.isDirectory())
             throw new TextExtractionException("directory_not_allowed", "The file can not be a directory");
-        try (var inputStream = new BufferedInputStream(new FileInputStream(file))) {
-            return uploadFile(inputStream, file.getName());
+        try {
+            return upload(UUID.randomUUID().toString(), file, null, false);
         } catch (FileNotFoundException e) {
             throw new TextExtractionException("file_not_found", e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -563,7 +555,8 @@ public class TextExtractionService extends ScopedService {
     }
 
     // Retrieves the results of a text extraction request by its unique identifier.
-    private TextExtractionResponse fetchExtractionRequest(String requestId, String id, TextExtractionFetchParameters parameters) {
+    private TextExtractionResponse fetchExtractionRequest(String requestId, String id, TextExtractionFetchParameters parameters,
+        Duration requestTimeout) {
         requireNonNull(requestId, "The requestId can not be null");
         requireNonNull(id, "The id can not be null");
 
@@ -579,7 +572,7 @@ public class TextExtractionService extends ScopedService {
             .build();
 
         var request = FetchExtractionDetailsRequest.of(requestId, id, p);
-        return client.fetchExtractionDetails(request);
+        return client.fetchExtractionDetails(request, requestTimeout);
     }
 
     // Starts the text extraction and waits until the result is ready.
@@ -626,6 +619,19 @@ public class TextExtractionService extends ScopedService {
         requireNonNull(is, "is value cannot be null");
         requireNonNull(fileName, "fileName value cannot be null");
 
+        return resolveUploadStorage(parameters, waitForExtraction).upload(requestId, is, fileName);
+    }
+
+    private boolean upload(String requestId, File file, TextExtractionParameters parameters, boolean waitForExtraction)
+        throws FileNotFoundException {
+        requireNonNull(requestId, "requestId value cannot be null");
+        requireNonNull(file, "file value cannot be null");
+        if (!file.exists() || !file.canRead())
+            throw new FileNotFoundException(file.toString());
+        return resolveUploadStorage(parameters, waitForExtraction).upload(requestId, file);
+    }
+
+    private StorageOperations resolveUploadStorage(TextExtractionParameters parameters, boolean waitForExtraction) {
         boolean removeOutputFile = nonNull(parameters) && parameters.isRemoveOutputFile();
         boolean removeUploadedFile = nonNull(parameters) && parameters.isRemoveUploadedFile();
         if (!waitForExtraction && (removeOutputFile || removeUploadedFile))
@@ -638,7 +644,7 @@ public class TextExtractionService extends ScopedService {
         );
 
         if (effectiveDoc instanceof ContainerReference)
-            return getOrResolveCosService(resolveEffectiveProjectId(parameters)).upload(requestId, is, fileName);
+            return getOrResolveCosService(resolveEffectiveProjectId(parameters));
 
         if (!(effectiveDoc instanceof CosReference cosRef))
             throw new UnsupportedOperationException(
@@ -647,7 +653,7 @@ public class TextExtractionService extends ScopedService {
             throw new IllegalStateException(
                 "cosUrl must be set on the service builder to perform COS upload operations.");
 
-        return getOrResolveCosService(cosRef).upload(requestId, is, fileName);
+        return getOrResolveCosService(cosRef);
     }
 
     // Starts the text extraction process.
@@ -733,48 +739,54 @@ public class TextExtractionService extends ScopedService {
         if (!waitUntilJobIsDone)
             return response;
 
-        Status status;
-        long sleepTime = 100;
-        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        Status status = Status.fromValue(response.entity().results().status());
+        if (status == Status.COMPLETED || status == Status.FAILED)
+            return response;
+
+        var pollingBudget = timeout;
+        var polling = Polling.start(pollingBudget, () -> extractionTimeout(path, pollingBudget));
         String processId = response.metadata().id();
 
-        do {
-            if (System.nanoTime() - deadlineNanos >= 0) {
-                cleanUpAfterAbortedExtraction(processId, projectId, spaceId, transactionId);
-                throw new TextExtractionException("timeout",
-                    "Execution to extract %s file took longer than the timeout set by %s milliseconds"
-                        .formatted(path, timeout.toMillis()));
-            }
+        try {
+            do {
+                var requestTimeout = polling.awaitNext();
 
-            try {
-                long remaining = deadlineNanos - System.nanoTime();
-                Thread.sleep(Math.min(sleepTime, Math.max(remaining / 1_000_000L, 0L)));
-                sleepTime = Math.min(sleepTime * 2, 3000);
-            } catch (InterruptedException e) {
                 try {
-                    cleanUpAfterAbortedExtraction(processId, projectId, spaceId, transactionId);
-                } finally {
-                    Thread.currentThread().interrupt();
+                    response = fetchExtractionRequest(requestId, processId, TextExtractionFetchParameters.builder()
+                        .projectId(projectId)
+                        .spaceId(spaceId)
+                        .transactionId(transactionId)
+                        .build(), requestTimeout);
+                } catch (RuntimeException e) {
+                    throw polling.translateFailure(e);
                 }
-                throw new TextExtractionException("interrupted", e.getMessage(), e);
-            }
 
-            try {
-                response = fetchExtractionRequest(requestId, processId, TextExtractionFetchParameters.builder()
-                    .projectId(projectId)
-                    .spaceId(spaceId)
-                    .build());
+                polling.checkDeadline();
+
                 status = Status.fromValue(response.entity().results().status());
-                var pagesProcessed = response.entity().results().numberPagesProcessed();
-                logger.debug("Extraction status: {} for the file {} (pages processed {})", status, path, pagesProcessed);
-            } catch (Exception e) {
+                logger.debug("Extraction status: {} for the file {} (pages processed {})", status, path,
+                    response.entity().results().numberPagesProcessed());
+            } while (status != Status.FAILED && status != Status.COMPLETED);
+
+            return response;
+
+        } catch (InterruptedException e) {
+            try {
                 cleanUpAfterAbortedExtraction(processId, projectId, spaceId, transactionId);
-                throw e;
+            } finally {
+                Thread.currentThread().interrupt();
             }
+            throw new TextExtractionException("interrupted", e.getMessage(), e);
+        } catch (TextExtractionException | RuntimeException e) {
+            cleanUpAfterAbortedExtraction(processId, projectId, spaceId, transactionId);
+            throw e;
+        }
+    }
 
-        } while (status != Status.FAILED && status != Status.COMPLETED);
-
-        return response;
+    private TextExtractionException extractionTimeout(String path, Duration timeout) {
+        return new TextExtractionException("timeout",
+            "Execution to extract %s file took longer than the timeout set by %s milliseconds"
+                .formatted(path, timeout.toMillis()));
     }
 
     // Cancels the extraction job on timeout, interrupt, or fetch error. Logs but never throws.
@@ -782,6 +794,7 @@ public class TextExtractionService extends ScopedService {
         String transactionId) {
 
         if (nonNull(processId)) {
+            boolean wasInterrupted = Thread.interrupted();
             try {
                 deleteRequest(
                     processId,
@@ -792,6 +805,9 @@ public class TextExtractionService extends ScopedService {
                         .build());
             } catch (Exception e) {
                 logger.warn("Failed to cancel extraction job {}: {}", processId, e.getMessage(), e);
+            } finally {
+                if (wasInterrupted)
+                    Thread.currentThread().interrupt();
             }
         }
     }

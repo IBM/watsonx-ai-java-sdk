@@ -9,11 +9,13 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ScopedService;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.Status;
 
@@ -55,7 +57,7 @@ public class ClusterSchemaService extends ScopedService {
             .logResponses(logResponses)
             .requestLogger(requestLogger, requestLogLevel)
             .responseLogger(responseLogger, responseLogLevel)
-            .timeout(TIME_OUT)
+            .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
             .verifySsl(verifySsl)
@@ -219,6 +221,11 @@ public class ClusterSchemaService extends ScopedService {
     // Retrieves the results of a cluster schema request by its unique identifier.
     //
     private ClusterSchemaResponse fetchClusterSchemaRequest(String requestId, String id, ClusterSchemaFetchParameters parameters) {
+        return fetchClusterSchemaRequest(requestId, id, parameters, timeout);
+    }
+
+    private ClusterSchemaResponse fetchClusterSchemaRequest(String requestId, String id, ClusterSchemaFetchParameters parameters,
+        Duration requestTimeout) {
         requireNonNull(requestId, "The requestId cannot be null");
         requireNonNull(id, "The id cannot be null");
 
@@ -234,7 +241,7 @@ public class ClusterSchemaService extends ScopedService {
             .build();
 
         var request = new FetchDetailsRequest(requestId, id, p);
-        return client.fetchRequestDetails(request);
+        return client.fetchRequestDetails(request, requestTimeout);
     }
 
     //
@@ -251,12 +258,16 @@ public class ClusterSchemaService extends ScopedService {
         String transactionId = null;
 
         if (nonNull(parameters)) {
+
             projectId = parameters.projectId();
             spaceId = parameters.spaceId();
+
             var effectiveSchemas = requireNonNullElse(parameters.schemas(), schemas);
             Parameters.SemanticConfig semanticConfigRecord = null;
+
             if (parameters.semanticConfig() != null)
                 semanticConfigRecord = new Parameters.SemanticConfig(parameters.semanticConfig().defaultModelName());
+
             params = new Parameters(effectiveSchemas, semanticConfigRecord);
             transactionId = parameters.transactionId();
         } else {
@@ -281,59 +292,103 @@ public class ClusterSchemaService extends ScopedService {
 
         if (status == Status.FAILED) {
             var error = response.entity().results().error();
+
             if (isNull(error))
                 throw new ClusterSchemaException("generic_error", "The cluster schema failed without error details");
+
             throw new ClusterSchemaException(error.code(), error.message());
         }
 
-        long sleepTime = 100;
-        long deadlineNanos = System.nanoTime() + this.timeout.toNanos();
+        var pollingBudget = timeout;
+        var polling = Polling.start(pollingBudget, () -> pollingTimeout(pollingBudget));
         String processId = response.metadata().id();
 
-        do {
+        try {
+            do {
+                var requestTimeout = polling.awaitNext();
 
-            if (System.nanoTime() - deadlineNanos >= 0) {
-                deleteRequest(
-                    processId,
-                    ClusterSchemaDeleteParameters.builder()
-                        .projectId(projectId)
-                        .spaceId(spaceId)
-                        .transactionId(transactionId)
-                        .build());
-                throw new ClusterSchemaException("timeout",
-                    "Execution of cluster schema took longer than the timeout set by %s milliseconds".formatted(this.timeout.toMillis()));
-            }
+                try {
+                    response = fetchClusterSchemaRequest(
+                        requestId,
+                        processId,
+                        ClusterSchemaFetchParameters.builder()
+                            .projectId(projectId)
+                            .spaceId(spaceId)
+                            .transactionId(transactionId)
+                            .build(),
+                        requestTimeout
+                    );
+                } catch (RuntimeException e) {
+                    throw polling.translateFailure(e);
+                }
+
+                polling.checkDeadline();
+
+                status = Status.fromValue(response.entity().results().status());
+                logger.debug("Cluster schema status: {} for request {}", status, processId);
+
+            } while (status != Status.FAILED && status != Status.COMPLETED);
+
+        } catch (InterruptedException e) {
+
+            var failure = new ClusterSchemaException("interrupted", e.getMessage(), e);
 
             try {
-
-                Thread.sleep(sleepTime);
-                sleepTime *= 2;
-                sleepTime = Math.min(sleepTime, 3000);
-
-            } catch (InterruptedException e) {
+                cleanUpAbortedJob(processId, projectId, spaceId, transactionId, failure);
+            } finally {
                 Thread.currentThread().interrupt();
-                throw new ClusterSchemaException("interrupted", e.getMessage());
             }
 
-            processId = response.metadata().id();
-            response = fetchClusterSchemaRequest(requestId, processId, ClusterSchemaFetchParameters.builder()
-                .projectId(projectId)
-                .spaceId(spaceId)
-                .build());
+            throw failure;
 
-            status = Status.fromValue(response.entity().results().status());
-            logger.debug("Cluster schema status: {}", status);
-
-        } while (status != Status.FAILED && status != Status.COMPLETED);
+        } catch (RuntimeException e) {
+            cleanUpAbortedJob(processId, projectId, spaceId, transactionId, e);
+            throw e;
+        }
 
         if (status == Status.FAILED) {
             var error = response.entity().results().error();
+
             if (isNull(error))
                 throw new ClusterSchemaException("generic_error", "The cluster schema failed without error details");
+
             throw new ClusterSchemaException(error.code(), error.message());
         }
 
         return response;
+    }
+
+    private ClusterSchemaException pollingTimeout(Duration timeout) {
+        return new ClusterSchemaException("timeout",
+            "Execution of cluster schema took longer than the timeout set by %s milliseconds".formatted(timeout.toMillis()));
+    }
+
+    private void cleanUpAbortedJob(String processId, String projectId, String spaceId, String transactionId,
+        RuntimeException failure) {
+        if (isNull(processId))
+            return;
+
+        boolean wasInterrupted = Thread.interrupted();
+        try {
+
+            deleteRequest(
+                processId,
+                ClusterSchemaDeleteParameters.builder()
+                    .projectId(projectId)
+                    .spaceId(spaceId)
+                    .transactionId(transactionId)
+                    .build()
+            );
+
+        } catch (Exception e) {
+
+            failure.addSuppressed(e);
+            logger.warn("Failed to cancel cluster schema job {}", processId, e);
+
+        } finally {
+            if (wasInterrupted)
+                Thread.currentThread().interrupt();
+        }
     }
 
     /**

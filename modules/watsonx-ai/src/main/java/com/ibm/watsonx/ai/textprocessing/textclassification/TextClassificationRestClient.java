@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.textprocessing.textclassification;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.time.Duration;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -42,6 +43,19 @@ public abstract class TextClassificationRestClient extends WatsonxRestClient {
      * @return A {@link TextClassificationResponse} containing the job status and results.
      */
     public abstract TextClassificationResponse fetchClassificationDetails(FetchClassificationDetailsRequest request);
+
+    /**
+     * Retrieves job details with a request timeout bounded by the remaining polling time.
+     * <p>
+     * The default implementation delegates to the existing fetch operation. Custom clients can override this method to apply the timeout.
+     *
+     * @param request the job details request
+     * @param requestTimeout the maximum duration for this HTTP request
+     * @return the current job details
+     */
+    public TextClassificationResponse fetchClassificationDetails(FetchClassificationDetailsRequest request, Duration requestTimeout) {
+        return fetchClassificationDetails(request);
+    }
 
     /**
      * Deletes a previously submitted text classification job.

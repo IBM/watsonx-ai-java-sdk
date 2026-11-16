@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -31,9 +33,11 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,6 +46,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.textprocessing.KvpFields;
@@ -553,18 +558,33 @@ public class MergeSchemaTest extends AbstractWatsonxTest {
             .willReturn(aResponse().withStatus(200)));
 
         MergeSchemaParameters parameters = MergeSchemaParameters.builder()
-            .timeout(Duration.ofMillis(100))
+            .timeout(Duration.ofSeconds(5))
             .build();
 
-        var ex = assertThrows(
-            MergeSchemaException.class,
-            () -> mergeSchemaService.mergeSchemaAndFetch(schemas, parameters));
+        var service = MergeSchemaService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .timeout(Duration.ofSeconds(5))
+            .build();
 
-        assertEquals("Execution to merge schema took longer than the timeout set by 100 milliseconds",
-            ex.getMessage());
+        var nanos = new AtomicLong();
+        try (var pollingFactory = mockStatic(Polling.class)) {
+            pollingFactory.when(() -> Polling.start(any(), any())).thenAnswer(invocation -> new Polling<>(
+                invocation.getArgument(0), invocation.<Supplier<MergeSchemaException>>getArgument(1), nanos::get,
+                delay -> nanos.addAndGet(delay + parameters.timeout().toNanos())));
+            var ex = assertThrows(
+                MergeSchemaException.class,
+                () -> service.mergeSchemaAndFetch(schemas, parameters));
+
+            assertEquals("timeout", ex.code());
+            assertEquals("Execution to merge schema took longer than the timeout set by 5000 milliseconds",
+                ex.getMessage());
+        }
 
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/merge")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/merge/id")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/merge/id")));
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/merge/id")));
     }
 
     @Test

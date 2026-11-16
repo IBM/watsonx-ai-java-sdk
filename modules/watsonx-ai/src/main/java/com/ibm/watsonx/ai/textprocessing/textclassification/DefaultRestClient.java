@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textclassification;
 
+import static com.ibm.watsonx.ai.core.HttpUtils.encodePathSegment;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
@@ -17,6 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
@@ -25,11 +27,13 @@ import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 import com.ibm.watsonx.ai.textprocessing.UploadRequest;
+import com.ibm.watsonx.ai.textprocessing.storage.cos.internal.CosUploadClients;
 
 /**
  * Default implementation of the {@link TextClassificationRestClient} abstract class.
  */
 final class DefaultRestClient extends TextClassificationRestClient {
+    private final CosUploadClients cosUploadClients;
     private final SyncHttpClient syncHttpClient;
     private final SyncHttpClient syncCosHttpClient;
     private final AsyncHttpClient asyncCosHttpClient;
@@ -37,6 +41,8 @@ final class DefaultRestClient extends TextClassificationRestClient {
     DefaultRestClient(Builder builder) {
         super(builder);
         requireNonNull(authenticator, "authenticator is mandatory");
+        cosUploadClients = new CosUploadClients(cosUrl, authenticator, cosAuthenticator, httpClient, timeout, logRequests, logResponses,
+            requestLogger, requestLogLevel, responseLogger, responseLogLevel);
         syncHttpClient = HttpClientFactory.createSync(authenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
             requestLogLevel, responseLogger, responseLogLevel);
         syncCosHttpClient = HttpClientFactory.createSync(cosAuthenticator, httpClient, LogMode.of(logRequests, logResponses), requestLogger,
@@ -66,13 +72,21 @@ final class DefaultRestClient extends TextClassificationRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), TextClassificationResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public TextClassificationResponse fetchClassificationDetails(FetchClassificationDetailsRequest request) {
+        return fetchClassificationDetails(request, timeout);
+    }
+
+    @Override
+    public TextClassificationResponse fetchClassificationDetails(FetchClassificationDetailsRequest request, Duration requestTimeout) {
 
         var id = request.classificationId();
         var parameters = request.parameters();
@@ -80,11 +94,11 @@ final class DefaultRestClient extends TextClassificationRestClient {
         var spaceId = parameters.spaceId();
 
         var queryParameters = getQueryParameters(projectId, spaceId);
-        var uri = URI.create(baseUrl + "/ml/v1/text/classifications/%s?%s".formatted(id, queryParameters));
+        var uri = URI.create(baseUrl + "/ml/v1/text/classifications/%s?%s".formatted(encodePathSegment(id), queryParameters));
 
         var httpRequest = HttpRequest.newBuilder(uri)
             .header("Accept", "application/json")
-            .timeout(timeout)
+            .timeout(requestTimeout.compareTo(timeout) < 0 ? requestTimeout : timeout)
             .GET();
 
         if (nonNull(request.requestTrackingId()))
@@ -95,10 +109,13 @@ final class DefaultRestClient extends TextClassificationRestClient {
 
         try {
 
-            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString(), requestTimeout);
             return fromJson(httpResponse.body(), TextClassificationResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -116,7 +133,7 @@ final class DefaultRestClient extends TextClassificationRestClient {
             .map(hardDelete -> getQueryParameters(projectId, spaceId).concat("&hard_delete=" + hardDelete))
             .orElse(getQueryParameters(projectId, spaceId));
 
-        var uri = URI.create(baseUrl + "/ml/v1/text/classifications/%s?%s".formatted(id, queryParameters));
+        var uri = URI.create(baseUrl + "/ml/v1/text/classifications/%s?%s".formatted(encodePathSegment(id), queryParameters));
         var httpRequest = HttpRequest.newBuilder(uri).timeout(timeout).DELETE();
 
         if (nonNull(request.requestTrackingId()))
@@ -130,7 +147,10 @@ final class DefaultRestClient extends TextClassificationRestClient {
             syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return true;
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (WatsonxException e) {
             if (e.statusCode() == 404)
@@ -157,7 +177,10 @@ final class DefaultRestClient extends TextClassificationRestClient {
 
             return syncCosHttpClient.send(httpRequest.build(), BodyHandlers.ofString()).statusCode() == 204;
 
-        } catch (IOException | InterruptedException | URISyntaxException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
@@ -188,28 +211,8 @@ final class DefaultRestClient extends TextClassificationRestClient {
 
     @Override
     public boolean upload(UploadRequest request) {
-        try {
-
-            var fileName = request.fileName();
-            var bucketName = request.bucketName();
-            var is = request.is();
-            var encodedFileName = new URI(null, null, fileName, null).toASCIIString();
-            var uri = URI.create(cosUrl + "/%s/%s".formatted(bucketName, encodedFileName));
-
-            var httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(uri.toASCIIString()))
-                .timeout(timeout)
-                .PUT(BodyPublishers.ofInputStream(() -> is));
-
-            if (nonNull(request.requestTrackingId()))
-                httpRequest.header(REQUEST_ID_HEADER, request.requestTrackingId());
-
-            var response = syncCosHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
-            return response.statusCode() == 200;
-
-        } catch (IOException | InterruptedException | URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        return cosUploadClients.get(request.bucketName())
+            .upload(request.requestTrackingId(), request.is(), request.fileName());
     }
 
     //

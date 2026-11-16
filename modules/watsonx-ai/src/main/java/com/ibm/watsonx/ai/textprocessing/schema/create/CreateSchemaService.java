@@ -20,6 +20,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ScopedService;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.CosUrl;
@@ -385,6 +386,11 @@ public class CreateSchemaService extends ScopedService {
     // Retrieves the results of a create schema request by its unique identifier.
     //
     private CreateSchemaResponse fetchCreateSchemaRequest(String requestId, String id, CreateSchemaFetchParameters parameters) {
+        return fetchCreateSchemaRequest(requestId, id, parameters, timeout);
+    }
+
+    private CreateSchemaResponse fetchCreateSchemaRequest(String requestId, String id, CreateSchemaFetchParameters parameters,
+        Duration requestTimeout) {
         requireNonNull(requestId, "The requestId can not be null");
         requireNonNull(id, "The id can not be null");
 
@@ -400,7 +406,7 @@ public class CreateSchemaService extends ScopedService {
             .build();
 
         var request = new FetchDetailsRequest(requestId, id, p);
-        return client.fetchRequestDetails(request);
+        return client.fetchRequestDetails(request, requestTimeout);
     }
 
     //
@@ -410,8 +416,28 @@ public class CreateSchemaService extends ScopedService {
         throws CreateSchemaException {
         requireNonNull(requestId, "requestId cannot be null");
 
-        var createSchemaResponse = startCreateSchema(requestId, absolutePath, parameters, true);
-        return waitForCompletion(requestId, createSchemaResponse, parameters).entity().results();
+        try {
+
+            var createSchemaResponse = startCreateSchema(requestId, absolutePath, parameters, true);
+            return getCreateSchemaResult(createSchemaResponse);
+
+        } finally {
+
+            if (nonNull(parameters) && parameters.isRemoveUploadedFile()) {
+
+                var reference = requireNonNullElse(parameters.documentReference(), documentReference);
+
+                try {
+                    client.deleteFileAsync(DeleteFileRequest.of(requestId, reference.bucket(), absolutePath))
+                        .exceptionally(error -> {
+                            logger.warn("Failed to delete uploaded file {}", absolutePath, error);
+                            return false;
+                        });
+                } catch (Exception e) {
+                    logger.warn("Failed to delete uploaded file {}", absolutePath, e);
+                }
+            }
+        }
     }
 
     //
@@ -489,106 +515,98 @@ public class CreateSchemaService extends ScopedService {
         if (!waitUntilJobIsDone)
             return response;
 
-        Status status;
-        long sleepTime = 100;
-        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        Status status = Status.fromValue(response.entity().results().status());
+        if (status == Status.COMPLETED || status == Status.FAILED)
+            return response;
+
+        var pollingBudget = timeout;
+        var polling = Polling.start(pollingBudget, () -> pollingTimeout(path, pollingBudget));
         String processId = response.metadata().id();
 
-        do {
+        try {
+            do {
+                var requestTimeout = polling.awaitNext();
 
-            if (System.nanoTime() - deadlineNanos >= 0) {
-                cleanUpAfterAbortedCreation(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
-                throw new CreateSchemaException("timeout",
-                    "Execution to create schema for %s file took longer than the timeout set by %s milliseconds"
-                        .formatted(path, timeout.toMillis()));
-            }
+                try {
+                    response = fetchCreateSchemaRequest(requestId, processId, CreateSchemaFetchParameters.builder()
+                        .projectId(projectId)
+                        .spaceId(spaceId)
+                        .transactionId(transactionId)
+                        .build(), requestTimeout);
+                } catch (RuntimeException e) {
+                    throw polling.translateFailure(e);
+                }
+
+                polling.checkDeadline();
+
+                status = Status.fromValue(response.entity().results().status());
+                logger.debug("Create schema status: {} for request {}", status, processId);
+
+            } while (status != Status.FAILED && status != Status.COMPLETED);
+
+        } catch (InterruptedException e) {
+
+            var failure = new CreateSchemaException("interrupted", e.getMessage(), e);
 
             try {
-
-                Thread.sleep(sleepTime);
-                sleepTime *= 2;
-                sleepTime = Math.min(sleepTime, 3000);
-
-            } catch (InterruptedException e) {
+                cleanUpAbortedJob(processId, projectId, spaceId, transactionId, failure);
+            } finally {
                 Thread.currentThread().interrupt();
-                cleanUpAfterAbortedCreation(processId, requestId, path, projectId, spaceId, transactionId, removeUploadedFile);
-                throw new CreateSchemaException("interrupted", e.getMessage());
             }
 
-            processId = response.metadata().id();
-            response = fetchCreateSchemaRequest(requestId, processId, CreateSchemaFetchParameters.builder()
-                .projectId(projectId)
-                .spaceId(spaceId)
-                .build());
+            throw failure;
 
-            status = Status.fromValue(response.entity().results().status());
-            var pagesProcessed = response.entity().results().numberPagesProcessed();
-            logger.debug("Create schema status: {} for the file {} (pages processed {})", status, path, pagesProcessed);
-
-        } while (status != Status.FAILED && status != Status.COMPLETED);
+        } catch (RuntimeException e) {
+            cleanUpAbortedJob(processId, projectId, spaceId, transactionId, e);
+            throw e;
+        }
 
         return response;
     }
 
-    //
-    // Cancels the started create-schema job and removes the uploaded input file, so that a timed-out or
-    // interrupted synchronous creation does not leave orphaned resources behind.
-    //
-    private void cleanUpAfterAbortedCreation(String processId, String requestId, String path, String projectId, String spaceId,
-        String transactionId, boolean removeUploadedFile) {
+    private CreateSchemaException pollingTimeout(String path, Duration timeout) {
+        return new CreateSchemaException("timeout",
+            "Execution to create schema for %s file took longer than the timeout set by %s milliseconds".formatted(path, timeout.toMillis()));
+    }
 
-        if (nonNull(processId)) {
-            deleteRequest(
-                processId,
-                CreateSchemaDeleteParameters.builder()
-                    .projectId(projectId)
-                    .spaceId(spaceId)
-                    .transactionId(transactionId)
-                    .build());
+    private void cleanUpAbortedJob(String processId, String projectId, String spaceId, String transactionId,
+        RuntimeException failure) {
+        if (isNull(processId))
+            return;
+
+        boolean wasInterrupted = Thread.interrupted();
+        try {
+            deleteRequest(processId, CreateSchemaDeleteParameters.builder()
+                .projectId(projectId)
+                .spaceId(spaceId)
+                .transactionId(transactionId)
+                .build());
+        } catch (Exception e) {
+            failure.addSuppressed(e);
+            logger.warn("Failed to cancel create schema job {}", processId, e);
+        } finally {
+            if (wasInterrupted)
+                Thread.currentThread().interrupt();
         }
-
-        if (removeUploadedFile)
-            client.deleteFileAsync(DeleteFileRequest.of(requestId, documentReference.bucket(), path));
     }
 
     //
-    // Waits for the create schema process to complete.
+    // Returns the completed schema result or reports the terminal failure.
     //
-    private CreateSchemaResponse waitForCompletion(String requestId, CreateSchemaResponse createSchemaResponse, CreateSchemaParameters parameters)
-        throws CreateSchemaException {
+    private CreateSchemaResult getCreateSchemaResult(CreateSchemaResponse createSchemaResponse) throws CreateSchemaException {
+        var result = createSchemaResponse.entity().results();
+        Status status = Status.fromValue(result.status());
 
-        requireNonNull(requestId);
-
-        String uploadedPath = createSchemaResponse.entity().documentReference().location().fileName();
-        Status status = Status.fromValue(createSchemaResponse.entity().results().status());
-        boolean removeUploadedFile = false;
-        CosReference documentReference = this.documentReference;
-
-        if (nonNull(parameters)) {
-            removeUploadedFile = parameters.isRemoveUploadedFile();
-            documentReference = requireNonNullElse(parameters.documentReference(), this.documentReference);
-        }
-
-        String documentBucketName = documentReference.bucket();
-
-        try {
-
-            return switch(status) {
-                case COMPLETED -> createSchemaResponse;
-                case FAILED -> {
-                    var error = createSchemaResponse.entity().results().error();
-                    if (isNull(error))
-                        throw new CreateSchemaException("generic_error", "The schema creation failed without error details");
-                    throw new CreateSchemaException(error.code(), error.message());
-                }
-                default -> throw new CreateSchemaException("generic_error",
-                    "Status %s not managed".formatted(status));
-            };
-
-        } finally {
-            if (removeUploadedFile)
-                client.deleteFileAsync(DeleteFileRequest.of(requestId, documentBucketName, uploadedPath));
-        }
+        return switch(status) {
+            case COMPLETED -> result;
+            case FAILED -> {
+                var error = result.error();
+                if (isNull(error))
+                    throw new CreateSchemaException("generic_error", "The schema creation failed without error details");
+                throw new CreateSchemaException(error.code(), error.message());
+            }
+            default -> throw new CreateSchemaException("generic_error", "Status %s not managed".formatted(status));
+        };
     }
 
     /**

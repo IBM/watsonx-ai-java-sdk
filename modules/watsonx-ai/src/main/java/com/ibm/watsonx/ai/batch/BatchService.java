@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.batch;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
@@ -14,18 +15,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ScopedService;
 import com.ibm.watsonx.ai.chat.ChatRequest;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.ChatUtility;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 import com.ibm.watsonx.ai.file.FileDeleteRequest;
+import com.ibm.watsonx.ai.file.FileRetrieveRequest;
 import com.ibm.watsonx.ai.file.FileService;
+import com.ibm.watsonx.ai.file.FileUploadRequest;
+import com.ibm.watsonx.ai.file.Purpose;
 
 /**
  * Service for interacting with IBM watsonx.ai Batches API.
@@ -50,6 +58,7 @@ import com.ibm.watsonx.ai.file.FileService;
  * @see FileService
  */
 public class BatchService extends ScopedService {
+    private static final Logger logger = LoggerFactory.getLogger(BatchService.class);
     private final BatchRestClient client;
     private final FileService fileService;
     private final boolean removeUploadedFile;
@@ -70,7 +79,7 @@ public class BatchService extends ScopedService {
             .logResponses(logResponses)
             .requestLogger(requestLogger, requestLogLevel)
             .responseLogger(responseLogger, responseLogLevel)
-            .timeout(TIME_OUT)
+            .timeout(timeout)
             .authenticator(builder.authenticator())
             .httpClient(httpClient)
             .verifySsl(verifySsl)
@@ -271,87 +280,120 @@ public class BatchService extends ScopedService {
      */
     public <T> List<BatchResult<T>> submitAndFetch(BatchCreateRequest request, Class<T> clazz) {
         requireNonNull(fileService, "To wait for the completion of a batch operation, it is necessary to set the FileService");
+        requireNonNull(request, "request cannot be null");
 
-        var batchData = submit(
-            BatchCreateRequest.builder(request)
-                .removeUploadedFile(false)
-                .removeOutputFile(false)
-                .build());
-
-        var timeout = requireNonNullElse(request.timeout(), this.timeout);
-        var sleepTime = 100;
-        var deadlineNanos = System.nanoTime() + timeout.toNanos();
         var projectSpace = resolveProjectSpace(request);
-        var status = batchData.status();
         var removeUploadedFile = nonNull(request.removeUploadedFile()) ? request.removeUploadedFile() : this.removeUploadedFile;
         var removeOutputFile = nonNull(request.removeOutputFile()) ? request.removeOutputFile() : this.removeOutputFile;
-
-        while (isInProgress(status)) {
-
-            if (System.nanoTime() - deadlineNanos >= 0) {
-
-                cancel(
-                    BatchCancelRequest.builder()
-                        .batchId(batchData.id())
-                        .projectId(projectSpace.projectId())
-                        .spaceId(projectSpace.spaceId())
-                        .transactionId(request.transactionId())
-                        .build());
-
-                deleteFile(
-                    removeUploadedFile ? batchData.inputFileId() : null,
-                    null,
-                    request.transactionId());
-
-                throw new RuntimeException(
-                    "The execution of the batch operation for the file \"%s\" took longer than the timeout set by %s milliseconds"
-                        .formatted(request.inputFileId(), timeout.toMillis()));
-            }
-
-            try {
-
-                Thread.sleep(sleepTime);
-                sleepTime *= 2;
-                sleepTime = Math.min(sleepTime, 3000);
-
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
-            batchData = client.retrieve(
-                BatchRetrieveRequest.builder()
-                    .batchId(batchData.id())
-                    .projectId(projectSpace.projectId())
-                    .spaceId(projectSpace.spaceId())
-                    .transactionId(request.transactionId())
+        BatchData batchData;
+        try {
+            batchData = submit(
+                BatchCreateRequest.builder(request)
+                    .removeUploadedFile(false)
+                    .removeOutputFile(false)
                     .build());
+        } catch (RuntimeException e) {
+            deleteFile(removeUploadedFile ? request.inputFileId() : null, null, request.transactionId(), projectSpace);
+            throw e;
+        }
 
-            status = batchData.status();
+        var timeout = requireNonNullElse(request.timeout(), this.timeout);
+        var polling = Polling.start(timeout, () -> batchTimeout(request.inputFileId(), timeout));
+        var status = batchData.status();
+
+        try {
+            while (isInProgress(status)) {
+                var requestTimeout = polling.awaitNext();
+
+                try {
+                    batchData = requireNonNull(client.retrieve(
+                        BatchRetrieveRequest.builder()
+                            .batchId(batchData.id())
+                            .projectId(projectSpace.projectId())
+                            .spaceId(projectSpace.spaceId())
+                            .transactionId(request.transactionId())
+                            .build(),
+                        requestTimeout), "The batch details response cannot be null");
+                } catch (RuntimeException e) {
+                    throw polling.translateFailure(e);
+                }
+
+                polling.checkDeadline();
+
+                status = batchData.status();
+            }
+        } catch (InterruptedException e) {
+            try {
+                cleanUpAfterAbortedBatch(batchData, removeUploadedFile, removeOutputFile, projectSpace, request.transactionId());
+            } finally {
+                Thread.currentThread().interrupt();
+            }
+            throw new RuntimeException("Batch execution interrupted", e);
+        } catch (RuntimeException e) {
+            cleanUpAfterAbortedBatch(batchData, removeUploadedFile, removeOutputFile, projectSpace, request.transactionId());
+            throw e;
         }
 
         if (!Status.COMPLETED.value().equalsIgnoreCase(status)) {
             deleteFile(
                 removeUploadedFile ? batchData.inputFileId() : null,
-                null,
-                request.transactionId()
+                removeOutputFile ? batchData.outputFileId() : null,
+                request.transactionId(), projectSpace
             );
             throw new RuntimeException(
                 "The batch operation did not complete successfully (status: %s): %s".formatted(status, batchData));
         }
 
-        var batchOutput = fileService.retrieve(batchData.outputFileId());
-        var result = batchOutput.lines()
-            .filter(line -> !line.isBlank())
-            .map(line -> Json.<BatchResult<T>>fromJson(line, TypeToken.parameterizedOf(BatchResult.class, clazz)))
-            .toList();
+        try {
+            var batchOutput = fileService.retrieve(FileRetrieveRequest.builder()
+                .fileId(batchData.outputFileId())
+                .projectId(projectSpace.projectId())
+                .spaceId(projectSpace.spaceId())
+                .transactionId(request.transactionId())
+                .build());
+            return batchOutput.lines()
+                .filter(line -> !line.isBlank())
+                .map(line -> Json.<BatchResult<T>>fromJson(line, TypeToken.parameterizedOf(BatchResult.class, clazz)))
+                .toList();
+        } finally {
+            deleteFile(
+                removeUploadedFile ? batchData.inputFileId() : null,
+                removeOutputFile ? batchData.outputFileId() : null,
+                request.transactionId(), projectSpace
+            );
+        }
+    }
 
-        deleteFile(
-            removeUploadedFile ? batchData.inputFileId() : null,
-            removeOutputFile ? batchData.outputFileId() : null,
-            request.transactionId()
-        );
+    private RuntimeException batchTimeout(String inputFileId, Duration timeout) {
+        return new RuntimeException(
+            "The execution of the batch operation for the file \"%s\" took longer than the timeout set by %s milliseconds"
+                .formatted(inputFileId, timeout.toMillis()));
+    }
 
-        return result;
+    private void cleanUpAfterAbortedBatch(BatchData batchData, boolean removeUploadedFile, boolean removeOutputFile, ProjectSpace projectSpace,
+        String transactionId) {
+        boolean wasInterrupted = Thread.interrupted();
+        try {
+            try {
+                cancel(BatchCancelRequest.builder()
+                    .batchId(batchData.id())
+                    .projectId(projectSpace.projectId())
+                    .spaceId(projectSpace.spaceId())
+                    .transactionId(transactionId)
+                    .build());
+            } catch (Exception e) {
+                logger.warn("Failed to cancel batch job {}", batchData.id(), e);
+            }
+            try {
+                deleteFile(removeUploadedFile ? batchData.inputFileId() : null, removeOutputFile ? batchData.outputFileId() : null,
+                    transactionId, projectSpace);
+            } catch (Exception e) {
+                logger.warn("Failed to delete files for batch job {}", batchData.id(), e);
+            }
+        } finally {
+            if (wasInterrupted)
+                Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -525,25 +567,29 @@ public class BatchService extends ScopedService {
      * @param inputFileId the identifier of the input file to delete, or {@code null} to skip
      * @param outputFileId the identifier of the output file to delete, or {@code null} to skip
      * @param transactionId optional transaction identifier to propagate to the delete requests
+     * @param projectSpace the project or space resolved for the batch job
      */
-    private void deleteFile(String inputFileId, String outputFileId, String transactionId) {
+    private void deleteFile(String inputFileId, String outputFileId, String transactionId, ProjectSpace projectSpace) {
+        deleteFileQuietly(inputFileId, transactionId, projectSpace);
+        deleteFileQuietly(outputFileId, transactionId, projectSpace);
+    }
 
-        if (nonNull(inputFileId)) {
-            var request = FileDeleteRequest.builder()
-                .fileId(inputFileId)
+    private void deleteFileQuietly(String fileId, String transactionId, ProjectSpace projectSpace) {
+        if (isNull(fileId))
+            return;
+        try {
+            fileService.deleteAsync(FileDeleteRequest.builder()
+                .fileId(fileId)
+                .projectId(projectSpace.projectId())
+                .spaceId(projectSpace.spaceId())
                 .transactionId(transactionId)
-                .build();
-
-            fileService.deleteAsync(request);
-        }
-
-        if (nonNull(outputFileId)) {
-            var request = FileDeleteRequest.builder()
-                .fileId(outputFileId)
-                .transactionId(transactionId)
-                .build();
-
-            fileService.deleteAsync(request);
+                .build())
+                .exceptionally(error -> {
+                    logger.warn("Failed to delete batch file {}", fileId, error);
+                    return null;
+                });
+        } catch (Exception e) {
+            logger.warn("Failed to delete batch file {}", fileId, e);
         }
     }
 
@@ -565,7 +611,15 @@ public class BatchService extends ScopedService {
             throw new IllegalArgumentException(
                 "parameters.inputFileId must not be set when submitting via file upload, the inputFileId is assigned automatically after upload");
 
-        var fileId = fileService.upload(inputStream, fileName).id();
+        var projectSpace = resolveProjectSpace(parameters);
+        var fileId = fileService.upload(FileUploadRequest.builder()
+            .inputStream(inputStream)
+            .fileName(fileName)
+            .purpose(Purpose.BATCH)
+            .projectId(projectSpace.projectId())
+            .spaceId(projectSpace.spaceId())
+            .transactionId(parameters.transactionId())
+            .build()).id();
         return BatchCreateRequest.builder(parameters).inputFileId(fileId).build();
     }
 

@@ -24,7 +24,8 @@ public final class TextExtractionUtils {
         requireNonNull(extension, "extension cannot be null");
 
         var index = fileName.lastIndexOf(".");
-        fileName = index > 0 ? fileName.substring(0, index) : fileName;
+        var separatorIndex = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'));
+        fileName = index > separatorIndex + 1 ? fileName.substring(0, index) : fileName;
 
         return switch(extension) {
             case HTML -> fileName.concat(".html");

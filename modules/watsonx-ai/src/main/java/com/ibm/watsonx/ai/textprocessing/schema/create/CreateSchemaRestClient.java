@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.textprocessing.schema.create;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.time.Duration;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -67,6 +68,20 @@ public abstract class CreateSchemaRestClient extends WatsonxRestClient {
      * @return A {@link CreateSchemaResponse} containing the job status and results.
      */
     public abstract CreateSchemaResponse fetchRequestDetails(FetchDetailsRequest request);
+
+    /**
+     * Retrieves job details with a request timeout supplied by the remaining polling budget.
+     * <p>
+     * The default implementation delegates to {@link #fetchRequestDetails(FetchDetailsRequest)} without applying the timeout. Custom clients can
+     * override this method to apply the timeout.
+     *
+     * @param request the request identifying the job
+     * @param requestTimeout the remaining polling budget
+     * @return the job status and results
+     */
+    public CreateSchemaResponse fetchRequestDetails(FetchDetailsRequest request, Duration requestTimeout) {
+        return fetchRequestDetails(request);
+    }
 
     /**
      * Starts a new create request job.

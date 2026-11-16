@@ -31,8 +31,8 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -492,18 +492,27 @@ public class ImproveSchemaTest extends AbstractWatsonxTest {
             .willReturn(aResponse().withStatus(200)));
 
         ImproveSchemaParameters parameters = ImproveSchemaParameters.builder()
-            .timeout(Duration.ofMillis(100))
+            .timeout(Duration.ofSeconds(5))
+            .build();
+
+        var service = ImproveSchemaService.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .timeout(Duration.ofSeconds(5))
             .build();
 
         var ex = assertThrows(
             ImproveSchemaException.class,
-            () -> improveSchemaService.improveSchemaAndFetch(schema, parameters));
+            () -> service.improveSchemaAndFetch(schema, parameters));
 
-        assertEquals("Execution to improve schema took longer than the timeout set by 100 milliseconds",
+        assertEquals("timeout", ex.code());
+        assertEquals("Execution to improve schema took longer than the timeout set by 5000 milliseconds",
             ex.getMessage());
 
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/improve")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/improve/id")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/improve/id")));
+        watsonxServer.verify(1, deleteRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/improve/id")));
     }
 
     @Test

@@ -26,19 +26,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -105,6 +107,38 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
             .projectId("project-id")
             .documentReference(CosReference.of("connection_id", "my-bucket"))
             .build();
+    }
+
+    @Test
+    void should_replay_upload_body_after_transient_failure() {
+        var path = "/my-bucket/document.pdf";
+        var content = "document content";
+        cosServer.stubFor(put(path).inScenario("replay-upload")
+            .whenScenarioStateIs(Scenario.STARTED).willSetStateTo("retry")
+            .willReturn(aResponse().withStatus(503).withBody("Unavailable")));
+        cosServer.stubFor(put(path).inScenario("replay-upload")
+            .whenScenarioStateIs("retry").willReturn(aResponse().withStatus(200)));
+
+        assertTrue(createSchemaService.uploadFile(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)), "document.pdf"));
+
+        cosServer.verify(2, putRequestedFor(urlEqualTo(path)).withRequestBody(equalTo(content)));
+    }
+
+    @Test
+    void should_remove_input_from_overridden_bucket_when_start_fails() throws Exception {
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+        watsonxServer.stubFor(post(urlPathEqualTo("/ml/v1/text/schemas/create"))
+            .willReturn(aResponse().withStatus(400).withHeader("Content-Type", "application/json")
+                .withBody("{\"errors\":[{\"code\":\"invalid_request\",\"message\":\"Cannot start job\"}]}")));
+        cosServer.stubFor(delete("/override-bucket/document.pdf").willReturn(aResponse().withStatus(204)));
+        var parameters = CreateSchemaParameters.builder().documentReference(CosReference.of("connection", "override-bucket"))
+            .removeUploadedFile(true).build();
+
+        assertThrows(WatsonxException.class, () -> createSchemaService.createSchemaAndFetch("document.pdf", parameters));
+
+        waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/override-bucket/document.pdf")), 1);
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo("/override-bucket/document.pdf")));
+        cosServer.verify(0, deleteRequestedFor(urlEqualTo("/my-bucket/document.pdf")));
     }
 
     @Test
@@ -758,12 +792,13 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
             CreateSchemaException.class,
             () -> createSchemaService.createSchemaAndFetch("test.pdf", parameters));
 
+        assertEquals("timeout", ex.code());
         assertEquals("Execution to create schema for test.pdf file took longer than the timeout set by 100 milliseconds",
             ex.getMessage());
 
         waitForRequests(cosServer, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))), 1);
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create")));
-        watsonxServer.verify(1, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
+        watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/create/id")));
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted("my-bucket", "test.pdf"))));
     }
 
@@ -1086,4 +1121,5 @@ public class CreateSchemaTest extends AbstractWatsonxTest {
                 .withBody(RESPONSE)
             ));
     }
+
 }

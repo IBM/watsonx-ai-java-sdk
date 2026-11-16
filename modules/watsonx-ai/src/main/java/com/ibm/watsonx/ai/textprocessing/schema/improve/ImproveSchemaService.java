@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.WatsonxService.ScopedService;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.textprocessing.Status;
@@ -172,6 +173,11 @@ public class ImproveSchemaService extends ScopedService {
     // Retrieves the results of an improve schema request by its unique identifier.
     //
     private ImproveSchemaResponse fetchImproveSchemaRequest(String requestId, String id, ImproveSchemaFetchParameters parameters) {
+        return fetchImproveSchemaRequest(requestId, id, parameters, timeout);
+    }
+
+    private ImproveSchemaResponse fetchImproveSchemaRequest(String requestId, String id, ImproveSchemaFetchParameters parameters,
+        Duration requestTimeout) {
         requireNonNull(requestId, "The requestId can not be null");
         requireNonNull(id, "The id can not be null");
 
@@ -187,7 +193,7 @@ public class ImproveSchemaService extends ScopedService {
             .build();
 
         var request = new ImproveFetchDetailsRequest(requestId, id, p);
-        return client.fetchRequestDetails(request);
+        return client.fetchRequestDetails(request, requestTimeout);
     }
 
     //
@@ -236,60 +242,75 @@ public class ImproveSchemaService extends ScopedService {
         if (!waitUntilJobIsDone)
             return response;
 
-        Status status;
-        long sleepTime = 100;
-        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+        Status status = Status.fromValue(response.entity().results().status());
+        if (status == Status.COMPLETED || status == Status.FAILED)
+            return response;
+
+        var pollingBudget = timeout;
+        var polling = Polling.start(pollingBudget, () -> pollingTimeout(pollingBudget));
         String processId = response.metadata().id();
 
-        do {
+        try {
+            do {
+                var requestTimeout = polling.awaitNext();
 
-            if (System.nanoTime() - deadlineNanos >= 0) {
-                cleanUpAfterAbortedImprovement(processId, projectId, spaceId, transactionId);
-                throw new ImproveSchemaException("timeout",
-                    "Execution to improve schema took longer than the timeout set by %s milliseconds"
-                        .formatted(timeout.toMillis()));
-            }
+                try {
+                    response = fetchImproveSchemaRequest(requestId, processId, ImproveSchemaFetchParameters.builder()
+                        .projectId(projectId)
+                        .spaceId(spaceId)
+                        .transactionId(transactionId)
+                        .build(), requestTimeout);
+                } catch (RuntimeException e) {
+                    throw polling.translateFailure(e);
+                }
 
+                polling.checkDeadline();
+
+                status = Status.fromValue(response.entity().results().status());
+                logger.debug("Improve schema status: {} for request {}", status, processId);
+            } while (status != Status.FAILED && status != Status.COMPLETED);
+        } catch (InterruptedException e) {
+
+            var failure = new ImproveSchemaException("interrupted", e.getMessage(), e);
             try {
-
-                Thread.sleep(sleepTime);
-                sleepTime *= 2;
-                sleepTime = Math.min(sleepTime, 3000);
-
-            } catch (InterruptedException e) {
+                cleanUpAbortedJob(processId, projectId, spaceId, transactionId, failure);
+            } finally {
                 Thread.currentThread().interrupt();
-                cleanUpAfterAbortedImprovement(processId, projectId, spaceId, transactionId);
-                throw new ImproveSchemaException("interrupted", e.getMessage());
             }
 
-            processId = response.metadata().id();
-            response = fetchImproveSchemaRequest(requestId, processId, ImproveSchemaFetchParameters.builder()
-                .projectId(projectId)
-                .spaceId(spaceId)
-                .transactionId(transactionId)
-                .build());
+            throw failure;
 
-            status = Status.fromValue(response.entity().results().status());
-            logger.debug("Improve schema status: {} for request {}", status, processId);
-
-        } while (status != Status.FAILED && status != Status.COMPLETED);
+        } catch (RuntimeException e) {
+            cleanUpAbortedJob(processId, projectId, spaceId, transactionId, e);
+            throw e;
+        }
 
         return response;
     }
 
-    //
-    // Cancels the started improve-schema job so that a timed-out or interrupted synchronous improvement
-    // does not leave an orphaned job behind.
-    //
-    private void cleanUpAfterAbortedImprovement(String processId, String projectId, String spaceId, String transactionId) {
-        if (nonNull(processId)) {
-            deleteRequest(
-                processId,
-                ImproveSchemaDeleteParameters.builder()
-                    .projectId(projectId)
-                    .spaceId(spaceId)
-                    .transactionId(transactionId)
-                    .build());
+    private ImproveSchemaException pollingTimeout(Duration timeout) {
+        return new ImproveSchemaException("timeout",
+            "Execution to improve schema took longer than the timeout set by %s milliseconds".formatted(timeout.toMillis()));
+    }
+
+    private void cleanUpAbortedJob(String processId, String projectId, String spaceId, String transactionId,
+        RuntimeException failure) {
+        if (isNull(processId))
+            return;
+
+        boolean wasInterrupted = Thread.interrupted();
+        try {
+            deleteRequest(processId, ImproveSchemaDeleteParameters.builder()
+                .projectId(projectId)
+                .spaceId(spaceId)
+                .transactionId(transactionId)
+                .build());
+        } catch (Exception e) {
+            failure.addSuppressed(e);
+            logger.warn("Failed to cancel improve schema job {}", processId, e);
+        } finally {
+            if (wasInterrupted)
+                Thread.currentThread().interrupt();
         }
     }
 
