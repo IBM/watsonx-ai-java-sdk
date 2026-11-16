@@ -48,8 +48,15 @@ public abstract class ChatSubscriber {
      * @param partialMessage the raw SSE event payload
      */
     public void onNext(String partialMessage) {
-        var result = processor.processChunk(partialMessage);
+        dispatch(processor.processChunk(partialMessage));
+    }
 
+    /**
+     * Dispatches processor events to the handler.
+     *
+     * @param result the events or failure returned by the processor
+     */
+    protected void dispatch(SseEventProcessor.ProcessResult result) {
         if (result.hasError()) {
             Throwable error = result.error();
             if (error instanceof RuntimeException re)

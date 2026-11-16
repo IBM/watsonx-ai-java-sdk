@@ -68,7 +68,7 @@ public class ModelGatewayChatUtility {
         var timeLimit = getOrDefault(parameters.timeLimit(), getOrDefault(defaults.timeLimit(), fallbackTimeLimit));
 
         // When streaming, default stream_options.include_usage to true (unless overridden) so the final chunk carries token usage.
-        var streamOptions = getOrDefault(parameters.streamOptions(), defaults.streamOptions());
+        var streamOptions = stream ? getOrDefault(parameters.streamOptions(), defaults.streamOptions()) : null;
         if (stream && isNull(streamOptions))
             streamOptions = new StreamOptions(true);
 
@@ -106,12 +106,13 @@ public class ModelGatewayChatUtility {
             .router(getOrDefault(parameters.router(), defaults.router()))
             .user(getOrDefault(parameters.user(), defaults.user()));
 
-        // Response format: JSON schema takes precedence over plain format.
-        var jsonSchema = getOrDefault(parameters.jsonSchema(), defaults.jsonSchema());
+        // A response format supplied by the request replaces the default format, including its JSON schema.
+        var formatParameters = nonNull(parameters.jsonSchema()) || nonNull(parameters.responseFormat()) ? parameters : defaults;
+        var jsonSchema = formatParameters.jsonSchema();
         if (nonNull(jsonSchema)) {
             builder.jsonSchema(jsonSchema);
         } else {
-            var responseFormat = getOrDefault(parameters.responseFormat(), defaults.responseFormat());
+            var responseFormat = formatParameters.responseFormat();
             if (nonNull(responseFormat)) {
                 builder.responseFormat(Map.of("type", responseFormat));
             }

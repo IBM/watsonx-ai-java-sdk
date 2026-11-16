@@ -15,11 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -30,8 +32,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -66,6 +71,7 @@ import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.it.ToolCallCompletionSupportTest.CompletionHandler;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
@@ -92,6 +98,15 @@ public class ChatServiceIT {
 
     @Nested
     class Chat {
+
+        @Test
+        void should_intercept_and_process_chat_tools_once() {
+            var nonce = UUID.randomUUID().toString();
+            var intercepted = new ArrayList<FunctionCall>();
+            var response = ToolCallCompletionSupportTest.chatService(intercepted).chat(ToolCallCompletionSupportTest.chatRequest(nonce));
+
+            ToolCallCompletionSupportTest.verifyResponse(response, nonce, intercepted);
+        }
 
         @Test
         void should_return_valid_chat_response_when_chat_is_invoked() {
@@ -801,6 +816,22 @@ public class ChatServiceIT {
 
     @Nested
     class ChatStreaming {
+
+        @Test
+        void should_complete_chat_tools_before_the_next_tools_arguments() throws Exception {
+            var nonce = UUID.randomUUID().toString();
+            var intercepted = new ArrayList<FunctionCall>();
+            var handler = new CompletionHandler(nonce);
+            var response = ToolCallCompletionSupportTest.await(ToolCallCompletionSupportTest.chatService(intercepted)
+                .chatStreaming(ToolCallCompletionSupportTest.chatRequest(nonce), handler));
+
+            ToolCallCompletionSupportTest.verifyStreaming(response, nonce, intercepted, handler);
+        }
+
+        @TestFactory
+        Stream<DynamicTest> should_observe_chat_tool_index_order() {
+            return ToolCallStreamingOrderSupportTest.chatCases();
+        }
 
         @Test
         void should_return_valid_chat_response_when_chat_streaming_is_invoked() throws Exception {

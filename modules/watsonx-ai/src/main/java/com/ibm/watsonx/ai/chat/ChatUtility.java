@@ -8,6 +8,7 @@ import static com.ibm.watsonx.ai.core.Utils.getOrDefault;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
@@ -37,13 +38,9 @@ public class ChatUtility {
             && (isNull(chatRequest.thinking()) || isNull(chatRequest.thinking().extractionTags())))
             throw new IllegalArgumentException("Extraction tags are required when using control messages");
 
-        var projectId = nonNull(parameters.projectId())
-            ? parameters.projectId()
-            : defaultParameters.projectId();
-
-        var spaceId = nonNull(parameters.spaceId())
-            ? parameters.spaceId()
-            : defaultParameters.spaceId();
+        boolean hasRequestScope = nonNull(parameters.projectId()) || nonNull(parameters.spaceId());
+        var projectId = hasRequestScope ? parameters.projectId() : defaultParameters.projectId();
+        var spaceId = hasRequestScope ? parameters.spaceId() : defaultParameters.spaceId();
 
         var modelId = nonNull(parameters.modelId())
             ? parameters.modelId()
@@ -61,10 +58,9 @@ public class ChatUtility {
             includeReasoning = thinking.includeReasoning();
             thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
             if (nonNull(thinking.enabled())) {
-                chatTemplateKwargs = Map.of(
-                    "thinking", thinking.enabled(),
-                    "enable_thinking", thinking.enabled()
-                );
+                chatTemplateKwargs = new LinkedHashMap<>();
+                chatTemplateKwargs.put("thinking", thinking.enabled());
+                chatTemplateKwargs.put("enable_thinking", thinking.enabled());
             }
         }
 

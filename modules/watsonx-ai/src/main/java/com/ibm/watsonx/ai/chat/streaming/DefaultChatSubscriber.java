@@ -6,8 +6,8 @@ package com.ibm.watsonx.ai.chat.streaming;
 
 import static java.util.Objects.nonNull;
 import java.util.List;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -83,6 +83,7 @@ public class DefaultChatSubscriber extends ChatSubscriber {
         if (isCancelled())
             return CompletableFuture.completedFuture(null);
 
+        dispatch(processor.completePendingToolCalls());
         return awaitCallbacks()
             .thenComposeAsync(completeToolCalls -> {
                 var builtResponse = processor.buildResponse();
@@ -95,17 +96,19 @@ public class DefaultChatSubscriber extends ChatSubscriber {
                 if (nonNull(completeToolCalls) && !completeToolCalls.isEmpty()) {
                     var choices = response.choices().stream()
                         .map(choice -> {
-                            var tools = completeToolCalls.stream()
-                                .filter(ctc -> ctc.index().equals(choice.index()))
-                                .map(CompletedToolCall::toolCall)
+                            if (choice.message() == null || choice.message().toolCalls() == null)
+                                return choice;
+                            // Early completions must not discard later calls that ended with partial arguments.
+                            var tools = choice.message().toolCalls().stream()
+                                .map(tool -> decorator.interceptedToolCall(choice.index(), tool))
                                 .toList();
                             return choice.withResultMessage(choice.message().withToolCalls(tools));
                         }).toList();
-                    handler.onCompleteResponse(response.toBuilder().choices(choices).build());
-                } else {
-                    handler.onCompleteResponse(response);
+                    response = response.toBuilder().choices(choices).build();
                 }
-                return awaitCallbacks().thenApply(ignored -> response);
+                handler.onCompleteResponse(response);
+                var completeResponse = response;
+                return awaitCallbacks().thenApply(ignored -> completeResponse);
             }, ExecutorProvider.callbackExecutor());
     }
 

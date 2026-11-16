@@ -158,57 +158,8 @@ public class ChatResponse {
      * @see #toAssistantMessage()
      */
     public List<AssistantMessage> toAssistantMessages() {
-
-        if (isNull(choices) || choices.isEmpty())
-            throw new EmptyChatResponseException(
-                "The chat response contains no choices",
-                this,
-                FinishReason.INCOMPLETE,
-                EmptyChatResponseException.NO_CHOICE);
-
-        return IntStream.range(0, choices.size())
-            .mapToObj(index -> {
-
-                var choice = choices.get(index);
-                var message = choice.message();
-                var finishReason = FinishReason.fromValue(choice.finishReason());
-
-                if (isNull(message))
-                    throw new EmptyChatResponseException(
-                        "The choice at index %s contains no message".formatted(index),
-                        this,
-                        finishReason,
-                        index);
-
-                String content;
-                String thinking;
-
-                if (isNull(extractionTags)) {
-                    content = message.content();
-                    thinking = message.reasoningContent();
-                } else {
-                    content = extractionTags.extractResponse(message.content());
-                    content = isNull(content) ? message.content() : content;
-                    thinking = extractionTags.extractThinking(message.content());
-                }
-
-                if ((isNull(content) || content.isBlank()) &&
-                    (isNull(message.refusal()) || message.refusal().isBlank()) &&
-                    (isNull(message.toolCalls()) || message.toolCalls().isEmpty()))
-                    throw new EmptyChatResponseException(
-                        "The model generated no content, tool calls or refusal (finish reason: %s)".formatted(finishReason),
-                        this,
-                        finishReason,
-                        index);
-
-                return new AssistantMessage(
-                    content,
-                    thinking,
-                    null,
-                    message.refusal(),
-                    message.toolCalls());
-
-            }).toList();
+        requireChoices();
+        return IntStream.range(0, choices.size()).mapToObj(this::toAssistantMessage).toList();
     }
 
     /**
@@ -222,7 +173,58 @@ public class ChatResponse {
      * @see #toAssistantMessages()
      */
     public AssistantMessage toAssistantMessage() {
-        return toAssistantMessages().get(0);
+        requireChoices();
+        return toAssistantMessage(0);
+    }
+
+    private void requireChoices() {
+        if (isNull(choices) || choices.isEmpty())
+            throw new EmptyChatResponseException(
+                "The chat response contains no choices",
+                this,
+                FinishReason.INCOMPLETE,
+                EmptyChatResponseException.NO_CHOICE);
+    }
+
+    private AssistantMessage toAssistantMessage(int index) {
+        var choice = choices.get(index);
+        var message = choice.message();
+        var finishReason = FinishReason.fromValue(choice.finishReason());
+
+        if (isNull(message))
+            throw new EmptyChatResponseException(
+                "The choice at index %s contains no message".formatted(index),
+                this,
+                finishReason,
+                index);
+
+        String content;
+        String thinking;
+
+        if (isNull(extractionTags)) {
+            content = message.content();
+            thinking = message.reasoningContent();
+        } else {
+            content = extractionTags.extractResponse(message.content());
+            content = isNull(content) ? message.content() : content;
+            thinking = extractionTags.extractThinking(message.content());
+        }
+
+        if ((isNull(content) || content.isBlank()) &&
+            (isNull(message.refusal()) || message.refusal().isBlank()) &&
+            (isNull(message.toolCalls()) || message.toolCalls().isEmpty()))
+            throw new EmptyChatResponseException(
+                "The model generated no content, tool calls or refusal (finish reason: %s)".formatted(finishReason),
+                this,
+                finishReason,
+                index);
+
+        return new AssistantMessage(
+            content,
+            thinking,
+            null,
+            message.refusal(),
+            message.toolCalls());
     }
 
     /**

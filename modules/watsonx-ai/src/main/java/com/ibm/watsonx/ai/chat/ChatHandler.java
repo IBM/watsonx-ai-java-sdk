@@ -34,16 +34,11 @@ import com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider;
  *
  * Within a single streaming request, callbacks follow this lifecycle:
  * <ol>
- * <li>{@link #onPartialResponse}, {@link #onPartialThinking}, {@link #onPartialToolCall} - invoked zero or more times as data arrives</li>
- * <li>{@link #onCompleteToolCall} - invoked zero or more times (once per completed tool call), after all the {@link #onPartialToolCall} fragments of
- * that same tool call and before the fragments of the tool call that follows</li>
- * <li>Terminal callback, always invoked last (after every {@link #onCompleteToolCall} has returned):
- * <ul>
- * <li>{@link #onCompleteResponse} - invoked on successful completion</li>
- * <li>{@link #onError} - invoked when error occurs</li>
- * </ul>
- * </li>
+ * <li>{@link #onPartialResponse}, {@link #onPartialThinking}, {@link #onPartialToolCall} - invoked zero or more times as data arrives.
+ * {@link #onCompleteToolCall} may occur between partial callbacks for different tools, at most once per tool and after that tool's fragments</li>
+ * <li>{@link #onCompleteResponse} - invoked on successful completion, after all earlier callbacks have returned</li>
  * </ol>
+ * Errors are reported through {@link #onError}, which is terminal only when {@link #failOnFirstError()} returns {@code true}.
  *
  * <b>Error Handling Behavior</b>
  * <ul>
@@ -116,8 +111,8 @@ public interface ChatHandler {
     /**
      * Called each time the model generates a partial tool call fragment.
      * <p>
-     * This method is typically invoked multiple times for a single tool call, each time providing a fragment of the tool's arguments, until
-     * {@link #onCompleteToolCall(CompletedToolCall)} is invoked indicating that the tool call is fully assembled.
+     * This method is typically invoked multiple times for a single tool call, each time providing a fragment of the tool's arguments. Calls that
+     * finish normally are followed by {@link #onCompleteToolCall(CompletedToolCall)}.
      *
      * @param partialToolCall a partial tool call fragment containing index, tool ID, tool name, and partial arguments
      */
@@ -126,9 +121,21 @@ public interface ChatHandler {
     /**
      * Called once the model has finished streaming a single tool call and the arguments are fully assembled.
      * <p>
-     * When multiple tools are called in the same response, this method is invoked once per tool, in tool call order, and never concurrently with
-     * another callback. The {@link CompletedToolCall#toolCall()} contains an {@code index} field carrying the position of the tool call in the
-     * response.
+     * Within each choice, a delta for tool index {@code k} completes pending tools with smaller indexes, a known function name and valid JSON object
+     * arguments, directly or encoded as a JSON string. Missing or blank arguments are treated as an empty object. These completion callbacks precede
+     * the partial callback for index {@code k}, allowing application code to start a tool while the model generates subsequent tools.
+     * <p>
+     * This early completion assumes the provider does not return to a completed tool index. A later delta for an already completed index is reported
+     * as an {@link IllegalStateException}. Incomplete tools can still receive interleaved fragments and complete when the choice finishes with
+     * {@code tool_calls} or {@code stop}. When no finish reason was provided, a trailing usage chunk, {@code [DONE]} or the end of the stream
+     * completes pending tools only if every tool in the choice has valid JSON object arguments.
+     * <p>
+     * Limits, cancellation, errors or content filtering prevent pending tools from completing. Earlier completion callbacks are not revoked if the
+     * choice is later interrupted. Accumulated tool data remains in any final response.
+     * <p>
+     * This method never executes a tool automatically. Application code must invoke or schedule tool execution. All callbacks remain serialized, so
+     * blocking this method delays subsequent callbacks in the request. The {@link CompletedToolCall#toolCall()} contains an {@code index} field
+     * carrying the position of the tool call in the response.
      *
      * @param completeToolCall the completed tool call
      */

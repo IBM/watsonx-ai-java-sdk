@@ -122,6 +122,19 @@ var chatService = ChatService.builder()
     .build();
 ```
 
+Generation parameters supplied with a request override individual defaults. The project and space identify one scope: setting either `projectId` or `spaceId` in the request replaces the entire default scope. For example, a request with only `projectId` uses that project and does not inherit the service's `spaceId`. If neither is supplied, the default scope is retained.
+
+Default tools apply when the request's tools are `null`. An explicitly empty list disables the defaults for that request, while a non-empty list replaces them. This applies to both `chat(ChatRequest)` and `chatStreaming(ChatRequest, ChatHandler)`:
+
+```java
+ChatRequest request = ChatRequest.builder()
+    .messages(UserMessage.text("Answer without calling tools."))
+    .tools(List.of())
+    .build();
+
+chatService.chat(request);
+```
+
 ---
 
 ## Message Types
@@ -302,11 +315,12 @@ chatService.chatStreaming(
 | `onCompleteResponse` | No | Called once when streaming completes successfully |
 | `onError` | No | Called when an error occurs |
 | `onPartialToolCall` | No | Called for each fragment of a streaming tool call |
-| `onCompleteToolCall` | No | Called once per tool when arguments are fully assembled |
+| `onCompleteToolCall` | No | Called at most once per completed tool, potentially before later tools finish streaming |
 | `onPartialThinking` | No | Called for each chunk of reasoning content |
 | `failOnFirstError` | No | Return `true` to stop streaming on first error (default: `false`) |
 
-> **Threading note:** Callbacks run on the callback executor (virtual threads on Java 21+, configurable via the `CallbackExecutorProvider` SPI).
+
+> **Threading note:** Callbacks run on the callback executor (virtual threads on Java 21+, configurable via the `CallbackExecutorProvider` SPI). Consecutive callbacks may run on different threads but never concurrently within one request.
 
 ### Cancelling a Stream
 
@@ -519,6 +533,8 @@ chatService.chat("Does water boil on the Moon?");
 ## Structured Output
 
 Constrain the model to produce valid JSON, making it straightforward to deserialize the response directly into your domain objects.
+
+`responseAsText()` and `responseAsJson()` clear any schema previously set on the builder, including builders returned by `toBuilder()`. In the Model Gateway, a response format supplied with a request replaces the default format and its schema together. If the request does not specify a format, the default format and schema remain in effect.
 
 ### JSON Mode
 

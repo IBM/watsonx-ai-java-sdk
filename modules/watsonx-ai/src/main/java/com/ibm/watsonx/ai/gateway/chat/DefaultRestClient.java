@@ -65,7 +65,10 @@ final class DefaultRestClient extends ModelGatewayChatRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), ModelGatewayChatResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -111,8 +114,9 @@ final class DefaultRestClient extends ModelGatewayChatRestClient {
 
                 Throwable cause = nonNull(t.getCause()) ? t.getCause() : t;
                 if (chatSubscriber.markErrorReported())
-                    handler.onError(cause);
-                response.completeExceptionally(cause);
+                    chatSubscriber.onError(cause).whenComplete((ignored, error) -> response.completeExceptionally(cause));
+                else
+                    response.completeExceptionally(cause);
                 return null;
             });
 

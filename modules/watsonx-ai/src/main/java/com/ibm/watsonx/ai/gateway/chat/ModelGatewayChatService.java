@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.gateway.chat;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +72,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
         partialResponseInterceptor = builder.partialResponseInterceptor;
         toolInterceptor = builder.toolInterceptor;
         defaultTools = isNull(builder.defaultTools) ? null : List.copyOf(builder.defaultTools);
-        defaultParameters = builder.defaultParameters;
+        defaultParameters = requireNonNullElse(builder.defaultParameters, ModelGatewayChatParameters.builder().build());
 
         client = ModelGatewayChatRestClient.builder()
             .baseUrl(baseUrl)
@@ -100,8 +101,10 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
     @Override
     public ModelGatewayChatResponse chat(ModelGatewayChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
-        var gatewayRequest = ModelGatewayChatUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis());
-        var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
+        var gatewayRequest = buildGatewayRequest(chatRequest, false);
+        var transactionId = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().transactionId())
+            ? chatRequest.parameters().transactionId()
+            : defaultParameters.transactionId();
 
         var chatResponse = client.chat(transactionId, Duration.ofMillis(gatewayRequest.timeLimit()), gatewayRequest);
 
@@ -137,8 +140,10 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
-        var gatewayRequest = ModelGatewayChatUtility.buildGatewayRequest(chatRequest, defaultParameters, modelId, this.timeout.toMillis(), true);
-        var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
+        var gatewayRequest = buildGatewayRequest(chatRequest, true);
+        var transactionId = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().transactionId())
+            ? chatRequest.parameters().transactionId()
+            : defaultParameters.transactionId();
         var context = ChatClientContext.<ModelGatewayChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
@@ -148,6 +153,13 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
             .build();
 
         return client.chatStreaming(transactionId, Duration.ofMillis(gatewayRequest.timeLimit()), gatewayRequest, context, handler);
+    }
+
+    private ModelGatewayTextChatRequest buildGatewayRequest(ModelGatewayChatRequest chatRequest, boolean stream) {
+        var resolvedRequest = isNull(chatRequest.tools()) && nonNull(defaultTools)
+            ? chatRequest.toBuilder().tools(defaultTools).build()
+            : chatRequest;
+        return ModelGatewayChatUtility.buildGatewayRequest(resolvedRequest, defaultParameters, modelId, timeout.toMillis(), stream);
     }
 
     /**

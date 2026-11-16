@@ -4,7 +4,6 @@
  */
 package com.ibm.watsonx.ai.chat;
 
-import static com.ibm.watsonx.ai.chat.model.FinishReason.TOOL_CALLS;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.util.ArrayList;
@@ -43,8 +42,8 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
  */
 public class SseEventProcessor {
     private volatile Map<Integer, String> finishReasons = new ConcurrentHashMap<>();
-    private volatile String role;
-    private volatile String refusal;
+    private final Map<Integer, String> roles = new ConcurrentHashMap<>();
+    private final Map<Integer, StringBuilder> refusalBuffers = new ConcurrentHashMap<>();
     private volatile Long created;
     private volatile String createdAt;
     private volatile String id;
@@ -62,7 +61,7 @@ public class SseEventProcessor {
     private final Map<Integer, StringBuilder> contentBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, StringBuilder> thinkingBuffers = new ConcurrentHashMap<>();
     private final Map<Integer, List<StreamingToolFetcher>> toolFetchers = new ConcurrentHashMap<>();
-    private final StreamingStateTracker stateTracker;
+    private final Map<Integer, StreamingStateTracker> stateTrackers = new ConcurrentHashMap<>();
     private final ExtractionTags extractionTags;
     private final Supplier<TextChatResponse.Builder<?>> responseBuilderFactory;
 
@@ -171,40 +170,57 @@ public class SseEventProcessor {
     public SseEventProcessor(List<Tool> tools, ExtractionTags extractionTags, Supplier<TextChatResponse.Builder<?>> responseBuilderFactory) {
         this.extractionTags = extractionTags;
         this.responseBuilderFactory = responseBuilderFactory;
-        stateTracker = nonNull(extractionTags) ? new StreamingStateTracker(extractionTags) : null;
     }
 
     /**
      * Processes a single SSE chunk and returns the resulting events.
+     * <p>
+     * SSE errors and processing failures mark unfinished choices as failed, preserving their partial data without completing their tool calls.
      *
      * @param partialMessage the raw SSE message (e.g., "data: {...}")
      * @return a {@link ProcessResult} containing events to dispatch or an error
      */
     public ProcessResult processChunk(String partialMessage) {
+        try {
+            return processMessage(partialMessage);
+        } catch (RuntimeException e) {
+            markIncompleteChoicesFailed();
+            throw e;
+        }
+    }
+
+    private ProcessResult processMessage(String partialMessage) {
         if (isNull(partialMessage) || partialMessage.isBlank())
             return ProcessResult.empty();
 
-        if (partialMessage.startsWith("event: error")) {
-            pendingSSEError = true;
+        if (partialMessage.startsWith("event:")) {
+            var eventType = partialMessage.substring("event:".length());
+            if (eventType.startsWith(" "))
+                eventType = eventType.substring(1);
+            pendingSSEError = "error".equals(eventType);
+            if (pendingSSEError)
+                markIncompleteChoicesFailed();
             return ProcessResult.empty();
         }
-
-        if (partialMessage.startsWith("event: close"))
-            return ProcessResult.empty();
 
         if (!partialMessage.startsWith("data:"))
             return ProcessResult.empty();
 
-        var messageData = partialMessage.split("data: ")[1];
+        var messageData = partialMessage.substring("data:".length());
+        if (messageData.startsWith(" "))
+            messageData = messageData.substring(1);
 
         if (pendingSSEError) {
             pendingSSEError = false;
-            return ProcessResult.error(new RuntimeException(messageData));
+            return ProcessResult.error(new RuntimeException(messageData.isBlank() ? "SSE error event without data" : messageData));
         }
+
+        if (messageData.isBlank())
+            return ProcessResult.empty();
 
         // OpenAI-compatible endpoints (Model Gateway) terminate the stream with a "data: [DONE]" sentinel.
         if ("[DONE]".equals(messageData))
-            return ProcessResult.empty();
+            return completePendingToolCalls();
 
         var chunk = Json.fromJson(messageData, PartialChatResponse.class);
         var events = new ArrayList<CallbackEvent>();
@@ -227,39 +243,6 @@ public class SseEventProcessor {
         if (nonNull(chunk.detections()) && !chunk.detections().isEmpty())
             detections = mergeDetections(detections, chunk.detections());
 
-        if (chunk.choices().size() == 0) {
-
-            // For certain models, watsonx.ai does not return FinishReason.TOOL_CHOICE when ToolChoiceOption.REQUIRED is set.
-            // Therefore, this check is required to ensure that ChatHandler.onCompleteToolCall is called for the last tool in the
-            // StreamingToolFetcher. The completion performed when a new tool call delta starts is not enough.
-
-            if (toolFetchers.isEmpty())
-                return ProcessResult.empty();
-
-            toolFetchers.keySet().forEach(messageIndex -> {
-
-                if (nonNull(finishReasons.get(messageIndex)))
-                    // FinishReason is not null, so the tool call has already been processed.
-                    return;
-
-                var tools = toolFetchers.get(messageIndex);
-
-                if (isNull(tools) || tools.isEmpty())
-                    // Nothing to complete, so the index must not be marked as processed.
-                    return;
-
-                finishReasons.put(messageIndex, FinishReason.TOOL_CALLS.value());
-                completeToolCall(tools.get(tools.size() - 1), events);
-            });
-
-
-            return events.isEmpty() ? ProcessResult.empty() : ProcessResult.events(events);
-        }
-
-        var message = chunk.choices().get(0);
-        var messageIndex = message.index();
-        var finishReason = finishReasons.get(messageIndex);
-
         if (isNull(created) && nonNull(chunk.created()))
             created = chunk.created();
 
@@ -281,13 +264,27 @@ public class SseEventProcessor {
         if (isNull(model) && nonNull(chunk.model()))
             model = chunk.model();
 
-        // Moderation sentinel chunk: choices is present but delta is null, the API blocked the
-        // request before generation started. No content to process, return what we have so far.
-        if (isNull(message.delta()))
-            return ProcessResult.events(events);
+        // A trailing usage chunk can be the only terminal signal from some models.
+        if (isNull(chunk.choices()) || chunk.choices().isEmpty())
+            return completePendingToolCalls();
 
-        var contentBuffer = contentBuffers.computeIfAbsent(messageIndex, StringBuilder::new);
-        var thinkingBuffer = thinkingBuffers.computeIfAbsent(messageIndex, StringBuilder::new);
+        for (var message : chunk.choices()) {
+            var choiceChunk = chunk.choices().size() == 1 ? chunk
+                : new PartialChatResponse(chunk.id(), chunk.object(), chunk.modelId(), chunk.model(), List.of(message), chunk.created(),
+                    chunk.modelVersion(), chunk.createdAt(), chunk.usage(), chunk.moderations(), chunk.detections(), chunk.serviceTier(),
+                    chunk.systemFingerprint(), chunk.cached());
+            processChoice(choiceChunk, message, events);
+        }
+        return ProcessResult.events(events);
+    }
+
+    private void markIncompleteChoicesFailed() {
+        contentBuffers.keySet().forEach(index -> finishReasons.putIfAbsent(index, FinishReason.ERROR.value()));
+    }
+
+    private void processChoice(PartialChatResponse chunk, PartialChatResponse.ResultChoice message, List<CallbackEvent> events) {
+        var messageIndex = message.index();
+        var finishReason = finishReasons.get(messageIndex);
 
         // OpenAI-compatible endpoints (Model Gateway) send finish_reason as an empty string on intermediate chunks and only set the real
         // value ("stop", "tool_calls", ...) on the terminal chunk. Treating a blank value as absent prevents it from poisoning the map and
@@ -299,11 +296,24 @@ public class SseEventProcessor {
             finishReasonJustSet = true;
         }
 
-        if (isNull(role) && nonNull(message.delta().role()))
-            role = message.delta().role();
+        // A terminal chunk may omit its delta while still carrying the finish reason.
+        if (isNull(message.delta())) {
+            if (finishReasonJustSet) {
+                contentBuffers.computeIfAbsent(messageIndex, key -> new StringBuilder());
+                thinkingBuffers.computeIfAbsent(messageIndex, key -> new StringBuilder());
+                completeToolCalls(messageIndex, events);
+            }
+            return;
+        }
 
-        if (isNull(refusal) && nonNull(message.delta().refusal()))
-            refusal = message.delta().refusal();
+        var contentBuffer = contentBuffers.computeIfAbsent(messageIndex, key -> new StringBuilder());
+        var thinkingBuffer = thinkingBuffers.computeIfAbsent(messageIndex, key -> new StringBuilder());
+
+        if (nonNull(message.delta().role()))
+            roles.putIfAbsent(messageIndex, message.delta().role());
+
+        if (nonNull(message.delta().refusal()))
+            refusalBuffers.computeIfAbsent(messageIndex, key -> new StringBuilder()).append(message.delta().refusal());
 
         if (message.delta().toolCalls() != null) {
 
@@ -315,19 +325,26 @@ public class SseEventProcessor {
 
                 var toolIndex = nonNull(deltaTool.index())
                     ? deltaTool.index()
-                    : tools.isEmpty() ? 0 : tools.get(tools.size() - 1).getToolIndex();
+                    : resolveToolIndex(deltaTool, tools);
 
-                // Check if there is an incomplete version of the TextChatToolCall object.
                 toolFetcher = tools.stream()
                     .filter(fetcher -> fetcher.getToolIndex() == toolIndex)
                     .findFirst()
                     .orElse(null);
 
-                if (isNull(toolFetcher)) {
-                    // First occurrence of the object, create it.
-                    if (!tools.isEmpty()) {
-                        completeToolCall(tools.get(tools.size() - 1), events);
+                if (nonNull(toolFetcher) && toolFetcher.isCompleted())
+                    throw new IllegalStateException("Received a delta for completed tool index " + toolIndex + " in choice " + messageIndex);
+
+                // A higher index is the boundary for earlier valid calls. Incomplete arguments can still arrive interleaved.
+                if (isNull(finishReason) || FinishReason.STOP.value().equals(finishReason) || FinishReason.TOOL_CALLS.value().equals(finishReason)) {
+                    for (var previousTool : tools) {
+                        if (previousTool.getToolIndex() < toolIndex && !previousTool.isCompleted() && nonNull(previousTool.getName())
+                            && Json.isValidObjectOrEncodedObject(previousTool.build().toolCall().function().arguments()))
+                            completeToolCall(previousTool, events);
                     }
+                }
+
+                if (isNull(toolFetcher)) {
                     toolFetcher = new StreamingToolFetcher(id, messageIndex, toolIndex);
                     tools.add(toolFetcher);
                 }
@@ -354,7 +371,8 @@ public class SseEventProcessor {
             String token = message.delta().content();
             if (!token.isEmpty()) {
                 contentBuffer.append(token);
-                if (nonNull(stateTracker)) {
+                if (nonNull(extractionTags)) {
+                    var stateTracker = stateTrackers.computeIfAbsent(messageIndex, key -> new StreamingStateTracker(extractionTags));
                     var r = stateTracker.update(token);
                     var content = r.content();
                     switch(r.state()) {
@@ -381,18 +399,47 @@ public class SseEventProcessor {
             }
         }
 
-        // Complete the last tool call only on the chunk that transitions the finish reason to "tool_calls". OpenAI-compatible endpoints
-        // (Model Gateway) send a trailing usage chunk that still carries a populated choices[0] with finish_reason "" after the terminal
-        // chunk, guarding on finishReasonJustSet prevents that chunk from emitting a duplicate CompleteToolCallEvent.
-        // Some models declare "tool_calls" without ever emitting a tool_calls delta (observed on llama-3-3-70b when tools are combined with
-        // a json_schema response_format), so there may be no fetcher to complete.
-        if (finishReasonJustSet && TOOL_CALLS.value().equals(finishReason)) {
-            var tools = toolFetchers.get(messageIndex);
-            if (nonNull(tools) && !tools.isEmpty())
-                completeToolCall(tools.get(tools.size() - 1), events);
-        }
+        // Successful terminal reasons include "stop" on OpenAI-compatible endpoints.
+        if (finishReasonJustSet)
+            completeToolCalls(messageIndex, events);
 
-        return ProcessResult.events(events);
+    }
+
+    /**
+     * Completes pending tool calls when a trailing usage chunk or the end of the stream is reached.
+     * <p>
+     * Each tool call is emitted at most once, even when multiple terminal signals arrive. Choices stopped by a limit, cancellation, filtering or an
+     * error retain their partial tool calls without emitting pending completion callbacks. Previously emitted completions remain delivered.
+     * <p>
+     * Without a finish reason, all tool arguments in a choice must encode valid JSON objects, directly or as JSON strings, before that choice can
+     * complete. Truncated or invalid arguments remain in the final response without a finish reason or pending tool completion callbacks. Missing
+     * arguments are treated as an empty object.
+     *
+     * @return tool completion events, or an empty result when no pending tool call can complete
+     */
+    public ProcessResult completePendingToolCalls() {
+        var events = new ArrayList<CallbackEvent>();
+        for (var messageIndex : toolFetchers.keySet().stream().sorted().toList()) {
+            var tools = toolFetchers.get(messageIndex);
+            if (nonNull(tools) && !tools.isEmpty()) {
+                if (!finishReasons.containsKey(messageIndex)
+                    && !tools.stream().allMatch(tool -> Json.isValidObjectOrEncodedObject(tool.build().toolCall().function().arguments())))
+                    continue;
+                finishReasons.putIfAbsent(messageIndex, FinishReason.TOOL_CALLS.value());
+                completeToolCalls(messageIndex, events);
+            }
+        }
+        return events.isEmpty() ? ProcessResult.empty() : ProcessResult.events(events);
+    }
+
+    private void completeToolCalls(int messageIndex, List<CallbackEvent> events) {
+        var finishReason = finishReasons.get(messageIndex);
+        if (nonNull(finishReason) && !FinishReason.STOP.value().equals(finishReason) && !FinishReason.TOOL_CALLS.value().equals(finishReason))
+            return;
+
+        var tools = toolFetchers.get(messageIndex);
+        if (nonNull(tools))
+            tools.forEach(tool -> completeToolCall(tool, events));
     }
 
     /**
@@ -403,13 +450,16 @@ public class SseEventProcessor {
     public TextChatResponse buildResponse() {
 
         var choices = contentBuffers.keySet().stream()
+            .sorted()
             .map(key -> {
 
                 var content = contentBuffers.get(key).isEmpty() ? null : contentBuffers.get(key).toString().trim();
                 var thinking = thinkingBuffers.get(key).isEmpty() ? null : thinkingBuffers.get(key).toString().trim();
                 var tools = toolFetchers.get(key);
 
-                var resultMessage = new ResultMessage(role, content, thinking, refusal,
+                var refusalBuffer = refusalBuffers.get(key);
+                var refusal = isNull(refusalBuffer) ? null : refusalBuffer.toString();
+                var resultMessage = new ResultMessage(roles.get(key), content, thinking, refusal,
                     nonNull(tools) && !tools.isEmpty()
                         ? tools.stream()
                             .map(StreamingToolFetcher::build)
@@ -445,6 +495,26 @@ public class SseEventProcessor {
         return builder.build();
     }
 
+    private int resolveToolIndex(ToolCall delta, List<StreamingToolFetcher> tools) {
+
+        if (tools.isEmpty())
+            return 0;
+
+        if (nonNull(delta.id()) && !delta.id().isBlank()) {
+            var existing = tools.stream().filter(tool -> delta.id().equals(tool.getId())).findFirst();
+            if (existing.isPresent())
+                return existing.get().getToolIndex();
+        }
+
+        var last = tools.get(tools.size() - 1);
+        boolean newId = nonNull(delta.id()) && !delta.id().isBlank() && nonNull(last.getId()) && !delta.id().equals(last.getId());
+        boolean newName = nonNull(delta.function()) && nonNull(delta.function().name()) && !delta.function().name().isBlank()
+            && nonNull(last.getName())
+            && !delta.function().name().equals(last.getName());
+
+        return newId || newName ? tools.stream().mapToInt(StreamingToolFetcher::getToolIndex).max().orElse(-1) + 1 : last.getToolIndex();
+    }
+
     /**
      * Completes the given tool call, emitting the synthetic empty arguments when the model never streamed any.
      * <p>
@@ -452,6 +522,8 @@ public class SseEventProcessor {
      * the fragment on completion, instead of on the first delta, emits a single {@link PartialToolCallEvent} in both cases.
      */
     private void completeToolCall(StreamingToolFetcher toolFetcher, List<CallbackEvent> events) {
+        if (!toolFetcher.markCompleted())
+            return;
 
         var completedToolCall = toolFetcher.build();
         var toolCall = completedToolCall.toolCall();

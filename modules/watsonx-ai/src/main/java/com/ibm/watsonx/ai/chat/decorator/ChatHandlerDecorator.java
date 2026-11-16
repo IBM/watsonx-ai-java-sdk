@@ -10,6 +10,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.chat.BaseChatRequest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
@@ -20,6 +22,7 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
+import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
@@ -46,6 +49,8 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * @param <R> the concrete chat request type handled by the intercepted provider
  */
 public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHandler {
+    private static final Logger logger = LoggerFactory.getLogger(ChatHandlerDecorator.class);
+
     /**
      * The underlying chat handler that receives the decorated callbacks.
      */
@@ -74,7 +79,9 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
     /**
      * The tool calls already handed to the delegate, in delivery order.
      */
-    private final List<CompletedToolCall> deliveredToolCalls = new CopyOnWriteArrayList<>();
+    private final List<ToolCallDelivery> deliveredToolCalls = new CopyOnWriteArrayList<>();
+
+    private record ToolCallDelivery(CompletedToolCall original, CompletedToolCall normalized) {}
 
     /**
      * Tail of the chain of sequential callbacks: the future that completes once the last callback scheduled so far has been delivered.
@@ -117,7 +124,7 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
 
     @Override
     public void onError(Throwable error) {
-        scheduleCallback(() -> delegate.onError(error));
+        scheduleCallback(() -> safeOnError(error));
     }
 
     @Override
@@ -134,7 +141,7 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
     public void onCompleteToolCall(CompletedToolCall completeToolCall) {
         scheduleCallback(() -> {
             var toolCallNormalized = normalize(completeToolCall);
-            deliveredToolCalls.add(toolCallNormalized);
+            deliveredToolCalls.add(new ToolCallDelivery(completeToolCall, toolCallNormalized));
             delegate.onCompleteToolCall(toolCallNormalized);
         });
     }
@@ -173,7 +180,20 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
      * @return a CompletableFuture that resolves to a list of all processed tool calls
      */
     public CompletableFuture<List<CompletedToolCall>> awaitCallbacks() {
-        return callbackChain.get().thenApply(v -> List.copyOf(deliveredToolCalls));
+        return callbackChain.get().thenApply(v -> deliveredToolCalls.stream().map(ToolCallDelivery::normalized).toList());
+    }
+
+    /**
+     * Returns the intercepted call at its original choice and tool index, or the original call if it has not completed. Interceptors may change the
+     * delivered call's metadata, so matching must use its original position.
+     */
+    public ToolCall interceptedToolCall(int choiceIndex, ToolCall toolCall) {
+        return deliveredToolCalls.stream()
+            .filter(delivery -> delivery.original().index().equals(choiceIndex)
+                && delivery.original().toolCall().index().equals(toolCall.index()))
+            .map(delivery -> delivery.normalized().toolCall())
+            .findFirst()
+            .orElse(toolCall);
     }
 
     /**
@@ -258,8 +278,8 @@ public class ChatHandlerDecorator<R extends BaseChatRequest> implements ChatHand
 
         try {
             delegate.onError(error);
-        } catch (RuntimeException | Error ignored) {
-            // Nothing more we can do.
+        } catch (RuntimeException | Error callbackFailure) {
+            logger.warn("Chat error callback failed", callbackFailure);
         }
     }
 }

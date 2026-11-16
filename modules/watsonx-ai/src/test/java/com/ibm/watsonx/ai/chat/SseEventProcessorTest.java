@@ -18,12 +18,711 @@ import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.CompleteToolCallE
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialResponseEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialThinkingEvent;
 import com.ibm.watsonx.ai.chat.SseEventProcessor.CallbackEvent.PartialToolCallEvent;
+import com.ibm.watsonx.ai.chat.SseEventProcessor.ProcessResult;
 import com.ibm.watsonx.ai.chat.exception.EmptyChatResponseException;
+import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
+import com.ibm.watsonx.ai.core.Json;
 
 public class SseEventProcessorTest {
+
+    @Test
+    void should_fail_only_unfinished_choices_when_processing_a_stream_error() {
+        for (var errorChunks : List.of(List.of("event: error", "data: generation failed"), List.of("data: {"))) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk("""
+                data: {"id":"c","choices":[
+                  {"index":0,"delta":{"tool_calls":[{"index":0,"id":"a","function":{"name":"charge","arguments":"{"}}]}},
+                  {"index":1,"delta":{"tool_calls":[{"index":0,"id":"b","function":{"name":"time","arguments":"{}"}}]},
+                   "finish_reason":"tool_calls"}]}
+                """);
+            if (errorChunks.size() == 1)
+                assertThrows(RuntimeException.class, () -> processor.processChunk(errorChunks.get(0)));
+            else {
+                processor.processChunk(errorChunks.get(0));
+                assertTrue(processor.processChunk(errorChunks.get(1)).hasError());
+            }
+
+            var continued = processor.processChunk("""
+                data: {"choices":[
+                  {"index":0,"finish_reason":"tool_calls","delta":{}},
+                  {"index":2,"delta":{"tool_calls":[{"index":0,"id":"d","function":{"name":"date","arguments":"{}"}}]},
+                   "finish_reason":"stop"}]}
+                """);
+
+            var completed = continued.events().stream().filter(CompleteToolCallEvent.class::isInstance)
+                .map(CompleteToolCallEvent.class::cast).map(event -> event.completeToolCall().toolCall().id()).toList();
+            assertEquals(List.of("d"), completed);
+            assertTrue(processor.completePendingToolCalls().events().isEmpty());
+            var response = processor.buildResponse();
+            assertEquals(List.of("error", "tool_calls", "stop"), response.choices().stream().map(choice -> choice.finishReason()).toList());
+            assertEquals("{", response.choices().get(0).message().toolCalls().get(0).function().arguments());
+        }
+    }
+
+    @Test
+    void should_not_complete_pending_tools_when_an_error_event_has_no_payload_before_eof() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        processor.processChunk("""
+            data: {"id":"c","choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":0,"id":"a","function":{"name":"charge","arguments":"{"}}]}}]}
+            """);
+
+        processor.processChunk("event: error");
+
+        assertTrue(processor.completePendingToolCalls().events().isEmpty());
+        assertEquals(FinishReason.ERROR, processor.buildResponse().finishReason());
+    }
+
+    @Test
+    void should_not_complete_aborted_tool_calls_on_terminal_chunks_or_fallback_signals() {
+        for (var finishReason : List.of("length", "time_limit", "cancelled", "error", "content_filter")) {
+            for (var terminalDelta : List.of("{}", "null")) {
+                for (var argumentsField : List.of(",\"arguments\":\"{\"", ",\"arguments\":\"\"", "")) {
+                    var scenario = "finish reason=" + finishReason + ", delta=" + terminalDelta + ", arguments=" + argumentsField;
+                    var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+                    processor.processChunk("""
+                        data: {"id":"c","choices":[{"index":0,"delta":{"tool_calls":[
+                          {"index":0,"id":"a","function":{"name":"charge"%s}}]}}]}
+                        """.formatted(argumentsField));
+
+                    var terminal = processor.processChunk("""
+                        data: {"choices":[{"index":0,"finish_reason":"%s","delta":%s}]}
+                        """.formatted(finishReason, terminalDelta));
+
+                    assertTrue(terminal.events().isEmpty(), scenario);
+                    for (var fallback : List.of(
+                        "data: {\"choices\":[],\"usage\":{\"total_tokens\":1}}",
+                        "data: {\"usage\":{\"total_tokens\":1}}",
+                        "data: [DONE]")) {
+                        assertTrue(processor.processChunk(fallback).events().isEmpty(), scenario + ", fallback=" + fallback);
+                    }
+                    assertTrue(processor.completePendingToolCalls().events().isEmpty(), scenario + ", end of stream");
+                    var choice = processor.buildResponse().choices().get(0);
+                    assertEquals(finishReason, choice.finishReason(), scenario);
+                    assertEquals(1, choice.message().toolCalls().size(), scenario);
+                }
+            }
+        }
+    }
+
+    @Test
+    void should_preserve_unfinished_choices_with_invalid_tool_arguments_on_each_fallback_signal() {
+        for (var arguments : List.of("{", "{\"amount\":", "{}{}", "{} trailing", "[]", "null", "\"{", Json.toJson("{"),
+            Json.toJson("{}") + Json.toJson("{}"), Json.toJson("{}") + " false", Json.toJson("{}") + "\f",
+            " \t" + Json.toJson("{}") + " trailing", "\f" + Json.toJson("{}"), "\u2003" + Json.toJson("{}"))) {
+            for (var fallback : List.of("", "data: {\"choices\":[],\"usage\":{\"total_tokens\":1}}",
+                "data: {\"usage\":{\"total_tokens\":1}}", "data: [DONE]")) {
+                var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+                var initial = processor.processChunk("""
+                    data: {"id":"c","choices":[{"index":0,"delta":{"tool_calls":[
+                      {"index":0,"id":"valid","function":{"name":"time","arguments":"{}"}},
+                      {"index":1,"id":"partial","function":{"name":"charge","arguments":%s}},
+                      {"index":2,"id":"empty","function":{"name":"date"}}]}},
+                      {"index":1,"delta":{"tool_calls":[
+                        {"index":0,"id":"other","function":{"name":"time","arguments":"{}"}}]}}]}
+                    """.formatted(Json.toJson(arguments)));
+
+                var early = initial.events().stream().filter(CompleteToolCallEvent.class::isInstance)
+                    .map(CompleteToolCallEvent.class::cast).map(event -> event.completeToolCall().toolCall().id()).toList();
+                assertEquals(List.of("valid"), early);
+                var result = fallback.isEmpty() ? processor.completePendingToolCalls() : processor.processChunk(fallback);
+                var completed = result.events().stream().filter(CompleteToolCallEvent.class::isInstance)
+                    .map(CompleteToolCallEvent.class::cast).map(event -> event.completeToolCall().toolCall().id()).toList();
+                var scenario = "arguments=" + arguments + ", fallback=" + fallback;
+                assertEquals(List.of("other"), completed, scenario);
+                assertEquals(1, result.events().size(), scenario);
+                assertTrue(processor.completePendingToolCalls().events().isEmpty(), scenario);
+                var response = processor.buildResponse();
+                var unfinished = response.choices().get(0);
+                assertEquals(FinishReason.INCOMPLETE, FinishReason.fromValue(unfinished.finishReason()), scenario);
+                assertEquals(List.of("{}", arguments, "{}"),
+                    unfinished.message().toolCalls().stream().map(tool -> tool.function().arguments()).toList(), scenario);
+                assertEquals("tool_calls", response.choices().get(1).finishReason(), scenario);
+            }
+        }
+    }
+
+    @Test
+    void should_complete_pending_tools_without_a_finish_reason_on_each_fallback_signal() {
+        for (var arguments : List.of("", " ", "{}", " {\"amount\":1} ", Json.toJson("{\"country\":\"Italy\"}"),
+            " " + Json.toJson("{}"), "\t" + Json.toJson("{}"), "\r" + Json.toJson("{}"), "\n" + Json.toJson("{}"),
+            " \t\r\n" + Json.toJson("{\"path\":\"C:\\\\temp\"}") + " \t\r\n")) {
+            for (var fallback : List.of("", "data: {\"choices\":[],\"usage\":{\"total_tokens\":1}}",
+                "data: {\"usage\":{\"total_tokens\":1}}", "data: [DONE]")) {
+                var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+                var initial = processor.processChunk("""
+                    data: {"id":"c","choices":[{"index":0,"delta":{"tool_calls":[
+                      {"index":0,"id":"a","function":{"name":"time"}},
+                      {"index":1,"id":"b","function":{"name":"date","arguments":%s}}]}}]}
+                    """.formatted(Json.toJson(arguments)));
+
+                var result = fallback.isEmpty() ? processor.completePendingToolCalls() : processor.processChunk(fallback);
+
+                var early = initial.events().stream().filter(CompleteToolCallEvent.class::isInstance)
+                    .map(CompleteToolCallEvent.class::cast).map(event -> event.completeToolCall().toolCall()).toList();
+                assertEquals(List.of("a"), early.stream().map(call -> call.id()).toList());
+                assertEquals("{}", early.get(0).function().arguments());
+                var completed = result.events().stream().filter(CompleteToolCallEvent.class::isInstance)
+                    .map(CompleteToolCallEvent.class::cast).map(event -> event.completeToolCall().toolCall()).toList();
+                var scenario = "arguments=" + arguments + ", fallback=" + fallback;
+                assertEquals(List.of("b"), completed.stream().map(call -> call.id()).toList(), scenario);
+                assertEquals(List.of(arguments.isBlank() ? "{}" : arguments),
+                    completed.stream().map(call -> call.function().arguments()).toList(), scenario);
+                assertEquals(FinishReason.TOOL_CALLS, processor.buildResponse().finishReason(), scenario);
+                assertTrue(processor.completePendingToolCalls().events().isEmpty(), scenario);
+            }
+        }
+    }
+
+    @Test
+    void should_complete_every_tool_call_when_the_terminal_finish_reason_is_stop() {
+        for (var terminalDelta : List.of("{}", "null")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            var initial = processor.processChunk("""
+                data: {"id":"c","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":0,"id":"a","type":"function","function":{"name":"f","arguments":"{}"}},
+                  {"index":1,"id":"b","type":"function","function":{"name":"g","arguments":"{}"}}]}}]}
+                """);
+
+            var terminal = processor.processChunk("data: {\"choices\":[{\"index\":0,\"finish_reason\":\"stop\",\"delta\":"
+                + terminalDelta + "}]}");
+
+            var completed = terminal.events().stream().filter(CompleteToolCallEvent.class::isInstance)
+                .map(CompleteToolCallEvent.class::cast).toList();
+            var early = initial.events().stream().filter(CompleteToolCallEvent.class::isInstance)
+                .map(CompleteToolCallEvent.class::cast).toList();
+            assertEquals(1, early.size());
+            assertEquals("a", early.get(0).completeToolCall().toolCall().id());
+            assertEquals(1, completed.size());
+            assertEquals("b", completed.get(0).completeToolCall().toolCall().id());
+            assertEquals("{}", completed.get(0).completeToolCall().toolCall().function().arguments());
+            assertTrue(processor.processChunk("""
+                data: {"choices":[],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}
+                """).events().isEmpty());
+            assertTrue(processor.processChunk("""
+                data: {"choices":[{"index":0,"finish_reason":"stop","delta":{}}]}
+                """).events().isEmpty());
+        }
+    }
+
+    @Test
+    void should_not_split_a_tool_call_on_a_blank_function_name_in_a_continuation_fragment() {
+        for (var name : List.of("", " ")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk("""
+                data: {"id":"c","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"id":"call-a","function":{"name":"time","arguments":"{"}}]}}]}
+                """);
+            processor.processChunk("data: {\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"id\":\"\",\"function\":{\"name\":\""
+                + name + "\",\"arguments\":\"}\"}}]}}]}");
+            var terminal = processor.processChunk("""
+                data: {"choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}]}
+                """);
+
+            assertEquals(1, terminal.events().stream().filter(CompleteToolCallEvent.class::isInstance).count());
+            var calls = processor.buildResponse().choices().get(0).message().toolCalls();
+            assertEquals(1, calls.size());
+            assertEquals("time", calls.get(0).function().name());
+            assertEquals("call-a", calls.get(0).id());
+            assertEquals("{}", calls.get(0).function().arguments());
+        }
+    }
+
+    @Test
+    void should_report_an_empty_error_payload_without_poisoning_the_next_chunk() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        processor.processChunk("event: error");
+        var error = processor.processChunk("data:");
+        assertTrue(error.hasError());
+        assertEquals("SSE error event without data", error.error().getMessage());
+
+        var next = processor.processChunk("""
+            data: {"id":"c","choices":[{"index":0,"delta":{"content":"hi"}}]}
+            """);
+
+        assertFalse(next.hasError());
+        assertEquals("hi", processor.buildResponse().choices().get(0).message().content());
+    }
+
+    @Test
+    void should_parse_error_event_prefix_with_optional_space() {
+        for (var prefix : List.of("event:", "event: ")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            assertFalse(processor.processChunk(prefix + "error").hasError());
+
+            var result = processor.processChunk("data: service error");
+
+            assertTrue(result.hasError());
+            assertEquals("service error", result.error().getMessage());
+        }
+    }
+
+    @Test
+    void should_match_the_complete_event_name() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        processor.processChunk("event: errors_summary");
+        var result = processor.processChunk("data: {\"choices\":[]}");
+
+        assertFalse(result.hasError());
+    }
+
+    @Test
+    void should_parse_data_prefix_with_optional_space_and_preserve_data_in_content() {
+        for (var prefix : List.of("data:", "data: ")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk(prefix + """
+                {"id":"chat-1","choices":[{"index":0,"delta":{"content":"The data: field"},"finish_reason":"stop"}]}
+                """);
+
+            assertEquals("The data: field", processor.buildResponse().toAssistantMessage().content());
+            assertTrue(processor.processChunk(prefix).events().isEmpty());
+            assertTrue(processor.processChunk(prefix + "[DONE]").events().isEmpty());
+        }
+    }
+
+    @Test
+    void should_keep_terminal_finish_reason_when_delta_is_null() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"content":"Partial answer"}}]}
+            """);
+        processor.processChunk("""
+            data: {"choices":[{"index":0,"finish_reason":"length","delta":null}]}
+            """);
+
+        assertEquals(FinishReason.LENGTH, processor.buildResponse().finishReason());
+    }
+
+    @Test
+    void should_process_every_choice_in_a_chunk_and_keep_refusals_separate() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        var result = processor.processChunk("""
+            data: {"choices":[
+              {"index":17,"delta":{"role":"assistant","content":"Allowed"},"finish_reason":"stop"},
+              {"index":0,"delta":{"role":"assistant","refusal":"Cannot "}}
+            ]}
+            """);
+        processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"refusal":"answer."},"finish_reason":"stop"}]}
+            """);
+
+        var partial = assertInstanceOf(PartialResponseEvent.class, result.events().get(0));
+        assertEquals(17, partial.chunk().index());
+        var choices = processor.buildResponse().choices();
+        assertEquals(List.of(0, 17), choices.stream().map(ChatResponse.ResultChoice::index).toList());
+        assertEquals("Cannot answer.", choices.get(0).message().refusal());
+        assertNull(choices.get(1).message().refusal());
+        assertEquals("Allowed", choices.get(1).message().content());
+    }
+
+    @Test
+    void should_keep_thinking_parser_state_separate_for_each_choice() {
+        var processor = new SseEventProcessor(List.of(), ExtractionTags.of(new Think("<think>", "</think>")), TextChatResponse::builder);
+        var first = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"content":"<think>"}},{"index":1,"delta":{"content":"Second answer"}}]}
+            """);
+        var second = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"content":"First thought"}}]}
+            """);
+        processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"content":"</think>"}}]}
+            """);
+        processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"content":"First answer"},"finish_reason":"stop"}]}
+            """);
+
+        var responseEvent = assertInstanceOf(PartialResponseEvent.class, first.events().get(0));
+        assertEquals(1, responseEvent.chunk().index());
+        assertEquals("Second answer", responseEvent.content());
+        var thinkingEvent = assertInstanceOf(PartialThinkingEvent.class, second.events().get(0));
+        assertEquals("First thought", thinkingEvent.content());
+        assertEquals("First thought", processor.buildResponse().choices().get(0).message().reasoningContent());
+        assertNull(processor.buildResponse().choices().get(1).message().reasoningContent());
+    }
+
+    @Test
+    void should_complete_a_tool_when_terminal_delta_is_null() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        processor.processChunk("""
+            data: {"id":"chat-1","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call-1",
+              "type":"function","function":{"name":"time","arguments":"{}"}}]}}]}
+            """);
+        var result = processor.processChunk("""
+            data: {"choices":[{"index":0,"finish_reason":"tool_calls","delta":null}]}
+            """);
+
+        assertEquals(1, result.events().stream().filter(CompleteToolCallEvent.class::isInstance).count());
+        assertEquals(FinishReason.TOOL_CALLS, processor.buildResponse().finishReason());
+    }
+
+    @Test
+    void should_complete_the_previous_tool_at_a_greater_index_before_the_last_tool_finishes() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        var first = processor.processChunk("""
+            data: {"id":"chat-early","choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":0,"id":"call-a","function":{"name":"first","arguments":"{\\"value\\":1}"}}]}}]}
+            """);
+        assertTrue(completedTools(first).isEmpty(), "valid JSON alone does not finish the current tool");
+
+        var next = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":4,"id":"call-b"}]}}]}
+            """);
+
+        var early = completedTools(next);
+        assertEquals(1, early.size(), "a metadata-only delta with a greater index also completes the previous tool");
+        assertEquals(0, early.get(0).toolCall().index());
+        assertEquals("call-a", early.get(0).toolCall().id());
+        assertEquals("{\"value\":1}", early.get(0).toolCall().function().arguments());
+        assertEquals(1, next.events().size(), "no argument fragment exists for the new metadata-only delta");
+        assertNull(processor.buildResponse().choices().get(0).finishReason(), "an early tool completion does not finish its choice");
+
+        var arguments = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":4,"function":{"name":"second","arguments":"{}"}}]}}]}
+            """);
+        assertTrue(completedTools(arguments).isEmpty(), "the last tool still waits for a terminal signal");
+        var terminal = processor.processChunk("""
+            data: {"choices":[{"index":0,"finish_reason":"tool_calls","delta":null}]}
+            """);
+        assertEquals(List.of("call-b"), completedTools(terminal).stream().map(tool -> tool.toolCall().id()).toList());
+        for (var fallback : List.of("data: {\"choices\":[{\"index\":0,\"finish_reason\":\"tool_calls\",\"delta\":{}}]}",
+            "data: {\"choices\":[],\"usage\":{\"total_tokens\":2}}", "data: [DONE]")) {
+            assertTrue(completedTools(processor.processChunk(fallback)).isEmpty(), "tool completion must be emitted at most once");
+        }
+        assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty());
+        assertEquals(early.get(0).toolCall(), processor.buildResponse().choices().get(0).message().toolCalls().get(0));
+    }
+
+    @Test
+    void should_complete_parameterless_tools_at_the_next_index_with_one_synthetic_partial() {
+        for (var argumentsField : List.of("", ",\"arguments\":\"\"", ",\"arguments\":\" \"")) {
+            var processor = new SseEventProcessor(List.of(Tool.of("time"), Tool.of("date")), null, TextChatResponse::builder);
+            var initial = processor.processChunk("""
+                data: {"id":"chat-empty","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":0,"function":{"name":"time"%s}}]}}]}
+                """.formatted(argumentsField));
+            var next = processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"function":{"name":"date"}}]}}]}
+                """);
+
+            assertTrue(completedTools(initial).isEmpty());
+            var completed = completedTools(next);
+            assertEquals(1, completed.size());
+            assertEquals("{}", completed.get(0).toolCall().function().arguments());
+            assertEquals("time", completed.get(0).toolCall().function().name());
+            if (argumentsField.endsWith("\" \"")) {
+                assertEquals(1, initial.events().size(), "a streamed whitespace fragment must not be synthesized a second time");
+                assertEquals(1, next.events().size());
+            } else {
+                assertEquals(2, next.events().size());
+                var partial = assertInstanceOf(PartialToolCallEvent.class, next.events().get(0)).toolCall();
+                assertInstanceOf(CompleteToolCallEvent.class, next.events().get(1));
+                assertEquals("{}", partial.arguments());
+                assertEquals(completed.get(0).toolCall().id(), partial.id(), "generated IDs stay stable across partial and completion");
+            }
+            var last = completedTools(processor.completePendingToolCalls());
+            assertEquals(List.of("date"), last.stream().map(tool -> tool.toolCall().function().name()).toList());
+            assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty());
+        }
+    }
+
+    @Test
+    void should_keep_a_metadata_only_tool_pending_until_its_name_and_arguments_arrive() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        var metadata = processor.processChunk("""
+            data: {"id":"chat-metadata","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"a"}]}}]}
+            """);
+        var next = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":1,"id":"b","function":{"name":"second","arguments":"{}"}}]}}]}
+            """);
+
+        assertTrue(metadata.events().isEmpty());
+        assertTrue(completedTools(next).isEmpty(), "missing arguments do not make a tool complete before its function name is known");
+        assertEquals(1, next.events().size());
+        assertInstanceOf(PartialToolCallEvent.class, next.events().get(0));
+
+        var details = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":0,"function":{"name":"first","arguments":"{\\"value\\":1}"}}]}}]}
+            """);
+        assertTrue(completedTools(details).isEmpty());
+        var terminal = processor.processChunk("""
+            data: {"choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}]}
+            """);
+
+        var completed = completedTools(terminal);
+        assertEquals(List.of("a", "b"), completed.stream().map(tool -> tool.toolCall().id()).toList());
+        assertEquals("first", completed.get(0).toolCall().function().name());
+        assertEquals("{\"value\":1}", completed.get(0).toolCall().function().arguments());
+        assertEquals(completed.stream().map(CompletedToolCall::toolCall).toList(),
+            processor.buildResponse().choices().get(0).message().toolCalls());
+        assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty());
+    }
+
+    @Test
+    void should_accept_complete_encoded_object_arguments_when_the_next_tool_starts() {
+        for (var arguments : List.of(" {\"value\":1} ", Json.toJson("{\"value\":1}"), " \t" + Json.toJson("{}") + "\r\n")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk("""
+                data: {"id":"chat-encoded","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":0,"id":"call-a","function":{"name":"first","arguments":%s}}]}}]}
+                """.formatted(Json.toJson(arguments)));
+
+            var next = processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":1,"id":"call-b","function":{"name":"second","arguments":"{"}}]}}]}
+                """);
+
+            assertEquals(1, completedTools(next).size());
+            assertEquals(arguments, completedTools(next).get(0).toolCall().function().arguments());
+            assertInstanceOf(CompleteToolCallEvent.class, next.events().get(0), "previous completion precedes the next tool's argument fragment");
+            assertInstanceOf(PartialToolCallEvent.class, next.events().get(1));
+        }
+    }
+
+    @Test
+    void should_not_complete_invalid_object_arguments_at_the_next_greater_index() {
+        for (var arguments : List.of("{", "[]", "null", "{}{}", "{} trailing", Json.toJson("{"),
+            Json.toJson("{}") + " false", Json.toJson(Json.toJson("{}")))) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk("""
+                data: {"id":"chat-invalid","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":0,"id":"call-a","function":{"name":"first","arguments":%s}}]}}]}
+                """.formatted(Json.toJson(arguments)));
+
+            var next = processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":2,"id":"call-b","function":{"name":"second","arguments":"{"}}]}}]}
+                """);
+
+            assertTrue(completedTools(next).isEmpty(), "invalid arguments cannot complete early: " + arguments);
+            assertEquals(arguments, processor.buildResponse().choices().get(0).message().toolCalls().get(0).function().arguments());
+        }
+    }
+
+    @Test
+    void should_complete_tools_early_only_within_the_choice_whose_index_advances() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        var initial = processor.processChunk("""
+            data: {"id":"chat-choices","choices":[
+              {"index":0,"delta":{"tool_calls":[{"index":0,"id":"a","function":{"name":"first","arguments":"{}"}}]}},
+              {"index":1,"delta":{"tool_calls":[{"index":5,"id":"b","function":{"name":"second","arguments":"{}"}}]}}
+            ]}
+            """);
+        assertTrue(completedTools(initial).isEmpty(), "a tool in another choice is not an index transition");
+
+        var firstChoice = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":1,"id":"c","function":{"name":"third","arguments":"{}"}}]}}]}
+            """);
+        assertEquals(List.of("a"), completedTools(firstChoice).stream().map(tool -> tool.toolCall().id()).toList());
+        assertEquals(0, completedTools(firstChoice).get(0).index());
+
+        var secondChoice = processor.processChunk("""
+            data: {"choices":[{"index":1,"delta":{"tool_calls":[
+              {"index":6,"id":"d","function":{"name":"fourth","arguments":"{}"}}]}}]}
+            """);
+        assertEquals(List.of("b"), completedTools(secondChoice).stream().map(tool -> tool.toolCall().id()).toList());
+        assertEquals(1, completedTools(secondChoice).get(0).index());
+        var terminal = processor.processChunk("""
+            data: {"choices":[{"index":1,"finish_reason":"stop","delta":{}},{"index":0,"finish_reason":"tool_calls","delta":{}}]}
+            """);
+        assertEquals(List.of("d", "c"), completedTools(terminal).stream().map(tool -> tool.toolCall().id()).toList());
+        assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty());
+    }
+
+    @Test
+    void should_not_complete_tools_early_after_an_abnormal_finish_reason() {
+        for (var finishReason : List.of("length", "time_limit", "cancelled", "error", "content_filter")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk("""
+                data: {"id":"chat-aborted","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":0,"id":"a","function":{"name":"first","arguments":"{}"}}]}}]}
+                """);
+            var next = processor.processChunk("""
+                data: {"choices":[{"index":0,"finish_reason":"%s","delta":{"tool_calls":[
+                  {"index":1,"id":"b","function":{"name":"second","arguments":"{}"}}]}}]}
+                """.formatted(finishReason));
+            assertTrue(completedTools(next).isEmpty(), finishReason);
+            var continuation = processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":2,"id":"c","function":{"name":"third","arguments":"{}"}}]}}]}
+                """);
+            assertTrue(completedTools(continuation).isEmpty(), finishReason);
+            assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty(), finishReason);
+        }
+    }
+
+    @Test
+    void should_preserve_an_early_completion_when_later_tools_are_interrupted() {
+        for (var terminal : List.of("data: {\"choices\":[{\"index\":0,\"finish_reason\":\"length\",\"delta\":null}]}",
+            "event: error", "data: {")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk("""
+                data: {"id":"chat-later-error","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":0,"id":"a","function":{"name":"first","arguments":"{}"}}]}}]}
+                """);
+            var next = processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":1,"id":"b","function":{"name":"second","arguments":"{"}}]}}]}
+                """);
+            var early = completedTools(next);
+            assertEquals(List.of("a"), early.stream().map(tool -> tool.toolCall().id()).toList());
+            if ("data: {".equals(terminal))
+                assertThrows(RuntimeException.class, () -> processor.processChunk(terminal));
+            else
+                assertTrue(completedTools(processor.processChunk(terminal)).isEmpty());
+            assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty());
+            var calls = processor.buildResponse().choices().get(0).message().toolCalls();
+            assertEquals(early.get(0).toolCall(), calls.get(0));
+            assertEquals("{", calls.get(1).function().arguments());
+        }
+    }
+
+    @Test
+    void should_reject_late_deltas_for_completed_tools_without_changing_the_emitted_snapshot() {
+        for (var lateFields : List.of("", ",\"id\":\"changed-id\"", ",\"function\":{\"name\":\"changed-name\",\"arguments\":\" trailing\"}")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk("""
+                data: {"id":"chat-late","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":0,"id":"a","function":{"name":"first","arguments":"{}"}}]}}]}
+                """);
+            var next = processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":1,"id":"b","function":{"name":"second","arguments":"{"}}]}}]}
+                """);
+            var early = completedTools(next);
+            assertEquals(1, early.size());
+
+            var error = assertThrows(IllegalStateException.class, () -> processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0%s}]}}]}
+                """.formatted(lateFields)));
+
+            assertTrue(error.getMessage().contains("0"), "the error identifies the completed tool index");
+            assertTrue(error.getMessage().toLowerCase().contains("complet"), "the error explains why the delta is rejected");
+            var calls = processor.buildResponse().choices().get(0).message().toolCalls();
+            assertEquals(early.get(0).toolCall(), calls.get(0), "a rejected delta cannot change the tool already delivered to the caller");
+            assertEquals("{", calls.get(1).function().arguments());
+            assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty(), "a late-delta error cannot emit duplicate completions");
+        }
+    }
+
+    @Test
+    void should_complete_an_interleaved_lower_index_once_its_arguments_are_valid_and_a_higher_delta_arrives() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        var initial = processor.processChunk("""
+            data: {"id":"chat-interleaved","choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":0,"id":"a","function":{"name":"first","arguments":"{"}},
+              {"index":1,"id":"b","function":{"name":"second","arguments":"{"}}]}}]}
+            """);
+        assertTrue(completedTools(initial).isEmpty());
+        var lower = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"}"}}]}}]}
+            """);
+        assertTrue(completedTools(lower).isEmpty(), "returning to a lower index does not finish the higher tool");
+
+        var higher = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"function":{"arguments":"}"}}]}}]}
+            """);
+
+        assertEquals(List.of("a"), completedTools(higher).stream().map(tool -> tool.toolCall().id()).toList());
+        assertEquals("{}", completedTools(higher).get(0).toolCall().function().arguments());
+        assertInstanceOf(CompleteToolCallEvent.class, higher.events().get(0));
+        assertInstanceOf(PartialToolCallEvent.class, higher.events().get(1));
+        var terminal = processor.processChunk("""
+            data: {"choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}]}
+            """);
+        assertEquals(List.of("b"), completedTools(terminal).stream().map(tool -> tool.toolCall().id()).toList());
+        assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty());
+    }
+
+    @Test
+    void should_complete_all_valid_lower_pending_tools_before_the_next_higher_partial() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        var initial = processor.processChunk("""
+            data: {"id":"chat-lower-tools","choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":0,"id":"a","function":{"name":"first","arguments":"{"}},
+              {"index":1,"id":"b","function":{"name":"second","arguments":"{}"}}]}}]}
+            """);
+        assertTrue(completedTools(initial).isEmpty());
+        var lower = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"}"}}]}}]}
+            """);
+        assertTrue(completedTools(lower).isEmpty());
+
+        var higher = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[
+              {"index":3,"id":"c","function":{"name":"third","arguments":"{}"}}]}}]}
+            """);
+
+        assertEquals(List.of("a", "b"), completedTools(higher).stream().map(tool -> tool.toolCall().id()).toList());
+        assertInstanceOf(CompleteToolCallEvent.class, higher.events().get(0));
+        assertInstanceOf(CompleteToolCallEvent.class, higher.events().get(1));
+        assertInstanceOf(PartialToolCallEvent.class, higher.events().get(2));
+        var terminal = processor.processChunk("""
+            data: {"choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}]}
+            """);
+        assertEquals(List.of("c"), completedTools(terminal).stream().map(tool -> tool.toolCall().id()).toList());
+        assertTrue(completedTools(processor.completePendingToolCalls()).isEmpty());
+    }
+
+    @Test
+    void should_complete_every_parallel_tool_after_all_interleaved_arguments_arrive() {
+        for (var terminal : List.of("{\"choices\":[{\"index\":0,\"finish_reason\":\"tool_calls\",\"delta\":null}]}", "{\"choices\":[]}")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            var first = processor.processChunk("""
+                data: {"id":"chat-1","choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":0,"id":"call-a","function":{"name":"first","arguments":"{\\"value\\":"}},
+                  {"index":1,"id":"call-b","function":{"name":"second","arguments":"{\\"value\\":"}}
+                ]}}]}
+                """);
+            var second = processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"tool_calls":[
+                  {"index":1,"function":{"arguments":"2}"}},{"index":0,"function":{"arguments":"1}"}}
+                ]}}]}
+                """);
+
+            assertEquals(0, Stream.concat(first.events().stream(), second.events().stream()).filter(CompleteToolCallEvent.class::isInstance).count());
+            var completed = processor.processChunk("data: " + terminal).events().stream().filter(CompleteToolCallEvent.class::isInstance)
+                .map(CompleteToolCallEvent.class::cast).map(event -> event.completeToolCall().toolCall()).toList();
+            assertEquals(2, completed.size());
+            assertEquals("{\"value\":1}", completed.get(0).function().arguments());
+            assertEquals("{\"value\":2}", completed.get(1).function().arguments());
+            assertEquals(0, processor.processChunk("data: " + terminal).events().stream().filter(CompleteToolCallEvent.class::isInstance).count());
+        }
+    }
+
+    @Test
+    void should_keep_legacy_tools_without_indices_separate_by_id() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        processor.processChunk("""
+            data: {"id":"chat-1","choices":[{"index":0,"delta":{"tool_calls":[
+              {"id":"call-a","function":{"name":"time","arguments":"{"}}
+            ]}}]}
+            """);
+        processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[{"function":{"arguments":"}"}}]}}]}
+            """);
+        var nextTool = processor.processChunk("""
+            data: {"choices":[{"index":0,"delta":{"tool_calls":[{"id":"call-b","function":{"name":"time","arguments":"{}"}}]}}]}
+            """);
+        var terminal = processor.processChunk("""
+            data: {"choices":[{"index":0,"finish_reason":"tool_calls","delta":{}}]}
+            """);
+        var completed = Stream.concat(nextTool.events().stream(), terminal.events().stream()).filter(CompleteToolCallEvent.class::isInstance)
+            .map(CompleteToolCallEvent.class::cast).map(event -> event.completeToolCall().toolCall()).toList();
+
+        assertEquals(1, nextTool.events().stream().filter(CompleteToolCallEvent.class::isInstance).count());
+        assertEquals(1, terminal.events().stream().filter(CompleteToolCallEvent.class::isInstance).count());
+        assertEquals(List.of("call-a", "call-b"), completed.stream().map(call -> call.id()).toList());
+        assertEquals(List.of("{}", "{}"), completed.stream().map(call -> call.function().arguments()).toList());
+    }
 
     @Test
     void should_propagate_moderations_and_detections_from_streaming_chunks() {
@@ -229,14 +928,14 @@ public class SseEventProcessorTest {
             {"index":0,"function":{"arguments":",\\"b\\":2}"}}]}}],\
             "created":1,"created_at":"2026-07-26T00:00:00.002Z"}""";
 
-        // choices[0], tool 1: starting a new tool completes the previous one of the same choice.
+        // choices[0], tool 1: its greater index completes the previous tool with both arguments joined.
         var chunk4 = "data: " + """
             {"id":"chatcmpl-5","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
             "choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant","tool_calls":[\
             {"index":1,"id":"call_b","type":"function","function":{"name":"diff","arguments":"{\\"a\\":3,\\"b\\":4}"}}]}}],\
             "created":1,"created_at":"2026-07-26T00:00:00.003Z"}""";
 
-        // Terminal chunk of choices[0]: completes its last tool.
+        // Terminal chunk of choices[0]: completes only its last tool.
         var chunk5 = "data: " + """
             {"id":"chatcmpl-5","object":"chat.completion.chunk","model_id":"mistral","model":"mistral",\
             "choices":[{"index":0,"finish_reason":"tool_calls","delta":{"role":"assistant"}}],\
@@ -258,7 +957,7 @@ public class SseEventProcessorTest {
 
         assertEquals(3, completed.size(), "every tool of every choice must be completed exactly once");
 
-        // choices[0], tool 0: completed when tool 1 of the same choice starts, with both argument fragments joined.
+        // choices[0], tool 0: completed when the next greater tool index arrived, with both argument fragments joined.
         assertEquals(0, completed.get(0).index());
         assertEquals(0, completed.get(0).toolCall().index());
         assertEquals("call_a", completed.get(0).toolCall().id());
@@ -518,7 +1217,7 @@ public class SseEventProcessorTest {
         assertEquals("get_current_date", partials.get(1).name());
         assertEquals("{}", partials.get(1).arguments());
 
-        // The tool call of index 0 is completed when the one of index 1 starts, its partial must come first.
+        // The first tool completes at the next greater index and the last at the terminal chunk, each after its synthetic partial.
         assertEquals(4, events.size());
         assertInstanceOf(PartialToolCallEvent.class, events.get(0));
         assertInstanceOf(CompleteToolCallEvent.class, events.get(1));
@@ -694,7 +1393,7 @@ public class SseEventProcessorTest {
 
         assertEquals(2, completed.size(), "each tool call must be completed exactly once");
 
-        // The tool call of index 1 is completed when the one of index 0 starts, not by itself.
+        // Tools complete at the terminal chunk in the order their first delta arrived.
         assertEquals(1, completed.get(0).toolCall().index());
         assertEquals("call_b", completed.get(0).toolCall().id());
         assertEquals("{\"a\":3,\"b\":4}", completed.get(0).toolCall().function().arguments());
@@ -738,5 +1437,10 @@ public class SseEventProcessorTest {
         assertNotNull(response.detections());
         assertTrue(response.detections().containsKey("input"));
         assertEquals("en_syntax_rbr_pii", response.detections().get("input").get(0).results().get(0).detectorId());
+    }
+
+    private static List<CompletedToolCall> completedTools(ProcessResult result) {
+        return result.events().stream().filter(CompleteToolCallEvent.class::isInstance)
+            .map(CompleteToolCallEvent.class::cast).map(CompleteToolCallEvent::completeToolCall).toList();
     }
 }

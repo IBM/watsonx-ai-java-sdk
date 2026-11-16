@@ -10,19 +10,22 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.ChatResponse.ResultChoice;
 import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionEntry;
 import com.ibm.watsonx.ai.chat.TextChatResponse.DetectionResult;
-import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult.Position;
+import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
 import com.ibm.watsonx.ai.chat.exception.EmptyChatResponseException;
 import com.ibm.watsonx.ai.chat.exception.ModerationException;
-import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Think;
+import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
+import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.ResultMessage;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
@@ -209,6 +212,33 @@ public class ChatResponseTest {
         var ex = assertThrows(EmptyChatResponseException.class, response::toAssistantMessages);
         assertEquals(1, ex.index());
         assertEquals(FinishReason.LENGTH, ex.finishReason());
+    }
+
+    @Test
+    void should_convert_only_the_first_choice_when_later_choices_are_empty() {
+        List<ChatResponse.Builder<?>> builders = List.of(ChatResponse.builder(), TextChatResponse.builder(), ModelGatewayChatResponse.builder());
+        for (var builder : builders) {
+            for (var emptyChoice : List.of(new ResultChoice(1, null, "length"),
+                new ResultChoice(1, resultMessage(null, null, null, null), "length"))) {
+                var response =
+                    builder.choices(List.of(new ResultChoice(0, resultMessage("First answer", null, null, null), "stop"), emptyChoice)).build();
+
+                assertEquals("First answer", response.toAssistantMessage().content());
+                var error = assertThrows(EmptyChatResponseException.class, response::toAssistantMessages);
+                assertEquals(1, error.index());
+                assertEquals(FinishReason.LENGTH, error.finishReason());
+                assertSame(response, error.response());
+            }
+        }
+    }
+
+    @Test
+    void should_keep_moderation_checks_when_converting_only_the_first_choice() {
+        var response = TextChatResponse.builder().moderations(MODERATIONS)
+            .choices(List.of(new ResultChoice(0, null, null))).build();
+
+        assertThrows(ModerationException.class, response::toAssistantMessage);
+        assertThrows(ModerationException.class, response::toAssistantMessages);
     }
 
     @Test
@@ -414,4 +444,32 @@ public class ChatResponseTest {
         assertTrue(ex.toString().contains("ModerationException"));
         assertTrue(ex.toString().contains("pii"));
     }
+
+    @Test
+    void should_snapshot_partial_response_moderation_and_detection_lists() {
+        var matches = new ArrayList<ModerationResult>();
+        var entries = new ArrayList<DetectionEntry>();
+        var moderations = new LinkedHashMap<String, List<ModerationResult>>();
+        moderations.put("first", matches);
+        moderations.put("second", new ArrayList<>());
+        var detections = new LinkedHashMap<String, List<DetectionEntry>>();
+        detections.put("output", entries);
+        var chunk = new PartialChatResponse("id", null, null, null, List.of(), null, null, null, null,
+            moderations, detections, null, null, null);
+        var exception = new ModerationException(moderations);
+        var response = TextChatResponse.builder().moderations(moderations).detections(detections).build();
+
+        matches.add(new ModerationResult(0.8f, true, null, "pii", "secret"));
+        entries.add(new DetectionEntry(0, List.of()));
+        moderations.clear();
+
+        assertEquals(List.of("first", "second"), new ArrayList<>(response.moderations().keySet()));
+        assertEquals(List.of(), chunk.moderations().get("first"));
+        assertEquals(List.of(), chunk.detections().get("output"));
+        assertEquals(List.of(), exception.moderations().get("first"));
+        assertThrows(UnsupportedOperationException.class, () -> chunk.moderations().get("first").clear());
+        assertThrows(UnsupportedOperationException.class, () -> chunk.detections().get("output").clear());
+        assertThrows(UnsupportedOperationException.class, () -> exception.moderations().get("first").clear());
+    }
+
 }

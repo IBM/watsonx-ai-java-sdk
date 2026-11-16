@@ -12,6 +12,7 @@ import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +33,7 @@ import com.ibm.watsonx.ai.chat.interceptor.ToolInterceptor;
 import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
+import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
@@ -173,12 +175,11 @@ public class DeploymentService extends WatsonxService
         var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
         var textChatRequest = buildTextChatRequest(chatRequest);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
-        var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
-        var timeout = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().timeLimit())
-            ? chatRequest.parameters().timeLimit()
-            : this.timeout.toMillis();
+        var transactionId = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().transactionId())
+            ? chatRequest.parameters().transactionId()
+            : defaultParameters.transactionId();
 
-        var chatResponse = client.chat(transactionId, deploymentId, Duration.ofMillis(timeout), textChatRequest);
+        var chatResponse = client.chat(transactionId, deploymentId, Duration.ofMillis(textChatRequest.timeLimit()), textChatRequest);
 
         if (nonNull(messageInterceptor)) {
             var newChoices = messageInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
@@ -264,7 +265,9 @@ public class DeploymentService extends WatsonxService
         var deploymentId = requireNonNull(chatRequest.deploymentId(), "deploymentId must be provided");
         var textChatRequest = buildTextChatRequest(chatRequest);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
-        var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
+        var transactionId = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().transactionId())
+            ? chatRequest.parameters().transactionId()
+            : defaultParameters.transactionId();
         var context = ChatClientContext.<DeploymentChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
@@ -664,6 +667,10 @@ public class DeploymentService extends WatsonxService
         if (messages.stream().anyMatch(DeveloperMessage.class::isInstance))
             throw new IllegalArgumentException("Developer messages are supported only by the Model Gateway");
 
+        if (messages.stream().anyMatch(ControlMessage.class::isInstance)
+            && (isNull(chatRequest.thinking()) || isNull(chatRequest.thinking().extractionTags())))
+            throw new IllegalArgumentException("Extraction tags are required when using control messages");
+
         var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
         var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
 
@@ -672,9 +679,13 @@ public class DeploymentService extends WatsonxService
         Map<String, Object> chatTemplateKwargs = null;
         if (nonNull(chatRequest.thinking())) {
             var thinking = chatRequest.thinking();
-            chatTemplateKwargs = Map.of("thinking", true, "enable_thinking", true);
             includeReasoning = thinking.includeReasoning();
             thinkingEffort = nonNull(thinking.thinkingEffort()) ? thinking.thinkingEffort().getValue() : null;
+            if (nonNull(thinking.enabled())) {
+                chatTemplateKwargs = new LinkedHashMap<>();
+                chatTemplateKwargs.put("thinking", thinking.enabled());
+                chatTemplateKwargs.put("enable_thinking", thinking.enabled());
+            }
         }
 
         logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
