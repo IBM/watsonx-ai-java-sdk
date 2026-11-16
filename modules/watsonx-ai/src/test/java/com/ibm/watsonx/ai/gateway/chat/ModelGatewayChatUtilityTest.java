@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 
@@ -97,5 +98,57 @@ public class ModelGatewayChatUtilityTest {
 
         assertNull(result.stream());
         assertNull(result.streamOptions());
+    }
+
+    @Test
+    void should_replace_default_json_schema_with_request_response_format() {
+        var defaults = ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema("default", Map.of("type", "object"), true)
+            .build();
+
+        for (var parameters : List.of(ModelGatewayChatParameters.builder().responseAsText().build(),
+            ModelGatewayChatParameters.builder().responseAsJson().build())) {
+            var result = ModelGatewayChatUtility.buildGatewayRequest(requestWith(parameters), defaults, MODEL_ID, TIME_LIMIT);
+
+            assertEquals(Map.of("type", parameters.responseFormat()), result.responseFormat());
+        }
+    }
+
+    @Test
+    void should_keep_default_json_schema_when_request_does_not_set_format() {
+        var defaults = ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema("default", Map.of("type", "object"), true)
+            .build();
+
+        var result = ModelGatewayChatUtility.buildGatewayRequest(
+            requestWith(ModelGatewayChatParameters.builder().temperature(0.5).build()), defaults, MODEL_ID, TIME_LIMIT);
+
+        assertEquals("json_schema", result.responseFormat().get("type"));
+        assertEquals(Map.of("name", "default", "schema", Map.of("type", "object"), "strict", true),
+            result.responseFormat().get("json_schema"));
+    }
+
+    @Test
+    void should_remove_schema_when_switching_response_format_on_copied_parameters() {
+        var original = ModelGatewayChatParameters.builder()
+            .responseAsJsonSchema("original", Map.of("type", "object"), true)
+            .build();
+
+        for (var parameters : List.of(original.toBuilder().responseAsText().build(), original.toBuilder().responseAsJson().build())) {
+            assertNull(parameters.jsonSchema());
+            var result = ModelGatewayChatUtility.buildGatewayRequest(requestWith(parameters), original, MODEL_ID, TIME_LIMIT);
+            assertEquals(Map.of("type", parameters.responseFormat()), result.responseFormat());
+        }
+    }
+
+    @Test
+    void should_omit_stream_options_from_non_streaming_requests() {
+        var defaults = ModelGatewayChatParameters.builder().streamOptions(new ModelGatewayChatParameters.StreamOptions(true)).build();
+        var request = requestWith(ModelGatewayChatParameters.builder().streamOptions(new ModelGatewayChatParameters.StreamOptions(false)).build());
+
+        assertNull(ModelGatewayChatUtility.buildGatewayRequest(request, defaults, MODEL_ID, TIME_LIMIT).streamOptions());
+        assertNull(ModelGatewayChatUtility.buildGatewayRequest(requestWith(null), defaults, MODEL_ID, TIME_LIMIT).streamOptions());
+        assertEquals(new ModelGatewayChatParameters.StreamOptions(false),
+            ModelGatewayChatUtility.buildGatewayRequest(request, defaults, MODEL_ID, TIME_LIMIT, true).streamOptions());
     }
 }

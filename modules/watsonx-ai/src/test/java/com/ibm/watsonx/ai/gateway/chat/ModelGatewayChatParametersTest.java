@@ -12,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,28 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 @SuppressWarnings("deprecation")
 public class ModelGatewayChatParametersTest {
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_snapshot_nested_json_schema_collections() {
+        var required = new ArrayList<>(List.of("name"));
+        var property = new LinkedHashMap<String, Object>(Map.of("type", "string"));
+        var schema = new LinkedHashMap<String, Object>();
+        schema.put("type", "object");
+        schema.put("properties", Map.of("name", property));
+        schema.put("required", required);
+        var parameters = ModelGatewayChatParameters.builder().responseAsJsonSchema("answer", schema, true).build();
+
+        property.put("type", "integer");
+        required.add("changed");
+
+        var frozenSchema = (Map<String, Object>) parameters.jsonSchema().schema();
+        assertEquals(Map.of("type", "object", "properties", Map.of("name", Map.of("type", "string")), "required", List.of("name")),
+            frozenSchema);
+        assertThrows(UnsupportedOperationException.class, () -> ((List<String>) frozenSchema.get("required")).add("changed"));
+        assertThrows(UnsupportedOperationException.class,
+            () -> ((Map<String, Object>) ((Map<String, Object>) frozenSchema.get("properties")).get("name")).put("type", "integer"));
+    }
 
     @Test
     void should_round_trip_all_fields_via_builder_and_getters() {
@@ -218,6 +242,15 @@ public class ModelGatewayChatParametersTest {
         assertThrows(IllegalArgumentException.class, () -> ModelGatewayChatParameters.builder()
             .responseAsJsonSchema("bad", "not-json", true)
             .build());
+    }
+
+    @Test
+    void should_reject_trailing_content_in_json_schema() {
+        for (var schema : List.of("{}{}", "{} trailing", "{}[]", "{} null")) {
+            assertThrows(IllegalArgumentException.class, () -> ModelGatewayChatParameters.builder().responseAsJsonSchema(schema), schema);
+            assertThrows(IllegalArgumentException.class, () -> ModelGatewayChatParameters.builder().responseAsJsonSchema("schema", schema, true),
+                schema);
+        }
     }
 
     @Test

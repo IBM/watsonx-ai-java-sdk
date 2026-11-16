@@ -16,6 +16,18 @@ import com.ibm.watsonx.ai.chat.model.ToolCall;
 public class ToolInterceptorTest {
 
     @Test
+    void should_preserve_empty_messages_when_interceptors_are_configured() {
+        var choice = new ResultChoice(0, null, "length");
+        var response = ChatResponse.builder().choices(List.of(choice)).build();
+        var context = new InterceptorContext<ChatRequest>(null, null, response);
+        ToolInterceptor<ChatRequest> toolInterceptor = (ctx, function) -> function;
+        MessageInterceptor<ChatRequest> messageInterceptor = (ctx, content) -> content;
+
+        assertEquals(List.of(choice), toolInterceptor.intercept(context));
+        assertEquals(List.of(choice), messageInterceptor.intercept(context));
+    }
+
+    @Test
     void should_not_duplicate_tool_calls_when_choice_has_multiple() {
 
         var toolCalls = List.of(

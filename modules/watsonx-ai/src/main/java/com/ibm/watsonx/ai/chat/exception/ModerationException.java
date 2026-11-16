@@ -4,7 +4,7 @@
  */
 package com.ibm.watsonx.ai.chat.exception;
 
-import java.util.Collections;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.TextChatResponse.ModerationResult;
@@ -24,7 +24,7 @@ public final class ModerationException extends RuntimeException {
      */
     public ModerationException(Map<String, List<ModerationResult>> moderations) {
         super("The chat response was blocked by the moderation system (policies triggered: " + String.join(", ", moderations.keySet()) + ")");
-        this.moderations = Collections.unmodifiableMap(moderations);
+        this.moderations = copyMap(moderations);
     }
 
     /**

@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -368,7 +369,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .tools(List.of(tool))
                     .build());
 
-            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+            assertEquals(Json.fromJson(expectedBody, Map.class), Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class));
         });
     }
 
@@ -507,7 +508,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     .tools(List.of(ovverideTool))
                     .build());
 
-            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+            assertEquals(Json.fromJson(expectedBody, Map.class), Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class));
         });
     }
 
@@ -2181,5 +2182,52 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                 () -> chatService.chatStreaming(chatRequest, mock(ChatHandler.class)));
             assertEquals("Developer messages are supported only by the Model Gateway", ex.getMessage());
         });
+    }
+
+    @Test
+    void should_apply_default_tools_and_transaction_id_to_request_objects() {
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn("{\"choices\":[]}");
+        mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+        withWatsonxServiceMock(() -> {
+            var service = defaultRequestServiceBuilder().tools(Tool.of("time"))
+                .parameters(ChatParameters.builder().transactionId("default-transaction").build()).build();
+            var request = ChatRequest.builder().messages(UserMessage.text("Hello")).build();
+
+            service.chat(request);
+            var body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
+            assertEquals(1, ((List<?>) body.get("tools")).size());
+            assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+
+            service.chat(request.toBuilder().tools(List.of())
+                .parameters(ChatParameters.builder().transactionId("request-transaction").build()).build());
+            body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
+            assertFalse(body.containsKey("tools"));
+            assertEquals("request-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+        });
+    }
+
+    @Test
+    void should_restore_the_interrupt_flag_when_chat_is_interrupted() throws Exception {
+        when(mockAuthenticator.token()).thenReturn("token");
+        var interrupted = new InterruptedException("cancelled");
+        when(mockSecureHttpClient.send(any(HttpRequest.class), any(BodyHandler.class))).thenThrow(interrupted);
+
+        withWatsonxServiceMock(() -> {
+            try {
+                var service = defaultRequestServiceBuilder().build();
+                var error = assertThrows(RuntimeException.class, () -> service.chat("Hello"));
+                assertSame(interrupted, error.getCause());
+                assertTrue(Thread.currentThread().isInterrupted());
+            } finally {
+                Thread.interrupted();
+            }
+        });
+    }
+
+    private ChatService.Builder defaultRequestServiceBuilder() {
+        return ChatService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator).projectId("project").modelId("model");
     }
 }

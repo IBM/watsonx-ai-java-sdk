@@ -6,7 +6,7 @@ package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toUnmodifiableMap;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import java.util.List;
 import java.util.Map;
 import com.ibm.watsonx.ai.chat.exception.ModerationException;
@@ -76,12 +76,8 @@ public class TextChatResponse extends ChatResponse {
         modelId = builder.modelId;
         modelVersion = builder.modelVersion;
         createdAt = builder.createdAt;
-        moderations = isNull(builder.moderations) ? null
-            : builder.moderations.entrySet().stream()
-                .collect(toUnmodifiableMap(Map.Entry::getKey, e -> List.copyOf(e.getValue())));
-        detections = isNull(builder.detections) ? null
-            : builder.detections.entrySet().stream()
-                .collect(toUnmodifiableMap(Map.Entry::getKey, e -> List.copyOf(e.getValue())));
+        moderations = copyMap(builder.moderations);
+        detections = copyMap(builder.detections);
     }
 
     /**
@@ -159,6 +155,14 @@ public class TextChatResponse extends ChatResponse {
     public boolean isBlockedByModeration() {
         return (nonNull(moderations) && !moderations.isEmpty()) &&
             (isNull(choices()) || choices().isEmpty() || choices().stream().anyMatch(c -> isNull(c.message()) && isNull(c.finishReason())));
+    }
+
+    @Override
+    public AssistantMessage toAssistantMessage() {
+        if (isBlockedByModeration())
+            throw new ModerationException(moderations);
+
+        return super.toAssistantMessage();
     }
 
     @Override

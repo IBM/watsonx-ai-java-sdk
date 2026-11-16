@@ -24,6 +24,7 @@ public final class StreamingToolFetcher {
     private StringBuffer arguments;
     private volatile String id, name;
     private final AtomicBoolean argumentsEmitted = new AtomicBoolean();
+    private final AtomicBoolean completed = new AtomicBoolean();
 
     public StreamingToolFetcher(String completionId, int choiceIndex, int toolIndex) {
         this.completionId = completionId;
@@ -74,6 +75,24 @@ public final class StreamingToolFetcher {
      */
     public boolean markArgumentsEmitted() {
         return argumentsEmitted.compareAndSet(false, true);
+    }
+
+    /**
+     * Marks that the completed tool call has been emitted.
+     *
+     * @return {@code true} the first time it is called, {@code false} afterwards
+     */
+    public boolean markCompleted() {
+        return completed.compareAndSet(false, true);
+    }
+
+    /**
+     * Returns whether this tool call has been marked as completed via {@link #markCompleted()}.
+     *
+     * @return {@code true} if the tool call has been marked as completed, {@code false} otherwise
+     */
+    public boolean isCompleted() {
+        return completed.get();
     }
 
     public CompletedToolCall build() {

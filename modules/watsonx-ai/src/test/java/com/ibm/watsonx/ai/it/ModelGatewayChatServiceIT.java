@@ -15,11 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,8 +32,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.google.common.collect.Sets;
@@ -62,12 +67,10 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.ReasoningEffor
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
+import com.ibm.watsonx.ai.it.ToolCallCompletionSupportTest.CompletionHandler;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_CLAUDE", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_GEMMA", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_OPENAI", matches = ".+")
 public class ModelGatewayChatServiceIT {
 
     static final String API_KEY = System.getenv("WATSONX_API_KEY");
@@ -84,7 +87,19 @@ public class ModelGatewayChatServiceIT {
         .build();
 
     @Nested
+    @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_CLAUDE", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_GEMMA", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_OPENAI", matches = ".+")
     class Chat {
+
+        @Test
+        void should_intercept_and_process_gateway_tools_once() {
+            var nonce = UUID.randomUUID().toString();
+            var intercepted = new ArrayList<FunctionCall>();
+            var response = ToolCallCompletionSupportTest.gatewayService(intercepted).chat(ToolCallCompletionSupportTest.gatewayRequest(nonce));
+
+            ToolCallCompletionSupportTest.verifyResponse(response, nonce, intercepted);
+        }
 
         @Test
         void should_return_valid_chat_response_when_chat_is_invoked() {
@@ -508,8 +523,7 @@ public class ModelGatewayChatServiceIT {
                 .parameters(parameters)
                 .build();
 
-            var ex = assertThrows(WatsonxException.class, () -> modelGatewayChatService.chat(request));
-            assertTrue(ex.getMessage().contains("gemini does not support parameters: ['reasoning_effort']"));
+            assertThrows(WatsonxException.class, () -> modelGatewayChatService.chat(request));
         }
 
         @Test
@@ -615,7 +629,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-4o")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)
@@ -661,7 +675,26 @@ public class ModelGatewayChatServiceIT {
     }
 
     @Nested
+    @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_CLAUDE", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_GEMMA", matches = ".+")
+    @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_OPENAI", matches = ".+")
     class ChatStreaming {
+
+        @Test
+        void should_complete_gateway_tools_before_the_next_tools_arguments() throws Exception {
+            var nonce = UUID.randomUUID().toString();
+            var intercepted = new ArrayList<FunctionCall>();
+            var handler = new CompletionHandler(nonce);
+            var response = ToolCallCompletionSupportTest.await(ToolCallCompletionSupportTest.gatewayService(intercepted)
+                .chatStreaming(ToolCallCompletionSupportTest.gatewayRequest(nonce), handler));
+
+            ToolCallCompletionSupportTest.verifyStreaming(response, nonce, intercepted, handler);
+        }
+
+        @TestFactory
+        Stream<DynamicTest> should_observe_gateway_tool_index_order() {
+            return ToolCallStreamingOrderSupportTest.gatewayCases();
+        }
 
         @Test
         void should_return_valid_chat_response_when_chat_streaming_is_invoked() throws Exception {
@@ -889,13 +922,9 @@ public class ModelGatewayChatServiceIT {
             assertNotNull(chatResponse.usage().completionTokens());
             assertNotNull(chatResponse.usage().promptTokens());
             assertNotNull(chatResponse.usage().totalTokens());
-
-            // The OpenAI-compatible gateway does not return the watsonx-native fields modelId, modelVersion, or createdAt.
             assertNull(chatResponse.modelId());
             assertNull(chatResponse.modelVersion());
             assertNull(chatResponse.createdAt());
-
-            // Gateway-only fields: for claude-sonnet-5 the stream reports serviceTier and systemFingerprint as null and cached as false.
             assertNull(chatResponse.serviceTier());
             assertNull(chatResponse.systemFingerprint());
             assertFalse(chatResponse.cached());
@@ -1544,7 +1573,7 @@ public class ModelGatewayChatServiceIT {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
                 .baseUrl(URL)
-                .modelId("gpt-4o")
+                .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
                 .logRequests(true)
                 .logResponses(true)

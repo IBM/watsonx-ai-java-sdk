@@ -49,7 +49,7 @@ public interface MessageInterceptor<R extends BaseChatRequest> {
 
             ResultMessage message = choice.message();
 
-            if (isNull(message.content()))
+            if (isNull(message) || isNull(message.content()))
                 return choice;
 
             var normalized = intercept(ctx, message.content());

@@ -41,4 +41,34 @@ public class ChatUtilityTest {
         assertNotNull(result);
         assertNull(result.modelId());
     }
+
+    @Test
+    void should_replace_the_default_scope_when_request_selects_another_scope() {
+        var request = ChatRequest.builder().messages(UserMessage.text("Hi"))
+            .parameters(ChatParameters.builder().spaceId("request-space").build()).build();
+        var defaults = ChatParameters.builder().projectId("default-project").build();
+
+        var result = ChatUtility.buildTextChatRequest(request, defaults);
+
+        assertNull(result.projectId());
+        assertEquals("request-space", result.spaceId());
+
+        request = request.toBuilder().parameters(ChatParameters.builder().projectId("request-project").build()).build();
+        defaults = ChatParameters.builder().spaceId("default-space").build();
+        result = ChatUtility.buildTextChatRequest(request, defaults);
+
+        assertEquals("request-project", result.projectId());
+        assertNull(result.spaceId());
+    }
+
+    @Test
+    void should_keep_default_scope_when_request_only_changes_generation_parameters() {
+        var request = ChatRequest.builder().messages(UserMessage.text("Hi"))
+            .parameters(ChatParameters.builder().temperature(0.5).build()).build();
+
+        var result = ChatUtility.buildTextChatRequest(request, ChatParameters.builder().projectId("default-project").build());
+
+        assertEquals("default-project", result.projectId());
+        assertNull(result.spaceId());
+    }
 }

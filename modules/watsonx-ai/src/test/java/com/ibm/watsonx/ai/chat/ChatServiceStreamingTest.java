@@ -12,6 +12,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.ibm.watsonx.ai.core.Json.prettyPrint;
 import static com.ibm.watsonx.ai.core.Json.toJson;
+import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
 import static com.ibm.watsonx.ai.utils.Utils.isVirtual;
 import static java.util.Objects.nonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -37,6 +39,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
+import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -3404,7 +3407,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 18
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\n"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.312Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"{\\n"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.312Z"}
 
                         id: 19
                         event: message
@@ -3412,7 +3415,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 20
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.323Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \\""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.323Z"}
 
                         id: 21
                         event: message
@@ -3420,11 +3423,11 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 22
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\":"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.334Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\":"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.334Z"}
 
                         id: 23
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.339Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \\""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.339Z"}
 
                         id: 24
                         event: message
@@ -3444,7 +3447,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 28
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\",\n"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.367Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\",\\n"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.367Z"}
 
                         id: 29
                         event: message
@@ -3452,7 +3455,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 30
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.378Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \\""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.378Z"}
 
                         id: 31
                         event: message
@@ -3460,11 +3463,11 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 32
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\":"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.389Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\":"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.389Z"}
 
                         id: 33
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.394Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \\""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.394Z"}
 
                         id: 34
                         event: message
@@ -3472,7 +3475,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 35
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\",\n"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.405Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\",\\n"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.405Z"}
 
                         id: 36
                         event: message
@@ -3480,7 +3483,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 37
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.416Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \\""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.416Z"}
 
                         id: 38
                         event: message
@@ -3488,11 +3491,11 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 39
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\":"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.427Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"\\":"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.427Z"}
 
                         id: 40
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.433Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":" \\""}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.433Z"}
 
                         id: 41
                         event: message
@@ -3500,7 +3503,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
                         id: 42
                         event: message
-                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"!\"\n"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.444Z"}
+                        data: {"id":"chatcmpl-4007bf64e2e44bf89617a89990bf4ef2","object":"chat.completion.chunk","model_id":"openai/gpt-oss-120b","model":"openai/gpt-oss-120b","choices":[{"index":0,"finish_reason":null,"delta":{"tool_calls":[{"index":0,"function":{"name":"","arguments":"!\\"\\n"}}]}}],"created":1766067759,"created_at":"2025-12-18T14:22:39.444Z"}
 
                         id: 43
                         event: message
@@ -3528,6 +3531,11 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         chatService.chatStreaming("message", new ChatHandler() {
 
             @Override
+            public boolean failOnFirstError() {
+                return true;
+            }
+
+            @Override
             public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
 
             @Override
@@ -3552,6 +3560,8 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         }).join();
 
         assertEquals("send_email", onCompleteToolCall.get().toolCall().function().name());
+        assertEquals(Map.of("to", "a@a.it", "subject", "Greetings", "body", "Hello!"),
+            Json.fromJson(onCompleteToolCall.get().toolCall().function().arguments(), Map.class));
         assertNotNull(thinking.toString());
         assertNotNull(onCompleteResponse.get());
     }
@@ -4536,5 +4546,41 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
         assertEquals(4, messages.size());
         assertEquals(3, Collections.frequency(messages, "partial boom"));
         assertEquals(1, Collections.frequency(messages, "message boom"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_apply_streaming_defaults_and_complete_when_error_callback_throws() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+        var failure = new IllegalStateException("transport failed");
+        when(mockSecureHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class)))
+            .thenReturn(CompletableFuture.failedFuture(failure));
+
+        withWatsonxServiceMock(() -> {
+            var service = defaultRequestServiceBuilder().tools(Tool.of("time"))
+                .parameters(ChatParameters.builder().transactionId("default-transaction").build()).build();
+            var errors = new AtomicInteger();
+            var future = service.chatStreaming(ChatRequest.builder().messages(UserMessage.text("Hello")).build(), new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onError(Throwable error) {
+                    errors.incrementAndGet();
+                    throw new IllegalStateException("callback failed");
+                }
+            });
+
+            var error = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+            assertSame(failure, error.getCause());
+            assertEquals(1, errors.get());
+            var body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
+            assertEquals(1, ((List<?>) body.get("tools")).size());
+            assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+        });
+    }
+
+    private ChatService.Builder defaultRequestServiceBuilder() {
+        return ChatService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator).projectId("project").modelId("model");
     }
 }

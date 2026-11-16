@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.deployment;
 
+import static com.ibm.watsonx.ai.core.HttpUtils.encodePathSegment;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static java.util.Objects.nonNull;
@@ -21,6 +22,8 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.chat.ChatClientContext;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
@@ -46,6 +49,8 @@ import com.ibm.watsonx.ai.timeseries.ForecastResponse;
  * Default implementation of the {@link DeploymentRestClient} abstract class.
  */
 final class DefaultRestClient extends DeploymentRestClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(DefaultRestClient.class);
 
     private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
@@ -75,7 +80,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         queryParameters.add("version=".concat(version));
 
         var httpRequest = HttpRequest
-            .newBuilder(URI.create(baseUrl + "/ml/v4/deployments/%s%s".formatted(deploymentId, queryParameters.toString())))
+            .newBuilder(URI.create(baseUrl + "/ml/v4/deployments/%s%s".formatted(encodePathSegment(deploymentId), queryParameters.toString())))
             .header("Content-Type", "application/json")
             .timeout(Duration.ofMillis(timeout.toMillis()))
             .GET();
@@ -88,7 +93,10 @@ final class DefaultRestClient extends DeploymentRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), DeploymentResource.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -96,7 +104,7 @@ final class DefaultRestClient extends DeploymentRestClient {
     @Override
     public TextGenerationResponse generate(String transactionId, String deploymentId, Duration timeout, TextRequest textRequest) {
 
-        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/generation?version=%s".formatted(deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/generation?version=%s".formatted(encodePathSegment(deploymentId), version));
 
         var httpRequest = HttpRequest
             .newBuilder(url)
@@ -113,7 +121,10 @@ final class DefaultRestClient extends DeploymentRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), TextGenerationResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -126,7 +137,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         TextRequest textRequest,
         TextGenerationHandler handler) {
 
-        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/generation_stream?version=%s".formatted(deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/generation_stream?version=%s".formatted(encodePathSegment(deploymentId), version));
 
         var httpRequest = HttpRequest
             .newBuilder(url)
@@ -139,25 +150,26 @@ final class DefaultRestClient extends DeploymentRestClient {
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         var response = new CompletableFuture<Void>();
-        var subscriber = new CancellableTextGenerationSubscriber(handler);
+        var subscriber = new CancellableTextGenerationSubscriber(handler, response);
         var httpFuture = asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(
                 new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers(), responseLogger, responseLogLevel))
             : BodySubscribers.fromLineSubscriber(subscriber));
 
         httpFuture
-            .thenAccept(r -> response.complete(null))
+            .thenCompose(r -> subscriber.processing)
+            .thenRun(() -> response.complete(null))
             .exceptionally(t -> {
                 if (subscriber.isCancelled())
                     return null;
 
-                TextGenerationSubscriber.handleError(t, handler);
-                response.completeExceptionally(nonNull(t.getCause()) ? t.getCause() : t);
+                Throwable cause = nonNull(t.getCause()) ? t.getCause() : t;
+                subscriber.onError(cause);
                 return null;
             });
 
         response.whenComplete((r, t) -> {
-            if (response.isCancelled()) {
+            if (response.isCancelled() || t != null) {
                 subscriber.cancelStream();
                 httpFuture.cancel(true);
             }
@@ -169,7 +181,7 @@ final class DefaultRestClient extends DeploymentRestClient {
     @Override
     public TextChatResponse chat(String transactionId, String deploymentId, Duration timeout, TextChatRequest textChatRequest) {
 
-        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat?version=%s".formatted(deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat?version=%s".formatted(encodePathSegment(deploymentId), version));
 
         var httpRequest =
             HttpRequest
@@ -187,7 +199,10 @@ final class DefaultRestClient extends DeploymentRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), TextChatResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -200,7 +215,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         ChatClientContext<DeploymentChatRequest> context,
         ChatHandler handler) {
 
-        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat_stream?version=%s".formatted(deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/text/chat_stream?version=%s".formatted(encodePathSegment(deploymentId), version));
 
         var httpRequest =
             HttpRequest.newBuilder(url)
@@ -235,8 +250,9 @@ final class DefaultRestClient extends DeploymentRestClient {
 
                 Throwable cause = nonNull(t.getCause()) ? t.getCause() : t;
                 if (chatSubscriber.markErrorReported())
-                    handler.onError(cause);
-                response.completeExceptionally(cause);
+                    chatSubscriber.onError(cause).whenComplete((ignored, error) -> response.completeExceptionally(cause));
+                else
+                    response.completeExceptionally(cause);
                 return null;
             });
 
@@ -253,7 +269,7 @@ final class DefaultRestClient extends DeploymentRestClient {
     @Override
     public ForecastResponse forecast(String transactionId, String deploymentId, Duration timeout, ForecastRequest forecastRequest) {
 
-        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/time_series/forecast?version=%s".formatted(deploymentId, version));
+        var url = URI.create(baseUrl + "/ml/v1/deployments/%s/time_series/forecast?version=%s".formatted(encodePathSegment(deploymentId), version));
 
         var httpRequest = HttpRequest
             .newBuilder(url)
@@ -270,7 +286,10 @@ final class DefaultRestClient extends DeploymentRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), ForecastResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -283,13 +302,17 @@ final class DefaultRestClient extends DeploymentRestClient {
 
         private final TextGenerationHandler handler;
         private final TextGenerationSubscriber chatSubscriber;
+        private final CompletableFuture<Void> response;
+        private final CompletableFuture<Void> processing = new CompletableFuture<>();
         private final AtomicBoolean cancelled = new AtomicBoolean(false);
+        private final AtomicBoolean errorReported = new AtomicBoolean(false);
         private final AtomicReference<Flow.Subscription> subscriptionRef = new AtomicReference<>();
         private Flow.Subscription subscription;
         private volatile boolean success = true;
 
-        CancellableTextGenerationSubscriber(TextGenerationHandler handler) {
+        CancellableTextGenerationSubscriber(TextGenerationHandler handler, CompletableFuture<Void> response) {
             this.handler = handler;
+            this.response = response;
             this.chatSubscriber = TextGenerationSubscriber.createSubscriber(handler);
         }
 
@@ -327,7 +350,7 @@ final class DefaultRestClient extends DeploymentRestClient {
         @Override
         public void onNext(String partialMessage) {
 
-            if (isCancelled()) {
+            if (isCancelled() || !success) {
                 subscription.cancel();
                 return;
             }
@@ -338,8 +361,11 @@ final class DefaultRestClient extends DeploymentRestClient {
 
             } catch (RuntimeException e) {
 
-                onError(e);
                 success = !handler.failOnFirstError();
+                if (success)
+                    notifyError(e);
+                else
+                    onError(e);
 
             } finally {
                 if (success && !isCancelled())
@@ -354,15 +380,38 @@ final class DefaultRestClient extends DeploymentRestClient {
             if (isCancelled())
                 return;
 
-            chatSubscriber.onError(throwable);
+            success = false;
+            if (errorReported.compareAndSet(false, true)) {
+                try {
+                    notifyError(throwable);
+                } finally {
+                    response.completeExceptionally(throwable);
+                    processing.completeExceptionally(throwable);
+                }
+            }
+        }
+
+        private void notifyError(Throwable throwable) {
+            try {
+                chatSubscriber.onError(throwable);
+            } catch (RuntimeException | Error callbackFailure) {
+                if (callbackFailure != throwable)
+                    throwable.addSuppressed(callbackFailure);
+                logger.warn("Text generation error callback failed", callbackFailure);
+            }
         }
 
         @Override
         public void onComplete() {
-            if (isCancelled())
+            if (isCancelled() || !success)
                 return;
 
-            chatSubscriber.onComplete();
+            try {
+                chatSubscriber.onComplete();
+                processing.complete(null);
+            } catch (RuntimeException | Error e) {
+                onError(e);
+            }
         }
     }
 

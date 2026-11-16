@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -27,6 +29,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
@@ -40,6 +44,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.Polling;
 import com.ibm.watsonx.ai.textprocessing.Schema;
 import com.ibm.watsonx.ai.textprocessing.Status;
 import com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaDeleteParameters;
@@ -558,7 +563,7 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         var JOB = Files.readString(Path.of(ClassLoader.getSystemResource("cluster_schema_job.json").toURI()));
         var projectId = URLEncoder.encode("project-id", Charset.defaultCharset());
 
-        // POST returns "submitted", GET always returns "running" → polling never completes
+        // The controlled clock expires during the first wait, before any GET is sent.
         watsonxServer.stubFor(post("/ml/v1/text/schemas/cluster?version=%s".formatted(API_VERSION))
             .inScenario("timeout")
             .whenScenarioStateIs(Scenario.STARTED)
@@ -573,17 +578,24 @@ public class ClusterSchemaTest extends AbstractWatsonxTest {
         watsonxServer.stubFor(delete("/ml/v1/text/schemas/cluster/id?version=%s&project_id=%s".formatted(API_VERSION, projectId))
             .willReturn(aResponse().withStatus(204)));
 
+        var timeout = Duration.ofSeconds(5);
         var service = ClusterSchemaService.builder()
             .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
             .authenticator(mockAuthenticator)
             .projectId("project-id")
-            .timeout(Duration.ofSeconds(5))
+            .timeout(timeout)
             .build();
 
-        var ex = assertThrows(ClusterSchemaException.class,
-            () -> service.clusterSchemaAndFetch(PASSPORT));
-        assertEquals("timeout", ex.code());
-        assertTrue(ex.getMessage().contains("5000 milliseconds"));
+        var nanos = new AtomicLong();
+        try (var pollingFactory = mockStatic(Polling.class)) {
+            pollingFactory.when(() -> Polling.start(any(), any())).thenAnswer(invocation -> new Polling<>(
+                invocation.getArgument(0), invocation.<Supplier<ClusterSchemaException>>getArgument(1), nanos::get,
+                delay -> nanos.addAndGet(delay + timeout.toNanos())));
+            var ex = assertThrows(ClusterSchemaException.class,
+                () -> service.clusterSchemaAndFetch(PASSPORT));
+            assertEquals("timeout", ex.code());
+            assertTrue(ex.getMessage().contains("5000 milliseconds"));
+        }
 
         watsonxServer.verify(1, postRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/cluster")));
         watsonxServer.verify(0, getRequestedFor(urlPathEqualTo("/ml/v1/text/schemas/cluster/id")));

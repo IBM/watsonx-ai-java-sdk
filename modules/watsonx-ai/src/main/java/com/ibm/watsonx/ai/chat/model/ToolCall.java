@@ -80,11 +80,7 @@ public record ToolCall(Integer index, String id, String type, FunctionCall funct
 
         ToolArguments toolArguments = null;
         if (nonNull(function.arguments())) {
-
-            var arguments = function.arguments().startsWith("\"")
-                ? Json.fromJson(function.arguments(), String.class)
-                : function.arguments();
-
+            var arguments = Json.normalizeObject(function.arguments());
             toolArguments = new ToolArguments(Json.fromJson(arguments, new TypeToken<Map<String, Object>>() {}));
         }
 

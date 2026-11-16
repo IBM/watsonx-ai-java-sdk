@@ -22,6 +22,7 @@ import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
+import com.ibm.watsonx.ai.chat.model.TextChatRequest;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
@@ -68,9 +69,12 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
 
         var defaultParametersBuilder = nonNull(builder.defaultParameters)
             ? builder.defaultParameters.toBuilder()
-                .timeLimit(nonNull(builder.defaultParameters.timeLimit()) ? Duration.ofMillis(builder.defaultParameters.timeLimit()) : timeout)
-            : ChatParameters.builder()
-                .timeLimit(timeout);
+                .timeLimit(
+                    nonNull(builder.defaultParameters.timeLimit())
+                        ? Duration.ofMillis(builder.defaultParameters.timeLimit())
+                        : timeout
+                )
+            : ChatParameters.builder().timeLimit(timeout);
 
         defaultParameters = defaultParametersBuilder.modelId(modelId)
             .projectId(projectId)
@@ -105,9 +109,11 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
     public TextChatResponse chat(ChatRequest chatRequest) {
         requireNonNull(chatRequest, "chatRequest cannot be null");
 
-        var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
+        var textChatRequest = buildTextChatRequest(chatRequest);
         var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
-        var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
+        var transactionId = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().transactionId())
+            ? chatRequest.parameters().transactionId()
+            : defaultParameters.transactionId();
         var chatResponse = client.chat(transactionId, textChatRequest);
 
         if (nonNull(messageInterceptor)) {
@@ -152,9 +158,16 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
         requireNonNull(chatRequest, "chatRequest cannot be null");
         requireNonNull(handler, "The chatHandler parameter can not be null");
 
-        var textChatRequest = ChatUtility.buildTextChatRequest(chatRequest, defaultParameters);
-        var extractionTags = nonNull(chatRequest.thinking()) ? chatRequest.thinking().extractionTags() : null;
-        var transactionId = nonNull(chatRequest.parameters()) ? chatRequest.parameters().transactionId() : null;
+        var textChatRequest = buildTextChatRequest(chatRequest);
+
+        var extractionTags = nonNull(chatRequest.thinking())
+            ? chatRequest.thinking().extractionTags()
+            : null;
+
+        var transactionId = nonNull(chatRequest.parameters()) && nonNull(chatRequest.parameters().transactionId())
+            ? chatRequest.parameters().transactionId()
+            : defaultParameters.transactionId();
+
         var context = ChatClientContext.<ChatRequest>builder()
             .chatProvider(chatProvider)
             .chatRequest(chatRequest)
@@ -438,6 +451,12 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
         return chatStreaming(chatRequest, handler);
     }
 
+    private TextChatRequest buildTextChatRequest(ChatRequest request) {
+        if (isNull(request.tools()) && nonNull(defaultTools))
+            request = request.toBuilder().tools(defaultTools).build();
+        return ChatUtility.buildTextChatRequest(request, defaultParameters);
+    }
+
     /**
      * Returns a new {@link Builder} instance.
      * <p>
@@ -478,8 +497,8 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
         /**
          * Sets the default {@link ChatParameters} that will be applied to all chat requests when no specific parameters are provided.
          * <p>
-         * These default values serve as fallbacks for any parameter not explicitly set. When parameters are provided in the chat method call, they
-         * will take precedence over these default parameters.
+         * Generation parameters fall back individually to these defaults when not explicitly set in the request. Setting either a request
+         * {@code projectId} or {@code spaceId} replaces the entire default project/space scope. When neither is set, the default scope is retained.
          *
          * @param parameters the default chat parameters to use
          */
@@ -564,8 +583,8 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
         /**
          * Sets the default tools that will be available to the model during chat interactions.
          * <p>
-         * These tools will be used in all chat requests unless explicitly overridden by passing tools directly to the chat methods. If tools are
-         * provided in the chat method call, they will take precedence over these default tools.
+         * These defaults apply to both synchronous and streaming requests when the request's tools are {@code null}. An explicitly empty tools list
+         * disables the default tools for that request. A non-empty list replaces them.
          *
          * @param tools list of {@link Tool} objects to set as defaults
          */
@@ -576,8 +595,8 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
         /**
          * Sets the default tools that will be available to the model during chat interactions.
          * <p>
-         * These tools will be used in all chat requests unless explicitly overridden by passing tools directly to the chat methods. If tools are
-         * provided in the chat method call, they will take precedence over these default tools.
+         * These defaults apply to both synchronous and streaming requests when the request's tools are {@code null}. An explicitly empty tools list
+         * disables the default tools for that request. A non-empty list replaces them.
          *
          * @param tools list of {@link Tool} objects to set as defaults
          */

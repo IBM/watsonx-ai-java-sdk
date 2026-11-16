@@ -16,11 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -30,7 +32,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
@@ -74,6 +78,73 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
                 "created": 1749288614,
                 "usage": { "completion_tokens": 2, "prompt_tokens": 5, "total_tokens": 7 }
             }""";
+
+    @Test
+    void should_resolve_default_tools_and_transaction_id_for_request_objects() {
+        withWatsonxServiceMock(() -> {
+            var service = ModelGatewayChatService.builder()
+                .authenticator(mockAuthenticator).modelId("model").baseUrl(URI.create("http://localhost"))
+                .tools(Tool.of("lookup", "Look up a value"))
+                .parameters(ModelGatewayChatParameters.builder().transactionId("default-transaction").build())
+                .build();
+            when(mockAuthenticator.token()).thenReturn("token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn(SIMPLE_JSON_RESPONSE);
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            var request = ModelGatewayChatRequest.builder().messages(UserMessage.text("Hi")).build();
+            service.chat(request);
+            assertTrue(bodyPublisherToString(mockHttpRequest).contains("lookup"));
+            assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+
+            service.chat(request.toBuilder().parameters(ModelGatewayChatParameters.builder().temperature(0.5).build()).build());
+            assertTrue(bodyPublisherToString(mockHttpRequest).contains("lookup"));
+            assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+
+            service.chat(request.toBuilder().tools(List.of())
+                .parameters(ModelGatewayChatParameters.builder().transactionId("request-transaction").build()).build());
+            assertFalse(bodyPublisherToString(mockHttpRequest).contains("\"tools\""));
+            assertEquals("request-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+            assertNull(request.tools());
+        });
+    }
+
+    @Test
+    void should_complete_failed_stream_even_when_error_handler_throws() {
+        withWatsonxServiceMock(() -> {
+            var service = ModelGatewayChatService.builder()
+                .authenticator(mockAuthenticator).modelId("model").baseUrl(URI.create("http://localhost"))
+                .tools(Tool.of("lookup", "Look up a value"))
+                .parameters(ModelGatewayChatParameters.builder().transactionId("default-transaction").build())
+                .build();
+            var transportFailure = new IOException("Connection closed");
+            var reportedFailure = new AtomicReference<Throwable>();
+            var errorCalls = new AtomicInteger();
+            when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+            when(mockSecureHttpClient.sendAsync(mockHttpRequest.capture(), any()))
+                .thenReturn(CompletableFuture.failedFuture(transportFailure));
+
+            var response = service.chatStreaming(ModelGatewayChatRequest.builder().messages(UserMessage.text("Hi")).build(),
+                new ChatHandler() {
+                    @Override
+                    public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                    @Override
+                    public void onError(Throwable error) {
+                        errorCalls.incrementAndGet();
+                        reportedFailure.set(error);
+                        throw new IllegalStateException("Handler failed");
+                    }
+                });
+
+            var failure = assertThrows(ExecutionException.class, () -> response.get(5, TimeUnit.SECONDS));
+            assertSame(transportFailure, failure.getCause());
+            assertSame(transportFailure, reportedFailure.get());
+            assertEquals(1, errorCalls.get());
+            assertTrue(bodyPublisherToString(mockHttpRequest).contains("lookup"));
+            assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+        });
+    }
 
     @Test
     void should_send_openai_compatible_payload_and_parse_response() {
@@ -1216,5 +1287,28 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
         assertEquals("The user said \"Hello!\"\nThe user is initiating a conversation.", message.reasoningContent());
         assertEquals("stop", chatResponse.choices().get(0).finishReason());
         assertNull(message.refusal());
+    }
+
+    @Test
+    void should_preserve_gateway_chat_interruption() throws Exception {
+        var interruption = new InterruptedException("Request interrupted");
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interruption);
+
+        withWatsonxServiceMock(() -> {
+            var service = ModelGatewayChatService.builder().baseUrl(URI.create("http://localhost"))
+                .authenticator(mockAuthenticator).modelId("model").build();
+            assertPreservesInterrupt(interruption, () -> service.chat("input"));
+        });
+    }
+
+    private void assertPreservesInterrupt(InterruptedException interruption, Runnable request) {
+        try {
+            var failure = assertThrows(RuntimeException.class, request::run);
+            assertSame(interruption, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
     }
 }

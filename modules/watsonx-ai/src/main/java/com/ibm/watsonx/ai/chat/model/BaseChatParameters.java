@@ -4,8 +4,11 @@
  */
 package com.ibm.watsonx.ai.chat.model;
 
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copy;
+import static com.ibm.watsonx.ai.core.ImmutableCollections.copyMap;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -30,8 +33,7 @@ public abstract class BaseChatParameters {
      */
     public record JsonSchemaObject(String name, Object schema, boolean strict) {
         public JsonSchemaObject {
-            if (schema instanceof Map<?, ?> map)
-                schema = Collections.unmodifiableMap(new LinkedHashMap<>(map));
+            schema = copy(schema);
         }
     }
 
@@ -59,7 +61,7 @@ public abstract class BaseChatParameters {
         transactionId = builder.transactionId;
         toolChoiceOption = nonNull(builder.toolChoiceOption) ? builder.toolChoiceOption.value() : null;
         frequencyPenalty = builder.frequencyPenalty;
-        logitBias = isNull(builder.logitBias) ? null : Map.copyOf(builder.logitBias);
+        logitBias = copyLogitBias(builder.logitBias);
         logprobs = builder.logprobs;
         topLogprobs = builder.topLogprobs;
         maxCompletionTokens = builder.maxCompletionTokens;
@@ -79,9 +81,14 @@ public abstract class BaseChatParameters {
             jsonSchema = null;
         }
 
-        toolChoice = nonNull(builder.toolChoice)
-            ? Map.of("type", "function", "function", Map.of("name", builder.toolChoice))
-            : null;
+        if (nonNull(builder.toolChoice)) {
+            var choice = new LinkedHashMap<String, Object>();
+            choice.put("type", "function");
+            choice.put("function", Map.of("name", builder.toolChoice));
+            toolChoice = Collections.unmodifiableMap(choice);
+        } else {
+            toolChoice = null;
+        }
     }
 
     /**
@@ -370,7 +377,7 @@ public abstract class BaseChatParameters {
          * @param logitBias a map from token ids to bias values
          */
         public T logitBias(Map<String, Integer> logitBias) {
-            this.logitBias = isNull(logitBias) ? null : Map.copyOf(logitBias);
+            this.logitBias = copyLogitBias(logitBias);
             return (T) this;
         }
 
@@ -488,6 +495,7 @@ public abstract class BaseChatParameters {
          */
         public T responseAsText() {
             this.responseFormat = ResponseFormat.TEXT;
+            this.jsonSchema = null;
             return (T) this;
         }
 
@@ -496,6 +504,7 @@ public abstract class BaseChatParameters {
          */
         public T responseAsJson() {
             this.responseFormat = ResponseFormat.JSON;
+            this.jsonSchema = null;
             return (T) this;
         }
 
@@ -590,6 +599,16 @@ public abstract class BaseChatParameters {
             }
             throw new IllegalArgumentException("Unknown tool choice option: " + value);
         }
+    }
+
+    private static Map<String, Integer> copyLogitBias(Map<String, Integer> source) {
+        if (nonNull(source)) {
+            for (var entry : source.entrySet()) {
+                requireNonNull(entry.getKey());
+                requireNonNull(entry.getValue());
+            }
+        }
+        return copyMap(source);
     }
 
     @Override

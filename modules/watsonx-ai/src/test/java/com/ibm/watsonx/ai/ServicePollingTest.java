@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import com.ibm.watsonx.ai.batch.BatchCreateRequest;
 import com.ibm.watsonx.ai.batch.BatchService;
 import com.ibm.watsonx.ai.file.FileService;
@@ -52,6 +53,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService;
 /**
  * Verifies service job polling, request deadlines, cancellation and interruption handling.
  */
+@DisabledInNativeImage
 class ServicePollingTest extends AbstractWatsonxTest {
 
     enum JobType {

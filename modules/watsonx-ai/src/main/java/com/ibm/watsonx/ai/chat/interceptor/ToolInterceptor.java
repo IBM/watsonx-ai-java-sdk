@@ -57,7 +57,7 @@ public interface ToolInterceptor<R extends BaseChatRequest> {
 
             var message = choice.message();
 
-            if (isNull(message.toolCalls()))
+            if (isNull(message) || isNull(message.toolCalls()))
                 return choice;
 
             var toolCalls = message.toolCalls();

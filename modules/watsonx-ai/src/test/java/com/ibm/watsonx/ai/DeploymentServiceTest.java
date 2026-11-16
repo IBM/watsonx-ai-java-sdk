@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.ResponseInfo;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,14 +38,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,6 +69,7 @@ import com.ibm.watsonx.ai.chat.model.BaseChatParameters.ToolChoiceOption;
 import com.ibm.watsonx.ai.chat.model.ChatMessage;
 import com.ibm.watsonx.ai.chat.model.ChatParameters;
 import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
+import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags;
 import com.ibm.watsonx.ai.chat.model.ExtractionTags.Response;
@@ -72,6 +78,7 @@ import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
 import com.ibm.watsonx.ai.chat.model.TextChatRequest;
+import com.ibm.watsonx.ai.chat.model.Thinking;
 import com.ibm.watsonx.ai.chat.model.ThinkingEffort;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolArguments;
@@ -1363,16 +1370,23 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 .projectId("project-id")
                 .build();
 
-            var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate(textGenerationRequest));
-            assertEquals(ex.getCause().getMessage(), "IOException");
-            ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(chatRequest));
-            assertEquals(ex.getCause().getMessage(), "InterruptedException");
-            ex = assertThrows(RuntimeException.class,
-                () -> deploymentService.forecast(forecastRequest));
-            assertEquals(ex.getCause().getMessage(), "InterruptedException");
-            ex = assertThrows(RuntimeException.class,
-                () -> deploymentService.findById(findByIdRequest), "InterruptedException");
-            assertEquals(ex.getCause().getMessage(), "InterruptedException");
+            try {
+                var ex = assertThrows(RuntimeException.class, () -> deploymentService.generate(textGenerationRequest));
+                assertEquals(ex.getCause().getMessage(), "IOException");
+                ex = assertThrows(RuntimeException.class, () -> deploymentService.chat(chatRequest));
+                assertEquals(ex.getCause().getMessage(), "InterruptedException");
+                assertTrue(Thread.interrupted());
+                ex = assertThrows(RuntimeException.class,
+                    () -> deploymentService.forecast(forecastRequest));
+                assertEquals(ex.getCause().getMessage(), "InterruptedException");
+                assertTrue(Thread.interrupted());
+                ex = assertThrows(RuntimeException.class,
+                    () -> deploymentService.findById(findByIdRequest), "InterruptedException");
+                assertEquals(ex.getCause().getMessage(), "InterruptedException");
+                assertTrue(Thread.interrupted());
+            } finally {
+                Thread.interrupted();
+            }
         });
     }
 
@@ -1910,7 +1924,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     .tools(List.of(tool))
                     .build());
 
-            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+            assertEquals(Json.fromJson(expectedBody, Map.class), Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class));
         });
     }
 
@@ -2043,7 +2057,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     .tools(List.of(ovverideTool))
                     .build());
 
-            assertEquals(expectedBody, bodyPublisherToString(mockHttpRequest));
+            assertEquals(Json.fromJson(expectedBody, Map.class), Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class));
         });
     }
 
@@ -2604,5 +2618,203 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
         assertEquals("User wants translation.", thinking.toString());
         assertTrue(response.toString().contains("\"ciao\""));
+    }
+
+    @Nested
+    class ChatDefaults {
+
+        @Test
+        void should_use_default_time_limit_for_http_timeout_and_allow_disabling_thinking() {
+            when(mockAuthenticator.token()).thenReturn("token");
+            when(mockHttpResponse.statusCode()).thenReturn(200);
+            when(mockHttpResponse.body()).thenReturn("{\"choices\":[]}");
+            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+
+            withWatsonxServiceMock(() -> {
+                var service = serviceBuilder().timeout(Duration.ofSeconds(60))
+                    .parameters(ChatParameters.builder().timeLimit(Duration.ofSeconds(10)).transactionId("default-transaction").build()).build();
+                for (Boolean enabled : Arrays.asList(false, null)) {
+                    var request = DeploymentChatRequest.builder().deploymentId("deployment").messages(UserMessage.text("Hello"))
+                        .thinking(Thinking.builder().enabled(enabled).build()).build();
+                    service.chat(request);
+
+                    assertEquals(Duration.ofSeconds(10), mockHttpRequest.getValue().timeout().orElseThrow());
+                    assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+                    var body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
+                    assertEquals(10_000L, ((Number) body.get("time_limit")).longValue());
+                    if (enabled == null)
+                        assertNull(body.get("chat_template_kwargs"));
+                    else
+                        assertEquals(Map.of("thinking", false, "enable_thinking", false), body.get("chat_template_kwargs"));
+                }
+            });
+        }
+
+        @Test
+        void should_apply_streaming_defaults_and_complete_when_error_callback_throws() {
+            when(mockAuthenticator.tokenAsync()).thenReturn(CompletableFuture.completedFuture("token"));
+            var failure = new IllegalStateException("transport failed");
+            when(mockSecureHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class)))
+                .thenReturn(CompletableFuture.failedFuture(failure));
+
+            withWatsonxServiceMock(() -> {
+                var service = serviceBuilder()
+                    .parameters(ChatParameters.builder().timeLimit(Duration.ofSeconds(10)).transactionId("default-transaction").build()).build();
+                var request = DeploymentChatRequest.builder().deploymentId("deployment").messages(UserMessage.text("Hello"))
+                    .thinking(Thinking.builder().enabled(false).build()).build();
+                var errors = new AtomicInteger();
+                var future = service.chatStreaming(request, new ChatHandler() {
+                    @Override
+                    public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                    @Override
+                    public void onError(Throwable error) {
+                        errors.incrementAndGet();
+                        throw new IllegalStateException("callback failed");
+                    }
+                });
+
+                var error = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+                assertSame(failure, error.getCause());
+                assertEquals(1, errors.get());
+                assertEquals(Duration.ofSeconds(10), mockHttpRequest.getValue().timeout().orElseThrow());
+                assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
+                var body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
+                assertEquals(Map.of("thinking", false, "enable_thinking", false), body.get("chat_template_kwargs"));
+            });
+        }
+
+        @Test
+        void should_reject_control_messages_without_extraction_tags() {
+            withWatsonxServiceMock(() -> {
+                var service = serviceBuilder().build();
+                var request = DeploymentChatRequest.builder().deploymentId("deployment").messages(ControlMessage.of("thinking")).build();
+
+                assertThrows(IllegalArgumentException.class, () -> service.chat(request));
+                assertThrows(IllegalArgumentException.class, () -> service.chatStreaming(request, (partialResponse, partialChatResponse) -> {}));
+            });
+        }
+
+        @Test
+        void should_restore_the_interrupt_flag_for_synchronous_deployment_operations() throws Exception {
+            when(mockAuthenticator.token()).thenReturn("token");
+            var interrupted = new InterruptedException("cancelled");
+            when(mockSecureHttpClient.send(any(HttpRequest.class), any(BodyHandler.class))).thenThrow(interrupted);
+            List<Consumer<DeploymentService>> operations = List.of(
+                service -> service.chat("deployment", "Hello"),
+                service -> service.findById(FindByIdRequest.builder().deploymentId("deployment").projectId("project").build()),
+                service -> service.forecast(TimeSeriesRequest.builder().deploymentId("deployment")
+                    .inputSchema(InputSchema.builder().timestampColumn("time").build())
+                    .data(ForecastData.create().add("time", "2026-01-01")).build()),
+                service -> service.generate(TextGenerationRequest.builder().deploymentId("deployment").input("Hello").build()));
+
+            withWatsonxServiceMock(() -> {
+                var service = serviceBuilder().build();
+                for (var operation : operations) {
+                    try {
+                        var error = assertThrows(RuntimeException.class, () -> operation.accept(service));
+                        assertSame(interrupted, error.getCause());
+                        assertTrue(Thread.currentThread().isInterrupted());
+                    } finally {
+                        Thread.interrupted();
+                    }
+                }
+            });
+        }
+
+        private DeploymentService.Builder serviceBuilder() {
+            return DeploymentService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator);
+        }
+    }
+
+    @Nested
+    class TextGenerationStreamingErrors {
+
+        @Test
+        void should_complete_failed_stream_even_when_error_handler_throws() {
+            when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+            var transportFailure = new IOException("Connection closed");
+            var callbackFailure = new IllegalStateException("Error callback failed");
+            var reportedFailure = new AtomicReference<Throwable>();
+            var errorCalls = new AtomicInteger();
+            when(mockSecureHttpClient.sendAsync(any(), any(BodyHandler.class)))
+                .thenReturn(CompletableFuture.failedFuture(transportFailure));
+
+            withWatsonxServiceMock(() -> {
+                var response = service().generateStreaming(request(), handler(errorCalls, reportedFailure, callbackFailure));
+
+                var failure = assertThrows(ExecutionException.class, () -> response.get(5, TimeUnit.SECONDS));
+                assertSame(transportFailure, failure.getCause());
+                assertSame(transportFailure, reportedFailure.get());
+                assertEquals(1, errorCalls.get());
+                assertEquals(List.of(callbackFailure), List.of(transportFailure.getSuppressed()));
+            });
+        }
+
+        @Test
+        void should_report_transport_error_once_when_subscriber_and_http_future_fail() {
+            assertTransportErrorReportedOnce(false);
+        }
+
+        @Test
+        void should_report_transport_error_once_when_subscriber_and_http_future_fail_and_callback_throws() {
+            assertTransportErrorReportedOnce(true);
+        }
+
+        private void assertTransportErrorReportedOnce(boolean callbackThrows) {
+            when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+            var transportFailure = new IOException("Connection closed");
+            var callbackFailure = callbackThrows ? new IllegalStateException("Error callback failed") : null;
+            var reportedFailure = new AtomicReference<Throwable>();
+            var errorCalls = new AtomicInteger();
+            var responseInfo = mock(ResponseInfo.class);
+            when(responseInfo.statusCode()).thenReturn(200);
+            when(mockSecureHttpClient.sendAsync(any(), any(BodyHandler.class))).thenAnswer(invocation -> {
+                BodyHandler<Void> bodyHandler = invocation.getArgument(1);
+                var subscriber = bodyHandler.apply(responseInfo);
+                subscriber.onSubscribe(mock(Subscription.class));
+                subscriber.onError(transportFailure);
+                return CompletableFuture.failedFuture(transportFailure);
+            });
+
+            withWatsonxServiceMock(() -> {
+                var response = service().generateStreaming(request(), handler(errorCalls, reportedFailure, callbackFailure));
+
+                var failure = assertThrows(ExecutionException.class, () -> response.get(5, TimeUnit.SECONDS));
+                assertSame(transportFailure, failure.getCause());
+                assertSame(transportFailure, reportedFailure.get());
+                assertEquals(1, errorCalls.get());
+                assertEquals(callbackThrows ? List.of(callbackFailure) : List.of(), List.of(transportFailure.getSuppressed()));
+            });
+        }
+
+        private DeploymentService service() {
+            return DeploymentService.builder().baseUrl("http://localhost").authenticator(mockAuthenticator).build();
+        }
+
+        private TextGenerationRequest request() {
+            return TextGenerationRequest.builder().deploymentId("deployment").input("Hello").build();
+        }
+
+        private TextGenerationHandler handler(AtomicInteger errorCalls, AtomicReference<Throwable> reportedFailure,
+            RuntimeException callbackFailure) {
+            return new TextGenerationHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse) {}
+
+                @Override
+                public void onCompleteResponse(TextGenerationResponse completeResponse) {
+                    fail("A failed stream must not complete successfully");
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    errorCalls.incrementAndGet();
+                    reportedFailure.set(error);
+                    if (callbackFailure != null)
+                        throw callbackFailure;
+                }
+            };
+        }
     }
 }
