@@ -307,45 +307,6 @@
       ]
     },
     {
-      "type": "com.ibm.watsonx.ai.batch.BatchData",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "com.ibm.watsonx.ai.batch.BatchData$FileErrors",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.Long",
-            "java.lang.Long",
-            "java.lang.Long",
-            "java.lang.Long",
-            "java.lang.Long",
-            "java.lang.Long",
-            "java.lang.Long",
-            "java.lang.Long",
-            "java.lang.Long",
-            "com.ibm.watsonx.ai.batch.BatchData$RequestCounts",
-            "java.util.Map"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.batch.BatchData$FileError"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.batch.BatchData$FileErrors"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.batch.BatchData$RequestCounts"
-    },
-    {
       "type": "com.ibm.watsonx.ai.chat.ChatModeration",
       "methods": [
         {
@@ -703,9 +664,6 @@
           "parameterTypes": []
         }
       ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.chat.ToolExecutor"
     },
     {
       "type": "com.ibm.watsonx.ai.chat.model.AssistantMessage",
@@ -1623,12 +1581,6 @@
     },
     {
       "type": "com.ibm.watsonx.ai.chat.model.schema.StringSchema$Builder"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.Polling"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.core.Polling$Sleeper"
     },
     {
       "type": "com.ibm.watsonx.ai.core.auth.Authenticator"
@@ -3482,9 +3434,6 @@
       ]
     },
     {
-      "type": "com.ibm.watsonx.ai.textprocessing.Error"
-    },
-    {
       "type": "com.ibm.watsonx.ai.textprocessing.GroundingHints",
       "methods": [
         {
@@ -3584,21 +3533,6 @@
       "type": "com.ibm.watsonx.ai.textprocessing.KvpSlice"
     },
     {
-      "type": "com.ibm.watsonx.ai.textprocessing.Metadata",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
       "type": "com.ibm.watsonx.ai.textprocessing.Schema",
       "methods": [
         {
@@ -3656,563 +3590,6 @@
           "name": "fields",
           "parameterTypes": [
             "com.ibm.watsonx.ai.textprocessing.KvpFields"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaRequest",
-      "methods": [
-        {
-          "name": "parameters",
-          "parameterTypes": []
-        },
-        {
-          "name": "projectId",
-          "parameterTypes": []
-        },
-        {
-          "name": "spaceId",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaResponse",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.Metadata",
-            "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaResponse$Entity"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaResponse$ClusterSchemaResult",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "java.util.List",
-            "com.ibm.watsonx.ai.textprocessing.Error"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaResponse$Entity",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.cluster.Parameters",
-            "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaResponse$ClusterSchemaResult"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemas"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemas[]"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.cluster.Parameters",
-      "methods": [
-        {
-          "name": "schemas",
-          "parameterTypes": []
-        },
-        {
-          "name": "semanticConfig",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.cluster.Parameters$SemanticConfig"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaRequest",
-      "methods": [
-        {
-          "name": "documentReference",
-          "parameterTypes": []
-        },
-        {
-          "name": "parameters",
-          "parameterTypes": []
-        },
-        {
-          "name": "projectId",
-          "parameterTypes": []
-        },
-        {
-          "name": "spaceId",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.Metadata",
-            "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse$Entity"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse$CreateSchemaResult",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "int",
-            "java.lang.Integer",
-            "com.ibm.watsonx.ai.textprocessing.Schema",
-            "com.ibm.watsonx.ai.textprocessing.GroundingHints",
-            "com.ibm.watsonx.ai.textprocessing.Error"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse$Entity",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.DataReference",
-            "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaResponse$CreateSchemaResult",
-            "com.ibm.watsonx.ai.textprocessing.schema.create.Parameters"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.create.Parameters",
-      "methods": [
-        {
-          "name": "additionalPromptInstructions",
-          "parameterTypes": []
-        },
-        {
-          "name": "autoRotationCorrection",
-          "parameterTypes": []
-        },
-        {
-          "name": "enableGrounding",
-          "parameterTypes": []
-        },
-        {
-          "name": "languages",
-          "parameterTypes": []
-        },
-        {
-          "name": "maxPagesToProcess",
-          "parameterTypes": []
-        },
-        {
-          "name": "mode",
-          "parameterTypes": []
-        },
-        {
-          "name": "ocrMode",
-          "parameterTypes": []
-        },
-        {
-          "name": "semanticConfig",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.create.Parameters$SemanticConfig"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaRequest",
-      "methods": [
-        {
-          "name": "parameters",
-          "parameterTypes": []
-        },
-        {
-          "name": "projectId",
-          "parameterTypes": []
-        },
-        {
-          "name": "spaceId",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaResponse",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.Metadata",
-            "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaResponse$Entity"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaResponse$Entity",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.improve.Parameters",
-            "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaResponse$ImproveSchemaResult"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaResponse$ImproveSchemaResult",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "com.ibm.watsonx.ai.textprocessing.Schema",
-            "com.ibm.watsonx.ai.textprocessing.GroundingHints",
-            "com.ibm.watsonx.ai.textprocessing.Error"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.improve.Parameters",
-      "methods": [
-        {
-          "name": "schema",
-          "parameterTypes": []
-        },
-        {
-          "name": "semanticConfig",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.improve.Parameters$SemanticConfig"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaRequest",
-      "methods": [
-        {
-          "name": "parameters",
-          "parameterTypes": []
-        },
-        {
-          "name": "projectId",
-          "parameterTypes": []
-        },
-        {
-          "name": "spaceId",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaResponse",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.Metadata",
-            "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaResponse$Entity"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaResponse$Entity",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.merge.Parameters",
-            "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaResponse$MergeSchemaResult"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaResponse$MergeSchemaResult",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "com.ibm.watsonx.ai.textprocessing.Schema",
-            "com.ibm.watsonx.ai.textprocessing.GroundingHints",
-            "com.ibm.watsonx.ai.textprocessing.Error"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.merge.Parameters",
-      "methods": [
-        {
-          "name": "schemas",
-          "parameterTypes": []
-        },
-        {
-          "name": "semanticConfig",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.schema.merge.Parameters$SemanticConfig"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.storage.cos.DefaultRestClientTest",
-      "methods": [
-        {
-          "name": "should_close_input_and_remove_temporary_file_when_copy_fails",
-          "parameterTypes": []
-        },
-        {
-          "name": "should_remove_temporary_file_when_closing_input_fails",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textclassification.Parameters",
-      "methods": [
-        {
-          "name": "autoRotationCorrection",
-          "parameterTypes": []
-        },
-        {
-          "name": "classificationMode",
-          "parameterTypes": []
-        },
-        {
-          "name": "languages",
-          "parameterTypes": []
-        },
-        {
-          "name": "ocrMode",
-          "parameterTypes": []
-        },
-        {
-          "name": "semanticConfig",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textclassification.Parameters$SemanticConfig"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRequest",
-      "methods": [
-        {
-          "name": "custom",
-          "parameterTypes": []
-        },
-        {
-          "name": "documentReference",
-          "parameterTypes": []
-        },
-        {
-          "name": "parameters",
-          "parameterTypes": []
-        },
-        {
-          "name": "projectId",
-          "parameterTypes": []
-        },
-        {
-          "name": "spaceId",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.Metadata",
-            "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse$Entity"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse$ClassificationResult",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.Boolean",
-            "java.lang.String",
-            "com.ibm.watsonx.ai.textprocessing.Error"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse$Entity",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.DataReference",
-            "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationResponse$ClassificationResult",
-            "com.ibm.watsonx.ai.textprocessing.textclassification.Parameters",
-            "java.util.Map"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textextraction.Parameters",
-      "methods": [
-        {
-          "name": "autoRotationCorrection",
-          "parameterTypes": []
-        },
-        {
-          "name": "createEmbeddedImages",
-          "parameterTypes": []
-        },
-        {
-          "name": "kvpMode",
-          "parameterTypes": []
-        },
-        {
-          "name": "languages",
-          "parameterTypes": []
-        },
-        {
-          "name": "mode",
-          "parameterTypes": []
-        },
-        {
-          "name": "ocrMode",
-          "parameterTypes": []
-        },
-        {
-          "name": "outputDpi",
-          "parameterTypes": []
-        },
-        {
-          "name": "outputTokens",
-          "parameterTypes": []
-        },
-        {
-          "name": "requestedOutputs",
-          "parameterTypes": []
-        },
-        {
-          "name": "semanticConfig",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textextraction.Parameters$SemanticConfig"
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRequest",
-      "methods": [
-        {
-          "name": "custom",
-          "parameterTypes": []
-        },
-        {
-          "name": "documentReference",
-          "parameterTypes": []
-        },
-        {
-          "name": "parameters",
-          "parameterTypes": []
-        },
-        {
-          "name": "projectId",
-          "parameterTypes": []
-        },
-        {
-          "name": "resultsReference",
-          "parameterTypes": []
-        },
-        {
-          "name": "spaceId",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.Metadata",
-            "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse$Entity"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse$Entity",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.DataReference",
-            "com.ibm.watsonx.ai.textprocessing.DataReference",
-            "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse$ExtractionResult",
-            "com.ibm.watsonx.ai.textprocessing.textextraction.Parameters",
-            "java.util.Map"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse$ExtractionResult",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "int",
-            "java.lang.String",
-            "java.lang.String",
-            "java.lang.Integer",
-            "java.util.List",
-            "com.ibm.watsonx.ai.textprocessing.Error"
           ]
         }
       ]
@@ -4492,30 +3869,6 @@
       "type": "float"
     },
     {
-      "type": "java.io.ByteArrayInputStream",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "byte[]"
-          ]
-        },
-        {
-          "name": "close",
-          "parameterTypes": []
-        },
-        {
-          "name": "transferTo",
-          "parameterTypes": [
-            "java.io.OutputStream"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.io.Closeable"
-    },
-    {
       "type": "java.io.File"
     },
     {
@@ -4524,32 +3877,6 @@
       "fields": [
         {
           "name": "fd"
-        }
-      ]
-    },
-    {
-      "type": "java.io.IOException"
-    },
-    {
-      "type": "java.io.InputStream",
-      "methods": [
-        {
-          "name": "close",
-          "parameterTypes": []
-        },
-        {
-          "name": "read",
-          "parameterTypes": [
-            "byte[]",
-            "int",
-            "int"
-          ]
-        },
-        {
-          "name": "transferTo",
-          "parameterTypes": [
-            "java.io.OutputStream"
-          ]
         }
       ]
     },
@@ -4755,9 +4082,6 @@
       ]
     },
     {
-      "type": "java.lang.FunctionalInterface"
-    },
-    {
       "type": "java.lang.IllegalArgumentException"
     },
     {
@@ -4782,9 +4106,6 @@
     },
     {
       "type": "java.lang.Integer[]"
-    },
-    {
-      "type": "java.lang.InterruptedException"
     },
     {
       "type": "java.lang.Iterable"
@@ -5173,13 +4494,7 @@
       "type": "java.lang.annotation.Repeatable"
     },
     {
-      "type": "java.lang.annotation.Retention",
-      "methods": [
-        {
-          "name": "value",
-          "parameterTypes": []
-        }
-      ]
+      "type": "java.lang.annotation.Retention"
     },
     {
       "type": "java.lang.annotation.RetentionPolicy",
@@ -5983,25 +5298,7 @@
       "type": "java.nio.charset.Charset"
     },
     {
-      "type": "java.nio.file.FileVisitOption",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "java.nio.file.Path"
-    },
-    {
-      "type": "java.nio.file.attribute.PosixFilePermission",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
     },
     {
       "type": "java.security.AccessController",
@@ -6556,9 +5853,6 @@
       "type": "java.util.function.Function"
     },
     {
-      "type": "java.util.function.LongSupplier"
-    },
-    {
       "type": "java.util.function.Predicate"
     },
     {
@@ -6619,6 +5913,9 @@
     },
     {
       "type": "javax.net.ssl.SSLSocket"
+    },
+    {
+      "type": "javax.net.ssl.TrustManager[]"
     },
     {
       "type": "javax.xml.parsers.DocumentBuilder"
@@ -7412,21 +6709,6 @@
       "type": "org.mockito.internal.creation.bytebuddy.codegen.Subscription$MockitoMock$sfb6mi2op99200N$auxiliary$7m9oaq0S"
     },
     {
-      "type": "org.mockito.internal.creation.bytebuddy.codegen.ToolExecutor$MockitoMock$0boo0n2op99200N",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "org.mockito.internal.creation.bytebuddy.codegen.ToolExecutor$MockitoMock$0boo0n2op99200N$auxiliary$4cscpe1S"
-    },
-    {
-      "type": "org.mockito.internal.creation.bytebuddy.codegen.ToolExecutor$MockitoMock$0boo0n2op99200N$auxiliary$7m9oaq0S"
-    },
-    {
       "type": "org.mockito.internal.creation.bytebuddy.inject.MockMethodDispatcher"
     },
     {
@@ -7499,26 +6781,11 @@
       ]
     },
     {
-      "type": "sun.misc.SharedSecrets"
-    },
-    {
       "type": "sun.net.www.protocol.http.Handler",
       "methods": [
         {
           "name": "<init>",
           "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "sun.nio.fs.UnixException",
-      "jniAccessible": true,
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "int"
-          ]
         }
       ]
     },
@@ -8104,21 +7371,6 @@
       "type": {
         "proxy": [
           "java.lang.Deprecated"
-        ]
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.reflect.InvocationHandler"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "proxy": [
-          "java.lang.FunctionalInterface"
         ]
       },
       "methods": [
@@ -9555,76 +8807,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.batch.BatchRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.batch.BatchService",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Class"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.batch.BatchService",
-          "interfaces": [
-            "java.util.function.Predicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.batch.BatchService",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.batch.BatchService",
-            "com.ibm.watsonx.ai.batch.BatchCreateRequest",
-            "java.time.Duration"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.batch.Status",
           "interfaces": [
             "java.util.function.Predicate"
@@ -10290,40 +9472,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.Polling",
-          "interfaces": [
-            "com.ibm.watsonx.ai.core.Polling$Sleeper"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.concurrent.TimeUnit"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.Polling",
-          "interfaces": [
-            "java.util.function.LongSupplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.core.RetryConfig",
           "interfaces": [
             "java.util.function.Function"
@@ -10426,40 +9574,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.SyncHttpClient$InterceptorChain",
-          "interfaces": [
-            "java.util.function.BiPredicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.core.http.SyncHttpClient$InterceptorChain",
-          "interfaces": [
-            "java.util.function.Predicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.time.Duration"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor",
           "interfaces": [
             "java.util.function.BiPredicate"
@@ -10531,12 +9645,6 @@
         {
           "name": "<init>",
           "parameterTypes": []
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Exception"
-          ]
         }
       ]
     },
@@ -10619,22 +9727,6 @@
       "type": {
         "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.deployment.DeploymentRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.file.FileRestClient",
           "interfaces": [
             "java.util.function.Function"
           ]
@@ -10827,583 +9919,6 @@
         {
           "name": "<init>",
           "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.Status",
-          "interfaces": [
-            "java.util.function.Predicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.Status",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaService",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaDeleteParameters$Builder"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaFetchParameters$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaService",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaService",
-            "java.time.Duration"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.cluster.DefaultRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.cluster.DefaultRestClient",
-            "java.lang.String",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaDeleteParameters$Builder"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaFetchParameters$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaService",
-            "java.lang.String",
-            "java.time.Duration"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.create.DefaultRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.create.DefaultRestClient",
-            "java.lang.String",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.improve.DefaultRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.improve.DefaultRestClient",
-            "java.lang.String",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaDeleteParameters$Builder"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaFetchParameters$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaService",
-            "java.time.Duration"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.merge.DefaultRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.merge.DefaultRestClient",
-            "java.lang.String",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaDeleteParameters$Builder"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaFetchParameters$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaService",
-            "java.time.Duration"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.storage.cos.internal.CosUploadClients",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String",
-            "com.ibm.watsonx.ai.core.auth.Authenticator",
-            "com.ibm.watsonx.ai.core.auth.Authenticator",
-            "java.net.http.HttpClient",
-            "java.time.Duration",
-            "boolean",
-            "boolean",
-            "com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger",
-            "org.slf4j.event.Level",
-            "com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger",
-            "org.slf4j.event.Level"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textclassification.DefaultRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.textclassification.DefaultRestClient",
-            "java.lang.String",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationDeleteParameters$Builder"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationFetchParameters$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationService",
-            "java.lang.String",
-            "java.time.Duration"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textextraction.DefaultRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.textextraction.DefaultRestClient",
-            "java.lang.String",
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters$Type",
-          "interfaces": [
-            "java.util.function.Predicate"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionParameters$Type",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionDeleteParameters$Builder"
-          ]
-        },
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionFetchParameters$Builder"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionService",
-            "java.lang.String",
-            "java.time.Duration"
-          ]
         }
       ]
     },
@@ -11840,22 +10355,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "java.net.http.HttpResponse$BodyHandlers",
-          "interfaces": [
-            "java.net.http.HttpResponse$BodyHandler"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "java.net.http.HttpResponse$BodySubscribers",
           "interfaces": [
             "java.util.function.Function"
@@ -11866,24 +10365,6 @@
         {
           "name": "<init>",
           "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.nio.file.Files",
-          "interfaces": [
-            "java.lang.Runnable"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.io.Closeable"
-          ]
         }
       ]
     },
@@ -13738,40 +12219,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "org.mockito.internal.creation.bytebuddy.MockMethodAdvice",
-          "interfaces": [
-            "java.util.function.IntConsumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.util.List"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "org.mockito.internal.creation.bytebuddy.MockMethodAdvice",
-          "interfaces": [
-            "java.util.function.ToIntFunction"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "org.mockito.internal.creation.bytebuddy.SubclassBytecodeGenerator",
           "interfaces": [
             "java.util.function.Function"
@@ -13899,27 +12346,6 @@
     {
       "type": {
         "lambda": {
-          "declaringClass": "org.mockito.internal.util.MockUtil",
-          "interfaces": [
-            "java.util.function.Supplier"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "org.mockito.plugins.MockMaker",
-            "org.mockito.mock.MockCreationSettings",
-            "org.mockito.invocation.MockHandler",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
           "declaringClass": "org.mockito.internal.util.reflection.ReflectionMemberAccessor",
           "interfaces": [
             "org.mockito.plugins.MemberAccessor$ConstructionDispatcher"
@@ -13978,22 +12404,6 @@
       "type": {
         "lambda": {
           "declaringClass": "org.mockito.junit.jupiter.MockitoExtension",
-          "interfaces": [
-            "java.util.function.Function"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "sun.nio.fs.LinuxDosFileAttributeView",
           "interfaces": [
             "java.util.function.Function"
           ]
@@ -14189,9 +12599,6 @@
   ],
   "resources": [
     {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.batch.BatchRestClient$BatchRestClientBuilderFactory"
-    },
-    {
       "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider"
     },
     {
@@ -14207,28 +12614,7 @@
       "glob": "META-INF/services/com.ibm.watsonx.ai.deployment.DeploymentRestClient$DeploymentRestClientBuilderFactory"
     },
     {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.file.FileRestClient$FileRestClientBuilderFactory"
-    },
-    {
       "glob": "META-INF/services/com.ibm.watsonx.ai.textgeneration.TextGenerationRestClient$TextGenerationRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.textprocessing.schema.cluster.ClusterSchemaRestClient$ClusterSchemaRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.textprocessing.schema.create.CreateSchemaRestClient$CreateSchemaRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.textprocessing.schema.improve.ImproveSchemaRestClient$ImproveSchemaRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.textprocessing.schema.merge.MergeSchemaRestClient$MergeSchemaRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.textprocessing.textclassification.TextClassificationRestClient$TextClassificationRestClientBuilderFactory"
-    },
-    {
-      "glob": "META-INF/services/com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionRestClient$TextExtractionRestClientBuilderFactory"
     },
     {
       "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"

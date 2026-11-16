@@ -16,12 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -32,14 +29,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.skyscreamer.jsonassert.JSONAssert;
-import com.google.common.collect.Sets;
 import com.ibm.watsonx.ai.chat.ChatHandler;
 import com.ibm.watsonx.ai.chat.ChatResponse;
 import com.ibm.watsonx.ai.chat.interceptor.MessageInterceptor;
@@ -67,7 +62,6 @@ import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.ReasoningEffor
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatRequest;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatService;
-import com.ibm.watsonx.ai.it.ToolCallCompletionSupportTest.CompletionHandler;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_URL", matches = ".+")
@@ -91,15 +85,6 @@ public class ModelGatewayChatServiceIT {
     @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_GEMMA", matches = ".+")
     @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_OPENAI", matches = ".+")
     class Chat {
-
-        @Test
-        void should_intercept_and_process_gateway_tools_once() {
-            var nonce = UUID.randomUUID().toString();
-            var intercepted = new ArrayList<FunctionCall>();
-            var response = ToolCallCompletionSupportTest.gatewayService(intercepted).chat(ToolCallCompletionSupportTest.gatewayRequest(nonce));
-
-            ToolCallCompletionSupportTest.verifyResponse(response, nonce, intercepted);
-        }
 
         @Test
         void should_return_valid_chat_response_when_chat_is_invoked() {
@@ -680,20 +665,59 @@ public class ModelGatewayChatServiceIT {
     @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_OPENAI", matches = ".+")
     class ChatStreaming {
 
-        @Test
-        void should_complete_gateway_tools_before_the_next_tools_arguments() throws Exception {
-            var nonce = UUID.randomUUID().toString();
-            var intercepted = new ArrayList<FunctionCall>();
-            var handler = new CompletionHandler(nonce);
-            var response = ToolCallCompletionSupportTest.await(ToolCallCompletionSupportTest.gatewayService(intercepted)
-                .chatStreaming(ToolCallCompletionSupportTest.gatewayRequest(nonce), handler));
+        @ParameterizedTest
+        @ValueSource(strings = { "WATSONX_GATEWAY_CHAT_MODEL_CLAUDE", "WATSONX_GATEWAY_CHAT_MODEL_GEMMA", "WATSONX_GATEWAY_CHAT_MODEL_OPENAI" })
+        void should_complete_gateway_tools_in_streaming_order(String modelVariable) throws Exception {
+            var countries = new ArrayList<String>();
+            var completed = new ArrayList<ToolCall>();
+            var service = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .modelId(System.getenv(modelVariable))
+                .timeout(Duration.ofSeconds(180))
+                .parameters(ModelGatewayChatParameters.builder()
+                    .toolChoiceOption(ToolChoiceOption.REQUIRED)
+                    .parallelToolCalls(true)
+                    .maxCompletionTokens(8192)
+                    .build())
+                .tools(Tool.of("get_current_time", "Get the current time in a country.", JsonSchema.object()
+                    .property("country", JsonSchema.string("Exactly one country: Germany, Italy, or Japan"))
+                    .required("country")))
+                .build();
 
-            ToolCallCompletionSupportTest.verifyStreaming(response, nonce, intercepted, handler);
-        }
+            var response = service.chatStreaming("""
+                Make three separate get_current_time calls in this response, with country values Germany, Italy, and Japan.
+                Each call accepts exactly one country. Do not wait for tool results between calls.
+                """, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
 
-        @TestFactory
-        Stream<DynamicTest> should_observe_gateway_tool_index_order() {
-            return ToolCallStreamingOrderSupportTest.gatewayCases();
+                @Override
+                public void onPartialToolCall(PartialToolCall tool) {
+                    assertEquals(countries.size(), tool.toolIndex(), "The previous tool must complete before the next tool's arguments");
+                }
+
+                @Override
+                public void onCompleteToolCall(CompletedToolCall tool) {
+                    assertEquals(countries.size(), tool.toolCall().index(), "Tools must complete in index order");
+                    tool.processTool((name, arguments) -> {
+                        assertEquals("get_current_time", name);
+                        countries.add(arguments.get("country"));
+                        return "12:00";
+                    });
+                    completed.add(tool.toolCall());
+                }
+
+                @Override
+                public boolean failOnFirstError() {
+                    return true;
+                }
+            }).get(190, TimeUnit.SECONDS);
+
+            var tools = response.toAssistantMessage().toolCalls();
+            assertEquals(3, tools.size(), response.toString());
+            assertEquals(tools, completed, "Each tool must complete exactly once");
+            assertEquals(List.of("Germany", "Italy", "Japan"), countries.stream().sorted().toList());
         }
 
         @Test
@@ -1566,53 +1590,6 @@ public class ModelGatewayChatServiceIT {
                 assertEquals(1, assistantMessage.toolCalls().size());
                 assertEquals("get_current_time", assistantMessage.toolCalls().get(0).function().name());
             });
-        }
-
-        @Test
-        void should_handle_parallel_tool_calls() {
-
-            var modelGatewayChatService = ModelGatewayChatService.builder()
-                .baseUrl(URL)
-                .modelId(CHAT_MODEL_CLAUDE)
-                .authenticator(authentication)
-                .logRequests(true)
-                .logResponses(true)
-                .parameters(
-                    ModelGatewayChatParameters.builder()
-                        .parallelToolCalls(true)
-                        .build()
-                )
-                .tools(Tool.of(
-                    "get_current_time",
-                    "Get the current time",
-                    JsonSchema.object()
-                        .property("country", JsonSchema.string("Name of the country"))
-                        .required("country")
-                ))
-                .build();
-
-            AtomicInteger counter = new AtomicInteger(0);
-            Set<String> countries = Collections.synchronizedSet(Sets.newHashSet());
-            StringBuilder content = new StringBuilder();
-            var chatHandler = new ChatHandler() {
-
-                @Override
-                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
-                    content.append(partialResponse);
-                }
-
-                @Override
-                public void onCompleteToolCall(CompletedToolCall completeToolCall) {
-                    counter.incrementAndGet();
-                    completeToolCall.processTool((toolName, toolArgs) -> countries.add(toolArgs.get("country")));
-                }
-            };
-
-            var chatResponse = modelGatewayChatService.chatStreaming("Could you give me the time in Germany, Italy, and Japan?", chatHandler).join();
-            var assistantMessage = chatResponse.toAssistantMessage();
-            assertNotNull(content);
-            assertEquals(3, assistantMessage.toolCalls().size());
-            assertTrue(countries.contains("Germany") && countries.contains("Italy") && countries.contains("Japan"));
         }
 
         @Test
