@@ -49,6 +49,8 @@ public interface TextGenerationSubscriber {
 
     /**
      * Creates a {@link TextGenerationSubscriber} that processes streamed chat responses from the watsonx.ai API.
+     * <p>
+     * Callback failures propagate to the caller, which is responsible for reporting the error and completing the streaming operation.
      *
      * @param handler the {@link TextGenerationHandler} that will receive callbacks during streaming
      * @return a new {@link TextGenerationSubscriber} instance for processing SSE events
@@ -118,16 +120,10 @@ public interface TextGenerationSubscriber {
 
             @Override
             public void onComplete() {
-                try {
+                var result = List.of(new Result(buffer.toString(), stopReason, generatedTokenCount,
+                    inputTokenCount, null, null, null, null));
 
-                    var result = List.of(new Result(buffer.toString(), stopReason, generatedTokenCount,
-                        inputTokenCount, null, null, null, null));
-
-                    handler.onCompleteResponse(new TextGenerationResponse(modelId, null, null, result));
-
-                } catch (RuntimeException e) {
-                    onError(e);
-                }
+                handler.onCompleteResponse(new TextGenerationResponse(modelId, null, null, result));
             }
         };
     }

@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.textgeneration;
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
 import static com.ibm.watsonx.ai.textgeneration.TextGenerationSubscriber.createSubscriber;
-import static com.ibm.watsonx.ai.textgeneration.TextGenerationSubscriber.handleError;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import java.io.IOException;
@@ -22,6 +21,8 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.core.SseEventLogger;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
@@ -32,6 +33,7 @@ import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
  * Default implementation of the {@link TextGenerationRestClient} abstract class.
  */
 final class DefaultRestClient extends TextGenerationRestClient {
+    private static final Logger logger = LoggerFactory.getLogger(DefaultRestClient.class);
 
     private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
@@ -66,7 +68,10 @@ final class DefaultRestClient extends TextGenerationRestClient {
             var httpResponse = syncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
             return fromJson(httpResponse.body(), TextGenerationResponse.class);
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -86,25 +91,26 @@ final class DefaultRestClient extends TextGenerationRestClient {
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
         var response = new CompletableFuture<Void>();
-        var subscriber = new CancellableSubscriber(handler);
+        var subscriber = new CancellableSubscriber(handler, response);
         var httpFuture = asyncHttpClient.send(httpRequest.build(), responseInfo -> logResponses
             ? BodySubscribers.fromLineSubscriber(
                 new SseEventLogger(subscriber, responseInfo.statusCode(), responseInfo.headers(), responseLogger, responseLogLevel))
             : BodySubscribers.fromLineSubscriber(subscriber));
 
         httpFuture
-            .thenAccept(r -> response.complete(null))
+            .thenCompose(r -> subscriber.processing)
+            .thenRun(() -> response.complete(null))
             .exceptionally(t -> {
                 if (subscriber.isCancelled())
                     return null;
 
-                handleError(t, handler);
-                response.completeExceptionally(nonNull(t.getCause()) ? t.getCause() : t);
+                Throwable cause = nonNull(t.getCause()) ? t.getCause() : t;
+                subscriber.onError(cause);
                 return null;
             });
 
         response.whenComplete((r, t) -> {
-            if (response.isCancelled()) {
+            if (response.isCancelled() || t != null) {
                 subscriber.cancelStream();
                 httpFuture.cancel(true);
             }
@@ -121,13 +127,17 @@ final class DefaultRestClient extends TextGenerationRestClient {
 
         private final TextGenerationHandler handler;
         private final TextGenerationSubscriber chatSubscriber;
+        private final CompletableFuture<Void> response;
+        private final CompletableFuture<Void> processing = new CompletableFuture<>();
         private final AtomicBoolean cancelled = new AtomicBoolean(false);
+        private final AtomicBoolean errorReported = new AtomicBoolean(false);
         private final AtomicReference<Flow.Subscription> subscriptionRef = new AtomicReference<>();
         private Flow.Subscription subscription;
         private volatile boolean success = true;
 
-        CancellableSubscriber(TextGenerationHandler handler) {
+        CancellableSubscriber(TextGenerationHandler handler, CompletableFuture<Void> response) {
             this.handler = handler;
+            this.response = response;
             this.chatSubscriber = createSubscriber(handler);
         }
 
@@ -165,7 +175,7 @@ final class DefaultRestClient extends TextGenerationRestClient {
         @Override
         public void onNext(String partialMessage) {
 
-            if (isCancelled()) {
+            if (isCancelled() || !success) {
                 subscription.cancel();
                 return;
             }
@@ -176,8 +186,11 @@ final class DefaultRestClient extends TextGenerationRestClient {
 
             } catch (RuntimeException e) {
 
-                onError(e);
                 success = !handler.failOnFirstError();
+                if (success)
+                    notifyError(e);
+                else
+                    onError(e);
 
             } finally {
                 if (success && !isCancelled())
@@ -192,15 +205,38 @@ final class DefaultRestClient extends TextGenerationRestClient {
             if (isCancelled())
                 return;
 
-            chatSubscriber.onError(throwable);
+            success = false;
+            if (errorReported.compareAndSet(false, true)) {
+                try {
+                    notifyError(throwable);
+                } finally {
+                    response.completeExceptionally(throwable);
+                    processing.completeExceptionally(throwable);
+                }
+            }
+        }
+
+        private void notifyError(Throwable throwable) {
+            try {
+                chatSubscriber.onError(throwable);
+            } catch (RuntimeException | Error callbackFailure) {
+                if (callbackFailure != throwable)
+                    throwable.addSuppressed(callbackFailure);
+                logger.warn("Text generation error callback failed", callbackFailure);
+            }
         }
 
         @Override
         public void onComplete() {
-            if (isCancelled())
+            if (isCancelled() || !success)
                 return;
 
-            chatSubscriber.onComplete();
+            try {
+                chatSubscriber.onComplete();
+                processing.complete(null);
+            } catch (RuntimeException | Error e) {
+                onError(e);
+            }
         }
     }
 

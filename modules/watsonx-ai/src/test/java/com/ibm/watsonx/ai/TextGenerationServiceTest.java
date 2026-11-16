@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -27,14 +28,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -425,6 +429,44 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_complete_failed_stream_even_when_error_handler_throws() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        var transportFailure = new IOException("Connection closed");
+        var callbackFailure = new IllegalStateException("Error callback failed");
+        var reportedFailure = new AtomicReference<Throwable>();
+        var errorCalls = new AtomicInteger();
+        when(mockSecureHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class)))
+            .thenReturn(CompletableFuture.failedFuture(transportFailure));
+
+        withWatsonxServiceMock(() -> {
+            var service = TextGenerationService.builder().baseUrl("http://localhost").authenticator(mockAuthenticator)
+                .projectId("project").modelId("model").build();
+            var response = service.generateStreaming("Hello", new TextGenerationHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse) {}
+
+                @Override
+                public void onCompleteResponse(TextGenerationResponse completeResponse) {
+                    fail("A failed stream must not complete successfully");
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    errorCalls.incrementAndGet();
+                    reportedFailure.set(error);
+                    throw callbackFailure;
+                }
+            });
+
+            var failure = assertThrows(ExecutionException.class, () -> response.get(5, TimeUnit.SECONDS));
+            assertSame(transportFailure, failure.getCause());
+            assertSame(transportFailure, reportedFailure.get());
+            assertEquals(1, errorCalls.get());
+            assertEquals(List.of(callbackFailure), List.of(transportFailure.getSuppressed()));
+        });
+    }
+
+    @Test
     void should_stream_text_generation_correctly() throws Exception {
 
         var httpPort = wireMock.getPort();
@@ -621,6 +663,29 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             result.get(10, TimeUnit.SECONDS);
             assertEquals(1, threadNames.size());
             assertEquals("my-thread", threadNames.get(0));
+        }
+    }
+
+    @Test
+    void should_preserve_interruption_when_generating_text() throws Exception {
+        var interrupted = new InterruptedException("Request interrupted");
+        when(mockSecureHttpClient.send(any(), any())).thenThrow(interrupted);
+
+        withWatsonxServiceMock(() -> {
+            var service = TextGenerationService.builder().baseUrl(CloudRegion.DALLAS)
+                .projectId("project").modelId("model").authenticator(mockAuthenticator).build();
+            assertInterrupted(interrupted,
+                () -> service.generate(TextGenerationRequest.builder().input("text").build()));
+        });
+    }
+
+    private void assertInterrupted(InterruptedException expected, Runnable action) {
+        try {
+            var failure = assertThrows(RuntimeException.class, action::run);
+            assertSame(expected, failure.getCause());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
         }
     }
 }
