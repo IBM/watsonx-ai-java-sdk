@@ -13,6 +13,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -48,6 +50,7 @@ import com.ibm.watsonx.ai.file.Order;
 import com.ibm.watsonx.ai.file.Purpose;
 
 @ExtendWith(MockitoExtension.class)
+@Isolated("Resets the shared HTTP client provider while asserting transport cancellation.")
 @DisabledInNativeImage
 public class FileServiceTest extends AbstractWatsonxTest {
 
@@ -60,6 +63,30 @@ public class FileServiceTest extends AbstractWatsonxTest {
         when(mockAuthenticator.token()).thenReturn("token");
         when(mockAuthenticator.scheme()).thenReturn("Bearer");
         BASE_URL = "http://localhost:%s".formatted(wireMock.getPort());
+    }
+
+    @Test
+    void should_cancel_file_deletion_transport_before_response_headers() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+
+        assertCancelsTransport(() -> FileService.builder()
+            .baseUrl("https://test.com")
+            .authenticator(mockAuthenticator)
+            .projectId(PROJECT_ID)
+            .build()
+            .deleteAsync(FileDeleteRequest.builder().fileId("file-id").build()));
+    }
+
+    @Test
+    void should_not_send_file_deletion_retry_after_cancellation() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+
+        assertCancelsRetry(() -> FileService.builder()
+            .baseUrl("https://test.com")
+            .authenticator(mockAuthenticator)
+            .projectId(PROJECT_ID)
+            .build()
+            .deleteAsync(FileDeleteRequest.builder().fileId("file-id").build()));
     }
 
     @Test

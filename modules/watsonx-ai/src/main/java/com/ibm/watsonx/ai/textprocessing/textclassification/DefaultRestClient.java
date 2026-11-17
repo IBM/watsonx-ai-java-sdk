@@ -25,6 +25,7 @@ import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
+import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 import com.ibm.watsonx.ai.textprocessing.UploadRequest;
 import com.ibm.watsonx.ai.textprocessing.storage.cos.internal.CosUploadClients;
@@ -201,8 +202,8 @@ final class DefaultRestClient extends TextClassificationRestClient {
             if (nonNull(request.requestTrackingId()))
                 httpRequest.header(REQUEST_ID_HEADER, request.requestTrackingId());
 
-            return asyncCosHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
-                .thenApply(response -> response.statusCode() == 204);
+            var httpFuture = asyncCosHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+            return CancellableFutures.thenApply(httpFuture, result -> result.statusCode() == 204);
 
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);

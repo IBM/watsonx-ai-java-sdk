@@ -29,6 +29,7 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -289,6 +290,23 @@ public class IBMCloudAuthenticatorTest extends AbstractWatsonxTest {
     @Nested
     @DisabledInNativeImage
     class Async {
+
+        @Test
+        void should_cancel_token_transport_when_token_acquisition_is_cancelled() {
+            var transport = new CompletableFuture<HttpResponse<String>>();
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(transport);
+
+            withWatsonxServiceMock(() -> {
+                var authenticator = IBMCloudAuthenticator.builder().apiKey("api-key").build();
+                var token = authenticator.tokenAsync();
+
+                assertTrue(token.cancel(true));
+
+                assertTrue(transport.isCancelled());
+                assertThrows(CancellationException.class, token::join);
+                verify(mockSecureHttpClient).sendAsync(any(), any());
+            });
+        }
 
         @Test
         void should_return_a_valid_token() throws Exception {

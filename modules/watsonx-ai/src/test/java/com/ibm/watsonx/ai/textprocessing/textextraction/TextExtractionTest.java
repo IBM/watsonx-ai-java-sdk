@@ -61,6 +61,7 @@ import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -83,6 +84,7 @@ import com.ibm.watsonx.ai.textprocessing.CosDataLocation;
 import com.ibm.watsonx.ai.textprocessing.CosReference;
 import com.ibm.watsonx.ai.textprocessing.CosUrl;
 import com.ibm.watsonx.ai.textprocessing.DataReference;
+import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 import com.ibm.watsonx.ai.textprocessing.Error;
 import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig.GroundingMode;
 import com.ibm.watsonx.ai.textprocessing.ExtendedSemanticConfig.SchemaMergeStrategy;
@@ -105,6 +107,7 @@ import com.ibm.watsonx.ai.textprocessing.textextraction.TextExtractionResponse.E
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 @DisabledInNativeImage
+@Isolated("Resets the shared HTTP client provider while asserting transport cancellation.")
 public class TextExtractionTest extends AbstractWatsonxTest {
 
     private final String BUCKET_NAME = "my-bucket";
@@ -210,6 +213,34 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             .logRequests(true)
             .logResponses(true)
             .build();
+    }
+
+    @Test
+    void should_cancel_file_deletion_transport_before_response_headers() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+
+        assertCancelsTransport(() -> TextExtractionRestClient.builder()
+            .baseUrl("https://test.com")
+            .cosUrl("https://cos.example.com")
+            .version(API_VERSION)
+            .timeout(Duration.ofSeconds(5))
+            .authenticator(mockAuthenticator)
+            .build()
+            .deleteFileAsync(DeleteFileRequest.of(BUCKET_NAME, FILE_NAME)));
+    }
+
+    @Test
+    void should_not_send_file_deletion_retry_after_cancellation() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+
+        assertCancelsRetry(() -> TextExtractionRestClient.builder()
+            .baseUrl("https://test.com")
+            .cosUrl("https://cos.example.com")
+            .version(API_VERSION)
+            .timeout(Duration.ofSeconds(5))
+            .authenticator(mockAuthenticator)
+            .build()
+            .deleteFileAsync(DeleteFileRequest.of(BUCKET_NAME, FILE_NAME)));
     }
 
     @Test

@@ -28,7 +28,9 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -554,6 +556,144 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     @SuppressWarnings("unchecked")
     class Async {
+
+        @Test
+        void should_cancel_legacy_token_transport_when_token_acquisition_is_cancelled() {
+            var transport = new CompletableFuture<HttpResponse<String>>();
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(transport);
+
+            withWatsonxServiceMock(() -> {
+                var token = authenticator(AuthMode.LEGACY).tokenAsync();
+
+                assertCancellation(token, transport);
+                verify(mockSecureHttpClient).sendAsync(any(), any());
+            });
+        }
+
+        @Test
+        void should_cancel_iam_identity_transport_when_token_acquisition_is_cancelled() {
+            var transport = new CompletableFuture<HttpResponse<String>>();
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(transport);
+
+            withWatsonxServiceMock(() -> {
+                var token = authenticator(AuthMode.IAM).tokenAsync();
+
+                assertCancellation(token, transport);
+                verify(mockSecureHttpClient).sendAsync(any(), any());
+            });
+        }
+
+        @Test
+        void should_cancel_iam_validation_transport_when_token_acquisition_is_cancelled() {
+            var validation = new CompletableFuture<HttpResponse<String>>();
+            var validationStarted = new CountDownLatch(1);
+            var identityResponse = Utils.okResponse();
+            when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(identityResponse))
+                .thenAnswer(invocation -> {
+                    validationStarted.countDown();
+                    return validation;
+                });
+
+            withWatsonxServiceMock(() -> {
+                var token = authenticator(AuthMode.IAM).tokenAsync();
+                assertDoesNotThrow(() -> assertTrue(validationStarted.await(3, TimeUnit.SECONDS)));
+
+                assertCancellation(token, validation);
+                verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
+            });
+        }
+
+        @Test
+        void should_not_start_iam_validation_after_cancellation_during_identity_parsing() throws Exception {
+            var identity = new CompletableFuture<HttpResponse<String>>();
+            var identityResponse = Utils.okResponse();
+            var identityBody = identityResponse.body();
+            var parsingStarted = new CountDownLatch(1);
+            var release = new CountDownLatch(1);
+            var worker = Executors.newSingleThreadExecutor();
+            when(identityResponse.body()).thenAnswer(invocation -> {
+                parsingStarted.countDown();
+                assertTrue(release.await(3, TimeUnit.SECONDS));
+                return identityBody;
+            });
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(identity);
+
+            try {
+                withWatsonxServiceMock(() -> {
+                    try (var executors = mockStatic(ExecutorProvider.class)) {
+                        executors.when(ExecutorProvider::ioExecutor).thenReturn((Executor) Runnable::run);
+                        var token = authenticator(AuthMode.IAM).tokenAsync();
+                        var completingIdentity = worker.submit(() -> identity.complete(identityResponse));
+                        assertDoesNotThrow(() -> assertTrue(parsingStarted.await(3, TimeUnit.SECONDS)));
+
+                        assertTrue(token.cancel(true));
+                        release.countDown();
+                        assertDoesNotThrow(() -> completingIdentity.get(3, TimeUnit.SECONDS));
+
+                        assertThrows(CancellationException.class, token::join);
+                        verify(mockSecureHttpClient).sendAsync(any(), any());
+                    }
+                });
+            } finally {
+                release.countDown();
+                worker.shutdownNow();
+            }
+        }
+
+        @Test
+        void should_cancel_iam_validation_transport_registered_after_cancellation() throws Exception {
+            var identity = new CompletableFuture<HttpResponse<String>>();
+            var validation = new CompletableFuture<HttpResponse<String>>();
+            var identityResponse = Utils.okResponse();
+            var validationStarted = new CountDownLatch(1);
+            var release = new CountDownLatch(1);
+            var worker = Executors.newSingleThreadExecutor();
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(identity).thenAnswer(invocation -> {
+                validationStarted.countDown();
+                assertTrue(release.await(3, TimeUnit.SECONDS));
+                return validation;
+            });
+
+            try {
+                withWatsonxServiceMock(() -> {
+                    try (var executors = mockStatic(ExecutorProvider.class)) {
+                        executors.when(ExecutorProvider::ioExecutor).thenReturn((Executor) Runnable::run);
+                        var token = authenticator(AuthMode.IAM).tokenAsync();
+                        var completingIdentity = worker.submit(() -> identity.complete(identityResponse));
+                        assertDoesNotThrow(() -> assertTrue(validationStarted.await(3, TimeUnit.SECONDS)));
+
+                        assertTrue(token.cancel(true));
+                        release.countDown();
+                        assertDoesNotThrow(() -> completingIdentity.get(3, TimeUnit.SECONDS));
+
+                        assertDoesNotThrow(() -> validation.handle((result, error) -> null).get(3, TimeUnit.SECONDS));
+                        assertTrue(validation.isCancelled());
+                        assertThrows(CancellationException.class, token::join);
+                        verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
+                    }
+                });
+            } finally {
+                release.countDown();
+                worker.shutdownNow();
+            }
+        }
+
+        private CP4DAuthenticator authenticator(AuthMode mode) {
+            return CP4DAuthenticator.builder()
+                .baseUrl("https://localhost")
+                .username("username")
+                .password("password")
+                .authMode(mode)
+                .build();
+        }
+
+        private void assertCancellation(CompletableFuture<String> token, CompletableFuture<HttpResponse<String>> transport) {
+            assertTrue(token.cancel(true));
+            assertDoesNotThrow(() -> transport.handle((result, error) -> null).get(3, TimeUnit.SECONDS));
+            assertTrue(transport.isCancelled());
+            assertThrows(CancellationException.class, token::join);
+        }
 
         @Test
         void should_return_a_valid_token() throws Exception {

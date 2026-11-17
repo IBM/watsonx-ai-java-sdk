@@ -19,6 +19,7 @@ import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
+import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 
 /**
  * Default implementation of the {@link TokenizationRestClient} abstract class.
@@ -75,9 +76,8 @@ final class DefaultRestClient extends TokenizationRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        // The response body is delivered on an IO-executor thread. the token payload is tiny.
-        return asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
-            .thenApply(r -> Json.fromJson(r.body(), TokenizationResponse.class));
+        var httpFuture = asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+        return CancellableFutures.thenApply(httpFuture, r -> Json.fromJson(r.body(), TokenizationResponse.class));
     }
 
     /**

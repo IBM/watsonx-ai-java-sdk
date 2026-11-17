@@ -16,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 
 /**
  * The {@code IBMCloudAuthenticator} class is an implementation of the {@link Authenticator} interface, responsible for authenticating with IBM Cloud
@@ -79,7 +80,7 @@ public class IBMCloudAuthenticator implements Authenticator {
         if (!isExpired(currentToken))
             return completedFuture(currentToken.accessToken());
 
-        return client.tokenAsync(apiKey, grantType).thenApply(identityTokenResponse -> {
+        return CancellableFutures.thenApply(client.tokenAsync(apiKey, grantType), identityTokenResponse -> {
             token.getAndSet(identityTokenResponse);
             return identityTokenResponse.accessToken();
         });

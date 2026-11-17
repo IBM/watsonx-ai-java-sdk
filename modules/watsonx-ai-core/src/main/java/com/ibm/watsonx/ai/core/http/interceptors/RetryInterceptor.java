@@ -15,9 +15,14 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,51 +167,108 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
 
     @Override
     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
-        return executeWithRetry(request, bodyHandler, index, 0, Duration.from(retryInterval), chain);
+        var execution = new AsyncRetry<>(request, bodyHandler, index, chain);
+        chain.onCancellation(() -> execution.response.cancel(true));
+        execution.execute(0, retryInterval);
+        return execution.response;
     }
 
-    private <T> CompletableFuture<HttpResponse<T>> executeWithRetry(HttpRequest request, BodyHandler<T> bodyHandler, int index, int attempt,
-        Duration timeout, AsyncChain chain) {
+    private final class AsyncRetry<T> {
+        private final HttpRequest request;
+        private final BodyHandler<T> bodyHandler;
+        private final int index;
+        private final AsyncChain chain;
+        private final Executor executor = ExecutorProvider.ioExecutor();
+        private final CompletableFuture<HttpResponse<T>> response = new CompletableFuture<>();
+        private final Set<CompletableFuture<?>> pending = ConcurrentHashMap.newKeySet();
 
-        return chain.proceed(request, bodyHandler)
-            .exceptionallyComposeAsync(throwable -> {
+        private AsyncRetry(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
+            this.request = request;
+            this.bodyHandler = bodyHandler;
+            this.index = index;
+            this.chain = chain;
+            response.whenComplete((result, error) -> {
+                if (response.isCancelled())
+                    pending.forEach(task -> task.cancel(true));
+            });
+        }
 
-                String requestId = request.headers()
-                    .firstValue(REQUEST_ID_HEADER)
-                    .orElseThrow(); // This should never happen. The SyncHttpClient and AsyncHttpClient add this header if it is not present.
+        private void execute(int attempt, Duration timeout) {
+            if (response.isDone())
+                return;
 
-                Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
+            try {
+                var current = track(chain.proceed(request, bodyHandler));
+                watch(current.handle((result, error) -> {
+                    if (!response.isDone()) {
+                        if (error == null)
+                            response.complete(result);
+                        else
+                            watch(CompletableFuture.runAsync(() -> {
+                                if (!response.isDone())
+                                    retry(attempt, timeout, unwrap(error));
+                            }, executor));
+                    }
+                    return null;
+                }));
+            } catch (Exception error) {
+                response.completeExceptionally(error);
+            }
+        }
 
-                var shouldRetry = retryOn.stream().anyMatch(retry -> retry.clazz().isInstance(cause) &&
-                    retry.predicate().map(p -> p.test(cause)).orElse(true)
-                );
+        private void retry(int attempt, Duration timeout, Throwable cause) {
+            if (cause instanceof CancellationException) {
+                response.cancel(false);
+                return;
+            }
 
-                var shouldFail = !shouldRetry || attempt >= maxRetries;
+            String requestId = request.headers().firstValue(REQUEST_ID_HEADER).orElseThrow();
+            boolean shouldRetry = retryOn.stream().anyMatch(retry -> retry.clazz().isInstance(cause)
+                && retry.predicate().map(predicate -> predicate.test(cause)).orElse(true));
 
-                if (shouldFail) {
+            if (!shouldRetry || attempt >= maxRetries) {
+                if (attempt >= maxRetries)
+                    logger.debug("Max retries ({}) reached for request \"{}\"", maxRetries, requestId);
+                response.completeExceptionally(cause);
+                return;
+            }
 
-                    if (attempt >= maxRetries)
-                        logger.debug("Max retries ({}) reached for request \"{}\"", maxRetries, requestId);
+            Duration nextTimeout = exponentialBackoff ? timeout.multipliedBy(2) : timeout;
+            if (!timeout.isZero())
+                logger.debug("Retry request \"{}\" after {} ms", requestId, timeout.toMillis());
 
-                    CompletableFuture<HttpResponse<T>> failed = new CompletableFuture<>();
-                    failed.completeExceptionally(cause);
-                    return failed;
+            var delay = track(new CompletableFuture<Void>());
+            watch(delay.thenRunAsync(() -> {
+                if (!response.isDone()) {
+                    logger.debug("Retrying request \"{}\" ({}/{}) after failure: {}", requestId, attempt + 1, maxRetries, cause.getMessage());
+                    chain.resetToIndex(index + 1);
+                    execute(attempt + 1, nextTimeout);
                 }
+            }, executor));
+            // Complete only the delay on the timer thread. Dispatch through thenRunAsync so an executor rejection completes the request.
+            delay.completeAsync(() -> null, CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS, Runnable::run));
+        }
 
-                Duration nextTimeout = exponentialBackoff ? timeout.multipliedBy(2) : timeout;
+        private <U> CompletableFuture<U> track(CompletableFuture<U> task) {
+            pending.add(task);
+            task.whenComplete((result, error) -> pending.remove(task));
+            if (response.isCancelled())
+                task.cancel(true);
+            return task;
+        }
 
-                if (!timeout.isZero())
-                    logger.debug("Retry request \"{}\" after {} ms", requestId, timeout.toMillis());
+        private void watch(CompletableFuture<?> task) {
+            track(task).whenComplete((result, error) -> {
+                if (error != null)
+                    response.completeExceptionally(unwrap(error));
+            });
+        }
 
-                return CompletableFuture.supplyAsync(
-                    () -> {
-                        logger.debug("Retrying request \"{}\" ({}/{}) after failure: {}", requestId, attempt + 1, maxRetries, cause.getMessage());
-                        chain.resetToIndex(index + 1);
-                        return executeWithRetry(request, bodyHandler, index, attempt + 1, nextTimeout, chain);
-                    },
-                    CompletableFuture.delayedExecutor(timeout.toMillis(), TimeUnit.MILLISECONDS, ExecutorProvider.ioExecutor())
-                ).thenCompose(Function.identity());
-            }, ExecutorProvider.ioExecutor());
+        private Throwable unwrap(Throwable error) {
+            while ((error instanceof CompletionException || error instanceof ExecutionException) && error.getCause() != null)
+                error = error.getCause();
+            return error;
+        }
     }
 
     /**

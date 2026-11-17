@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.storage.cos;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -27,9 +28,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
+import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 
 @DisabledInNativeImage
+@Isolated("Resets the shared HTTP client provider while asserting transport cancellation.")
 class DefaultRestClientTest extends AbstractWatsonxTest {
 
     private static final String CONTENT = "document content";
@@ -47,6 +51,27 @@ class DefaultRestClientTest extends AbstractWatsonxTest {
             .timeout(Duration.ofSeconds(10))
             .authenticator(mockAuthenticator)
             .httpClient(mockSecureHttpClient), uploadDirectory));
+    }
+
+    @Test
+    void should_cancel_file_deletion_transport_before_response_headers() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+
+        assertCancelsTransport(() -> client.deleteFileAsync(DeleteFileRequest.of("bucket", "document.pdf")));
+    }
+
+    @Test
+    void should_not_send_file_deletion_retry_after_cancellation() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+
+        assertCancelsRetry(() -> CosStorageRestClient.builder()
+            .cosUrl("https://cos.example.com")
+            .bucket("bucket")
+            .timeout(Duration.ofSeconds(10))
+            .authenticator(mockAuthenticator)
+            .httpClient(mockSecureHttpClient)
+            .build()
+            .deleteFileAsync(DeleteFileRequest.of("bucket", "document.pdf")));
     }
 
     @Test

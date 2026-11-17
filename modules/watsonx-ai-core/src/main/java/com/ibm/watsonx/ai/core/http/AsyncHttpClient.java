@@ -15,7 +15,10 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
@@ -27,6 +30,8 @@ import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
  * @see HttpClient
  */
 public final class AsyncHttpClient extends BaseHttpClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(AsyncHttpClient.class);
 
     final List<AsyncHttpInterceptor> interceptors;
 
@@ -52,6 +57,9 @@ public final class AsyncHttpClient extends BaseHttpClient {
 
     /**
      * Sends an asynchronous HTTP request.
+     * <p>
+     * Cancelling the returned future cancels the active HTTP attempt and pending retries. If authentication is still in progress, no HTTP attempt
+     * starts after it completes. Shared token acquisition is allowed to complete for other requests.
      *
      * @param request the HTTP request to send
      * @param handler the body handler for the response
@@ -59,7 +67,19 @@ public final class AsyncHttpClient extends BaseHttpClient {
      * @return a {@link CompletableFuture} of the HTTP response
      */
     public <T> CompletableFuture<HttpResponse<T>> send(HttpRequest request, BodyHandler<T> handler) {
-        return new InterceptorChain(delegate, interceptors).proceed(addRequestIdHeaderIfNotPresent(request), handler);
+        var chain = new InterceptorChain(delegate, interceptors);
+        var response = new CompletableFuture<HttpResponse<T>>();
+        response.whenComplete((result, error) -> {
+            if (response.isCancelled())
+                chain.cancel();
+        });
+        chain.proceed(addRequestIdHeaderIfNotPresent(request), handler).whenComplete((result, error) -> {
+            if (error == null)
+                response.complete(result);
+            else
+                response.completeExceptionally(error);
+        });
+        return response;
     }
 
     /**
@@ -77,6 +97,7 @@ public final class AsyncHttpClient extends BaseHttpClient {
     private final static class InterceptorChain implements AsyncHttpInterceptor.AsyncChain {
         private final HttpClient httpClient;
         private final List<AsyncHttpInterceptor> interceptors;
+        private final CompletableFuture<Void> cancellation = new CompletableFuture<>();
         private int index = 0;
 
         public InterceptorChain(HttpClient httpClient, List<AsyncHttpInterceptor> interceptors) {
@@ -86,13 +107,16 @@ public final class AsyncHttpClient extends BaseHttpClient {
 
         @Override
         public <T> CompletableFuture<HttpResponse<T>> proceed(HttpRequest request, BodyHandler<T> handler) {
+            if (cancellation.isDone())
+                return CompletableFuture.failedFuture(new CancellationException());
+
             try {
                 if (index < interceptors.size()) {
                     int current = index++;
                     return interceptors.get(current).intercept(request, handler, current, this);
                 }
 
-                return httpClient.sendAsync(request, responseInfo -> {
+                var attempt = httpClient.sendAsync(request, responseInfo -> {
 
                     int statusCode = responseInfo.statusCode();
                     if (statusCode >= 200 && statusCode < 300) {
@@ -113,6 +137,8 @@ public final class AsyncHttpClient extends BaseHttpClient {
                         }
                     );
                 });
+                onCancellation(() -> attempt.cancel(true));
+                return attempt;
             } catch (Exception e) {
                 return CompletableFuture.failedFuture(e);
             }
@@ -121,6 +147,18 @@ public final class AsyncHttpClient extends BaseHttpClient {
         @Override
         public void resetToIndex(int index) {
             this.index = index;
+        }
+
+        @Override
+        public void onCancellation(Runnable action) {
+            cancellation.thenRun(requireNonNull(action)).whenComplete((result, error) -> {
+                if (error != null)
+                    logger.warn("Cancellation cleanup failed", error);
+            });
+        }
+
+        private void cancel() {
+            cancellation.complete(null);
         }
     }
 

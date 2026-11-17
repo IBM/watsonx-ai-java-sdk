@@ -13,12 +13,18 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,10 +38,22 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
@@ -48,6 +66,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.exception.AuthenticationTokenExpiredException;
 import com.ibm.watsonx.ai.core.exception.AuthorizationRejectedException;
 import com.ibm.watsonx.ai.core.exception.InvalidInputArgumentException;
@@ -59,9 +78,13 @@ import com.ibm.watsonx.ai.core.exception.ModelNotSupportedException;
 import com.ibm.watsonx.ai.core.exception.TokenQuotaReachedException;
 import com.ibm.watsonx.ai.core.exception.UserAuthorizationFailedException;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
+import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor;
+import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
+import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -86,6 +109,10 @@ public class AsyncHttpClientTest {
 
     @Mock
     AsyncHttpInterceptor interceptor2;
+
+    private final HttpRequest cancellationRequest = HttpRequest.newBuilder(URI.create("https://example.com"))
+        .POST(HttpRequest.BodyPublishers.ofString("payload"))
+        .build();
 
     @BeforeEach
     void setup() {
@@ -747,5 +774,219 @@ public class AsyncHttpClientTest {
         CompletionException ex = assertThrows(CompletionException.class, () -> client.send(request, handler).join());
         assertEquals(WatsonxException.class, ex.getCause().getClass());
         assertTrue(ex.getMessage().contains("exception_that_doesn_t_exist"));
+    }
+
+    @Test
+    void should_cancel_active_transport_through_authentication_retries_and_logging() throws Exception {
+        var authenticator = mock(Authenticator.class);
+        when(authenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        when(authenticator.scheme()).thenReturn("Bearer");
+        var pending = new CompletableFuture<HttpResponse<String>>();
+        var entered = new CountDownLatch(1);
+        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenAnswer(invocation -> {
+            entered.countDown();
+            return pending;
+        });
+        var client = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.BOTH);
+
+        var response = client.send(cancellationRequest, BodyHandlers.ofString());
+        assertTrue(entered.await(3, TimeUnit.SECONDS));
+
+        assertTrue(response.cancel(true));
+
+        assertThrows(CancellationException.class, () -> pending.get(3, TimeUnit.SECONDS));
+        assertTrue(response.isCancelled());
+        verify(httpClient, times(1)).sendAsync(any(), any(BodyHandler.class));
+    }
+
+    @Test
+    void should_not_send_after_cancelled_authentication_or_cancel_a_shared_token() throws Exception {
+        var token = new CompletableFuture<String>();
+        var authenticator = mock(Authenticator.class);
+        when(authenticator.tokenAsync()).thenReturn(token);
+        when(authenticator.scheme()).thenReturn("Bearer");
+        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(completedFuture(httpResponse));
+        var client = HttpClientFactory.createAsync(authenticator, httpClient, LogMode.DISABLED);
+
+        var cancelled = client.send(cancellationRequest, BodyHandlers.ofString());
+        var independent = client.send(cancellationRequest, BodyHandlers.ofString());
+        assertTrue(cancelled.cancel(true));
+        assertFalse(token.isDone());
+
+        token.complete("shared-token");
+
+        assertSame(httpResponse, independent.get(3, TimeUnit.SECONDS));
+        assertTrue(cancelled.isCancelled());
+        verify(httpClient, times(1)).sendAsync(any(), any(BodyHandler.class));
+    }
+
+    @Test
+    void should_cancel_only_the_requested_transport() throws Exception {
+        var first = new CompletableFuture<HttpResponse<String>>();
+        var second = new CompletableFuture<HttpResponse<String>>();
+        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(first, second);
+        var client = AsyncHttpClient.builder().httpClient(httpClient).build();
+
+        var cancelled = client.send(cancellationRequest, BodyHandlers.ofString());
+        var independent = client.send(cancellationRequest, BodyHandlers.ofString());
+        assertTrue(cancelled.cancel(false));
+
+        assertTrue(first.isCancelled());
+        assertFalse(second.isDone());
+        second.complete(httpResponse);
+        assertSame(httpResponse, independent.get(3, TimeUnit.SECONDS));
+        assertFalse(independent.cancel(true));
+    }
+
+    @Test
+    void should_not_send_when_cancelled_before_logging_finishes() throws Exception {
+        BlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>();
+        Executor executor = tasks::add;
+        try (var executors = mockStatic(ExecutorProvider.class)) {
+            executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+            var client = AsyncHttpClient.builder().httpClient(httpClient)
+                .interceptor(new LoggerInterceptor(LogMode.DISABLED)).build();
+
+            var response = client.send(cancellationRequest, BodyHandlers.ofString());
+            assertTrue(response.cancel(true));
+            var task = tasks.poll(3, TimeUnit.SECONDS);
+            assertNotNull(task);
+            task.run();
+
+            assertTrue(response.isCancelled());
+            verify(httpClient, never()).sendAsync(any(), any(BodyHandler.class));
+        }
+    }
+
+    @Test
+    void should_cancel_transport_registered_after_cancellation() throws Exception {
+        var entered = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var pending = new CompletableFuture<HttpResponse<String>>();
+        var worker = Executors.newSingleThreadExecutor();
+        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenAnswer(invocation -> {
+            entered.countDown();
+            assertTrue(release.await(3, TimeUnit.SECONDS));
+            return pending;
+        });
+        var client = AsyncHttpClient.builder().httpClient(httpClient).interceptor(new AsyncHttpInterceptor() {
+            @Override
+            public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> handler, int index, AsyncChain chain) {
+                return completedFuture(null).thenComposeAsync(ignored -> chain.proceed(request, handler), worker);
+            }
+        }).build();
+
+        try {
+            var response = client.send(cancellationRequest, BodyHandlers.ofString());
+            assertTrue(entered.await(3, TimeUnit.SECONDS));
+            assertTrue(response.cancel(true));
+            release.countDown();
+
+            assertThrows(CancellationException.class, () -> pending.get(3, TimeUnit.SECONDS));
+            assertTrue(response.isCancelled());
+            verify(httpClient, times(1)).sendAsync(any(), any(BodyHandler.class));
+        } finally {
+            release.countDown();
+            worker.shutdownNow();
+        }
+    }
+
+    @Test
+    void should_cancel_transport_and_other_cleanups_when_a_cleanup_throws() {
+        var pending = new CompletableFuture<HttpResponse<String>>();
+        var cleanups = new AtomicInteger();
+        var cleanupFailure = new AssertionError("broken interceptor cleanup");
+        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(pending);
+        var client = AsyncHttpClient.builder().httpClient(httpClient).interceptor(new AsyncHttpInterceptor() {
+            @Override
+            public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> handler, int index, AsyncChain chain) {
+                chain.onCancellation(() -> {
+                    throw cleanupFailure;
+                });
+                chain.onCancellation(cleanups::incrementAndGet);
+                return chain.proceed(request, handler);
+            }
+        }).build();
+
+        var response = client.send(cancellationRequest, BodyHandlers.ofString());
+        var logger = (Logger) LogManager.getLogger(AsyncHttpClient.class);
+        var warnings = new ArrayList<LogEvent>();
+        var appender = new AbstractAppender("cancellation-cleanup-warnings", null, null, true, null) {
+            @Override
+            public void append(LogEvent event) {
+                warnings.add(event.toImmutable());
+            }
+        };
+        appender.start();
+        logger.addAppender(appender);
+
+        try {
+            assertTrue(response.cancel(true));
+
+            assertTrue(pending.isCancelled());
+            assertEquals(1, cleanups.get());
+            assertThrows(CancellationException.class, response::join);
+            assertEquals(1, warnings.size());
+            var warning = warnings.get(0);
+            assertEquals(Level.WARN, warning.getLevel());
+            assertEquals("Cancellation cleanup failed", warning.getMessage().getFormattedMessage());
+            assertNotNull(warning.getThrown());
+            assertSame(cleanupFailure, warning.getThrown().getCause());
+        } finally {
+            logger.removeAppender(appender);
+            appender.stop();
+        }
+    }
+
+    @Test
+    void should_run_each_cleanup_once_when_registered_during_cancellation() throws Exception {
+        var pending = new CompletableFuture<HttpResponse<String>>();
+        var captured = new CompletableFuture<AsyncHttpInterceptor.AsyncChain>();
+        var entered = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var cleanups = new AtomicInteger();
+        var lateCleanups = new AtomicInteger();
+        var failingCleanups = new AtomicInteger();
+        var worker = Executors.newSingleThreadExecutor();
+        when(httpClient.sendAsync(any(), any(BodyHandler.class))).thenReturn(pending);
+        var client = AsyncHttpClient.builder().httpClient(httpClient).interceptor(new AsyncHttpInterceptor() {
+            @Override
+            public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> handler, int index, AsyncChain chain) {
+                chain.onCancellation(() -> {
+                    cleanups.incrementAndGet();
+                    entered.countDown();
+                    assertTrue(assertDoesNotThrow(() -> release.await(3, TimeUnit.SECONDS)));
+                });
+                captured.complete(chain);
+                return chain.proceed(request, handler);
+            }
+        }).build();
+
+        try {
+            var response = client.send(cancellationRequest, BodyHandlers.ofString());
+            var chain = captured.get(3, TimeUnit.SECONDS);
+            var cancelling = worker.submit(() -> response.cancel(true));
+            assertTrue(entered.await(3, TimeUnit.SECONDS));
+            assertFalse(cancelling.isDone());
+
+            assertDoesNotThrow(() -> chain.onCancellation(() -> {
+                failingCleanups.incrementAndGet();
+                throw new IllegalStateException("broken late cleanup");
+            }));
+            chain.onCancellation(lateCleanups::incrementAndGet);
+            response.cancel(false);
+            release.countDown();
+            assertTrue(cancelling.get(3, TimeUnit.SECONDS));
+            response.cancel(true);
+
+            assertTrue(pending.isCancelled());
+            assertEquals(1, cleanups.get());
+            assertEquals(1, failingCleanups.get());
+            assertEquals(1, lateCleanups.get());
+            assertThrows(CancellationException.class, response::join);
+        } finally {
+            release.countDown();
+            worker.shutdownNow();
+        }
     }
 }

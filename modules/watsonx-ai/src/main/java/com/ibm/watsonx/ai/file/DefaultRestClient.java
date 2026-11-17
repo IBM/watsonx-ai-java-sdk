@@ -22,6 +22,7 @@ import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.MultipartBody;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
+import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 
 /**
  * Default implementation of the {@link FileRestClient} abstract class.
@@ -202,9 +203,9 @@ final class DefaultRestClient extends FileRestClient {
         if (nonNull(request.transactionId()))
             httpRequest.header(TRANSACTION_ID_HEADER, request.transactionId());
 
-        // The response body is delivered on an IO-executor thread. the delete payload is tiny.
-        return asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
-            .thenApply(r -> Json.fromJson(r.body(), FileDeleteResponse.class));
+        // The delete response is small, so parse it inline.
+        var httpFuture = asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+        return CancellableFutures.thenApply(httpFuture, r -> Json.fromJson(r.body(), FileDeleteResponse.class));
     }
 
     /**

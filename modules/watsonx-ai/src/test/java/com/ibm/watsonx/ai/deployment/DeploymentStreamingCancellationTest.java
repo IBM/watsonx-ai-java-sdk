@@ -10,6 +10,8 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.util.concurrent.CancellationException;
@@ -37,6 +39,20 @@ import com.ibm.watsonx.ai.textgeneration.TextGenerationResponse;
 public class DeploymentStreamingCancellationTest extends AbstractWatsonxTest {
 
     static final String DEPLOYMENT_ID = "deployment-id";
+
+    @Test
+    void should_cancel_deployment_text_generation_transport_before_response_headers() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        var handler = mock(TextGenerationHandler.class);
+
+        assertCancelsTransport(() -> DeploymentService.builder()
+            .baseUrl("https://test.com")
+            .authenticator(mockAuthenticator)
+            .build()
+            .generateStreaming(TextGenerationRequest.builder().deploymentId(DEPLOYMENT_ID).input("Hello").build(), handler));
+
+        verifyNoInteractions(handler);
+    }
 
     /**
      * Counts every callback and cancels the future once a given number of partial responses has been delivered.
