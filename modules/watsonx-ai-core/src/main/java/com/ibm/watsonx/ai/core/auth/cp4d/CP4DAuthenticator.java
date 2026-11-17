@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
+import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 
 /**
  * The {@code CP4DAuthenticator} class is an implementation of the {@link Authenticator} interface, responsible for authenticating with Cloud Pack for
@@ -95,7 +96,7 @@ public class CP4DAuthenticator implements Authenticator {
         if (!isExpired(currentToken))
             return completedFuture(token.get().accessToken());
 
-        return client.tokenAsync(new TokenRequest(username, password, apiKey)).thenApply(identityTokenResponse -> {
+        return CancellableFutures.thenApply(client.tokenAsync(new TokenRequest(username, password, apiKey)), identityTokenResponse -> {
             token.getAndSet(identityTokenResponse);
             return identityTokenResponse.accessToken();
         });

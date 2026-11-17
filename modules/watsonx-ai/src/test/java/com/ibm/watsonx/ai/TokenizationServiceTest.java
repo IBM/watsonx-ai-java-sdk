@@ -50,6 +50,28 @@ public class TokenizationServiceTest extends AbstractWatsonxTest {
     }
 
     @Test
+    void should_cancel_tokenization_transport_before_response_headers() {
+        assertCancelsTransport(() -> TokenizationService.builder()
+            .baseUrl("https://test.com")
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .modelId("model-id")
+            .build()
+            .tokenizeAsync("Hello"));
+    }
+
+    @Test
+    void should_not_send_tokenization_retry_after_cancellation() {
+        assertCancelsRetry(() -> TokenizationService.builder()
+            .baseUrl("https://test.com")
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .modelId("model-id")
+            .build()
+            .tokenizeAsync("Hello"));
+    }
+
+    @Test
     void should_tokenize_text_synchronously() throws Exception {
 
         final String REQUEST = """

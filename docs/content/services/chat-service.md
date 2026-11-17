@@ -335,7 +335,9 @@ CompletableFuture<ChatResponse> future = chatService.chatStreaming(
 future.cancel(true);
 ```
 
-Cancellation aborts the response body subscription and closes the connection, so the model stops streaming. After `cancel(...)` returns, no further callback reaches the handler, not even `onError`, because stopping the stream is a decision of the caller rather than a failure. A callback that is already running is allowed to finish.
+The SDK cancels any active HTTP request and response body subscription. After `cancel(...)` returns, no further callback reaches the handler, not even `onError`, because stopping the stream is a decision of the caller rather than a failure. A callback that is already running is allowed to finish.
+
+Cancellation also applies during authentication, while waiting for response headers, and during retry backoff. Pending retries are stopped. See [Request cancellation](/advanced/http-client#request-cancellation).
 
 The future ends in the cancelled state, so a later `get()` or `join()` throws a `CancellationException`. Cancelling twice is a no-op, and so is cancelling a stream that has already completed. The `mayInterruptIfRunning` flag is ignored, therefore `cancel(false)` behaves exactly like `cancel(true)`.
 
@@ -355,7 +357,7 @@ future.set(chatService.chatStreaming(messages, new ChatHandler() {
 }));
 ```
 
-> **Note:** The request has already been sent when you cancel, so the model may have generated tokens that you never receive. Cancellation stops the delivery of the response, it does not undo the work already done on the server.
+> **Note:** If the request has already been sent, the server may continue processing it and generate tokens that you never receive. Cancellation does not undo work already performed on the server or guarantee that generation on the server stops.
 
 ---
 

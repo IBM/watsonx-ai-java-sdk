@@ -14,6 +14,8 @@ The SDK uses the `Authenticator` interface as the single abstraction for token-b
 
 Both implementations handle **token caching and automatic renewal** transparently. The SDK fetches a token on the first request, caches it, checks expiry before each subsequent request, and refreshes silently when needed. You never manage token lifecycle manually.
 
+Cancelling an asynchronous service request leaves shared token acquisition running for other requests. Cancelling a future obtained directly from a built-in authenticator's `tokenAsync()` cancels that acquisition. See [Request cancellation](./advanced/http-client#request-cancellation).
+
 Any other credential source can be plugged in by implementing `Authenticator` yourself. See [Custom Authentication](#custom-authentication).
 
 ---

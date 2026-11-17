@@ -24,6 +24,8 @@ Each service sends its requests through the following interceptors, in this fixe
 
 Logging sits last in the chain, closest to the actual network call. A retried request passes through it once per attempt, so a request retried twice produces three request/response log entries, not one.
 
+Cancelling the future returned by an asynchronous operation stops pending retries, including retries waiting for backoff. `CancellationException` is never retried. See [Request cancellation](./http-client#request-cancellation) for authentication behavior and cancellation limits.
+
 ---
 
 ## Request correlation

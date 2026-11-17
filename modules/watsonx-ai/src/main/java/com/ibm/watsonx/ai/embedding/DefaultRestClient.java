@@ -19,6 +19,7 @@ import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
+import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
@@ -77,8 +78,8 @@ final class DefaultRestClient extends EmbeddingRestClient {
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
 
-        return asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString())
-            .thenApplyAsync(r -> Json.fromJson(r.body(), EmbeddingResponse.class), ExecutorProvider.cpuExecutor());
+        var httpFuture = asyncHttpClient.send(httpRequest.build(), BodyHandlers.ofString());
+        return CancellableFutures.thenApplyAsync(httpFuture, r -> Json.fromJson(r.body(), EmbeddingResponse.class), ExecutorProvider.cpuExecutor());
     }
 
     /**

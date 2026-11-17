@@ -114,6 +114,25 @@ The `timeout` applies to each individual request. For streaming responses, it go
 
 ---
 
+## Request cancellation
+
+Calling `cancel(...)` on a pending future returned by the default asynchronous service clients cancels the active HTTP attempt and prevents pending retries from sending another request. This applies to asynchronous operations such as tokenization and file deletion, as well as streaming responses.
+
+```java
+CompletableFuture<TokenizationResponse> future = tokenizationService.tokenizeAsync("Hello");
+future.cancel(true);
+```
+
+Cancellation also applies while waiting for authentication, response headers, or retry backoff. If authentication is still in progress, the service request is not sent after authentication completes. Shared token acquisition is allowed to finish for other requests.
+
+Cancel the future returned directly by the SDK. Cancelling a dependent stage created with `thenApply(...)` or `thenCompose(...)` does not automatically cancel the original request. After successful cancellation, the SDK future is in the cancelled state and `get()` or `join()` throws `CancellationException`.
+
+Cancelling a future returned directly by `tokenAsync()` on the default authenticators cancels that token acquisition, including both authentication steps used by CP4D IAM. This differs from cancelling a service request that is waiting for a shared token.
+
+Cancellation does not undo work already performed by the server or guarantee that server-side processing stops. For streaming callback behavior, see [Cancelling a Stream](../services/chat-service#cancelling-a-stream). Custom REST client implementations are responsible for propagating cancellation to their own transport and retry tasks.
+
+---
+
 ## Request logging
 
 Request and response payloads can be logged for debugging:

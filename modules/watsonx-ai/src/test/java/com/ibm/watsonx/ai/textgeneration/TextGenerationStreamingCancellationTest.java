@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.util.concurrent.CancellationException;
@@ -30,6 +32,22 @@ import com.ibm.watsonx.ai.AbstractWatsonxTest;
 @Isolated("Asserts the absence of callbacks within timing windows; must run without concurrent CPU contention.")
 @DisabledInNativeImage
 public class TextGenerationStreamingCancellationTest extends AbstractWatsonxTest {
+
+    @Test
+    void should_cancel_text_generation_transport_before_response_headers() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        var handler = mock(TextGenerationHandler.class);
+
+        assertCancelsTransport(() -> TextGenerationService.builder()
+            .baseUrl("https://test.com")
+            .authenticator(mockAuthenticator)
+            .projectId("project-id")
+            .modelId("model-id")
+            .build()
+            .generateStreaming("Hello", handler));
+
+        verifyNoInteractions(handler);
+    }
 
     /**
      * Counts every callback and cancels the future once a given number of partial responses has been delivered.

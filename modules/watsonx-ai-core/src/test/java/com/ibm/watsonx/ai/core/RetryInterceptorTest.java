@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.core;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,6 +15,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,9 +34,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Flow;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +55,7 @@ import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -438,6 +449,301 @@ public class RetryInterceptorTest {
             AsyncHttpInterceptor.AsyncChain chain = invocation.getArgument(3);
             return chain.proceed(req, bh);
         };
+
+        @Test
+        void should_complete_success_on_transport_thread_when_io_executor_rejects_tasks() throws Exception {
+            var submissions = new AtomicInteger();
+            Executor executor = task -> {
+                submissions.incrementAndGet();
+                throw new RejectedExecutionException("IO executor must not be used for a successful response");
+            };
+            var attempt = new CompletableFuture<HttpResponse<String>>();
+            when(chain.proceed(httpRequest, bodyHandler)).thenReturn(attempt);
+            var retry = RetryInterceptor.builder().retryOn(RuntimeException.class).build();
+            var completer = Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "http-completer"));
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+                var response = retry.intercept(httpRequest, bodyHandler, 0, chain);
+                var continuationThread = response.thenApply(result -> Thread.currentThread());
+
+                var transportThread = completer.submit(() -> {
+                    attempt.complete(httpResponse);
+                    return Thread.currentThread();
+                });
+
+                // A waiting get() can run pending continuations, so let the transport completion finish first.
+                var expectedThread = transportThread.get(3, TimeUnit.SECONDS);
+                assertSame(httpResponse, response.get(3, TimeUnit.SECONDS));
+                assertSame(expectedThread, continuationThread.get(3, TimeUnit.SECONDS));
+                assertEquals(0, submissions.get());
+                verify(chain).proceed(httpRequest, bodyHandler);
+            } finally {
+                completer.shutdownNow();
+            }
+        }
+
+        @Test
+        void should_return_completed_success_when_io_executor_rejects_tasks() throws Exception {
+            var submissions = new AtomicInteger();
+            Executor executor = task -> {
+                submissions.incrementAndGet();
+                throw new RejectedExecutionException("IO executor must not be used for a successful response");
+            };
+            when(chain.proceed(httpRequest, bodyHandler)).thenReturn(completedFuture(httpResponse));
+            var retry = RetryInterceptor.builder().retryOn(RuntimeException.class).build();
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+
+                var response = retry.intercept(httpRequest, bodyHandler, 0, chain);
+
+                assertSame(httpResponse, response.get(3, TimeUnit.SECONDS));
+                assertEquals(0, submissions.get());
+                verify(chain).proceed(httpRequest, bodyHandler);
+            }
+        }
+
+        @Test
+        void should_cancel_pending_attempt_when_retry_response_is_cancelled() {
+            var attempt = new CompletableFuture<HttpResponse<String>>();
+            when(chain.proceed(httpRequest, bodyHandler)).thenReturn(attempt);
+
+            var retry = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryOn(RuntimeException.class)
+                .build();
+
+            var response = retry.intercept(httpRequest, bodyHandler, 0, chain);
+
+            assertTrue(response.cancel(true));
+            assertTrue(attempt.isCancelled());
+            verify(chain).proceed(httpRequest, bodyHandler);
+        }
+
+        @Test
+        void should_not_retry_when_cancelled_before_failure_is_processed() throws Exception {
+            BlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>();
+            Executor executor = tasks::add;
+            var attempt = new CompletableFuture<HttpResponse<String>>();
+            var request = cancellationRequest();
+            when(chain.proceed(request, bodyHandler)).thenReturn(attempt);
+
+            var retry = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryOn(RuntimeException.class)
+                .build();
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+
+                var response = retry.intercept(request, bodyHandler, 0, chain);
+                attempt.completeExceptionally(new IllegalStateException("retryable failure"));
+                Runnable failureHandler = nextTask(tasks);
+
+                assertTrue(response.cancel(true));
+                failureHandler.run();
+
+                assertTrue(response.isCancelled());
+                verify(chain).proceed(request, bodyHandler);
+            }
+        }
+
+        @Test
+        void should_not_send_retry_already_queued_on_executor_after_cancellation() throws Exception {
+            BlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>();
+            Executor executor = tasks::add;
+            var attempt = new CompletableFuture<HttpResponse<String>>();
+            var request = cancellationRequest();
+            when(chain.proceed(request, bodyHandler)).thenReturn(attempt);
+
+            var retry = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryInterval(Duration.ofMillis(20))
+                .retryOn(RuntimeException.class)
+                .build();
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+
+                var response = retry.intercept(request, bodyHandler, 0, chain);
+                attempt.completeExceptionally(new IllegalStateException("retryable failure"));
+                nextTask(tasks).run();
+                Runnable scheduledRetry = nextTask(tasks);
+
+                assertTrue(response.cancel(true));
+                scheduledRetry.run();
+
+                assertTrue(response.isCancelled());
+                verify(chain).proceed(request, bodyHandler);
+            }
+        }
+
+        @Test
+        void should_not_retry_cancellation_even_when_broad_retry_rule_matches() throws Exception {
+            Executor executor = Runnable::run;
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+
+                for (Throwable cancellation : List.of(new CancellationException("cancelled"),
+                    new CompletionException(new CompletionException(new CancellationException("wrapped cancellation"))))) {
+                    var cancellationChain = mock(AsyncHttpInterceptor.AsyncChain.class);
+                    var request = cancellationRequest();
+                    var decisions = new AtomicInteger();
+                    when(cancellationChain.proceed(request, bodyHandler)).thenReturn(failedFuture(cancellation));
+
+                    var retry = RetryInterceptor.builder()
+                        .maxRetries(3)
+                        .retryOn(Exception.class, failure -> {
+                            decisions.incrementAndGet();
+                            return true;
+                        })
+                        .build();
+
+                    var response = retry.intercept(request, bodyHandler, 0, cancellationChain);
+
+                    assertThrows(CancellationException.class, () -> response.get(3, TimeUnit.SECONDS));
+                    assertTrue(response.isCancelled());
+                    assertEquals(0, decisions.get());
+                    verify(cancellationChain).proceed(request, bodyHandler);
+                }
+            }
+        }
+
+        @Test
+        void should_retry_nested_async_wrappers_using_the_original_exception() throws Exception {
+            BlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>();
+            Executor executor = tasks::add;
+            var request = cancellationRequest();
+            var original = new WatsonxException("Service unavailable", 503, null);
+            var wrapped = new CompletionException(new ExecutionException(new CompletionException(original)));
+            var decisions = new AtomicInteger();
+            when(chain.proceed(request, bodyHandler))
+                .thenReturn(failedFuture(wrapped))
+                .thenReturn(completedFuture(httpResponse));
+            var retry = RetryInterceptor.builder()
+                .maxRetries(1)
+                .retryOn(WatsonxException.class, failure -> {
+                    assertSame(original, failure);
+                    decisions.incrementAndGet();
+                    return true;
+                })
+                .build();
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+
+                var response = retry.intercept(request, bodyHandler, 0, chain);
+                nextTask(tasks).run();
+                nextTask(tasks).run();
+
+                assertSame(httpResponse, response.get(3, TimeUnit.SECONDS));
+                assertEquals(1, decisions.get());
+                verify(chain, times(2)).proceed(request, bodyHandler);
+                verify(chain).resetToIndex(1);
+            }
+        }
+
+        @Test
+        void should_preserve_application_exception_with_its_own_cause() throws Exception {
+            Executor executor = Runnable::run;
+            var request = cancellationRequest();
+            var original = new IllegalStateException("Application failure", new IOException("Underlying cause"));
+            var decisions = new AtomicInteger();
+            when(chain.proceed(request, bodyHandler)).thenReturn(failedFuture(original));
+            var retry = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryOn(IllegalStateException.class, failure -> {
+                    assertSame(original, failure);
+                    decisions.incrementAndGet();
+                    return false;
+                })
+                .build();
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+
+                var response = retry.intercept(request, bodyHandler, 0, chain);
+
+                var failure = assertThrows(ExecutionException.class, () -> response.get(3, TimeUnit.SECONDS));
+                assertSame(original, failure.getCause());
+                assertEquals(1, decisions.get());
+                verify(chain).proceed(request, bodyHandler);
+            }
+        }
+
+        @Test
+        void should_complete_exceptionally_when_failure_processing_is_rejected() throws Exception {
+            var rejection = new RejectedExecutionException("executor rejected failure processing");
+            Executor executor = task -> {
+                throw rejection;
+            };
+            var attempt = new CompletableFuture<HttpResponse<String>>();
+            var request = cancellationRequest();
+            when(chain.proceed(request, bodyHandler)).thenReturn(attempt);
+
+            var retry = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryOn(RuntimeException.class)
+                .build();
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+
+                var response = retry.intercept(request, bodyHandler, 0, chain);
+                attempt.completeExceptionally(new IllegalStateException("retryable failure"));
+
+                var failure = assertThrows(ExecutionException.class, () -> response.get(3, TimeUnit.SECONDS));
+                assertSame(rejection, failure.getCause());
+                verify(chain).proceed(request, bodyHandler);
+            }
+        }
+
+        @Test
+        void should_complete_exceptionally_when_delayed_retry_dispatch_is_rejected() throws Exception {
+            var rejection = new RejectedExecutionException("executor rejected retry dispatch");
+            var submissions = new AtomicInteger();
+            Executor executor = task -> {
+                if (submissions.getAndIncrement() == 0)
+                    task.run();
+                else
+                    throw rejection;
+            };
+            var attempt = new CompletableFuture<HttpResponse<String>>();
+            var request = cancellationRequest();
+            when(chain.proceed(request, bodyHandler)).thenReturn(attempt);
+
+            var retry = RetryInterceptor.builder()
+                .maxRetries(3)
+                .retryInterval(Duration.ofMillis(20))
+                .retryOn(RuntimeException.class)
+                .build();
+
+            try (MockedStatic<ExecutorProvider> executors = mockStatic(ExecutorProvider.class)) {
+                executors.when(ExecutorProvider::ioExecutor).thenReturn(executor);
+
+                var response = retry.intercept(request, bodyHandler, 0, chain);
+                attempt.completeExceptionally(new IllegalStateException("retryable failure"));
+
+                var failure = assertThrows(ExecutionException.class, () -> response.get(3, TimeUnit.SECONDS));
+                assertSame(rejection, failure.getCause());
+                assertEquals(2, submissions.get());
+                verify(chain).proceed(request, bodyHandler);
+            }
+        }
+
+        private HttpRequest cancellationRequest() {
+            return HttpRequest.newBuilder(URI.create("https://test.com"))
+                .header("Watsonx-AI-SDK-Request-Id", "cancellation-test")
+                .build();
+        }
+
+        private Runnable nextTask(BlockingQueue<Runnable> tasks) throws InterruptedException {
+            Runnable task = tasks.poll(3, TimeUnit.SECONDS);
+            assertNotNull(task, "Expected an asynchronous retry task");
+            return task;
+        }
 
         @Test
         @SuppressWarnings("unchecked")

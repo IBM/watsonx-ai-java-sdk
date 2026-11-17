@@ -55,5 +55,19 @@ public interface AsyncHttpInterceptor {
          * @param index the interceptor index to reset to
          */
         void resetToIndex(int index);
+
+        /**
+         * Registers cleanup to run when the caller cancels this request. Cleanup registered after cancellation runs immediately. The default HTTP
+         * client runs each registration once and isolates cleanup failures.
+         * <p>
+         * No execution order is guaranteed. Cleanups must be independent, as cleanup registered during cancellation may run concurrently with other
+         * cleanups.
+         * <p>
+         * Interceptors should use this for work they own, such as pending retries. Shared work, such as a token acquisition used by other requests,
+         * must not be cancelled. Implementations that do not support cancellation may retain the default no-op behavior.
+         *
+         * @param action the cancellation cleanup
+         */
+        default void onCancellation(Runnable action) {}
     }
 }

@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
+import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 
 /**
  * Default implementation of the {@link IBMCloudRestClient}.
@@ -49,9 +50,8 @@ final class DefaultRestClient extends IBMCloudRestClient {
 
     @Override
     public CompletableFuture<TokenResponse> tokenAsync(String apiKey, String grantType) {
-        // The response body is delivered on an IO-executor thread. the token payload is tiny.
-        return asyncHttpClient.send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString())
-            .thenApply(response -> fromJson(response.body(), TokenResponse.class));
+        var httpFuture = asyncHttpClient.send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString());
+        return CancellableFutures.thenApply(httpFuture, result -> fromJson(result.body(), TokenResponse.class));
     }
 
     /*

@@ -144,6 +144,8 @@ public final class QuarkusChatRestClient extends ChatRestClient {
 
 > **Note:** `ChatClientContext` is parameterized by the request type of the service it belongs to, and the override must match. Use `ChatClientContext<ChatRequest>` in a `ChatRestClient`, `ChatClientContext<DeploymentChatRequest>` in a `DeploymentRestClient`, and `ChatClientContext<ModelGatewayChatRequest>` in a `ModelGatewayChatRestClient`.
 
+Custom asynchronous REST clients must propagate cancellation of their returned future to the active request, response subscription, and pending retries they own. Shared work, such as token acquisition used by other requests, must remain available to those requests. The default clients' behavior is described in [Request cancellation](./http-client#request-cancellation).
+
 #### Step 3 - Register via `ServiceLoader`
 
 Create the file:

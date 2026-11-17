@@ -10,6 +10,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.util.List;
@@ -106,6 +109,29 @@ public class ModelGatewayChatStreamingCancellationTest extends AbstractWatsonxTe
         var future = service().chatStreaming(List.<ChatMessage>of(UserMessage.text("Tell me a long story")), recorder);
         recorder.future.complete(future);
         return future;
+    }
+
+    @Test
+    void should_cancel_transport_before_response_headers() {
+        var recorder = new Recorder(0);
+
+        assertCancelsTransport(() -> start(recorder));
+
+        assertEquals(0, recorder.partialResponses.get());
+        assertEquals(0, recorder.completeResponses.get());
+        assertEquals(0, recorder.errors.get());
+        verify(mockSecureHttpClient, times(1)).sendAsync(any(), any());
+    }
+
+    @Test
+    void should_not_send_retry_after_cancellation() {
+        var recorder = new Recorder(0);
+
+        assertCancelsRetry(() -> start(recorder));
+
+        assertEquals(0, recorder.partialResponses.get());
+        assertEquals(0, recorder.completeResponses.get());
+        assertEquals(0, recorder.errors.get());
     }
 
     @Test
