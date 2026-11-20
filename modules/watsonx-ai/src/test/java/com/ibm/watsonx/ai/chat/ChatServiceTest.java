@@ -33,6 +33,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -1773,7 +1774,8 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                         "scope": "ibm openid"
                     }""");
 
-            mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+            when(mockSecureHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
+                .thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
             spyAuthenticator.token();
             assertEquals("grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&apikey=my-api-key", bodyPublisherToString(mockHttpRequest));
         });

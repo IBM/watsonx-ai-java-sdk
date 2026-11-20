@@ -20,11 +20,6 @@ class DefaultZenRestClient extends CP4DRestClient {
     }
 
     @Override
-    public TokenResponse token(TokenRequest request) {
-        return createTokenResponse(request);
-    }
-
-    @Override
     public CompletableFuture<TokenResponse> tokenAsync(TokenRequest request) {
         return completedFuture(createTokenResponse(request));
     }

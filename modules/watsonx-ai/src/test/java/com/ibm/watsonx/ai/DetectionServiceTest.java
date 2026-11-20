@@ -10,16 +10,21 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.ibm.watsonx.ai.detection.DetectionRestClient.GOVERNANCE_INSTANCE_ID_HEADER;
 import static com.ibm.watsonx.ai.utils.HttpUtils.bodyPublisherToString;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +49,18 @@ import com.ibm.watsonx.ai.detection.detector.Pii;
 @ExtendWith(MockitoExtension.class)
 @DisabledInNativeImage
 public class DetectionServiceTest extends AbstractWatsonxTest {
+
+    @BeforeEach
+    void mockIamAuthentication() {
+        HttpResponse<String> iamResponse = mock(HttpResponse.class);
+        when(iamResponse.body()).thenReturn("""
+            {
+                "access_token": "iam-token",
+                "expiration": %d
+            }
+            """.formatted(Instant.now().plusSeconds(3600).getEpochSecond()));
+        when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(completedFuture(iamResponse));
+    }
 
     @Test
     void should_build_request_with_correct_parameters() throws Exception {

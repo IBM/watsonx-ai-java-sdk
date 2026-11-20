@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.client.impl;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient;
 import com.ibm.watsonx.ai.core.auth.cp4d.TokenRequest;
@@ -16,13 +17,8 @@ public class CustomCP4DZenRestClient extends CP4DRestClient {
     }
 
     @Override
-    public TokenResponse token(TokenRequest request) {
-        throw new UnsupportedOperationException("Unimplemented method 'token'");
-    }
-
-    @Override
     public CompletableFuture<TokenResponse> tokenAsync(TokenRequest request) {
-        throw new UnsupportedOperationException("Unimplemented method 'tokenAsync'");
+        return completedFuture(new TokenResponse("custom-cp4d-zen-token", null, "ZenApiKey", null, null, null));
     }
 
     public static final class CustomCP4DZenRestClientBuilderFactory implements CP4DRestClient.CP4DZenRestClientBuilderFactory {

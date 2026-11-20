@@ -43,15 +43,6 @@ public abstract class IBMCloudRestClient {
     }
 
     /**
-     * Performs a synchronous REST call to the IAM service to obtain an identity token.
-     *
-     * @param apiKey the IBM Cloud API key to exchange for an access token
-     * @param grantType the grant type to use
-     * @return an {@link TokenResponse} containing the access token and related metadata
-     */
-    public abstract TokenResponse token(String apiKey, String grantType);
-
-    /**
      * Performs an asynchronous REST call to the IAM service to obtain an identity token.
      *
      * @param apiKey the IBM Cloud API key to exchange for an access token

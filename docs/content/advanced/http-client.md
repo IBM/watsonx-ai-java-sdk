@@ -112,6 +112,8 @@ ChatService chatService = ChatService.builder()
 
 The `timeout` applies to each individual request. For streaming responses, it governs the total time allowed for the stream to complete.
 
+Built-in authenticators configure separate timeouts for HTTP attempts and do not add an overall acquisition deadline. See [Token lifecycle](../authentication#token-lifecycle).
+
 ---
 
 ## Request cancellation
@@ -127,7 +129,7 @@ Cancellation also applies while waiting for authentication, response headers, or
 
 Cancel the future returned directly by the SDK. Cancelling a dependent stage created with `thenApply(...)` or `thenCompose(...)` does not automatically cancel the original request. After successful cancellation, the SDK future is in the cancelled state and `get()` or `join()` throws `CancellationException`.
 
-Cancelling a future returned directly by `tokenAsync()` on the default authenticators cancels that token acquisition, including both authentication steps used by CP4D IAM. This differs from cancelling a service request that is waiting for a shared token.
+Cancelling a future returned by a built-in authenticator's `tokenAsync()` ends only that caller's wait. The shared acquisition continues. See [Token lifecycle](../authentication#token-lifecycle) for cache updates, synchronous interruption, and acquisition limits.
 
 Cancellation does not undo work already performed by the server or guarantee that server-side processing stops. For streaming callback behavior, see [Cancelling a Stream](../services/chat-service#cancelling-a-stream). Custom REST client implementations are responsible for propagating cancellation to their own transport and retry tasks.
 

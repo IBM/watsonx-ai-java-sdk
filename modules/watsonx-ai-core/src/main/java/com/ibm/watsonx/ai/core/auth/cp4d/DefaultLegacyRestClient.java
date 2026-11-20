@@ -6,7 +6,6 @@ package com.ibm.watsonx.ai.core.auth.cp4d;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
 import static com.ibm.watsonx.ai.core.Json.toJson;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -16,42 +15,24 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
-import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
  * Default implementation of the {@link CP4DRestClient}.
  */
 class DefaultLegacyRestClient extends CP4DRestClient {
-    private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
 
     DefaultLegacyRestClient(Builder builder) {
         super(builder);
-        syncHttpClient = HttpClientFactory.createSync(null, httpClient, null);
         asyncHttpClient = HttpClientFactory.createAsync(null, httpClient, null);
     }
 
     @Override
-    public TokenResponse token(TokenRequest request) {
-        try {
-
-            var response = syncHttpClient.send(createTokenRequest(request), BodyHandlers.ofString());
-            return parseTokenResponse(response);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
     public CompletableFuture<TokenResponse> tokenAsync(TokenRequest request) {
-        var httpFuture = asyncHttpClient.send(createTokenRequest(request), BodyHandlers.ofString());
-        return CancellableFutures.thenApply(httpFuture, this::parseTokenResponse);
+        return asyncHttpClient
+            .send(createTokenRequest(request), BodyHandlers.ofString())
+            .thenApply(this::parseTokenResponse);
     }
 
     /*

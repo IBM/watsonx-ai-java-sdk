@@ -7,16 +7,14 @@ package com.ibm.watsonx.ai.core.auth.ibmcloud;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
-import com.ibm.watsonx.ai.core.internal.CancellableFutures;
+import com.ibm.watsonx.ai.core.internal.SharedTokenCache;
 
 /**
  * The {@code IBMCloudAuthenticator} class is an implementation of the {@link Authenticator} interface, responsible for authenticating with IBM Cloud
@@ -38,7 +36,7 @@ public class IBMCloudAuthenticator implements Authenticator {
     private final String grantType;
     private final Duration timeout;
     private final IBMCloudRestClient client;
-    private final AtomicReference<TokenResponse> token;
+    private final SharedTokenCache<TokenResponse> tokenCache;
 
     /**
      * Constructs an IBMCloudAuthenticator instance using the provided builder.
@@ -46,7 +44,6 @@ public class IBMCloudAuthenticator implements Authenticator {
      * @param builder the builder instance
      */
     private IBMCloudAuthenticator(Builder builder) {
-        token = new AtomicReference<>();
         apiKey = requireNonNull(builder.apiKey);
         baseUrl = requireNonNullElse(builder.baseUrl, URI.create("https://iam.cloud.ibm.com"));
         grantType = requireNonNullElse(builder.grantType, "urn:ibm:params:oauth:grant-type:apikey");
@@ -57,33 +54,17 @@ public class IBMCloudAuthenticator implements Authenticator {
             .httpClient(builder.httpClient)
             .verifySsl(builder.verifySsl)
             .build();
+        tokenCache = new SharedTokenCache<>(this::isExpired, () -> client.tokenAsync(apiKey, grantType));
     }
 
     @Override
     public String token() {
-
-        TokenResponse currentToken = token.get();
-
-        if (!isExpired(currentToken))
-            return currentToken.accessToken();
-
-        var identityTokenResponse = client.token(apiKey, grantType);
-        token.getAndSet(identityTokenResponse);
-        return identityTokenResponse.accessToken();
+        return tokenCache.token().accessToken();
     }
 
     @Override
     public CompletableFuture<String> tokenAsync() {
-
-        TokenResponse currentToken = token.get();
-
-        if (!isExpired(currentToken))
-            return completedFuture(currentToken.accessToken());
-
-        return CancellableFutures.thenApply(client.tokenAsync(apiKey, grantType), identityTokenResponse -> {
-            token.getAndSet(identityTokenResponse);
-            return identityTokenResponse.accessToken();
-        });
+        return tokenCache.tokenAsync().thenApply(TokenResponse::accessToken);
     }
 
     @Override

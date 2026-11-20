@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.client.impl;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudRestClient;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.TokenResponse;
@@ -15,13 +17,9 @@ public class CustomIBMCloudRestClient extends IBMCloudRestClient {
     }
 
     @Override
-    public TokenResponse token(String apiKey, String grantType) {
-        throw new UnsupportedOperationException("Unimplemented method 'token'");
-    }
-
-    @Override
     public CompletableFuture<TokenResponse> tokenAsync(String apiKey, String grantType) {
-        throw new UnsupportedOperationException("Unimplemented method 'tokenAsync'");
+        return completedFuture(new TokenResponse("custom-ibm-cloud-token", null, "Bearer", 3600,
+            Instant.now().plusSeconds(3600).getEpochSecond(), "ibm openid"));
     }
 
     public static final class CustomIBMCloudRestClientBuilderFactory implements IBMCloudRestClientBuilderFactory {
