@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.client.impl;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DRestClient;
 import com.ibm.watsonx.ai.core.auth.cp4d.TokenRequest;
@@ -16,13 +18,9 @@ public class CustomCP4DIAMRestClient extends CP4DRestClient {
     }
 
     @Override
-    public TokenResponse token(TokenRequest request) {
-        throw new UnsupportedOperationException("Unimplemented method 'token'");
-    }
-
-    @Override
     public CompletableFuture<TokenResponse> tokenAsync(TokenRequest request) {
-        throw new UnsupportedOperationException("Unimplemented method 'tokenAsync'");
+        return completedFuture(new TokenResponse("custom-cp4d-iam-token", null, "Bearer", 3600L,
+            Instant.now().plusSeconds(3600).getEpochSecond(), "ibm openid"));
     }
 
     public static final class CustomCP4DIAMRestClientBuilderFactory implements CP4DRestClient.CP4DIAMRestClientBuilderFactory {

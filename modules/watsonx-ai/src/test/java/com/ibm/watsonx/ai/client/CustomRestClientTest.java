@@ -4,8 +4,10 @@
  */
 package com.ibm.watsonx.ai.client;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
@@ -122,6 +124,8 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 clientField.setAccessible(true);
                 var client = clientField.get(authenticator);
                 assertTrue(client instanceof CustomIBMCloudRestClient);
+                assertEquals("custom-ibm-cloud-token", authenticator.token());
+                assertEquals("custom-ibm-cloud-token", authenticator.tokenAsync().get(3, TimeUnit.SECONDS));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -145,6 +149,8 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 clientField.setAccessible(true);
                 var client = clientField.get(authenticator);
                 assertTrue(client instanceof CustomCP4DLegacyRestClient);
+                assertEquals("custom-cp4d-legacy-token", authenticator.token());
+                assertEquals("custom-cp4d-legacy-token", authenticator.tokenAsync().get(3, TimeUnit.SECONDS));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -169,6 +175,8 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 clientField.setAccessible(true);
                 var client = clientField.get(authenticator);
                 assertTrue(client instanceof CustomCP4DIAMRestClient);
+                assertEquals("custom-cp4d-iam-token", authenticator.token());
+                assertEquals("custom-cp4d-iam-token", authenticator.tokenAsync().get(3, TimeUnit.SECONDS));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -193,6 +201,8 @@ public class CustomRestClientTest extends AbstractWatsonxTest {
                 clientField.setAccessible(true);
                 var client = clientField.get(authenticator);
                 assertTrue(client instanceof CustomCP4DZenRestClient);
+                assertEquals("custom-cp4d-zen-token", authenticator.token());
+                assertEquals("custom-cp4d-zen-token", authenticator.tokenAsync().get(3, TimeUnit.SECONDS));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

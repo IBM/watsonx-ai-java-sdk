@@ -43,15 +43,7 @@ public abstract class CP4DRestClient {
     }
 
     /**
-     * Performs a synchronous REST call to Cloud Pak for Data to obtain a token.
-     *
-     * @param request the token request containing the credentials to exchange
-     * @return an {@link TokenResponse} containing the token and related metadata
-     */
-    public abstract TokenResponse token(TokenRequest request);
-
-    /**
-     * Performs a synchronous REST call to Cloud Pak for Data to obtain a token.
+     * Performs an asynchronous REST call to Cloud Pak for Data to obtain a token.
      *
      * @param request the token request containing the credentials to exchange
      * @return a {@link CompletableFuture} that contains the token and related metadata

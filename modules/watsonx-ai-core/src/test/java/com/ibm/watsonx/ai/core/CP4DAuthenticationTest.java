@@ -5,8 +5,11 @@
 package com.ibm.watsonx.ai.core;
 
 import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.IAM;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,19 +24,23 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.utils.Base64;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,6 +55,9 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.cp4d.AuthMode;
 import com.ibm.watsonx.ai.core.auth.cp4d.CP4DAuthenticator;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
+import com.ibm.watsonx.ai.core.http.interceptors.LoggerInterceptor.LogMode;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 import com.ibm.watsonx.ai.core.utils.Utils;
 
@@ -57,15 +67,50 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
     @Test
     @DisabledInNativeImage
     void should_preserve_interruption_when_authenticating_with_cp4d() throws Exception {
-        var interrupted = new InterruptedException("Token request interrupted");
-        when(mockSecureHttpClient.send(any(), any())).thenThrow(interrupted);
-        withWatsonxServiceMock(() -> {
-            for (var mode : new AuthMode[] { AuthMode.LEGACY, AuthMode.IAM }) {
+        for (var mode : new AuthMode[] { AuthMode.LEGACY, AuthMode.IAM }) {
+            var transport = new CompletableFuture<HttpResponse<String>>();
+            var acquired = mode == AuthMode.IAM ? identityResponse(false) : tokenResponse("access-token");
+            var validated = mode == AuthMode.IAM ? tokenResponse("access-token") : acquired;
+            when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                .thenReturn(transport)
+                .thenReturn(completedFuture(validated));
+            withWatsonxServiceMock(() -> {
                 var authenticator = CP4DAuthenticator.builder().baseUrl("http://localhost")
                     .username("user").password("password").authMode(mode).build();
-                assertInterrupted(interrupted, authenticator);
-            }
-        });
+                var independent = authenticator.tokenAsync();
+                var failure = new AtomicReference<Throwable>();
+                var interrupted = new AtomicBoolean();
+                var waiter = new Thread(() -> {
+                    try {
+                        authenticator.token();
+                    } catch (RuntimeException e) {
+                        failure.set(e.getCause());
+                        interrupted.set(Thread.currentThread().isInterrupted());
+                    }
+                });
+                try {
+                    waiter.start();
+                    var deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(3);
+                    while (waiter.getState() != Thread.State.WAITING && waiter.isAlive() && System.nanoTime() < deadline)
+                        Thread.yield();
+                    assertEquals(Thread.State.WAITING, waiter.getState());
+                    waiter.interrupt();
+                    assertDoesNotThrow(() -> waiter.join(3000));
+                    assertFalse(waiter.isAlive());
+                    assertInstanceOf(InterruptedException.class, failure.get());
+                    assertTrue(interrupted.get());
+                    assertFalse(transport.isDone());
+                    transport.complete(acquired);
+                    assertEquals("access-token", assertDoesNotThrow(() -> independent.get(3, TimeUnit.SECONDS)));
+                    assertEquals("access-token", authenticator.token());
+                } finally {
+                    transport.complete(acquired);
+                    waiter.interrupt();
+                    assertDoesNotThrow(() -> waiter.join(3000));
+                }
+            });
+        }
+        verify(mockSecureHttpClient, never()).send(any(), any());
     }
 
     @Nested
@@ -84,12 +129,12 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     "token": "access-token"
                 }""");
 
-            when(response.statusCode()).thenReturn(200);
 
             withWatsonxServiceMock(() -> {
 
                 try {
-                    when(mockSecureHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
+                        .thenReturn(completedFuture(response));
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
@@ -122,12 +167,12 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     "token": "access-token"
                 }""");
 
-            when(response.statusCode()).thenReturn(200);
 
             withWatsonxServiceMock(() -> {
 
                 try {
-                    when(mockSecureHttpClient.<String>send(mockHttpRequest.capture(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
+                        .thenReturn(completedFuture(response));
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
@@ -152,20 +197,17 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         @Test
         void should_raise_an_exception() throws Exception {
 
-            HttpResponse<String> response = mock(HttpResponse.class);
-            when(response.statusCode()).thenReturn(500);
-            when(response.body()).thenReturn("""
+            var message = """
                 {
                     "code": 602,
                     "message": "properties.username in body is required"
-                } """);
-
-            when(response.headers())
-                .thenReturn(HttpHeaders.of(Map.of("Content-Type", List.of("application/json")), (t, u) -> true));
+                }""";
+            var expected = new WatsonxException(message, 500, null);
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockSecureHttpClient.<String>send(any(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                        .thenReturn(failedFuture(expected));
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
@@ -175,11 +217,9 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         .build();
 
                     var ex = assertThrows(RuntimeException.class, () -> authenticator.token());
-                    assertEquals(ex.getMessage(), """
-                        {
-                            "code": 602,
-                            "message": "properties.username in body is required"
-                        }""");
+                    assertSame(expected, ex);
+                    assertEquals(500, expected.statusCode());
+                    assertEquals(message, ex.getMessage());
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -190,7 +230,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         void should_use_cached_token() throws Exception {
 
             HttpResponse<String> response = mock(HttpResponse.class);
-            when(response.statusCode()).thenReturn(200);
+
             when(response.body()).thenReturn("""
                 {
                     "_messageCode_": "200",
@@ -202,7 +242,8 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
             // NO IAM.
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockSecureHttpClient.<String>send(any(), any())).thenReturn(response);
+                    when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                        .thenReturn(completedFuture(response));
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
@@ -215,7 +256,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     // Get the value from the cache.
                     authenticator.token();
 
-                    verify(mockSecureHttpClient, times(1)).send(any(), any());
+                    verify(mockSecureHttpClient, times(1)).sendAsync(any(), any());
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -225,9 +266,9 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         @Test
         void should_use_cached_token_with_iam_configuration() throws Exception {
 
-            HttpResponse<String> identityTokenResponse = Utils.okResponse();
+            HttpResponse<String> identityTokenResponse = identityResponse(false);
             HttpResponse<String> validateResponse = mock(HttpResponse.class);
-            when(validateResponse.statusCode()).thenReturn(200);
+
             when(validateResponse.body()).thenReturn("""
                 {
                     "accessToken": "iam-access-token"
@@ -236,12 +277,12 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
             withWatsonxServiceMock(() -> {
                 try {
 
-                    when(mockSecureHttpClient.<String>send(any(), any())).thenAnswer(invocation -> {
+                    when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenAnswer(invocation -> {
                         String url = invocation.getArgument(0).toString();
                         if (url.endsWith("/idprovider/v1/auth/identitytoken POST"))
-                            return identityTokenResponse;
+                            return completedFuture(identityTokenResponse);
                         else if (url.endsWith("/v1/preauth/validateAuth GET"))
-                            return validateResponse;
+                            return completedFuture(validateResponse);
                         else
                             throw new RuntimeException("Unexpected URL: " + url);
                     });
@@ -260,7 +301,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     assertEquals("iam-access-token", token);
 
                     ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-                    verify(mockSecureHttpClient, times(2)).send(captor.capture(), any());
+                    verify(mockSecureHttpClient, times(2)).sendAsync(captor.capture(), any());
 
                     List<HttpRequest> requests = captor.getAllValues();
                     long identityCalls = requests.stream()
@@ -340,8 +381,8 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         void should_catch_the_io_exception_correctly_for_legacy_authentication() throws Exception {
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockSecureHttpClient.<String>send(any(), any()))
-                        .thenThrow(new IOException("IOException"));
+                    when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                        .thenReturn(failedFuture(new IOException("IOException")));
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
@@ -362,8 +403,8 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         void should_catch_the_io_exception_correctly_for_iam_authentication() throws Exception {
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockSecureHttpClient.<String>send(any(), any()))
-                        .thenThrow(new IOException("IOException"));
+                    when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                        .thenReturn(failedFuture(new IOException("IOException")));
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
                         .username("username")
@@ -385,9 +426,9 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         @Test
         void should_use_iam_authentication() {
 
-            var identityTokenResponse = Utils.okResponse();
+            var identityTokenResponse = identityResponse(false);
             HttpResponse<String> validateResponse = mock(HttpResponse.class);
-            when(validateResponse.statusCode()).thenReturn(200);
+
             when(validateResponse.body()).thenReturn("""
                 {
                     "accessToken": "iam-access-token"
@@ -395,12 +436,12 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockSecureHttpClient.<String>send(any(), any())).thenAnswer(invocation -> {
+                    when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenAnswer(invocation -> {
                         String url = invocation.getArgument(0).toString();
                         if (url.endsWith("/idprovider/v1/auth/identitytoken POST"))
-                            return identityTokenResponse;
+                            return completedFuture(identityTokenResponse);
                         else if (url.endsWith("/v1/preauth/validateAuth GET"))
-                            return validateResponse;
+                            return completedFuture(validateResponse);
                         else
                             throw new RuntimeException("Unexpected URL: " + url);
                     });
@@ -415,7 +456,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     assertEquals("iam-access-token", authenticator.token());
 
                     ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
-                    verify(mockSecureHttpClient, times(2)).send(captor.capture(), any());
+                    verify(mockSecureHttpClient, times(2)).sendAsync(captor.capture(), any());
 
                     List<HttpRequest> requests = captor.getAllValues();
                     HttpRequest identityRequest = requests.get(0);
@@ -439,16 +480,16 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         @Test
         void should_refresh_token_when_existing_token_is_expired() throws Exception {
 
-            var expiredResponse = Utils.expiredResponse();
+            var expiredResponse = identityResponse(true);
             HttpResponse<String> expiredAccessToken = mock(HttpResponse.class);
-            when(expiredAccessToken.statusCode()).thenReturn(200);
+
             when(expiredAccessToken.body()).thenReturn("""
                 {
                     "accessToken": "iam-access-token"
                 }""");
-            var validResponse = Utils.okResponse();
+            var validResponse = identityResponse(false);
             HttpResponse<String> accessToken = mock(HttpResponse.class);
-            when(accessToken.statusCode()).thenReturn(200);
+
             when(accessToken.body()).thenReturn("""
                 {
                     "accessToken": "ok-access-token"
@@ -456,11 +497,11 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockSecureHttpClient.<String>send(any(), any()))
-                        .thenReturn(expiredResponse)
-                        .thenReturn(expiredAccessToken)
-                        .thenReturn(validResponse)
-                        .thenReturn(accessToken);
+                    when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                        .thenReturn(completedFuture(expiredResponse))
+                        .thenReturn(completedFuture(expiredAccessToken))
+                        .thenReturn(completedFuture(validResponse))
+                        .thenReturn(completedFuture(accessToken));
 
                     Authenticator authenticator = CP4DAuthenticator.builder()
                         .baseUrl("https://localhost")
@@ -472,7 +513,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     authenticator.token();
 
                     assertEquals("ok-access-token", authenticator.token());
-                    verify(mockSecureHttpClient, times(4)).send(any(), any());
+                    verify(mockSecureHttpClient, times(4)).sendAsync(any(), any());
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -483,7 +524,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         void should_treat_iam_token_without_expiration_as_expired() {
 
             HttpResponse<String> identityResponse = mock(HttpResponse.class);
-            when(identityResponse.statusCode()).thenReturn(200);
+
             when(identityResponse.body()).thenReturn("""
                 {
                     "access_token": "identity-token",
@@ -491,7 +532,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 }""");
 
             HttpResponse<String> validateResponse = mock(HttpResponse.class);
-            when(validateResponse.statusCode()).thenReturn(200);
+
             when(validateResponse.body()).thenReturn("""
                 {
                     "accessToken": "iam-access-token"
@@ -499,12 +540,12 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 try {
-                    when(mockSecureHttpClient.<String>send(any(), any())).thenAnswer(invocation -> {
+                    when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenAnswer(invocation -> {
                         String url = invocation.getArgument(0).toString();
                         if (url.endsWith("/idprovider/v1/auth/identitytoken POST"))
-                            return identityResponse;
+                            return completedFuture(identityResponse);
                         else if (url.endsWith("/v1/preauth/validateAuth GET"))
-                            return validateResponse;
+                            return completedFuture(validateResponse);
                         else
                             throw new RuntimeException("Unexpected URL: " + url);
                     });
@@ -519,7 +560,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     assertEquals("iam-access-token", assertDoesNotThrow(() -> authenticator.token()));
                     // A token without expiration is always "expired", so the second call re-runs the full flow.
                     assertEquals("iam-access-token", assertDoesNotThrow(() -> authenticator.token()));
-                    verify(mockSecureHttpClient, times(4)).send(any(), any());
+                    verify(mockSecureHttpClient, times(4)).sendAsync(any(), any());
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -558,56 +599,76 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
     class Async {
 
         @Test
-        void should_cancel_legacy_token_transport_when_token_acquisition_is_cancelled() {
+        void should_fill_the_legacy_cache_when_all_token_waiters_are_cancelled() {
             var transport = new CompletableFuture<HttpResponse<String>>();
             when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(transport);
 
             withWatsonxServiceMock(() -> {
-                var token = authenticator(AuthMode.LEGACY).tokenAsync();
+                var authenticator = authenticator(AuthMode.LEGACY);
+                var first = authenticator.tokenAsync();
+                var second = authenticator.tokenAsync();
 
-                assertCancellation(token, transport);
+                assertCancellation(first, transport);
+                assertCancellation(second, transport);
+                transport.complete(tokenResponse("access-token"));
+
+                assertEquals("access-token", authenticator.token());
+                assertEquals("access-token", assertDoesNotThrow(() -> authenticator.tokenAsync().get(3, TimeUnit.SECONDS)));
                 verify(mockSecureHttpClient).sendAsync(any(), any());
             });
         }
 
         @Test
-        void should_cancel_iam_identity_transport_when_token_acquisition_is_cancelled() {
+        void should_keep_iam_identity_acquisition_when_one_waiter_is_cancelled() {
             var transport = new CompletableFuture<HttpResponse<String>>();
-            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(transport);
+            when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                .thenReturn(transport)
+                .thenReturn(completedFuture(tokenResponse("access-token")));
 
             withWatsonxServiceMock(() -> {
-                var token = authenticator(AuthMode.IAM).tokenAsync();
+                var authenticator = authenticator(AuthMode.IAM);
+                var token = authenticator.tokenAsync();
+                var independent = authenticator.tokenAsync();
 
                 assertCancellation(token, transport);
-                verify(mockSecureHttpClient).sendAsync(any(), any());
+                transport.complete(identityResponse(false));
+
+                assertEquals("access-token", assertDoesNotThrow(() -> independent.get(3, TimeUnit.SECONDS)));
+                assertEquals("access-token", authenticator.token());
+                verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
             });
         }
 
         @Test
-        void should_cancel_iam_validation_transport_when_token_acquisition_is_cancelled() {
+        void should_fill_the_iam_cache_when_all_waiters_cancel_during_validation() {
             var validation = new CompletableFuture<HttpResponse<String>>();
             var validationStarted = new CountDownLatch(1);
-            var identityResponse = Utils.okResponse();
+            var identityResponse = identityResponse(false);
             when(mockSecureHttpClient.<String>sendAsync(any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(identityResponse))
+                .thenReturn(completedFuture(identityResponse))
                 .thenAnswer(invocation -> {
                     validationStarted.countDown();
                     return validation;
                 });
 
             withWatsonxServiceMock(() -> {
-                var token = authenticator(AuthMode.IAM).tokenAsync();
+                var authenticator = authenticator(AuthMode.IAM);
+                var token = authenticator.tokenAsync();
                 assertDoesNotThrow(() -> assertTrue(validationStarted.await(3, TimeUnit.SECONDS)));
 
                 assertCancellation(token, validation);
+                validation.complete(tokenResponse("access-token"));
+
+                assertEquals("access-token", authenticator.token());
+                assertEquals("access-token", assertDoesNotThrow(() -> authenticator.tokenAsync().get(3, TimeUnit.SECONDS)));
                 verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
             });
         }
 
         @Test
-        void should_not_start_iam_validation_after_cancellation_during_identity_parsing() throws Exception {
+        void should_continue_iam_validation_after_waiter_cancellation_during_identity_parsing() throws Exception {
             var identity = new CompletableFuture<HttpResponse<String>>();
-            var identityResponse = Utils.okResponse();
+            var identityResponse = identityResponse(false);
             var identityBody = identityResponse.body();
             var parsingStarted = new CountDownLatch(1);
             var release = new CountDownLatch(1);
@@ -617,13 +678,17 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 assertTrue(release.await(3, TimeUnit.SECONDS));
                 return identityBody;
             });
-            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(identity);
+            when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                .thenReturn(identity)
+                .thenReturn(completedFuture(tokenResponse("access-token")));
 
             try {
                 withWatsonxServiceMock(() -> {
                     try (var executors = mockStatic(ExecutorProvider.class)) {
                         executors.when(ExecutorProvider::ioExecutor).thenReturn((Executor) Runnable::run);
-                        var token = authenticator(AuthMode.IAM).tokenAsync();
+                        var authenticator = authenticator(AuthMode.IAM);
+                        var token = authenticator.tokenAsync();
+                        var independent = authenticator.tokenAsync();
                         var completingIdentity = worker.submit(() -> identity.complete(identityResponse));
                         assertDoesNotThrow(() -> assertTrue(parsingStarted.await(3, TimeUnit.SECONDS)));
 
@@ -632,7 +697,9 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         assertDoesNotThrow(() -> completingIdentity.get(3, TimeUnit.SECONDS));
 
                         assertThrows(CancellationException.class, token::join);
-                        verify(mockSecureHttpClient).sendAsync(any(), any());
+                        assertEquals("access-token", assertDoesNotThrow(() -> independent.get(3, TimeUnit.SECONDS)));
+                        assertEquals("access-token", authenticator.token());
+                        verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
                     }
                 });
             } finally {
@@ -642,10 +709,10 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         }
 
         @Test
-        void should_cancel_iam_validation_transport_registered_after_cancellation() throws Exception {
+        void should_keep_iam_validation_transport_registered_after_waiter_cancellation() throws Exception {
             var identity = new CompletableFuture<HttpResponse<String>>();
             var validation = new CompletableFuture<HttpResponse<String>>();
-            var identityResponse = Utils.okResponse();
+            var identityResponse = identityResponse(false);
             var validationStarted = new CountDownLatch(1);
             var release = new CountDownLatch(1);
             var worker = Executors.newSingleThreadExecutor();
@@ -659,7 +726,8 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 withWatsonxServiceMock(() -> {
                     try (var executors = mockStatic(ExecutorProvider.class)) {
                         executors.when(ExecutorProvider::ioExecutor).thenReturn((Executor) Runnable::run);
-                        var token = authenticator(AuthMode.IAM).tokenAsync();
+                        var authenticator = authenticator(AuthMode.IAM);
+                        var token = authenticator.tokenAsync();
                         var completingIdentity = worker.submit(() -> identity.complete(identityResponse));
                         assertDoesNotThrow(() -> assertTrue(validationStarted.await(3, TimeUnit.SECONDS)));
 
@@ -667,9 +735,10 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                         release.countDown();
                         assertDoesNotThrow(() -> completingIdentity.get(3, TimeUnit.SECONDS));
 
-                        assertDoesNotThrow(() -> validation.handle((result, error) -> null).get(3, TimeUnit.SECONDS));
-                        assertTrue(validation.isCancelled());
+                        assertFalse(validation.isDone());
+                        validation.complete(tokenResponse("access-token"));
                         assertThrows(CancellationException.class, token::join);
+                        assertEquals("access-token", authenticator.token());
                         verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
                     }
                 });
@@ -690,9 +759,173 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
         private void assertCancellation(CompletableFuture<String> token, CompletableFuture<HttpResponse<String>> transport) {
             assertTrue(token.cancel(true));
-            assertDoesNotThrow(() -> transport.handle((result, error) -> null).get(3, TimeUnit.SECONDS));
-            assertTrue(transport.isCancelled());
+            assertFalse(transport.isDone());
             assertThrows(CancellationException.class, token::join);
+        }
+
+        @Test
+        void should_share_legacy_token_acquisition_between_twenty_pending_callers() {
+            var transport = new CompletableFuture<HttpResponse<String>>();
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(transport);
+
+            withWatsonxServiceMock(() -> {
+                var authenticator = authenticator(AuthMode.LEGACY);
+                var waiters = new ArrayList<CompletableFuture<String>>();
+                for (var i = 0; i < 20; i++)
+                    waiters.add(authenticator.tokenAsync());
+
+                verify(mockSecureHttpClient).sendAsync(any(), any());
+                transport.complete(tokenResponse("shared-legacy-token"));
+
+                for (var waiter : waiters)
+                    assertEquals("shared-legacy-token", assertDoesNotThrow(() -> waiter.get(3, TimeUnit.SECONDS)));
+                assertEquals("shared-legacy-token", authenticator.token());
+                assertEquals("shared-legacy-token", assertDoesNotThrow(() -> authenticator.tokenAsync().get(3, TimeUnit.SECONDS)));
+                verify(mockSecureHttpClient).sendAsync(any(), any());
+            });
+        }
+
+        @Test
+        void should_share_both_iam_stages_between_twenty_pending_callers() {
+            var identity = new CompletableFuture<HttpResponse<String>>();
+            var validation = new CompletableFuture<HttpResponse<String>>();
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(identity).thenReturn(validation);
+
+            withWatsonxServiceMock(() -> {
+                var authenticator = authenticator(AuthMode.IAM);
+                var waiters = new ArrayList<CompletableFuture<String>>();
+                for (var i = 0; i < 20; i++)
+                    waiters.add(authenticator.tokenAsync());
+
+                verify(mockSecureHttpClient).sendAsync(any(), any());
+                identity.complete(identityResponse(false));
+                verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
+                assertTrue(waiters.stream().noneMatch(CompletableFuture::isDone));
+                validation.complete(tokenResponse("shared-iam-token"));
+
+                for (var waiter : waiters)
+                    assertEquals("shared-iam-token", assertDoesNotThrow(() -> waiter.get(3, TimeUnit.SECONDS)));
+                assertEquals("shared-iam-token", authenticator.token());
+                assertEquals("shared-iam-token", assertDoesNotThrow(() -> authenticator.tokenAsync().get(3, TimeUnit.SECONDS)));
+                verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
+            });
+        }
+
+        @Test
+        void should_share_refresh_of_an_expired_iam_token_between_twenty_pending_callers() {
+            var identity = new CompletableFuture<HttpResponse<String>>();
+            var validation = new CompletableFuture<HttpResponse<String>>();
+            var expiredIdentity = identityResponse(true);
+            var expiredValidation = tokenResponse("expired-iam-token");
+            when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                .thenReturn(completedFuture(expiredIdentity))
+                .thenReturn(completedFuture(expiredValidation))
+                .thenReturn(identity)
+                .thenReturn(validation);
+
+            withWatsonxServiceMock(() -> {
+                var authenticator = authenticator(AuthMode.IAM);
+                assertEquals("expired-iam-token", assertDoesNotThrow(() -> authenticator.tokenAsync().get(3, TimeUnit.SECONDS)));
+                var waiters = new ArrayList<CompletableFuture<String>>();
+                for (var i = 0; i < 20; i++)
+                    waiters.add(authenticator.tokenAsync());
+
+                verify(mockSecureHttpClient, times(3)).sendAsync(any(), any());
+                identity.complete(identityResponse(false));
+                validation.complete(tokenResponse("refreshed-iam-token"));
+
+                for (var waiter : waiters)
+                    assertEquals("refreshed-iam-token", assertDoesNotThrow(() -> waiter.get(3, TimeUnit.SECONDS)));
+                assertEquals("refreshed-iam-token", authenticator.token());
+                verify(mockSecureHttpClient, times(4)).sendAsync(any(), any());
+            });
+        }
+
+        @Test
+        void should_allow_acquisition_after_a_shared_legacy_failure() {
+            var transport = new CompletableFuture<HttpResponse<String>>();
+            var failure = new IOException("Token endpoint unavailable");
+            when(mockSecureHttpClient.<String>sendAsync(any(), any()))
+                .thenReturn(transport)
+                .thenReturn(completedFuture(tokenResponse("recovered-token")));
+
+            withWatsonxServiceMock(() -> {
+                var authenticator = authenticator(AuthMode.LEGACY);
+                var first = authenticator.tokenAsync();
+                var second = authenticator.tokenAsync();
+                transport.completeExceptionally(failure);
+
+                assertSame(failure, assertThrows(ExecutionException.class,
+                    () -> first.get(3, TimeUnit.SECONDS)).getCause());
+                assertSame(failure, assertThrows(ExecutionException.class,
+                    () -> second.get(3, TimeUnit.SECONDS)).getCause());
+                assertEquals("recovered-token", authenticator.token());
+                verify(mockSecureHttpClient, times(2)).sendAsync(any(), any());
+            });
+        }
+
+        @Test
+        void should_not_send_a_cancelled_service_request_after_shared_cp4d_authentication() {
+            var login = new CompletableFuture<HttpResponse<String>>();
+            var serviceResponse = tokenResponse("service-response");
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenAnswer(invocation -> {
+                HttpRequest request = invocation.getArgument(0);
+                return request.uri().getPath().equals("/icp4d-api/v1/authorize")
+                    ? login
+                    : completedFuture(serviceResponse);
+            });
+
+            withWatsonxServiceMock(() -> {
+                var authenticator = authenticator(AuthMode.LEGACY);
+                var client = HttpClientFactory.createAsync(authenticator, mockSecureHttpClient, LogMode.DISABLED);
+                var request = HttpRequest.newBuilder(URI.create("https://localhost/resource")).GET().build();
+                var cancelled = client.send(request, BodyHandlers.ofString());
+                var independent = client.send(request, BodyHandlers.ofString());
+
+                assertTrue(cancelled.cancel(true));
+                assertFalse(login.isDone());
+                login.complete(tokenResponse("shared-service-token"));
+
+                assertSame(serviceResponse, assertDoesNotThrow(() -> independent.get(3, TimeUnit.SECONDS)));
+                assertThrows(CancellationException.class, cancelled::join);
+                var requests = ArgumentCaptor.forClass(HttpRequest.class);
+                verify(mockSecureHttpClient, times(2)).sendAsync(requests.capture(), any());
+                var serviceRequests = requests.getAllValues().stream()
+                    .filter(sent -> sent.uri().getPath().equals("/resource"))
+                    .toList();
+                assertEquals(1, serviceRequests.size());
+                assertEquals("Bearer shared-service-token", serviceRequests.get(0).headers().firstValue("Authorization").orElseThrow());
+
+                assertSame(serviceResponse, assertDoesNotThrow(() -> client.send(request, BodyHandlers.ofString())
+                    .get(3, TimeUnit.SECONDS)));
+                verify(mockSecureHttpClient, times(3)).sendAsync(any(), any());
+            });
+        }
+
+        @Test
+        void should_cache_cp4d_authentication_after_all_service_requests_are_cancelled() {
+            var login = new CompletableFuture<HttpResponse<String>>();
+            when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenReturn(login);
+
+            withWatsonxServiceMock(() -> {
+                var authenticator = authenticator(AuthMode.LEGACY);
+                var client = HttpClientFactory.createAsync(authenticator, mockSecureHttpClient, LogMode.DISABLED);
+                var request = HttpRequest.newBuilder(URI.create("https://localhost/resource")).GET().build();
+                var first = client.send(request, BodyHandlers.ofString());
+                var second = client.send(request, BodyHandlers.ofString());
+
+                assertTrue(first.cancel(true));
+                assertTrue(second.cancel(false));
+                assertFalse(login.isDone());
+                login.complete(tokenResponse("cached-service-token"));
+
+                assertEquals("cached-service-token", assertDoesNotThrow(() -> authenticator.tokenAsync().get(3, TimeUnit.SECONDS)));
+                assertThrows(CancellationException.class, first::join);
+                assertThrows(CancellationException.class, second::join);
+                var requests = ArgumentCaptor.forClass(HttpRequest.class);
+                verify(mockSecureHttpClient).sendAsync(requests.capture(), any());
+                assertEquals("/icp4d-api/v1/authorize", requests.getValue().uri().getPath());
+            });
         }
 
         @Test
@@ -708,7 +941,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
 
             withWatsonxServiceMock(() -> {
                 when(mockSecureHttpClient.<String>sendAsync(mockHttpRequest.capture(), any()))
-                    .thenReturn(CompletableFuture.completedFuture(response));
+                    .thenReturn(completedFuture(response));
 
                 Authenticator authenticator = CP4DAuthenticator.builder()
                     .username("username")
@@ -724,7 +957,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         void should_use_iam_authentication() {
 
             // Prima risposta: identitytoken
-            HttpResponse<String> identityResponse = Utils.okResponse();
+            HttpResponse<String> identityResponse = identityResponse(false);
             HttpResponse<String> validateResponse = mock(HttpResponse.class);
             when(validateResponse.body()).thenReturn("""
                 {
@@ -736,8 +969,8 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 try {
 
                     when(mockSecureHttpClient.<String>sendAsync(any(), any()))
-                        .thenReturn(CompletableFuture.completedFuture(identityResponse))
-                        .thenReturn(CompletableFuture.completedFuture(validateResponse));
+                        .thenReturn(completedFuture(identityResponse))
+                        .thenReturn(completedFuture(validateResponse));
 
                     ArgumentCaptor<HttpRequest> reqCaptor = ArgumentCaptor.forClass(HttpRequest.class);
 
@@ -779,11 +1012,11 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         @Test
         void should_use_cached_token() throws Exception {
 
-            HttpResponse<String> response = Utils.okResponse();
+            HttpResponse<String> response = identityResponse(false);
 
             withWatsonxServiceMock(() -> {
                 when(mockSecureHttpClient.<String>sendAsync(any(), any()))
-                    .thenReturn(CompletableFuture.completedFuture(response));
+                    .thenReturn(completedFuture(response));
 
                 Authenticator authenticator = CP4DAuthenticator.builder()
                     .username("username")
@@ -803,9 +1036,9 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         @Test
         void should_use_cached_token_with_iam_configuration() throws Exception {
 
-            HttpResponse<String> identityTokenResponse = Utils.okResponse();
+            HttpResponse<String> identityTokenResponse = identityResponse(false);
             HttpResponse<String> validateResponse = mock(HttpResponse.class);
-            when(validateResponse.statusCode()).thenReturn(200);
+
             when(validateResponse.body()).thenReturn("""
                 {
                     "accessToken": "iam-access-token"
@@ -817,9 +1050,9 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                     when(mockSecureHttpClient.<String>sendAsync(any(), any())).thenAnswer(invocation -> {
                         String url = invocation.getArgument(0).toString();
                         if (url.endsWith("/idprovider/v1/auth/identitytoken POST"))
-                            return CompletableFuture.completedFuture(identityTokenResponse);
+                            return completedFuture(identityTokenResponse);
                         else if (url.endsWith("/v1/preauth/validateAuth GET"))
-                            return CompletableFuture.completedFuture(validateResponse);
+                            return completedFuture(validateResponse);
                         else
                             throw new RuntimeException("Unexpected URL: " + url);
                     });
@@ -888,7 +1121,7 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
                 try (MockedStatic<ExecutorProvider> mockedStatic = mockStatic(ExecutorProvider.class)) {
 
                     when(mockSecureHttpClient.sendAsync(any(), any(BodyHandler.class)))
-                        .thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
+                        .thenReturn(completedFuture(mockHttpResponse));
 
                     Executor ioExecutor = Executors.newSingleThreadExecutor(r -> {
                         var thread = new Thread(r, "io-thread");
@@ -946,13 +1179,19 @@ public class CP4DAuthenticationTest extends AbstractWatsonxTest {
         assertEquals("Bearer", authenticator.scheme());
     }
 
-    private void assertInterrupted(InterruptedException expected, Authenticator authenticator) {
-        try {
-            var failure = assertThrows(RuntimeException.class, authenticator::token);
-            assertSame(expected, failure.getCause());
-            assertTrue(Thread.currentThread().isInterrupted());
-        } finally {
-            Thread.interrupted();
-        }
+    @SuppressWarnings("unchecked")
+    private HttpResponse<String> identityResponse(boolean expired) {
+        HttpResponse<String> response = mock(HttpResponse.class);
+        var expiration = Instant.now().plusSeconds(expired ? -3600 : 3600).getEpochSecond();
+        when(response.body()).thenReturn(Utils.OK_RESPONSE.formatted(expiration));
+        return response;
+    }
+
+    @SuppressWarnings("unchecked")
+    private HttpResponse<String> tokenResponse(String token) {
+        HttpResponse<String> response = mock(HttpResponse.class);
+
+        when(response.body()).thenReturn("{\"token\":\"%s\"}".formatted(token));
+        return response;
     }
 }

@@ -5,7 +5,6 @@
 package com.ibm.watsonx.ai.core.auth.ibmcloud;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
@@ -16,42 +15,23 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
-import com.ibm.watsonx.ai.core.http.SyncHttpClient;
-import com.ibm.watsonx.ai.core.internal.CancellableFutures;
 
 /**
  * Default implementation of the {@link IBMCloudRestClient}.
  */
 final class DefaultRestClient extends IBMCloudRestClient {
-    private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
 
     DefaultRestClient(Builder builder) {
         super(builder);
-        syncHttpClient = HttpClientFactory.createSync(null, httpClient, null);
         asyncHttpClient = HttpClientFactory.createAsync(null, httpClient, null);
     }
 
     @Override
-    public TokenResponse token(String apiKey, String grantType) {
-
-        try {
-
-            var response = syncHttpClient.send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString());
-            return fromJson(response.body(), TokenResponse.class);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
     public CompletableFuture<TokenResponse> tokenAsync(String apiKey, String grantType) {
-        var httpFuture = asyncHttpClient.send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString());
-        return CancellableFutures.thenApply(httpFuture, result -> fromJson(result.body(), TokenResponse.class));
+        return asyncHttpClient
+            .send(createHttpRequest(apiKey, grantType), BodyHandlers.ofString())
+            .thenApply(result -> fromJson(result.body(), TokenResponse.class));
     }
 
     /*

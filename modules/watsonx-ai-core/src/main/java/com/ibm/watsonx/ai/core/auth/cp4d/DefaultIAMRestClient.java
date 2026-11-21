@@ -5,8 +5,6 @@
 package com.ibm.watsonx.ai.core.auth.cp4d;
 
 import static com.ibm.watsonx.ai.core.Json.fromJson;
-import static java.util.Objects.nonNull;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
@@ -15,76 +13,33 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.core.factory.HttpClientFactory;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
-import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
 
 /**
  * Default implementation of the {@link CP4DRestClient}.
  */
 class DefaultIAMRestClient extends CP4DRestClient {
-    private final SyncHttpClient syncHttpClient;
     private final AsyncHttpClient asyncHttpClient;
 
     DefaultIAMRestClient(Builder builder) {
         super(builder);
-        syncHttpClient = HttpClientFactory.createSync(null, httpClient, null);
         asyncHttpClient = HttpClientFactory.createAsync(null, httpClient, null);
     }
 
     @Override
-    public TokenResponse token(TokenRequest request) {
-        try {
-
-            var response = syncHttpClient.send(createTokenRequest(request), BodyHandlers.ofString());
-            var tokenResponse = parseTokenResponse(response);
-            var httpRequest = createValidationRequest(request.username(), tokenResponse.accessToken());
-            return createTokenResponse(syncHttpClient.send(httpRequest, BodyHandlers.ofString()), tokenResponse);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
     public CompletableFuture<TokenResponse> tokenAsync(TokenRequest request) {
-        var response = new CompletableFuture<TokenResponse>();
-        var current = new AtomicReference<CompletableFuture<HttpResponse<String>>>();
-        response.whenComplete((result, error) -> {
-            if (response.isCancelled()) {
-                var attempt = current.get();
-                if (nonNull(attempt))
-                    attempt.cancel(true);
-            }
-        });
-
-        var identityFuture = asyncHttpClient.send(createTokenRequest(request), BodyHandlers.ofString());
-        current.set(identityFuture);
-        identityFuture.thenCompose(identityResponse -> {
-            var tokenResponse = parseTokenResponse(identityResponse);
-            var httpRequest = createValidationRequest(request.username(), tokenResponse.accessToken());
-            if (response.isDone())
-                return CompletableFuture.<TokenResponse>failedFuture(new CancellationException());
-
-            var validationFuture = asyncHttpClient.send(httpRequest, BodyHandlers.ofString());
-            current.set(validationFuture);
-            if (response.isCancelled())
-                validationFuture.cancel(true);
-            return validationFuture.thenApply(httpResponse -> createTokenResponse(httpResponse, tokenResponse));
-        }).whenComplete((result, error) -> {
-            if (error == null)
-                response.complete(result);
-            else
-                response.completeExceptionally(error);
-        });
-        return response;
+        return asyncHttpClient
+            .send(createTokenRequest(request), BodyHandlers.ofString())
+            .thenCompose(identityResponse -> {
+                var tokenResponse = parseTokenResponse(identityResponse);
+                var httpRequest = createValidationRequest(request.username(), tokenResponse.accessToken());
+                return asyncHttpClient
+                    .send(httpRequest, BodyHandlers.ofString())
+                    .thenApply(httpResponse -> createTokenResponse(httpResponse, tokenResponse));
+            });
     }
 
     /*

@@ -12,9 +12,7 @@ The SDK uses the `Authenticator` interface as the single abstraction for token-b
 | `IBMCloudAuthenticator` | Working against **IBM watsonx.ai on IBM Cloud** - exchanges an API key for an IAM bearer token |
 | `CP4DAuthenticator` | Working against **IBM watsonx.ai software** on-premises (CP4D) - three authentication modes available |
 
-Both implementations handle **token caching and automatic renewal** transparently. The SDK fetches a token on the first request, caches it, checks expiry before each subsequent request, and refreshes silently when needed. You never manage token lifecycle manually.
-
-Cancelling an asynchronous service request leaves shared token acquisition running for other requests. Cancelling a future obtained directly from a built-in authenticator's `tokenAsync()` cancels that acquisition. See [Request cancellation](./advanced/http-client#request-cancellation).
+Built-in authenticators cache tokens per instance. See [Token lifecycle](#token-lifecycle) for acquisition, concurrent access, cancellation, and token request timeouts.
 
 Any other credential source can be plugged in by implementing `Authenticator` yourself. See [Custom Authentication](#custom-authentication).
 
@@ -74,7 +72,7 @@ IBMCloudAuthenticator authenticator = IBMCloudAuthenticator.withKey(WATSONX_API_
 | `apiKey` | String | Yes | IBM Cloud API key |
 | `baseUrl` | URI | No | IAM token endpoint (default: `https://iam.cloud.ibm.com`) |
 | `grantType` | String | No | OAuth grant type (default: `urn:ibm:params:oauth:grant-type:apikey`) |
-| `timeout` | Duration | No | Timeout for token requests (default: 60 seconds) |
+| `timeout` | Duration | No | Timeout applied to each token HTTP attempt (default: 60 seconds) |
 | `httpClient` | HttpClient | No | Custom HTTP client for token requests |
 | `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
 
@@ -156,7 +154,7 @@ ChatService chatService = ChatService.builder()
 | `apiKey` | String | Conditional | CP4D API key (`LEGACY` and `ZEN_API_KEY` modes - either `apiKey` or `password` required) |
 | `password` | String | Conditional | CP4D password (all modes - either `password` or `apiKey` required, mandatory for `IAM` mode) |
 | `authMode` | AuthMode | No | Authentication mode: `LEGACY` (default), `IAM`, or `ZEN_API_KEY` |
-| `timeout` | Duration | No | Timeout for token requests (default: 60 seconds) |
+| `timeout` | Duration | No | Timeout applied to each token HTTP attempt (default: 60 seconds) |
 | `httpClient` | HttpClient | No | Custom HTTP client (useful for SSL configuration) |
 | `verifySsl` | Boolean | No | SSL certificate verification (default: true) |
 
@@ -210,6 +208,14 @@ ChatService chatService = ChatService.builder()
 
 ## Token lifecycle
 
+Built-in authenticators are thread-safe. Share one instance across services to reuse its cache. Concurrent `token()` and `tokenAsync()` calls share one acquisition when the cache is empty or the token has expired. For CP4D IAM, that acquisition includes both the identity and validation requests.
+
+Each `tokenAsync()` call returns an independent future. Cancelling it ends only that caller's wait. The acquisition continues, and a successful result updates the cache even if every waiting caller cancels. Cancelling a service request during authentication also leaves the acquisition running and prevents the cancelled service request from being sent after the token arrives. See [Request cancellation](./advanced/http-client#request-cancellation).
+
+`token()` waits for the same asynchronous acquisition. Interrupting a waiting thread restores its interrupt flag and throws a `RuntimeException` whose cause is the `InterruptedException`, without interrupting the shared acquisition. An acquisition failure releases the waiting callers and allows a later call to try again. Avoid blocking the executor threads needed to complete authentication.
+
+The authenticator builder's `timeout` configures each token HTTP attempt and defaults to 60 seconds. It is separate from a service builder's timeout and is not an overall acquisition deadline. CP4D IAM makes two sequential HTTP requests, each with its own timeout, and retries can extend the acquisition further.
+
 ```text
 First request
   → Authenticator fetches a token from IAM / CP4D
@@ -226,6 +232,10 @@ Token expiry during a request
   → Configurable via WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES
 ```
 
-Both authenticators are **thread-safe**, so the same instance can be shared across multiple service clients and called from multiple threads concurrently.
-
 > To tune how many times the SDK retries on token expiry, set the `WATSONX_RETRY_TOKEN_EXPIRED_MAX_RETRIES` environment variable. See [Environment Variables](advanced/environment-variables) for details.
+
+### Custom REST client providers
+
+REST providers implement `IBMCloudRestClient.tokenAsync()` or `CP4DRestClient.tokenAsync()`. The built-in authenticators use this asynchronous method for both `Authenticator.token()` and `Authenticator.tokenAsync()`.
+
+Provider implementations must return promptly and complete their future after all required authentication steps. A provider future that never completes keeps the shared acquisition pending, so subsequent callers join the same pending acquisition. Cancelling a caller's future or interrupting a synchronous waiter does not reset it. Custom providers must enforce their own time limits and complete exceptionally on failure.

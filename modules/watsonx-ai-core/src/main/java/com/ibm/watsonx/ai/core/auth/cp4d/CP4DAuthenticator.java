@@ -8,16 +8,14 @@ import static com.ibm.watsonx.ai.core.auth.cp4d.AuthMode.LEGACY;
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
-import com.ibm.watsonx.ai.core.internal.CancellableFutures;
+import com.ibm.watsonx.ai.core.internal.SharedTokenCache;
 
 /**
  * The {@code CP4DAuthenticator} class is an implementation of the {@link Authenticator} interface, responsible for authenticating with Cloud Pack for
@@ -45,7 +43,7 @@ public class CP4DAuthenticator implements Authenticator {
     private final Duration timeout;
     private final CP4DRestClient client;
     private final AuthMode authMode;
-    private final AtomicReference<TokenResponse> token;
+    private final SharedTokenCache<TokenResponse> tokenCache;
 
     private CP4DAuthenticator(Builder builder) {
         baseUrl = requireNonNull(builder.baseUrl, "BaseUrl must be provided");
@@ -54,7 +52,6 @@ public class CP4DAuthenticator implements Authenticator {
         authMode = requireNonNullElse(builder.authMode, LEGACY);
         apiKey = builder.apiKey;
         password = builder.password;
-        token = new AtomicReference<>();
 
         switch(authMode) {
             case IAM -> {
@@ -73,33 +70,17 @@ public class CP4DAuthenticator implements Authenticator {
             .httpClient(builder.httpClient)
             .verifySsl(builder.verifySsl)
             .build();
+        tokenCache = new SharedTokenCache<>(this::isExpired, () -> client.tokenAsync(new TokenRequest(username, password, apiKey)));
     }
 
     @Override
     public String token() {
-
-        TokenResponse currentToken = token.get();
-
-        if (!isExpired(currentToken))
-            return currentToken.accessToken();
-
-        var tokenResponse = client.token(new TokenRequest(username, password, apiKey));
-        token.getAndSet(tokenResponse);
-        return tokenResponse.accessToken();
+        return tokenCache.token().accessToken();
     }
 
     @Override
     public CompletableFuture<String> tokenAsync() {
-
-        TokenResponse currentToken = token.get();
-
-        if (!isExpired(currentToken))
-            return completedFuture(token.get().accessToken());
-
-        return CancellableFutures.thenApply(client.tokenAsync(new TokenRequest(username, password, apiKey)), identityTokenResponse -> {
-            token.getAndSet(identityTokenResponse);
-            return identityTokenResponse.accessToken();
-        });
+        return tokenCache.tokenAsync().thenApply(TokenResponse::accessToken);
     }
 
     @Override
