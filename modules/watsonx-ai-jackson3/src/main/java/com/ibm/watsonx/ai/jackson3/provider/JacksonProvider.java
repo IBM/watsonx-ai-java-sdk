@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.jackson3.provider;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.spi.json.JsonProvider;
@@ -43,7 +44,7 @@ public class JacksonProvider implements JsonProvider {
         try {
             return objectMapper.readValue(json, type);
         } catch (JacksonException e) {
-            throw new JsonException("Failed to deserialize JSON: '" + json + "'", e);
+            throw jsonException("Failed to deserialize JSON", e);
         }
     }
 
@@ -53,7 +54,7 @@ public class JacksonProvider implements JsonProvider {
             JavaType javaType = objectMapper.constructType(type.getType());
             return objectMapper.readValue(json, javaType);
         } catch (JacksonException e) {
-            throw new JsonException("Failed to deserialize JSON: '" + json + "'", e);
+            throw jsonException("Failed to deserialize JSON", e);
         }
     }
 
@@ -62,7 +63,7 @@ public class JacksonProvider implements JsonProvider {
         try {
             return objectMapper.writeValueAsString(obj);
         } catch (JacksonException e) {
-            throw new JsonException("Failed to serialize object to JSON", e);
+            throw jsonException("Failed to serialize object to JSON", e);
         }
     }
 
@@ -78,6 +79,21 @@ public class JacksonProvider implements JsonProvider {
     }
 
     @Override
+    public String prettyPrintObject(String json) {
+        if (getClass() != JacksonProvider.class)
+            return JsonProvider.super.prettyPrintObject(json);
+        if (isNull(json) || json.isBlank())
+            return json;
+
+        try {
+            JsonNode node = objectMapper.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(json);
+            return node.isObject() ? objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node) : json;
+        } catch (JacksonException e) {
+            return json;
+        }
+    }
+
+    @Override
     public boolean isValidObject(String json) {
         if (isNull(json) || json.isBlank())
             return false;
@@ -88,6 +104,14 @@ public class JacksonProvider implements JsonProvider {
         } catch (JacksonException e) {
             return false;
         }
+    }
+
+    private JsonException jsonException(String message, JacksonException exception) {
+        var location = exception.getLocation();
+        var diagnostic = new StringBuilder(message).append(" (").append(exception.getClass().getSimpleName());
+        if (nonNull(location) && location.getLineNr() > 0 && location.getColumnNr() > 0)
+            diagnostic.append(", line ").append(location.getLineNr()).append(", column ").append(location.getColumnNr());
+        return new JsonException(diagnostic.append(')').toString());
     }
 
     @Override

@@ -7,8 +7,9 @@ package com.ibm.watsonx.ai.core.http.interceptors;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
@@ -16,16 +17,16 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.ServiceConfigurationError;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
@@ -34,6 +35,7 @@ import com.ibm.watsonx.ai.core.http.logging.HttpRequestLog;
 import com.ibm.watsonx.ai.core.http.logging.HttpRequestLogger;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLog;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
+import com.ibm.watsonx.ai.core.internal.logging.LogSanitizer;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
@@ -42,18 +44,6 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggerInterceptor.class);
-    private static final Pattern BASE64_IMAGE_PATTERN =
-        Pattern.compile("(data:[\\w\\/+]+;base64,)(.{15})([^\"]+)");
-
-    private static final Pattern BASE64_AUDIO_PATTERN =
-        Pattern.compile("(\"data\"\\s*:\\s*\")(.{15})([^\"]+)(?=\")");
-
-    private static final Pattern JSON_SECRET_PATTERN =
-        Pattern.compile("\"([^\"]*(?:api[_-]?key|password|secret|access_token|refresh_token)[^\"]*)\"\\s*:\\s*\"[^\"]*\"", Pattern.CASE_INSENSITIVE);
-
-    private static final Pattern FORM_SECRET_PATTERN =
-        Pattern.compile("(api[_-]?key|password|secret|access_token|refresh_token)=([^&\\s]*)", Pattern.CASE_INSENSITIVE);
-
     private final boolean logRequest;
     private final boolean logResponse;
     private final HttpRequestLogger requestLogger;
@@ -116,28 +106,28 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     @Override
     public <T> CompletableFuture<HttpResponse<T>> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, AsyncChain chain) {
         return CompletableFuture
-            .runAsync(() -> logRequest(request), ExecutorProvider.ioExecutor())
+            .runAsync(() -> logSafely(() -> logRequest(request)), ExecutorProvider.ioExecutor())
             .thenCompose(v -> chain.proceed(request, bodyHandler))
             .whenComplete((response, exception) -> {
                 var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
                 if (isNull(exception))
-                    logResponse(watsonxSDKRequestId, response);
+                    logSafely(() -> logResponse(watsonxSDKRequestId, response));
                 else
-                    logResponse(watsonxSDKRequestId, exception);
+                    logSafely(() -> logResponse(watsonxSDKRequestId, exception));
             });
     }
 
     @Override
     public <T> HttpResponse<T> intercept(HttpRequest request, BodyHandler<T> bodyHandler, int index, Chain chain)
         throws WatsonxException, IOException, InterruptedException {
-        logRequest(request);
+        logSafely(() -> logRequest(request));
         var watsonxSDKRequestId = request.headers().firstValue("Watsonx-AI-SDK-Request-Id").orElse("");
         try {
             var response = chain.proceed(request, bodyHandler);
-            logResponse(watsonxSDKRequestId, response);
+            logSafely(() -> logResponse(watsonxSDKRequestId, response));
             return response;
-        } catch (RuntimeException e) {
-            logResponse(watsonxSDKRequestId, e);
+        } catch (IOException | InterruptedException | RuntimeException e) {
+            logSafely(() -> logResponse(watsonxSDKRequestId, e));
             throw e;
         }
     }
@@ -145,7 +135,7 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
     private void logRequest(HttpRequest request) {
         boolean enabled = nonNull(requestLogger) ? logger.isEnabledForLevel(requestLogLevel) : logger.isInfoEnabled();
         if (!logRequest || !enabled)
-            return; // skip body read entirely when logging is disabled
+            return;
 
         Optional<BodyPublisher> maybePublisher = request.bodyPublisher();
         if (maybePublisher.isEmpty()) {
@@ -161,228 +151,149 @@ public final class LoggerInterceptor implements SyncHttpInterceptor, AsyncHttpIn
         }
 
         publisher.subscribe(new Subscriber<>() {
-            private StringBuilder builder;
+            private ByteArrayOutputStream buffer;
 
             @Override
             public void onSubscribe(Subscription subscription) {
-                builder = new StringBuilder();
+                buffer = new ByteArrayOutputStream();
                 subscription.request(Long.MAX_VALUE);
             }
 
             @Override
             public void onNext(ByteBuffer item) {
-                String body = StandardCharsets.UTF_8.decode(item).toString();
-                builder.append(body);
+                ByteBuffer copy = item.asReadOnlyBuffer();
+                byte[] bytes = new byte[copy.remaining()];
+                copy.get(bytes);
+                buffer.writeBytes(bytes);
             }
 
             @Override
             public void onError(Throwable throwable) {
-                logger.warn("Error reading request body for logging", throwable);
+                logger.warn("Error reading request body for logging", LogSanitizer.error(throwable));
             }
 
             @Override
             public void onComplete() {
-                logRequest(request, builder.toString());
+                logSafely(() -> logRequest(request, buffer.toString(StandardCharsets.UTF_8)));
             }
         });
     }
 
-    private <T> void logResponse(String watsonxAISDKRequestId, Throwable exception) {
-        if (!logResponse)
+    private void logResponse(String watsonxAISDKRequestId, Throwable exception) {
+        if (!responseLoggingEnabled())
             return;
-
-        if (nonNull(responseLogger)) {
-            if (!logger.isEnabledForLevel(responseLogLevel))
-                return;
-
-            int statusCode = exception instanceof WatsonxException e ? e.statusCode() : -1;
-            String body = maskSecrets(exception.getMessage());
-            var entry = HttpResponseLog.of(watsonxAISDKRequestId, statusCode, null, null, body, exception);
-            ExecutorProvider.callbackExecutor().execute(() -> {
-                try {
-                    responseLogger.log(entry);
-                } catch (Exception e) {
-                    logger.warn("Failed to log response", e);
-                }
-            });
-            return;
-        }
-
-        logger.atInfo().log(() -> {
-            StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
-            joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
-
-            if (exception instanceof WatsonxException e) {
-                joiner.add("- status code: " + e.statusCode());
-                joiner.add("- body: " + Json.prettyPrint(exception.getMessage()));
-            } else {
-                joiner.add("- body: " + exception.getMessage());
-            }
-
-            return joiner.toString();
-        });
+        Throwable cause = unwrap(exception);
+        int statusCode = cause instanceof WatsonxException e ? e.statusCode() : -1;
+        HttpResponseLog entry = HttpResponseLog.of(watsonxAISDKRequestId, statusCode, null, null, cause.getMessage(), cause);
+        logResponse(entry);
     }
 
-    private <T> void logResponse(String watsonxAISDKRequestId, HttpResponse<T> response) {
-        if (!logResponse)
+    private void logResponse(String watsonxAISDKRequestId, HttpResponse<?> response) {
+        if (!responseLoggingEnabled())
             return;
+        try {
+            HttpResponseLog entry = HttpResponseLog.of(watsonxAISDKRequestId, response.statusCode(), response.headers(), response.uri(),
+                diagnosticBody(response), null);
+            logResponse(entry);
+        } catch (Exception e) {
+            logger.warn("Failed to log response", LogSanitizer.error(e));
+        }
+    }
 
+    private boolean responseLoggingEnabled() {
+        return logResponse && (nonNull(responseLogger) ? logger.isEnabledForLevel(responseLogLevel) : logger.isInfoEnabled());
+    }
+
+    private void logResponse(HttpResponseLog entry) {
         if (nonNull(responseLogger)) {
-            if (!logger.isEnabledForLevel(responseLogLevel))
-                return;
-
-            HttpResponseLog entry;
-            try {
-                T responseBody = response.body();
-                boolean isStream = responseBody instanceof InputStream;
-                String body = isStream ? null : HttpUtils.extractBodyAsString(response).map(this::maskSecrets).orElse(null);
-                entry = HttpResponseLog.of(watsonxAISDKRequestId, response.statusCode(), response.headers(), response.uri(), body, null);
-            } catch (Exception e) {
-                logger.warn("Failed to log response", e);
-                return;
-            }
-
-            ExecutorProvider.callbackExecutor().execute(() -> {
-                try {
-                    responseLogger.log(entry);
-                } catch (Exception e) {
-                    logger.warn("Failed to log response", e);
-                }
-            });
+            dispatch(() -> responseLogger.log(entry), "Failed to log response");
             return;
         }
-
-        logger.atInfo().log(() -> {
-            try {
-
-                String body = null;
-                boolean prettyPrint = false;
-
-                T responseBody = response.body();
-                boolean isStream = responseBody instanceof InputStream;
-
-                if (!isStream)
-                    body = HttpUtils.extractBodyAsString(response).orElse(null);
-
-                StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
-                joiner.add("- Watsonx-AI-SDK-Request-Id: " + watsonxAISDKRequestId);
-                joiner.add("- url: " + response.uri());
-                joiner.add("- status code: " + response.statusCode());
-
-                if (nonNull(response.headers())) {
-                    joiner.add("- headers: " + HttpUtils.inOneLine(response.headers().map()));
-
-                    var contentType = response.headers().firstValue("Content-Type");
-
-                    if (contentType.isPresent() && contentType.get().contains("application/json"))
-                        prettyPrint = true;
-                }
-
-                if (nonNull(body)) {
-                    body = maskSecrets(body);
-                    body = prettyPrint ? Json.prettyPrint(body) : body;
-                    joiner.add("- body: " + body);
-                }
-
-                return joiner.toString();
-
-            } catch (Exception e) {
-                return "Failed to log response: " + e.getMessage();
-            }
-        });
+        StringJoiner joiner = new StringJoiner("\n", "Response:\n", "");
+        joiner.add("- Watsonx-AI-SDK-Request-Id: " + entry.requestId());
+        if (nonNull(entry.uri()))
+            joiner.add("- url: " + entry.uri());
+        if (entry.statusCode() >= 0)
+            joiner.add("- status code: " + entry.statusCode());
+        if (nonNull(entry.headers()))
+            joiner.add("- headers: " + formatHeaders(entry.headers()));
+        if (nonNull(entry.body()))
+            joiner.add("- body: " + prettyPrint(entry.body()));
+        logger.info(joiner.toString());
     }
 
     private void logRequest(HttpRequest request, String body) {
+        HttpRequestLog entry = HttpRequestLog.of(request, body);
         if (nonNull(requestLogger)) {
-            String formatted = formatBase64Image(body);
-            formatted = maskSecrets(formatted);
-            var entry = HttpRequestLog.of(request, formatted);
-            ExecutorProvider.callbackExecutor().execute(() -> {
-                try {
-                    requestLogger.log(entry);
-                } catch (Exception e) {
-                    logger.warn("Failed to log request", e);
-                }
-            });
+            dispatch(() -> requestLogger.log(entry), "Failed to log request");
             return;
         }
+        HttpRequest snapshot = entry.request();
+        StringJoiner joiner = new StringJoiner("\n", "Request:\n", "");
+        joiner.add("- method: " + snapshot.method());
+        joiner.add("- url: " + snapshot.uri());
+        if (nonNull(snapshot.headers()))
+            joiner.add("- headers: " + formatHeaders(snapshot.headers()));
+        if (nonNull(entry.body()))
+            joiner.add("- body: " + prettyPrint(entry.body()));
+        logger.info(joiner.toString());
+    }
 
-        logger.atInfo().log(() -> {
-            StringJoiner joiner = new StringJoiner("\n", "Request:\n", "");
-            joiner.add("- method: " + request.method());
-            joiner.add("- url: " + request.uri());
-
-            if (nonNull(request.headers())) {
-                joiner.add("- headers: " + HttpUtils.inOneLine(request.headers().map()));
-                if (nonNull(body)) {
-                    String formatted = formatBase64Image(body);
-                    formatted = maskSecrets(formatted);
-
-                    var contentType = request.headers().firstValue("Content-Type");
-
-                    if (contentType.isPresent() && contentType.get().contains("application/json"))
-                        formatted = Json.prettyPrint(formatted);
-
-                    joiner.add("- body: " + formatted);
-                }
+    private void dispatch(Runnable task, String failureMessage) {
+        ExecutorProvider.callbackExecutor().execute(() -> {
+            try {
+                task.run();
+            } catch (Exception | LinkageError | ServiceConfigurationError | StackOverflowError e) {
+                logger.warn(failureMessage, LogSanitizer.error(e));
             }
-
-            return joiner.toString();
         });
     }
 
-    private boolean isNonRepeatablePublisher(HttpRequest.BodyPublisher publisher) {
-        String className = publisher.getClass().getName();
-        return className.contains("StreamPublisher") ||
-            className.contains("FilePublisher") ||
-            className.contains("InputStream") ||
-            className.contains("BufferedInputStream");
+    private void logSafely(Runnable task) {
+        try {
+            task.run();
+        } catch (RuntimeException | LinkageError | ServiceConfigurationError | StackOverflowError e) {
+            logger.warn("HTTP logging failed");
+        }
     }
 
-    private String maskSecrets(String body) {
-
-        if (body == null || body.isBlank())
-            return body;
-
-        Matcher jsonMatcher = JSON_SECRET_PATTERN.matcher(body);
-        StringBuilder sb = new StringBuilder();
-        while (jsonMatcher.find())
-            jsonMatcher.appendReplacement(sb, Matcher.quoteReplacement("\"" + jsonMatcher.group(1) + "\": \"***\""));
-        jsonMatcher.appendTail(sb);
-        body = sb.toString();
-
-        Matcher formMatcher = FORM_SECRET_PATTERN.matcher(body);
-        sb = new StringBuilder();
-
-        while (formMatcher.find())
-            formMatcher.appendReplacement(sb, Matcher.quoteReplacement(formMatcher.group(1) + "=***"));
-
-        formMatcher.appendTail(sb);
-        return sb.toString();
+    private Throwable unwrap(Throwable error) {
+        while ((error instanceof CompletionException || error instanceof ExecutionException) && nonNull(error.getCause())
+            && error.getCause() != error)
+            error = error.getCause();
+        return error;
     }
 
-    private String formatBase64Image(String body) {
+    private String formatHeaders(HttpHeaders headers) {
+        StringJoiner result = new StringJoiner(", ");
+        headers.map().forEach((key, values) -> result.add("[" + key + ": " + String.join(" ", values) + "]"));
+        return result.toString();
+    }
 
-        if (body == null || body.isBlank())
+    private boolean isNonRepeatablePublisher(BodyPublisher publisher) {
+        return switch(publisher.getClass().getName()) {
+            case "jdk.internal.net.http.RequestPublishers$StringPublisher",
+                "jdk.internal.net.http.RequestPublishers$ByteArrayPublisher",
+                "jdk.internal.net.http.RequestPublishers$EmptyPublisher" -> false;
+            default -> true;
+        };
+    }
+
+    private String diagnosticBody(HttpResponse<?> response) {
+        Object body = response.body();
+        if (body instanceof String text)
+            return text;
+        if (body instanceof byte[] bytes)
+            return new String(bytes, StandardCharsets.UTF_8);
+        return null;
+    }
+
+    private String prettyPrint(String body) {
+        try {
+            return Json.prettyPrintObject(body);
+        } catch (RuntimeException | LinkageError | ServiceConfigurationError | StackOverflowError e) {
             return body;
-
-        Matcher matcher = BASE64_IMAGE_PATTERN.matcher(body);
-        StringBuilder sb = new StringBuilder();
-
-        while (matcher.find())
-            matcher.appendReplacement(sb, matcher.group(1) + matcher.group(2) + "...");
-
-        matcher.appendTail(sb);
-        body = sb.toString();
-
-        matcher = BASE64_AUDIO_PATTERN.matcher(body);
-        sb = new StringBuilder();
-
-        while (matcher.find())
-            matcher.appendReplacement(sb, matcher.group(1) + matcher.group(2) + "...");
-
-        matcher.appendTail(sb);
-        return sb.toString();
+        }
     }
 
     /**

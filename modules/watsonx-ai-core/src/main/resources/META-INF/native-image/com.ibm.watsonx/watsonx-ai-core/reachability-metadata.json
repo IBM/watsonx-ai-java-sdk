@@ -246,6 +246,9 @@
       "type": "java.io.Serializable"
     },
     {
+      "type": "java.lang.AutoCloseable"
+    },
+    {
       "type": "java.lang.Boolean",
       "jniAccessible": true,
       "methods": [
@@ -379,6 +382,9 @@
           ]
         }
       ]
+    },
+    {
+      "type": "java.lang.IllegalArgumentException"
     },
     {
       "type": "java.lang.IllegalStateException"
@@ -544,6 +550,9 @@
       "type": "java.lang.String"
     },
     {
+      "type": "java.lang.StringBuffer"
+    },
+    {
       "type": "java.lang.StringConcatHelper",
       "methods": [
         {
@@ -558,6 +567,12 @@
     {
       "type": "java.lang.StringConcatHelper$Concat1",
       "methods": [
+        {
+          "name": "concat",
+          "parameterTypes": [
+            "int"
+          ]
+        },
         {
           "name": "concat",
           "parameterTypes": [
@@ -895,6 +910,9 @@
       "type": "java.lang.reflect.Constructor"
     },
     {
+      "type": "java.lang.reflect.Executable"
+    },
+    {
       "type": "java.lang.reflect.Field"
     },
     {
@@ -1044,6 +1062,15 @@
       "type": "java.util.HashMap"
     },
     {
+      "type": "java.util.ImmutableCollections$AbstractImmutableMap"
+    },
+    {
+      "type": "java.util.ImmutableCollections$Map1"
+    },
+    {
+      "type": "java.util.ImmutableCollections$MapN"
+    },
+    {
       "type": "java.util.LinkedHashMap"
     },
     {
@@ -1107,6 +1134,12 @@
       "type": "java.util.Set"
     },
     {
+      "type": "java.util.TreeMap"
+    },
+    {
+      "type": "java.util.TreeSet"
+    },
+    {
       "type": "java.util.concurrent.Callable"
     },
     {
@@ -1154,6 +1187,9 @@
       "type": "java.util.concurrent.ConcurrentMap"
     },
     {
+      "type": "java.util.concurrent.CountDownLatch"
+    },
+    {
       "type": "java.util.concurrent.ForkJoinPool",
       "fields": [
         {
@@ -1185,6 +1221,9 @@
       ]
     },
     {
+      "type": "java.util.concurrent.Future"
+    },
+    {
       "type": "java.util.concurrent.FutureTask",
       "fields": [
         {
@@ -1211,6 +1250,9 @@
           "name": "tail"
         }
       ]
+    },
+    {
+      "type": "java.util.concurrent.RejectedExecutionException"
     },
     {
       "type": "java.util.concurrent.atomic.AtomicBoolean",
@@ -1267,6 +1309,9 @@
     },
     {
       "type": "java.util.function.BiFunction"
+    },
+    {
+      "type": "java.util.function.BiPredicate"
     },
     {
       "type": "java.util.function.Consumer"
@@ -1568,6 +1613,22 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.HttpUtils",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.core.ImmutableCollections",
           "interfaces": [
             "java.util.function.BiConsumer"
@@ -1645,6 +1706,93 @@
           "declaringClass": "com.ibm.watsonx.ai.core.Json",
           "interfaces": [
             "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.internal.SharedTokenCache",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.core.internal.SharedTokenCache",
+            "com.ibm.watsonx.ai.core.internal.SharedTokenCache$State"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.internal.logging.LogSanitizer",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.LinkedHashMap"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.internal.logging.LogSanitizer",
+          "interfaces": [
+            "java.util.function.BiPredicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.internal.logging.LogSanitizer",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.internal.logging.LogSanitizer",
+          "interfaces": [
+            "java.util.function.IntPredicate"
           ]
         }
       },
@@ -1754,6 +1902,47 @@
         {
           "name": "<init>",
           "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpHeaders",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.BiPredicate",
+            "java.util.ArrayList",
+            "java.util.TreeMap",
+            "java.util.TreeSet"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpHeaders",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.BiPredicate",
+            "java.lang.String",
+            "java.util.ArrayList"
+          ]
         }
       ]
     },
@@ -1877,6 +2066,24 @@
         {
           "name": "<init>",
           "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.concurrent.Executors$AutoShutdownDelegatedExecutorService",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.ExecutorService"
+          ]
         }
       ]
     },
@@ -2014,6 +2221,20 @@
           "name": "<init>",
           "parameterTypes": [
             "int"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "int"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.regex.Pattern$CharPredicate",
+            "java.util.regex.Pattern$CharPredicate"
           ]
         }
       ]

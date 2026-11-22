@@ -4,10 +4,13 @@
  */
 package com.ibm.watsonx.ai.core;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
+import java.net.URI;
 import java.net.http.HttpHeaders;
+import java.util.ServiceConfigurationError;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
@@ -19,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLog;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
+import com.ibm.watsonx.ai.core.internal.logging.LogSanitizer;
 import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
 
 /**
@@ -33,7 +37,8 @@ import com.ibm.watsonx.ai.core.provider.ExecutorProvider;
  * <li>Event body content</li>
  * </ul>
  * <p>
- * After logging, each received line is forwarded to the wrapped downstream subscriber.
+ * Diagnostic events mask secrets in data and headers and omit other SSE field values. Each received line is forwarded unchanged to the wrapped
+ * downstream subscriber.
  */
 public final class SseEventLogger implements Subscriber<String> {
 
@@ -41,10 +46,11 @@ public final class SseEventLogger implements Subscriber<String> {
     private final Flow.Subscriber<String> subscriber;
     private final int statusCode;
     private final HttpHeaders headers;
+    private final String formattedHeaders;
     private final HttpResponseLogger responseLogger;
     private final Level responseLogLevel;
     private final AtomicReference<CompletableFuture<Void>> pendingLog = new AtomicReference<>(CompletableFuture.completedFuture(null));
-    private StringJoiner dataJoiner;
+    private StringBuilder data;
 
     /**
      * Constructs a new {@code SseEventLogger} with the given downstream subscriber, HTTP status code, and response headers.
@@ -70,10 +76,10 @@ public final class SseEventLogger implements Subscriber<String> {
         Level responseLogLevel) {
         this.subscriber = requireNonNull(subscriber);
         this.statusCode = statusCode;
-        this.headers = headers;
+        this.headers = LogSanitizer.headers(headers);
+        this.formattedHeaders = formatHeaders(this.headers);
         this.responseLogger = responseLogger;
         this.responseLogLevel = requireNonNullElse(responseLogLevel, Level.INFO);
-        dataJoiner = new StringJoiner("\n");
     }
 
     @Override
@@ -83,45 +89,117 @@ public final class SseEventLogger implements Subscriber<String> {
 
     @Override
     public void onNext(String item) {
-
         if (item.isBlank()) {
-            if (dataJoiner.length() > 0) {
-                if (nonNull(responseLogger)) {
-                    if (logger.isEnabledForLevel(responseLogLevel)) {
-                        var entry = HttpResponseLog.of(null, statusCode, headers, null, dataJoiner.toString(), null);
-                        scheduleLog(() -> {
-                            try {
-                                responseLogger.log(entry);
-                            } catch (Exception e) {
-                                logger.warn("Failed to log response", e);
-                            }
-                        });
-                    }
-                } else {
-                    logger.info(
-                        "Response:\n- status code: {}\n- headers: {}\n- body: {}",
-                        statusCode,
-                        nonNull(headers) ? HttpUtils.inOneLine(headers.map()) : null,
-                        dataJoiner.toString());
-                }
-            }
-            dataJoiner = new StringJoiner("\n");
+            StringBuilder eventData = data;
+            data = null;
+            logSafely(() -> logEvent(eventData));
         } else {
-            dataJoiner.add(item);
+            collectData(item);
         }
-
         subscriber.onNext(item);
     }
 
     @Override
     public void onError(Throwable throwable) {
-        logger.error(throwable.getMessage(), throwable);
+        logSafely(() -> logger.error("SSE stream failed", LogSanitizer.error(throwable)));
         pendingLog.get().whenComplete((v, e) -> subscriber.onError(throwable));
     }
 
     @Override
     public void onComplete() {
         pendingLog.get().whenComplete((v, e) -> subscriber.onComplete());
+    }
+
+    private void logEvent(StringBuilder eventData) {
+        boolean enabled = nonNull(responseLogger) ? logger.isEnabledForLevel(responseLogLevel) : logger.isInfoEnabled();
+        if (!enabled || isNull(eventData))
+            return;
+        String diagnostic = "data: " + LogSanitizer.body(eventData.toString());
+        if (nonNull(responseLogger)) {
+            HttpResponseLog entry = event(statusCode, headers, diagnostic);
+            scheduleLog(() -> {
+                try {
+                    responseLogger.log(entry);
+                } catch (Exception | LinkageError | ServiceConfigurationError | StackOverflowError e) {
+                    logger.warn("Failed to log response", LogSanitizer.error(e));
+                }
+            });
+        } else {
+            logger.info("Response:\n- status code: {}\n- headers: {}\n- body: {}", statusCode, formattedHeaders, diagnostic);
+        }
+    }
+
+    private void collectData(String item) {
+        int start = 0;
+        while (start < item.length()) {
+            int end = item.indexOf('\n', start);
+            if (end < 0)
+                end = item.length();
+            int valueStart = start + 4;
+            if (valueStart <= end && item.startsWith("data", start) && (valueStart == end || item.charAt(valueStart) == ':')) {
+                if (valueStart < end) {
+                    valueStart++;
+                    if (valueStart < end && item.charAt(valueStart) == ' ')
+                        valueStart++;
+                }
+                if (isNull(data))
+                    data = new StringBuilder(end - valueStart);
+                else
+                    data.append('\n');
+                data.append(item, valueStart, end);
+            }
+            start = end + 1;
+        }
+    }
+
+    private static HttpResponseLog event(int statusCode, HttpHeaders headers, String body) {
+        return new HttpResponseLog() {
+            @Override
+            public String requestId() {
+                return null;
+            }
+
+            @Override
+            public int statusCode() {
+                return statusCode;
+            }
+
+            @Override
+            public HttpHeaders headers() {
+                return headers;
+            }
+
+            @Override
+            public URI uri() {
+                return null;
+            }
+
+            @Override
+            public String body() {
+                return body;
+            }
+
+            @Override
+            public Throwable error() {
+                return null;
+            }
+        };
+    }
+
+    private static String formatHeaders(HttpHeaders headers) {
+        if (isNull(headers))
+            return null;
+        StringJoiner result = new StringJoiner(", ");
+        headers.map().forEach((key, values) -> result.add("[" + key + ": " + String.join(" ", values) + "]"));
+        return result.toString();
+    }
+
+    private void logSafely(Runnable task) {
+        try {
+            task.run();
+        } catch (RuntimeException | LinkageError | ServiceConfigurationError | StackOverflowError e) {
+            logger.warn("SSE logging failed");
+        }
     }
 
     /**
@@ -133,12 +211,18 @@ public final class SseEventLogger implements Subscriber<String> {
     private void scheduleLog(Runnable task) {
         var delivered = new CompletableFuture<Void>();
         var previous = pendingLog.getAndSet(delivered);
-        previous.thenRunAsync(() -> {
-            try {
-                task.run();
-            } finally {
-                delivered.complete(null);
-            }
-        }, ExecutorProvider.callbackExecutor());
+        try {
+            previous.thenRunAsync(task, ExecutorProvider.callbackExecutor()).whenComplete((value, failure) -> {
+                try {
+                    if (nonNull(failure))
+                        logger.warn("Failed to log response", LogSanitizer.error(failure));
+                } finally {
+                    delivered.complete(null);
+                }
+            });
+        } catch (RuntimeException | LinkageError | ServiceConfigurationError | StackOverflowError e) {
+            delivered.complete(null);
+            throw e;
+        }
     }
 }

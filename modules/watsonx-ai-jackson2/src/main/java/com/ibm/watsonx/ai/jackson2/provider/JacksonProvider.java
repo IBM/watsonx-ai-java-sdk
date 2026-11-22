@@ -5,11 +5,13 @@
 package com.ibm.watsonx.ai.jackson2.provider;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.ibm.watsonx.ai.core.exception.JsonException;
@@ -36,7 +38,7 @@ public class JacksonProvider implements JsonProvider {
      *
      * @param modules modules to register with the mapper
      */
-    public JacksonProvider(com.fasterxml.jackson.databind.Module... modules) {
+    public JacksonProvider(Module... modules) {
         this.objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setDefaultPropertyInclusion(Include.NON_NULL)
@@ -49,7 +51,7 @@ public class JacksonProvider implements JsonProvider {
         try {
             return objectMapper.readValue(json, type);
         } catch (JsonProcessingException e) {
-            throw new JsonException("Failed to deserialize JSON: '" + json + "'", e);
+            throw jsonException("Failed to deserialize JSON", e);
         }
     }
 
@@ -59,7 +61,7 @@ public class JacksonProvider implements JsonProvider {
             JavaType javaType = objectMapper.getTypeFactory().constructType(type.getType());
             return objectMapper.readValue(json, javaType);
         } catch (JsonProcessingException e) {
-            throw new JsonException("Failed to deserialize JSON: '" + json + "'", e);
+            throw jsonException("Failed to deserialize JSON", e);
         }
     }
 
@@ -68,7 +70,7 @@ public class JacksonProvider implements JsonProvider {
         try {
             return objectMapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
-            throw new JsonException("Failed to serialize object to JSON", e);
+            throw jsonException("Failed to serialize object to JSON", e);
         }
     }
 
@@ -84,6 +86,21 @@ public class JacksonProvider implements JsonProvider {
     }
 
     @Override
+    public String prettyPrintObject(String json) {
+        if (getClass() != JacksonProvider.class)
+            return JsonProvider.super.prettyPrintObject(json);
+        if (isNull(json) || json.isBlank())
+            return json;
+
+        try {
+            JsonNode node = objectMapper.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(json);
+            return node.isObject() ? objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node) : json;
+        } catch (JsonProcessingException e) {
+            return json;
+        }
+    }
+
+    @Override
     public boolean isValidObject(String json) {
         if (isNull(json) || json.isBlank())
             return false;
@@ -94,6 +111,14 @@ public class JacksonProvider implements JsonProvider {
         } catch (JsonProcessingException e) {
             return false;
         }
+    }
+
+    private JsonException jsonException(String message, JsonProcessingException exception) {
+        var location = exception.getLocation();
+        var diagnostic = new StringBuilder(message).append(" (").append(exception.getClass().getSimpleName());
+        if (nonNull(location) && location.getLineNr() > 0 && location.getColumnNr() > 0)
+            diagnostic.append(", line ").append(location.getLineNr()).append(", column ").append(location.getColumnNr());
+        return new JsonException(diagnostic.append(')').toString());
     }
 
     @Override

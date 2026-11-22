@@ -5,9 +5,9 @@
 package com.ibm.watsonx.ai.detection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +15,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.detection.detector.AnswerRelevance;
 import com.ibm.watsonx.ai.detection.detector.BaseDetector;
 import com.ibm.watsonx.ai.detection.detector.ContextRelevance;
@@ -146,11 +147,13 @@ public class DetectionRoundTripTest {
     }
 
     @Test
-    void should_fail_to_deserialize_detection_text_request_on_conflicting_detectors_setters() {
+    void should_reject_missing_detectors_without_exposing_the_input_or_original_cause() {
 
-        var ex = assertThrows(Exception.class, () -> Json.fromJson("{\"input\":\"x\",\"project_id\":\"p\"}", DetectionTextRequest.class));
+        var ex = assertThrows(JsonException.class,
+            () -> Json.fromJson("{\"input\":\"SYNTHETIC_DETECTION_INPUT\",\"project_id\":\"p\"}", DetectionTextRequest.class));
 
-        assertTrue(ex.getCause().getMessage().contains("detectors"));
+        assertFalse(ex.getMessage().contains("SYNTHETIC_DETECTION_INPUT"));
+        assertNull(ex.getCause());
     }
 
     @Test

@@ -57,6 +57,17 @@ public interface JsonProvider {
     String prettyPrint(Object object);
 
     /**
+     * Pretty-prints a string only when it contains exactly one JSON object. Arrays, scalars, JSON null, malformed input, additional content and
+     * absent or blank input are returned unchanged. This is a best-effort, presentation-oriented operation.
+     *
+     * @param json the JSON content to pretty-print
+     * @return the formatted JSON object, or the original input when it is not exactly one JSON object
+     */
+    default String prettyPrintObject(String json) {
+        return isValidObject(json) ? prettyPrint(json) : json;
+    }
+
+    /**
      * Validates whether the entire string contains exactly one JSON object. Leading and trailing whitespace are allowed, but additional JSON values
      * or other non-whitespace content must be rejected. Arrays, scalars, JSON null and malformed input return {@code false}.
      *

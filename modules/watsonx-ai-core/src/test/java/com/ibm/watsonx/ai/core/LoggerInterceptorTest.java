@@ -8,7 +8,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,8 +20,12 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.slf4j.event.Level.INFO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -52,6 +58,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -739,7 +747,10 @@ public class LoggerInterceptorTest {
             verify(requestLogger, timeout(2000)).log(captor.capture());
 
             HttpRequestLog entry = captor.getValue();
-            assertEquals(request, entry.request());
+            assertNotSame(request, entry.request());
+            assertEquals(request.method(), entry.request().method());
+            assertEquals(request.uri(), entry.request().uri());
+            assertTrue(entry.request().bodyPublisher().isEmpty());
             assertFalse(entry.body().contains("MY_SUPER_SECRET_KEY"), "API key must not be logged in clear text");
             assertTrue(entry.body().contains("\"***\""), () -> "API key must be masked, but was: " + entry.body());
         }
@@ -806,7 +817,13 @@ public class LoggerInterceptorTest {
             assertNull(entry.uri());
             assertFalse(entry.body().contains("MY_SUPER_SECRET_KEY"), "API key must not be logged in clear text");
             assertTrue(entry.body().contains("apikey=***"), () -> "API key must be masked, but was: " + entry.body());
-            assertEquals(exception, entry.error());
+            assertNotSame(exception, entry.error());
+            assertNull(entry.error().getCause());
+            assertEquals(0, entry.error().getSuppressed().length);
+            StringWriter trace = new StringWriter();
+            entry.error().printStackTrace(new PrintWriter(trace));
+            assertFalse(trace.toString().contains("MY_SUPER_SECRET_KEY"));
+            assertTrue(exception.getMessage().contains("MY_SUPER_SECRET_KEY"));
         }
 
         @Test
@@ -1132,6 +1149,141 @@ public class LoggerInterceptorTest {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    @Test
+    void should_mask_default_error_logs_without_changing_the_callers_error() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("https://example.com")).GET().build();
+        var failure = new WatsonxException("{\"access_token\":\"SYNTHETIC_HTTP_ERROR_TOKEN\"}", 401, null);
+        LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+        when(chain.proceed(request, BodyHandlers.ofString())).thenThrow(failure);
+        List<String> logs = captureLogs(() -> {
+            var thrown = assertThrows(WatsonxException.class,
+                () -> new LoggerInterceptor(LogMode.RESPONSE).intercept(request, BodyHandlers.ofString(), 0, chain));
+            assertSame(failure, thrown);
+        });
+        assertFalse(findLog(logs, "Response:").contains("SYNTHETIC_HTTP_ERROR_TOKEN"));
+        assertTrue(failure.getMessage().contains("SYNTHETIC_HTTP_ERROR_TOKEN"));
+    }
+
+    @Test
+    void should_mask_secrets_inside_quoted_error_messages_for_default_and_custom_loggers() throws Exception {
+        for (boolean custom : List.of(false, true)) {
+            for (String message : List.of("Don't forget: password=SYNTHETIC_QUOTED_SECRET",
+                "Server said 'password=SYNTHETIC_QUOTED_SECRET' while rejecting input",
+                "Error \"authorization=SYNTHETIC_QUOTED_SECRET\" while rejecting input")) {
+                HttpRequest request = HttpRequest.newBuilder(URI.create("https://example.com")).GET().build();
+                var failure = new WatsonxException(message, 401, null);
+                var handler = BodyHandlers.ofString();
+                LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+                when(chain.proceed(request, handler)).thenThrow(failure);
+                HttpResponseLogger responseLogger = custom ? mock(HttpResponseLogger.class) : null;
+                var interceptor = new LoggerInterceptor(LogMode.RESPONSE, null, INFO, responseLogger, INFO);
+
+                List<String> logs = captureLogs(() -> assertSame(failure,
+                    assertThrows(WatsonxException.class, () -> interceptor.intercept(request, handler, 0, chain))));
+
+                if (custom) {
+                    ArgumentCaptor<HttpResponseLog> captor = ArgumentCaptor.forClass(HttpResponseLog.class);
+                    verify(responseLogger, timeout(2000)).log(captor.capture());
+                    HttpResponseLog entry = captor.getValue();
+                    var trace = new StringWriter();
+                    entry.error().printStackTrace(new PrintWriter(trace));
+                    assertFalse((entry.body() + trace).contains("SYNTHETIC_QUOTED_SECRET"));
+                    assertTrue(entry.body().contains("***"));
+                } else {
+                    String diagnostic = findLog(logs, "Response:");
+                    assertFalse(diagnostic.contains("SYNTHETIC_QUOTED_SECRET"));
+                    assertTrue(diagnostic.contains("***"));
+                }
+                assertEquals(message, failure.getMessage());
+            }
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_not_subscribe_to_arbitrary_publishers_for_logging() throws Exception {
+        AtomicBoolean subscribed = new AtomicBoolean();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("https://example.com"))
+            .POST(trackingPublisher("password=SYNTHETIC_PUBLISHER_SECRET", subscribed)).build();
+        HttpRequestLogger requestLogger = mock(HttpRequestLogger.class);
+        var interceptor = new LoggerInterceptor(LogMode.REQUEST, requestLogger, INFO, null, null);
+        LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+        when(chain.proceed(request, BodyHandlers.ofString())).thenReturn(mock(HttpResponse.class));
+        interceptor.intercept(request, BodyHandlers.ofString(), 0, chain);
+        ArgumentCaptor<HttpRequestLog> captor = ArgumentCaptor.forClass(HttpRequestLog.class);
+        verify(requestLogger, timeout(2000)).log(captor.capture());
+        assertFalse(subscribed.get());
+        assertTrue(captor.getValue().request().bodyPublisher().isEmpty());
+        assertFalse(captor.getValue().body().contains("SYNTHETIC_PUBLISHER_SECRET"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_leave_response_line_streams_unconsumed_with_default_and_custom_loggers() throws Exception {
+        for (boolean custom : List.of(false, true)) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("https://example.com")).GET().build();
+            HttpResponse<Stream<String>> response = mock(HttpResponse.class);
+            Stream<String> lines = Stream.of("first", "second");
+            when(response.body()).thenReturn(lines);
+            when(response.statusCode()).thenReturn(200);
+            HttpResponseLogger responseLogger = custom ? mock(HttpResponseLogger.class) : null;
+            var interceptor = new LoggerInterceptor(LogMode.RESPONSE, null, null, responseLogger, INFO);
+            LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+            when(chain.proceed(request, BodyHandlers.ofLines())).thenReturn(response);
+            assertSame(response, interceptor.intercept(request, BodyHandlers.ofLines(), 0, chain));
+            assertEquals(List.of("first", "second"), lines.toList());
+            if (custom) {
+                ArgumentCaptor<HttpResponseLog> captor = ArgumentCaptor.forClass(HttpResponseLog.class);
+                verify(responseLogger, timeout(2000)).log(captor.capture());
+                assertNull(captor.getValue().body());
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_log_checked_connection_errors_without_changing_the_exception(boolean custom) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost")).GET().build();
+        var failure = new ConnectException("password=synthetic-connection-secret");
+        LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+        when(chain.proceed(request, BodyHandlers.ofString())).thenThrow(failure);
+        HttpResponseLogger responseLogger = custom ? mock(HttpResponseLogger.class) : null;
+        var interceptor = new LoggerInterceptor(LogMode.RESPONSE, null, INFO, responseLogger, INFO);
+        List<String> logs = captureLogs(() -> assertSame(failure,
+            assertThrows(ConnectException.class, () -> interceptor.intercept(request, BodyHandlers.ofString(), 0, chain))));
+        if (custom) {
+            ArgumentCaptor<HttpResponseLog> captor = ArgumentCaptor.forClass(HttpResponseLog.class);
+            verify(responseLogger, timeout(2000)).log(captor.capture());
+            HttpResponseLog entry = captor.getValue();
+            assertEquals(-1, entry.statusCode());
+            assertFalse(entry.body().contains("synthetic-connection-secret"));
+            assertEquals(List.of(failure.getStackTrace()), List.of(entry.error().getStackTrace()));
+            assertNull(entry.error().getCause());
+        } else {
+            assertFalse(findLog(logs, "Response:").contains("synthetic-connection-secret"));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    @SuppressWarnings("unchecked")
+    void should_continue_the_call_when_request_diagnostics_fail(boolean async) throws Exception {
+        HttpRequest request = mock(HttpRequest.class);
+        when(request.headers()).thenReturn(HttpHeaders.of(Map.of(), (name, value) -> true));
+        when(request.bodyPublisher()).thenThrow(new StackOverflowError());
+        var response = (HttpResponse<String>) mock(HttpResponse.class);
+        var interceptor = new LoggerInterceptor(LogMode.REQUEST);
+        if (async) {
+            LoggerInterceptor.AsyncChain chain = mock(LoggerInterceptor.AsyncChain.class);
+            when(chain.proceed(request, BodyHandlers.ofString())).thenReturn(completedFuture(response));
+            assertSame(response, interceptor.intercept(request, BodyHandlers.ofString(), 0, chain).get(3, TimeUnit.SECONDS));
+        } else {
+            LoggerInterceptor.Chain chain = mock(LoggerInterceptor.Chain.class);
+            when(chain.proceed(request, BodyHandlers.ofString())).thenReturn(response);
+            assertSame(response, interceptor.intercept(request, BodyHandlers.ofString(), 0, chain));
         }
     }
 

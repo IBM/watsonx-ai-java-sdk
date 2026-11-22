@@ -36,6 +36,7 @@ import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Code;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
+import com.ibm.watsonx.ai.core.internal.logging.LogSanitizer;
 
 /**
  * Utility class for working with Http objects.
@@ -116,12 +117,9 @@ public final class HttpUtils {
      * @return a string representation of the headers
      */
     public static String inOneLine(Map<String, List<String>> headers) {
-        return headers.entrySet().stream().map(header -> {
+        return LogSanitizer.headers(headers).entrySet().stream().map(header -> {
             String headerKey = header.getKey();
             String headerValues = header.getValue().stream().collect(Collectors.joining(" "));
-            if ("Authorization".equals(headerKey)) {
-                headerValues = maskAuthorizationHeaderValue(headerValues);
-            }
             return String.format("[%s: %s]", headerKey, headerValues);
         }).collect(joining(", "));
     }
@@ -300,24 +298,6 @@ public final class HttpUtils {
 
         Error error = new Error(codeStr, message, resource);
         return new WatsonxError(httpStatusCode, requestId, List.of(error));
-    }
-
-    /**
-     * Masks the sensitive part of an authorization header value.
-     */
-    private static String maskAuthorizationHeaderValue(String authorizationHeaderValue) {
-
-        if (isNull(authorizationHeaderValue) || authorizationHeaderValue.isBlank())
-            return authorizationHeaderValue;
-
-        int spaceIndex = authorizationHeaderValue.indexOf(' ');
-        String scheme = spaceIndex > 0 ? authorizationHeaderValue.substring(0, spaceIndex + 1) : "";
-        String token = spaceIndex > 0 ? authorizationHeaderValue.substring(spaceIndex + 1) : authorizationHeaderValue;
-
-        if (token.length() <= 8)
-            return scheme + "***";
-
-        return scheme + token.substring(0, 4) + "..." + token.substring(token.length() - 4);
     }
 
     private static String getTextContent(Element parent, String tagName) {

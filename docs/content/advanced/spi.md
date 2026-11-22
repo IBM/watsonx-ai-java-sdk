@@ -300,6 +300,10 @@ public interface JsonProvider {
     String prettyPrint(Object object);
     boolean isValidObject(String json);
 
+    default String prettyPrintObject(String json) {
+        return isValidObject(json) ? prettyPrint(json) : json;
+    }
+
     default boolean isDefault() {
         return false;
     }
@@ -307,6 +311,10 @@ public interface JsonProvider {
 ```
 
 `TypeToken<T>` is a utility class provided by the SDK to capture generic type information at runtime, used for deserializing parameterized types like `List<ChatMessage>` or `DetectionResponse<DetectionTextResponse>`.
+
+`Json.prettyPrintObject(String)` delegates to the provider's `prettyPrintObject(String)` method. It formats exactly one complete JSON object, allowing leading and trailing whitespace. Arrays, scalars, JSON null, malformed input, additional non-whitespace content, absent input, and blank input are returned unchanged.
+
+Existing providers inherit the default implementation and do not need to implement the new method. Providers may override it to combine validation and formatting in a single parse, as the bundled Jackson implementations do. Custom `isValidObject()` and `prettyPrint()` overrides remain in use through the default implementation, including in subclasses of the bundled providers.
 
 ### Jackson configuration & mix-in annotations
 

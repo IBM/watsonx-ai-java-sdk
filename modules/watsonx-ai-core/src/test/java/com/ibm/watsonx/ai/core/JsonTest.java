@@ -110,6 +110,24 @@ public class JsonTest {
     }
 
     @Test
+    void should_pretty_print_objects_with_the_provider_default_implementation() {
+        var json = Json.prettyPrintObject(" \n {\"name\":\"Alan\",\"lastname\":\"Wake\"} \t\r\n");
+
+        assertEquals("""
+            {
+              "name" : "Alan",
+              "lastname" : "Wake"
+            }""", json);
+    }
+
+    @Test
+    void should_preserve_other_input_with_the_provider_default_implementation() {
+        for (var json : Arrays.asList(null, "", " \t\r\n", "null", "true", "42", "\"text\"", "[1,2]",
+            "{", "{\"name\":}", "{}{}", "{} trailing", "{}[]", "{} null", "\"{}\""))
+            assertEquals(json, Json.prettyPrintObject(json), String.valueOf(json));
+    }
+
+    @Test
     void should_throw_exception_when_json_is_invalid() {
         var ex = assertThrows(RuntimeException.class, () -> Json.fromJson("{", String.class));
         assertEquals("Failed to deserialize JSON: '{'", ex.getMessage());
