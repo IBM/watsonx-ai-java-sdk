@@ -155,8 +155,8 @@ With `logRequests(true)` / `logResponses(true)`, the SDK writes a human-readable
 | What | Behavior |
 |------|----------|
 | Log level | `INFO`, through the `LoggerInterceptor` logger |
-| Format | A multi-line block with method, URL, headers, status code, and a pretty-printed JSON body |
-| Secret masking | Fields such as `api_key`, `password`, `secret`, `access_token`, and `refresh_token` are replaced with `***` |
+| Format | A multi-line block with method, URL, headers, status code, and body. Complete JSON objects are pretty-printed. |
+| Secret masking | Sensitive headers and recognized JSON or form fields are replaced in full with `***`, including errors and SSE events |
 | Base64 payloads | Image and audio data URIs are truncated instead of being printed in full |
 | Correlation | Every request carries a `Watsonx-AI-SDK-Request-Id` header, echoed in the corresponding response log line |
 
@@ -177,7 +177,9 @@ ChatService chatService = ChatService.builder()
     .build();
 ```
 
-`entry.body()` arrives already masked and truncated the same way as the default log line, so secrets are never passed to your logger in clear text. `HttpResponseLog` also exposes `requestId()`, `statusCode()`, `headers()`, `uri()`, and `error()`.
+Custom loggers receive diagnostic snapshots with the same masking as the default log lines. `entry.request()` preserves the method and request options, sanitizes headers and the URI, and has no body publisher. Read its processed body through `entry.body()`. `HttpResponseLog` exposes `requestId()`, `statusCode()`, sanitized `headers()` and `uri()`, and a processed `body()`.
+
+`entry.error()` is a diagnostic exception with a sanitized message. It retains stack frames as code locations, but does not retain the original exception type, cause, suppressed exceptions, or subtype-specific accessors. The exception delivered to the application is unchanged. Use the call's exception handling for transport and API error classification.
 
 ### Custom level
 

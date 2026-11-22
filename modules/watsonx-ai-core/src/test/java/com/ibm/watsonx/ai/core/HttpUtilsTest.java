@@ -128,25 +128,25 @@ public class HttpUtilsTest {
     void should_mask_authorization_header_value_when_formatting_in_one_line() {
         Map<String, List<String>> headers = Map.of("Authorization", Arrays.asList("Bearer abc123def456"));
         String result = HttpUtils.inOneLine(headers);
-        assertEquals("[Authorization: Bearer abc1...f456]", result);
+        assertEquals("[Authorization: ***]", result);
 
         headers = Map.of("Authorization", Arrays.asList("ZenApiKey abc123def456"));
         result = HttpUtils.inOneLine(headers);
-        assertEquals("[Authorization: ZenApiKey abc1...f456]", result);
+        assertEquals("[Authorization: ***]", result);
     }
 
     @Test
     void should_mask_authorization_header_for_various_token_shapes() {
-        assertEquals("[Authorization: Bearer ***]",
+        assertEquals("[Authorization: ***]",
             HttpUtils.inOneLine(Map.of("Authorization", List.of("Bearer short"))));
 
-        assertEquals("[Authorization: abcd...3456]",
+        assertEquals("[Authorization: ***]",
             HttpUtils.inOneLine(Map.of("Authorization", List.of("abcdef123456"))));
 
-        assertEquals("[Authorization: Basic ABCD...WXYZ]",
+        assertEquals("[Authorization: ***]",
             HttpUtils.inOneLine(Map.of("Authorization", List.of("Basic ABCD++++////WXYZ"))));
 
-        assertEquals("[Authorization: Bearer head...ture]",
+        assertEquals("[Authorization: ***]",
             HttpUtils.inOneLine(Map.of("Authorization", List.of("Bearer header.payload.signature"))));
     }
 

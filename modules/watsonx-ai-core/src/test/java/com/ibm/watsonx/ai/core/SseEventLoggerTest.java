@@ -4,11 +4,16 @@
  */
 package com.ibm.watsonx.ai.core;
 
+import static org.apache.logging.log4j.Level.INFO;
+import static org.apache.logging.log4j.Level.OFF;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +24,17 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.event.Level;
+import com.ibm.watsonx.ai.core.http.logging.HttpResponseLog;
 import com.ibm.watsonx.ai.core.http.logging.HttpResponseLogger;
 
 @DisabledInNativeImage
@@ -110,10 +121,10 @@ public class SseEventLoggerTest {
             throw new RuntimeException("boom");
         };
 
-        SseEventLogger logger = new SseEventLogger(downstream, 200, null, throwingLogger, org.slf4j.event.Level.INFO);
+        SseEventLogger logger = new SseEventLogger(downstream, 200, null, throwingLogger, Level.INFO);
 
         CountDownLatch warned = new CountDownLatch(1);
-        var log4jLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(SseEventLogger.class);
+        var log4jLogger = (Logger) LogManager.getLogger(SseEventLogger.class);
         var appender = new AbstractAppender("test-capture", null, null, true, null) {
             @Override
             public void append(LogEvent event) {
@@ -163,7 +174,7 @@ public class SseEventLoggerTest {
             awaitQuietly(loggerBlock);
         };
 
-        SseEventLogger logger = new SseEventLogger(downstream, 200, null, blockingLogger, org.slf4j.event.Level.INFO);
+        SseEventLogger logger = new SseEventLogger(downstream, 200, null, blockingLogger, Level.INFO);
 
         logger.onNext("data: hello");
         logger.onNext("");
@@ -184,7 +195,7 @@ public class SseEventLoggerTest {
             done.countDown();
         };
 
-        SseEventLogger logger = new SseEventLogger(noopSubscriber(), 200, null, customLogger, org.slf4j.event.Level.INFO);
+        SseEventLogger logger = new SseEventLogger(noopSubscriber(), 200, null, customLogger, Level.INFO);
         logger.onNext("data: hello");
         logger.onNext("");
 
@@ -204,7 +215,7 @@ public class SseEventLoggerTest {
             done.countDown();
         };
 
-        SseEventLogger logger = new SseEventLogger(noopSubscriber(), 200, null, slowFirst, org.slf4j.event.Level.INFO);
+        SseEventLogger logger = new SseEventLogger(noopSubscriber(), 200, null, slowFirst, Level.INFO);
 
         logger.onNext("data: one");
         logger.onNext("");
@@ -230,7 +241,7 @@ public class SseEventLoggerTest {
             done.countDown();
         };
 
-        SseEventLogger logger = new SseEventLogger(noopSubscriber(), 200, null, concurrencyTrackingLogger, org.slf4j.event.Level.INFO);
+        SseEventLogger logger = new SseEventLogger(noopSubscriber(), 200, null, concurrencyTrackingLogger, Level.INFO);
 
         logger.onNext("data: one");
         logger.onNext("");
@@ -270,7 +281,7 @@ public class SseEventLoggerTest {
             awaitQuietly(loggerBlock);
         };
 
-        SseEventLogger logger = new SseEventLogger(downstream, 200, null, blockingLogger, org.slf4j.event.Level.INFO);
+        SseEventLogger logger = new SseEventLogger(downstream, 200, null, blockingLogger, Level.INFO);
 
         logger.onNext("data: hello");
         logger.onNext("");
@@ -310,7 +321,7 @@ public class SseEventLoggerTest {
             awaitQuietly(loggerBlock);
         };
 
-        SseEventLogger logger = new SseEventLogger(downstream, 200, null, blockingLogger, org.slf4j.event.Level.INFO);
+        SseEventLogger logger = new SseEventLogger(downstream, 200, null, blockingLogger, Level.INFO);
 
         logger.onNext("data: hello");
         logger.onNext("");
@@ -321,6 +332,238 @@ public class SseEventLoggerTest {
 
         loggerBlock.countDown();
         assertTrue(downstreamErrored.await(2, TimeUnit.SECONDS), "onError was never propagated once the pending log finished");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_sanitize_complete_events_without_changing_downstream_data(boolean custom) throws InterruptedException {
+        List<String> lines = List.of(
+            ": metadata-secret",
+            "event: metadata-secret",
+            "id: metadata-secret",
+            "retry: metadata-secret",
+            "unknown: metadata-secret",
+            "data:{\"events\":[",
+            "data: {\"apiKey\":\"json-secret\",\"password\":\"escaped\\\"secret\"},",
+            "data: {\"credentials\":{\"custom\":\"opaque-secret\"}}]}",
+            "",
+            "data:{\"password\":\"malformed-secret\"",
+            "",
+            "data: [DONE]",
+            "");
+        HttpHeaders headers = HttpHeaders.of(Map.of(
+            "sEt-CoOkIe", List.of("session=header-secret"),
+            "Content-Type", List.of("text/event-stream")), (k, v) -> true);
+        List<String> received = new ArrayList<>();
+        Flow.Subscriber<String> downstream = new Flow.Subscriber<>() {
+            @Override
+            public void onSubscribe(Subscription subscription) {}
+
+            @Override
+            public void onNext(String item) {
+                received.add(item);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {}
+
+            @Override
+            public void onComplete() {}
+        };
+
+        List<HttpResponseLog> entries = new CopyOnWriteArrayList<>();
+        CountDownLatch logged = new CountDownLatch(3);
+        HttpResponseLogger responseLogger = custom ? entry -> {
+            entries.add(entry);
+            logged.countDown();
+        } : null;
+        List<String> logs = new CopyOnWriteArrayList<>();
+        var appender = capturingAppender(logs);
+        var log4jLogger = (Logger) LogManager.getLogger(SseEventLogger.class);
+        log4jLogger.addAppender(appender);
+        try {
+            SseEventLogger logger = new SseEventLogger(downstream, 200, headers, responseLogger, Level.INFO);
+            lines.forEach(logger::onNext);
+            if (custom)
+                assertTrue(logged.await(2, TimeUnit.SECONDS), "not every custom log was delivered");
+
+            String diagnostic = custom ? entries.stream().map(SseEventLoggerTest::describe).reduce("", String::concat) : String.join("\n", logs);
+            for (String secret : List.of("metadata-secret", "json-secret", "escaped", "opaque-secret", "malformed-secret", "header-secret"))
+                assertFalse(diagnostic.contains(secret), () -> "Secret found in diagnostic event: " + diagnostic);
+            assertTrue(diagnostic.contains("***"));
+            assertFalse(diagnostic.contains("SSE metadata omitted"));
+            assertTrue(diagnostic.contains("data: [DONE]"));
+            assertEquals(lines, received);
+            assertEquals("session=header-secret", headers.firstValue("Set-Cookie").orElseThrow());
+        } finally {
+            log4jLogger.removeAppender(appender);
+            appender.stop();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void should_preserve_empty_and_multiline_data_fields(boolean custom) throws InterruptedException {
+        List<String> lines = List.of(
+            "event: omitted",
+            "datax: omitted",
+            "Data: omitted",
+            " ",
+            "data",
+            "",
+            "data:",
+            "\t",
+            "data: ",
+            "",
+            "data:  leading",
+            "data:\tkept",
+            "data",
+            "data: tail",
+            "",
+            "id: omitted\ndata: first\n\nevent: omitted\ndata: second\ndata:\n",
+            "\r\n");
+        List<String> received = new ArrayList<>();
+        CountDownLatch completed = new CountDownLatch(1);
+        Flow.Subscriber<String> downstream = new Flow.Subscriber<>() {
+            @Override
+            public void onSubscribe(Subscription subscription) {}
+
+            @Override
+            public void onNext(String item) {
+                received.add(item);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {}
+
+            @Override
+            public void onComplete() {
+                completed.countDown();
+            }
+        };
+        List<String> bodies = new CopyOnWriteArrayList<>();
+        HttpResponseLogger responseLogger = custom ? entry -> bodies.add(entry.body()) : null;
+        List<String> logs = new CopyOnWriteArrayList<>();
+        var appender = capturingAppender(logs);
+        var log4jLogger = (Logger) LogManager.getLogger(SseEventLogger.class);
+        log4jLogger.addAppender(appender);
+        try {
+            SseEventLogger logger = new SseEventLogger(downstream, 200, null, responseLogger, Level.INFO);
+            lines.forEach(logger::onNext);
+            logger.onComplete();
+            assertTrue(completed.await(2, TimeUnit.SECONDS), "the downstream completion was not delivered");
+            String marker = "\n- body: ";
+            List<String> actual = custom ? bodies : logs.stream().map(log -> log.substring(log.indexOf(marker) + marker.length())).toList();
+            assertEquals(List.of("data: ", "data: ", "data: ", "data:  leading\n\tkept\n\ntail", "data: first\nsecond\n"), actual);
+            assertEquals(lines, received);
+            for (int index = 0; index < lines.size(); index++)
+                assertSame(lines.get(index), received.get(index));
+        } finally {
+            log4jLogger.removeAppender(appender);
+            appender.stop();
+        }
+    }
+
+    @Test
+    void should_evaluate_the_log_level_when_the_event_ends() throws InterruptedException {
+        List<String> bodies = new CopyOnWriteArrayList<>();
+        CountDownLatch logged = new CountDownLatch(2);
+        HttpResponseLogger responseLogger = entry -> {
+            bodies.add(entry.body());
+            logged.countDown();
+        };
+        var log4jLogger = (Logger) LogManager.getLogger(SseEventLogger.class);
+        var previousLevel = log4jLogger.getLevel();
+        SseEventLogger logger = new SseEventLogger(noopSubscriber(), 200, null, responseLogger, Level.INFO);
+        try {
+            log4jLogger.setLevel(OFF);
+            logger.onNext("data: first");
+            log4jLogger.setLevel(INFO);
+            logger.onNext("");
+            logger.onNext("data: discarded");
+            log4jLogger.setLevel(OFF);
+            logger.onNext("");
+            log4jLogger.setLevel(INFO);
+            logger.onNext("data: second");
+            logger.onNext("");
+            assertTrue(logged.await(2, TimeUnit.SECONDS), "not every enabled event was logged");
+            assertEquals(List.of("data: first", "data: second"), bodies);
+        } finally {
+            log4jLogger.setLevel(previousLevel);
+        }
+    }
+
+    @Test
+    void should_sanitize_stream_errors_and_logger_failures_without_changing_the_downstream_error() throws InterruptedException {
+        RuntimeException original = new RuntimeException("apiKey=stream-secret", new RuntimeException("cause-secret"));
+        original.addSuppressed(new RuntimeException("suppressed-secret"));
+        AtomicReference<Throwable> receivedError = new AtomicReference<>();
+        CountDownLatch errored = new CountDownLatch(1);
+        Flow.Subscriber<String> downstream = new Flow.Subscriber<>() {
+            @Override
+            public void onSubscribe(Subscription subscription) {}
+
+            @Override
+            public void onNext(String item) {}
+
+            @Override
+            public void onError(Throwable throwable) {
+                receivedError.set(throwable);
+                errored.countDown();
+            }
+
+            @Override
+            public void onComplete() {}
+        };
+        HttpResponseLogger failingLogger = entry -> {
+            throw new RuntimeException("password=callback-secret", new RuntimeException("callback-cause-secret"));
+        };
+
+        List<String> logs = new CopyOnWriteArrayList<>();
+        var appender = capturingAppender(logs);
+        var log4jLogger = (Logger) LogManager.getLogger(SseEventLogger.class);
+        log4jLogger.addAppender(appender);
+        try {
+            SseEventLogger logger = new SseEventLogger(downstream, 200, null, failingLogger, Level.INFO);
+            logger.onNext("data: hello");
+            logger.onNext("");
+            logger.onError(original);
+            assertTrue(errored.await(2, TimeUnit.SECONDS), "the downstream error was not delivered");
+            assertSame(original, receivedError.get());
+            String diagnostic = String.join("\n", logs);
+            for (String secret : List.of("stream-secret", "cause-secret", "suppressed-secret", "callback-secret", "callback-cause-secret"))
+                assertFalse(diagnostic.contains(secret), () -> "Secret found in diagnostic stack trace: " + diagnostic);
+            assertTrue(diagnostic.contains("SSE stream failed"));
+            assertTrue(diagnostic.contains("Failed to log response"));
+            assertTrue(diagnostic.contains("SseEventLoggerTest.java:"));
+        } finally {
+            log4jLogger.removeAppender(appender);
+            appender.stop();
+        }
+    }
+
+    private static AbstractAppender capturingAppender(List<String> logs) {
+        var appender = new AbstractAppender("sse-sanitization-capture", null, null, true, null) {
+            @Override
+            public void append(LogEvent event) {
+                logs.add(event.getMessage().getFormattedMessage() + stackTrace(event.getThrown()));
+            }
+        };
+        appender.start();
+        return appender;
+    }
+
+    private static String describe(HttpResponseLog entry) {
+        return "requestId=" + entry.requestId() + ", status=" + entry.statusCode() + ", headers=" + entry.headers() + ", uri=" + entry.uri()
+            + ", body=" + entry.body() + ", error=" + stackTrace(entry.error());
+    }
+
+    private static String stackTrace(Throwable error) {
+        if (error == null)
+            return "";
+        StringWriter writer = new StringWriter();
+        error.printStackTrace(new PrintWriter(writer));
+        return writer.toString();
     }
 
     private static void sleep(long millis) {

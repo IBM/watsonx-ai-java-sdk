@@ -67,6 +67,16 @@ public final class Json {
     }
 
     /**
+     * Pretty-prints a string only when it contains exactly one JSON object. Other input, including absent or blank input, is returned unchanged.
+     *
+     * @param json the JSON content to pretty-print
+     * @return the formatted JSON object, or the original input when it is not exactly one JSON object
+     */
+    public static String prettyPrintObject(String json) {
+        return provider.prettyPrintObject(json);
+    }
+
+    /**
      * Validates whether the given string is a valid JSON object.
      *
      * @param json the JSON string to validate

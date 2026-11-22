@@ -54,6 +54,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -80,6 +81,7 @@ import com.ibm.watsonx.ai.file.FileService;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @DisabledInNativeImage
+@Isolated("Resets the shared HTTP client provider while exercising real HTTP requests.")
 public class BatchServiceTest extends AbstractWatsonxTest {
 
     @Mock
@@ -119,6 +121,7 @@ public class BatchServiceTest extends AbstractWatsonxTest {
 
     @BeforeEach
     void setUp() {
+        super.setUp();
         when(mockAuthenticator.token()).thenReturn("token");
         when(mockAuthenticator.scheme()).thenReturn("Bearer");
         BASE_URL = "http://localhost:%s".formatted(wireMock.getPort());
@@ -2210,8 +2213,8 @@ public class BatchServiceTest extends AbstractWatsonxTest {
             when(mockAuthenticator.token()).thenReturn("token");
             wireMock.stubFor(get(urlPathEqualTo("/ml/v1/batches/job"))
                 .willReturn(aResponse().withFixedDelay(500).withBody("{\"id\":\"job\",\"status\":\"completed\"}")));
-            var files = FileService.builder().baseUrl(wireMock.baseUrl()).projectId("project").authenticator(mockAuthenticator).build();
-            var service = BatchService.builder().baseUrl(wireMock.baseUrl()).projectId("project").authenticator(mockAuthenticator)
+            var files = FileService.builder().baseUrl(BASE_URL).projectId("project").authenticator(mockAuthenticator).build();
+            var service = BatchService.builder().baseUrl(BASE_URL).projectId("project").authenticator(mockAuthenticator)
                 .endpoint("/v1/chat/completions").fileService(files).timeout(Duration.ofMillis(100)).build();
 
             var error = assertThrows(RuntimeException.class, () -> service.retrieve("job"));
