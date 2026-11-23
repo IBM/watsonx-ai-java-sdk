@@ -30,6 +30,6 @@ public final class InvalidRequestEntityException extends WatsonxException {
      * @param exception the existing {@code WatsonxException} to wrap
      */
     public InvalidRequestEntityException(WatsonxException exception) {
-        super(exception.getMessage(), exception.statusCode(), exception.details().orElse(null));
+        super(exception);
     }
 }

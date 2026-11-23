@@ -13,17 +13,19 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpResponse.BodySubscribers;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
-import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 /**
  * Synchronous HTTP client.
@@ -168,36 +170,52 @@ public final class SyncHttpClient extends BaseHttpClient {
                 var attemptTimeout = request.timeout().filter(timeout -> timeout.compareTo(remaining) < 0).orElse(remaining);
                 request = HttpRequest.newBuilder(request, (name, value) -> true).timeout(attemptTimeout).build();
             }
-            var httpResponse = client.send(request, bodyHandler);
+
+            var errorBody = new AtomicReference<String>();
+            var httpResponse = client.send(request, responseInfo -> {
+
+                int status = responseInfo.statusCode();
+                if (status >= 200 && status < 300)
+                    return bodyHandler.apply(responseInfo);
+
+                return BodySubscribers.mapping(BodyHandlers.ofString().apply(responseInfo), body -> {
+                    errorBody.set(body);
+                    return null;
+                });
+            });
+
             int statusCode = httpResponse.statusCode();
 
             if (statusCode >= 200 && statusCode < 300)
                 return httpResponse;
 
-            var bodyOpt = extractErrorBody(httpResponse);
-
-            if (bodyOpt.isEmpty())
-                throw new WatsonxException("Status code: " + statusCode, statusCode, null);
-
-            String body = bodyOpt.get();
-            String contentType = httpResponse.headers().firstValue("Content-Type")
-                .orElseThrow(() -> new WatsonxException(body, statusCode, null));
-
-            WatsonxError details = HttpUtils.parseErrorBody(statusCode, body, contentType);
-            throw HttpUtils.mapWatsonxException(new WatsonxException(body, statusCode, details));
+            String body = errorBody.get();
+            if (body == null) {
+                try {
+                    body = extractErrorBody(httpResponse).orElse(null);
+                } catch (IOException | RuntimeException cause) {
+                    throw new WatsonxException("Status code: " + statusCode, statusCode, null, cause);
+                }
+            }
+            throw HttpErrorMapper.toException(statusCode, httpResponse.headers(), body);
         }
 
         private static Optional<String> extractErrorBody(HttpResponse<?> response) throws IOException {
+            if (response.body() instanceof String body)
+                return Optional.of(body);
+
             if (response.body() instanceof InputStream stream) {
                 try (stream) {
                     return HttpUtils.extractBodyAsString(response);
                 }
             }
+
             if (response.body() instanceof Stream<?> stream) {
                 try (stream) {
                     return HttpUtils.extractBodyAsString(response);
                 }
             }
+
             return HttpUtils.extractBodyAsString(response);
         }
 

@@ -30,6 +30,6 @@ public final class AuthorizationRejectedException extends WatsonxException {
      * @param exception the existing {@code WatsonxException} to wrap
      */
     public AuthorizationRejectedException(WatsonxException exception) {
-        super(exception.getMessage(), exception.statusCode(), exception.details().orElse(null));
+        super(exception);
     }
 }

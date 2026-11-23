@@ -14,7 +14,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,6 +28,7 @@ import com.ibm.watsonx.ai.core.exception.AuthenticationTokenExpiredException;
 import com.ibm.watsonx.ai.core.exception.AuthorizationRejectedException;
 import com.ibm.watsonx.ai.core.exception.InvalidInputArgumentException;
 import com.ibm.watsonx.ai.core.exception.InvalidRequestEntityException;
+import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.exception.JsonTypeErrorException;
 import com.ibm.watsonx.ai.core.exception.JsonValidationErrorException;
 import com.ibm.watsonx.ai.core.exception.ModelNoSupportForFunctionException;
@@ -125,57 +128,88 @@ public final class HttpUtils {
     }
 
     /**
-     * Parses error body based on content type.
+     * Parses error details based on the declared content type. The supplied HTTP status takes precedence over status fields in the body.
      *
      * @param statusCode status code of the http response.
      * @param body The error response body as a String.
-     * @param contentType The content type of the error response.
+     * @param contentType The content type of the error response, or {@code null} when absent.
      * @return An instance of WatsonxError parsed from the body, or an unclassified error carrying the status code when the content type is neither
      *         JSON nor XML.
+     * @throws JsonException if a JSON body is malformed or its error fields have unexpected types
      */
     public static WatsonxError parseErrorBody(int statusCode, String body, String contentType) {
-        if (isNull(contentType))
-            throw new IllegalArgumentException("Missing content type");
-
-        if (contentType.contains("application/json")) {
-
-            var error = fromJson(body, WatsonxError.class);
-            var genericError = fromJson(body, Map.class);
-
-            if (isNull(error.trace())) {
-                if (genericError.containsKey("errorCode")) {
-                    // IAM Authentication API errors use a non-standard format with "errorCode" and "errorMessage" fields.
-                    return parseIAMError(statusCode, genericError);
-                } else if (genericError.containsKey("code")) {
-                    // Agent Tool APIs (beta) return errors with a "code" field instead of the standard "errors" array.
-                    // TODO: verify if this behavior persists once the Agent Tool APIs are no longer in beta.
-                    return parseToolError(genericError);
-                } else if (genericError.size() == 1 && genericError.containsKey("error")) {
-                    var wrappedError = genericError.get("error");
-
-                    // Model Gateway errors wrap details in an "error" object with "code", "message", and "request_id".
-                    if (wrappedError instanceof Map<?, ?> gatewayError)
-                        return parseGatewayError(statusCode, gatewayError);
-
-                    // The Create Schema API returns a single error message as a string in the body.
-                    // TODO: verify if this behavior persists.
-                    if (wrappedError instanceof String schemaError)
-                        return new WatsonxError(statusCode, "", List.of(new Error("schema_event_does_not_exist", schemaError, "")));
-                }
-                // Standard error body that simply has no "trace": still return the typed error instead of
-                // falling through to a generic RuntimeException and losing the WatsonxException mapping.
-                return error;
-            } else {
-                // File Service API errors use a non-standard format: they include a "trace" field but use "status"
-                // instead of "status_code", and nest the error details under an "error" object instead of "errors" array.
-                return isNull(error.statusCode()) && genericError.containsKey("error") ? parseFileError(genericError) : error;
-            }
+        String mediaType = normalizeMediaType(contentType);
+        if (isMediaType(mediaType, "json")) {
+            Map<?, ?> error = fromJson(body, Map.class);
+            if (isNull(error))
+                throw new JsonException("Expected an error JSON object");
+            return parseJsonError(statusCode, error);
         }
 
-        if (contentType.contains("application/xml"))
-            return parseXmlError(body);
+        if (isMediaType(mediaType, "xml"))
+            return parseXmlError(statusCode, body);
 
         return new WatsonxError(statusCode, "", List.of(new Error(Code.UNCLASSIFIED.value(), body, null)));
+    }
+
+    private static String normalizeMediaType(String contentType) {
+        if (isNull(contentType))
+            return "";
+        int parameters = contentType.indexOf(';');
+        return (parameters < 0 ? contentType : contentType.substring(0, parameters)).trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean isMediaType(String mediaType, String subtype) {
+        int separator = mediaType.indexOf('/');
+        if (separator <= 0 || separator == mediaType.length() - 1)
+            return false;
+        String actualSubtype = mediaType.substring(separator + 1);
+        return actualSubtype.equals(subtype) || actualSubtype.endsWith("+" + subtype);
+    }
+
+    private static WatsonxError parseJsonError(int statusCode, Map<?, ?> body) {
+        String trace = stringField(body, "trace");
+        if (body.containsKey("errors")) {
+            Object errors = body.get("errors");
+            if (isNull(errors))
+                return new WatsonxError(statusCode, trace, null);
+            if (!(errors instanceof List<?> items))
+                throw new JsonException("Expected an error array");
+            List<Error> details = new ArrayList<>(items.size());
+            for (Object item : items) {
+                if (!(item instanceof Map<?, ?> error))
+                    throw new JsonException("Expected an error object in the error array");
+                details.add(new Error(stringField(error, "code"), stringField(error, "message"), stringField(error, "more_info")));
+            }
+            return new WatsonxError(statusCode, trace, details);
+        }
+
+        if (body.containsKey("errorCode"))
+            return parseIAMError(statusCode, body);
+
+        if (body.get("code") instanceof Number)
+            return parseToolError(statusCode, body);
+
+        if (body.get("error") instanceof Map<?, ?> error)
+            return parseGatewayError(statusCode, trace, error);
+
+        if (body.size() == 1 && body.get("error") instanceof String message)
+            return new WatsonxError(statusCode, "", List.of(new Error(Code.SCHEMA_EVENT_DOES_NOT_EXIST.value(), message, "")));
+
+        if (nonNull(body.get("error")))
+            throw new JsonException("Expected a nested error object");
+
+        if (body.containsKey("code"))
+            return parseToolError(statusCode, body);
+
+        return new WatsonxError(statusCode, trace, null);
+    }
+
+    private static String stringField(Map<?, ?> object, String field) {
+        Object value = object.get(field);
+        if (isNull(value) || value instanceof String)
+            return (String) value;
+        throw new JsonException("Expected a string for error field " + field);
     }
 
     /**
@@ -183,62 +217,54 @@ public final class HttpUtils {
      *
      * @param exception the generic {@link WatsonxException} to map
      * @return the mapped specific {@link WatsonxException}, or the original exception if it cannot be classified
-     * @throws WatsonxException one of the specific exceptions or the original exception if unclassified
      */
     public static WatsonxException mapWatsonxException(WatsonxException exception) {
-        var details = exception.details().orElseThrow(() -> exception);
+        var details = exception.details().orElse(null);
+        if (isNull(details) || isNull(details.errors()) || details.errors().isEmpty())
+            return exception;
 
-        if (details.errors() == null || details.errors().isEmpty())
-            throw exception;
+        Error first = details.errors().get(0);
+
+        if (isNull(first) || isNull(first.code()))
+            return exception;
+
+        Code code;
 
         try {
-            Code code = Code.valueOf(details.errors().get(0).code().toUpperCase());
-            return switch(code) {
-                case AUTHENTICATION_TOKEN_EXPIRED -> new AuthenticationTokenExpiredException(exception);
-                case AUTHORIZATION_REJECTED -> new AuthorizationRejectedException(exception);
-                case INVALID_INPUT_ARGUMENT -> new InvalidInputArgumentException(exception);
-                case INVALID_REQUEST_ENTITY -> new InvalidRequestEntityException(exception);
-                case JSON_TYPE_ERROR -> new JsonTypeErrorException(exception);
-                case JSON_VALIDATION_ERROR -> new JsonValidationErrorException(exception);
-                case MODEL_NOT_SUPPORTED -> new ModelNotSupportedException(exception);
-                case MODEL_NO_SUPPORT_FOR_FUNCTION -> new ModelNoSupportForFunctionException(exception);
-                case TOKEN_QUOTA_REACHED -> new TokenQuotaReachedException(exception);
-                case USER_AUTHORIZATION_FAILED -> new UserAuthorizationFailedException(exception);
-                case COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, SCHEMA_EVENT_DOES_NOT_EXIST, TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST,
-                    TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST, UNCLASSIFIED -> throw exception;
-            };
-        } catch (Exception e) {
+            code = Code.valueOf(first.code().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
             return exception;
         }
+
+        return switch(code) {
+            case AUTHENTICATION_TOKEN_EXPIRED -> new AuthenticationTokenExpiredException(exception);
+            case AUTHORIZATION_REJECTED -> new AuthorizationRejectedException(exception);
+            case INVALID_INPUT_ARGUMENT -> new InvalidInputArgumentException(exception);
+            case INVALID_REQUEST_ENTITY -> new InvalidRequestEntityException(exception);
+            case JSON_TYPE_ERROR -> new JsonTypeErrorException(exception);
+            case JSON_VALIDATION_ERROR -> new JsonValidationErrorException(exception);
+            case MODEL_NOT_SUPPORTED -> new ModelNotSupportedException(exception);
+            case MODEL_NO_SUPPORT_FOR_FUNCTION -> new ModelNoSupportForFunctionException(exception);
+            case TOKEN_QUOTA_REACHED -> new TokenQuotaReachedException(exception);
+            case USER_AUTHORIZATION_FAILED -> new UserAuthorizationFailedException(exception);
+            case COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, SCHEMA_EVENT_DOES_NOT_EXIST, TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST,
+                TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST, UNCLASSIFIED -> exception;
+        };
     }
 
     /**
-     * Parses an error response from the File Service APIs into a {@link WatsonxError} with a standardized format.
-     *
-     * @param body the raw JSON error response as a String.
-     * @return An instance of {@link WatsonxError} parsed from the body.
-     */
-    private static WatsonxError parseFileError(Map<?, ?> body) {
-        var error = (Map<?, ?>) body.get("error");
-        return new WatsonxError(
-            (Integer) body.get("status"),
-            (String) body.get("trace"),
-            List.of(new Error((String) error.get("code"), (String) error.get("message"), null)));
-    }
-
-    /**
-     * Parses an error response from the Model Gateway API into a {@link WatsonxError} with a standardized format. The Gateway wraps error details in
-     * an {@code "error"} object with {@code "code"}, {@code "message"}, and {@code "request_id"} fields.
+     * Parses a nested Model Gateway or File Service error into a {@link WatsonxError} with a standardized format.
      *
      * @param statusCode the HTTP status code
+     * @param trace the top-level trace, if available
      * @param error the deserialized {@code "error"} object from the response body
      * @return An instance of {@link WatsonxError} parsed from the body.
      */
-    private static WatsonxError parseGatewayError(int statusCode, Map<?, ?> error) {
+    private static WatsonxError parseGatewayError(int statusCode, String trace, Map<?, ?> error) {
         return new WatsonxError(
             statusCode,
-            (String) error.get("request_id"),
-            List.of(new Error((String) error.get("code"), (String) error.get("message"), null)));
+            nonNull(trace) ? trace : stringField(error, "request_id"),
+            List.of(new Error(stringField(error, "code"), stringField(error, "message"), null)));
     }
 
     /**
@@ -249,9 +275,9 @@ public final class HttpUtils {
      */
     private static WatsonxError parseIAMError(Integer statusCode, Map<?, ?> body) {
 
-        var errorCode = (String) body.get("errorCode");
-        var errorMessage = (String) body.get("errorMessage");
-        var errorDetails = body.containsKey("errorDetails") ? (String) body.get("errorDetails") : null;
+        var errorCode = stringField(body, "errorCode");
+        var errorMessage = stringField(body, "errorMessage");
+        var errorDetails = stringField(body, "errorDetails");
 
         Error error = new Error(errorCode, errorMessage, errorDetails);
         return new WatsonxError(statusCode, "", List.of(error));
@@ -263,13 +289,15 @@ public final class HttpUtils {
      * @param body the raw JSON error response as a String.
      * @return An instance of WatsonxError parsed from the body.
      */
-    private static WatsonxError parseToolError(Map<?, ?> body) {
+    private static WatsonxError parseToolError(int statusCode, Map<?, ?> body) {
+        if (nonNull(body.get("code")) && !(body.get("code") instanceof Number))
+            throw new JsonException("Expected a numeric Tool API error code");
 
-        var statusCode = (Integer) body.get("code");
-        var message = (String) body.get("message");
-        var description = (String) body.get("description");
+        var message = stringField(body, "message");
+        var description = stringField(body, "description");
 
         Error error;
+
         if (nonNull(description) && description.contains("jwt expired"))
             error = new Error(WatsonxError.Code.AUTHENTICATION_TOKEN_EXPIRED.value(), message, description);
         else
@@ -284,7 +312,7 @@ public final class HttpUtils {
      * @param body The XML error response body as a String.
      * @return An instance of WatsonxError parsed from the XML body.
      */
-    private static WatsonxError parseXmlError(String body) {
+    private static WatsonxError parseXmlError(int statusCode, String body) {
         Document doc = XmlUtils.parse(body);
 
         doc.getDocumentElement().normalize();
@@ -294,10 +322,8 @@ public final class HttpUtils {
         String message = getTextContent(root, "Message");
         String resource = getTextContent(root, "Resource");
         String requestId = getTextContent(root, "RequestId");
-        int httpStatusCode = Integer.parseInt(getTextContent(root, "httpStatusCode"));
-
         Error error = new Error(codeStr, message, resource);
-        return new WatsonxError(httpStatusCode, requestId, List.of(error));
+        return new WatsonxError(statusCode, requestId, List.of(error));
     }
 
     private static String getTextContent(Element parent, String tagName) {

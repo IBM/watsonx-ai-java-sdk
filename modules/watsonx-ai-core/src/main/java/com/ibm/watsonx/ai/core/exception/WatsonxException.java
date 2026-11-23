@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.core.exception;
 
+import static java.util.Objects.nonNull;
 import java.util.Optional;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
@@ -48,6 +49,20 @@ public class WatsonxException extends RuntimeException {
     }
 
     /**
+     * Constructs a new {@code WatsonxException} retaining the failure encountered while reading or parsing the error response.
+     *
+     * @param message the original error response body, or a status description when no body is available
+     * @param statusCode the HTTP status code of the error response
+     * @param details the detailed error information from the API response, if available
+     * @param cause the failure encountered while reading or parsing the error response, if any
+     */
+    public WatsonxException(String message, Integer statusCode, WatsonxError details, Throwable cause) {
+        super(message, cause);
+        this.statusCode = statusCode;
+        this.details = details;
+    }
+
+    /**
      * Returns the HTTP status code associated with this exception.
      *
      * @return the HTTP status code
@@ -63,5 +78,18 @@ public class WatsonxException extends RuntimeException {
      */
     public Optional<WatsonxError> details() {
         return Optional.ofNullable(details);
+    }
+
+    /**
+     * Copies the original error response and its diagnostic failures when mapping to a more specific exception.
+     *
+     * @param exception the existing exception to copy
+     */
+    protected WatsonxException(WatsonxException exception) {
+        this(exception.getMessage(), exception.statusCode(), exception.details().orElse(null));
+        if (nonNull(exception.getCause()))
+            initCause(exception.getCause());
+        for (var suppressed : exception.getSuppressed())
+            addSuppressed(suppressed);
     }
 }

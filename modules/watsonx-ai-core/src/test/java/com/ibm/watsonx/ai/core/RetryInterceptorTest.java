@@ -64,6 +64,7 @@ import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.http.AsyncHttpClient;
 import com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor;
+import com.ibm.watsonx.ai.core.http.BaseHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpClient;
 import com.ibm.watsonx.ai.core.http.SyncHttpInterceptor;
 import com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor;
@@ -91,6 +92,47 @@ public class RetryInterceptorTest {
         when(httpRequest.uri()).thenReturn(URI.create("https://test.com"));
         when(httpRequest.method()).thenReturn("GET");
         when(httpRequest.headers()).thenReturn(HttpHeaders.of(Map.of(), (k, v) -> true));
+    }
+
+    @Test
+    void should_preserve_incomplete_forbidden_errors_without_retrying_sync_or_async() throws Exception {
+        var incompleteDetails = new ArrayList<WatsonxError>();
+        incompleteDetails.add(null);
+        incompleteDetails.add(new WatsonxError(403, null, null));
+        incompleteDetails.add(new WatsonxError(403, null, List.of()));
+        incompleteDetails.add(new WatsonxError(403, null, List.of(new WatsonxError.Error(null, "forbidden", null))));
+        var request = HttpRequest.newBuilder(URI.create("https://example.com"))
+            .header(BaseHttpClient.REQUEST_ID_HEADER, "incomplete-error-request").GET().build();
+
+        for (var details : incompleteDetails) {
+            var original = new WatsonxException("forbidden", 403, details);
+            var syncChain = mock(SyncHttpInterceptor.Chain.class);
+            when(syncChain.proceed(request, bodyHandler)).thenThrow(original);
+            assertSame(original, assertThrows(WatsonxException.class,
+                () -> RetryInterceptor.ON_TOKEN_EXPIRED.intercept(request, bodyHandler, 0, syncChain)));
+            verify(syncChain, times(1)).proceed(request, bodyHandler);
+
+            var asyncChain = mock(AsyncHttpInterceptor.AsyncChain.class);
+            when(asyncChain.proceed(request, bodyHandler)).thenReturn(failedFuture(original));
+            var future = RetryInterceptor.ON_TOKEN_EXPIRED.intercept(request, bodyHandler, 0, asyncChain);
+            var failure = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+            assertSame(original, failure.getCause());
+            verify(asyncChain, times(1)).proceed(request, bodyHandler);
+        }
+    }
+
+    @Test
+    void should_still_retry_cos_access_denied_when_other_error_items_are_incomplete() throws Exception {
+        var details = new WatsonxError(403, null, List.of(new WatsonxError.Error(null, "missing code", null),
+            new WatsonxError.Error(WatsonxError.Code.COS_ACCESS_DENIED.value(), "access denied", null)));
+        var original = new WatsonxException("forbidden", 403, details);
+        var request = HttpRequest.newBuilder(URI.create("https://example.com"))
+            .header(BaseHttpClient.REQUEST_ID_HEADER, "cos-error-request").GET().build();
+        var chain = mock(SyncHttpInterceptor.Chain.class);
+        when(chain.proceed(request, bodyHandler)).thenThrow(original).thenReturn(httpResponse);
+
+        assertSame(httpResponse, RetryInterceptor.ON_TOKEN_EXPIRED.intercept(request, bodyHandler, 0, chain));
+        verify(chain, times(2)).proceed(request, bodyHandler);
     }
 
     @Test
@@ -151,12 +193,12 @@ public class RetryInterceptorTest {
                 .interceptor(retryInterceptor)
                 .build();
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenThrow(NullPointerException.class);
 
             var ex = assertThrows(NullPointerException.class, () -> client.send(httpRequest, bodyHandler));
             assertEquals(NullPointerException.class, ex.getClass());
-            verify(httpClient, times(2)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(2)).send(any(), any(BodyHandler.class));
         }
 
         @Test
@@ -182,13 +224,13 @@ public class RetryInterceptorTest {
             when(mockInterceptor.intercept(any(), eq(bodyHandler), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenThrow(NullPointerException.class);
 
             // After exhausting the retries the original exception is propagated, not a wrapper.
             var ex = assertThrows(NullPointerException.class, () -> client.send(httpRequest, bodyHandler));
             assertEquals(NullPointerException.class, ex.getClass());
-            verify(httpClient, times(4)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(4)).send(any(), any(BodyHandler.class));
             verify(mockInterceptor, times(4)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
 
@@ -209,13 +251,13 @@ public class RetryInterceptorTest {
             when(mockInterceptor.intercept(any(), eq(bodyHandler), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenThrow(new NullPointerException("Super null pointer exception"));
 
             var ex = assertThrows(NullPointerException.class, () -> client.send(httpRequest, bodyHandler));
             assertEquals(NullPointerException.class, ex.getClass());
             assertEquals("Super null pointer exception", ex.getMessage());
-            verify(httpClient, times(4)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(4)).send(any(), any(BodyHandler.class));
             verify(mockInterceptor, times(4)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
 
@@ -236,12 +278,12 @@ public class RetryInterceptorTest {
             when(mockInterceptor.intercept(any(), eq(bodyHandler), anyInt(), any()))
                 .thenAnswer(CHAIN_MOCK);
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenThrow(IllegalArgumentException.class);
 
             var ex = assertThrows(IllegalArgumentException.class, () -> client.send(httpRequest, bodyHandler));
             assertEquals(IllegalArgumentException.class, ex.getClass());
-            verify(httpClient, times(1)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(1)).send(any(), any(BodyHandler.class));
             verify(mockInterceptor, times(1)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
 
@@ -265,13 +307,13 @@ public class RetryInterceptorTest {
             when(httpResponse.statusCode())
                 .thenReturn(200);
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenThrow(new NullPointerException())
                 .thenReturn(httpResponse);
 
             var result = client.send(httpRequest, bodyHandler);
             assertEquals(httpResponse, result);
-            verify(httpClient, times(2)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(2)).send(any(), any(BodyHandler.class));
             verify(mockInterceptor, times(2)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
 
@@ -311,13 +353,13 @@ public class RetryInterceptorTest {
             when(httpResponse.statusCode())
                 .thenReturn(200);
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenReturn(tokenExpiredResponse)
                 .thenReturn(httpResponse);
 
             var result = client.send(httpRequest, bodyHandler);
             assertEquals(httpResponse, result);
-            verify(httpClient, times(2)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(2)).send(any(), any(BodyHandler.class));
             verify(mockInterceptor, times(2)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
 
@@ -353,13 +395,13 @@ public class RetryInterceptorTest {
             when(httpResponse.statusCode())
                 .thenReturn(200);
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenReturn(tokenExpiredResponse)
                 .thenReturn(httpResponse);
 
             var result = client.send(httpRequest, bodyHandler);
             assertEquals(httpResponse, result);
-            verify(httpClient, times(2)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(2)).send(any(), any(BodyHandler.class));
             verify(mockInterceptor, times(2)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
 
@@ -387,7 +429,7 @@ public class RetryInterceptorTest {
                 .interceptor(mockInterceptor)
                 .build();
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenThrow(NullPointerException.class)
                 .thenThrow(NullPointerException.class)
                 .thenThrow(NullPointerException.class)
@@ -397,7 +439,7 @@ public class RetryInterceptorTest {
                 .thenReturn(200);
 
             client.send(httpRequest, bodyHandler);
-            verify(httpClient, times(4)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(4)).send(any(), any(BodyHandler.class));
         }
 
         @Test
@@ -422,13 +464,13 @@ public class RetryInterceptorTest {
             when(httpResponse.statusCode())
                 .thenReturn(200);
 
-            when(httpClient.send(any(), eq(bodyHandler)))
+            when(httpClient.send(any(), any(BodyHandler.class)))
                 .thenReturn(badGatewayResponse)
                 .thenReturn(httpResponse);
 
             var result = client.send(httpRequest, bodyHandler);
             assertEquals(httpResponse, result);
-            verify(httpClient, times(2)).send(any(), eq(bodyHandler));
+            verify(httpClient, times(2)).send(any(), any(BodyHandler.class));
             verify(mockInterceptor, times(2)).intercept(any(), eq(bodyHandler), anyInt(), any());
         }
 

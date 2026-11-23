@@ -4,6 +4,8 @@
  */
 package com.ibm.watsonx.ai.textprocessing.textextraction;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.FileNotFoundException;
@@ -15,7 +17,6 @@ import com.ibm.watsonx.ai.WatsonxRestClient;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Code;
-import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
 import com.ibm.watsonx.ai.textprocessing.DeleteFileRequest;
 import com.ibm.watsonx.ai.textprocessing.ReadFileRequest;
 import com.ibm.watsonx.ai.textprocessing.UploadRequest;
@@ -126,12 +127,15 @@ public abstract class TextExtractionRestClient extends WatsonxRestClient {
     protected Exception mapIfCosFileNotFound(WatsonxException e) {
         if (e.statusCode() == 404 && e.details().isPresent()) {
             var details = e.details().get();
-            var fileNotFound = details.errors().stream()
+
+            if (isNull(details.errors()))
+                return e;
+
+            return details.errors().stream()
                 .filter(error -> error.is(Code.COS_FILE_NOT_FOUND))
                 .findFirst()
-                .map(Error::message)
-                .orElse(e.getMessage());
-            return new FileNotFoundException(fileNotFound);
+                .<Exception>map(error -> new FileNotFoundException(nonNull(error.message()) ? error.message() : e.getMessage()))
+                .orElse(e);
         }
 
         return e;

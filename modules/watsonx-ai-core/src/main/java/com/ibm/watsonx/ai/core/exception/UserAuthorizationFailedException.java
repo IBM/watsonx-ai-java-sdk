@@ -30,6 +30,6 @@ public final class UserAuthorizationFailedException extends WatsonxException {
      * @param exception the existing {@code WatsonxException} to wrap
      */
     public UserAuthorizationFailedException(WatsonxException exception) {
-        super(exception.getMessage(), exception.statusCode(), exception.details().orElse(null));
+        super(exception);
     }
 }

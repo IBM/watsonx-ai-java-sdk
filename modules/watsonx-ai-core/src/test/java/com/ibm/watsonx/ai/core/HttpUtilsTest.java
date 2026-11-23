@@ -5,6 +5,9 @@
 package com.ibm.watsonx.ai.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -18,14 +21,21 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
+import com.ibm.watsonx.ai.core.exception.AuthenticationTokenExpiredException;
+import com.ibm.watsonx.ai.core.exception.InvalidInputArgumentException;
+import com.ibm.watsonx.ai.core.exception.JsonException;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.core.exception.model.WatsonxError.Error;
@@ -223,6 +233,8 @@ public class HttpUtilsTest {
         String jsonBody = """
             {
                 "code": 401,
+                "error": "Unauthorized",
+                "reason": "Unauthorized",
                 "message": "Unauthorized",
                 "description": "jwt expired"
             }""";
@@ -320,16 +332,110 @@ public class HttpUtilsTest {
     }
 
     @Test
-    void should_throw_original_exception_when_mapping_watsonx_exception_with_no_details_or_empty_errors() {
-        var ex = assertThrows(RuntimeException.class, () -> HttpUtils.mapWatsonxException(new WatsonxException("no_details", 500, null))
-        );
-        assertEquals("no_details", ex.getMessage());
+    void should_return_original_exception_when_mapping_with_no_details_or_empty_errors() {
+        var withoutDetails = new WatsonxException("no_details", 500, null);
+        assertSame(withoutDetails, HttpUtils.mapWatsonxException(withoutDetails));
+        var withoutErrors = new WatsonxException("no_errors", 500, new WatsonxError(500, "", null));
+        assertSame(withoutErrors, HttpUtils.mapWatsonxException(withoutErrors));
+        var emptyErrors = new WatsonxException("empty_errors", 500, new WatsonxError(500, "", List.of()));
+        assertSame(emptyErrors, HttpUtils.mapWatsonxException(emptyErrors));
+    }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "application/json; charset=utf-8", "Application/JSON", " application/problem+json ; charset=UTF-8",
+            "application/vnd.ibm.error+json" })
+    void should_recognize_json_media_types(String contentType) {
+        String body = """
+            {"errors":[{"code":"invalid_input_argument","message":"invalid input"}]}""";
+        var details = HttpUtils.parseErrorBody(400, body, contentType);
+        var exception = HttpUtils.mapWatsonxException(new WatsonxException(body, 400, details));
+        assertInstanceOf(InvalidInputArgumentException.class, exception);
+        assertEquals(400, details.statusCode());
+    }
 
-        ex = assertThrows(RuntimeException.class,
-            () -> HttpUtils.mapWatsonxException(new WatsonxException("no_details", 500, new WatsonxError(500, "", List.of())))
-        );
-        assertEquals("no_details", ex.getMessage());
+    @ParameterizedTest
+    @ValueSource(strings = { "application/xml; charset=utf-8", "Application/XML", "application/vnd.ibm.error+xml", "text/xml" })
+    void should_use_http_status_for_xml_without_body_status(String contentType) {
+        String body = "<Error><Code>AccessDenied</Code><Message>Access denied</Message><RequestId>request-id</RequestId></Error>";
+        var details = HttpUtils.parseErrorBody(403, body, contentType);
+        assertEquals(403, details.statusCode());
+        assertEquals("request-id", details.trace());
+        assertEquals("AccessDenied", details.errors().get(0).code());
+    }
+
+    @Test
+    void should_ignore_conflicting_or_invalid_xml_status() {
+        for (String bodyStatus : List.of("200", "not-a-status")) {
+            var details = HttpUtils.parseErrorBody(403,
+                "<Error><Code>AccessDenied</Code><httpStatusCode>" + bodyStatus + "</httpStatusCode></Error>", "application/xml");
+            assertEquals(403, details.statusCode());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"status_code\":200,\"errors\":[{\"code\":\"invalid_input_argument\"}]}",
+            "{\"status\":200,\"trace\":\"trace\",\"error\":{\"code\":\"invalid_input_argument\"}}",
+            "{\"code\":200,\"message\":\"error\",\"description\":\"details\"}",
+            "{\"errorCode\":\"error\",\"errorMessage\":\"message\"}",
+            "{\"error\":{\"code\":\"error\",\"request_id\":\"request-id\"}}" })
+    void should_use_http_status_for_all_json_error_formats(String body) {
+        assertEquals(403, HttpUtils.parseErrorBody(403, body, "application/json").statusCode());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = { "text/plain", "text/html", "application/jsonx", "unknown" })
+    void should_keep_body_unclassified_for_unknown_or_missing_media_type(String contentType) {
+        String body = "{\"errors\":[{\"code\":\"authentication_token_expired\"}]}";
+        var details = HttpUtils.parseErrorBody(403, body, contentType);
+        assertEquals(403, details.statusCode());
+        assertEquals(WatsonxError.Code.UNCLASSIFIED.value(), details.errors().get(0).code());
+        assertEquals(body, details.errors().get(0).message());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "null", "[]", "42", "\"error\"", "{\"error\":", "{\"errors\":{}}", "{\"errors\":[null]}",
+            "{\"errors\":[42]}", "{\"errors\":[{\"code\":7}]}", "{\"errors\":[{\"message\":[]}]}", "{\"trace\":{}}",
+            "{\"error\":false}", "{\"error\":{\"code\":{}}}", "{\"errorCode\":5}", "{\"code\":{},\"description\":\"jwt expired\"}" })
+    void should_report_unexpected_json_shapes_as_parsing_failures(String body) {
+        assertThrows(JsonException.class, () -> HttpUtils.parseErrorBody(400, body, "application/json"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{}", "{\"errors\":null}", "{\"trace\":null}", "{\"unexpected\":{\"nested\":true}}" })
+    void should_accept_json_objects_without_error_details(String body) {
+        var details = HttpUtils.parseErrorBody(403, body, "application/json");
+        assertEquals(403, details.statusCode());
+        assertNull(details.errors());
+        var original = new WatsonxException(body, 403, details);
+        assertSame(original, HttpUtils.mapWatsonxException(original));
+    }
+
+    @Test
+    void should_map_error_codes_independently_of_default_locale() {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            var expired = new WatsonxException("expired", 401,
+                new WatsonxError(401, null, List.of(new Error("authentication_token_expired", "expired", null))));
+            assertInstanceOf(AuthenticationTokenExpiredException.class, HttpUtils.mapWatsonxException(expired));
+            var invalid = new WatsonxException("invalid", 400,
+                new WatsonxError(400, null, List.of(new Error("invalid_input_argument", "invalid", null))));
+            assertInstanceOf(InvalidInputArgumentException.class, HttpUtils.mapWatsonxException(invalid));
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
+    }
+
+    @Test
+    void should_preserve_first_error_mapping_precedence() {
+        var errors = List.of(new Error("unknown_future_error", "first", null), new Error("authentication_token_expired", "second", null));
+        var exception = new WatsonxException("multiple errors", 401, new WatsonxError(401, null, errors));
+        assertSame(exception, HttpUtils.mapWatsonxException(exception));
+        var missingCode = new WatsonxException("missing code", 403,
+            new WatsonxError(403, null, List.of(new Error(null, "first", null), errors.get(1))));
+        assertSame(missingCode, HttpUtils.mapWatsonxException(missingCode));
     }
 
     @Test

@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.core.http.interceptors;
 
 import static com.ibm.watsonx.ai.core.http.BaseHttpClient.REQUEST_ID_HEADER;
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import java.io.IOException;
@@ -63,8 +64,9 @@ public final class RetryInterceptor implements SyncHttpInterceptor, AsyncHttpInt
             ex -> {
                 var e = (WatsonxException) ex;
                 boolean watsonxTokenExpired = ex instanceof AuthenticationTokenExpiredException;
-                boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(detail -> detail.errors().stream()
-                    .anyMatch(err -> err.is(WatsonxError.Code.COS_ACCESS_DENIED))).orElse(false);
+                boolean cosTokenExpired = e.statusCode() == 403 && e.details().map(WatsonxError::errors).stream()
+                    .flatMap(List::stream)
+                    .anyMatch(err -> nonNull(err) && err.is(WatsonxError.Code.COS_ACCESS_DENIED));
                 return watsonxTokenExpired || cosTokenExpired;
             }
         ).build();

@@ -30,6 +30,6 @@ public final class TokenQuotaReachedException extends WatsonxException {
      * @param exception the existing {@code WatsonxException} to wrap
      */
     public TokenQuotaReachedException(WatsonxException exception) {
-        super(exception.getMessage(), exception.statusCode(), exception.details().orElse(null));
+        super(exception);
     }
 }

@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -1081,6 +1086,81 @@ public class TextExtractionTest extends AbstractWatsonxTest {
             ));
 
         assertEquals("test", assertDoesNotThrow(() -> textExtractionService.readFile(BUCKET_NAME, FILE_NAME)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("incompleteCosJsonErrors")
+    void should_preserve_incomplete_cos_json_error_on_read(String contentType, String body) {
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        var path = "/%s/%s".formatted(BUCKET_NAME, FILE_NAME);
+        cosServer.stubFor(get(path).willReturn(aResponse()
+            .withStatus(404).withHeader("Content-Type", contentType).withBody(body)));
+
+        var error = assertThrows(WatsonxException.class, () -> textExtractionService.readFile(BUCKET_NAME, FILE_NAME));
+
+        assertEquals(404, error.statusCode());
+        assertEquals(body, error.getMessage());
+        cosServer.verify(1, getRequestedFor(urlEqualTo(path)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("incompleteCosJsonErrors")
+    void should_preserve_incomplete_cos_json_error_on_delete(String contentType, String body) {
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+        var path = "/%s/%s".formatted(BUCKET_NAME, FILE_NAME);
+        cosServer.stubFor(delete(path).willReturn(aResponse()
+            .withStatus(404).withHeader("Content-Type", contentType).withBody(body)));
+        var client = TextExtractionRestClient.builder()
+            .baseUrl("http://localhost:%s".formatted(watsonxServer.getPort()))
+            .cosUrl("http://localhost:%s".formatted(cosServer.getPort()))
+            .version(API_VERSION).timeout(Duration.ofSeconds(10)).authenticator(mockAuthenticator).build();
+
+        var error = assertThrows(WatsonxException.class, () -> client.deleteFile(DeleteFileRequest.of(BUCKET_NAME, FILE_NAME)));
+
+        assertEquals(404, error.statusCode());
+        assertEquals(body, error.getMessage());
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo(path)));
+    }
+
+    private static Stream<Arguments> incompleteCosJsonErrors() {
+        return Stream.of("application/json", "application/problem+json", "Application/JSON")
+            .flatMap(contentType -> Stream.of("{}", "{\"message\":\"Not found\"}")
+                .map(body -> Arguments.of(contentType, body)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "<Message>The specified key does not exist.</Message>", "" })
+    void should_map_cos_file_not_found_without_optional_xml_fields(String message) {
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
+        var body = "<Error><Code>NoSuchKey</Code>" + message + "</Error>";
+        var path = "/%s/%s".formatted(BUCKET_NAME, FILE_NAME);
+        cosServer.stubFor(get(path).willReturn(aResponse()
+            .withStatus(404).withHeader("Content-Type", "application/xml").withBody(body)));
+        cosServer.stubFor(delete(path).willReturn(aResponse()
+            .withStatus(404).withHeader("Content-Type", "application/xml").withBody(body)));
+
+        var readError = assertThrows(FileNotFoundException.class, () -> textExtractionService.readFile(BUCKET_NAME, FILE_NAME));
+        var deleteError = assertThrows(FileNotFoundException.class, () -> textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME));
+
+        var expectedMessage = message.isEmpty() ? body : "The specified key does not exist.";
+        assertEquals(expectedMessage, readError.getMessage());
+        assertEquals(expectedMessage, deleteError.getMessage());
+    }
+
+    @Test
+    void should_preserve_cos_bucket_not_found_error_on_read() {
+        when(mockAuthenticator.token()).thenReturn("my-super-token");
+        var body = "<Error><Code>NoSuchBucket</Code><Message>The specified bucket does not exist.</Message></Error>";
+        cosServer.stubFor(get("/%s/%s".formatted(BUCKET_NAME, FILE_NAME)).willReturn(aResponse()
+            .withStatus(404).withHeader("Content-Type", "application/xml").withBody(body)));
+
+        var error = assertThrows(WatsonxException.class, () -> textExtractionService.readFile(BUCKET_NAME, FILE_NAME));
+
+        assertEquals(404, error.statusCode());
+        assertEquals(body, error.getMessage());
+        assertEquals("NoSuchBucket", error.details().orElseThrow().errors().get(0).code());
     }
 
     @Test
@@ -2168,7 +2248,7 @@ public class TextExtractionTest extends AbstractWatsonxTest {
     }
 
     @Test
-    void should_throw_exception_when_deleting_non_existent_file() {
+    void should_preserve_cos_bucket_not_found_error_on_delete() {
 
         when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("my-super-token"));
 
@@ -2187,7 +2267,9 @@ public class TextExtractionTest extends AbstractWatsonxTest {
                         <httpStatusCode>404</httpStatusCode>
                     </Error>""")));
 
-        assertThrows(FileNotFoundException.class, () -> textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME));
+        var error = assertThrows(WatsonxException.class, () -> textExtractionService.deleteFile(BUCKET_NAME, FILE_NAME));
+        assertEquals(404, error.statusCode());
+        assertEquals("NoSuchBucket", error.details().orElseThrow().errors().get(0).code());
         cosServer.verify(1, deleteRequestedFor(urlEqualTo("/%s/%s".formatted(BUCKET_NAME, FILE_NAME))));
         verify(mockAuthenticator, times(1)).tokenAsync();
     }
