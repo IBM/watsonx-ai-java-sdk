@@ -883,6 +883,10 @@ ChatService limitedService = ChatService.builder()
     .build();
 ```
 
+Non-empty name or class filters return only matching schemas. Unmatched entries are ignored, so mixing known and unknown entries selects only the matches, and a filter with no matches returns an empty list. Class filters accept superclasses and interfaces. Repeated names or classes in a filter do not duplicate schemas.
+
+`tools()` and null or empty filter containers return all registered schemas. This applies to `Set<String>`, `String[]`, and `Class[]`. Null elements inside either varargs array throw `NullPointerException`, even though a null array selects all tools.
+
 ---
 
 ## Chat Parameters

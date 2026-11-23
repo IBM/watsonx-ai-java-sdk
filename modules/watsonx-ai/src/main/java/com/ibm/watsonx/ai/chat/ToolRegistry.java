@@ -7,6 +7,7 @@ package com.ibm.watsonx.ai.chat;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +94,7 @@ public class ToolRegistry implements ToolExecutor {
     /**
      * Returns all registered tools.
      *
-     * @return a list of tool schemas for all registered tools
+     * @return an unmodifiable list of tool schemas for all registered tools
      */
     public List<Tool> tools() {
         return tools(Set.of());
@@ -101,26 +102,31 @@ public class ToolRegistry implements ToolExecutor {
 
     /**
      * Returns the tools that match the specified names.
+     * <p>
+     * A {@code null} or empty array selects all registered tools. Unmatched names are ignored, and a non-empty filter with no matches returns an
+     * empty list. Repeated names do not duplicate the selected tools.
      *
-     * @param names the tool names to include
-     * @return a list of tool schemas for the matching tools
+     * @param names the tool names to include, or {@code null} or empty for all tools
+     * @return an unmodifiable list of tool schemas for the matching tools
+     * @throws NullPointerException if an array element is {@code null}
      */
     public List<Tool> tools(String... names) {
-        return tools(Set.of(names));
+        return isNull(names) ? tools() : tools(Set.copyOf(Arrays.asList(names)));
     }
 
     /**
      * Returns the tools that match the specified names.
      * <p>
-     * If the provided set is {@code null} or empty, all registered tool schemas are returned. Unmatched names are silently ignored.
+     * If the provided set is {@code null} or empty, all registered tool schemas are returned. Unmatched names are silently ignored. A non-empty
+     * filter with no matches returns an empty list.
      *
      * @param names the set of tool names to include, or empty/null for all tools
-     * @return a list of tool schemas for the matching tools
+     * @return an unmodifiable list of tool schemas for the matching tools
      */
     public List<Tool> tools(Set<String> names) {
         var stream = tools.values().stream();
 
-        if (!names.isEmpty())
+        if (nonNull(names) && !names.isEmpty())
             stream = stream.filter(tool -> names.contains(tool.name()));
 
         return stream.map(ExecutableTool::schema).toList();
@@ -128,20 +134,25 @@ public class ToolRegistry implements ToolExecutor {
 
     /**
      * Returns the tools that match the specified tool classes.
+     * <p>
+     * Matching includes subclasses and implementations of the requested interfaces. A {@code null} or empty array selects all registered tools.
+     * Otherwise, only matching tools are returned, and a filter with no matches returns an empty list. Repeated or overlapping classes do not
+     * duplicate the selected tools.
      *
-     * @param toolClasses the tool classes to filter by
-     * @return a list of tool schemas for the matching tools
+     * @param toolClasses the tool classes to filter by, or {@code null} or empty for all tools
+     * @return an unmodifiable list of tool schemas for the matching tools
+     * @throws NullPointerException if an array element is {@code null}
      */
     @SafeVarargs
     public final List<Tool> tools(Class<? extends ExecutableTool>... toolClasses) {
-        Set<Class<? extends ExecutableTool>> classes = Set.of(toolClasses);
+        if (isNull(toolClasses) || toolClasses.length == 0)
+            return tools();
 
-        var toolNames = tools.values().stream()
-            .filter(tool -> classes.stream().anyMatch(clazz -> clazz.isAssignableFrom(tool.getClass())))
-            .map(ExecutableTool::name)
-            .collect(Collectors.toSet());
+        Set<Class<? extends ExecutableTool>> classes = Set.copyOf(Arrays.asList(toolClasses));
 
-        return tools(toolNames);
+        return tools.values().stream()
+            .filter(tool -> classes.stream().anyMatch(clazz -> clazz.isInstance(tool)))
+            .map(ExecutableTool::schema).toList();
     }
 
     /**

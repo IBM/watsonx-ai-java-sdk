@@ -23,6 +23,7 @@ import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.spi.json.TypeToken;
@@ -74,6 +75,104 @@ public class ToolRegistryTest {
         assertEquals(1, toolRegistry.tools(webCrawlerTool.name()).size());
         assertEquals(1, toolRegistry.tools(WebCrawlerTool.class).size());
         assertEquals(7, toolRegistry.tools(Set.of()).size());
+    }
+
+    @Test
+    void should_return_all_tools_when_the_name_array_is_null() {
+        var registry = registryWithSelectionTools();
+
+        assertEquals(List.of("first", "second"), selectedToolNames(registry.tools((String[]) null)));
+    }
+
+    @Test
+    void should_return_all_tools_when_the_class_array_is_null() {
+        var registry = registryWithSelectionTools();
+
+        assertEquals(List.of("first", "second"), selectedToolNames(registry.tools((Class<? extends ExecutableTool>[]) null)));
+    }
+
+    @Test
+    void should_return_all_tools_when_the_name_set_is_null() {
+        var registry = registryWithSelectionTools();
+
+        assertEquals(List.of("first", "second"), selectedToolNames(registry.tools((Set<String>) null)));
+    }
+
+    @Test
+    void should_return_all_tools_when_no_filter_is_requested() {
+        var registry = registryWithSelectionTools();
+        var expected = List.of("first", "second");
+        @SuppressWarnings("unchecked")
+        Class<? extends ExecutableTool>[] noClasses = (Class<? extends ExecutableTool>[]) new Class<?>[0];
+
+        assertEquals(expected, selectedToolNames(registry.tools()));
+        assertEquals(expected, selectedToolNames(registry.tools(new String[0])));
+        assertEquals(expected, selectedToolNames(registry.tools(noClasses)));
+        assertEquals(expected, selectedToolNames(registry.tools(Set.of())));
+    }
+
+    @Test
+    void should_return_no_tools_when_the_requested_class_is_not_registered() {
+        var registry = registryWithSelectionTools();
+
+        assertEquals(List.of(), registry.tools(UnregisteredSelectionToolTest.class));
+    }
+
+    @Test
+    void should_return_no_tools_when_the_requested_names_are_not_registered() {
+        var registry = registryWithSelectionTools();
+
+        assertEquals(List.of(), registry.tools("unregistered"));
+        assertEquals(List.of(), registry.tools(Set.of("unregistered")));
+    }
+
+    @Test
+    void should_select_only_registered_tools_when_filters_include_unknown_tools() {
+        var registry = registryWithSelectionTools();
+        var expected = List.of("first");
+
+        assertEquals(expected, selectedToolNames(registry.tools("first", "unregistered")));
+        assertEquals(expected, selectedToolNames(registry.tools(Set.of("first", "unregistered"))));
+        assertEquals(expected, selectedToolNames(registry.tools(FirstSelectionToolTest.class, UnregisteredSelectionToolTest.class)));
+    }
+
+    @Test
+    void should_select_tools_assignable_to_requested_classes_and_interfaces() {
+        var registry = registryWithSelectionTools();
+
+        assertEquals(List.of("first"), selectedToolNames(registry.tools(FirstSelectionToolTest.class)));
+        assertEquals(List.of("second"), selectedToolNames(registry.tools(SecondSelectionToolTest.class)));
+        assertEquals(List.of("first", "second"), selectedToolNames(registry.tools(BaseSelectionToolTest.class)));
+        assertEquals(List.of("first"), selectedToolNames(registry.tools(SubsetSelectionToolTest.class)));
+        assertEquals(List.of("first", "second"), selectedToolNames(registry.tools(ExecutableTool.class)));
+        assertEquals(List.of("first", "second"), selectedToolNames(registry.tools(BaseSelectionToolTest.class, SubsetSelectionToolTest.class)));
+    }
+
+    @Test
+    void should_accept_duplicate_names_without_returning_duplicate_tools() {
+        var registry = registryWithSelectionTools();
+
+        assertEquals(List.of("first"), selectedToolNames(registry.tools("first", "first")));
+        assertEquals(List.of("first", "second"), selectedToolNames(registry.tools("first", "second", "first", "unregistered")));
+    }
+
+    @Test
+    void should_accept_duplicate_classes_without_returning_duplicate_tools() {
+        var registry = registryWithSelectionTools();
+
+        assertEquals(List.of("first"), selectedToolNames(registry.tools(FirstSelectionToolTest.class, FirstSelectionToolTest.class)));
+        assertEquals(List.of("first", "second"),
+            selectedToolNames(registry.tools(FirstSelectionToolTest.class, SecondSelectionToolTest.class, FirstSelectionToolTest.class)));
+    }
+
+    @Test
+    void should_reject_null_elements_in_name_and_class_filters() {
+        var registry = registryWithSelectionTools();
+
+        assertThrows(NullPointerException.class, () -> registry.tools((String) null));
+        assertThrows(NullPointerException.class, () -> registry.tools("first", null));
+        assertThrows(NullPointerException.class, () -> registry.tools((Class<? extends ExecutableTool>) null));
+        assertThrows(NullPointerException.class, () -> registry.tools(FirstSelectionToolTest.class, null));
     }
 
     @Test
@@ -245,5 +344,56 @@ public class ToolRegistryTest {
         var ex = assertThrows(RuntimeException.class, () -> toolRegistry.execute("weather", mockToolArguments));
         assertEquals("ex", ex.getMessage());
         assertEquals(1, counter.get());
+    }
+
+    private static ToolRegistry registryWithSelectionTools() {
+        return ToolRegistry.builder().register(new FirstSelectionToolTest(), new SecondSelectionToolTest()).build();
+    }
+
+    private static List<String> selectedToolNames(List<Tool> tools) {
+        return tools.stream().map(tool -> tool.function().name()).sorted().toList();
+    }
+
+    private interface SubsetSelectionToolTest extends ExecutableTool {}
+
+    private abstract static class BaseSelectionToolTest implements ExecutableTool {
+        private final Tool schema;
+
+        private BaseSelectionToolTest(String name) {
+            schema = Tool.of(name);
+        }
+
+        @Override
+        public String name() {
+            return schema.function().name();
+        }
+
+        @Override
+        public Tool schema() {
+            return schema;
+        }
+
+        @Override
+        public String execute(ToolArguments args) {
+            return name();
+        }
+    }
+
+    private static final class FirstSelectionToolTest extends BaseSelectionToolTest implements SubsetSelectionToolTest {
+        private FirstSelectionToolTest() {
+            super("first");
+        }
+    }
+
+    private static final class SecondSelectionToolTest extends BaseSelectionToolTest {
+        private SecondSelectionToolTest() {
+            super("second");
+        }
+    }
+
+    private static final class UnregisteredSelectionToolTest extends BaseSelectionToolTest {
+        private UnregisteredSelectionToolTest() {
+            super("unregistered");
+        }
     }
 }
