@@ -30,6 +30,6 @@ public final class InvalidInputArgumentException extends WatsonxException {
      * @param exception the existing {@code WatsonxException} to wrap
      */
     public InvalidInputArgumentException(WatsonxException exception) {
-        super(exception.getMessage(), exception.statusCode(), exception.details().orElse(null));
+        super(exception);
     }
 }

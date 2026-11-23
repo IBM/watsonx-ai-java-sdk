@@ -412,6 +412,7 @@ public class TextExtractionService extends ScopedService {
      * @param bucketName The name of the COS bucket. Ignored when using a {@link ContainerReference}.
      * @param fileName The name of the file to delete.
      * @return {@code true} if the file was successfully deleted, {@code false} otherwise.
+     * @throws FileNotFoundException if the file does not exist.
      */
     public boolean deleteFile(String bucketName, String fileName) throws FileNotFoundException {
         var requestId = UUID.randomUUID().toString();

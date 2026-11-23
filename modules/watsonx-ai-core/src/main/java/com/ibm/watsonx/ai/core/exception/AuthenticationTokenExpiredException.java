@@ -30,6 +30,6 @@ public final class AuthenticationTokenExpiredException extends WatsonxException 
      * @param exception the existing {@code WatsonxException} to wrap
      */
     public AuthenticationTokenExpiredException(WatsonxException exception) {
-        super(exception.getMessage(), exception.statusCode(), exception.details().orElse(null));
+        super(exception);
     }
 }

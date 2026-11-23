@@ -120,7 +120,7 @@ public class SyncHttpClientTest {
             when(httpResponse.statusCode())
                 .thenReturn(200);
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
 
             var response = client.send(httpRequest, handler);
 
@@ -149,7 +149,7 @@ public class SyncHttpClientTest {
             when(httpResponse.statusCode())
                 .thenReturn(200);
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
 
             var response = client.send(httpRequest, handler);
 
@@ -178,7 +178,7 @@ public class SyncHttpClientTest {
 
             when(interceptor1.intercept(any(), eq(handler), anyInt(), any())).thenAnswer(CHAIN_MOCK);
             when(httpResponse.statusCode()).thenReturn(200);
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
 
             assertDoesNotThrow(() -> client.send(httpRequest, handler));
             verify(interceptor1).intercept(any(), eq(handler), anyInt(), any());
@@ -195,7 +195,7 @@ public class SyncHttpClientTest {
             when(httpResponse.statusCode())
                 .thenReturn(200);
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
 
             var response = client.send(httpRequest, handler);
             assertEquals(httpResponse, response);
@@ -230,7 +230,7 @@ public class SyncHttpClientTest {
                             "status_code": 401
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(WatsonxException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -245,7 +245,7 @@ public class SyncHttpClientTest {
             when(httpResponse.statusCode())
                 .thenReturn(401);
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(WatsonxException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -278,7 +278,7 @@ public class SyncHttpClientTest {
                             "status_code": 401
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(AuthenticationTokenExpiredException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -311,7 +311,7 @@ public class SyncHttpClientTest {
                             "status_code": 403
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(AuthorizationRejectedException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -344,7 +344,7 @@ public class SyncHttpClientTest {
                             "status_code": 400
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(InvalidInputArgumentException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -377,7 +377,7 @@ public class SyncHttpClientTest {
                             "status_code": 422
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(InvalidRequestEntityException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -410,7 +410,7 @@ public class SyncHttpClientTest {
                             "status_code": 400
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(JsonTypeErrorException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -443,7 +443,7 @@ public class SyncHttpClientTest {
                             "status_code": 400
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(JsonValidationErrorException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -476,7 +476,7 @@ public class SyncHttpClientTest {
                             "status_code": 400
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(ModelNotSupportedException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -509,7 +509,7 @@ public class SyncHttpClientTest {
                             "status_code": 400
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(ModelNoSupportForFunctionException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -542,7 +542,7 @@ public class SyncHttpClientTest {
                             "status_code": 429
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(TokenQuotaReachedException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -575,7 +575,7 @@ public class SyncHttpClientTest {
                             "status_code": 403
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(UserAuthorizationFailedException.class, () -> client.send(httpRequest, handler));
         }
 
@@ -608,7 +608,7 @@ public class SyncHttpClientTest {
                             "status_code": 500
                         }""");
 
-            when(httpClient.send(any(), eq(handler))).thenReturn(httpResponse);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenReturn(httpResponse);
             assertThrows(WatsonxException.class, () -> client.send(httpRequest, handler));
         }
     }
@@ -854,6 +854,44 @@ public class SyncHttpClientTest {
             assertEquals(503, failure.statusCode());
             assertEquals("unavailable", failure.getMessage());
             verify(stream).close();
+        }
+
+        @Test
+        void should_preserve_status_and_close_materialized_error_stream_when_reading_fails() throws Exception {
+            var stream = mock(InputStream.class);
+            var readFailure = new IOException("error response read failed");
+            when(stream.readAllBytes()).thenThrow(readFailure);
+            HttpResponse<InputStream> response = mock(HttpResponse.class);
+            when(response.statusCode()).thenReturn(503);
+            when(response.body()).thenReturn(stream);
+            when(httpClient.send(any(), any(BodyHandler.class))).thenAnswer(invocation -> response);
+
+            var failure = assertThrows(WatsonxException.class,
+                () -> client(List.of()).send(request(Duration.ofSeconds(1)), BodyHandlers.ofInputStream(), Duration.ofMillis(100)));
+
+            assertEquals(503, failure.statusCode());
+            assertEquals("Status code: 503", failure.getMessage());
+            var cause = failure.getCause();
+            while (cause != null && cause.getCause() != null)
+                cause = cause.getCause();
+            assertSame(readFailure, cause);
+            verify(stream).close();
+        }
+
+        @Test
+        void should_preserve_materialized_error_body_containing_only_whitespace() throws Exception {
+            String body = " \t\n ";
+            HttpResponse<String> response = mock(HttpResponse.class);
+            when(response.statusCode()).thenReturn(503);
+            when(response.body()).thenReturn(body);
+            when(response.headers()).thenReturn(HttpHeaders.of(Map.of(), (name, value) -> true));
+            when(httpClient.send(any(), any(BodyHandler.class))).thenAnswer(invocation -> response);
+
+            var failure = assertThrows(WatsonxException.class,
+                () -> client(List.of()).send(request(Duration.ofSeconds(1)), BodyHandlers.ofString(), Duration.ofMillis(100)));
+
+            assertEquals(503, failure.statusCode());
+            assertEquals(body, failure.getMessage());
         }
 
         @Test

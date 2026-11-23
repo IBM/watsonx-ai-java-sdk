@@ -5,6 +5,7 @@
 package com.ibm.watsonx.ai.core.exception.model;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ public record WatsonxError(Integer statusCode, String trace, List<Error> errors)
          * @return true if the code matches; false otherwise
          */
         public boolean is(Code code) {
-            return this.code.equals(code.value);
+            return nonNull(code) && code.value.equals(this.code);
         }
     }
 

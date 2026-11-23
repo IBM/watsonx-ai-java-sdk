@@ -11,6 +11,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Utility class for XML parsing and manipulation.
@@ -28,6 +31,17 @@ public final class XmlUtils {
     public static Document parse(String xml) {
         try {
             DocumentBuilder builder = createSecureFactory().newDocumentBuilder();
+            builder.setErrorHandler(new DefaultHandler() {
+                @Override
+                public void error(SAXParseException exception) throws SAXException {
+                    throw exception;
+                }
+
+                @Override
+                public void fatalError(SAXParseException exception) throws SAXException {
+                    throw exception;
+                }
+            });
             return builder.parse(new InputSource(new StringReader(xml)));
         } catch (Exception e) {
             throw new RuntimeException(e);

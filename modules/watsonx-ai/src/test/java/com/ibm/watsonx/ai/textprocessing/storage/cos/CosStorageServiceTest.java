@@ -34,12 +34,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import org.slf4j.event.Level;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.event.Level;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
@@ -413,6 +417,34 @@ public class CosStorageServiceTest extends AbstractWatsonxTest {
             () -> storage.readFile(FILE_NAME));
     }
 
+    @ParameterizedTest
+    @MethodSource("incompleteJsonErrors")
+    void should_preserve_incomplete_json_error_on_read(String contentType, String body) {
+        when(mockAuthenticator.token()).thenReturn("tok");
+        cosServer.stubFor(get(FILE_PATH).willReturn(aResponse()
+            .withStatus(404).withHeader("Content-Type", contentType).withBody(body)));
+
+        var error = assertThrows(WatsonxException.class, () -> storage.readFile(FILE_NAME));
+
+        assertEquals(404, error.statusCode());
+        assertEquals(body, error.getMessage());
+        cosServer.verify(1, getRequestedFor(urlEqualTo(FILE_PATH)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("incompleteJsonErrors")
+    void should_preserve_incomplete_json_error_on_delete(String contentType, String body) {
+        when(mockAuthenticator.token()).thenReturn("tok");
+        cosServer.stubFor(delete(FILE_PATH).willReturn(aResponse()
+            .withStatus(404).withHeader("Content-Type", contentType).withBody(body)));
+
+        var error = assertThrows(WatsonxException.class, () -> storage.deleteFile(FILE_NAME));
+
+        assertEquals(404, error.statusCode());
+        assertEquals(body, error.getMessage());
+        cosServer.verify(1, deleteRequestedFor(urlEqualTo(FILE_PATH)));
+    }
+
     @Test
     void should_rethrow_watsonx_exception_on_delete_404_without_xml_body() throws Exception {
         when(mockAuthenticator.token()).thenReturn("tok");
@@ -454,5 +486,11 @@ public class CosStorageServiceTest extends AbstractWatsonxTest {
             .inScenario("upload-retry")
             .whenScenarioStateIs("retry")
             .willReturn(aResponse().withStatus(200)));
+    }
+
+    private static Stream<Arguments> incompleteJsonErrors() {
+        return Stream.of("application/json", "application/problem+json", "Application/JSON")
+            .flatMap(contentType -> Stream.of("{}", "{\"message\":\"Not found\"}")
+                .map(body -> Arguments.of(contentType, body)));
     }
 }

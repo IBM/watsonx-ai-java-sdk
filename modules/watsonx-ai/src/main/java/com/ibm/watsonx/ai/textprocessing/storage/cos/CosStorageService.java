@@ -4,6 +4,7 @@
  */
 package com.ibm.watsonx.ai.textprocessing.storage.cos;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -359,6 +360,10 @@ public final class CosStorageService implements StorageOperations {
     private Exception mapIfCosFileNotFound(WatsonxException e) {
         if (e.statusCode() == 404 && e.details().isPresent()) {
             var details = e.details().get();
+
+            if (isNull(details.errors()))
+                return e;
+
             return details.errors().stream()
                 .filter(error -> error.is(Code.COS_FILE_NOT_FOUND))
                 .findFirst()

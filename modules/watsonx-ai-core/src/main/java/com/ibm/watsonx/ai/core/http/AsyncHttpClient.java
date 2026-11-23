@@ -11,17 +11,14 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.watsonx.ai.core.HttpUtils;
-import com.ibm.watsonx.ai.core.exception.WatsonxException;
-import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 /**
  * Asynchronous HTTP client.
@@ -124,16 +121,9 @@ public final class AsyncHttpClient extends BaseHttpClient {
                     }
 
                     return BodySubscribers.mapping(
-                        BodySubscribers.ofString(StandardCharsets.UTF_8),
+                        BodyHandlers.ofString().apply(responseInfo),
                         body -> {
-                            if (body.isEmpty())
-                                throw new WatsonxException("Status code: " + statusCode, statusCode, null);
-
-                            String contentType = responseInfo.headers().firstValue("Content-Type")
-                                .orElseThrow(() -> new WatsonxException(body, statusCode, null));
-
-                            WatsonxError details = HttpUtils.parseErrorBody(statusCode, body, contentType);
-                            throw HttpUtils.mapWatsonxException(new WatsonxException(body, statusCode, details));
+                            throw HttpErrorMapper.toException(statusCode, responseInfo.headers(), body);
                         }
                     );
                 });
