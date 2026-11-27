@@ -24,18 +24,17 @@ public class ModelGatewayChatUtility {
     /**
      * Builds a {@link ModelGatewayTextChatRequest} by merging per-request parameters over service-level defaults.
      * <p>
-     * Per-request parameters take precedence, defaults fill in any unset values. The {@code fallbackModelId} and {@code fallbackTimeLimit} are the
-     * service-level values applied when neither the per-request nor the default parameters specify a model id or time limit.
+     * Per-request parameters take precedence, defaults fill in any unset values. The {@code fallbackModelId} is applied when neither the per-request
+     * nor the default parameters specify a model id.
      *
      * @param chatRequest the incoming {@link ModelGatewayChatRequest}
      * @param defaultParameters the service-level default parameters, or {@code null}
      * @param fallbackModelId the service-level model id used when no parameters supply one
-     * @param fallbackTimeLimit the service-level request time limit (in milliseconds) used when no parameters supply one
      * @return a fully resolved {@link ModelGatewayTextChatRequest}
      */
     public static ModelGatewayTextChatRequest buildGatewayRequest(
-        ModelGatewayChatRequest chatRequest, ModelGatewayChatParameters defaultParameters, String fallbackModelId, long fallbackTimeLimit) {
-        return buildGatewayRequest(chatRequest, defaultParameters, fallbackModelId, fallbackTimeLimit, false);
+        ModelGatewayChatRequest chatRequest, ModelGatewayChatParameters defaultParameters, String fallbackModelId) {
+        return buildGatewayRequest(chatRequest, defaultParameters, fallbackModelId, false);
     }
 
     /**
@@ -47,13 +46,11 @@ public class ModelGatewayChatUtility {
      * @param chatRequest the incoming {@link ModelGatewayChatRequest}
      * @param defaultParameters the service-level default parameters, or {@code null}
      * @param fallbackModelId the service-level model id used when no parameters supply one
-     * @param fallbackTimeLimit the service-level request time limit (in milliseconds) used when no parameters supply one
      * @param stream whether to request a streaming response
      * @return a fully resolved {@link ModelGatewayTextChatRequest}
      */
     public static ModelGatewayTextChatRequest buildGatewayRequest(
-        ModelGatewayChatRequest chatRequest, ModelGatewayChatParameters defaultParameters, String fallbackModelId, long fallbackTimeLimit,
-        boolean stream) {
+        ModelGatewayChatRequest chatRequest, ModelGatewayChatParameters defaultParameters, String fallbackModelId, boolean stream) {
 
         var messages = chatRequest.messages();
         var tools = nonNull(chatRequest.tools()) && !chatRequest.tools().isEmpty() ? chatRequest.tools() : null;
@@ -63,9 +60,10 @@ public class ModelGatewayChatUtility {
 
         var parameters = requireNonNullElse(chatRequest.parameters(), ModelGatewayChatParameters.builder().build());
         var defaults = requireNonNullElse(defaultParameters, ModelGatewayChatParameters.builder().build());
+        validateParameters(parameters);
+        validateParameters(defaults);
 
         var modelId = getOrDefault(parameters.modelId(), getOrDefault(defaults.modelId(), fallbackModelId));
-        var timeLimit = getOrDefault(parameters.timeLimit(), getOrDefault(defaults.timeLimit(), fallbackTimeLimit));
 
         // When streaming, default stream_options.include_usage to true (unless overridden) so the final chunk carries token usage.
         var streamOptions = stream ? getOrDefault(parameters.streamOptions(), defaults.streamOptions()) : null;
@@ -93,7 +91,6 @@ public class ModelGatewayChatUtility {
             .stop(getOrDefault(parameters.stop(), defaults.stop()))
             .temperature(getOrDefault(parameters.temperature(), defaults.temperature()))
             .topP(getOrDefault(parameters.topP(), defaults.topP()))
-            .timeLimit(timeLimit)
             .audio(getOrDefault(parameters.audio(), defaults.audio()))
             .metadata(getOrDefault(parameters.metadata(), defaults.metadata()))
             .modalities(getOrDefault(parameters.modalities(), defaults.modalities()))
@@ -119,6 +116,13 @@ public class ModelGatewayChatUtility {
         }
 
         return builder.build();
+    }
+
+    static void validateParameters(ModelGatewayChatParameters parameters) {
+        if (nonNull(parameters) && nonNull(parameters.timeLimit()))
+            throw new IllegalArgumentException(
+                "timeLimit is not supported by Model Gateway. Configure the HTTP timeout with ModelGatewayChatService.Builder.timeout(Duration)."
+            );
     }
 
     /**

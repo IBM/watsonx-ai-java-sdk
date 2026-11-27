@@ -10,7 +10,6 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -133,7 +132,6 @@ public class DeploymentService extends WatsonxService
         var moderation = textGenerationRequest.moderation();
         var deploymentId = requireNonNull(textGenerationRequest.deploymentId(), "deploymentId must be provided");
         var parameters = requireNonNullElse(textGenerationRequest.parameters(), TextGenerationParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis()));
 
         logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 
@@ -152,7 +150,6 @@ public class DeploymentService extends WatsonxService
         var input = textGenerationRequest.input();
         var deploymentId = requireNonNull(textGenerationRequest.deploymentId(), "deploymentId must be provided");
         var parameters = requireNonNullElse(textGenerationRequest.parameters(), TextGenerationParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis()));
 
         logIgnoredParameters(parameters.modelId(), parameters.projectId(), parameters.spaceId());
 
@@ -179,7 +176,7 @@ public class DeploymentService extends WatsonxService
             ? chatRequest.parameters().transactionId()
             : defaultParameters.transactionId();
 
-        var chatResponse = client.chat(transactionId, deploymentId, Duration.ofMillis(textChatRequest.timeLimit()), textChatRequest);
+        var chatResponse = client.chat(transactionId, deploymentId, timeout, textChatRequest);
 
         if (nonNull(messageInterceptor)) {
             var newChoices = messageInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
@@ -672,7 +669,6 @@ public class DeploymentService extends WatsonxService
             throw new IllegalArgumentException("Extraction tags are required when using control messages");
 
         var parameters = requireNonNullElse(chatRequest.parameters(), ChatParameters.builder().build());
-        var timeout = Duration.ofMillis(requireNonNullElse(defaultParameters.timeLimit(), this.timeout.toMillis()));
 
         Boolean includeReasoning = null;
         String thinkingEffort = null;
@@ -709,7 +705,7 @@ public class DeploymentService extends WatsonxService
             .responseFormat(getOrDefault(parameters.responseFormat(), defaultParameters.responseFormat()))
             .jsonSchema(getOrDefault(parameters.jsonSchema(), defaultParameters.jsonSchema()))
             .context(getOrDefault(parameters.context(), defaultParameters.context()))
-            .timeLimit(getOrDefault(parameters.timeLimit(), timeout.toMillis()))
+            .timeLimit(getOrDefault(parameters.timeLimit(), defaultParameters.timeLimit()))
             .guidedChoice(getOrDefault(parameters.guidedChoice(), defaultParameters.guidedChoice()))
             .guidedRegex(getOrDefault(parameters.guidedRegex(), defaultParameters.guidedRegex()))
             .guidedGrammar(getOrDefault(parameters.guidedGrammar(), defaultParameters.guidedGrammar()))

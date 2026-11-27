@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
@@ -39,6 +40,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -345,7 +348,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             assertNotNull(response);
 
             var expected = new TextRequest("model", "space-id", "project-id", "Hello!",
-                TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), null);
+                TextGenerationParameters.builder().build(), null);
 
             JSONAssert.assertEquals(Json.toJson(expected), HttpUtils.bodyPublisherToString(mockHttpRequest), true);
 
@@ -364,6 +367,48 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(Json.toJson(expected), HttpUtils.bodyPublisherToString(mockHttpRequest), false);
             assertFalse(HttpUtils.bodyPublisherToString(mockHttpRequest).contains("prompt_variables"));
             assertEquals(mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElse(null), "my-transaction-id");
+        });
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "false,",
+            "false,1",
+            "false,30",
+            "true,",
+            "true,1",
+            "true,30"
+    })
+    void should_keep_http_timeout_independent_from_generation_limit(boolean streaming, Long limitSeconds) throws Exception {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn("{}");
+        when(mockSecureHttpClient.send(mockHttpRequest.capture(), any(BodyHandler.class))).thenReturn(mockHttpResponse);
+        var transportFailure = new IOException("Connection closed");
+        when(mockSecureHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class)))
+            .thenReturn(CompletableFuture.failedFuture(transportFailure));
+        var limit = limitSeconds == null ? null : Duration.ofSeconds(limitSeconds);
+        var parameters = TextGenerationParameters.builder().timeLimit(limit).build();
+        var expectedParameters = limit == null ? "{}" : "{\"time_limit\":%d}".formatted(limit.toMillis());
+        var expectedBody = """
+            {"model_id":"model","project_id":"project","input":"Hello","parameters":%s}
+            """.formatted(expectedParameters);
+
+        withWatsonxServiceMock(() -> {
+            var service = TextGenerationService.builder().baseUrl("http://localhost").authenticator(mockAuthenticator)
+                .projectId("project").modelId("model").timeout(Duration.ofSeconds(5)).build();
+
+            if (streaming) {
+                var operation = service.generateStreaming("Hello", parameters, mock(TextGenerationHandler.class));
+                var failure = assertThrows(ExecutionException.class, () -> operation.get(5, TimeUnit.SECONDS));
+                assertSame(transportFailure, failure.getCause());
+            } else {
+                service.generate("Hello", parameters);
+            }
+
+            assertEquals(Duration.ofSeconds(5), mockHttpRequest.getValue().timeout().orElseThrow());
+            assertEquals(limit == null ? null : limit.toMillis(), parameters.timeLimit());
+            assertDoesNotThrow(() -> JSONAssert.assertEquals(expectedBody, HttpUtils.bodyPublisherToString(mockHttpRequest), true));
         });
     }
 
@@ -396,7 +441,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
             assertNotNull(response);
 
             var expected = new TextRequest("model", "space-id", "project-id", "Hello!",
-                TextGenerationParameters.builder().timeLimit(Duration.ofSeconds(1)).build(), moderation);
+                TextGenerationParameters.builder().build(), moderation);
 
             JSONAssert.assertEquals(Json.toJson(expected), HttpUtils.bodyPublisherToString(mockHttpRequest), true);
         });
@@ -480,9 +525,7 @@ public class TextGenerationServiceTest extends AbstractWatsonxTest {
                       "model_id": "ibm/granite-13b-instruct-v2",
                       "input": "<|system|>\\nYou are a translation assistant. Your job is to translate any input from the user into English. Do not explain the translation. Just output the translated text.<|user|>\\nTraduci in inglese: \\"Oggi è una bella giornata\\"<|assistant|>\\n",
                       "project_id": "63dc4cf1-252f-424b-b52d-5cdd9814987f",
-                      "parameters": {
-                          "time_limit": 60000
-                      }
+                      "parameters": {}
                     }"""))
             .willReturn(aResponse()
                 .withStatus(200)

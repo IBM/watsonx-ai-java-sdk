@@ -209,7 +209,6 @@ public class ModelGatewayChatRoundTripTest {
             .stop(List.of("STOP"))
             .temperature(0.7)
             .topP(0.9)
-            .timeLimit(5000L)
             .responseFormat(Map.of("type", "json_object"))
             .audio(Map.of("voice", "alloy"))
             .metadata(Map.of("env", "test"))

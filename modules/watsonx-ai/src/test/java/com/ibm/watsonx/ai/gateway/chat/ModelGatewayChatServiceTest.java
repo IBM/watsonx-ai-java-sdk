@@ -21,6 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
@@ -39,6 +42,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 import com.ibm.watsonx.ai.AbstractWatsonxTest;
 import com.ibm.watsonx.ai.chat.ChatHandler;
@@ -49,6 +55,7 @@ import com.ibm.watsonx.ai.chat.model.CompletedToolCall;
 import com.ibm.watsonx.ai.chat.model.ControlMessage;
 import com.ibm.watsonx.ai.chat.model.DeveloperMessage;
 import com.ibm.watsonx.ai.chat.model.FunctionCall;
+import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.PartialChatResponse;
 import com.ibm.watsonx.ai.chat.model.PartialToolCall;
 import com.ibm.watsonx.ai.chat.model.SystemMessage;
@@ -57,12 +64,17 @@ import com.ibm.watsonx.ai.chat.model.ToolArguments;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.model.UserMessage;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
+import com.ibm.watsonx.ai.core.Json;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatParameters.StreamOptions;
 
 @SuppressWarnings("unchecked")
 @DisabledInNativeImage
 public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
+
+    private static final String UNSUPPORTED_TIME_LIMIT = "timeLimit is not supported by Model Gateway. "
+        + "Configure the HTTP timeout with ModelGatewayChatService.Builder.timeout(Duration).";
 
     private static final String SIMPLE_JSON_RESPONSE =
         """
@@ -78,6 +90,152 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
                 "created": 1749288614,
                 "usage": { "completion_tokens": 2, "prompt_tokens": 5, "total_tokens": 7 }
             }""";
+
+    @ParameterizedTest
+    @CsvSource({ "false, 1000", "true, 1000", "false, 0", "true, 0", "false, -1", "true, -1" })
+    void should_reject_request_time_limit_before_authentication_or_http(boolean streaming, long timeLimit) {
+        withWatsonxServiceMock(() -> {
+            var service = ModelGatewayChatService.builder().authenticator(mockAuthenticator).modelId("model")
+                .baseUrl(URI.create("http://localhost")).build();
+            var parameters = ModelGatewayChatParameters.builder().timeLimit(Duration.ofMillis(timeLimit)).build();
+            var request = ModelGatewayChatRequest.builder().messages(UserMessage.text("Hi")).parameters(parameters).build();
+
+            var error = assertThrows(IllegalArgumentException.class, () -> {
+                if (streaming)
+                    service.chatStreaming(request, (partial, chunk) -> {});
+                else
+                    service.chat(request);
+            });
+
+            assertEquals(UNSUPPORTED_TIME_LIMIT, error.getMessage());
+            verifyNoInteractions(mockSecureHttpClient, mockInsecureHttpClient);
+            verify(mockAuthenticator, never()).token();
+            verify(mockAuthenticator, never()).tokenAsync();
+        });
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = { 1000, 0, -1 })
+    void should_reject_default_time_limit_when_building_service(long timeLimit) {
+        withWatsonxServiceMock(() -> {
+            var parameters = ModelGatewayChatParameters.builder().timeLimit(Duration.ofMillis(timeLimit)).build();
+
+            var error = assertThrows(IllegalArgumentException.class, () -> ModelGatewayChatService.builder()
+                .authenticator(mockAuthenticator).modelId("model").baseUrl(URI.create("http://localhost")).parameters(parameters).build());
+
+            assertEquals(UNSUPPORTED_TIME_LIMIT, error.getMessage());
+            verifyNoInteractions(mockSecureHttpClient, mockInsecureHttpClient);
+            verify(mockAuthenticator, never()).token();
+            verify(mockAuthenticator, never()).tokenAsync();
+        });
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "false, false", "false, true", "true, false", "true, true" })
+    void should_use_configured_http_timeout_when_time_limit_is_unset(boolean streaming, boolean explicitNull) {
+        when(mockAuthenticator.token()).thenReturn("token");
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(SIMPLE_JSON_RESPONSE);
+        mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+        var failure = new IOException("Transport failed");
+        when(mockSecureHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class)))
+            .thenReturn(CompletableFuture.failedFuture(failure));
+
+        withWatsonxServiceMock(() -> {
+            var timeout = Duration.ofMillis(1234);
+            var parameters = explicitNull ? ModelGatewayChatParameters.builder().timeLimit(null).build() : null;
+            var service = ModelGatewayChatService.builder().authenticator(mockAuthenticator).modelId("model")
+                .baseUrl(URI.create("http://localhost")).parameters(parameters).timeout(timeout).build();
+            var request = ModelGatewayChatRequest.builder().messages(UserMessage.text("Hi")).parameters(parameters).build();
+
+            if (streaming) {
+                var response = service.chatStreaming(request, (partial, chunk) -> {});
+                var error = assertThrows(ExecutionException.class, () -> response.get(5, TimeUnit.SECONDS));
+                assertSame(failure, error.getCause());
+            } else {
+                service.chat(request);
+            }
+
+            assertEquals(timeout, mockHttpRequest.getValue().timeout().orElseThrow());
+            var body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
+            assertFalse(body.containsKey("time_limit"));
+        });
+    }
+
+    @Test
+    void should_fail_stream_with_watsonx_exception_when_sse_error_contains_details() {
+        var callbackError = new AtomicReference<Throwable>();
+        var errorCalls = new AtomicInteger();
+        var completionCalls = new AtomicInteger();
+        var response = structuredSseErrorService().chatStreaming("Hi", new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onError(Throwable error) {
+                errorCalls.incrementAndGet();
+                callbackError.set(error);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                completionCalls.incrementAndGet();
+            }
+
+            @Override
+            public boolean failOnFirstError() {
+                return true;
+            }
+        });
+
+        try {
+            var failure = assertThrows(ExecutionException.class, () -> response.get(5, TimeUnit.SECONDS));
+            assertStructuredSseError(failure.getCause());
+            assertSame(failure.getCause(), callbackError.get());
+            assertEquals(1, errorCalls.get());
+            assertEquals(0, completionCalls.get());
+        } finally {
+            response.cancel(true);
+        }
+    }
+
+    @Test
+    void should_preserve_partial_response_after_structured_sse_error_by_default() {
+        var callbackError = new AtomicReference<Throwable>();
+        var completeResponse = new AtomicReference<ChatResponse>();
+        var errorCalls = new AtomicInteger();
+        var partial = new StringBuilder();
+        var response = structuredSseErrorService().chatStreaming("Hi", new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partial.append(partialResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                errorCalls.incrementAndGet();
+                callbackError.set(error);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completed) {
+                completeResponse.set(completed);
+            }
+        });
+
+        try {
+            var completed = assertDoesNotThrow(() -> response.get(5, TimeUnit.SECONDS));
+            assertStructuredSseError(callbackError.get());
+            assertEquals(1, errorCalls.get());
+            assertSame(completed, completeResponse.get());
+            assertEquals("Partial answer", partial.toString());
+            assertEquals("Partial answer", completed.toAssistantMessage().content());
+            assertEquals(FinishReason.ERROR, completed.finishReason());
+        } finally {
+            response.cancel(true);
+        }
+    }
 
     @Test
     void should_resolve_default_tools_and_transaction_id_for_request_objects() {
@@ -1310,5 +1468,38 @@ public class ModelGatewayChatServiceTest extends AbstractWatsonxTest {
         } finally {
             Thread.interrupted();
         }
+    }
+
+    private ModelGatewayChatService structuredSseErrorService() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/gateway/v1/chat/completions?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "text/event-stream")
+                .withBody(
+                    """
+                        event: message
+                        data: {"choices":[{"index":0,"delta":{"role":"assistant","content":"Partial answer"},"finish_reason":null}]}
+
+                        event: error
+                        data: {"status_code":500,"error":{"code":"downstream_request_failed","message":"context deadline exceeded","request_id":"gateway-trace"}}
+
+                        """)));
+        return ModelGatewayChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("gpt-4o")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+    }
+
+    private void assertStructuredSseError(Throwable failure) {
+        var error = assertInstanceOf(WatsonxException.class, failure);
+        assertEquals(500, error.statusCode());
+        var details = error.details().orElseThrow();
+        assertEquals(500, details.statusCode());
+        assertEquals("gateway-trace", details.trace());
+        assertEquals(1, details.errors().size());
+        assertTrue(details.errors().get(0).is(WatsonxError.Code.DOWNSTREAM_REQUEST_FAILED));
+        assertEquals("context deadline exceeded", details.errors().get(0).message());
     }
 }

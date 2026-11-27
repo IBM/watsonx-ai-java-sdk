@@ -46,10 +46,6 @@ public class ChatUtility {
             ? parameters.modelId()
             : defaultParameters.modelId();
 
-        var timeout = nonNull(parameters.timeLimit())
-            ? parameters.timeLimit()
-            : defaultParameters.timeLimit();
-
         Boolean includeReasoning = null;
         String thinkingEffort = null;
         Map<String, Object> chatTemplateKwargs = null;
@@ -86,7 +82,7 @@ public class ChatUtility {
             .responseFormat(getOrDefault(parameters.responseFormat(), defaultParameters.responseFormat()))
             .jsonSchema(getOrDefault(parameters.jsonSchema(), defaultParameters.jsonSchema()))
             .context(getOrDefault(parameters.context(), defaultParameters.context()))
-            .timeLimit(getOrDefault(parameters.timeLimit(), timeout))
+            .timeLimit(getOrDefault(parameters.timeLimit(), defaultParameters.timeLimit()))
             .guidedChoice(getOrDefault(parameters.guidedChoice(), defaultParameters.guidedChoice()))
             .guidedRegex(getOrDefault(parameters.guidedRegex(), defaultParameters.guidedRegex()))
             .guidedGrammar(getOrDefault(parameters.guidedGrammar(), defaultParameters.guidedGrammar()))

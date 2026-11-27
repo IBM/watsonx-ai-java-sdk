@@ -36,8 +36,8 @@ Both chat exceptions live in `com.ibm.watsonx.ai.chat.exception`.
 
 | Method | Type | Description |
 |--------|------|-------------|
-| `statusCode()` | int | HTTP status code (e.g. `400`, `429`, `500`) |
-| `getMessage()` | String | Original HTTP error body, or a status message when the body is empty |
+| `statusCode()` | int | Status code reported by the HTTP response or a structured SSE error event (e.g. `400`, `429`, `500`) |
+| `getMessage()` | String | Original HTTP error body or SSE error payload, or a status message when the HTTP body is empty |
 | `details()` | Optional\<WatsonxError\> | Error body returned by the API, empty when there is none. `trace()` is the IBM trace ID (include it when reporting issues) and `errors()` lists each error with `code()` (e.g. `"token_quota_reached"`), `message()` and `moreInfo()` |
 | `getCause()` | Throwable | Error-body reading or parsing failure, otherwise `null` |
 

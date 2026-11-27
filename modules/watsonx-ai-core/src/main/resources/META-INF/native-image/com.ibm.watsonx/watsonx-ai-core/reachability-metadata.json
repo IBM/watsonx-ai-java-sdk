@@ -486,67 +486,6 @@
       ]
     },
     {
-      "type": "java.lang.StackFrameInfo",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.StackWalker"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.lang.StackFrameInfo[]"
-    },
-    {
-      "type": "java.lang.StackWalker",
-      "methods": [
-        {
-          "name": "getInstance",
-          "parameterTypes": [
-            "java.util.Set",
-            "int"
-          ]
-        },
-        {
-          "name": "walk",
-          "parameterTypes": [
-            "java.util.function.Function"
-          ]
-        },
-        {
-          "name": "walk",
-          "parameterTypes": [
-            "java.util.function.Function",
-            "java.lang.Class"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.lang.StackWalker$Option",
-      "methods": [
-        {
-          "name": "values",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "java.lang.StackWalker$StackFrame",
-      "methods": [
-        {
-          "name": "getClassName",
-          "parameterTypes": []
-        },
-        {
-          "name": "getMethodName",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "java.lang.String"
     },
     {
@@ -583,6 +522,15 @@
     },
     {
       "type": "java.lang.String[]"
+    },
+    {
+      "type": "java.lang.System",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "err"
+        }
+      ]
     },
     {
       "type": "java.lang.Thread",
@@ -837,9 +785,6 @@
       "type": "java.lang.invoke.LambdaForm$Name[]"
     },
     {
-      "type": "java.lang.invoke.MethodHandle"
-    },
-    {
       "type": "java.lang.invoke.MethodHandleImpl",
       "methods": [
         {
@@ -848,43 +793,6 @@
             "boolean",
             "java.lang.invoke.MethodHandle",
             "java.lang.invoke.MethodHandle"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.lang.invoke.MethodHandleImpl$ArrayAccessor",
-      "methods": [
-        {
-          "name": "getElementL",
-          "parameterTypes": [
-            "java.lang.Object[]",
-            "int"
-          ]
-        },
-        {
-          "name": "lengthL",
-          "parameterTypes": [
-            "java.lang.Object[]"
-          ]
-        },
-        {
-          "name": "setElementL",
-          "parameterTypes": [
-            "java.lang.Object[]",
-            "int",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "java.lang.invoke.MethodHandleImpl$BindCaller",
-      "methods": [
-        {
-          "name": "checkCallerClass",
-          "parameterTypes": [
-            "java.lang.Class"
           ]
         }
       ]
@@ -1818,22 +1726,6 @@
           "parameterTypes": [
             "long"
           ]
-        }
-      ]
-    },
-    {
-      "type": {
-        "lambda": {
-          "declaringClass": "java.lang.invoke.MethodHandleImpl$BindCaller",
-          "interfaces": [
-            "java.util.function.Consumer"
-          ]
-        }
-      },
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
         }
       ]
     },

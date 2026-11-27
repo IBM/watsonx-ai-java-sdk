@@ -51,7 +51,7 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
     private final Integer randomSeed;
     private final List<String> stopSequences;
     private final Double temperature;
-    private Long timeLimit;
+    private final Long timeLimit;
     private final Integer topK;
     private final Double topP;
     private final Double repetitionPenalty;
@@ -143,9 +143,9 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
     }
 
     /**
-     * Gets the time limit for generation in milliseconds.
+     * Gets the server-side time limit for generation in milliseconds.
      *
-     * @return the time limit in milliseconds
+     * @return the time limit in milliseconds, or {@code null} when no limit was explicitly configured
      */
     public Long timeLimit() {
         return timeLimit;
@@ -212,10 +212,6 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
      */
     public Map<String, String> promptVariables() {
         return promptVariables;
-    }
-
-    void setTimeLimit(Long timeLimit) {
-        this.timeLimit = timeLimit;
     }
 
     void setPromptVariables(Map<String, String> promptVariables) {
@@ -380,9 +376,9 @@ public final class TextGenerationParameters extends WatsonxModelParameters {
         }
 
         /**
-         * Sets a maximum time limit for the completion generation.
+         * Sets the server-side maximum time for completion generation.
          *
-         * @param timeLimit {@link Duration} time limit.
+         * @param timeLimit the generation time limit, or {@code null} to leave it unspecified
          */
         public Builder timeLimit(Duration timeLimit) {
             this.timeLimit = isNull(timeLimit) ? null : timeLimit.toMillis();

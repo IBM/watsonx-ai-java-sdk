@@ -54,6 +54,8 @@ import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -448,7 +450,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
 
             TextChatRequest EXPECTED_BODY = TextChatRequest.builder()
                 .messages(List.of(UserMessage.text("Hello")))
-                .timeLimit(60000L)
                 .build();
 
             when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -542,8 +543,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     ],
                     "max_completion_tokens": 0,
                     "temperature": 0,
-                    "context": "test",
-                    "time_limit": 60000
+                    "context": "test"
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -697,8 +697,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     "chat_template_kwargs" : {
                         "thinking" : true,
                         "enable_thinking": true
-                    },
-                    "time_limit": 60000
+                    }
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -1537,8 +1536,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                             }
                         ]
                     }
-                ],
-                "time_limit": 60000
+                ]
             }""";
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -1702,8 +1700,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                             }
                         }
                     }
-                ],
-            "time_limit": 60000
+                ]
             }""";
 
         wireMock.stubFor(post("/ml/v1/deployments/my-deployment-id/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -2204,7 +2201,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(
                 toJson(TextChatRequest.builder()
                     .messages(List.of(userMessage))
-                    .timeLimit(60000L)
                     .build()),
                 bodyPublisherToString(mockHttpRequest), true);
 
@@ -2214,7 +2210,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(
                 toJson(TextChatRequest.builder()
                     .messages(messages)
-                    .timeLimit(60000L)
                     .build()),
                 bodyPublisherToString(mockHttpRequest), true);
 
@@ -2224,7 +2219,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(
                 toJson(TextChatRequest.builder()
                     .messages(messages)
-                    .timeLimit(60000L)
                     .build()),
                 bodyPublisherToString(mockHttpRequest), true);
 
@@ -2235,7 +2229,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 toJson(TextChatRequest.builder()
                     .messages(messages)
                     .tools(tools)
-                    .timeLimit(60000L)
                     .build()),
                 bodyPublisherToString(mockHttpRequest), true);
 
@@ -2246,7 +2239,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 toJson(TextChatRequest.builder()
                     .messages(messages)
                     .tools(tools)
-                    .timeLimit(60000L)
                     .build()),
                 bodyPublisherToString(mockHttpRequest), true);
 
@@ -2258,7 +2250,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 toJson(TextChatRequest.builder()
                     .messages(messages)
                     .temperature(0.5)
-                    .timeLimit(60000L)
                     .build()),
                 bodyPublisherToString(mockHttpRequest), true);
 
@@ -2270,7 +2261,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                     .messages(messages)
                     .tools(tools)
                     .temperature(0.5)
-                    .timeLimit(60000L)
                     .build()),
                 bodyPublisherToString(mockHttpRequest), true);
 
@@ -2280,7 +2270,6 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             JSONAssert.assertEquals(
                 toJson(TextChatRequest.builder()
                     .messages(messages)
-                    .timeLimit(60000L)
                     .build()),
                 bodyPublisherToString(mockHttpRequest), true);
         });
@@ -2328,8 +2317,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
             var response = deploymentService.chat(request);
             assertEquals("Ciao", response.toAssistantMessage().content());
 
-            // The time limit of the request overrides the timeout of the http client
-            assertEquals(Duration.ofSeconds(10), mockHttpRequest.getValue().timeout().orElseThrow());
+            assertEquals(Duration.ofSeconds(60), mockHttpRequest.getValue().timeout().orElseThrow());
             JSONAssert.assertEquals(
                 toJson(TextChatRequest.builder()
                     .messages(List.of(UserMessage.text("Hello")))
@@ -2620,11 +2608,73 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
         assertTrue(response.toString().contains("\"ciao\""));
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+            "true, false, null, 60",
+            "true, false, 2000, 60",
+            "true, false, 60000, 60",
+            "true, false, 120000, 60",
+            "true, true, null, 60",
+            "true, true, 2000, 60",
+            "true, true, 60000, 60",
+            "true, true, 120000, 60",
+            "false, false, null, 60",
+            "false, false, 2000, 60",
+            "false, false, 60000, 60",
+            "false, false, 120000, 60",
+            "false, true, null, 60",
+            "false, true, 2000, 60",
+            "false, true, 60000, 60",
+            "false, true, 120000, 60",
+            "true, false, 120000, 7",
+            "true, true, 120000, 7",
+            "false, false, 120000, 7",
+            "false, true, 120000, 7"
+    }, nullValues = "null")
+    void should_keep_http_timeout_separate_from_generation_limit(boolean chat, boolean streaming, Long timeLimit, long timeoutSeconds) {
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(chat ? "{\"choices\":[]}" : "{\"results\":[]}");
+        mockHttpClientSend(mockHttpRequest.capture(), any(BodyHandler.class));
+        when(mockSecureHttpClient.sendAsync(mockHttpRequest.capture(), any(BodyHandler.class)))
+            .thenReturn(new CompletableFuture<>());
+
+        withWatsonxServiceMock(() -> {
+            var timeout = Duration.ofSeconds(timeoutSeconds);
+            var service = DeploymentService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator)
+                .timeout(timeout).build();
+            var limit = timeLimit == null ? null : Duration.ofMillis(timeLimit);
+            if (chat) {
+                var request = DeploymentChatRequest.builder().deploymentId("deployment").messages(UserMessage.text("Hello"))
+                    .parameters(ChatParameters.builder().timeLimit(limit).build()).build();
+                if (streaming)
+                    service.chatStreaming(request, mock(ChatHandler.class)).cancel(true);
+                else
+                    service.chat(request);
+            } else {
+                var parameters = TextGenerationParameters.builder().timeLimit(limit).build();
+                var request = TextGenerationRequest.builder().deploymentId("deployment").input("Hello").parameters(parameters).build();
+                if (streaming)
+                    service.generateStreaming(request, mock(TextGenerationHandler.class)).cancel(true);
+                else
+                    service.generate(request);
+                assertEquals(timeLimit, parameters.timeLimit());
+            }
+
+            assertEquals(timeout, mockHttpRequest.getValue().timeout().orElseThrow());
+            var body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
+            var parameters = chat ? body : (Map<?, ?>) body.get("parameters");
+            if (timeLimit == null)
+                assertFalse(parameters.containsKey("time_limit"));
+            else
+                assertEquals(timeLimit.longValue(), ((Number) parameters.get("time_limit")).longValue());
+        });
+    }
+
     @Nested
     class ChatDefaults {
 
         @Test
-        void should_use_default_time_limit_for_http_timeout_and_allow_disabling_thinking() {
+        void should_preserve_http_timeout_with_default_time_limit_and_allow_disabling_thinking() {
             when(mockAuthenticator.token()).thenReturn("token");
             when(mockHttpResponse.statusCode()).thenReturn(200);
             when(mockHttpResponse.body()).thenReturn("{\"choices\":[]}");
@@ -2638,7 +2688,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                         .thinking(Thinking.builder().enabled(enabled).build()).build();
                     service.chat(request);
 
-                    assertEquals(Duration.ofSeconds(10), mockHttpRequest.getValue().timeout().orElseThrow());
+                    assertEquals(Duration.ofSeconds(60), mockHttpRequest.getValue().timeout().orElseThrow());
                     assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
                     var body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
                     assertEquals(10_000L, ((Number) body.get("time_limit")).longValue());
@@ -2677,7 +2727,7 @@ public class DeploymentServiceTest extends AbstractWatsonxTest {
                 var error = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
                 assertSame(failure, error.getCause());
                 assertEquals(1, errors.get());
-                assertEquals(Duration.ofSeconds(10), mockHttpRequest.getValue().timeout().orElseThrow());
+                assertEquals(Duration.ofSeconds(60), mockHttpRequest.getValue().timeout().orElseThrow());
                 assertEquals("default-transaction", mockHttpRequest.getValue().headers().firstValue(TRANSACTION_ID_HEADER).orElseThrow());
                 var body = Json.fromJson(bodyPublisherToString(mockHttpRequest), Map.class);
                 assertEquals(Map.of("thinking", false, "enable_thinking", false), body.get("chat_template_kwargs"));

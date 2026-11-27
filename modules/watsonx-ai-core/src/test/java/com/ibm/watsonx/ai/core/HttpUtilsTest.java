@@ -341,6 +341,19 @@ public class HttpUtilsTest {
         assertSame(emptyErrors, HttpUtils.mapWatsonxException(emptyErrors));
     }
 
+    @Test
+    void should_preserve_downstream_request_failure() {
+        String body = """
+            {"errors":[{"code":"downstream_request_failed","message":"context deadline exceeded"}]}
+            """;
+        var details = HttpUtils.parseErrorBody(500, body, "application/json");
+        var exception = new WatsonxException(body, 500, details);
+
+        assertSame(exception, HttpUtils.mapWatsonxException(exception));
+        assertEquals(500, exception.statusCode());
+        assertEquals(WatsonxError.Code.DOWNSTREAM_REQUEST_FAILED.value(), details.errors().get(0).code());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = { "application/json; charset=utf-8", "Application/JSON", " application/problem+json ; charset=UTF-8",
             "application/vnd.ibm.error+json" })

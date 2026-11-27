@@ -75,8 +75,6 @@ public class TextGenerationService extends ModelService implements TextGeneratio
         var projectId = projectSpace.projectId();
         var spaceId = projectSpace.spaceId();
         var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
-        var timeout = requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis());
-        parameters.setTimeLimit(timeout);
 
         var textGenRequest =
             new TextRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), moderation);
@@ -102,8 +100,6 @@ public class TextGenerationService extends ModelService implements TextGeneratio
         var modelId = requireNonNullElse(parameters.modelId(), this.modelId);
         var projectId = ofNullable(parameters.projectId()).orElse(this.projectId);
         var spaceId = ofNullable(parameters.spaceId()).orElse(this.spaceId);
-        var timeout = requireNonNullElse(parameters.timeLimit(), this.timeout.toMillis());
-        parameters.setTimeLimit(timeout);
 
         var textGenRequest =
             new TextRequest(modelId, spaceId, projectId, input, parameters.toSanitized(), null);

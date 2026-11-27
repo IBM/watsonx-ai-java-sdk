@@ -100,7 +100,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000,
                         "chat_template_kwargs" : {
                             "thinking": true,
                             "enable_thinking": true
@@ -167,7 +166,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000,
                         "chat_template_kwargs" : {
                             "thinking": true,
                             "enable_thinking": true
@@ -224,7 +222,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                         ]
                                     }
                                 ],
-                                "time_limit": 60000,
                                 "chat_template_kwargs" : {
                                     "thinking": true,
                                     "enable_thinking": true
@@ -279,7 +276,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000,
                         "chat_template_kwargs" : {
                             "thinking": false,
                             "enable_thinking": false
@@ -357,7 +353,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000,
                         "chat_template_kwargs" : {
                             "thinking": true,
                             "enable_thinking": true
@@ -424,7 +419,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000,
                         "chat_template_kwargs" : {
                             "thinking": true,
                             "enable_thinking": true
@@ -546,7 +540,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000,
                          "chat_template_kwargs" : {
                             "thinking": true,
                             "enable_thinking": true
@@ -676,7 +669,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000,
                         "chat_template_kwargs" : {
                             "thinking": true,
                             "enable_thinking": true
@@ -762,7 +754,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                         ]
                                     }
                                 ],
-                                "time_limit": 60000,
                                 "chat_template_kwargs" : {
                                     "thinking": true,
                                     "enable_thinking": true
@@ -845,8 +836,7 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                     }
                                 ]
                             }
-                        ],
-                        "time_limit": 60000
+                        ]
                     }"""))
                 .willReturn(aResponse()
                     .withStatus(200)
@@ -990,7 +980,6 @@ public class ChatServiceThinkingTest extends AbstractWatsonxTest {
                                 ]
                             }
                         ],
-                        "time_limit": 60000,
                         "chat_template_kwargs" : {
                             "thinking": true,
                             "enable_thinking": true

@@ -908,7 +908,7 @@ Non-empty name or class filters return only matching schemas. Unmatched entries 
 | `logprobs` | Boolean | - | Return log probabilities |
 | `topLogprobs` | Integer | ≥ 1 | Top token log probs (requires `logprobs=true`) |
 | `logitBias` | Map\<String, Integer\> | - | Adjust token probabilities |
-| `timeLimit` | Duration | Any | Maximum generation time |
+| `timeLimit` | Duration | Any | Server-side generation limit, sent only when explicitly configured. Independent of the HTTP timeout. |
 | `toolChoiceOption` | ToolChoiceOption | AUTO, REQUIRED, NONE | Tool selection strategy |
 | `toolChoice` | String | Tool name | Force a specific tool call |
 | `guidedChoice` | Set\<String\> | Any | Constrain output to one of the given options |

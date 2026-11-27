@@ -6,6 +6,7 @@ package com.ibm.watsonx.ai.chat;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,7 +33,10 @@ import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.ToolCall;
 import com.ibm.watsonx.ai.chat.streaming.StreamingStateTracker;
 import com.ibm.watsonx.ai.chat.streaming.StreamingToolFetcher;
+import com.ibm.watsonx.ai.core.HttpUtils;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.exception.JsonException;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
 import com.ibm.watsonx.ai.gateway.chat.ModelGatewayChatResponse;
 
 /**
@@ -212,7 +216,7 @@ public class SseEventProcessor {
 
         if (pendingSSEError) {
             pendingSSEError = false;
-            return ProcessResult.error(new RuntimeException(messageData.isBlank() ? "SSE error event without data" : messageData));
+            return ProcessResult.error(parseSseError(messageData));
         }
 
         if (messageData.isBlank())
@@ -276,6 +280,28 @@ public class SseEventProcessor {
             processChoice(choiceChunk, message, events);
         }
         return ProcessResult.events(events);
+    }
+
+    private RuntimeException parseSseError(String messageData) {
+        if (messageData.isBlank())
+            return new RuntimeException("SSE error event without data");
+
+        if (!messageData.stripLeading().startsWith("{"))
+            return new RuntimeException(messageData);
+
+        try {
+            var payload = Json.fromJson(messageData, Map.class);
+            if (nonNull(payload) && (payload.get("errors") instanceof List<?> || payload.get("error") instanceof Map<?, ?>)
+                && payload.get("status_code") instanceof Number status) {
+                int statusCode = new BigDecimal(status.toString()).intValueExact();
+                if (statusCode >= 400 && statusCode <= 599) {
+                    var details = HttpUtils.parseErrorBody(statusCode, messageData, "application/json");
+                    return HttpUtils.mapWatsonxException(new WatsonxException(messageData, statusCode, details));
+                }
+            }
+        } catch (ArithmeticException | JsonException | NumberFormatException ignored) {}
+
+        return new RuntimeException(messageData);
     }
 
     private void markIncompleteChoicesFailed() {

@@ -39,7 +39,6 @@ public final class ModelGatewayTextChatRequest {
     private final List<String> stop;
     private final Double temperature;
     private final Double topP;
-    private final Long timeLimit;
     private final Map<String, Object> responseFormat;
     private final Map<String, String> audio;
     private final Map<String, String> metadata;
@@ -71,7 +70,6 @@ public final class ModelGatewayTextChatRequest {
         stop = isNull(builder.stop) ? null : List.copyOf(builder.stop);
         temperature = builder.temperature;
         topP = builder.topP;
-        timeLimit = builder.timeLimit;
         responseFormat = copyMap(builder.responseFormat);
         audio = isNull(builder.audio) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.audio));
         metadata = isNull(builder.metadata) ? null : Collections.unmodifiableMap(new LinkedHashMap<>(builder.metadata));
@@ -236,15 +234,6 @@ public final class ModelGatewayTextChatRequest {
     }
 
     /**
-     * Returns the maximum time limit for the request in milliseconds.
-     *
-     * @return the time limit in milliseconds
-     */
-    public Long timeLimit() {
-        return timeLimit;
-    }
-
-    /**
      * Returns the serialized response format map (e.g., {@code {"type":"json_object"}}).
      *
      * @return the response format map
@@ -391,7 +380,6 @@ public final class ModelGatewayTextChatRequest {
         private List<String> stop;
         private Double temperature;
         private Double topP;
-        private Long timeLimit;
         private Map<String, Object> responseFormat;
         private Map<String, String> audio;
         private Map<String, String> metadata;
@@ -573,16 +561,6 @@ public final class ModelGatewayTextChatRequest {
         }
 
         /**
-         * Sets the maximum time limit for the request in milliseconds.
-         *
-         * @param timeLimit the time limit in milliseconds
-         */
-        public Builder timeLimit(Long timeLimit) {
-            this.timeLimit = timeLimit;
-            return this;
-        }
-
-        /**
          * Sets the serialized response format map.
          *
          * @param responseFormat the response format map
@@ -760,7 +738,6 @@ public final class ModelGatewayTextChatRequest {
         result = prime * result + ((stop == null) ? 0 : stop.hashCode());
         result = prime * result + ((temperature == null) ? 0 : temperature.hashCode());
         result = prime * result + ((topP == null) ? 0 : topP.hashCode());
-        result = prime * result + ((timeLimit == null) ? 0 : timeLimit.hashCode());
         result = prime * result + ((responseFormat == null) ? 0 : responseFormat.hashCode());
         result = prime * result + ((audio == null) ? 0 : audio.hashCode());
         result = prime * result + ((metadata == null) ? 0 : metadata.hashCode());
@@ -866,11 +843,6 @@ public final class ModelGatewayTextChatRequest {
                 return false;
         } else if (!topP.equals(other.topP))
             return false;
-        if (timeLimit == null) {
-            if (other.timeLimit != null)
-                return false;
-        } else if (!timeLimit.equals(other.timeLimit))
-            return false;
         if (responseFormat == null) {
             if (other.responseFormat != null)
                 return false;
@@ -944,7 +916,7 @@ public final class ModelGatewayTextChatRequest {
         return "ModelGatewayTextChatRequest [model=" + model + ", messages=" + messages + ", tools=" + tools + ", toolChoice=" + toolChoice
             + ", frequencyPenalty=" + frequencyPenalty + ", logitBias=" + logitBias + ", logprobs=" + logprobs + ", topLogprobs=" + topLogprobs
             + ", maxCompletionTokens=" + maxCompletionTokens + ", maxTokens=" + maxTokens + ", n=" + n + ", presencePenalty=" + presencePenalty
-            + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP + ", timeLimit=" + timeLimit
+            + ", seed=" + seed + ", stop=" + stop + ", temperature=" + temperature + ", topP=" + topP
             + ", responseFormat=" + responseFormat + ", audio=" + audio + ", metadata=" + metadata + ", modalities=" + modalities
             + ", parallelToolCalls=" + parallelToolCalls + ", prediction=" + prediction + ", reasoningEffort=" + reasoningEffort + ", serviceTier="
             + serviceTier + ", store=" + store + ", streamOptions=" + streamOptions + ", router=" + router + ", user=" + user + ", stream=" + stream

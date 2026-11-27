@@ -61,7 +61,7 @@ ModelGatewayChatService service = ModelGatewayChatService.builder()
 | `messageInterceptor` | MessageInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for the complete assistant message |
 | `partialResponseInterceptor` | PartialResponseInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for each streamed content token |
 | `toolInterceptor` | ToolInterceptor\<ModelGatewayChatRequest\> | No | Post-processing hook for function call arguments |
-| `timeout` | Duration | No | Default request timeout (default: 60 seconds) |
+| `timeout` | Duration | No | HTTP request timeout (default: 60 seconds) |
 | `logRequests` | Boolean | No | Enable request logging (default: false) |
 | `logResponses` | Boolean | No | Enable response logging (default: false) |
 | `httpClient` | HttpClient | No | Custom HTTP client |
@@ -265,7 +265,6 @@ The future ends in the cancelled state, so a later `get()` or `join()` throws a 
 | `logprobs` | Boolean | - | Return log probabilities |
 | `topLogprobs` | Integer | ≥ 1 | Top token log probs (requires `logprobs=true`) |
 | `logitBias` | Map\<String, Integer\> | - | Adjust token probabilities |
-| `timeLimit` | Duration | Any | Maximum generation time |
 | `toolChoiceOption` | ToolChoiceOption | AUTO, REQUIRED, NONE | Tool selection strategy |
 | `toolChoice` | String | Tool name | Force a specific tool call |
 | `responseFormat` | - | - | Use `responseAsText()`, `responseAsJson()`, `responseAsJsonSchema()` |

@@ -237,7 +237,7 @@ public abstract class WatsonxService {
         }
 
         /**
-         * Sets the request timeout.
+         * Sets the HTTP request timeout.
          *
          * @param timeout {@link Duration} timeout.
          */
