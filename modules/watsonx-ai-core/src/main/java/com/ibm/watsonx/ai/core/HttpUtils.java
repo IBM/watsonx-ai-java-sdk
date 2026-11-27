@@ -247,7 +247,8 @@ public final class HttpUtils {
             case MODEL_NO_SUPPORT_FOR_FUNCTION -> new ModelNoSupportForFunctionException(exception);
             case TOKEN_QUOTA_REACHED -> new TokenQuotaReachedException(exception);
             case USER_AUTHORIZATION_FAILED -> new UserAuthorizationFailedException(exception);
-            case COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, SCHEMA_EVENT_DOES_NOT_EXIST, TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST,
+            case DOWNSTREAM_REQUEST_FAILED, COS_ACCESS_DENIED, COS_FILE_NOT_FOUND, SCHEMA_EVENT_DOES_NOT_EXIST,
+                TEXT_CLASSIFICATION_EVENT_DOES_NOT_EXIST,
                 TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST, UNCLASSIFIED -> exception;
         };
     }

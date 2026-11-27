@@ -14,7 +14,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import com.ibm.watsonx.ai.chat.decorator.ChatHandlerDecorator;
 import com.ibm.watsonx.ai.chat.interceptor.InterceptorContext;
@@ -50,7 +49,7 @@ final class DefaultRestClient extends ChatRestClient {
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .POST(BodyPublishers.ofString(toJson(textChatRequest)))
-            .timeout(Duration.ofMillis(textChatRequest.timeLimit()));
+            .timeout(timeout);
 
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);
@@ -79,7 +78,7 @@ final class DefaultRestClient extends ChatRestClient {
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
             .POST(BodyPublishers.ofString(toJson(textChatRequest)))
-            .timeout(Duration.ofMillis(textChatRequest.timeLimit()));
+            .timeout(timeout);
 
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);

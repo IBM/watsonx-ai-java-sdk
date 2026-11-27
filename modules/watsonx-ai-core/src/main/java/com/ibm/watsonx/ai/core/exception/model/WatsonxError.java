@@ -95,6 +95,11 @@ public record WatsonxError(Integer statusCode, String trace, List<Error> errors)
         AUTHENTICATION_TOKEN_EXPIRED("authentication_token_expired"),
 
         /**
+         * Request to a downstream service failed.
+         */
+        DOWNSTREAM_REQUEST_FAILED("downstream_request_failed"),
+
+        /**
          * Text extraction event does not exist.
          */
         TEXT_EXTRACTION_EVENT_DOES_NOT_EXIST("text_extraction_event_does_not_exist"),

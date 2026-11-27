@@ -27,6 +27,9 @@ import com.ibm.watsonx.ai.chat.model.FinishReason;
 import com.ibm.watsonx.ai.chat.model.Tool;
 import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.Json;
+import com.ibm.watsonx.ai.core.exception.InvalidInputArgumentException;
+import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 public class SseEventProcessorTest {
 
@@ -247,6 +250,104 @@ public class SseEventProcessorTest {
 
         assertFalse(next.hasError());
         assertEquals("hi", processor.buildResponse().choices().get(0).message().content());
+    }
+
+    @Test
+    void should_parse_structured_sse_error_and_preserve_original_payload_and_choices() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        processor.processChunk("""
+            data: {"choices":[
+              {"index":0,"delta":{"role":"assistant","content":"Partial answer"}},
+              {"index":1,"delta":{"role":"assistant","content":"Complete answer"},"finish_reason":"stop"}]}
+            """);
+        var payload = """
+            {"errors":[{"code":"downstream_request_failed",
+            "message":"Downstream vllm request with Model 'openai/gpt-oss-120b failed: context deadline exceeded",
+            "more_info":"https://cloud.ibm.com/apidocs/watsonx-ai#text-chat-stream"}],"trace":"request-trace","status_code":500}
+            """;
+
+        processor.processChunk("event: error");
+        var result = processor.processChunk("data: " + payload);
+
+        assertTrue(result.hasError());
+        var error = assertInstanceOf(WatsonxException.class, result.error());
+        assertEquals(500, error.statusCode());
+        assertEquals(payload, error.getMessage());
+        var details = error.details().orElseThrow();
+        assertEquals(500, details.statusCode());
+        assertEquals("request-trace", details.trace());
+        assertEquals(1, details.errors().size());
+        assertEquals(WatsonxError.Code.DOWNSTREAM_REQUEST_FAILED.value(), details.errors().get(0).code());
+        assertTrue(details.errors().get(0).message().contains("context deadline exceeded"));
+        assertEquals("https://cloud.ibm.com/apidocs/watsonx-ai#text-chat-stream", details.errors().get(0).moreInfo());
+
+        var response = processor.buildResponse();
+        assertEquals(List.of("error", "stop"), response.choices().stream().map(choice -> choice.finishReason()).toList());
+        assertEquals("Partial answer", response.choices().get(0).message().content());
+        assertEquals("Complete answer", response.choices().get(1).message().content());
+
+        var next = processor.processChunk("""
+            data: {"choices":[{"index":2,"delta":{"content":"Next answer"},"finish_reason":"stop"}]}
+            """);
+        assertFalse(next.hasError());
+        assertEquals("Next answer", processor.buildResponse().choices().get(2).message().content());
+    }
+
+    @Test
+    void should_map_nested_sse_error_to_specific_watsonx_exception() {
+        var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+        var payload = """
+            {"status_code":400,"error":{"code":"invalid_input_argument","message":"Unsupported time limit","request_id":"gateway-request"}}
+            """;
+
+        processor.processChunk("event: error");
+        var result = processor.processChunk("data: " + payload);
+
+        assertTrue(result.hasError());
+        var error = assertInstanceOf(InvalidInputArgumentException.class, result.error());
+        assertEquals(400, error.statusCode());
+        assertEquals(payload, error.getMessage());
+        var details = error.details().orElseThrow();
+        assertEquals(400, details.statusCode());
+        assertEquals("gateway-request", details.trace());
+        assertEquals(WatsonxError.Code.INVALID_INPUT_ARGUMENT.value(), details.errors().get(0).code());
+        assertEquals("Unsupported time limit", details.errors().get(0).message());
+    }
+
+    @Test
+    void should_preserve_unrecognized_sse_errors_without_inventing_a_status() {
+        for (var payload : List.of(
+            "service error",
+            " { ",
+            "null",
+            "[]",
+            "{\"errors\":[{\"code\":\"downstream_request_failed\"}]}",
+            "{\"status_code\":\"500\",\"errors\":[]}",
+            "{\"status_code\":500.7,\"errors\":[]}",
+            "{\"status_code\":4294967796,\"errors\":[]}",
+            "{\"status_code\":200,\"errors\":[]}",
+            "{\"status_code\":500,\"errors\":\"Unavailable\"}",
+            "{\"status_code\":500,\"errors\":[{\"code\":7}]}",
+            "{\"status_code\":500,\"error\":{\"code\":7}}")) {
+            var processor = new SseEventProcessor(List.of(), null, TextChatResponse::builder);
+            processor.processChunk("""
+                data: {"choices":[{"index":0,"delta":{"content":"Partial answer"}}]}
+                """);
+            processor.processChunk("event: error");
+
+            var result = processor.processChunk("data: " + payload);
+
+            assertTrue(result.hasError(), payload);
+            assertEquals(RuntimeException.class, result.error().getClass(), payload);
+            assertEquals(payload, result.error().getMessage(), payload);
+            assertEquals(FinishReason.ERROR, processor.buildResponse().finishReason(), payload);
+
+            var next = processor.processChunk("""
+                data: {"choices":[{"index":1,"delta":{"content":"Next answer"},"finish_reason":"stop"}]}
+                """);
+            assertFalse(next.hasError(), payload);
+            assertEquals("Next answer", processor.buildResponse().choices().get(1).message().content(), payload);
+        }
     }
 
     @Test

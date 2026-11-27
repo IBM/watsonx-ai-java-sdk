@@ -98,7 +98,7 @@ HttpClient httpClient = HttpClient.newBuilder()
 
 ## Request Timeout
 
-In addition to the `HttpClient`-level `connectTimeout`, the SDK exposes a per-service `timeout` that controls the maximum duration to wait for a complete response:
+The per-service `timeout` configures the HTTP request timeout independently of the `HttpClient`-level `connectTimeout`. Its default is 60 seconds:
 
 ```java
 ChatService chatService = ChatService.builder()
@@ -109,8 +109,6 @@ ChatService chatService = ChatService.builder()
     .timeout(Duration.ofMinutes(5))   // default: 60 seconds
     .build();
 ```
-
-The `timeout` applies to each individual request. For streaming responses, it governs the total time allowed for the stream to complete.
 
 Built-in authenticators configure separate timeouts for HTTP attempts and do not add an overall acquisition deadline. See [Token lifecycle](../authentication#token-lifecycle).
 

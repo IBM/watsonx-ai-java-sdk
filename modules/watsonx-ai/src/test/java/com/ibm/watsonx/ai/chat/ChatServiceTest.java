@@ -1174,8 +1174,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                   "text" : "2 + 2"
                 } ],
                 "name" : "Alan"
-              } ],
-              "time_limit" : 60000
+              } ]
             }""";
 
         final String RESPONSE = """
@@ -1246,8 +1245,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     "detail" : "auto"
                   }
                 } ]
-              } ],
-              "time_limit" : 60000
+              } ]
             }""".formatted(Base64.getEncoder().encodeToString(bytes));
 
         final String RESPONSE =
@@ -1326,8 +1324,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     "url" : "data:video/mp4;base64,%s"
                   }
                 } ]
-              } ],
-              "time_limit" : 60000
+              } ]
             }""".formatted(Base64.getEncoder().encodeToString(bytes));
 
         final String RESPONSE =
@@ -1407,8 +1404,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                     "format" : "audio/x-wav"
                   }
                 } ]
-              } ],
-              "time_limit" : 60000
+              } ]
             }""".formatted(Base64.getEncoder().encodeToString(bytes));
 
         final String RESPONSE =
@@ -1822,8 +1818,7 @@ public class ChatServiceTest extends AbstractWatsonxTest {
                             "name": "get_current_time"
                         }
                     }
-                ],
-                "time_limit": 60000
+                ]
             }""";
 
         final String RESPONSE =

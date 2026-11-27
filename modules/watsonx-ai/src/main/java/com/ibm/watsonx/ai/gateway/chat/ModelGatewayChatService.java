@@ -8,7 +8,6 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -73,6 +72,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
         toolInterceptor = builder.toolInterceptor;
         defaultTools = isNull(builder.defaultTools) ? null : List.copyOf(builder.defaultTools);
         defaultParameters = requireNonNullElse(builder.defaultParameters, ModelGatewayChatParameters.builder().build());
+        ModelGatewayChatUtility.validateParameters(defaultParameters);
 
         client = ModelGatewayChatRestClient.builder()
             .baseUrl(baseUrl)
@@ -106,7 +106,7 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
             ? chatRequest.parameters().transactionId()
             : defaultParameters.transactionId();
 
-        var chatResponse = client.chat(transactionId, Duration.ofMillis(gatewayRequest.timeLimit()), gatewayRequest);
+        var chatResponse = client.chat(transactionId, timeout, gatewayRequest);
 
         if (nonNull(messageInterceptor)) {
             var newChoices = messageInterceptor.intercept(new InterceptorContext<>(chatProvider, chatRequest, chatResponse));
@@ -152,14 +152,14 @@ public class ModelGatewayChatService extends WatsonxService implements ChatProvi
             .toolInterceptor(toolInterceptor)
             .build();
 
-        return client.chatStreaming(transactionId, Duration.ofMillis(gatewayRequest.timeLimit()), gatewayRequest, context, handler);
+        return client.chatStreaming(transactionId, timeout, gatewayRequest, context, handler);
     }
 
     private ModelGatewayTextChatRequest buildGatewayRequest(ModelGatewayChatRequest chatRequest, boolean stream) {
         var resolvedRequest = isNull(chatRequest.tools()) && nonNull(defaultTools)
             ? chatRequest.toBuilder().tools(defaultTools).build()
             : chatRequest;
-        return ModelGatewayChatUtility.buildGatewayRequest(resolvedRequest, defaultParameters, modelId, timeout.toMillis(), stream);
+        return ModelGatewayChatUtility.buildGatewayRequest(resolvedRequest, defaultParameters, modelId, stream);
     }
 
     /**

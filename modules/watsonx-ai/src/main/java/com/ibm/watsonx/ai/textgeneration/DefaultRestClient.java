@@ -15,7 +15,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscribers;
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscription;
@@ -50,14 +49,12 @@ final class DefaultRestClient extends TextGenerationRestClient {
     @Override
     public TextGenerationResponse generate(String transactionId, TextRequest textRequest) {
 
-        var timeout = textRequest.parameters().timeLimit();
-
         var httpRequest =
             HttpRequest
                 .newBuilder(URI.create(baseUrl + "/ml/v1/text/generation?version=%s".formatted(version)))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
-                .timeout(Duration.ofMillis(timeout))
+                .timeout(timeout)
                 .POST(BodyPublishers.ofString(toJson(textRequest)));
 
         if (nonNull(transactionId))
@@ -79,12 +76,10 @@ final class DefaultRestClient extends TextGenerationRestClient {
     @Override
     public CompletableFuture<Void> generateStreaming(String transactionId, TextRequest textRequest, TextGenerationHandler handler) {
 
-        var timeout = textRequest.parameters().timeLimit();
-
         var httpRequest = HttpRequest.newBuilder(URI.create(baseUrl + "/ml/v1/text/generation_stream?version=%s".formatted(version)))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
-            .timeout(Duration.ofMillis(timeout))
+            .timeout(timeout)
             .POST(BodyPublishers.ofString(toJson(textRequest)));
 
         if (nonNull(transactionId))

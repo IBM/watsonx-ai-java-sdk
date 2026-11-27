@@ -222,7 +222,7 @@ final class DefaultRestClient extends DeploymentRestClient {
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/event-stream")
                 .POST(BodyPublishers.ofString(toJson(textChatRequest)))
-                .timeout(Duration.ofMillis(textChatRequest.timeLimit()));
+                .timeout(timeout);
 
         if (nonNull(transactionId))
             httpRequest.header(TRANSACTION_ID_HEADER, transactionId);

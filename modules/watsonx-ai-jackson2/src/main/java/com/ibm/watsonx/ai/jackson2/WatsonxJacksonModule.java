@@ -1139,11 +1139,6 @@ public class WatsonxJacksonModule extends SimpleModule {
         @JsonProperty("top_p")
         abstract Double topP();
 
-        // The gateway is OpenAI-compatible and does not accept the watsonx-native "time_limit" body field.
-        // It is retained on the request only to drive the client-side HTTP timeout, so it must not be serialized.
-        @JsonIgnore
-        abstract Long timeLimit();
-
         @JsonProperty("response_format")
         abstract Map<String, Object> responseFormat();
 

@@ -50,10 +50,52 @@
       "type": "com.fasterxml.jackson.annotation.JsonIgnore"
     },
     {
+      "type": "com.fasterxml.jackson.annotation.JsonInclude"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonInclude$Include",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "com.fasterxml.jackson.annotation.JsonProperty"
     },
     {
       "type": "com.fasterxml.jackson.annotation.JsonProperty$Access",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonSubTypes"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonSubTypes$Type"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonSubTypes$Type[]"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonTypeInfo"
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonTypeInfo$As",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.annotation.JsonTypeInfo$Id",
       "methods": [
         {
           "name": "values",
@@ -74,10 +116,76 @@
       "type": "com.fasterxml.jackson.core.JsonParser"
     },
     {
+      "type": "com.fasterxml.jackson.databind.DeserializationFeature",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.JsonDeserializer$None"
+    },
+    {
       "type": "com.fasterxml.jackson.databind.JsonNode"
     },
     {
+      "type": "com.fasterxml.jackson.databind.JsonSerializer$None"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.KeyDeserializer$None"
+    },
+    {
       "type": "com.fasterxml.jackson.databind.ObjectMapper"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.SerializationFeature",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.annotation.JacksonStdImpl"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.annotation.JsonSerialize"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.annotation.JsonSerialize$Inclusion",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.annotation.JsonSerialize$Typing",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.deser.BeanDeserializerModifier[]"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.deser.Deserializers[]"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.deser.KeyDeserializers[]"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.deser.ValueInstantiators[]"
     },
     {
       "type": "com.fasterxml.jackson.databind.ext.Java7SupportImpl",
@@ -89,7 +197,175 @@
       ]
     },
     {
+      "type": "com.fasterxml.jackson.databind.ser.BeanSerializerModifier[]"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.ser.Serializers[]"
+    },
+    {
+      "type": "com.fasterxml.jackson.databind.util.Converter$None"
+    },
+    {
       "type": "com.fasterxml.jackson.dataformat.yaml.YAMLFactory"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.extension.Parameters"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.ChunkedDribbleDelay"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.DelayDistribution"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.Fault"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.FixedDelayDistribution"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.HttpHeaders"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.HttpHeadersJsonDeserializer"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.HttpHeadersJsonSerializer",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.LogNormal"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.ResponseDefinition",
+      "methods": [
+        {
+          "name": "getAdditionalProxyRequestHeaders",
+          "parameterTypes": []
+        },
+        {
+          "name": "getBase64Body",
+          "parameterTypes": []
+        },
+        {
+          "name": "getBody",
+          "parameterTypes": []
+        },
+        {
+          "name": "getBodyFileName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getChunkedDribbleDelay",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDelayDistribution",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFault",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFixedDelayMilliseconds",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHeaders",
+          "parameterTypes": []
+        },
+        {
+          "name": "getJsonBody",
+          "parameterTypes": []
+        },
+        {
+          "name": "getProxyBaseUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getProxyUrlPrefixToRemove",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRemoveProxyRequestHeaders",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatusMessage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTransformerParameters",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTransformers",
+          "parameterTypes": []
+        },
+        {
+          "name": "isFromConfiguredStub",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.http.UniformDistribution"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.jetty11.WritableFileOrClasspathKeyStoreSource",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "char[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.matching.AnythingPattern"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.matching.EqualToPattern"
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.servlet.ContentTypeSettingFilter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.servlet.TrailingSlashFilter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.github.tomakehurst.wiremock.servlet.WireMockHandlerDispatchingServlet",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "com.ibm.watsonx.ai.Crypto"
@@ -1463,6 +1739,29 @@
     },
     {
       "type": "com.ibm.watsonx.ai.chat.model.schema.StringSchema$Builder"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.core.auth.Authenticator"
+    },
+    {
+      "type": "com.ibm.watsonx.ai.core.exception.model.WatsonxError$Code",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.ibm.watsonx.ai.core.provider.HttpClientProvider",
+      "fields": [
+        {
+          "name": "insecureClient"
+        },
+        {
+          "name": "secureClient"
+        }
+      ]
     },
     {
       "type": "com.ibm.watsonx.ai.core.spi.json.TypeToken"
@@ -3565,6 +3864,81 @@
       ]
     },
     {
+      "type": "com.sun.crypto.provider.AESCipher$General",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.ARCFOURCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.ChaCha20Cipher$ChaCha20Poly1305",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DESCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DESedeCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DHParameters",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.GaloisCounterMode$AESGCM",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.TlsMasterSecretGenerator",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.tools.attach.VirtualMachine"
+    },
+    {
       "type": "java.io.File"
     },
     {
@@ -3575,6 +3949,9 @@
           "name": "fd"
         }
       ]
+    },
+    {
+      "type": "java.io.IOException"
     },
     {
       "type": "java.io.PrintWriter"
@@ -3627,6 +4004,9 @@
       ]
     },
     {
+      "type": "java.lang.CharSequence"
+    },
+    {
       "type": "java.lang.Character",
       "methods": [
         {
@@ -3653,15 +4033,71 @@
           ]
         },
         {
+          "name": "getModule",
+          "parameterTypes": []
+        },
+        {
+          "name": "getNestHost",
+          "parameterTypes": []
+        },
+        {
+          "name": "getNestMembers",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPackageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRecordComponents",
+          "parameterTypes": []
+        },
+        {
           "name": "isInstance",
           "parameterTypes": [
             "java.lang.Object"
           ]
+        },
+        {
+          "name": "isRecord",
+          "parameterTypes": []
+        },
+        {
+          "name": "isSealed",
+          "parameterTypes": []
         }
       ]
     },
     {
-      "type": "java.lang.ClassLoader"
+      "type": "java.lang.ClassLoader",
+      "methods": [
+        {
+          "name": "getClassLoadingLock",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "getDefinedPackage",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "getUnnamedModule",
+          "parameterTypes": []
+        },
+        {
+          "name": "registerAsParallelCapable",
+          "parameterTypes": []
+        },
+        {
+          "name": "registerAsParallelCapable",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
     },
     {
       "type": "java.lang.Class[]"
@@ -3722,6 +4158,9 @@
       "type": "java.lang.IllegalArgumentException"
     },
     {
+      "type": "java.lang.IllegalStateException"
+    },
+    {
       "type": "java.lang.Integer",
       "methods": [
         {
@@ -3774,6 +4213,30 @@
       ]
     },
     {
+      "type": "java.lang.Module",
+      "methods": [
+        {
+          "name": "canRead",
+          "parameterTypes": [
+            "java.lang.Module"
+          ]
+        },
+        {
+          "name": "isExported",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "isExported",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.Module"
+          ]
+        }
+      ]
+    },
+    {
       "type": "java.lang.Number"
     },
     {
@@ -3786,6 +4249,10 @@
       "type": "java.lang.ProcessHandle",
       "methods": [
         {
+          "name": "current",
+          "parameterTypes": []
+        },
+        {
           "name": "info",
           "parameterTypes": []
         },
@@ -3794,6 +4261,10 @@
           "parameterTypes": [
             "long"
           ]
+        },
+        {
+          "name": "pid",
+          "parameterTypes": []
         }
       ]
     },
@@ -3811,6 +4282,24 @@
     },
     {
       "type": "java.lang.Runnable"
+    },
+    {
+      "type": "java.lang.Runtime",
+      "methods": [
+        {
+          "name": "version",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Runtime$Version",
+      "methods": [
+        {
+          "name": "feature",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "java.lang.RuntimeException"
@@ -3904,8 +4393,17 @@
           "parameterTypes": [
             "char"
           ]
+        },
+        {
+          "name": "valueOf",
+          "parameterTypes": [
+            "long"
+          ]
         }
       ]
+    },
+    {
+      "type": "java.lang.StringBuffer"
     },
     {
       "type": "java.lang.StringBuilder"
@@ -3934,6 +4432,12 @@
         {
           "name": "concat",
           "parameterTypes": [
+            "long"
+          ]
+        },
+        {
+          "name": "concat",
+          "parameterTypes": [
             "java.lang.Object"
           ]
         }
@@ -3941,6 +4445,15 @@
     },
     {
       "type": "java.lang.String[]"
+    },
+    {
+      "type": "java.lang.System",
+      "methods": [
+        {
+          "name": "getSecurityManager",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "java.lang.System$Logger$Level",
@@ -4024,6 +4537,9 @@
       ]
     },
     {
+      "type": "java.lang.ThreadLocal"
+    },
+    {
       "type": "java.lang.Throwable"
     },
     {
@@ -4048,6 +4564,15 @@
     },
     {
       "type": "java.lang.Void"
+    },
+    {
+      "type": "java.lang.WeakPairMap"
+    },
+    {
+      "type": "java.lang.WeakPairMap$Pair"
+    },
+    {
+      "type": "java.lang.WeakPairMap$Pair$Weak"
     },
     {
       "type": "java.lang.annotation.Annotation"
@@ -4095,10 +4620,34 @@
       "type": "java.lang.classfile.Attribute[]"
     },
     {
+      "type": "java.lang.constant.ClassDesc"
+    },
+    {
+      "type": "java.lang.constant.ClassDesc[]"
+    },
+    {
       "type": "java.lang.constant.Constable"
     },
     {
       "type": "java.lang.constant.ConstantDesc"
+    },
+    {
+      "type": "java.lang.constant.ConstantDesc[]"
+    },
+    {
+      "type": "java.lang.constant.DirectMethodHandleDesc"
+    },
+    {
+      "type": "java.lang.constant.DirectMethodHandleDesc$Kind"
+    },
+    {
+      "type": "java.lang.constant.DynamicConstantDesc"
+    },
+    {
+      "type": "java.lang.constant.MethodHandleDesc"
+    },
+    {
+      "type": "java.lang.constant.MethodTypeDesc"
     },
     {
       "type": "java.lang.foreign.MemorySegment",
@@ -4115,6 +4664,22 @@
           "parameterTypes": [
             "long",
             "java.lang.foreign.MemoryLayout"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.instrument.Instrumentation",
+      "methods": [
+        {
+          "name": "redefineModule",
+          "parameterTypes": [
+            "java.lang.Module",
+            "java.util.Set",
+            "java.util.Map",
+            "java.util.Map",
+            "java.util.Set",
+            "java.util.Map"
           ]
         }
       ]
@@ -4417,6 +4982,46 @@
       "type": "java.lang.invoke.MethodHandle[]"
     },
     {
+      "type": "java.lang.invoke.MethodHandles",
+      "methods": [
+        {
+          "name": "lookup",
+          "parameterTypes": []
+        },
+        {
+          "name": "lookup",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.MethodHandles$Lookup",
+      "methods": [
+        {
+          "name": "findVirtual",
+          "parameterTypes": [
+            "java.lang.Class",
+            "java.lang.String",
+            "java.lang.invoke.MethodType"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.invoke.MethodType",
+      "methods": [
+        {
+          "name": "methodType",
+          "parameterTypes": [
+            "java.lang.Class",
+            "java.lang.Class[]"
+          ]
+        }
+      ]
+    },
+    {
       "type": "java.lang.invoke.VarHandle",
       "fields": [
         {
@@ -4425,13 +5030,94 @@
       ]
     },
     {
+      "type": "java.lang.management.ManagementFactory",
+      "methods": [
+        {
+          "name": "getRuntimeMXBean",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.RuntimeMXBean",
+      "methods": [
+        {
+          "name": "getInputArguments",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUptime",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "java.lang.ref.WeakReference"
+    },
+    {
+      "type": "java.lang.reflect.AccessibleObject"
+    },
+    {
+      "type": "java.lang.reflect.AnnotatedArrayType"
     },
     {
       "type": "java.lang.reflect.AnnotatedElement"
     },
     {
+      "type": "java.lang.reflect.AnnotatedParameterizedType",
+      "methods": [
+        {
+          "name": "getAnnotatedActualTypeArguments",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.reflect.AnnotatedType",
+      "methods": [
+        {
+          "name": "getAnnotatedOwnerType",
+          "parameterTypes": []
+        },
+        {
+          "name": "getType",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.reflect.AnnotatedTypeVariable"
+    },
+    {
+      "type": "java.lang.reflect.AnnotatedWildcardType"
+    },
+    {
       "type": "java.lang.reflect.Constructor"
+    },
+    {
+      "type": "java.lang.reflect.Executable",
+      "methods": [
+        {
+          "name": "getAnnotatedExceptionTypes",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAnnotatedParameterTypes",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAnnotatedReceiverType",
+          "parameterTypes": []
+        },
+        {
+          "name": "getParameterCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getParameters",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "java.lang.reflect.Field"
@@ -4440,10 +5126,38 @@
       "type": "java.lang.reflect.Member"
     },
     {
-      "type": "java.lang.reflect.Method"
+      "type": "java.lang.reflect.Method",
+      "methods": [
+        {
+          "name": "getAnnotatedReturnType",
+          "parameterTypes": []
+        }
+      ]
     },
     {
-      "type": "java.lang.reflect.Parameter"
+      "type": "java.lang.reflect.Parameter",
+      "methods": [
+        {
+          "name": "getModifiers",
+          "parameterTypes": []
+        },
+        {
+          "name": "isNamePresent",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.reflect.Type"
+    },
+    {
+      "type": "java.lang.reflect.TypeVariable",
+      "methods": [
+        {
+          "name": "getAnnotatedBounds",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "java.lang.runtime.ObjectMethods",
@@ -4527,6 +5241,12 @@
       "type": "java.math.BigInteger"
     },
     {
+      "type": "java.net.Authenticator"
+    },
+    {
+      "type": "java.net.CookieHandler"
+    },
+    {
       "type": "java.net.Inet4Address",
       "jniAccessible": true,
       "methods": [
@@ -4600,10 +5320,69 @@
       "type": "java.net.InetAddress[]"
     },
     {
+      "type": "java.net.InetSocketAddress",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "holder"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.net.InetAddress",
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.net.Proxy"
+    },
+    {
+      "type": "java.net.ProxySelector"
+    },
+    {
+      "type": "java.net.Socket",
+      "fields": [
+        {
+          "name": "in"
+        },
+        {
+          "name": "out"
+        },
+        {
+          "name": "state"
+        }
+      ]
+    },
+    {
       "type": "java.net.URI"
     },
     {
       "type": "java.net.URL"
+    },
+    {
+      "type": "java.net.http.HttpClient"
+    },
+    {
+      "type": "java.net.http.HttpRequest"
+    },
+    {
+      "type": "java.net.http.HttpResponse"
+    },
+    {
+      "type": "java.net.http.HttpResponse$BodyHandler"
+    },
+    {
+      "type": "java.net.http.HttpResponse$BodySubscriber"
+    },
+    {
+      "type": "java.net.http.HttpResponse$PushPromiseHandler"
+    },
+    {
+      "type": "java.net.http.HttpResponse$ResponseInfo"
     },
     {
       "type": "java.nio.ByteBuffer",
@@ -4617,6 +5396,23 @@
       ]
     },
     {
+      "type": "java.nio.ByteBuffer[]"
+    },
+    {
+      "type": "java.nio.channels.SelectableChannel"
+    },
+    {
+      "type": "java.nio.channels.SelectionKey",
+      "fields": [
+        {
+          "name": "attachment"
+        }
+      ]
+    },
+    {
+      "type": "java.nio.channels.Selector"
+    },
+    {
       "type": "java.nio.channels.spi.AbstractInterruptibleChannel",
       "fields": [
         {
@@ -4625,10 +5421,52 @@
       ]
     },
     {
+      "type": "java.nio.channels.spi.AbstractSelectionKey",
+      "fields": [
+        {
+          "name": "invalid"
+        }
+      ]
+    },
+    {
+      "type": "java.nio.channels.spi.AbstractSelector",
+      "fields": [
+        {
+          "name": "closed"
+        }
+      ]
+    },
+    {
       "type": "java.nio.charset.Charset"
     },
     {
       "type": "java.nio.file.Path"
+    },
+    {
+      "type": "java.security.AccessController",
+      "methods": [
+        {
+          "name": "doPrivileged",
+          "parameterTypes": [
+            "java.security.PrivilegedAction"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.security.AlgorithmParametersSpi"
+    },
+    {
+      "type": "java.security.CryptoPrimitive",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.security.KeyStoreSpi"
     },
     {
       "type": "java.security.Provider"
@@ -4703,7 +5541,19 @@
       "type": "java.util.Deque"
     },
     {
+      "type": "java.util.EventListener"
+    },
+    {
       "type": "java.util.HashMap"
+    },
+    {
+      "type": "java.util.HashSet",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "java.util.ImmutableCollections$AbstractImmutableCollection"
@@ -4784,6 +5634,9 @@
       "type": "java.util.OptionalInt"
     },
     {
+      "type": "java.util.Properties"
+    },
+    {
       "type": "java.util.Random"
     },
     {
@@ -4809,6 +5662,12 @@
     },
     {
       "type": "java.util.TimeZone"
+    },
+    {
+      "type": "java.util.TreeMap"
+    },
+    {
+      "type": "java.util.TreeSet"
     },
     {
       "type": "java.util.UUID"
@@ -4930,6 +5789,9 @@
       ]
     },
     {
+      "type": "java.util.concurrent.Executor"
+    },
+    {
       "type": "java.util.concurrent.Executors",
       "methods": [
         {
@@ -4937,11 +5799,18 @@
           "parameterTypes": [
             "java.util.concurrent.ThreadFactory"
           ]
+        },
+        {
+          "name": "newVirtualThreadPerTaskExecutor",
+          "parameterTypes": []
         }
       ]
     },
     {
       "type": "java.util.concurrent.Flow$Subscriber"
+    },
+    {
+      "type": "java.util.concurrent.Flow$Subscription"
     },
     {
       "type": "java.util.concurrent.ForkJoinPool",
@@ -5000,6 +5869,9 @@
       ]
     },
     {
+      "type": "java.util.concurrent.Future"
+    },
+    {
       "type": "java.util.concurrent.FutureTask",
       "fields": [
         {
@@ -5028,6 +5900,17 @@
       ]
     },
     {
+      "type": "java.util.concurrent.LinkedTransferQueue$DualNode",
+      "fields": [
+        {
+          "name": "item"
+        },
+        {
+          "name": "next"
+        }
+      ]
+    },
+    {
       "type": "java.util.concurrent.ThreadLocalRandom$Access"
     },
     {
@@ -5039,6 +5922,9 @@
       ]
     },
     {
+      "type": "java.util.concurrent.TimeUnit"
+    },
+    {
       "type": "java.util.concurrent.atomic.AtomicBoolean",
       "fields": [
         {
@@ -5048,6 +5934,9 @@
     },
     {
       "type": "java.util.concurrent.atomic.AtomicInteger"
+    },
+    {
+      "type": "java.util.concurrent.atomic.AtomicLong"
     },
     {
       "type": "java.util.concurrent.atomic.AtomicReference",
@@ -5103,6 +5992,9 @@
       "type": "java.util.function.BiFunction"
     },
     {
+      "type": "java.util.function.BiPredicate"
+    },
+    {
       "type": "java.util.function.Consumer"
     },
     {
@@ -5154,6 +6046,655 @@
       "type": "java.util.stream.Stream"
     },
     {
+      "type": "javax.annotation.Nonnull"
+    },
+    {
+      "type": "javax.net.ssl.SSLContext",
+      "fields": [
+        {
+          "name": "defaultContext"
+        }
+      ]
+    },
+    {
+      "type": "javax.net.ssl.SSLSession"
+    },
+    {
+      "type": "javax.net.ssl.SSLSocket"
+    },
+    {
+      "type": "javax.xml.parsers.DocumentBuilder"
+    },
+    {
+      "type": "javax.xml.parsers.DocumentBuilderFactory"
+    },
+    {
+      "type": "jdk.net.ExtendedSocketOptions"
+    },
+    {
+      "type": "jdk.net.LinuxSocketOptions",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "kotlin.jvm.JvmInline"
+    },
+    {
+      "type": "net.bytebuddy.agent.Installer",
+      "methods": [
+        {
+          "name": "agentmain",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.instrument.Instrumentation"
+          ]
+        },
+        {
+          "name": "getInstrumentation",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$AllArguments",
+      "methods": [
+        {
+          "name": "includeSelf",
+          "parameterTypes": []
+        },
+        {
+          "name": "nullIfEmpty",
+          "parameterTypes": []
+        },
+        {
+          "name": "readOnly",
+          "parameterTypes": []
+        },
+        {
+          "name": "typing",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$Argument",
+      "methods": [
+        {
+          "name": "optional",
+          "parameterTypes": []
+        },
+        {
+          "name": "readOnly",
+          "parameterTypes": []
+        },
+        {
+          "name": "typing",
+          "parameterTypes": []
+        },
+        {
+          "name": "value",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$DynamicConstant"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$Enter",
+      "methods": [
+        {
+          "name": "readOnly",
+          "parameterTypes": []
+        },
+        {
+          "name": "typing",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$Exit"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$FieldGetterHandle"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$FieldSetterHandle"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$Handle"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$Local"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$NoExceptionHandler"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$OnMethodEnter",
+      "methods": [
+        {
+          "name": "inline",
+          "parameterTypes": []
+        },
+        {
+          "name": "prependLineNumber",
+          "parameterTypes": []
+        },
+        {
+          "name": "skipOn",
+          "parameterTypes": []
+        },
+        {
+          "name": "skipOnIndex",
+          "parameterTypes": []
+        },
+        {
+          "name": "suppress",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$OnMethodExit",
+      "methods": [
+        {
+          "name": "backupArguments",
+          "parameterTypes": []
+        },
+        {
+          "name": "inline",
+          "parameterTypes": []
+        },
+        {
+          "name": "onThrowable",
+          "parameterTypes": []
+        },
+        {
+          "name": "repeatOn",
+          "parameterTypes": []
+        },
+        {
+          "name": "repeatOnIndex",
+          "parameterTypes": []
+        },
+        {
+          "name": "suppress",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$OnNonDefaultValue"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$Origin"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$Return",
+      "methods": [
+        {
+          "name": "readOnly",
+          "parameterTypes": []
+        },
+        {
+          "name": "typing",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$SelfCallHandle"
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$This",
+      "methods": [
+        {
+          "name": "optional",
+          "parameterTypes": []
+        },
+        {
+          "name": "readOnly",
+          "parameterTypes": []
+        },
+        {
+          "name": "typing",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.asm.Advice$Thrown"
+    },
+    {
+      "type": "net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$Executable"
+    },
+    {
+      "type": "net.bytebuddy.description.method.ParameterDescription$ForLoadedParameter$Parameter"
+    },
+    {
+      "type": "net.bytebuddy.description.method.ParameterList$ForLoadedExecutable$Executable"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDefinition$Sort$AnnotatedType"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$ForLoadedType$Dispatcher"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$Delegator$ForLoadedExecutableExceptionType$Dispatcher"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$Delegator$ForLoadedExecutableParameterType$Dispatcher"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$Delegator$ForLoadedField$Dispatcher"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$Delegator$ForLoadedMethodReturnType$Dispatcher"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForComponentType$AnnotatedParameterizedType"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForOwnerType$AnnotatedType"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForTypeArgument$AnnotatedParameterizedType"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForTypeVariableBoundType$AnnotatedTypeVariable"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForTypeVariableBoundType$OfFormalTypeVariable$FormalTypeVariable"
+    },
+    {
+      "type": "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForWildcardUpperBoundType$AnnotatedWildcardType"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.AllArguments",
+      "methods": [
+        {
+          "name": "includeSelf",
+          "parameterTypes": []
+        },
+        {
+          "name": "nullIfEmpty",
+          "parameterTypes": []
+        },
+        {
+          "name": "value",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.AllArguments$Assignment",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.Argument",
+      "methods": [
+        {
+          "name": "bindingMechanic",
+          "parameterTypes": []
+        },
+        {
+          "name": "value",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.BindingPriority",
+      "methods": [
+        {
+          "name": "value",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.Default"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.DefaultCall"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.DefaultCallHandle"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.DefaultMethod"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.DefaultMethodHandle"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.DynamicConstant"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.FieldGetterHandle"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.FieldSetterHandle"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.FieldValue",
+      "methods": [
+        {
+          "name": "declaringType",
+          "parameterTypes": []
+        },
+        {
+          "name": "value",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.Handle"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.Origin",
+      "methods": [
+        {
+          "name": "cache",
+          "parameterTypes": []
+        },
+        {
+          "name": "privileged",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.RuntimeType"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.StubValue"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.Super"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.SuperCall",
+      "methods": [
+        {
+          "name": "fallbackToDefault",
+          "parameterTypes": []
+        },
+        {
+          "name": "nullIfImpossible",
+          "parameterTypes": []
+        },
+        {
+          "name": "serializableProxy",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.SuperCallHandle"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.SuperMethod"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.SuperMethodHandle"
+    },
+    {
+      "type": "net.bytebuddy.implementation.bind.annotation.This",
+      "methods": [
+        {
+          "name": "optional",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.implementation.bytecode.assign.Assigner$Typing",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.jar.asmjdkbridge.JdkClassReader"
+    },
+    {
+      "type": "net.bytebuddy.utility.Invoker"
+    },
+    {
+      "type": "net.bytebuddy.utility.Invoker$Dispatcher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher"
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfClassDesc"
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfDirectMethodHandleDesc"
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfDirectMethodHandleDesc$ForKind"
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfDynamicConstantDesc"
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfMethodHandleDesc"
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfMethodTypeDesc"
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaModule$Module"
+    },
+    {
+      "type": "net.bytebuddy.utility.JavaModule$Resolver"
+    },
+    {
+      "type": "net.bytebuddy.utility.dispatcher.JavaDispatcher$Container"
+    },
+    {
+      "type": "net.bytebuddy.utility.dispatcher.JavaDispatcher$Defaults"
+    },
+    {
+      "type": "net.bytebuddy.utility.dispatcher.JavaDispatcher$Instance"
+    },
+    {
+      "type": "net.bytebuddy.utility.dispatcher.JavaDispatcher$IsStatic"
+    },
+    {
+      "type": "net.bytebuddy.utility.dispatcher.JavaDispatcher$Proxied"
+    },
+    {
+      "type": "net.bytebuddy.utility.nullability.MaybeNull"
+    },
+    {
+      "type": "org.eclipse.jetty.alpn.java.server.JDK9ServerALPNProcessor",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http.CookieCompliance$Violation",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http.Http1FieldPreEncoder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http.HttpCompliance$Violation",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http.HttpHeader",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http.HttpMethod",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http.HttpParser$State",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http.UriCompliance$Violation",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http.pathmap.PathSpecSet",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.http2.hpack.HpackFieldPreEncoder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.io.WriteFlusher$StateType",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.server.Response$EncodingFrom",
+      "methods": [
+        {
+          "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.servlets.CrossOriginFilter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.util.AsciiLowerCaseSet",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.eclipse.jetty.util.TypeUtil",
+      "methods": [
+        {
+          "name": "getClassLoaderLocation",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        },
+        {
+          "name": "getCodeSourceLocation",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        },
+        {
+          "name": "getModuleLocation",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        },
+        {
+          "name": "getSystemClassLoaderLocation",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
       "type": "org.mockito.Answers",
       "methods": [
         {
@@ -5161,6 +6702,9 @@
           "parameterTypes": []
         }
       ]
+    },
+    {
+      "type": "org.mockito.ArgumentCaptor"
     },
     {
       "type": "org.mockito.Captor"
@@ -5173,6 +6717,186 @@
       "methods": [
         {
           "name": "values",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.configuration.MockitoConfiguration"
+    },
+    {
+      "type": "org.mockito.internal.PremainAttach",
+      "methods": [
+        {
+          "name": "getInstrumentation",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.configuration.DefaultDoNotMockEnforcer",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.configuration.InjectingAnnotationEngine",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.configuration.plugins.DefaultPluginSwitch",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.MockMethodAdvice"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.MockMethodAdvice$ForEquals"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.MockMethodAdvice$ForHashCode"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.MockMethodAdvice$ForReadObject"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.MockMethodAdvice$ForStatic"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.MockMethodAdvice$Identifier"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.access.MockAccess"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor$DispatcherDefaultingToRealMethod"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor$ForEquals"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor$ForHashCode"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor$ForWriteReplace"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.Authenticator$MockitoMock$rm4pi81op99200N",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.Authenticator$MockitoMock$rm4pi81op99200N$auxiliary$4cscpe1S"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.Authenticator$MockitoMock$rm4pi81op99200N$auxiliary$7m9oaq0S"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.HttpClient$MockitoMock$ss9dcu1op99200N",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.HttpClient$MockitoMock$ss9dcu1op99200N$auxiliary$4cscpe1S"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.HttpClient$MockitoMock$ss9dcu1op99200N$auxiliary$7m9oaq0S"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.HttpResponse$MockitoMock$iu5qkd0op99200N",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.HttpResponse$MockitoMock$iu5qkd0op99200N$auxiliary$4cscpe1S"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.codegen.HttpResponse$MockitoMock$iu5qkd0op99200N$auxiliary$7m9oaq0S"
+    },
+    {
+      "type": "org.mockito.internal.creation.bytebuddy.inject.MockMethodDispatcher"
+    },
+    {
+      "type": "org.mockito.internal.creation.instance.DefaultInstantiatorProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.exceptions.stacktrace.DefaultStackTraceCleanerProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.matchers.CapturingMatcher"
+    },
+    {
+      "type": "org.mockito.internal.matchers.Equals"
+    },
+    {
+      "type": "org.mockito.internal.matchers.InstanceOf"
+    },
+    {
+      "type": "org.mockito.internal.util.ConsoleMockitoLogger",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.mockito.internal.util.reflection.InstrumentationMemberAccessor$Dispatcher"
+    },
+    {
+      "type": "org.mockito.internal.util.reflection.ModuleMemberAccessor",
+      "methods": [
+        {
+          "name": "<init>",
           "parameterTypes": []
         }
       ]
@@ -5199,6 +6923,95 @@
       ]
     },
     {
+      "type": "sun.net.www.protocol.http.Handler",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.nio.ch.SelectionKeyImpl",
+      "fields": [
+        {
+          "name": "interestOps"
+        }
+      ]
+    },
+    {
+      "type": "sun.security.jgss.SunProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.pkcs11.SunPKCS11",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.pkcs12.PKCS12KeyStore",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA224withDSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA256withDSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.JavaKeyStore$DualFormatJKS",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.JavaKeyStore$JKS",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "sun.security.provider.NativePRNG",
       "methods": [
         {
@@ -5215,6 +7028,261 @@
         {
           "name": "<init>",
           "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA2$SHA224",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA2$SHA256",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA384",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA512",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.X509Factory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.certpath.ldap.JdkLDAP",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.PSSParameters",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSAKeyFactory$Legacy",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSAPSSSignature",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA224withRSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.smartcardio.SunPCSC",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.ssl.KeyManagerFactoryImpl$SunX509",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.ssl.SSLContextImpl$DefaultSSLContext",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.ssl.SSLContextImpl$TLSContext",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.ssl.TrustManagerFactoryImpl$PKIXFactory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityInfoAccessExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityKeyIdentifierExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.BasicConstraintsExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.CRLDistributionPointsExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.CertificatePoliciesExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.ExtendedKeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.KeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.NetscapeCertTypeExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.PrivateKeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.SubjectKeyIdentifierExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
         }
       ]
     },
@@ -5473,7 +7541,112 @@
     {
       "type": {
         "proxy": [
+          "com.fasterxml.jackson.annotation.JsonInclude"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
           "com.fasterxml.jackson.annotation.JsonProperty"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonSubTypes"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonSubTypes$Type"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.annotation.JsonTypeInfo"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.databind.annotation.JacksonStdImpl"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "com.fasterxml.jackson.databind.annotation.JsonSerialize"
         ]
       },
       "methods": [
@@ -5578,6 +7751,741 @@
     {
       "type": {
         "proxy": [
+          "net.bytebuddy.asm.Advice$AllArguments"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.asm.Advice$Argument"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.asm.Advice$Enter"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.asm.Advice$OnMethodEnter"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.asm.Advice$OnMethodExit"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.asm.Advice$Origin"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.asm.Advice$Return"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.asm.Advice$This"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$Executable"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.method.ParameterDescription$ForLoadedParameter$Parameter"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.method.ParameterList$ForLoadedExecutable$Executable"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDefinition$Sort$AnnotatedType"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$ForLoadedType$Dispatcher"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$Delegator$ForLoadedExecutableExceptionType$Dispatcher"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$Delegator$ForLoadedExecutableParameterType$Dispatcher"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$Delegator$ForLoadedField$Dispatcher"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$Delegator$ForLoadedMethodReturnType$Dispatcher"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForComponentType$AnnotatedParameterizedType"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForOwnerType$AnnotatedType"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForTypeArgument$AnnotatedParameterizedType"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForTypeVariableBoundType$AnnotatedTypeVariable"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForTypeVariableBoundType$OfFormalTypeVariable$FormalTypeVariable"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.description.type.TypeDescription$Generic$AnnotationReader$ForWildcardUpperBoundType$AnnotatedWildcardType"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.AllArguments"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.Argument"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.BindingPriority"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.FieldValue"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.Origin"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.RuntimeType"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.StubValue"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.SuperCall"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.implementation.bind.annotation.This"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfClassDesc"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfDirectMethodHandleDesc"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfDirectMethodHandleDesc$ForKind"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfDynamicConstantDesc"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfMethodHandleDesc"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaConstant$Simple$Dispatcher$OfMethodTypeDesc"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaModule$Module"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.JavaModule$Resolver"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.dispatcher.JavaDispatcher$Container"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.dispatcher.JavaDispatcher$Defaults"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.dispatcher.JavaDispatcher$Instance"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.dispatcher.JavaDispatcher$IsStatic"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.dispatcher.JavaDispatcher$Proxied"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "net.bytebuddy.utility.nullability.MaybeNull"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
           "org.mockito.Captor"
         ]
       },
@@ -5594,6 +8502,21 @@
       "type": {
         "proxy": [
           "org.mockito.Mock"
+        ]
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "proxy": [
+          "org.mockito.internal.creation.bytebuddy.MockMethodAdvice$Identifier"
         ]
       },
       "methods": [
@@ -5668,6 +8591,974 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "com.fasterxml.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.fasterxml.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap",
+            "com.fasterxml.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap$Bucket[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer",
+          "interfaces": [
+            "java.util.function.BiFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer",
+          "interfaces": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer",
+          "interfaces": [
+            "java.util.function.ToLongFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.OffsetDateTimeSerializer",
+          "interfaces": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.OffsetDateTimeSerializer",
+          "interfaces": [
+            "java.util.function.ToLongFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer",
+          "interfaces": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer",
+          "interfaces": [
+            "java.util.function.ToLongFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.common.DefaultNetworkAddressRules",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.common.DefaultNetworkAddressRules",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.common.Lazy",
+          "interfaces": [
+            "java.util.function.UnaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.common.Lazy"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.common.Urls",
+          "interfaces": [
+            "com.google.common.collect.Maps$EntryTransformer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.common.xml.BuilderPerThreadDocumentBuilderFactory",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "javax.xml.parsers.DocumentBuilderFactory"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.core.WireMockApp",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.core.WireMockApp"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.core.WireMockApp",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.core.WireMockConfiguration",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.extension.ExtensionLoader",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.extension.Extensions",
+          "interfaces": [
+            "java.util.function.BinaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.extension.Extensions",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.extension.Extensions"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.extension.Extensions",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.extension.Extensions"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.extension.Extensions",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.extension.Extensions"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.extension.ServeEventListenerUtils",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.extension.ServeEventListener$RequestPhase",
+            "com.github.tomakehurst.wiremock.stubbing.ServeEvent"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.extension.ServeEventListenerUtils",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.http.CaseInsensitiveKey",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.http.HttpClientFactory",
+          "interfaces": [
+            "org.apache.hc.client5.http.ConnectionKeepAliveStrategy"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.http.HttpClientFactory",
+          "interfaces": [
+            "org.apache.hc.core5.http.ConnectionReuseStrategy"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.http.HttpServerFactoryLoader",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.http.Response",
+          "interfaces": [
+            "java.util.concurrent.Callable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.http.Response",
+            "com.github.tomakehurst.wiremock.common.Limit"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.http.Response$Builder",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.http.Response$Builder"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.jetty.JettyHttpServer",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.server.Server"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.jetty11.Jetty11HttpServer",
+          "interfaces": [
+            "java.util.function.IntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.jetty11.Jetty11HttpServer",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.jetty11.Jetty11Utils",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.server.ServerConnector"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.junit5.WireMockExtension",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.junit5.WireMockExtension"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.junit5.WireMockExtension",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.junit5.WireMockExtension",
+            "com.github.tomakehurst.wiremock.core.Options"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.matching.MatchResult",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.matching.StringValuePattern",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.matching.StringValuePattern",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.matching.WeightedAggregateMatchResult",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.matching.WeightedAggregateMatchResult",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.servlet.WireMockHandlerDispatchingServlet$ServletHttpResponder",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "jakarta.servlet.http.HttpServletRequest"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.servlet.WireMockHttpServletRequestAdapter",
+          "interfaces": [
+            "com.google.common.base.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.servlet.WireMockHttpServletRequestAdapter",
+          "interfaces": [
+            "com.google.common.base.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "jakarta.servlet.http.HttpServletRequest"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.servlet.WireMockHttpServletRequestAdapter",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.standalone.JsonFileMappingsSource",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.store.InMemoryStubMappingStore",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.UUID"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.store.StubMappingStore",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.Consumer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.store.StubMappingStore",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.http.Request",
+            "java.util.Map"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.store.StubMappingStore",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.stubbing.AbstractStubMappings",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.stubbing.ServeEvent"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.stubbing.AbstractStubMappings",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.stubbing.AbstractStubMappings"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.stubbing.SortedConcurrentMappingSet",
+          "interfaces": [
+            "java.util.Comparator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.verification.LoggedRequest",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.github.tomakehurst.wiremock.verification.LoggedRequest",
+            "byte[]"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "byte[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.github.tomakehurst.wiremock.verification.NearMissCalculator",
+          "interfaces": [
+            "java.util.Comparator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.batch.Status",
           "interfaces": [
             "java.util.function.Predicate"
@@ -5722,6 +9613,22 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.ChatRestClient",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.chat.ChatUtility",
           "interfaces": [
             "java.util.function.Predicate"
@@ -5734,6 +9641,103 @@
           "parameterTypes": [
             "java.lang.Class"
           ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.DefaultRestClient",
+          "interfaces": [
+            "java.net.http.HttpResponse$BodyHandler"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.DefaultRestClient",
+            "java.util.concurrent.Flow$Subscriber"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.DefaultRestClient",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.CompletableFuture",
+            "com.ibm.watsonx.ai.chat.streaming.DefaultChatSubscriber",
+            "java.util.concurrent.CompletableFuture"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.CompletableFuture",
+            "java.lang.Throwable"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.DefaultRestClient",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.DefaultRestClient",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.chat.streaming.DefaultChatSubscriber",
+            "java.util.concurrent.CompletableFuture"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.chat.DefaultRestClient",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
         }
       ]
     },
@@ -6333,6 +10337,420 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.RetryConfig",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.AsyncHttpClient",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.CompletableFuture"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.CompletableFuture",
+            "com.ibm.watsonx.ai.core.http.AsyncHttpClient$InterceptorChain"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.AsyncHttpClient$InterceptorChain",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.CompletableFuture"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.AsyncHttpClient$InterceptorChain",
+          "interfaces": [
+            "java.net.http.HttpResponse$BodyHandler"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.net.http.HttpResponse$BodyHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.AsyncHttpClient$InterceptorChain",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.AsyncHttpClient$InterceptorChain",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "java.net.http.HttpResponse$ResponseInfo"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.BaseHttpClient",
+          "interfaces": [
+            "java.util.function.BiPredicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.BaseHttpClient",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.net.http.HttpRequest"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.SyncHttpClient",
+          "interfaces": [
+            "com.ibm.watsonx.ai.core.http.SyncHttpClient$Sleeper"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.TimeUnit"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.SyncHttpClient",
+          "interfaces": [
+            "java.util.function.LongSupplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.SyncHttpClient$InterceptorChain",
+          "interfaces": [
+            "java.net.http.HttpResponse$BodyHandler"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.net.http.HttpResponse$BodyHandler",
+            "java.util.concurrent.atomic.AtomicReference"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.SyncHttpClient$InterceptorChain",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.atomic.AtomicReference"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor",
+          "interfaces": [
+            "java.util.function.BiPredicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.core.http.interceptors.AuthenticationInterceptor",
+            "com.ibm.watsonx.ai.core.http.AsyncHttpInterceptor$AsyncChain",
+            "java.net.http.HttpRequest",
+            "java.net.http.HttpResponse$BodyHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Exception"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Exception"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry",
+            "int",
+            "java.time.Duration",
+            "java.lang.Throwable"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry",
+            "java.util.concurrent.CompletableFuture"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry",
+          "interfaces": [
+            "java.util.function.BiFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry",
+            "int",
+            "java.time.Duration"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Throwable"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "com.ibm.watsonx.ai.core.http.interceptors.RetryInterceptor$AsyncRetry",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Throwable"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "com.ibm.watsonx.ai.core.internal.logging.LogSanitizer",
           "interfaces": [
             "java.util.function.IntPredicate"
@@ -6544,6 +10962,24 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "java.lang.ProcessImpl",
+          "interfaces": [
+            "java.util.function.BiFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.ProcessImpl"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "java.lang.VirtualThread",
           "interfaces": [
             "java.lang.Runnable"
@@ -6698,6 +11134,42 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "java.lang.runtime.SwitchBootstraps",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "boolean",
+            "java.lang.Class",
+            "java.lang.Object[]",
+            "java.util.List",
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Object[]",
+            "int",
+            "int",
+            "java.util.List",
+            "java.lang.Class",
+            "int",
+            "java.util.List",
+            "java.util.List",
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "java.net.InetAddress",
           "interfaces": [
             "java.util.function.Function"
@@ -6730,9 +11202,182 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "java.net.http.HttpHeaders",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.BiPredicate",
+            "java.util.ArrayList",
+            "java.util.TreeMap",
+            "java.util.TreeSet"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpHeaders",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.BiPredicate",
+            "java.lang.String",
+            "java.util.ArrayList"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpHeaders",
+          "interfaces": [
+            "java.util.function.ToLongFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpRequest",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.net.http.HttpRequest$Builder"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpRequest",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.net.http.HttpRequest$Builder"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpRequest",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.net.http.HttpRequest$Builder"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.net.http.HttpRequest$Builder",
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpResponse$BodyHandlers",
+          "interfaces": [
+            "java.net.http.HttpResponse$BodyHandler"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.net.http.HttpResponse$BodySubscribers",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.nio.charset.Charset"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "java.security.Provider",
           "interfaces": [
             "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.security.spec.EncodedKeySpec",
+          "interfaces": [
+            "jdk.internal.access.JavaSecuritySpecAccess"
           ]
         }
       },
@@ -6879,6 +11524,41 @@
         {
           "name": "<init>",
           "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.ResourceBundle$ResourceBundleControlProviderHolder",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.function.BiPredicate",
+          "interfaces": [
+            "java.util.function.BiPredicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.function.BiPredicate",
+            "java.util.function.BiPredicate"
+          ]
         }
       ]
     },
@@ -7247,6 +11927,38 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "java.util.stream.FindOps$FindSink$OfLong",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "java.util.stream.FindOps$FindSink$OfLong",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "java.util.stream.IntPipeline",
           "interfaces": [
             "java.util.function.IntBinaryOperator"
@@ -7424,6 +12136,31 @@
     {
       "type": {
         "lambda": {
+          "declaringClass": "javax.xml.transform.FactoryFinder",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class",
+            "java.lang.ClassLoader"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
           "declaringClass": "jdk.xml.internal.XMLSecurityManager$StringMapper",
           "interfaces": [
             "java.util.function.Function"
@@ -7434,6 +12171,1628 @@
         {
           "name": "<init>",
           "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.apache.hc.client5.http.impl.classic.HttpClientBuilder",
+          "interfaces": [
+            "java.security.PrivilegedAction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.apache.hc.client5.http.impl.classic.HttpClientBuilder",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator",
+          "interfaces": [
+            "org.apache.hc.client5.http.io.DetachedSocketFactory"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder",
+          "interfaces": [
+            "org.apache.hc.client5.http.ssl.TlsSocketStrategy"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder",
+          "interfaces": [
+            "org.apache.hc.core5.function.Resolver"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.apache.hc.client5.http.config.ConnectionConfig"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.apache.hc.core5.util.Tokenizer",
+          "interfaces": [
+            "org.apache.hc.core5.util.Tokenizer$Delimiter"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "char"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "char",
+            "char"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "char",
+            "char",
+            "char"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory",
+            "java.lang.IllegalStateException"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.HttpHeader",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.HttpHeaderValue",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.HttpMethod",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.HttpParser",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.HttpScheme",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.HttpVersion",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.MimeTypes",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.Properties"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.MimeTypes",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.MimeTypes",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.PreEncodedHttpField",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http.pathmap.PathMappings",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http2.HTTP2Cipher",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http2.server.AbstractHTTP2ServerConnectionFactory",
+          "interfaces": [
+            "org.eclipse.jetty.http2.FlowControlStrategy$Factory"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http2.server.AbstractHTTP2ServerConnectionFactory$HTTP2SessionContainer",
+          "interfaces": [
+            "java.util.function.BiConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.CompletableFuture"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http2.server.AbstractHTTP2ServerConnectionFactory$HTTP2SessionContainer",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.http2.server.AbstractHTTP2ServerConnectionFactory$HTTP2SessionContainer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.http2.server.AbstractHTTP2ServerConnectionFactory$HTTP2SessionContainer",
+          "interfaces": [
+            "java.util.function.IntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.AbstractByteBufferPool",
+          "interfaces": [
+            "java.util.function.IntConsumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.concurrent.atomic.AtomicLong"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.ArrayByteBufferPool",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.io.ArrayByteBufferPool"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.ArrayRetainableByteBufferPool",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.util.Pool$Entry"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.IdleTimeout",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.io.IdleTimeout"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.LogarithmicArrayByteBufferPool$LogarithmicRetainablePool",
+          "interfaces": [
+            "java.util.function.IntUnaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.ManagedSelector",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.util.thread.ExecutionStrategy"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.ManagedSelector",
+          "interfaces": [
+            "org.eclipse.jetty.io.ManagedSelector$SelectorUpdate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.nio.channels.SelectionKey",
+            "java.nio.channels.SelectableChannel",
+            "org.eclipse.jetty.io.EndPoint"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.RetainableByteBuffer",
+          "interfaces": [
+            "java.util.function.IntUnaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.io.RetainableByteBuffer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.SelectableChannelEndPoint",
+          "interfaces": [
+            "org.eclipse.jetty.io.ManagedSelector$SelectorUpdate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.io.SelectableChannelEndPoint"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.io.SelectorManager",
+          "interfaces": [
+            "java.util.function.IntUnaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.io.SelectorManager"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.AbstractConnectionFactory",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.io.AbstractConnection"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.AbstractConnector",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.server.AbstractConnector"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.AbstractConnector",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.AbstractConnector",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.AllowedResourceAliasChecker",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.server.handler.ContextHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.HttpChannel",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.server.HttpChannel"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.HttpChannel",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.server.HttpChannelState"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.HttpChannelOverHttp",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.HttpChannelOverHttp",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.server.HttpChannelOverHttp"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.Server",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.util.MultiException"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.Server",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.Server",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.server.SslConnectionFactory",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.servlet.FilterHolder",
+          "interfaces": [
+            "java.util.function.BiFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.servlet.ServletHandler",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.util.MultiException"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.servlet.ServletHandler",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.servlet.ServletHandler",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.servlet.ServletHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.servlet.ServletHolder",
+          "interfaces": [
+            "java.util.function.BiFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.AbstractTrie",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.component.Graceful",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.component.Graceful",
+          "interfaces": [
+            "java.util.function.IntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.security.Credential",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.ssl.SslContextFactory",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.regex.Pattern"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.statistic.SampleStatistic",
+          "interfaces": [
+            "java.util.function.LongBinaryOperator"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.thread.QueuedThreadPool",
+          "interfaces": [
+            "java.lang.Runnable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.thread.QueuedThreadPool",
+          "interfaces": [
+            "java.security.PrivilegedAction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.util.thread.QueuedThreadPool",
+            "java.lang.Runnable"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.thread.ReservedThreadExecutor",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.thread.ReservedThreadExecutor",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.thread.ReservedThreadExecutor",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.thread.ScheduledExecutorScheduler",
+          "interfaces": [
+            "java.util.concurrent.ThreadFactory"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.eclipse.jetty.util.thread.ScheduledExecutorScheduler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.eclipse.jetty.util.thread.ThreadPoolBudget",
+          "interfaces": [
+            "java.util.function.ToIntFunction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.PremainAttachAccess",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.configuration.IndependentAnnotationEngine",
+          "interfaces": [
+            "java.lang.AutoCloseable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.configuration.InjectingAnnotationEngine",
+          "interfaces": [
+            "java.lang.AutoCloseable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.List"
+          ]
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.util.Set"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.configuration.MockAnnotationProcessor",
+          "interfaces": [
+            "org.mockito.internal.util.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.Field"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.mockito.internal.creation.bytebuddy.TypeSupport"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker",
+            "java.lang.ThreadLocal",
+            "java.lang.ThreadLocal",
+            "java.util.function.Predicate"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker",
+          "interfaces": [
+            "org.mockito.internal.creation.bytebuddy.ConstructionCallback"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker",
+            "java.lang.ThreadLocal",
+            "java.lang.ThreadLocal"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker",
+          "interfaces": [
+            "org.mockito.plugins.MemberAccessor$OnConstruction"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker",
+            "java.lang.Class"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.creation.bytebuddy.SubclassBytecodeGenerator",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator",
+          "interfaces": [
+            "java.util.concurrent.Callable"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.mockito.internal.creation.bytebuddy.TypeCachingBytecodeGenerator",
+            "org.mockito.internal.creation.bytebuddy.MockFeatures"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.debugging.LocationImpl",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "boolean"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.debugging.LocationImpl",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.mockito.exceptions.stacktrace.StackTraceCleaner"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.debugging.LocationImpl",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.invocation.TypeSafeMatching",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.mockito.ArgumentMatcher"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.internal.util.reflection.ReflectionMemberAccessor",
+          "interfaces": [
+            "org.mockito.plugins.MemberAccessor$ConstructionDispatcher"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.reflect.Constructor",
+            "java.lang.Object[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.junit.jupiter.MockitoExtension",
+          "interfaces": [
+            "java.util.function.Consumer"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.junit.jupiter.api.extension.ExtensionContext"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.junit.jupiter.MockitoExtension",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "org.mockito.junit.jupiter.resolver.CompositeParameterResolver",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "org.junit.jupiter.api.extension.ParameterContext",
+            "org.junit.jupiter.api.extension.ExtensionContext"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.nio.fs.UnixSecureDirectoryStream",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "sun.nio.fs.UnixSecureDirectoryStream"
+          ]
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.security.ec.ed.EdDSAParameters",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.security.ec.ed.EdDSASignature",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.security.pkcs.PKCS9Attribute",
+          "interfaces": [
+            "sun.security.pkcs.PKCS9Attribute$Decoder"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.security.pkcs.PKCS9Attribute",
+          "interfaces": [
+            "sun.security.pkcs.PKCS9Attribute$Encoder"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.security.pkcs11.SunPKCS11",
+          "interfaces": [
+            "java.util.function.Function"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.security.ssl.SSLContextImpl",
+          "interfaces": [
+            "java.util.function.Supplier"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": {
+        "lambda": {
+          "declaringClass": "sun.security.util.DisabledAlgorithmConstraints",
+          "interfaces": [
+            "java.util.function.Predicate"
+          ]
+        }
+      },
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
         }
       ]
     },
@@ -7755,6 +14114,9 @@
   ],
   "resources": [
     {
+      "glob": "META-INF/services/com.ibm.watsonx.ai.chat.ChatRestClient$ChatRestClientBuilderFactory"
+    },
+    {
       "glob": "META-INF/services/com.ibm.watsonx.ai.core.spi.executor.CallbackExecutorProvider"
     },
     {
@@ -7768,6 +14130,15 @@
     },
     {
       "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.URLStreamHandlerProvider"
+    },
+    {
+      "glob": "META-INF/services/java.nio.channels.spi.SelectorProvider"
+    },
+    {
+      "glob": "META-INF/services/java.util.spi.ResourceBundleControlProvider"
     },
     {
       "glob": "META-INF/services/javax.xml.parsers.DocumentBuilderFactory"

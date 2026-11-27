@@ -7,7 +7,6 @@ package com.ibm.watsonx.ai.chat;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -69,12 +68,7 @@ public class ChatService extends CryptoService implements ChatProvider<ChatReque
 
         var defaultParametersBuilder = nonNull(builder.defaultParameters)
             ? builder.defaultParameters.toBuilder()
-                .timeLimit(
-                    nonNull(builder.defaultParameters.timeLimit())
-                        ? Duration.ofMillis(builder.defaultParameters.timeLimit())
-                        : timeout
-                )
-            : ChatParameters.builder().timeLimit(timeout);
+            : ChatParameters.builder();
 
         defaultParameters = defaultParametersBuilder.modelId(modelId)
             .projectId(projectId)

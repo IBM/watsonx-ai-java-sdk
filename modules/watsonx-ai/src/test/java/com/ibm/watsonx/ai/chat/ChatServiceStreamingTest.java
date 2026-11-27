@@ -138,6 +138,80 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
             """;
 
     @Test
+    void should_fail_stream_with_watsonx_exception_when_sse_error_contains_details() {
+        var callbackError = new AtomicReference<Throwable>();
+        var errorCalls = new AtomicInteger();
+        var completionCalls = new AtomicInteger();
+        var response = structuredSseErrorService().chatStreaming("Hi", new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+            @Override
+            public void onError(Throwable error) {
+                errorCalls.incrementAndGet();
+                callbackError.set(error);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                completionCalls.incrementAndGet();
+            }
+
+            @Override
+            public boolean failOnFirstError() {
+                return true;
+            }
+        });
+
+        try {
+            var failure = assertThrows(ExecutionException.class, () -> response.get(5, TimeUnit.SECONDS));
+            assertStructuredSseError(failure.getCause());
+            assertSame(failure.getCause(), callbackError.get());
+            assertEquals(1, errorCalls.get());
+            assertEquals(0, completionCalls.get());
+        } finally {
+            response.cancel(true);
+        }
+    }
+
+    @Test
+    void should_preserve_partial_response_after_structured_sse_error_by_default() {
+        var callbackError = new AtomicReference<Throwable>();
+        var completeResponse = new AtomicReference<ChatResponse>();
+        var errorCalls = new AtomicInteger();
+        var partial = new StringBuilder();
+        var response = structuredSseErrorService().chatStreaming("Hi", new ChatHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {
+                partial.append(partialResponse);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                errorCalls.incrementAndGet();
+                callbackError.set(error);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse completed) {
+                completeResponse.set(completed);
+            }
+        });
+
+        try {
+            var completed = assertDoesNotThrow(() -> response.get(5, TimeUnit.SECONDS));
+            assertStructuredSseError(callbackError.get());
+            assertEquals(1, errorCalls.get());
+            assertSame(completed, completeResponse.get());
+            assertEquals("Partial answer", partial.toString());
+            assertEquals("Partial answer", completed.toAssistantMessage().content());
+            assertEquals(FinishReason.ERROR, completed.finishReason());
+        } finally {
+            response.cancel(true);
+        }
+    }
+
+    @Test
     void should_stream_chat_response_in_chunks_correctly() throws Exception {
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -164,7 +238,6 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         }
                     ],
                     "max_completion_tokens": 0,
-                    "time_limit": 60000,
                     "temperature": 0
                 }"""))
             .willReturn(aResponse()
@@ -321,8 +394,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         }
                       }
                     }
-                  } ],
-                  "time_limit" : 60000
+                  } ]
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -547,8 +619,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                             }
                         }
                     ],
-                    "tool_choice_option": "required",
-                    "time_limit": 60000
+                    "tool_choice_option": "required"
                 }"""))
             .willReturn(aResponse()
                 .withStatus(200)
@@ -1273,8 +1344,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                             "text": "Ciao"
                           }]
                         }
-                      ],
-                      "time_limit": 60000
+                      ]
                     }"""
             ))
             .willReturn(aResponse()
@@ -1310,8 +1380,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                             "text": "Hello"
                           }]
                         }
-                      ],
-                      "time_limit": 60000
+                      ]
                     }"""
             ))
             .willReturn(aResponse()
@@ -1396,8 +1465,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                   "type" : "text",
                   "text" : "Hello 1"
                 } ]
-              } ],
-              "time_limit" : 60000
+              } ]
             }""";
 
         String SECOND_CALL = """
@@ -1411,8 +1479,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                   "type" : "text",
                   "text" : "Hello 2"
                 } ]
-              } ],
-              "time_limit" : 60000
+              } ]
             }""";
 
         when(mockAuthenticator.tokenAsync())
@@ -1616,8 +1683,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                             }
                         ]
                     }
-                ],
-                "time_limit": 60000
+                ]
             }""";
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -1788,8 +1854,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                             }
                         }
                     }
-                ],
-            "time_limit": 60000
+                ]
             }""";
 
         wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
@@ -2111,8 +2176,7 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
                         }
                       ],
                       "tool_choice_option" : "required",
-                      "max_completion_tokens": 0,
-                      "time_limit": 60000
+                      "max_completion_tokens": 0
                     }
                     """))
             .willReturn(aResponse()
@@ -4582,5 +4646,37 @@ public class ChatServiceStreamingTest extends AbstractWatsonxTest {
 
     private ChatService.Builder defaultRequestServiceBuilder() {
         return ChatService.builder().baseUrl(CloudRegion.DALLAS).authenticator(mockAuthenticator).projectId("project").modelId("model");
+    }
+
+    private ChatService structuredSseErrorService() {
+        when(mockAuthenticator.tokenAsync()).thenReturn(completedFuture("token"));
+        wireMock.stubFor(post("/ml/v1/text/chat_stream?version=%s".formatted(API_VERSION))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "text/event-stream")
+                .withBody("""
+                    event: message
+                    data: {"choices":[{"index":0,"delta":{"role":"assistant","content":"Partial answer"},"finish_reason":null}]}
+
+                    event: error
+                    data: {"errors":[{"code":"downstream_request_failed","message":"context deadline exceeded"}],"status_code":500}
+
+                    """)));
+        return ChatService.builder()
+            .authenticator(mockAuthenticator)
+            .modelId("ibm/granite-4-h-small")
+            .projectId("project-id")
+            .baseUrl(URI.create("http://localhost:%s".formatted(wireMock.getPort())))
+            .build();
+    }
+
+    private void assertStructuredSseError(Throwable failure) {
+        var error = assertInstanceOf(WatsonxException.class, failure);
+        assertEquals(500, error.statusCode());
+        var details = error.details().orElseThrow();
+        assertEquals(500, details.statusCode());
+        assertEquals(1, details.errors().size());
+        assertTrue(details.errors().get(0).is(WatsonxError.Code.DOWNSTREAM_REQUEST_FAILED));
+        assertEquals("context deadline exceeded", details.errors().get(0).message());
     }
 }

@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Paths;
@@ -67,6 +68,7 @@ import com.ibm.watsonx.ai.chat.model.schema.JsonSchema;
 import com.ibm.watsonx.ai.core.auth.Authenticator;
 import com.ibm.watsonx.ai.core.auth.ibmcloud.IBMCloudAuthenticator;
 import com.ibm.watsonx.ai.core.exception.WatsonxException;
+import com.ibm.watsonx.ai.core.exception.model.WatsonxError;
 
 @EnabledIfEnvironmentVariable(named = "WATSONX_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "WATSONX_PROJECT_ID", matches = ".+")
@@ -93,6 +95,35 @@ public class ChatServiceIT {
 
     @Nested
     class Chat {
+
+        @Test
+        void should_propagate_downstream_error_when_generation_time_limit_is_reached() {
+
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .apiKey(API_KEY)
+                .projectId(PROJECT_ID)
+                .modelId("openai/gpt-oss-120b")
+                .timeout(Duration.ofSeconds(60))
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var parameters = ChatParameters.builder()
+                .timeLimit(Duration.ofSeconds(1))
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(UserMessage.text("Generate a poem about dogs, 3000 words"))
+                .parameters(parameters)
+                .build();
+
+            var ex = assertThrows(WatsonxException.class, () -> chatService.chat(chatRequest));
+            assertEquals(500, ex.statusCode());
+            var details = ex.details().orElseThrow();
+            assertTrue(details.errors().get(0).message().contains("context deadline exceeded"));
+            assertEquals(WatsonxError.Code.DOWNSTREAM_REQUEST_FAILED.value(), details.errors().get(0).code());
+        }
 
         @Test
         void should_return_valid_chat_response_when_chat_is_invoked() {
@@ -802,6 +833,52 @@ public class ChatServiceIT {
 
     @Nested
     class ChatStreaming {
+
+        @Test
+        void should_propagate_downstream_error_when_generation_time_limit_is_reached() throws Exception {
+            var chatService = ChatService.builder()
+                .baseUrl(URL)
+                .apiKey(API_KEY)
+                .projectId(PROJECT_ID)
+                .modelId("openai/gpt-oss-120b")
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+            var parameters = ChatParameters.builder()
+                .timeLimit(Duration.ofSeconds(1))
+                .build();
+
+            var chatRequest = ChatRequest.builder()
+                .messages(UserMessage.text("Generate a poem about dogs, 3000 words"))
+                .parameters(parameters)
+                .build();
+
+            var callbackError = new CompletableFuture<Throwable>();
+
+            var future = chatService.chatStreaming(chatRequest, new ChatHandler() {
+                @Override
+                public void onPartialResponse(String partialResponse, PartialChatResponse partialChatResponse) {}
+
+                @Override
+                public void onError(Throwable error) {
+                    callbackError.complete(error);
+                }
+
+                @Override
+                public boolean failOnFirstError() {
+                    return true;
+                }
+            });
+
+            var failure = assertThrows(ExecutionException.class, () -> future.get(60, TimeUnit.SECONDS));
+            var error = assertInstanceOf(WatsonxException.class, failure.getCause());
+            assertEquals(500, error.statusCode());
+            var details = error.details().orElseThrow();
+            assertTrue(details.errors().get(0).message().contains("context deadline exceeded"));
+            assertEquals(WatsonxError.Code.DOWNSTREAM_REQUEST_FAILED.value(), details.errors().get(0).code());
+            assertSame(error, callbackError.get(5, TimeUnit.SECONDS));
+        }
 
         @ParameterizedTest
         @ValueSource(strings = { "ibm/granite-4-h-small", "mistralai/mistral-small-3-1-24b-instruct-2503" })

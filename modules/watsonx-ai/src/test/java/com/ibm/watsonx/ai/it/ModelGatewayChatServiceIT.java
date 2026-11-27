@@ -87,6 +87,26 @@ public class ModelGatewayChatServiceIT {
     class Chat {
 
         @Test
+        void should_reject_unsupported_time_limit_when_chat_is_invoked() {
+            var service = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .modelId(CHAT_MODEL_OPENAI)
+                .timeout(Duration.ofSeconds(60))
+                .build();
+
+            var request = ModelGatewayChatRequest.builder()
+                .messages(UserMessage.text("Generate a poem about dogs, 3000 words"))
+                .parameters(ModelGatewayChatParameters.builder().timeLimit(Duration.ofMillis(1)).build())
+                .build();
+
+            var error = assertThrows(IllegalArgumentException.class, () -> service.chat(request));
+            assertEquals(
+                "timeLimit is not supported by Model Gateway. Configure the HTTP timeout with ModelGatewayChatService.Builder.timeout(Duration).",
+                error.getMessage());
+        }
+
+        @Test
         void should_return_valid_chat_response_when_chat_is_invoked() {
 
             var modelGatewayChatService = ModelGatewayChatService.builder()
@@ -311,12 +331,9 @@ public class ModelGatewayChatServiceIT {
                 .baseUrl(URL)
                 .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
+                .timeout(Duration.ofSeconds(30))
                 .logRequests(true)
                 .logResponses(true)
-                .build();
-
-            var parameters = ModelGatewayChatParameters.builder()
-                .timeLimit(Duration.ofSeconds(30))
                 .build();
 
             ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
@@ -324,7 +341,6 @@ public class ModelGatewayChatServiceIT {
                     "Give a short description of the image",
                     Paths.get(image.toURI())
                 ))
-                .parameters(parameters)
                 .build();
 
             var chatResponse = assertDoesNotThrow(() -> modelGatewayChatService.chat(request));
@@ -665,6 +681,28 @@ public class ModelGatewayChatServiceIT {
     @EnabledIfEnvironmentVariable(named = "WATSONX_GATEWAY_CHAT_MODEL_OPENAI", matches = ".+")
     class ChatStreaming {
 
+        @Test
+        void should_reject_unsupported_time_limit_when_chat_streaming_is_invoked() {
+            var service = ModelGatewayChatService.builder()
+                .baseUrl(URL)
+                .authenticator(authentication)
+                .modelId(CHAT_MODEL_OPENAI)
+                .timeout(Duration.ofSeconds(60))
+                .logRequests(true)
+                .build();
+
+            var request = ModelGatewayChatRequest.builder()
+                .messages(UserMessage.text("Generate a poem about dogs, 3000 words"))
+                .parameters(ModelGatewayChatParameters.builder().timeLimit(Duration.ofMillis(1)).build())
+                .build();
+
+            var error = assertThrows(IllegalArgumentException.class,
+                () -> service.chatStreaming(request, (partialResponse, partialChatResponse) -> {}));
+            assertEquals(
+                "timeLimit is not supported by Model Gateway. Configure the HTTP timeout with ModelGatewayChatService.Builder.timeout(Duration).",
+                error.getMessage());
+        }
+
         @ParameterizedTest
         @ValueSource(strings = { "WATSONX_GATEWAY_CHAT_MODEL_CLAUDE", "WATSONX_GATEWAY_CHAT_MODEL_GEMMA", "WATSONX_GATEWAY_CHAT_MODEL_OPENAI" })
         void should_complete_gateway_tools_in_streaming_order(String modelVariable) throws Exception {
@@ -963,12 +1001,9 @@ public class ModelGatewayChatServiceIT {
                 .baseUrl(URL)
                 .modelId(CHAT_MODEL_CLAUDE)
                 .authenticator(authentication)
+                .timeout(Duration.ofSeconds(30))
                 .logRequests(true)
                 .logResponses(true)
-                .build();
-
-            var parameters = ModelGatewayChatParameters.builder()
-                .timeLimit(Duration.ofSeconds(30))
                 .build();
 
             ModelGatewayChatRequest request = ModelGatewayChatRequest.builder()
@@ -976,7 +1011,6 @@ public class ModelGatewayChatServiceIT {
                     TextContent.of("Give a short description of the image"),
                     ImageContent.from(Paths.get(image.toURI()))
                 ))
-                .parameters(parameters)
                 .build();
 
             CompletableFuture<String> partialResponseFuture = new CompletableFuture<>();
